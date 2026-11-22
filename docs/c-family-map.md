@@ -693,9 +693,14 @@ or sanitizer-qualified UB result.
 **Integer-to-pointer wall price (2026-11-22).** The dynamic ranking has 12
 sole rows refusing `integer-to-pointer conversion outside pointer type`. The
 rows are address arithmetic, pointer round-trips and builtin-prefetch cases.
-The current PNVI-ae contract requires an exposure flag and recovery choice for
-each integer-to-pointer conversion, so these refusals remain the correct
-boundary until S2 supplies that choice.
+All 12 have clean pinned O0/O2 and UBSan/ASan runs. The receipt is in
+[`docs/c-integer-pointer-price-20261122.md`](c-integer-pointer-price-20261122.md),
+with machine rows in
+[`docs/c-integer-pointer-price-20261122.json`](c-integer-pointer-price-20261122.json).
+Native cleanliness supplies no UB witness. The current PNVI-ae contract
+requires an exposure flag and recovery choice for each integer-to-pointer
+conversion, so these refusals remain the correct boundary until S2 supplies
+that choice.
 
 **Floating-store wall price (2026-11-22).** The dynamic ranking has 11 sole
 rows refusing `floating store without a floating layout`. These rows use
