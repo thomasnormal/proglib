@@ -116,3 +116,7 @@ root = "LeanModels.Circuit.DCRunner"
 name = "c-torture-run"
 root = "LeanModels.C.TortureMain"
 
+[[lean_exe]]
+name = "darkriscv-replay"
+root = "harness.rv.darkriscv_memory_replay"
+needs = ["svEnvelopes"]
