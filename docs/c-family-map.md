@@ -818,3 +818,12 @@ clean pinned O0/O2 and UBSan/ASan runs. The receipt is in
 with machine rows in
 [`docs/c-escaped-flow-price-20261122.json`](c-escaped-flow-price-20261122.json).
 The refusal remains the flow-aware evaluator boundary.
+
+**External object `b` wall price (2026-11-22).** The dynamic ranking has four
+sole rows refusing `extern object 'b' has no definition in the translation
+unit`. All four have clean pinned O0/O2 and UBSan/ASan runs. The receipt is in
+[`docs/c-extern-b-price-20261122.md`](c-extern-b-price-20261122.md), with
+machine rows in
+[`docs/c-extern-b-price-20261122.json`](c-extern-b-price-20261122.json).
+The refusal remains the unresolved external-object and companion-linkage
+boundary.
