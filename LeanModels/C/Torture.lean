@@ -529,13 +529,13 @@ def layoutFor (envl : Envelope) : Layout :=
             |>.bind (fun field => field.widthBits.map (fun width => (field.offsetBits, width)))
     | _ => none
   let observedFlexibleDeclFor := fun (did : DeclarationId) (f : String) =>
-    match ds.find? (fun q => match q with
-      | .var (some vid) _ _ _ _ (some rid) _ _ _ => vid == did &&
-          ds.any (fun r => match r with
-            | .record (some rrid) _ _ (some _) _ _ => rrid == rid
-            | _ => false)
-      | _ => false) with
-    | some (.var _ _ _ _ _ (some rid) _ _ _) =>
+    let recordId := (ds.find? (fun q => match q with
+      | .var (some vid) _ _ _ _ (some _) _ _ _ => vid == did
+      | _ => false)).bind (fun q => match q with
+        | .var _ _ _ _ _ (some rid) _ _ _ => some rid
+        | _ => none) |>.orElse (fun _ => structuredRecordIdFor did)
+    match recordId with
+    | some rid =>
         match ds.find? (fun q => match q with
           | .record (some rrid) _ .. => rrid == rid
           | _ => false) with
