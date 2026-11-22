@@ -181,6 +181,36 @@
     ]
   },
   {
+    "id": "vla-bound-expression-refusal",
+    "source": "void f(int n) { double v[n]; for (int i = 0; i < n; ++i) v[i] = 0; } int main(void) { f(100); return 0; }",
+    "expect": "refuse",
+    "error": "variable-length array"
+  },
+  {
+    "id": "vla-bound-expression-refusal-int",
+    "source": "void f(int n) { int v[n]; v[0] = 1; } int main(void) { f(100); return 0; }",
+    "expect": "refuse",
+    "error": "variable-length array"
+  },
+  {
+    "id": "vla-bound-expression-refusal-char",
+    "source": "void f(int n) { char v[n]; v[0] = 1; } int main(void) { f(100); return 0; }",
+    "expect": "refuse",
+    "error": "variable-length array"
+  },
+  {
+    "id": "vla-bound-expression-refusal-struct",
+    "source": "struct S { int x; }; void f(int n) { struct S v[n]; v[0].x = 1; } int main(void) { f(100); return 0; }",
+    "expect": "refuse",
+    "error": "variable-length array"
+  },
+  {
+    "id": "pointer-goto-increment-refusal",
+    "source": "int main(void) { char a[2] = {0, 0}; char *p = a; goto out; out: p++; return p == a + 1 ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "goto-controlled pointer increment"
+  },
+  {
     "id": "plain-string-index",
     "source": "int main(void) { const char *p = \"hello\"; return p[0] == 'h' ? 0 : 1; }",
     "expect": "refuse",

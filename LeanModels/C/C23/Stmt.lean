@@ -881,6 +881,13 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
           match storage with
           | some "auto" | some "register" | some "static" | none => pure ()
           | some s => refuseUnsupported s!"block-scope storage class '{s}' is outside the tier"
+          let variableLength := structuredType.any fun type =>
+            match type.unqualified with
+            | .array _ none => true
+            | _ => false
+          if variableLength then
+            refuseUnsupported
+              s!"variable-length array '{ty}' lacks parser-native bound expression"
           match if vaList then some 1 else ctx.layout.sizeAt id ty with
           | none => refuseUnsupported s!"no layout for declared type '{ty}'"
           | some sz => do
@@ -1039,6 +1046,17 @@ def hasUnnamedPointerParam (lay : Layout) : List LeanModels.C.Decl → Bool
       | _ => hasUnnamedPointerParam lay ps
   | [] => false
 
+def hasGotoControlledPointerIncrement (body : Stmt) : Bool :=
+  let hasGoto := body.substmts.any fun statement =>
+    match statement with
+    | .goto .. => true
+    | _ => false
+  let hasPointerIncrement := (body.substmts.flatMap Stmt.ownExprs).any fun expression =>
+    match expression with
+    | .unop op .. => op == "++" || op == "--"
+    | _ => false
+  hasGoto && hasPointerIncrement
+
 /-! A call-free body is a sound sufficient effect summary for §6.5.1's
 indeterminate-order check. It is deliberately conservative: any nested call,
 write, aggregate initializer, or unsupported expression makes the summary
@@ -1170,6 +1188,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
           refuseUnsupported "unnamed pointer parameter (array-bound effects are not retained by clang)"
         if hasUnretainedParamArrayEffects prog.layout f.params then
           refuseUnsupported "parameter array-bound effects are not retained by clang"
+        if hasGotoControlledPointerIncrement body then
+          refuseUnsupported "goto-controlled pointer increment lacks an exact parser path"
         let m₀ ← get
         let base := m₀.count
         -- N3220 §7.26.2: byte copies need source and destination
