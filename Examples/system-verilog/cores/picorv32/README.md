@@ -2380,6 +2380,13 @@ branch.  The memory stays unchanged, `rdata1` reads the prior `regs[30]`, and
 This theorem is `picorv32_regs_unknown_wen_step` and has the same three-axiom
 footprint.
 
+The loaded leaf also has a concrete zero-address row in
+`picorv32_regs_zero_write_step`.  The source-shaped complement of address zero
+is the out-of-range label 31 for `regs[0:30]`.  E therefore issues no memory
+write and returns 32-bit all-x values for both zero-address reads, exactly as
+IEEE 1800-2023 §11.5.1 specifies for an out-of-range index.  This is a fact of
+the loaded leaf's RTL and carries no architectural invariant premise.
+
 ## 2026-11-22 clocked-stage refusal table on current master
 
 After rebasing onto public master `f00843a19`, the real RISCV_FORMAL envelope
