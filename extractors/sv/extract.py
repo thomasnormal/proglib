@@ -36564,22 +36564,21 @@ def convert_instance_sym(sm, m):
         return internal_error(exc)
 
 
-def _sym_convert_definition(tree, source_map, name):
-    """The definition of an instantiated module, elaborated ALONE at its own
-    parameter defaults — a separate slang compilation whose only top is
-    `name`, i.e. exactly the module `--top name` emits (its `resolved`
-    metadata is the definition's own defaults, so the Lean load gate
-    cross-checks it like a top) — converted by the top-module converter.
+def _sym_convert_definition(tree, source_map, name, *, retain_loops,
+                            retain_proc_rewrites, overrides=()):
+    """Elaborate a definition alone at its defaults or the requested probe
+    point, using the same AST conversion options as its enclosing envelope.
     Returns `(module node or None, packages, instantiated definition
     names)`; `None` when slang cannot elaborate it as a top (a parameter
     without a default)."""
-    global _SYM
+    global _SYM, _RETAIN_LOOPS, _RETAIN_PROC_REWRITES
     saved = _SYM
+    saved_loops, saved_rewrites = _RETAIN_LOOPS, _RETAIN_PROC_REWRITES
     try:
         options = CompilationOptions()
         options.topModules = {name}
-        if _SYM_DEF_OVERRIDES:
-            options.paramOverrides = list(_SYM_DEF_OVERRIDES)
+        if overrides:
+            options.paramOverrides = list(overrides)
         comp = Compilation(pyslang.Bag([options]))
         comp.addSyntaxTree(tree)
         sm = tree.sourceManager
@@ -36592,6 +36591,7 @@ def _sym_convert_definition(tree, source_map, name):
             return None, set(), []
         nerr = sum(1 for d in comp.getAllDiagnostics() if d.isError())
         _SYM = SymCtx(comp, sm, source_map)
+        _RETAIN_LOOPS, _RETAIN_PROC_REWRITES = retain_loops, retain_proc_rewrites
         try:
             module = convert_module_sym(sm, inst)
             _reject_invalid_lowering(sm, comp, [module], module["others"],
@@ -36612,6 +36612,7 @@ def _sym_convert_definition(tree, source_map, name):
         return module, set(_SYM.packages), list(_SYM.instance_modules)
     finally:
         _SYM = saved
+        _RETAIN_LOOPS, _RETAIN_PROC_REWRITES = saved_loops, saved_rewrites
 
 
 def _sym_instance_definitions(tree, source_map, top, module):
@@ -36657,7 +36658,9 @@ def _sym_instance_definitions(tree, source_map, top, module):
         if name in seen:
             continue
         seen.add(name)
-        node, pkgs, more = _sym_convert_definition(tree, source_map, name)
+        node, pkgs, more = _sym_convert_definition(
+            tree, source_map, name, retain_loops=_RETAIN_LOOPS,
+            retain_proc_rewrites=_RETAIN_PROC_REWRITES)
         if node is None:
             others.append({"kind": "Unsupported", "span": None,
                            "sv_kind": "ModuleDefinition:elaboration",
@@ -37317,8 +37320,6 @@ PROBE_SCHEMA_VERSION = "sv-0.2-probes"
 # The top-level `paramOverrides` of the symbolic extraction in progress
 # (`["N=4", ...]`); `None` = the defaults (the envelope).
 _SYM_PARAM_OVERRIDES = None
-# Per-definition `paramOverrides` while one instance's definition is probed.
-_SYM_DEF_OVERRIDES = None
 
 _PROBE_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_$]*$")
 _PROBE_VALUE = re.compile(r"^-?[0-9]+$")
@@ -37456,7 +37457,7 @@ def write_probe_sidecar(top, sources, incdirs, out_path, points,
     that definition alone at those overrides, or an override is not an
     integer — the Lean side reports it as unprobed, never as agreement)."""
     import tempfile
-    global _SYM_PARAM_OVERRIDES, _SYM_DEF_OVERRIDES
+    global _SYM_PARAM_OVERRIDES
     with open(out_path, encoding="utf-8") as f:
         envelope = json.load(f)
     top_mod = envelope["design"]["modules"][0]
@@ -37516,11 +37517,10 @@ def write_probe_sidecar(top, sources, incdirs, out_path, points,
             for dname, dovs in insts:
                 node = None
                 if dovs is not None:
-                    _SYM_DEF_OVERRIDES = _probe_overrides(dovs)
-                    try:
-                        node, _, _ = _sym_convert_definition(tree, source_map, dname)
-                    finally:
-                        _SYM_DEF_OVERRIDES = None
+                    node, _, _ = _sym_convert_definition(
+                        tree, source_map, dname, retain_loops=retain_loops,
+                        retain_proc_rewrites=retain_proc_rewrites,
+                        overrides=_probe_overrides(dovs))
                 entries.append({
                     "module": dname,
                     "overrides": None if dovs is None else
