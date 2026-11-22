@@ -156,6 +156,10 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("package_localparam_child_e2.sv", "package_localparam_child_e2",
             (Port("x", 4),), (Port("y", 4),),
             (Point("W4", (4,)),)),
+    # Packed struct assignment patterns retain parser-shaped field widths for
+    # fills and package parameter references (IEEE 1800-2023 §10.9).
+    Fixture("packed_struct_package_e.sv", "packed_struct_pkg_e",
+            (Port("x", 4),), (Port("y", 8),)),
     Fixture("constant_function_child.sv", "constant_function_top",
             (Port("x", 4),), (Port("y", 2),),
             (Point("N1", (1,)), Point("N4", (4,))),
