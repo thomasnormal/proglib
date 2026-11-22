@@ -615,3 +615,11 @@ sanitizer runs are clean and one reports a sanitizer diagnostic. The fresh
 replay now lets `20080719-1.c` run to MATCH, so this static wall is no longer a
 dynamic refusal cluster. Its source exercises static aggregate arrays, a
 function return pointer and switch selection.
+
+**External-object wall price (2026-11-22).** The fresh dynamic ranking has 39
+sole rows refusing `extern object 'inside_main'` with no definition. The sample
+is GCC's `builtins/lib` companion corpus, where these source files are linked
+into separate driver tests and are not complete translation units. The current
+single-envelope survey cannot claim their linked behavior. A valid next step
+requires a manifest-level companion closure and one parser envelope for the
+linked translation unit, not an evaluator default for the missing object.
