@@ -2367,6 +2367,9 @@ def bindPackageParams (env : IEnv) : List (String × PParam) → Res IEnv
               match packageDimsWidth env dims with
               | .ok w =>
                   let s := p.signed?.getD (w == 32)
+                  let e := match e with
+                    | .fill b => .lit (LVec.replicate w b)
+                    | other => other
                   match packageConstVec env e with
                   | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
                   | .ok raw =>
