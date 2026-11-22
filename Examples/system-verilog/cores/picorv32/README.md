@@ -2191,13 +2191,17 @@ current 39-output testbench and is checked by `e_run_input_check.py`.  Its
 SHA-256 is
 `09380d29f5201a61f56e9101affb3d0e20ff6c601fae7a52bb33c65bb9875947`.
 
-The canonical-E replay currently stops before the first clocked transition with
+At the 26 pinned defaults, the loaded family returns the following refusal
+during instantiation, before the replay obtains a design or applies reset.
+The loader-backed census reports one design-level refusal and zero emitted members.
+
 `Schedule:preemptive: IEEE 1800-2023 §4.7 permits suspension between blocking
 writes; canonical E refuses a multi-write reactive process whose intermediate
 value another process can read`.  The source-shaped clean-room reproduction is
-[`scheduler_preemptive.sv`](../../../scheduler_audit/scheduler_preemptive.sv), with
-matching Icarus and Xcelium rows in its receipt.  This is a running wall, so no
-three-way E-RUN count is claimed until canonical E admits the schedule.
+[`scheduler_preemptive.sv`](../../scheduler_audit/scheduler_preemptive.sv), with
+matching Icarus and Xcelium rows in its receipt. The three-way count is 0/300.
+The checker accepts this specific diagnostic only at instantiation. A timeout,
+a different loader refusal, or any refusal while stepping fails the check.
 
 DarkRISCV's pinned 1000-row battery has a checked-in simulator transcript at
 `Examples/system-verilog/cores/darkriscv/dark_simulator_transcript.txt` with
