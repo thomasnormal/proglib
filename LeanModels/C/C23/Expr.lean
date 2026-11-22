@@ -818,21 +818,17 @@ def intBinop (op : String) (t : IntTy) (a b : Int) : EvalM CVal :=
   | "!=" => pure (ofBool (a != b))
   | _ => refuseUnsupported s!"binary operator '{op}'"
 
-/-! IEEE binary arithmetic.  The profile registers binary32 and binary64
-round-to-nearest-even through the shared SoftFloat transfer layer.  C23
-§6.5.5 still makes a zero divisor undefined; the IEEE model is used for the
-defined arithmetic and comparison cases, while NaN comparisons follow its
-unordered Boolean results. -/
+/-! IEEE binary arithmetic. The profile registers binary32 and binary64
+round-to-nearest-even through the shared SoftFloat transfer layer. The pinned
+GNU17 target follows Annex F, so floating division by zero is defined by the
+IEEE result. Integer division keeps its separate C undefined-behavior rule. -/
 
 def float32Binop (op : String) (a b : Float32.Model) : EvalM CVal :=
   match op with
   | "+" => pure (.float32 (a + b))
   | "-" => pure (.float32 (a - b))
   | "*" => pure (.float32 (a * b))
-  | "/" =>
-      if h : Float32.Model.beq b (Float32.Model.ofBits 0) = true then
-        refuseValue (.divideByZero "/")
-      else pure (.float32 (a / b))
+  | "/" => pure (.float32 (a / b))
   | "==" => pure (ofBool (Float32.Model.beq a b))
   | "!=" => pure (ofBool (!Float32.Model.beq a b))
   | "<" => pure (ofBool (Float32.Model.lt a b))
@@ -846,10 +842,7 @@ def float64Binop (op : String) (a b : Float.Model) : EvalM CVal :=
   | "+" => pure (.float64 (a + b))
   | "-" => pure (.float64 (a - b))
   | "*" => pure (.float64 (a * b))
-  | "/" =>
-      if h : Float.Model.beq b (Float.Model.ofBits 0) = true then
-        refuseValue (.divideByZero "/")
-      else pure (.float64 (a / b))
+  | "/" => pure (.float64 (a / b))
   | "==" => pure (ofBool (Float.Model.beq a b))
   | "!=" => pure (ofBool (!Float.Model.beq a b))
   | "<" => pure (ofBool (Float.Model.lt a b))
