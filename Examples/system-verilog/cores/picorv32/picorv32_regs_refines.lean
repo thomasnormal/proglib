@@ -132,6 +132,43 @@ theorem picorv32_regs_write_read_step {E : CoreMemDesign} (hE : regs.e = .ok E)
     seqK_index?, hmv, LVec.resizeU_of_width]
   all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv, isPosedge]
 
+/-! A concrete zero-register row of the loaded register-file leaf.  The
+    source's `~address[4:0]` maps address zero to the out-of-range label 31.
+    E's exact §11.5.1 rule therefore makes the write a no-op and both reads
+    all-x for the declared 32-bit element width. -/
+
+private def picorv32_regs_zero_view (c wen wa ra1 ra2 wd rd1 rd2 : LVec) : SvState :=
+  [("clk", c), ("wen", wen), ("waddr", wa), ("raddr1", ra1), ("raddr2", ra2), ("wdata", wd),
+   ("rdata1", rd1), ("rdata2", rd2)]
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 4000000 in
+theorem picorv32_regs_zero_write_step {E : CoreMemDesign} (hE : regs.e = .ok E)
+    (wd rd1 rd2 : LVec) (mv : MemV) (hwd : wd.width = 32)
+    (hrd1 : rd1.width = 32) (hrd2 : rd2.width = 32)
+    (hmv : ∀ k, (mv "regs" k).width = 32) :
+    E.slotV (picorv32_regs_zero_view (LVec.ofNat 1 0) (LVec.ofNat 1 1)
+        (LVec.ofNat 6 0) (LVec.ofNat 6 0) (LVec.ofNat 6 0) wd rd1 rd2) mv
+        [("clk", LVec.ofNat 1 1), ("wen", LVec.ofNat 1 1), ("waddr", LVec.ofNat 6 0),
+         ("raddr1", LVec.ofNat 6 0), ("raddr2", LVec.ofNat 6 0), ("wdata", wd)] =
+      .ok (picorv32_regs_zero_view (LVec.ofNat 1 1) (LVec.ofNat 1 1)
+        (LVec.ofNat 6 0) (LVec.ofNat 6 0) (LVec.ofNat 6 0) wd
+        (LVec.xVec 32) (LVec.xVec 32), mv) := by
+  obtain ⟨E', hE', hP, hO⟩ := (show SeqDesignI regs.e by sv_structure)
+  rw [hE] at hE'
+  cases hE'
+  sv_seq_inst [regs.e, regs.pdesign] at hE
+  sv_seq_cycle hcyc : E.slotV (picorv32_regs_zero_view (LVec.ofNat 1 0) (LVec.ofNat 1 1)
+      (LVec.ofNat 6 0) (LVec.ofNat 6 0) (LVec.ofNat 6 0) wd rd1 rd2) mv
+      [("clk", LVec.ofNat 1 1), ("wen", LVec.ofNat 1 1), ("waddr", LVec.ofNat 6 0),
+       ("raddr1", LVec.ofNat 6 0), ("raddr2", LVec.ofNat 6 0), ("wdata", wd)] using hE
+      [picorv32_regs_zero_view, hwd, hrd1, hrd2, regs_evalSized_not_signal]
+  rw [hcyc]
+  have hpos : isPosedge (LVec.ofBitVec 0#1).bits[0] (LVec.ofBitVec 1#1).bits[0] = true := by rfl
+  simp [hpos, picorv32_regs_zero_view, memRd, memIss, commitMemV,
+    seqK_index?, hmv, LVec.resizeU_of_width]
+  all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv, isPosedge]
+
 /-! An unknown write-enable follows the exact E truthiness rule for an `if`
     condition.  With `wen = 1'bx`, the edge still occurs, but the memory write
     is skipped and both read ports retain their pre-edge values. -/
@@ -169,6 +206,7 @@ theorem picorv32_regs_unknown_wen_step {E : CoreMemDesign} (hE : regs.e = .ok E)
 #print axioms picorv32_regs_wdata_undriven
 #print axioms picorv32_regs_quiet_read_step
 #print axioms picorv32_regs_write_read_step
+#print axioms picorv32_regs_zero_write_step
 #print axioms picorv32_regs_unknown_wen_step
 
 end Examples.«system-verilog».cores.picorv32
