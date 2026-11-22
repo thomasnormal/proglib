@@ -107,20 +107,6 @@ private def rawChildren (raw : Raw) : List Raw :=
   | some (.array values) => values
   | _ => []
 
-private partial def knownTypeReferences (type : CppTypeEvidence)
-    (declarations : List DeclarationEvidenceRow) : Bool :=
-  match type with
-  | .void | .builtin _ | .cBuiltin _ | .cBuiltinKind _ => true
-  | .array element _ => knownTypeReferences element declarations
-  | .pointer pointee | .lvalueReference pointee | .rvalueReference pointee =>
-      knownTypeReferences pointee declarations
-  | .qualified _ _ base => knownTypeReferences base declarations
-  | .function result parameters _ =>
-      knownTypeReferences result declarations &&
-        parameters.all (fun parameter => knownTypeReferences parameter declarations)
-  | .record declaration | .enumeration declaration | .typedefRef declaration =>
-      declarations.any (fun row => row.id == declaration)
-
 private def sameExpression (left right : CppBinaryExpressionEvidence) : Bool :=
   left.occurrence == right.occurrence && left.operator == right.operator &&
     left.result == right.result && left.operands == right.operands
@@ -211,9 +197,9 @@ def validateBinaryExpressionEvidence (probe : DeclarationProbe)
             throw "expression operand order disagrees with AST"
           unless child.text "kind" == some operand.kind do
             throw "expression operand kind disagrees with AST"
-          unless knownTypeReferences operand.type probe.declarations do
+          unless operand.type.referencesKnown probe.declarations do
             throw "expression operand type refers to an absent declaration"
-        unless knownTypeReferences row.result probe.declarations do
+        unless row.result.referencesKnown probe.declarations do
           throw "expression result type refers to an absent declaration"
         if seen.any (fun prior => prior.occurrence == row.occurrence) then
           unless seen.all (fun prior => prior.occurrence != row.occurrence || sameExpression prior row) do
