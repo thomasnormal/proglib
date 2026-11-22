@@ -536,6 +536,7 @@ macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ide
       LeanModels.Sv.Kernel.coreMemCaseWrites, LeanModels.Sv.Kernel.coreMemSourceHasBlockingWrite,
       LeanModels.Sv.Kernel.coreMemProcBlockingWrites, LeanModels.Sv.Kernel.coreMemStmtBlockingWrites,
       LeanModels.Sv.Kernel.coreMemStmtBlockingWritesList, LeanModels.Sv.Kernel.coreMemCaseBlockingWrites,
+      LeanModels.Sv.Kernel.coreMemLatchSelfReadViol,
       LeanModels.Sv.Kernel.coreMemFirstTimeZeroEventSourceFor,
       LeanModels.Sv.Kernel.coreMemSourceWrittenAtTimeZeroFor,
       LeanModels.Sv.Kernel.coreMemTimeZeroSourceWritesFor,

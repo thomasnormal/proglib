@@ -1,0 +1,212 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "latch_self_read_b",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/latch_self_read_refuse/latch_self_read_b.sv",
+      "sha256": "afb32a5d38bb7efe76bf06fca53a198b4a0d7937d8cfed945046ecb840acddb6"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 8,
+          "end_col": 10
+        },
+        "name": "latch_self_read_b",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 38,
+              "end_line": 2,
+              "end_col": 40
+            },
+            "name": "en",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 54,
+              "end_line": 2,
+              "end_col": 55
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 70,
+              "end_line": 2,
+              "end_col": 71
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 3,
+              "col": 9,
+              "end_line": 3,
+              "end_col": 10
+            },
+            "name": "t",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "init": null
+          }
+        ],
+        "processes": [
+          {
+            "kind": "AlwaysLatch",
+            "span": {
+              "line": 4,
+              "col": 3,
+              "end_line": 7,
+              "end_col": 6
+            },
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 4,
+                "col": 16,
+                "end_line": 7,
+                "end_col": 6
+              },
+              "stmts": [
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 5,
+                    "col": 5,
+                    "end_line": 5,
+                    "end_col": 11
+                  },
+                  "target": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 5,
+                      "col": 5,
+                      "end_line": 5,
+                      "end_col": 6
+                    },
+                    "width": 1,
+                    "name": "y"
+                  },
+                  "value": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 5,
+                      "col": 9,
+                      "end_line": 5,
+                      "end_col": 10
+                    },
+                    "width": 1,
+                    "name": "t"
+                  }
+                },
+                {
+                  "kind": "If",
+                  "span": {
+                    "line": 6,
+                    "col": 5,
+                    "end_line": 6,
+                    "end_col": 19
+                  },
+                  "cond": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 6,
+                      "col": 9,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "width": 1,
+                    "name": "en"
+                  },
+                  "then": {
+                    "kind": "BlockingAssign",
+                    "span": {
+                      "line": 6,
+                      "col": 13,
+                      "end_line": 6,
+                      "end_col": 19
+                    },
+                    "target": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 6,
+                        "col": 13,
+                        "end_line": 6,
+                        "end_col": 14
+                      },
+                      "width": 1,
+                      "name": "t"
+                    },
+                    "value": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 6,
+                        "col": 17,
+                        "end_line": 6,
+                        "end_col": 18
+                      },
+                      "width": 1,
+                      "name": "a"
+                    }
+                  },
+                  "else": null
+                }
+              ]
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

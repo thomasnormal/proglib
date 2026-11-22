@@ -73878,6 +73878,48 @@
       ]
     },
     {
+      "name": "latch_self_read_a",
+      "example": "sem2/latch_self_read_refuse",
+      "file": "latch_self_read_a",
+      "top": "latch_self_read_a",
+      "signals": [
+        "en",
+        "a",
+        "y"
+      ],
+      "stimulus": [
+        {"en": "0", "a": "0"},
+        {"en": "1", "a": "0"},
+        {"en": "0", "a": "1"},
+        {"en": "x", "a": "0"},
+        {"en": "z", "a": "0"},
+        {"en": "1", "a": "1"}
+      ],
+      "refusal": "AlwaysLatch:self-read",
+      "measured": "2026-11-22: Icarus Verilog 13.0 and Xcelium 24.03-s004 retain x,x,x,x,x,0 while canonical E refuses the simulator-dependent latch activation."
+    },
+    {
+      "name": "latch_self_read_b",
+      "example": "sem2/latch_self_read_refuse",
+      "file": "latch_self_read_b",
+      "top": "latch_self_read_b",
+      "signals": [
+        "en",
+        "a",
+        "y"
+      ],
+      "stimulus": [
+        {"en": "0", "a": "0"},
+        {"en": "1", "a": "0"},
+        {"en": "0", "a": "1"},
+        {"en": "x", "a": "0"},
+        {"en": "z", "a": "0"},
+        {"en": "1", "a": "1"}
+      ],
+      "refusal": "AlwaysLatch:self-read",
+      "measured": "2026-11-22: Icarus Verilog 13.0 and Xcelium 24.03-s004 retain x,x,0,0,0,0 while canonical E refuses the simulator-dependent latch activation."
+    },
+    {
       "name": "initial_storage_e",
       "example": "sem2/initial_storage_e",
       "top": "initial_storage_e",

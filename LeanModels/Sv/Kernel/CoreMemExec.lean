@@ -1397,6 +1397,19 @@ def coreMemCombSelfReadViol : List PProcess → Option String
       | none => coreMemCombSelfReadViol rest
   | _ :: rest => coreMemCombSelfReadViol rest
 
+/-! `always_latch` has the same implicit-sensitivity exclusion for variables
+written by its process as `always_comb`, under IEEE 1800-2023 §9.2.2.3. Keep
+its refusal separate so the diagnostic names the source construct. -/
+def coreMemLatchSelfReadViol : List PProcess → Option String
+  | [] => none
+  | (.alwaysLatch body) :: rest =>
+      let reads := (coreMemStmtReadBeforeWritesFrom [] body).1
+      let writes := coreMemStmtWrites body
+      match reads.find? (fun name => writes.contains name) with
+      | some name => some name
+      | none => coreMemLatchSelfReadViol rest
+  | _ :: rest => coreMemLatchSelfReadViol rest
+
 /-! Static block-local declarations are allocated in the same scalar store as
 their enclosing process. Automatic declarations stay in the activation-local
 environment and are therefore absent from this design-level declaration list. -/
@@ -1553,16 +1566,20 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
             | some name =>
                 .unsupported s!"AlwaysComb:self-read: 9.2.2.2.1: always_comb reads '{name}' before writing it; canonical E refuses the simulator-dependent startup value"
             | none =>
-              if coreMemHasEdgeProc allProcesses && !coreMemPAssignMemoryTopoB allProcesses then
-              .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
-              else match coreMemAssignReactiveChainViol (d.processes ++ generated) with
-            | some name =>
-                .unsupported s!"Comb:dependency-order: 9.2.2.2/9.4.2.2/10.3: reactive output reaches continuous assignment '{name}' and a downstream reactive process; canonical E settles assignments before reactive activation and has no fixed-point scheduler"
-            | none =>
-              match coreMemClockResetViol d generated with
-            | some (kind, msg) => .unsupported s!"{kind}: {msg}"
-            | none =>
-              match coreMemFirstUnsupportedOther d allForNet d.others with
+              match coreMemLatchSelfReadViol allProcesses with
+              | some name =>
+                  .unsupported s!"AlwaysLatch:self-read: 9.2.2.3: always_latch reads '{name}' before writing it; canonical E refuses the simulator-dependent activation value"
+              | none =>
+                  if coreMemHasEdgeProc allProcesses && !coreMemPAssignMemoryTopoB allProcesses then
+                    .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
+                  else match coreMemAssignReactiveChainViol (d.processes ++ generated) with
+                  | some name =>
+                      .unsupported s!"Comb:dependency-order: 9.2.2.2/9.4.2.2/10.3: reactive output reaches continuous assignment '{name}' and a downstream reactive process; canonical E settles assignments before reactive activation and has no fixed-point scheduler"
+                  | none =>
+                    match coreMemClockResetViol d generated with
+                    | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+                    | none =>
+                      match coreMemFirstUnsupportedOther d allForNet d.others with
           | some (kind, text) =>
               .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
           | none =>
@@ -2907,7 +2924,7 @@ def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
   | .implicit _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .event _ _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .latch body :: rest => do
-      let reads := coreMemExternalReadExprs body
+      let reads := coreMemCombExternalReadExprs body
       let ready ← E.readChangedAt before current beforeView currentView index reads
       if !ready then
         E.runCombAt before beforeView current currentView (index + 1) rest
@@ -3712,6 +3729,16 @@ private def auditW5Complete : PStmt :=
       .blockingAssign "t" (.ident "a")])] == some "t"
 #guard coreMemCombSelfReadViol
     [.alwaysComb (.blockingAssign "y" (.ident "a"))] == none
+#guard coreMemLatchSelfReadViol
+    [.alwaysLatch (.block [
+      .ifStmt (.ident "en")
+        (.block [
+          .blockingAssign "y" (.ident "t"),
+          .blockingAssign "t" (.ident "a")]) none])] == some "t"
+#guard coreMemLatchSelfReadViol
+    [.alwaysLatch (.block [
+      .blockingAssign "y" (.ident "t"),
+      .ifStmt (.ident "en") (.blockingAssign "t" (.ident "a")) none])] == some "t"
 
 #guard !coreMemHasTimeZeroWriter
     [.alwaysFFR "clk" "rst_n" (.blockingAssign "q" (.ident "d")) false]

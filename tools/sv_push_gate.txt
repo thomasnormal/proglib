@@ -305,3 +305,4 @@ Examples/system-verilog/sem2/duplicate_active_scope_e/agree.lean
 Examples/system-verilog/cores/picorv32/walls/probe.lean
 Examples/system-verilog/sem2/clocked_reset_guard_e/agree.lean
 Examples/system-verilog/sem2/clocked_param_loop_e/agree.lean
+Examples/system-verilog/sem2/latch_self_read_refuse/agree.lean
