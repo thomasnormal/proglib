@@ -109,7 +109,12 @@ def model_run(env, opts):
         return {"verdict": "RUNNER", "detail": "malformed single-run output",
                 "stdout": p.stdout, "stderr": p.stderr}
     if p.returncode == 3:
-        return {"verdict": "REFUSE", "detail": p.stderr.strip(),
+        detail = p.stderr.strip()
+        reported_ub = detail.startswith((
+            "refused\tLeanModels.C.C23.Refusal.memUB ",
+            "refused\tLeanModels.C.C23.Refusal.valueUB ",
+        ))
+        return {"verdict": "REFUSE", "detail": detail, "reported_ub": reported_ub,
                 "stdout": p.stdout, "stderr": p.stderr}
     if p.returncode == 4:
         return {"verdict": "TIMEOUT", "detail": p.stderr.strip()}
@@ -136,39 +141,33 @@ def native_run(clang, source, opt, sanitizer, timeout, standard):
                 "stderr": r.stderr}
 
 
-def classify_sanitizer_mismatch(model, san):
-    """Classify a sanitizer-only disagreement without inventing a value.
-
-    A model refusal is already the correct result for a source whose native
-    run trips undefined behaviour: the sanitizer is evidence for the refusal,
-    not a model/native disagreement.  Cleanup diagnostics such as
-    LeakSanitizer remain ORACLE because they do not establish language UB.
-    """
-    if model.get("verdict") == "REFUSE":
-        return "REFUSE"
-    # A timed-out model established no result.  Sanitizer evidence from the
-    # native run cannot turn an incomplete proof into a model disagreement;
-    # preserve the model's loud timeout classification.
-    if model.get("verdict") == "TIMEOUT":
-        return "TIMEOUT"
-    stderr = san.get("stderr", "")
-    if "LeakSanitizer" in stderr and "AddressSanitizer: heap-use-after" not in stderr:
-        return "ORACLE"
-    return "DIVERGE"
-
-
 def compare(clang, source, model, timeout, standard):
     o0 = native_run(clang, source, "-O0", False, timeout, standard)
     o2 = native_run(clang, source, "-O2", False, timeout, standard)
     san = native_run(clang, source, "-O0", True, timeout, standard)
+    return compare_results(model, o0, o2, san)
+
+
+def compare_results(model, o0, o2, san):
+    evidence = {"o0": o0, "o2": o2, "sanitizer": san, "model": model}
+    diagnostic = san.get("stderr", "")
+    if diagnostic != o0.get("stderr", "") and (
+            "SUMMARY: UndefinedBehaviorSanitizer:" in diagnostic or
+            "ERROR: AddressSanitizer:" in diagnostic):
+        verdict = model["verdict"]
+        if verdict in ("REFUSE", "TIMEOUT"):
+            return verdict, evidence
+        return "DIVERGE", evidence
     if any(x.get("verdict") == "ORACLE" for x in (o0, o2, san)):
-        return "ORACLE", {"o0": o0, "o2": o2, "sanitizer": san}
+        return "ORACLE", evidence
     if o0["stdout"] != o2["stdout"] or o0["returncode"] != o2["returncode"]:
-        return "NONDET", {"o0": o0, "o2": o2, "sanitizer": san}
-    if san["returncode"] != o0["returncode"] or san["stdout"] != o0["stdout"]:
-        verdict = classify_sanitizer_mismatch(model, san)
-        return verdict, {"o0": o0, "o2": o2, "sanitizer": san,
-                         "model": model}
+        return "NONDET", evidence
+    if san != o0:
+        # A leak report or another sanitizer-only disagreement does not
+        # establish language undefined behavior.
+        return "ORACLE", evidence
+    if model.get("reported_ub"):
+        return "DIVERGE", evidence
     if model["verdict"] == "ABORTED":
         expected = -signal.SIGABRT
         native_aborted = (o0["returncode"] == expected and
@@ -204,21 +203,31 @@ def main(argv=None):
     opts = ap.parse_args(argv)
     if opts.self_test:
         with tempfile.TemporaryDirectory(prefix="leanc-selftest-") as d:
-            if classify_sanitizer_mismatch({"verdict": "REFUSE"},
-                                           {"returncode": 1,
-                                            "stderr": "runtime error: UB"}) != "REFUSE":
-                print("leanc --self-test: sanitizer UB refusal was misclassified", file=sys.stderr)
-                return 1
-            if classify_sanitizer_mismatch({"verdict": "MODEL"},
-                                           {"returncode": 1,
-                                            "stderr": "LeakSanitizer: detected memory leaks"}) != "ORACLE":
-                print("leanc --self-test: leak cleanup was misclassified", file=sys.stderr)
-                return 1
-            if classify_sanitizer_mismatch({"verdict": "TIMEOUT"},
-                                           {"returncode": 1,
-                                            "stderr": "runtime error: UB"}) != "TIMEOUT":
-                print("leanc --self-test: timeout with sanitizer UB was misclassified", file=sys.stderr)
-                return 1
+            clean = {"returncode": 0, "stdout": "", "stderr": ""}
+            ub = {**clean, "returncode": 1, "stderr": "SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior"}
+            leak = {**clean, "returncode": 1, "stderr": "LeakSanitizer: detected memory leaks"}
+            model_ub = {"verdict": "REFUSE", "reported_ub": True}
+            model_value = {"verdict": "MODEL", "value": "0"}
+            cases = (
+                (model_ub, clean, "DIVERGE"),
+                (model_ub, ub, "REFUSE"),
+                ({"verdict": "REFUSE"}, clean, "REFUSE"),
+                ({"verdict": "TIMEOUT"}, ub, "TIMEOUT"),
+                (model_value, leak, "ORACLE"),
+                (model_value, ub, "DIVERGE"),
+                (model_value, clean, "MATCH"),
+            )
+            for model, san, expected in cases:
+                actual, _ = compare_results(model, clean, clean, san)
+                if actual != expected:
+                    print(f"leanc --self-test: expected {expected}, got {actual}",
+                          file=sys.stderr)
+                    return 1
+            for optimized in ({**clean, "returncode": 1}, {"verdict": "ORACLE"}):
+                actual, _ = compare_results(model_ub, clean, optimized, ub)
+                if actual != "REFUSE":
+                    print("leanc --self-test: missed independent UB witness", file=sys.stderr)
+                    return 1
             source = Path(d) / "ok.c"
             source.write_text("int main(void) { return 0; }\n")
             clang, why = pinned_clang()
