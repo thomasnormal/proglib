@@ -1245,8 +1245,8 @@
     "structured_envelope_checks": [
       "structured_types"
     ],
-    "structured_expect": "match",
-    "structured_return_value": 0,
+    "structured_expect": "refuse",
+    "structured_error": "no layout for parameter type",
     "return_value": 0,
     "error": "no layout for declared type 'int[1]'"
   },
