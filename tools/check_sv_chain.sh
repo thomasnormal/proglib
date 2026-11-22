@@ -143,6 +143,9 @@ e0_authority_roots() {
   cat <<'EOF'
 LeanModels.Sv.Kernel.Core0E
 LeanModels.Sv.Kernel.Obs_E0
+LeanModels.Sv.CombEBase
+LeanModels.Sv.ObserveE
+LeanModels.Core.Outcome
 EOF
 }
 
@@ -257,13 +260,13 @@ dependents() {
   return 0
 }
 
-# ---------------------------------------------------------------- one lake build, through the slot when there is one
+# Run Lake through the slot when one is configured.
 run_lake() {
   unset SVGOLF_LEAN_WRAP
   if [ -n "${LEANSLOT:-}" ]; then
-    "$LEANSLOT" lake build "$@"
+    "$LEANSLOT" lake "$@"
   else
-    LEAN_NUM_THREADS="${LEAN_NUM_THREADS:-2}" nice -n 19 lake build "$@"
+    LEAN_NUM_THREADS="${LEAN_NUM_THREADS:-2}" nice -n 19 lake "$@"
   fi
 }
 
@@ -281,7 +284,7 @@ check_refusal_census() {
   done
   echo "=== [sv-chain] refusal census smoke"
   for envelope in "${envelopes[@]}"; do
-    run_lake env lean --run harness/sv/refusal_census.lean "$envelope" >/dev/null
+    run_lake env lean --run harness/sv/refusal_census.lean "$envelope" >/dev/null || return 1
   done
 }
 
@@ -305,12 +308,12 @@ build_all() {
     return 3
   fi
   echo "=== [sv-chain] lake build: library group"
-  if ! run_lake "${LIB[@]}"; then
+  if ! run_lake build "${LIB[@]}"; then
     echo "=== [sv-chain] FAILED: the library group (the Examples were not attempted)" >&2
     return 1
   fi
   echo "=== [sv-chain] lake build: examples group"
-  if ! run_lake "${EX[@]}"; then
+  if ! run_lake build "${EX[@]}"; then
     echo "=== [sv-chain] FAILED: the examples group" >&2
     return 1
   fi
@@ -328,7 +331,9 @@ self_test() {
 #!/usr/bin/env bash
 echo "lake $*" >> "$STUB_LOG"
 case "$*" in
-  *LeanModels.Sv.CombLib*) [ "${STUB_FAIL:-}" = lib ] && exit 1 ;;
+  "env lean --run "*event_control_repro.sv.json) [ "${STUB_FAIL:-}" = census ] && exit 1 ;;
+  "env lean --run "*) ;;
+  build*LeanModels.Sv.CombLib*) [ "${STUB_FAIL:-}" = lib ] && exit 1 ;;
   *) [ "${STUB_FAIL:-}" = ex ] && exit 1 ;;
 esac
 exit 0
@@ -348,22 +353,10 @@ STUB
   check "--list names an example module" "$(printf '%s' "$out" | grep -c '«system-verilog».comb_ops.comb_proof')" 1
   check "--list includes the semantic-agreement examples" "$([ "$(printf '%s' "$out" | grep -c 'sem2')" -gt 0 ] && echo yes || echo no)" yes
   check "--list runs no lake" "$(grep -c '^lake' "$STUB_LOG")" 0
-  # The build rows below run the ratchet on this tree first, so its own verdict is named before theirs.
+  # Check the real retirement baseline independently of the stubbed command tests.
   out="$(bash tools/check_run2_ratchet.sh 2>&1)"; rc=$?
   check "the run2 ratchet passes on this tree" "$rc" 0
   [ "$rc" = 0 ] || printf '%s\n' "$out"
-  : > "$STUB_LOG"; PATH="$tmp:$PATH" env -u LEANSLOT bash "$self" >/dev/null 2>&1; rc=$?
-  check "no slot: exits 0 when lake succeeds" "$rc" 0
-  check "no slot: two lake builds" "$(grep -c '^lake build' "$STUB_LOG")" 2
-  check "no slot: the slot is not used" "$(grep -c '^slot' "$STUB_LOG")" 0
-  : > "$STUB_LOG"; PATH="$tmp:$PATH" LEANSLOT="$tmp/slot" bash "$self" >/dev/null 2>&1; rc=$?
-  check "slot: exits 0 when lake succeeds" "$rc" 0
-  check "slot: each build goes through the slot" "$(grep -c '^slot' "$STUB_LOG")" 2
-  : > "$STUB_LOG"; PATH="$tmp:$PATH" env -u LEANSLOT STUB_FAIL=lib bash "$self" >/dev/null 2>&1; rc=$?
-  check "a failing library group exits 1" "$rc" 1
-  check "  ...and the examples are not attempted" "$(grep -c '^lake build' "$STUB_LOG")" 1
-  : > "$STUB_LOG"; PATH="$tmp:$PATH" env -u LEANSLOT STUB_FAIL=ex bash "$self" >/dev/null 2>&1; rc=$?
-  check "a failing examples group exits 1" "$rc" 1
   out="$(bash "$self" --bogus 2>&1)"; rc=$?
   check "an unknown argument exits 2" "$rc" 2
 
@@ -439,6 +432,9 @@ STUB
   # chain script runs the copy of both no-Lean gates beside it.
   mk LeanModels/Sv/Kernel/Core0E.lean 'import LeanModels.Sv.CombEBase'
   mk LeanModels/Sv/Kernel/Obs_E0.lean 'import LeanModels.Sv.Kernel.Core0E'
+  mk LeanModels/Sv/CombEBase.lean '-- authority dependency'
+  mk LeanModels/Sv/ObserveE.lean '-- observation interface'
+  mk LeanModels/Core/Outcome.lean '-- outcomes'
   mk LeanModels/Sv/Kernel/Core1Disc.lean '-- root'
   mk LeanModels/Sv/Kernel/Core1Edge.lean '-- root'
   mk LeanModels/Sv/Kernel/Core1Elab.lean '-- root'
@@ -468,6 +464,12 @@ EOF
 
   # The ratchet step, over the fixture tree: a copy of the chain script runs the copy of the ratchet beside it.
   chain() { : > "$STUB_LOG"; out="$(cd / && PATH="$tmp:$PATH" env -u LEANSLOT bash "$tree/tools/check_sv_chain.sh" 2>&1)"; rc=$?; }
+  mk LeanModels/Sv/CombLib.lean '-- library'
+  local envelope
+  for envelope in Examples/system-verilog/{event_control_repro/event_control_repro,sem2/inout_wall/inout_wall}.sv.json; do
+    mkdir -p "$tree/$(dirname "$envelope")"
+    ln -s "$PWD/$envelope" "$tree/$envelope"
+  done
   chain
   check "a tree with no ratchet script exits 3" "$rc" 3
   check "  ...and builds nothing" "$(grep -c '^lake build' "$STUB_LOG")" 0
@@ -477,6 +479,20 @@ def drift := 1'
   ( cd "$tree" && bash tools/check_run2_ratchet.sh --regenerate >/dev/null 2>&1 )
   chain
   check "a passing ratchet lets the two builds run" "$rc:$(grep -c '^lake build' "$STUB_LOG")" "0:2"
+  : > "$STUB_LOG"; PATH="$tmp:$PATH" env -u LEANSLOT bash "$tree/tools/check_sv_chain.sh" >/dev/null 2>&1; rc=$?
+  check "no slot: exits 0 when lake succeeds" "$rc" 0
+  check "no slot: two lake builds" "$(grep -c '^lake build' "$STUB_LOG")" 2
+  check "no slot: the slot is not used" "$(grep -c '^slot' "$STUB_LOG")" 0
+  : > "$STUB_LOG"; PATH="$tmp:$PATH" LEANSLOT="$tmp/slot" bash "$tree/tools/check_sv_chain.sh" >/dev/null 2>&1; rc=$?
+  check "slot: exits 0 when lake succeeds" "$rc" 0
+  check "slot: both census calls and both builds go through the slot" "$(grep -c '^slot' "$STUB_LOG")" 4
+  : > "$STUB_LOG"; PATH="$tmp:$PATH" env -u LEANSLOT STUB_FAIL=lib bash "$tree/tools/check_sv_chain.sh" >/dev/null 2>&1; rc=$?
+  check "a failing library group exits 1" "$rc" 1
+  check "  ...and the examples are not attempted" "$(grep -c '^lake build' "$STUB_LOG")" 1
+  : > "$STUB_LOG"; PATH="$tmp:$PATH" env -u LEANSLOT STUB_FAIL=ex bash "$tree/tools/check_sv_chain.sh" >/dev/null 2>&1; rc=$?
+  check "a failing examples group exits 1" "$rc" 1
+  : > "$STUB_LOG"; PATH="$tmp:$PATH" env -u LEANSLOT STUB_FAIL=census bash "$tree/tools/check_sv_chain.sh" >/dev/null 2>&1; rc=$?
+  check "a failing first census stops the chain" "$rc:$(grep -c '^lake' "$STUB_LOG")" "3:1"
   mk LeanModels/Sv/Drift.lean 'def drift := run2 d'
   chain
   check "a failing ratchet exits 3" "$rc" 3
@@ -494,6 +510,10 @@ def drift := 1'
   out="$(cd / && PATH="$tmp:$PATH" bash "$tree/tools/check_sv_chain.sh" --import-closure 2>&1)"; rc=$?
   check "the E import closure passes on the clean fixture" "$rc" 0
   check "  ...reports a clean authority" "$(printf '%s' "$out" | grep -c 'authority clean')" 1
+  mk LeanModels/Sv/ObserveE.lean 'import LeanModels.Sv.Spec2'
+  out="$(cd / && PATH="$tmp:$PATH" bash "$tree/tools/check_sv_chain.sh" --import-closure 2>&1)"; rc=$?
+  check "the E observation interface rejects a run2 dependency" "$rc" 1
+  mk LeanModels/Sv/ObserveE.lean '-- observation interface'
   mk LeanModels/Sv/Kernel/Core0E.lean 'import LeanModels.Sv.Param2'
   out="$(cd / && PATH="$tmp:$PATH" bash "$tree/tools/check_sv_chain.sh" --import-closure 2>&1)"; rc=$?
   check "the E import closure rejects a forbidden authority edge" "$rc" 1
