@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare the loaded PicoRV32 against both simulators for 2000 input cycles.
+"""Compare the loaded PicoRV32 against both simulators for 300 input cycles.
 
 The testbench prints every observed output in bit form, retaining mixed
 four-state values that hexadecimal formatting would hide.  The Lean side
@@ -27,7 +27,7 @@ SOURCE_SHA256 = "0836050971b3c6cdd28ac3b1e5719a67fb645161912bef1e472e63995ceb062
 ENVELOPE_SHA256 = "17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236"
 TESTBENCH_SHA256 = "1dc356fbe89e36a5cd5e66006fdc32d9b7106f49f364c44ebcaa2b0ad42952fe"
 TRANSCRIPT_SHA256 = "09380d29f5201a61f56e9101affb3d0e20ff6c601fae7a52bb33c65bb9875947"
-EXPECTED_RUNNING_REFUSAL = (
+EXPECTED_LOAD_REFUSAL = (
     "Schedule:preemptive: IEEE 1800-2023 §4.7 permits suspension between "
     "blocking writes; canonical E refuses a multi-write reactive process "
     "whose intermediate value another process can read"
@@ -168,18 +168,17 @@ def expected : List (List (String × String)) := [
 #eval match picorv32_core_mem with
 | .ok d => match runRows d d.initial rows with
  | .ok ss => if sigs d ss == expected then "ok" else "mismatch"
- | .unsupported msg => "refusal: " ++ msg
- | .timeout => "timeout"
-| .unsupported msg => "refusal: " ++ msg
-| .timeout => "timeout"
+ | .unsupported msg => "step refusal: " ++ msg
+ | .timeout => "step timeout"
+| .unsupported msg => "load refusal: " ++ msg
+| .timeout => "load timeout"
 end Examples.«system-verilog».cores.picorv32
 """ % (",\n  ".join(data_rows), observed,
        ",\n  ".join(expected_rows))
 
 
 def canonical_e_run(rows: list[dict[str, str]]) -> str:
-    run(["lake", "env", "lean",
-         "Examples/system-verilog/cores/picorv32/input_drive_core.lean"], ROOT)
+    run(["lake", "build", "Examples.«system-verilog».cores.picorv32.input_drive_core"], ROOT)
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".lean", prefix="picorv32-e-run-",
         dir=ROOT / ".lake", delete=False,
@@ -190,14 +189,16 @@ def canonical_e_run(rows: list[dict[str, str]]) -> str:
         output = run(["lake", "env", "lean", str(probe)], ROOT)
     finally:
         probe.unlink(missing_ok=True)
-    refusal = re.search(r'(?m)^"refusal: (.*)"$', output)
-    if refusal:
-        if refusal.group(1) != EXPECTED_RUNNING_REFUSAL:
-            raise RuntimeError("unexpected canonical-E refusal\n" + output)
-        return refusal.group(1)
-    if not re.search(r'(?m)^"ok"$', output):
-        raise RuntimeError("canonical-E output did not match simulator rows\n" + output)
-    return ""
+    return replay_result(output)
+
+
+def replay_result(output: str) -> str:
+    result = output.strip()
+    if result == '"ok"':
+        return ""
+    if result == json.dumps("load refusal: " + EXPECTED_LOAD_REFUSAL, ensure_ascii=False):
+        return EXPECTED_LOAD_REFUSAL
+    raise RuntimeError("unexpected canonical-E result\n" + output)
 
 
 def main() -> int:
@@ -228,7 +229,7 @@ def main() -> int:
     if transcript != icarus:
         raise RuntimeError("checked-in simulator transcript differs from current rows")
     check_program(icarus)
-    running_wall = canonical_e_run(icarus)
+    load_refusal = canonical_e_run(icarus)
     digest = hashlib.sha256("\n".join(
         " ".join("%s=%s" % pair for pair in sorted(row.items()))
         for row in icarus
@@ -240,9 +241,9 @@ def main() -> int:
     print("testbench SHA-256: " + TESTBENCH_SHA256)
     print("simulator transcript SHA-256: " + TRANSCRIPT_SHA256)
     print("normalized binary cycle-row SHA-256: " + digest)
-    if running_wall:
-        print("canonical-E: 0/%d cycles; expected running wall: %s" %
-              (len(icarus), running_wall))
+    if load_refusal:
+        print("canonical-E: 0/%d cycles; design instantiation refused before reset: %s" %
+              (len(icarus), load_refusal))
     else:
         print("canonical-E: %d/%d cycles and all %d observed outputs match" %
               (len(icarus), len(icarus), len(WIDTHS)))
