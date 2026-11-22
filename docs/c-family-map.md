@@ -690,3 +690,10 @@ parser-native `float` QualTypes on the `RenderInfo.scaley` field and local
 The evaluator still reaches `floating store without a floating layout`, so the
 remaining gap is the expression-to-declaration join at a field or local store,
 not missing Clang bits or ABI size.
+
+**Floating pointer-loop boundary (2026-11-22).** `pr28982a.c` is the
+remaining floating-store sample after the compound-store fix. Its parser
+facts include `float *[20]`, `float[20]`, `int[20]` and `float[80]` layouts.
+The model reaches a pointer-loop out-of-bounds refusal while the pinned native
+and sanitizer runs exit 0. The next fix must preserve pointer post-increment
+bounds through the loop without weakening the object-bound rule.
