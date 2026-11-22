@@ -1,5 +1,4 @@
 import LeanModels.Sv.Hier2
-import LeanModels.Sv.Kernel.HierarchyCoreMem
 
 /-!
 # The multi-point cross-check (`PDesign.pointVerdict`, round 3 CX)
@@ -586,9 +585,6 @@ inductive ProbeVerdict where
   | frontendRejects (n : Nat)
   /-- One side does not instantiate (or the entry could not be probed). -/
   | refused (msg : String)
-  /-- Both scalar instantiations hit the same unpacked-memory boundary.  The
-  canonical memory route must validate the point before this is admitted. -/
-  | memoryOnly (msg : String)
 deriving Repr, BEq, Inhabited
 
 /-- Passing = `.agree`. -/
@@ -611,7 +607,6 @@ def ProbeVerdict.render : ProbeVerdict → String
   | .metaDiffer ms => s!"resolved metadata at the point disagrees: {String.intercalate " | " ms}"
   | .frontendRejects n => s!"slang reports {n} error(s) elaborating the top alone at the point (the two designs compare equal)"
   | .refused m => s!"refused: {m}"
-  | .memoryOnly m => s!"memory-only: {m}"
 
 /-- What a non-passing verdict MEANS, for refusal messages: only `.differ`
 is a default-point fold; the other verdicts never compared two different
@@ -630,8 +625,6 @@ def ProbeVerdict.meaning : ProbeVerdict → String
       "the two designs are equal, but slang rejects the top (alone, its own hierarchy) at this point"
   | .refused _ =>
       "one side does not instantiate at the point, or the entry was not probed: nothing was compared"
-  | .memoryOnly _ =>
-      "the scalar route refuses the same unpacked-memory declaration on both sides; canonical E must validate the point"
 
 /-- Check that slang observed the requested parameter point. Instantiating both
 trees with the same overrides can otherwise make a stale snapshot agree even
@@ -663,18 +656,8 @@ def PDesign.pointVerdict (dflt pt : PDesign) (lib : List PDesign)
     .differ s!"parameter list: envelope {dflt.params.map (·.name)} ≠ point {pt.params.map (·.name)}"
   else
     match dflt.instAtOverrides lib ov, pt.instAtOverrides lib ov with
-    | .error e, .error e' =>
-        if e.endsWith "unpacked array storage outside E (UnpackedDecl:memory)" &&
-            e'.endsWith "unpacked array storage outside E (UnpackedDecl:memory)" then
-          .memoryOnly e
-        else
-          .refused s!"envelope at the point: {e}"
-    | .ok _, .error e =>
-        if e.endsWith "unpacked array storage outside E (UnpackedDecl:memory)" then
-          .memoryOnly e
-        else
-          .refused s!"point extraction: {e}"
     | .error e, _ => .refused s!"envelope at the point: {e}"
+    | _, .error e => .refused s!"point extraction: {e}"
     | .ok a, .ok b =>
         match a.compare b with
         | .differ m => .differ m
@@ -729,9 +712,7 @@ def renderOverrides (ov : List (String × Int)) : String :=
 /-! ## Reachable instance coverage
 
 The sidecar must describe the instances that the symbolic hierarchy actually
-reaches at each probed top point.  A child definition is extracted alone at
-its own defaults, so its defaults may be invalid even when every instance
-point supplied by the parent is valid.  This check keeps that distinction
+reaches at each probed top point.  This check keeps the sidecar's coverage
 explicit.  The expected list is collected from the parser-shaped hierarchy
 walk, with the same parameter and generate rules as `instantiateH`; repeated
 generated instances at one parameter point share one source-shaped probe.
@@ -869,31 +850,6 @@ def ProbePoint2.verdicts (p : ProbePoint2) (top : PDesign) (lib : List PDesign) 
       | _, none, _ => (label, .refused "an override is not an integer, or gives an untyped parameter another type than an integer override would (unprobed)")
       | _, _, none => (label, .refused "slang cannot elaborate the definition alone there (unprobed)")
       | some c, some ov, some cp => (label, c.pointVerdict cp lib ov)
-
-private def hasMemoryOnly (vs : List (String × ProbeVerdict)) : Bool :=
-  vs.any fun (_, v) => match v with
-    | .memoryOnly _ => true
-    | _ => false
-
-/-- A scalar probe entry marked `memoryOnly` is admitted only when the same
-top point builds successfully through canonical E's source-shaped memory
-route.  This is the narrow bridge for a child whose standalone default is
-invalid. -/
-def Probes2.memoryPointAgrees (pr : Probes2) (top : PDesign) (lib : List PDesign) : Bool :=
-  pr.points.all fun p =>
-    let vs := p.verdicts top lib
-    if !hasMemoryOnly vs then true
-    else
-      p.instances.all fun i =>
-        match i.design, i.overrides with
-        | some point, some ov =>
-            match point.atPoint (point.params.map fun prm => ov.lookup prm.name) with
-            | .error _ => false
-            | .ok (point', args) =>
-                match Kernel.PDesign.instantiateE2 point' args with
-                | .ok _ => true
-                | .timeout | .unsupported _ => false
-        | _, _ => false
 
 /-- Every verdict of a sidecar against its envelope (`top`, `lib`), labelled
 `<point> <entry>`. A sidecar for another top or other sources is one

@@ -1469,7 +1469,8 @@ encoding):
   the definitions it instantiates) also `ff_one.plib : List PDesign`, the
   module library, and `ff_one.sem` flattens through
   `PDesign.instantiateHD2 ff_one.pdesign ff_one.plib` (`Hier2.lean`); every
-  library module passes the same `crossCheck` gate at its own defaults, and
+  each library module is checked by the same `crossCheck` gate at its own
+  defaults and a mismatch refuses the hierarchy, and
   the hierarchy flattened at the defaults must have distinct names
   (`Design2.namesNodup`) and one driver per bit (`driversOk`: no
   `PortConn:driver` process).
@@ -1547,20 +1548,16 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
             "load_design_sv2: '{pathStr}' REFUSED — probe sidecar instance coverage at {point}: {msg}"
       | none => pure ()
   | none => pure ()
-  -- A hierarchical envelope (F3): every library module passes the same
+  -- A hierarchical envelope (F3): each library module is checked by the
   -- differential gate against ITS defaults (the extractor elaborated each
-  -- definition alone at its own defaults).
+  -- definition alone at its own defaults), and a mismatch refuses the load.
   let lib := envl.lib
   for c in lib do
     match c.crossCheck with
     | [] => pure ()
     | msgs =>
-        let covered := match probes? with
-          | some pr => pr.points.any (fun p => p.instances.any (fun i => i.module == c.name))
-          | none => false
-        if covered then pure () else
-          throwErrorAt path
-            "load_design_sv2: '{pathStr}' REFUSED — module '{c.name}' of the hierarchy: our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):\n  {String.intercalate "\n  " msgs}"
+        throwErrorAt path
+          "load_design_sv2: '{pathStr}' REFUSED — module '{c.name}' of the hierarchy: our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):\n  {String.intercalate "\n  " msgs}"
   -- The defaults point with exact 32-bit `int` constants (`int32Agrees`).
   match pd.atPoint [] with
   | .ok (pdD, argsD) =>
@@ -1623,14 +1620,8 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
   if let some pr := probes? then
         match (envl.probeReport pr).find? (fun (_, v) => !v.ok) with
         | some (l, v) =>
-            match v with
-            | .memoryOnly _ =>
-                unless pr.memoryPointAgrees pd envl.lib do
-                  throwErrorAt path
-                    "load_design_sv2: '{pathStr}' REFUSED — multi-point memory validation (probe sidecar '{sidePath}') at {l}: canonical E did not build the reachable point"
-            | _ =>
-                throwErrorAt path
-                  "load_design_sv2: '{pathStr}' REFUSED — multi-point cross-check (probe sidecar '{sidePath}') at {l}: {v.render}\n({v.meaning} — `Probe2.lean`)"
+            throwErrorAt path
+              "load_design_sv2: '{pathStr}' REFUSED — multi-point cross-check (probe sidecar '{sidePath}') at {l}: {v.render}\n({v.meaning} — `Probe2.lean`)"
         | none => pure ()
         -- The legacy-select range guard at every probed point (round 3
         -- folds): the svGolf checker always probes the task's probe,

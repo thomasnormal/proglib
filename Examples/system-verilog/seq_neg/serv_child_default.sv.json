@@ -10,7 +10,7 @@
   "source_files": [
     {
       "path": "Examples/system-verilog/seq_neg/serv_child_default.sv",
-      "sha256": "cbd98cdeaf97356ce9ef4c929f8b7e32fea0d69b2c8cd78a01f0c40d2b4edeea"
+      "sha256": "ac18deb8b07a209737c93cac0d9473ab421b3330b2cf99f6bcc21ad07e308968"
     }
   ],
   "packages": [],
@@ -484,9 +484,9 @@
             "kind": "Port",
             "span": {
               "line": 2,
-              "col": 16,
+              "col": 15,
               "end_line": 2,
-              "end_col": 19
+              "end_col": 18
             },
             "name": "clk",
             "dir": "in",
@@ -500,9 +500,9 @@
             "kind": "Port",
             "span": {
               "line": 2,
-              "col": 21,
+              "col": 20,
               "end_line": 2,
-              "end_col": 24
+              "end_col": 23
             },
             "name": "wen",
             "dir": "in",
@@ -516,9 +516,9 @@
             "kind": "Port",
             "span": {
               "line": 2,
-              "col": 44,
+              "col": 42,
               "end_line": 2,
-              "end_col": 48
+              "end_col": 46
             },
             "name": "addr",
             "dir": "in",
@@ -530,9 +530,9 @@
                     "kind": "Int",
                     "span": {
                       "line": 2,
-                      "col": 39,
+                      "col": 37,
                       "end_line": 2,
-                      "end_col": 40
+                      "end_col": 38
                     },
                     "value": 1,
                     "resolved_width": null
@@ -541,9 +541,9 @@
                     "kind": "Int",
                     "span": {
                       "line": 2,
-                      "col": 41,
+                      "col": 39,
                       "end_line": 2,
-                      "end_col": 42
+                      "end_col": 40
                     },
                     "value": 0,
                     "resolved_width": null
@@ -557,9 +557,9 @@
             "kind": "Port",
             "span": {
               "line": 3,
-              "col": 28,
+              "col": 27,
               "end_line": 3,
-              "end_col": 32
+              "end_col": 31
             },
             "name": "data",
             "dir": "in",
@@ -571,9 +571,9 @@
                     "kind": "Binary",
                     "span": {
                       "line": 3,
-                      "col": 17,
+                      "col": 16,
                       "end_line": 3,
-                      "end_col": 24
+                      "end_col": 23
                     },
                     "width": null,
                     "op": "-",
@@ -581,9 +581,9 @@
                       "kind": "ParamRef",
                       "span": {
                         "line": 3,
-                        "col": 17,
+                        "col": 16,
                         "end_line": 3,
-                        "end_col": 22
+                        "end_col": 21
                       },
                       "name": "width"
                     },
@@ -591,9 +591,9 @@
                       "kind": "Int",
                       "span": {
                         "line": 3,
-                        "col": 23,
+                        "col": 22,
                         "end_line": 3,
-                        "end_col": 24
+                        "end_col": 23
                       },
                       "value": 1,
                       "resolved_width": null
@@ -603,9 +603,9 @@
                     "kind": "Int",
                     "span": {
                       "line": 3,
-                      "col": 25,
+                      "col": 24,
                       "end_line": 3,
-                      "end_col": 26
+                      "end_col": 25
                     },
                     "value": 0,
                     "resolved_width": null
@@ -616,40 +616,54 @@
             }
           },
           {
-            "kind": "Port",
+            "kind": "Unsupported",
             "span": {
               "line": 3,
-              "col": 59,
+              "col": 57,
               "end_line": 3,
-              "end_col": 64
+              "end_col": 62
             },
-            "name": "value",
-            "dir": "out",
-            "width": {
-              "kind": "PackedType",
-              "packed": [
-                {
-                  "msb": {
-                    "kind": "Binary",
-                    "span": {
-                      "line": 3,
-                      "col": 48,
-                      "end_line": 3,
-                      "end_col": 55
-                    },
-                    "width": null,
-                    "op": "-",
-                    "left": {
-                      "kind": "ParamRef",
+            "sv_kind": "PortSymbol:net-z",
+            "text": "value",
+            "metadata": {
+              "name": "value",
+              "width": {
+                "kind": "PackedType",
+                "packed": [
+                  {
+                    "msb": {
+                      "kind": "Binary",
                       "span": {
                         "line": 3,
-                        "col": 48,
+                        "col": 46,
                         "end_line": 3,
                         "end_col": 53
                       },
-                      "name": "width"
+                      "width": null,
+                      "op": "-",
+                      "left": {
+                        "kind": "ParamRef",
+                        "span": {
+                          "line": 3,
+                          "col": 46,
+                          "end_line": 3,
+                          "end_col": 51
+                        },
+                        "name": "width"
+                      },
+                      "right": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 3,
+                          "col": 52,
+                          "end_line": 3,
+                          "end_col": 53
+                        },
+                        "value": 1,
+                        "resolved_width": null
+                      }
                     },
-                    "right": {
+                    "lsb": {
                       "kind": "Int",
                       "span": {
                         "line": 3,
@@ -657,24 +671,19 @@
                         "end_line": 3,
                         "end_col": 55
                       },
-                      "value": 1,
+                      "value": 0,
                       "resolved_width": null
                     }
-                  },
-                  "lsb": {
-                    "kind": "Int",
-                    "span": {
-                      "line": 3,
-                      "col": 56,
-                      "end_line": 3,
-                      "end_col": 57
-                    },
-                    "value": 0,
-                    "resolved_width": null
                   }
-                }
-              ],
-              "resolved": 2
+                ],
+                "resolved": 2
+              },
+              "net_kind": "Wire",
+              "signed": false,
+              "four_state": true,
+              "is_net": true,
+              "driver_reason": "no driver: the net reads z",
+              "driver_records": []
             }
           }
         ],
@@ -683,9 +692,9 @@
             "kind": "Unsupported",
             "span": {
               "line": 4,
-              "col": 21,
+              "col": 19,
               "end_line": 4,
-              "end_col": 39
+              "end_col": 37
             },
             "sv_kind": "VariableSymbol:type",
             "text": "memory [0:depth-1]"

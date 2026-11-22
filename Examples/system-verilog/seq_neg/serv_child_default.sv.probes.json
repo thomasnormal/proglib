@@ -5,7 +5,7 @@
  "source_files": [
   {
    "path": "Examples/system-verilog/seq_neg/serv_child_default.sv",
-   "sha256": "cbd98cdeaf97356ce9ef4c929f8b7e32fea0d69b2c8cd78a01f0c40d2b4edeea"
+   "sha256": "ac18deb8b07a209737c93cac0d9473ab421b3330b2cf99f6bcc21ad07e308968"
   }
  ],
  "probe_points": "W=2;W=4",
@@ -373,7 +373,8 @@
           }
          ],
          "resolved": 2
-        }
+        },
+        "net_as_variable": true
        }
       ],
       "decls": [
@@ -493,7 +494,8 @@
          ],
          "part": null,
          "unpacked": true
-        }
+        },
+        "continuous_net_target": true
        }
       ],
       "generates": [],
@@ -865,7 +867,8 @@
           }
          ],
          "resolved": 4
-        }
+        },
+        "net_as_variable": true
        }
       ],
       "decls": [
@@ -985,7 +988,8 @@
          ],
          "part": null,
          "unpacked": true
-        }
+        },
+        "continuous_net_target": true
        }
       ],
       "generates": [],
