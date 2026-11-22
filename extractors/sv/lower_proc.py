@@ -156,7 +156,18 @@ def _iterator_census(ex, symbol):
                 kind = type(node).__name__
                 if kind == "ForLoopStatement":
                     form = _init_form(ex, node)
-                    if form is not None and form[0] is symbol:
+                    header_symbol = form[0] if form is not None else None
+                    if header_symbol is None:
+                        inits = list(getattr(node, "initializers", ()))
+                        if len(inits) == 1:
+                            init = inits[0]
+                            if (type(init).__name__ == "AssignmentExpression"
+                                    and getattr(init, "op", None) is None
+                                    and not getattr(init, "isNonBlocking", False)
+                                    and getattr(init, "timingControl", None) is None):
+                                left = _strip(getattr(init, "left", None))
+                                header_symbol = getattr(left, "symbol", None)
+                    if header_symbol is symbol:
                         r = node.sourceRange
                         extents.append((r.start.offset, r.end.offset))
                 elif kind in ("NamedValueExpression", "HierarchicalValueExpression"):
