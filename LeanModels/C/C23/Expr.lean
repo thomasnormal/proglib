@@ -582,6 +582,10 @@ def Layout.fieldBitsAtResolved (layout : Layout) (base : Expr) (field : String) 
     (layout.structuredTypeAt base).bind (fun q =>
       match q.unqualified with
       | .record handle => layout.fieldBitsDecl { value := handle.value } field
+      | .pointer pointee =>
+          match pointee.unqualified with
+          | .record handle => layout.fieldBitsDecl { value := handle.value } field
+          | _ => none
       | _ => none))
 
 /-- Resolve an aggregate's element extent from its declaration's structured
@@ -593,7 +597,7 @@ def Layout.elemDeclAt (layout : Layout) (decl : Option DeclarationId)
   match decl.bind layout.structuredTypeDecl with
   | some structured =>
       match structured.unqualified with
-      | .array _ (some _extent) => none
+      | .array _ (some extent) => some (ty, extent)
       | .array _ none | _ => none
   | none => none
 
@@ -1614,7 +1618,11 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                 | .void => true
                 | _ => isCharacter pointee
             | _ => false) |>.getD false
-        if isVoidOrCharPtr structuredType || isVoidOrCharPtr sub.structuredType? ||
+        let sourceIsVoid := sub.structuredType?.map (fun q =>
+          match q.unqualified with
+          | .pointer pointee => pointee.unqualified == .void
+          | _ => false) |>.getD false
+        if isVoidOrCharPtr structuredType || sourceIsVoid ||
             compatiblePointerTypesNode structuredType sub.structuredType? then
           evalExpr ctx sub
         else
