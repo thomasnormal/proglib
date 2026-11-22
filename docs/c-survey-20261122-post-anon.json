@@ -1,0 +1,301 @@
+{
+ "active_rows": 2115,
+ "by_corpus": {
+  "c-testsuite/single-exec": {
+   "not-parsed": 3,
+   "passed": 174,
+   "refused-libc": 1,
+   "refused-ub": 4,
+   "refused-unsupported": 37,
+   "timeout": 1
+  },
+  "gcc.c-torture/execute": {
+   "not-ingested": 1,
+   "not-parsed": 395,
+   "oracle-tests-compiler": 3,
+   "passed": 912,
+   "refused-libc": 22,
+   "refused-ub": 77,
+   "refused-unsupported": 417,
+   "timeout": 4
+  },
+  "gcc.c23-run": {
+   "not-parsed": 34,
+   "passed": 3,
+   "refused-libc": 1,
+   "refused-ub": 1,
+   "refused-unsupported": 25
+  }
+ },
+ "counts": {
+  "no-entry-point": 99,
+  "not-ingested": 1,
+  "not-parsed": 432,
+  "oracle-tests-compiler": 3,
+  "passed": 1089,
+  "refused-libc": 24,
+  "refused-ub": 82,
+  "refused-unsupported": 578,
+  "timeout": 5
+ },
+ "dynamic_wall_ranking": [
+  {
+   "files": [
+    "00162.c",
+    "00209.c",
+    "00210.c",
+    "20000112-1.c",
+    "20000227-1.c"
+   ],
+   "present": 432,
+   "sole": 432,
+   "wall": "frontend"
+  },
+  {
+   "files": [
+    "00032.c",
+    "00130.c",
+    "00141.c",
+    "00144.c",
+    "20010409-1.c"
+   ],
+   "present": 82,
+   "sole": 82,
+   "wall": "undefined-behavior"
+  },
+  {
+   "files": [
+    "builtins/20010124-1-lib.c",
+    "builtins/fputs-lib.c",
+    "builtins/lib/abs.c",
+    "builtins/lib/bfill.c",
+    "builtins/lib/bzero.c"
+   ],
+   "present": 39,
+   "sole": 39,
+   "wall": "unsupported:extern object 'inside_main' has no definition in the translation unit"
+  },
+  {
+   "files": [
+    "00103.c",
+    "00170.c",
+    "00217.c",
+    "20001017-2.c",
+    "20060412-1.c"
+   ],
+   "present": 25,
+   "sole": 25,
+   "wall": "unsupported:pointer bit-cast across incompatible effective types"
+  },
+  {
+   "files": [
+    "00112.c",
+    "20010915-1.c",
+    "20011126-2.c",
+    "20021204-1.c",
+    "20030928-1.c"
+   ],
+   "present": 18,
+   "sole": 18,
+   "wall": "unsupported:pointer operation involving a string literal"
+  },
+  {
+   "files": [
+    "20011121-1.c",
+    "20050215-1.c",
+    "941014-1.c",
+    "980526-2.c",
+    "alloca-1.c"
+   ],
+   "present": 15,
+   "sole": 15,
+   "wall": "unsupported:nonValueRepresentation"
+  },
+  {
+   "files": [
+    "20030914-1.c",
+    "20040208-1.c",
+    "20080502-1.c",
+    "960405-1.c",
+    "gcc/testsuite/gcc.dg/c23-float-1.c"
+   ],
+   "present": 14,
+   "sole": 14,
+   "wall": "unsupported:long double floating literal"
+  },
+  {
+   "files": [
+    "20000605-1.c",
+    "20021120-1.c",
+    "20071030-1.c",
+    "961223-1.c",
+    "991228-1.c"
+   ],
+   "present": 12,
+   "sole": 12,
+   "wall": "unsupported:floating store without a floating layout"
+  },
+  {
+   "files": [
+    "00214.c",
+    "20000622-1.c",
+    "20010329-1.c",
+    "20021010-2.c",
+    "20041112-1.c"
+   ],
+   "present": 12,
+   "sole": 12,
+   "wall": "unsupported:integer-to-pointer conversion outside pointer type"
+  },
+  {
+   "files": [
+    "920908-1.c",
+    "931004-10.c",
+    "931004-12.c",
+    "931004-14.c",
+    "931004-2.c"
+   ],
+   "present": 12,
+   "sole": 12,
+   "wall": "unsupported:va_arg aggregate lacks parser-native compatibility"
+  }
+ ],
+ "manifest_hash": "e384cfd4752ab5c621e0c8f1be56a6f10131bb19fcef7616c4e186a81ffc0d66",
+ "manifest_rows": 2214,
+ "measured_at_utc": "2026-11-22 06:05:58 UTC",
+ "measured_commit": "cebadeb297e858121c85156a6bad341990540feb",
+ "oracle": "Clang 21.1.8",
+ "prior_family_replay": {
+  "commit": "aec63fad9",
+  "match": 1082
+ },
+ "runner": {
+  "fuel": 1000000,
+  "lean_threads": 1,
+  "temporary_files": "lane scratch directory",
+  "timeout_seconds": 90,
+  "workers": 4
+ },
+ "schema": "c-survey-measurement-2026-11-22-post-anonymous-member",
+ "sole_static_walls": [
+  {
+   "files": [
+    "00015.c",
+    "00016.c",
+    "00017.c",
+    "00018.c",
+    "00019.c"
+   ],
+   "present": 1004,
+   "sole": 344,
+   "wall": "type-layout"
+  },
+  {
+   "files": [
+    "20080719-1.c",
+    "20081103-1.c",
+    "20081218-1.c",
+    "20110418-1.c",
+    "20121108-1.c"
+   ],
+   "present": 348,
+   "sole": 146,
+   "wall": "libc-call: __builtin_abort"
+  },
+  {
+   "files": [
+    "00087.c",
+    "00089.c",
+    "00124.c",
+    "00159.c",
+    "00189.c"
+   ],
+   "present": 17,
+   "sole": 4,
+   "wall": "libc-call"
+  },
+  {
+   "files": [
+    "00214.c",
+    "20000314-1.c",
+    "20000622-1.c",
+    "20010329-1.c",
+    "20021010-2.c"
+   ],
+   "present": 26,
+   "sole": 3,
+   "wall": "cast:IntegralToPointer"
+  },
+  {
+   "files": [
+    "00121.c",
+    "20001228-1.c",
+    "20020406-1.c",
+    "20060102-1.c",
+    "20230802-1.c"
+   ],
+   "present": 17,
+   "sole": 3,
+   "wall": "unsequenced-effects"
+  },
+  {
+   "files": [
+    "00144.c",
+    "20000622-1.c",
+    "20011121-1.c",
+    "20030811-1.c",
+    "20050215-1.c"
+   ],
+   "present": 25,
+   "sole": 2,
+   "wall": "cast:PointerToIntegral"
+  },
+  {
+   "files": [
+    "20020406-1.c",
+    "20051113-1.c",
+    "920810-1.c",
+    "941014-2.c",
+    "960521-1.c"
+   ],
+   "present": 13,
+   "sole": 2,
+   "wall": "libc-call: malloc"
+  },
+  {
+   "files": [
+    "20010122-1.c",
+    "20030323-1.c",
+    "20030811-1.c",
+    "pr17377.c"
+   ],
+   "present": 4,
+   "sole": 2,
+   "wall": "libc-call: __builtin_return_address"
+  },
+  {
+   "files": [
+    "00179.c",
+    "20001203-2.c",
+    "20031012-1.c",
+    "20040823-1.c",
+    "20050826-1.c"
+   ],
+   "present": 26,
+   "sole": 1,
+   "wall": "libc-call: memset"
+  },
+  {
+   "files": [
+    "20021113-1.c",
+    "20070824-1.c",
+    "alloca-1.c",
+    "built-in-setjmp.c",
+    "frame-address.c"
+   ],
+   "present": 9,
+   "sole": 1,
+   "wall": "libc-call: __builtin_alloca"
+  }
+ ]
+}

@@ -1,6 +1,6 @@
 # C survey measurement, 2026-11-21
 
-The fresh approved-plugin replay used Clang 21.1.8, parser-native structured `QualType` observations, and the regenerated 2,214-row manifest. The bounded batch runner used one million fuel per file, a 90-second per-file wall timeout, four child runners, and `TMPDIR=/scratch/thomas-ahle/gate/ls-cpp/tmp`.
+The fresh approved-plugin replay used Clang 21.1.8, parser-native structured `QualType` observations, and the regenerated 2,214-row manifest. The bounded batch runner used one million fuel per file, a 90-second per-file wall timeout, four child runners, and a scratch directory for temporary files.
 
 The result is **610 MATCH / 2,214 manifest rows**, with an active basis of 2,131 after 83 no-entry-point rows. Counts are 610 passed, 2 failed, 1 oracle/compiler row, 7 libc refusals, 55 UB refusals, 506 unsupported refusals, 2 timeouts, 78 not-ingested rows, and 953 frontend rejections. No DIVERGE verdict was reported.
 
