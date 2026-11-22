@@ -269,7 +269,9 @@ inductive Expr where
   /-- `sizeof`/`alignof`, over a type or over an expression. -/
   | typeTrait (trait : String) (argType : Option String) (sub : Option Expr)
       (ty : String) (span : CSpan)
-      (structuredArgType structuredType : Option LeanModels.Clang.QualType)
+      (structuredArgType : Option LeanModels.Clang.QualType)
+      (operandSizeBytes operandAlignmentBytes : Option Nat)
+      (structuredType : Option LeanModels.Clang.QualType)
   | constExpr (value : String) (sub : Option Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
   /-- C23 §6.5.3.3 / §7.16: parser-resolved `va_arg` operand and result
@@ -476,7 +478,7 @@ def Expr.structuredType? : Expr → Option LeanModels.Clang.QualType
   | .implicitCast _ _ _ _ q | .cast _ _ _ _ q | .initList _ _ _ _ q
   | .arrayInitList _ _ _ _ _ q | .designatedUpdate _ _ _ _ q
   | .implicitValueInit _ _ q | .compoundLit _ _ _ q
-  | .typeTrait _ _ _ _ _ _ q | .constExpr _ _ _ _ q | .vaArg _ _ _ q => q
+  | .typeTrait _ _ _ _ _ _ _ _ q | .constExpr _ _ _ _ q | .vaArg _ _ _ q => q
   | .unsupported .. => none
 
 /-- clang's own class name for this node, for diagnostics. A refusal a
@@ -509,27 +511,34 @@ def Expr.kindName : Expr → String
   | .vaArg .. => "VAArgExpr"
   | .unsupported k _ _ => k
 
-/-- Sub-expressions, including the expression itself. -/
-def Expr.subexprs : Expr → List Expr
-  | e@(.member b _ _ _ _ _ ..) => e :: b.subexprs
-  | e@(.index b i _ _ ..) => e :: (b.subexprs ++ i.subexprs)
-  | e@(.call c args _ _ ..) => e :: (c.subexprs ++ args.flatMap Expr.subexprs)
-  | e@(.binop _ l r _ _ ..) => e :: (l.subexprs ++ r.subexprs)
-  | e@(.compoundAssign _ l r _ _ _ _ ..) => e :: (l.subexprs ++ r.subexprs)
-  | e@(.unop _ s _ _ _ ..) => e :: s.subexprs
-  | e@(.cond c t f _ _ ..) => e :: (c.subexprs ++ t.subexprs ++ f.subexprs)
-  | e@(.choose c t f _ _ ..) => e :: (c.subexprs ++ t.subexprs ++ f.subexprs)
-  | e@(.paren s _ _ ..) => e :: s.subexprs
-  | e@(.implicitCast _ s _ _ ..) => e :: s.subexprs
-  | e@(.cast _ s _ _ ..) => e :: s.subexprs
-  | e@(.initList xs _ _ _ ..) => e :: xs.flatMap Expr.subexprs
-  | e@(.arrayInitList xs filler _ _ _ ..) => e :: (xs.flatMap Expr.subexprs ++ filler.flatMap Expr.subexprs)
-  | e@(.designatedUpdate base update _ _ ..) => e :: (base.subexprs ++ update.subexprs)
-  | e@(.compoundLit i _ _ ..) => e :: i.subexprs
-  | e@(.typeTrait _ _ (some s) _ _ ..) => e :: s.subexprs
-  | e@(.constExpr _ (some s) _ _ ..) => e :: s.subexprs
-  | e@(.vaArg ap _ _ ..) => e :: ap.subexprs
-  | e => [e]
+/-- Sub-expressions, including the expression itself. Effect checks can omit
+the unevaluated operands of type traits in the admitted C tier. -/
+def Expr.subexprs (e : Expr) (includeTraitOperands : Bool := true) : List Expr :=
+  match e with
+  | .member b _ _ _ _ _ .. => e :: b.subexprs includeTraitOperands
+  | .index b i _ _ .. => e :: (b.subexprs includeTraitOperands ++ i.subexprs includeTraitOperands)
+  | .call c args _ _ .. =>
+      e :: (c.subexprs includeTraitOperands ++ args.flatMap (·.subexprs includeTraitOperands))
+  | .binop _ l r _ _ .. | .compoundAssign _ l r _ _ _ _ .. =>
+      e :: (l.subexprs includeTraitOperands ++ r.subexprs includeTraitOperands)
+  | .unop _ s _ _ _ .. => e :: s.subexprs includeTraitOperands
+  | .cond c t f _ _ .. | .choose c t f _ _ .. =>
+      e :: (c.subexprs includeTraitOperands ++ t.subexprs includeTraitOperands ++
+        f.subexprs includeTraitOperands)
+  | .paren s _ _ .. | .implicitCast _ s _ _ .. | .cast _ s _ _ .. =>
+      e :: s.subexprs includeTraitOperands
+  | .initList xs _ _ _ .. => e :: xs.flatMap (·.subexprs includeTraitOperands)
+  | .arrayInitList xs filler _ _ _ .. =>
+      e :: (xs.flatMap (·.subexprs includeTraitOperands) ++
+        filler.flatMap (·.subexprs includeTraitOperands))
+  | .designatedUpdate base update _ _ .. =>
+      e :: (base.subexprs includeTraitOperands ++ update.subexprs includeTraitOperands)
+  | .compoundLit i _ _ .. => e :: i.subexprs includeTraitOperands
+  | .typeTrait _ _ (some s) _ _ .. =>
+      if includeTraitOperands then e :: s.subexprs includeTraitOperands else [e]
+  | .constExpr _ (some s) _ _ .. => e :: s.subexprs includeTraitOperands
+  | .vaArg ap _ _ .. => e :: ap.subexprs includeTraitOperands
+  | _ => [e]
 
 /-! ### A size measure, for STATED termination
 
@@ -544,7 +553,7 @@ once, and never again. -/
 def Expr.size (e : Expr) : Nat := e.subexprs.length
 
 /-- The same measure over an argument list. -/
-def Expr.sizes (es : List Expr) : Nat := (es.flatMap Expr.subexprs).length
+def Expr.sizes (es : List Expr) : Nat := (es.flatMap (·.subexprs)).length
 
 @[simp] theorem Expr.sizes_nil : Expr.sizes [] = 0 := by
   rfl

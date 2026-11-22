@@ -1082,6 +1082,14 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
           refuseUnsupported "parameter array-bound effects are not retained by clang"
         let m₀ ← get
         let base := m₀.count
+        -- N3220 §7.26.2: byte copies need source and destination
+        -- ranges. The tier has independent allocation and subobject ends,
+        -- and refuses a copy that spans subobjects within an allocation.
+        let checkByteCopySpan (p : Ptr) (n : Nat) : ExecM Unit := do
+          if let some bound := p.bound then
+            if p.off < bound && p.off + (n : Int) > bound then
+              let _ ← readMem (fun mem => mem.resolve { p with bound := none } n)
+              refuseUnsupported "byte copy spans a subobject boundary"
         let runMemset : List CVal → ExecM CVal := fun vs =>
           match vs with
           | [p, byte, count] => do
@@ -1102,6 +1110,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
               let (_, n) ← asInt count
               if n < 0 then refuseUnsupported "memcpy: negative size"
               else do
+                checkByteCopySpan sp n.toNat
+                checkByteCopySpan dp n.toNat
                 let bs ← liftEval (readMem (fun m => m.loadBytes sp n.toNat))
                 liftEval (writeMem (fun m => m.storeBytes dp bs))
                 pure (.ptr dp)
@@ -1114,6 +1124,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CVal → Exe
               let (_, n) ← asInt count
               if n < 0 then refuseUnsupported "mempcpy: negative size"
               else do
+                checkByteCopySpan sp n.toNat
+                checkByteCopySpan dp n.toNat
                 let bs ← liftEval (readMem (fun m => m.loadBytes sp n.toNat))
                 liftEval (writeMem (fun m => m.storeBytes dp bs))
                 pure (.ptr { dp with off := dp.off + n })

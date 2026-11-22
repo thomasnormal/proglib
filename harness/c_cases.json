@@ -952,6 +952,42 @@
     "error": "no offset for member 'a'"
   },
   {
+    "id": "sizeof-unevaluated-array-and-scalar",
+    "source": "int main(void) { int n = 0; char a[13]; return sizeof(a) == 13 && sizeof(++n) + n == sizeof(int) && n == 0 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "alignof-aligned-typedef-and-array",
+    "source": "typedef int Wide __attribute__((aligned(32))); int main(void) { return _Alignof(Wide) == 32 && alignof(int[4]) == alignof(int) ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "alignof-unevaluated-variable-bound",
+    "source": "int main(void) { int n = 2; return alignof(int[++n]) == alignof(int) && n == 2 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "gnu-alignof-aligned-declaration",
+    "source": "static void f(void) __attribute__((aligned(64))); static void f(void) {} int main(void) { return __alignof__((f)) == 64 && alignof(int) == 4 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "sizeof-variable-length-type-refuses",
+    "source": "int main(void) { int n = 2; return sizeof(int[++n]) == 3 * sizeof(int) && n == 3 ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "sizeof: no static ABI size for operand"
+  },
+  {
+    "id": "sizeof-variable-bound-in-fixed-size-operand-refuses",
+    "source": "int main(void) { int n = 2; return sizeof((int (*)[++n])0 == 0) == sizeof(int) ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "sizeof: no static ABI size for operand"
+  },
+  {
     "id": "structured-array-compound-literal",
     "source": "int main(void) { int *p = (int[3]){4, 5, 6}; return p[2] == 6 ? 0 : 1; }",
     "expect": "refuse",

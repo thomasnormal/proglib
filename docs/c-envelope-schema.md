@@ -223,7 +223,7 @@ rung rather than a v0 hole.
 | `InitListExpr` | 75 | `inits`: [expr…] from Clang `inner`, `array_filler`: [expr…] \| null, `type` |
 | `ImplicitValueInitExpr` | — | `type` |
 | `CompoundLiteralExpr` | 1 | `init`: `InitListExpr`, `type` |
-| `UnaryExprOrTypeTraitExpr` | 12 | `trait`: `"sizeof"` \| `"alignof"`, `arg_type` \| `sub`, `type` |
+| `UnaryExprOrTypeTraitExpr` | 12 | `trait`: Clang operator name, `arg_type` \| `sub`, `type`, parser-native `structured_arg_type`, optional `operand_size_bytes` or `operand_alignment_bytes` |
 | `ConstantExpr` | 11 | `value`: str, `sub`, `type` — emitted as a NODE only where it is not flattened into `EnumConstantDecl.value` (0 such sites today; bit-field widths at rung R2) |
 
 `array_filler` preserves Clang's entire field, including its leading default
@@ -231,6 +231,15 @@ and every positional implicit initializer. It is required even when null:
 older envelopes omitted this evidence and may have lost positions, so the
 ingester refuses their initializer lists until they are re-extracted. The
 interpreter admits the implicit-zero default and refuses other filler shapes.
+
+The structured type probe attaches trait operand ABI observations to the
+same Clang node identity. A size observation requires a fixed-size,
+non-variably-modified object type and an operand without variable array
+bounds. The alignment observation uses ABI
+alignment for standard `alignof` and Clang's preferred alignment for
+GNU `__alignof__`, including declaration alignment for expression operands
+that name a declaration. The evaluator refuses a trait without the required
+observation.
 
 ### 3.4 Types — a STRING almost everywhere, a tree only on typedefs
 
