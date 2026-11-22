@@ -1569,7 +1569,7 @@ The checked-in `darkriscv/rv32ui/programs.txt` inventories 42 upstream
 `riscv-tests` RV32UI programs.  The original all-NOP witness left the
 compiled-and-run count at **0/42** and did not exercise a memory stall or an
 unknown-valued register.  The first compiled image moved the measured count to
-**1/42**.  The pinned `addi.S` image moved it to **2/42**, and the `beq.S` image below moves it to **3/42**.
+**1/42**.  The pinned `addi.S` image moved it to **2/42**, and the `beq.S` image moved it to **3/42**. The `and.S` image below moves it to **4/42**.
 
 ## 2026-11-22 DarkRISCV rv32ui/ld_st differential
 
@@ -1626,6 +1626,24 @@ instruction acknowledgement stalls.
 printed fields for **300/300** rows. The checker validates the transcript hash
 and rejects a corrupted expected row. Transcript SHA-256 is
 `24e77902b5ea86b03ae5cb48c8e443d75b68809d34e27d13e107ed87926b99e5`. This
+program has no data-memory operation, so its stall witness is instruction-side.
+The `ld_st` image supplies the data-stall witness.
+
+## 2026-11-22 DarkRISCV rv32ui/and differential
+
+The fourth compiled RV32UI image is `darkriscv/rv32ui_and.hex`, built from
+`riscv-tests` `isa/rv32ui/and.S` at commit
+`3df703cd52d5f0d8224e3c50bf03c6cb70efff98`. Source hashes, the exact Clang/LLD
+commands, image hash, and transcript hash are recorded in
+`darkriscv/rv32ui_and_provenance.txt`. The unchanged-source testbench
+`darkriscv/rv32ui_and_tb.sv` loads the image at reset address zero and applies
+instruction acknowledgement stalls.
+
+`darkriscv/rv32ui_and_check.py` compares 300 rising edges. Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`), Xcelium 24.03-s004, and canonical E agree on all
+printed fields for **300/300** rows. The checker validates the transcript hash
+and rejects a corrupted expected row. Transcript SHA-256 is
+`2564dc3a6f6ccc64e25c9f8c18d3dd97ff006e8687644834dbba9c873b57a58`. This
 program has no data-memory operation, so its stall witness is instruction-side.
 The `ld_st` image supplies the data-stall witness.
 
