@@ -1221,6 +1221,24 @@ def coreMemPProcessReadNames : PProcess → List String
   | .alwaysFFR _ _ body _ | .alwaysEvent _ body => coreMemStmtReadNames body
   | _ => []
 
+/-! A continuous assignment is a source-shaped reader edge.  When an edge
+process reads its target, the values that can reach that target are also part
+of the edge reader's visibility.  Close this relation transitively with a
+finite kernel reduction so assignment chains and hierarchy-flattened port
+aliases are covered without introducing a fixed-point scheduler. -/
+def coreMemAssignSources (processes : List PProcess) (target : String) : List String :=
+  processes.flatMap fun p =>
+    match p with
+    | .assign name value => if name == target then coreMemSignalNames value else []
+    | .assignL (.ident name) value => if name == target then coreMemSignalNames value else []
+    | _ => []
+
+def coreMemReadNamesThroughAssign (processes : List PProcess) : Nat → List String → List String
+  | 0, names => names
+  | fuel + 1, names =>
+      let expanded := (names ++ names.flatMap (coreMemAssignSources processes)).eraseDups
+      if expanded == names then names else coreMemReadNamesThroughAssign processes fuel expanded
+
 def coreMemPProcessAllReadNames : PProcess → List String
   | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
@@ -1270,6 +1288,14 @@ def coreMemEdgeBlockingReadRacePair (p q : PProcess) : Bool :=
      (coreMemProcBlockingWrites q).any (fun name =>
       (coreMemPProcessReadNames p).contains name))
 
+def coreMemEdgeBlockingReadRacePairThroughAssign
+    (processes : List PProcess) (p q : PProcess) : Bool :=
+  coreMemHasCommonEventSource p q &&
+    ((coreMemProcBlockingWrites p).any (fun name =>
+      (coreMemReadNamesThroughAssign processes 32 (coreMemPProcessReadNames q)).contains name) ||
+     (coreMemProcBlockingWrites q).any (fun name =>
+       (coreMemReadNamesThroughAssign processes 32 (coreMemPProcessReadNames p)).contains name))
+
 def coreMemEdgeBlockingReadRaceAt (p : PProcess) : List PProcess → Bool
   | [] => false
   | q :: rest =>
@@ -1279,11 +1305,32 @@ def coreMemEdgeBlockingReadRace : List PProcess → Bool
   | [] | [_] => false
   | p :: rest => coreMemEdgeBlockingReadRaceAt p rest || coreMemEdgeBlockingReadRace rest
 
+def coreMemEdgeBlockingReadRaceAtThroughAssign
+    (processes : List PProcess) (p : PProcess) : List PProcess → Bool
+  | [] => false
+  | q :: rest =>
+      coreMemEdgeBlockingReadRacePairThroughAssign processes p q ||
+        coreMemEdgeBlockingReadRaceAtThroughAssign processes p rest
+
+def coreMemEdgeBlockingReadRaceThroughAssignFrom
+    (allProcesses : List PProcess) : List PProcess → Bool
+  | [] | [_] => false
+  | p :: rest =>
+      coreMemEdgeBlockingReadRaceAtThroughAssign allProcesses p rest ||
+        coreMemEdgeBlockingReadRaceThroughAssignFrom allProcesses rest
+
+def coreMemEdgeBlockingReadRaceThroughAssign
+    (processes : List PProcess) : Bool :=
+  match processes with
+  | [] | [_] => false
+  | _ => coreMemEdgeBlockingReadRaceThroughAssignFrom processes processes
+
 def coreMemEdgeBlockingReadRaceViol (d : PDesign) (generated : List PProcess) :
     Option (String × String) :=
-  let edgeProcesses := (d.processes ++ generated).filter
-    (fun p => !(coreMemPProcessEdgeSources p).isEmpty)
-  if coreMemEdgeBlockingReadRace edgeProcesses then
+  let allProcesses := d.processes ++ generated
+  if coreMemEdgeBlockingReadRaceThroughAssign
+      (allProcesses.filter (fun p => !(coreMemPProcessEdgeSources p).isEmpty) ++
+        allProcesses.filter (fun p => match p with | .assign _ _ | .assignL _ _ => true | _ => false)) then
     some ("Event:edge-blocking-race",
       "4.7/10.4.1: same-edge blocking read/write processes have schedule-dependent visibility; canonical E refuses the race")
   else none
@@ -3816,6 +3863,14 @@ private def auditW5Processes : List PProcess :=
 #guard (coreMemTimeZeroEventSourceViol
     { name := "auditW5", params := [], localParams := [], enums := [], decls := [],
       processes := auditW5Processes, generates := [] } []).isSome
+
+private def auditEdgeAssignProcesses : List PProcess :=
+  [.assign "w" (.ident "a"),
+   .alwaysFF "clk" (.blockingAssign "a" (.ident "d")),
+   .alwaysFF "clk" (.nbaAssign "b" (.ident "w"))]
+
+#guard (coreMemReadNamesThroughAssign auditEdgeAssignProcesses 32 ["w"]).contains "a"
+#guard coreMemEdgeBlockingReadRaceThroughAssign auditEdgeAssignProcesses
 
 end LeanModels.Sv.Kernel
 

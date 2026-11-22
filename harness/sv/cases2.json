@@ -73920,6 +73920,26 @@
       "measured": "2026-11-22: Icarus Verilog 13.0 and Xcelium 24.03-s004 retain x,x,0,0,0,0 while canonical E refuses the simulator-dependent latch activation."
     },
     {
+      "name": "edge_assign_race_refuse",
+      "example": "sem2/edge_assign_race_refuse",
+      "top": "edge_assign_race_refuse",
+      "signals": [
+        "clk",
+        "d",
+        "b"
+      ],
+      "stimulus": [
+        {"clk": "0", "d": "0"},
+        {"clk": "1", "d": "1"},
+        {"clk": "0", "d": "1"},
+        {"clk": "1", "d": "0"},
+        {"clk": "0", "d": "0"},
+        {"clk": "1", "d": "1"}
+      ],
+      "refusal": "Event:edge-blocking-race",
+      "measured": "2026-11-22: Icarus Verilog 13.0 gives x,x,x,0,0,0 and Xcelium 24.03-s004 gives x,x,x,1,1,0; the reader reaches the blocking writer through assign w = a."
+    },
+    {
       "name": "initial_storage_e",
       "example": "sem2/initial_storage_e",
       "top": "initial_storage_e",

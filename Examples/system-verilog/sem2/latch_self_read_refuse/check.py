@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Differential rows for the two always_latch self-read refusal shapes."""
 from pathlib import Path
+import os
 import subprocess
 import tempfile
 
@@ -27,7 +28,10 @@ endmodule
 
 
 def run_case(source, top, expected, simulator):
-    with tempfile.TemporaryDirectory(prefix="sv-latch-self-read-") as td:
+    run_dir = os.environ.get("SV_RUN_DIR")
+    if run_dir is None:
+        raise SystemExit("SV_RUN_DIR must point to the lane scratch directory")
+    with tempfile.TemporaryDirectory(prefix="sv-latch-self-read-", dir=run_dir) as td:
         td = Path(td)
         tb = td / "tb.sv"
         tb.write_text(TB.replace("DUT", top))
