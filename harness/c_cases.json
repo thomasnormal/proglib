@@ -531,12 +531,10 @@
   },
   {
     "id": "pointer-bytes-character-wall",
-    "source": "int main(void) { int *p = (int *)0; unsigned char *b = (unsigned char *)&p; return b[0] == b[0] ? 0 : 1; }",
-    "expect": "refuse",
+    "source": "int main(void) { int *p = (int *)0; return ((unsigned char *)&p)[0]; }",
+    "expect": "match",
     "return_value": 0,
-    "error": "no layout for declared type 'int *'",
-    "structured_expect": "match",
-    "structured_return_value": 0
+    "sanitize": true
   },
   {
     "id": "pointer-long-roundtrip",
@@ -1181,12 +1179,11 @@
   },
   {
     "id": "pointer-bytes-character-nonnull",
-    "source": "int main(void) { int x = 7; int *p = &x; unsigned char *b = (unsigned char *)&p; return b[0] == b[0] ? 0 : 1; }",
+    "source": "int main(void) { int x[2]; int *p = &x[0]; int *q = &x[1]; unsigned char *a = (unsigned char *)&p; unsigned char *b = (unsigned char *)&q; return a[0] == b[0]; }",
     "expect": "refuse",
+    "error": "pointer byte read requires an address placement oracle",
     "return_value": 0,
-    "error": "no layout for declared type 'int *'",
-    "structured_expect": "match",
-    "structured_return_value": 0
+    "sanitize": true
   },
   {
     "id": "structured-typedef-pointer",
@@ -1408,12 +1405,11 @@
   },
   {
     "id": "f2-pointer-bytes-character-defined",
-    "source": "int main(void) { int *p = (int *)0; unsigned char *b = (unsigned char *)&p; return b[0] == b[0] ? 0 : 1; }",
+    "source": "#include <string.h>\nstatic void f(void) {}\nint main(void) { void (*p)(void) = f; unsigned char first = ((unsigned char *)&p)[0]; unsigned char copy[sizeof p]; memcpy(copy, &p, sizeof p); return first != copy[0]; }",
     "expect": "refuse",
+    "error": "function pointer byte representation is unavailable",
     "return_value": 0,
-    "error": "no layout for declared type 'int *'",
-    "structured_expect": "match",
-    "structured_return_value": 0
+    "sanitize": true
   },
   {
     "id": "oracle-clean-20000113_1",
@@ -1502,5 +1498,26 @@
     "return_value": 0,
     "structured_expect": "refuse",
     "structured_error": "nonValueRepresentation"
+  },
+  {
+    "id": "malloc-retype-int-to-long",
+    "source": "#include <stdlib.h>\nint main(void) { void *p = malloc(sizeof(long)); if (!p) return 2; *(int *)p = 7; *(long *)p = 4294967297L; int bad = *(long *)p != 4294967297L; free(p); return bad; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "malloc-character-store-preserves-int",
+    "source": "#include <stdlib.h>\nint main(void) { int *p = malloc(sizeof(int)); if (!p) return 2; *p = 0x1234; ((unsigned char *)p)[0] = 0x56; int bad = *p != 0x1256; free(p); return bad; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "malloc-struct-member-types",
+    "source": "#include <stdlib.h>\nstruct data { int a; long b; };\nint main(void) { struct data *p = malloc(2 * sizeof(long)); if (!p) return 2; p->a = 7; p->b = 4294967297L; int bad = p->a != 7 || p->b != 4294967297L; free(p); return bad; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
