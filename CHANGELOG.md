@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added parser-native active-region phase relations for retained combinational and
+  edge activations, preserving source continuations, blocking visibility, and
+  issue-time scalar and memory NBA queues. PicoRV32 scheduling receipts now
+  record its 45 processes, 14 preemptive writer/reader pairs, and the unchanged
+  `Schedule:preemptive` refusal.
+
 - SystemVerilog package parameters now retain their declared width,
   signedness, and four-state bits in canonical E. Ordinary casez, inside, and
   case-equality operands consume that vector, while integer-required uses
