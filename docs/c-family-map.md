@@ -827,3 +827,12 @@ machine rows in
 [`docs/c-extern-b-price-20261122.json`](c-extern-b-price-20261122.json).
 The refusal remains the unresolved external-object and companion-linkage
 boundary.
+
+**Field-layout wall price (2026-11-22).** The dynamic ranking has four sole
+rows refusing `no layout for field ''`. All four have clean pinned O0/O2 and
+UBSan/ASan runs. The receipt is in
+[`docs/c-field-layout-price-20261122.md`](c-field-layout-price-20261122.md),
+with machine rows in
+[`docs/c-field-layout-price-20261122.json`](c-field-layout-price-20261122.json).
+The refusal remains the anonymous-field declaration-identity and layout join
+boundary.
