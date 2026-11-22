@@ -24,6 +24,10 @@ they are (`event_control_repro`: `always @(a or b)` beside a flip-flop; `resolve
 drivers of one wire). `seq_neg/plain_three_events` (a clock, a reset and a set edge) and `seq_neg/plain_reset_first`
 (`always @(negedge rst_n or posedge clk)`) pin the two plain-`always` refusals that remain.
 
+The last section pins what stays outside among procedural loops (a `for` loop of nonblocking assignments is inside
+the profile): a blocking assignment in a loop body, a `while` loop, a header the stage does not evaluate, a trip count
+the hypotheses do not bound.
+
 When every process, the memories and the resolved nets pass but the profile still does not hold, the stage names the
 conjunct that fails (the edge view, distinct names, 4-state declarations, or the whole-list process check) instead of
 one generic message; `seq_neg/two_state_reg` (a flip-flop on `bit` data) pins the 4-state one.
@@ -140,6 +144,105 @@ error: sv_structure: the instantiation does not normalize at these parameters: t
 -/
 #guard_msgs (whitespace := lax) in
 example (W REG : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) (h4 : REG < 2 ^ 30) : SeqDesignI (gbp.e W REG) := by
+  sv_structure
+
+/-! ## Procedural `for` loops
+
+A procedural `for` loop of nonblocking assignments is inside the clocked profile, never unrolled
+(`seq_cycle/shift_for_proof`, `seq_cycle/reset_for_proof`): the clocked views fold its body over the header's value
+list as the route does. What stays outside, each refused by name:
+
+* a loop with a BLOCKING assignment in its body (`seq_neg/for_blocking`: `acc = acc + 1` per iteration): an iteration
+  reads what an earlier one wrote, so the loop is not its issued updates. The route runs it (the run below); the
+  clocked views do not mirror it (`loopBodyB`; the view-level executor refuses it by name).
+* a `while` loop (`seq_neg/while_loop`): ingestion keeps it unconverted and the route itself refuses it.
+* a header the stage does not evaluate (`seq_neg/for_step2`: `i += 2`): the stage reads `for (i = a; i < P; i++)` and
+  `i <= P` (the step `i++` or `i = i + 1`) in closed form. The route runs the loop.
+* a trip count the hypotheses do not bound: the route runs a loop one unit of its statement fuel (4096) per iteration
+  and answers `timeout` beyond (the run below at `N = 5000`), so a structure theorem states the bound on the parameter.
+
+An index that is not the iterator itself (`mem[N-1-i] <= …`, `mem[2*i] <= …`) is NOT refused: the loop's write equation
+`memWriteL` carries the index as its key function, and its closed form (`memWriteL_at`, `memWriteL_index`) asks for the
+key to be injective on the loop's values, which the reader proves. -/
+
+load_design_sv2 fbk from "Examples/system-verilog/seq_neg/for_blocking.sv.json"
+load_design_sv2 whl from "Examples/system-verilog/seq_neg/while_loop.sv.json"
+load_design_sv2 fs2 from "Examples/system-verilog/seq_neg/for_step2.sv.json"
+set_option maxRecDepth 100000 in
+load_design_sv2 sfr from "Examples/system-verilog/seq_cycle/shift_for.sv.json"
+
+/-- A loop with a blocking assignment in its body is outside the edge-body fragment. -/
+example (a b c e : PExpr) : (PStmt.forLoop "i" a b c (.blockingAssign "x" e)).edgeOkB = false := by
+  simp [PStmt.edgeOkB, PStmt.loopBodyB]
+
+/-- A loop nested in a loop is outside the edge-body fragment. -/
+example (a b c : PExpr) (s : PStmt) : (PStmt.forLoop "i" a b c (.forLoop "j" a b c s)).edgeOkB = false := by
+  simp [PStmt.edgeOkB, PStmt.loopBodyB]
+
+/-- The view-level executor refuses such a loop by name (it never guesses at it). -/
+example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV) (a b c e : PExpr) :
+    E.execV env v mv (.forLoop "i" a b c (.blockingAssign "x" e)) =
+      .unsupported "9.4.2: a procedural `for` loop whose body has a blocking assignment, a declaration or a nested loop is outside the clocked profile" := by
+  simp [CoreMemDesign.execV, PStmt.loopBodyB]
+
+/-- An index that is not the iterator is not refused: for the reversed loop `m[N-1-i] <= e(i)` the write equation's
+closed form holds, the key being injective on the loop's values. -/
+example (mv : MemV) (N : Nat) (x : Int → LVec) (i : Int) (hi : i ∈ intRange 0 N) :
+    memWriteL mv "m" (intRange 0 N) (fun i => some ((N : Int) - 1 - i)) x "m" ((N : Int) - 1 - i) = x i :=
+  memWriteL_index (f := fun i => (N : Int) - 1 - i) (fun _ _ => rfl)
+    (fun a _ b _ h => by
+      have h' : (N : Int) - 1 - a = (N : Int) - 1 - b := h
+      omega) mv hi
+
+-- The route runs the blocking loop: `q` is `d + N` (here `N = 4`, `d = 5` then `6`).
+#guard (match fbk.e 4 with
+  | .ok E => match runCoreMemRows E E.initial (cycleRows "clk" [[("d", .ofNat 8 5)], [("d", .ofNat 8 6)]]) with
+    | .ok rows => rows.map (fun st => SvState.showSignal (CoreMemState.view E st) "q") ==
+        ["xxxxxxxx", "00001001", "00001001", "00001010"]
+    | _ => false
+  | _ => false)
+
+-- The route refuses the `while` loop.
+#guard (match whl.e with
+  | .ok E => match runCoreMemRows E E.initial (cycleRows "clk" [[("d", .ofNat 8 5)]]) with
+    | .unsupported m => m == "WhileLoopStatement: while (n[7]) n = n << 1;"
+    | _ => false
+  | _ => false)
+
+-- The route runs out of its statement fuel on a loop of 4999 iterations: the bound on `N` is the route's.
+#guard (match sfr.e 1 5000 with
+  | .ok E => match runCoreMemRows E E.initial (cycleRows "clk" [[("d", .ofNat 1 1)]]) with
+    | .timeout => true
+    | _ => false
+  | _ => false)
+
+/--
+error: sv_structure: process 0 (an edge process) has a procedural `for` loop with a blocking assignment in its body (an iteration would read what an earlier iteration wrote): the clocked stages read a loop of nonblocking assignments only, refused
+-/
+#guard_msgs (whitespace := lax) in
+example (N : Nat) (h1 : 1 ≤ N) (h2 : N ≤ 4000) : SeqDesign (fbk.e N) "clk" := by
+  sv_structure
+
+/--
+error: sv_structure: process 0 (an edge process) holds a statement ingestion kept unconverted (WhileLoopStatement), refused
+-/
+#guard_msgs (whitespace := lax) in
+example : SeqDesign whl.e "clk" := by
+  sv_structure
+
+/--
+error: sv_structure: process 0 (an edge process) has a procedural `for` loop whose header the clocked stages do not evaluate: they read `for (i = a; i < P; i++)` and `i <= P` (a literal start `a`, a parameter bound `P`, a unit step `i++` or `i = i + 1`) as the route's value list in closed form; any other header (another step, a bound that is not a parameter, a descending loop) is refused
+-/
+#guard_msgs (whitespace := lax) in
+example (N : Nat) (h1 : 1 ≤ N) (h2 : N ≤ 4000) : SeqDesign (fs2.e N) "clk" := by
+  sv_structure
+
+/--
+error: sv_structure: process 0 (an edge process) has a procedural `for` loop whose trip count is not bounded by the route's statement fuel from the hypotheses in context: the route runs a loop one fuel unit per iteration out of 4096 and answers `timeout` beyond, so state the bound as a hypothesis on the parameters (for `for (i = a; i < N; i++)`: `N ≤ 4000`), refused
+-/
+#guard_msgs (whitespace := lax) in
+set_option maxHeartbeats 1000000 in
+example (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqDesign (sfr.e W N) "clk" := by
   sv_structure
 
 end Examples.«system-verilog».seq_cycle.seq_refusals
