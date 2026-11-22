@@ -623,3 +623,11 @@ into separate driver tests and are not complete translation units. The current
 single-envelope survey cannot claim their linked behavior. A valid next step
 requires a manifest-level companion closure and one parser envelope for the
 linked translation unit, not an evaluator default for the missing object.
+
+**Pointer-bit-cast wall price (2026-11-22).** The dynamic ranking has 25 sole
+rows at `pointer bit-cast across incompatible effective types`. The six
+available C1 samples all exit 0 at pinned Clang `-O0` and `-O2` with clean
+sanitizer runs, but their sources exercise strict-aliasing punning, enum/object
+pointer compatibility, or subobject pointer bounds. Native cleanliness does
+not establish defined C behavior for these cases. The current loud refusal is
+therefore retained pending the effective-type and pointer-provenance family.
