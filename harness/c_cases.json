@@ -1645,5 +1645,54 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "indeterminate-addressable-integer-member",
+    "source": "struct P { int used, unused; }; static int read_member(struct P *p) { return p->unused & 0; } int main(void) { struct P p; p.used = 5; return read_member(&p); }",
+    "expect": "refuse",
+    "error": "indeterminate lvalue read requires a representation choice",
+    "sanitize": true
+  },
+  {
+    "id": "indeterminate-addressable-first-member",
+    "source": "struct P { int unused; }; static int read_member(struct P *p) { return p->unused & 0; } int main(void) { struct P p; return read_member(&p); }",
+    "expect": "refuse",
+    "error": "indeterminate lvalue read requires a representation choice",
+    "sanitize": true
+  },
+  {
+    "id": "indeterminate-addressable-direct-scalar",
+    "source": "int main(void) { int x; int *p = &x; (void)p; return x & 0; }",
+    "expect": "refuse",
+    "error": "indeterminate lvalue read requires a representation choice",
+    "sanitize": true
+  },
+  {
+    "id": "indeterminate-addressable-character-read",
+    "source": "int main(void) { unsigned char x; const unsigned char *p = &x; return *p & 0; }",
+    "expect": "refuse",
+    "error": "indeterminate lvalue read requires a representation choice",
+    "sanitize": true
+  },
+  {
+    "id": "indeterminate-addressable-floating-member",
+    "source": "struct P { float x; }; static int read_member(struct P *p) { return (p->x == 1.0f) & 0; } int main(void) { struct P p; return read_member(&p); }",
+    "expect": "refuse",
+    "error": "indeterminate lvalue read requires a representation choice",
+    "sanitize": true
+  },
+  {
+    "id": "indeterminate-register-eligible-scalar",
+    "source": "int main(void) { int x; { int x = 4; int *p = &x; if (*p != 4) return 7; } return x != 4; }",
+    "expect": "refuse",
+    "error": "indetAutomatic",
+    "sanitize": true
+  },
+  {
+    "id": "indeterminate-register-eligible-compound-assignment",
+    "source": "int main(void) { int x; x &= 255; return x; }",
+    "expect": "refuse",
+    "error": "indetAutomatic",
+    "sanitize": true
   }
 ]

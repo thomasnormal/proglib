@@ -940,6 +940,7 @@ def scoreEnvelope (fuel : Nat) (envl : Envelope)
   | .ok (.error (.libc n), _) => .refusedLibc n
   | .ok (.error (.valueUB u), _) => .refusedUB (toString (repr u))
   | .ok (.error (.memUB f), _) => .refusedUB (toString (repr f))
+  | .ok (.error (.indeterminateRead ..), _) => .unsupported indeterminateReadMessage
   | .error (.unsupported _ msg _) => .unsupported msg
   | .error .timeout => .timeout
 
@@ -962,6 +963,8 @@ def singleMain (path : String) (fuel : Nat) : IO UInt32 := do
             IO.println "ok\t0"; return 0
           else
             IO.eprintln "refused\tLeanModels.C.C23.Refusal.libc \"exit\""; return 3
+      | .ok (.error (.indeterminateRead ..), _) =>
+          IO.eprintln s!"unsupported\t{indeterminateReadMessage}"; return 3
       | .ok (.error reason, _) => IO.eprintln s!"refused\t{repr reason}"; return 3
       | .error .timeout => IO.eprintln "timeout"; return 4
       | .error (.unsupported _ reason _) => IO.eprintln s!"unsupported\t{reason}"; return 3

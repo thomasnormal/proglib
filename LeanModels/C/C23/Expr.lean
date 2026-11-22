@@ -121,6 +121,7 @@ def EvalM.verdict (m : Mem) (x : EvalM α) : Outcome α :=
   match EvalM.run m x with
   | .ok (.ok a, _) => .ok a
   | .ok (.error .aborted, _) => .aborted
+  | .ok (.error (.indeterminateRead ..), _) => .unsupported indeterminateReadMessage
   | .ok (.error r, _) => .refused r
   | .error .timeout => .timeout
   | .error (.unsupported _ msg _) => .unsupported msg
@@ -171,10 +172,20 @@ Inch 2's operations are pure functions over `Mem`. These are the lifts,
 and they are the reason inch 2 threaded `Mem` explicitly: not one of its
 definitions had to be rewritten. -/
 
-/-- Read through a pure memory operation. -/
-def readMem (f : Mem → MRes α) : EvalM α := do
-  match f (← get) with
+/-- Read through a pure memory operation. N3220 §6.3.2.1p2 requires
+the register premise and an uninitialized automatic object. The lvalue
+supplies the first premise. On that direct scalar path, an entirely
+unwritten object supplies the second. -/
+def readMem (f : Mem → MRes α) (couldBeUninitializedRegister : Unit → Bool := fun _ => false) :
+    EvalM α := do
+  let m ← get
+  match f m with
   | .ok a => pure a
+  | .error (.indeterminateRead o off) =>
+      if couldBeUninitializedRegister () && off == 0 &&
+          (m.get? o).any (fun c => c.dur == .automatic && c.bytes.all (· == CByte.indet)) then
+        refuseUB (.indetAutomatic o off)
+      else refuseUnsupported indeterminateReadMessage
   | .error e => throw e
 
 /-- Write through a pure memory operation. The new memory is committed
@@ -700,6 +711,8 @@ structure Ctx where
   already-ingested list lets statement execution resume at that label
   without rebuilding a control-flow graph or parsing source text. -/
   functionBody : Option (List Stmt) := none
+  /-- Direct uninitialized scalar declarations eligible for C23 §6.3.2.1p2. -/
+  uninitializedRegisterCandidate : DeclarationId → Bool := fun _ => false
   /-- Parser-owned identity for the hosted `stdout` stream object. -/
   stdoutObj : Option ObjId := none
   /-- Statement-layer aggregate initialization for compound literals. -/
@@ -1037,32 +1050,34 @@ def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
 /-- C23 §6.5.1p7 permits reading pointer representations through a character
 lvalue. The current store lacks a placement oracle for non-null addresses
 and a byte representation for function pointers. -/
-def loadCharacterAt (p : Ptr) (t : IntTy) : EvalM CVal := do
+def loadCharacterAt (p : Ptr) (t : IntTy)
+    (couldBeUninitializedRegister : Unit → Bool := fun _ => false) : EvalM CVal := do
   let (_, object, offset) ← readMem (fun m => m.resolve p 1)
   match object.bytes[offset]? with
   | some (.funByte _) =>
       refuseUnsupported "function pointer byte representation is unavailable"
   | some (.ptrByte pointer _) | some (.ptrIntByte pointer _) =>
-      if pointer.isNull then readMem (fun m => m.loadCharacter p t)
+      if pointer.isNull then readMem (fun m => m.loadCharacter p t) couldBeUninitializedRegister
       else refuseUnsupported "pointer byte read requires an address placement oracle"
-  | _ => readMem (fun m => m.loadCharacter p t)
+  | _ => readMem (fun m => m.loadCharacter p t) couldBeUninitializedRegister
 
 /-- Load whatever an lvalue of this type holds — an integer or a pointer.
 §6.3.2.1p2, the lvalue conversion: **1837 sites, the load-bearing
 implicit of the whole corpus.** -/
 def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
     (structured : Option LeanModels.Clang.QualType := none)
-    (zeroNullPointer : Bool := false) : EvalM CVal :=
+    (zeroNullPointer : Bool := false)
+    (couldBeUninitializedRegister : Unit → Bool := fun _ => false) : EvalM CVal :=
   if structured.bind floatBitsOfStructured == some 32 then
-    readMem (fun m => Mem.loadFloat32 m p)
+    readMem (fun m => Mem.loadFloat32 m p) couldBeUninitializedRegister
   else if structured.bind floatBitsOfStructured == some 64 then
-    readMem (fun m => Mem.loadFloat64 m p)
+    readMem (fun m => Mem.loadFloat64 m p) couldBeUninitializedRegister
   else if structured.bind intTyOfStructured |>.map (fun t => t.bits == 8) |>.getD false then
     match structured.bind intTyOfStructured with
-    | some t => loadCharacterAt p t
+    | some t => loadCharacterAt p t couldBeUninitializedRegister
     | none => refuseUnsupported s!"character type '{ty}' has no integer representation"
   else if structuredPointerObject structured ty then do
-    let q ← readMem (fun m => m.loadPtr p zeroNullPointer)
+    let q ← readMem (fun m => m.loadPtr p zeroNullPointer) couldBeUninitializedRegister
     match q with
     | some q => pure (.ptr q)
     | none => refuseUnsupported "pointer representation lacks provenance or target ABI evidence"
@@ -1073,8 +1088,9 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
           -- A uintptr_t object may contain the profile's preserved pointer
           -- token or an ordinary integer.  Try the parser-native pointer
           -- representation first, then use the ordinary integer rule.
-          readMem (fun m => loadPtrIntOrInt m alias p t ty structured)
-        else readMem (fun m => Mem.loadIntChecked m alias p t ty structured)
+          readMem (fun m => loadPtrIntOrInt m alias p t ty structured) couldBeUninitializedRegister
+        else
+          readMem (fun m => Mem.loadIntChecked m alias p t ty structured) couldBeUninitializedRegister
     | none =>
         match size with
         | some n => do
@@ -1082,9 +1098,16 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
             pure (.aggregate ty bs)
         | none => refuseUnsupported s!"aggregate load without a layout '{ty}'"
 
+private def directVariable : Expr → Option DeclarationId
+  | .declRef id _ "VarDecl" .. => id
+  | .paren sub .. => directVariable sub
+  | _ => none
+
 abbrev Ctx.loadAt (ctx : Ctx) (p : Ptr) (ty : String) (size : Option Nat)
-    (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal :=
+    (structured : Option LeanModels.Clang.QualType := none)
+    (lvalue : Option Expr := none) : EvalM CVal :=
   LeanModels.C.C23.loadAt ctx.aliasModel p ty size structured ctx.layout.zeroNullPointer
+    (fun _ => (lvalue.bind directVariable).any ctx.uninitializedRegisterCandidate)
 
 /-- Store a value at an address, at the lvalue's type. -/
 def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (v : CVal)
@@ -1664,7 +1687,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               | none =>
                   ctx.loadAt p ty
                     (ctx.layout.exprSizeAt sub ty)
-                    (ctx.layout.structuredTypeAt sub)
+                    (ctx.layout.structuredTypeAt sub) (some sub)
       else if ck == "ArrayToPointerDecay" then do
         -- §6.3.2.1p3 — 405 sites, the LARGEST pointer producer there is.
         let p ← evalLValue ctx sub
@@ -1881,7 +1904,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let bits := ctx.layout.bitFieldOf sub
         let old ← match bits with
           | some (offsetBits, width) => loadBitFieldAt sub.ty p offsetBits width subStructured
-          | none => ctx.loadAt p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured
+          | none => ctx.loadAt p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured (some sub)
         match old with
         | .ptr _ =>
             -- C23 §6.5.3.5p2 defines pointer increment/decrement in terms
@@ -1945,7 +1968,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             loadBitFieldAt l.ty p offsetBits width lStructured
         | none =>
             ctx.loadAt p l.ty
-              (ctx.layout.exprSizeAt l (Expr.ty l)) lStructured
+              (ctx.layout.exprSizeAt l (Expr.ty l)) lStructured (some l)
       match old, rv with
       | .ptr _, .int _ _ => do
           -- §6.5.17.3: pointer compound assignment uses the same
@@ -2044,7 +2067,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
 
   -- A bare name in value position is an enumeration constant; every other
   -- name arrives wrapped in a conversion or a decay.
-  | .declRef (some id) name declKind ty _ structuredType =>
+  | e@(.declRef (some id) name declKind ty _ structuredType) =>
       if declKind == "EnumConstantDecl" then
         match (ctx.enumIds.find? (·.1 == id)).map (·.2) with
         | some n => do
@@ -2057,7 +2080,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             let p := match ctx.layout.sizeAt (some id) ty with
               | some sz => Ptr.toObjectBound o sz | none => Ptr.toObject o
             ctx.loadAt p ty (ctx.layout.sizeAt (some id) ty)
-              (ctx.layout.structuredTypeDecl id)
+              (ctx.layout.structuredTypeDecl id) (some e)
         | none => refuseUnsupported s!"unbound declaration '{id.value}' (name '{name}')"
   | .declRef none name declKind ty _ structuredType =>
       if declKind == "EnumConstantDecl" then
@@ -2688,11 +2711,16 @@ theorem map' {x : EvalM α} (g : α → β) (hx : MemInvariant x) :
 
 /-- Reading is invariant, and outside `storeAt` it is the ONLY way this
 block reaches memory at all. -/
-theorem readMem' (f : Mem → MRes α) : MemInvariant (readMem f) := by
+theorem readMem' (f : Mem → MRes α) (couldBeUninitializedRegister : Unit → Bool := fun _ => false) :
+    MemInvariant (readMem f couldBeUninitializedRegister) := by
   refine bind get' fun m0 => ?_
   cases f m0 with
   | ok a => exact pure' a
-  | error e => exact throw' e
+  | error e =>
+      cases e
+      all_goals first
+        | exact throw' _
+        | exact ite' (refuseUB' _) (refuseUnsupported' _)
 
 theorem evalCRes' (r : CRes CVal) : MemInvariant (evalCRes r) := by
   cases r
@@ -2741,30 +2769,33 @@ theorem asPtr' (v : CVal) : MemInvariant (asPtr v) := by
 theorem asInt' (v : CVal) : MemInvariant (asInt v) := by
   cases v <;> first | exact pure' _ | exact refuseUnsupported' _ | exact refuseUB' _
 
-theorem loadCharacterAt' (p : Ptr) (t : IntTy) : MemInvariant (loadCharacterAt p t) := by
+theorem loadCharacterAt' (p : Ptr) (t : IntTy)
+    (couldBeUninitializedRegister : Unit → Bool := fun _ => false) :
+    MemInvariant (loadCharacterAt p t couldBeUninitializedRegister) := by
   unfold loadCharacterAt
   apply bind (readMem' _)
   rintro ⟨_, object, offset⟩
   cases observed : object.bytes[offset]? with
-  | none => simpa only [observed] using (readMem' (fun m => m.loadCharacter p t))
+  | none => simpa only [observed] using (readMem' (fun m => m.loadCharacter p t) couldBeUninitializedRegister)
   | some byte =>
       cases byte <;> simp only [observed]
       all_goals first
         | exact refuseUnsupported' _
-        | exact readMem' _
-        | exact bif' (readMem' _) (refuseUnsupported' _)
+        | exact readMem' _ _
+        | exact bif' (readMem' _ _) (refuseUnsupported' _)
 
 theorem loadAt' (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
     (structured : Option LeanModels.Clang.QualType := none)
-    (zeroNullPointer : Bool := false) :
-    MemInvariant (loadAt alias p ty size structured zeroNullPointer) := by
+    (zeroNullPointer : Bool := false)
+    (couldBeUninitializedRegister : Unit → Bool := fun _ => false) :
+    MemInvariant (loadAt alias p ty size structured zeroNullPointer couldBeUninitializedRegister) := by
   unfold loadAt
   repeat
     first
-    | exact readMem' _
-    | exact loadCharacterAt' _ _
-    | exact bind (readMem' _) fun _ => pure' _
-    | exact bind (readMem' _) fun
+    | exact readMem' _ _
+    | exact loadCharacterAt' _ _ _
+    | exact bind (readMem' _ _) fun _ => pure' _
+    | exact bind (readMem' _ _) fun
         | some _ => pure' _
         | none => refuseUnsupported' _
     | exact refuseUnsupported' _

@@ -1051,6 +1051,50 @@ def functionCallFree (f : LeanModels.C.FunctionDefn) : Bool :=
           | _ => true
       (body.substmts.flatMap Stmt.ownExprs).all localPure
 
+/-- The envelope can omit expressions in variable array bounds. A local
+type with such a bound cannot certify absence of an address use. -/
+private def mayHideArrayBound : LeanModels.Clang.QualType → Bool
+  | .array _ none | .typedefRef _ => true
+  | .array inner (some _) | .pointer inner | .qualified _ _ inner
+  | .restrictQualified inner => mayHideArrayBound inner
+  | _ => false
+
+/-- A sufficient condition for the register premise of N3220 §6.3.2.1p2.
+Only a direct automatic scalar declared without an initializer is eligible.
+The scan follows the parser's declaration identity through every address
+operand in the original body, including initializers and unevaluated
+operands. An omitted subtree or a potentially omitted type bound leaves
+the premise unavailable. -/
+private def uninitializedRegisterCandidate (body : Stmt)
+    (id : LeanModels.C.DeclarationId) : Bool := Id.run do
+  let statements := body.substmts
+  let declarations := statements.flatMap fun
+    | .decl ds _ => ds
+    | _ => []
+  let found := declarations.any fun
+    | .var (some key) _ _ storage none _ false _ (some type) =>
+        key == id && (storage.isNone || storage == some "auto" || storage == some "register") &&
+          ((intTyOfStructured type).isSome || (floatBitsOfStructured type).isSome ||
+            type.unqualified.pointerObject)
+    | _ => false
+  unless found do return false
+  let complete := declarations.all fun
+    | .var _ _ _ _ _ _ _ _ type | .typedef _ _ _ _ _ type =>
+        type.any (!mayHideArrayBound ·)
+    | .unsupported .. => false
+    | _ => true
+  let noAddressUse := (statements.flatMap Stmt.ownExprs).all fun
+    | .unsupported .. => false
+    | .unop "&" operand .. => !operand.subexprs.any fun
+        | .declRef key .. => key.isNone || key == some id
+        | _ => false
+    | .cast _ _ _ _ type => type.any (!mayHideArrayBound ·)
+    | .typeTrait _ _ _ _ _ type _ _ _ => !type.any mayHideArrayBound
+    | _ => true
+  return complete && noAddressUse && statements.all fun
+    | .unsupported .. => false
+    | _ => true
+
 /-- §6.5.3.3 — call a defined function with already-evaluated arguments.
 
 The handler the callee's frame carries is built HERE, closing over the
@@ -2056,6 +2100,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
              functionBody := some (match body with
                | .compound statements _ => statements
                | statement => [statement]),
+             uninitializedRegisterCandidate := uninitializedRegisterCandidate body,
              stdoutObj := prog.stdoutObj } : Ctx).withCompoundInit
         let ctx ← bindParams prog.layout ctx0 f.params fixedArgs
         let flow ← execStmt fuel ctx body
