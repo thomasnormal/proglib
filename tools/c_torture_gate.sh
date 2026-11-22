@@ -46,6 +46,7 @@ python3 "$ROOT/harness/c_torture_score.py" --selftest || exit 1
 python3 "$ROOT/extractors/c/extract.py" --selftest || exit 1
 python3 "$ROOT/harness/c_extract_determinism.py" || exit 1
 python3 "$ROOT/harness/c_survey.py" --self-test || exit 1
+python3 "$ROOT/harness/c_admitted_subset.py" --self-test || exit 1
 python3 "$ROOT/harness/divergence_register.py" || exit 1
 python3 "$ROOT/harness/c_divergence_probe.py" || exit 1
 # --offline: verifies every cached file's sha256 against docs/c-torture-pin.json
@@ -54,6 +55,20 @@ python3 "$ROOT/tools/c_corpus_fetch.py" --offline --manifest "$MANIFEST" || exit
 ( cd "$ROOT" && python3 tools/c_torture_batch.py "$MANIFEST" "$FUEL" \
     --runner .lake/build/bin/c-torture-run --timeout "$TIMEOUT" ) > "$LOG" || exit 1
 python3 "$ROOT/harness/c_torture_score.py" "$LOG" --emit "$FRESH" || exit 1
+
+# The survey and the reader-facing admitted-subset page are generated from
+# this exact manifest and log.  Keeping both in the gate prevents the page
+# from describing an older evaluator run.
+MEASURED_COMMIT="$(git -C "$ROOT" rev-parse --short HEAD)"
+MEASURED_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+python3 "$ROOT/harness/c_survey.py" \
+  --manifest "$MANIFEST" --log "$LOG" \
+  --json "$ROOT/docs/c-survey.json" --page "$ROOT/docs/c-survey.md" \
+  --commit "$MEASURED_COMMIT" --date "$MEASURED_DATE" || exit 1
+python3 "$ROOT/harness/c_admitted_subset.py" \
+  --survey "$ROOT/docs/c-survey.json" \
+  --cases "$ROOT/harness/c_cases.json" \
+  --output "$ROOT/docs/c-admitted-subset.md" || exit 1
 
 # THE PUBLISHED NUMBER IS A SECOND ARTIFACT (qol-21's law).  Correcting the
 # instrument corrects the NEXT run; the committed figure is corrected where
