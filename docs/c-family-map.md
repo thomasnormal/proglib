@@ -682,8 +682,13 @@ retained until the S2 memory store supplies the exposure choice.
 **Long-double literal wall price (2026-11-22).** The dynamic ranking has 14
 sole rows at `long double floating literal`. These rows exercise profile-sized
 `long double` constants and builtins, while the approved IEEE parser currently
-models binary32 and binary64 only. The loud refusal is therefore an exact
-profile boundary, not a native mismatch or sanitizer-qualified UB result.
+models binary32 and binary64 only. All 14 rows have clean pinned O0/O2 and
+UBSan/ASan runs. The receipt is in
+[`docs/c-long-double-price-20261122.md`](c-long-double-price-20261122.md),
+with machine rows in
+[`docs/c-long-double-price-20261122.json`](c-long-double-price-20261122.json).
+The loud refusal is therefore an exact profile boundary, not a native mismatch
+or sanitizer-qualified UB result.
 
 **Integer-to-pointer wall price (2026-11-22).** The dynamic ranking has 12
 sole rows refusing `integer-to-pointer conversion outside pointer type`. The
