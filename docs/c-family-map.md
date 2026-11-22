@@ -792,3 +792,12 @@ complete receipt is in
 machine rows in
 [`docs/c-timeout-price-20261122.json`](c-timeout-price-20261122.json).
 Native qualification does not establish a Lean termination bound.
+
+**AddrLabelExpr wall price (2026-11-22).** The dynamic ranking has seven sole
+rows refusing `AddrLabelExpr`. All seven have clean pinned O0/O2 and UBSan/ASan
+runs. The receipt is in
+[`docs/c-addrlabel-price-20261122.md`](c-addrlabel-price-20261122.md), with
+machine rows in
+[`docs/c-addrlabel-price-20261122.json`](c-addrlabel-price-20261122.json).
+The refusal remains the GNU labels-as-values and computed-goto representation
+boundary.
