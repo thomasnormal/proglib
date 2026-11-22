@@ -601,3 +601,10 @@ contains 42 MATCH rows and 3 named REFUSE rows across record, typedef, array,
 flexible-member and parameter boundaries. No DIVERGE remains in this focus.
 The full C1-C3 survey still needs a replay after the extractor and evaluator
 changes before the F1 threshold is assessed.
+
+**Indeterminate bit-field audit (2026-11-22).** Clang 21.1.8 at `-O0` and
+`-O2`, plus the UBSan/ASan build, exited cleanly for `20000113-1.c`,
+`bf-sign-2.c`, `bitfld-8.c`, `bitfld-9.c`, `pr108498-2.c`, `pr110166-1.c`,
+`pr70566.c` and `pr86844.c`. The current model either matches or stops at the
+named partly-initialized-bit-field wall on these unchanged sources. No
+sanitizer witness supports classifying that wall as undefined behavior.
