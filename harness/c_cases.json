@@ -810,6 +810,30 @@
     "structured_return_value": 0
   },
   {
+    "id": "pointer-field-after-memset",
+    "source": "#include <string.h>\nstruct S { int x; int *p; }; int main(void) { int x = 1; struct S s = {1, &x}; memset(&s, 0, sizeof s); return s.p != 0 || s.x != 0; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "pointer-null-tag-after-character-store",
+    "source": "int main(void) { int *p = 0; ((unsigned char *)&p)[0] = 0; return p != 0; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "function-pointer-after-memset",
+    "source": "#include <string.h>\nstatic void f(void) {} int main(void) { void (*p)(void) = f; memset(&p, 0, sizeof p); return p != 0; }",
+    "expect": "match",
+    "return_value": 0
+  },
+  {
+    "id": "untagged-nonzero-pointer-refuses",
+    "source": "#include <string.h>\nint main(void) { int *p = 0; memset(&p, 0, sizeof p); ((unsigned char *)&p)[0] = 1; return p == 0; }",
+    "expect": "refuse",
+    "error": "pointer representation lacks provenance"
+  },
+  {
     "id": "structured-array-zero-init",
     "source": "int main(void) { int a[4] = {}; return a[0] == 0 && a[2] == 0 && a[3] == 0 ? 0 : 1; }",
     "expect": "refuse",

@@ -2486,9 +2486,8 @@ theorem storeIntChecked_loadIntChecked_rename
   simpa [hl, CVal.renameAddress, Except.map] using
     loadIntChecked_renameAddresses rename m' alias p t used usedStructured
 
-/-- Write a pointer, as `pointer_64`'s eight tagged bytes. Kept whole so
-that a partial overwrite makes the remaining bytes UNREADABLE as a
-pointer rather than silently valid. -/
+/-- Write a pointer in eight tagged bytes that preserve the provenance of
+the value across byte copies. -/
 def storePtr (m : Mem) (p : Ptr) (q : Ptr) : MRes Mem :=
   m.storeBytes p ((List.range 8).map (CByte.ptrByte q))
 
@@ -2596,9 +2595,6 @@ theorem loadFunction_renameAddresses
                   | ptrIntByte q k => rw [hhead, hh]; rfl
                   | indet => rw [hhead, hh]; rfl
 
-/-- Read a pointer: the eight bytes must be one pointer's representation,
-in order. Anything else is `J.2(12)` — including a torn pointer, which
-no sanitizer on either host detects. -/
 theorem CByte.renameAddress_beq_indet
     (rename : ObjId → Nat) (b : CByte) :
     (CByte.renameAddress rename b == CByte.indet) = (b == CByte.indet) := by
@@ -2616,17 +2612,27 @@ theorem List.any_renameAddress_indet
       rw [show (CByte.renameAddress rename b == CByte.indet) =
           (b == CByte.indet) by exact hb, ih]
 
-def loadPtr (m : Mem) (p : Ptr) : MRes Ptr := do
+private def knownZeroPointerByte : CByte → Bool
+  | .conc b => b == 0
+  | .ptrByte q _ | .ptrIntByte q _ => q.isNull
+  | _ => false
+
+/-- Read a complete tagged pointer or the target's all-zero null
+representation (N3220 §6.2.6.1p2). For initialized bytes outside those
+cases the store has no pointer value to supply. -/
+def loadPtr (m : Mem) (p : Ptr) (zeroNullPointer : Bool := false) : MRes (Option Ptr) := do
   let (o, c, off) ← m.resolve p 8
   let bs := (c.bytes.drop off).take 8
   let expected (q : Ptr) := (List.range 8).map (CByte.ptrByte q)
+  let decodeUntagged : MRes (Option Ptr) :=
+    if bs.any (· == CByte.indet) then
+      .error (.memUB (indetFault c.dur o off))
+    else if zeroNullPointer && bs.all knownZeroPointerByte then
+      .ok (some Ptr.null)
+    else .ok none
   match bs.head? with
-  | some (.ptrByte q 0) => if bs == expected q then return q
-                           else .error (.memUB (.nonValueRepresentation o off))
-  | _ =>
-      if bs.any (· == CByte.indet) then
-        .error (.memUB (indetFault c.dur o off))
-      else .error (.memUB (.nonValueRepresentation o off))
+  | some (.ptrByte q 0) => if bs == expected q then return some q else decodeUntagged
+  | _ => decodeUntagged
 
 theorem loadPtr_renameAddresses_of_indet
     (rename : ObjId → Nat) (m : Mem) (p : Ptr)
@@ -2662,37 +2668,6 @@ theorem loadPtr_renameAddresses_of_indet
           | zero => exact False.elim (hhead q (by simpa [hh]))
           | succ k => simp [hh, hany', CObj.renameAddress]
       | _ => simp [hh, hany', CObj.renameAddress]
-
-theorem loadPtr_renameAddresses_of_nonValue
-    (rename : ObjId → Nat) (m : Mem) (p : Ptr)
-    (o : ObjId) (c : CObj) (off : Nat) (bs : List CByte)
-    (hr : m.resolve p 8 = .ok (o, c, off))
-    (hbytes : List.take 8 (List.drop off c.bytes) = bs)
-    (hhead : ∀ q, (bs.map (CByte.renameAddress rename)).head? ≠
-      some (CByte.ptrByte q 0))
-    (hany : (bs.map (CByte.renameAddress rename)).any
-      (· == CByte.indet) ≠ true) :
-    (m.renameAddresses rename).loadPtr (Ptr.renameAddress rename p) =
-      .error (.memUB (.nonValueRepresentation o off)) := by
-  simp only [loadPtr, resolve_renameAddresses, hr]
-  dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
-    Except.pure, Except.map]
-  have hmapped :
-      List.take 8 (List.drop off (CObj.renameAddress rename c).bytes) =
-        bs.map (CByte.renameAddress rename) := by
-    simp only [CObj.renameAddress]
-    simpa [List.map_take, List.map_drop] using congrArg
-      (List.map (CByte.renameAddress rename)) hbytes
-  rw [hmapped]
-  cases hh : (bs.map (CByte.renameAddress rename)).head? with
-  | none => simp [hh, hany, CObj.renameAddress]
-  | some b =>
-      cases b with
-      | ptrByte q k =>
-          cases k with
-          | zero => exact False.elim (hhead q (by simpa [hh]))
-          | succ k => simp [hh, hany, CObj.renameAddress]
-      | _ => simp [hh, hany, CObj.renameAddress]
 
 theorem CByte.renameAddress_ptrByte_range
     (rename : ObjId → Nat) (q : Ptr) :
@@ -2758,7 +2733,7 @@ theorem loadPtr_renameAddresses_of_exact
     (hbytes : List.take 8 (List.drop off c.bytes) =
       (List.range 8).map (CByte.ptrByte q)) :
     (m.renameAddresses rename).loadPtr (Ptr.renameAddress rename p) =
-      .ok (Ptr.renameAddress rename q) := by
+      .ok (some (Ptr.renameAddress rename q)) := by
   simp only [loadPtr, resolve_renameAddresses, hr]
   dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
     Except.pure, Except.map]

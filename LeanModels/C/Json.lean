@@ -541,6 +541,9 @@ def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
            sourceSha256 := ← getStr j "source_sha256"
            unit := { items := ← (← getArr tu "decls").mapM parseTopLevel }
            externals := ← (← getArr j "externals").mapM parseExternal
+           zeroNullPointer := ← match j.getObjVal? "zero_null_pointer" with
+             | .ok _ => getBool j "zero_null_pointer"
+             | .error _ => pure false
            typeLayouts := ← match getOptNode j "type_layouts" with
              | none => pure []
              | some a => do
