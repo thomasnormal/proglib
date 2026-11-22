@@ -271,11 +271,11 @@ def recordLayoutMatchesFields : List Decl → List RecordLayoutField → Bool
       recordLayoutMatchesFields ds fs
   | .record _ _ _ _ _ _ :: ds, field :: fs =>
       -- Clang emits one blank layout entry for an anonymous aggregate
-      -- member.  Consume that entry when the parser child has no named
-      -- field of its own.  Named nested records still expose their outer
-      -- field below this child and therefore leave the layout entry for it.
-      if field.name == "" then recordLayoutMatchesFields ds fs
-      else recordLayoutMatchesFields ds (field :: fs)
+      -- member.  The child RecordDecl and its nameless FieldDecl are two
+      -- parser nodes for that one entry.  Drop only the child and leave the
+      -- blank layout entry for the FieldDecl so its declaration identity can
+      -- resolve the offset later.
+      recordLayoutMatchesFields ds (field :: fs)
   | .record .. :: ds, fs => recordLayoutMatchesFields ds fs
   | .unsupported .. :: ds, fs => recordLayoutMatchesFields ds fs
   | _ :: ds, fs => recordLayoutMatchesFields ds fs
@@ -591,6 +591,29 @@ def layoutFor (envl : Envelope) : Layout :=
             | none => none
         | _ => none
     | _ => none
+  let observedFieldOffStructuredDeclFor :=
+    fun (did : DeclarationId) (memberType : LeanModels.Clang.QualType) =>
+      let fromRecord := fun (rid : DeclarationId) =>
+        match ds.find? (fun q : Decl => match q with
+          | .record (some rrid) _ _ (some _) _ _ => rrid == rid
+          | _ => false) with
+        | some (.record (some rrid) _ fields (some layout) ..) =>
+            match observedRecordLayout? envl rrid |>.bind (checkedRecordLayout? fields) with
+            | some checked =>
+                let rec seekStructured : List Decl → List RecordLayoutField → Option Nat
+                  | [], _ => none
+                  | .field _ _ _ _ _ _ structured :: rest, field :: layoutRest =>
+                      if structured.map LeanModels.Clang.QualType.unqualified ==
+                          some memberType.unqualified then some (field.offsetBits / 8)
+                      else seekStructured rest layoutRest
+                  | .record _ _ _ _ _ _ :: rest, field :: layoutRest =>
+                      seekStructured rest (field :: layoutRest)
+                  | .unsupported _ _ _ :: rest, layoutFields => seekStructured rest layoutFields
+                  | _ :: rest, layoutFields => seekStructured rest layoutFields
+                seekStructured fields checked.fields
+            | none => none
+        | _ => none
+      fromRecord did
   let observedTypeSize := fun t : String =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.map (·.sizeBytes)
   let observedDeclSize := fun id : DeclarationId =>
@@ -645,6 +668,7 @@ def layoutFor (envl : Envelope) : Layout :=
     flexibleFieldDecl := observedFlexibleDeclFor
     terminalFieldDecl := observedTerminalDeclFor
     fieldOffTypeDecl := observedFieldOffTypeDeclFor
+    fieldOffStructuredDecl := observedFieldOffStructuredDeclFor
     fieldOffDecl := declFieldOff
     isUnionDecl := observedUnionDeclFor
     membersDecl := observedMembersDeclFor

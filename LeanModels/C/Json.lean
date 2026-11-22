@@ -358,6 +358,8 @@ partial def parseExpr (j : Json) : Except String Expr := do
             | none => return .unsupported "ConstantExpr" "unfolded constant expression" span
     | "VAArgExpr" =>
         return .vaArg (← sub "ap") (← ty) span structuredType
+    | "OffsetOfExpr" =>
+        return .offsetOf (← ty) span (← getOptNat j "offset_bytes") structuredType
     | "Unsupported" =>
         return .unsupported (← getStr j "c_kind") (← getStr j "text") span
     | other =>

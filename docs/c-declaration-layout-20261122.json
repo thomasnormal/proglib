@@ -1,0 +1,28 @@
+{
+  "schema": "c-declaration-layout-20261122",
+  "frontend": "Clang 21.1.8",
+  "full_survey_before": {
+    "match": 1209,
+    "denominator": 2214,
+    "diverge": 0
+  },
+  "focused_rows": [
+    {"source": "c-testsuite/single-exec/00046.c", "model": "MATCH", "value": 0, "native_o0": 0, "native_o2": 0, "sanitizer": 0},
+    {"source": "c-testsuite/single-exec/00050.c", "model": "MATCH", "value": 0, "native_o0": 0, "native_o2": 0, "sanitizer": 0},
+    {"source": "gcc.c-torture/execute/anon-1.c", "model": "MATCH", "value": 0, "native_o0": 0, "native_o2": 0, "sanitizer": 0},
+    {"source": "gcc.c-torture/execute/pr87053.c", "model": "MATCH", "value": 0, "native_o0": 0, "native_o2": 0, "sanitizer": 0},
+    {"source": "gcc.c-torture/execute/20080424-1.c", "model": "REFUSE", "detail": "pointer operation on an array subobject", "native_o0": 0, "native_o2": 0, "sanitizer": 0},
+    {"source": "gcc.c-torture/execute/pr124358.c", "model": "REFUSE", "detail": "pointer operation on an array subobject", "native_o0": 0, "native_o2": 0, "sanitizer": 0},
+    {"source": "gcc.c-torture/execute/strlen-4.c", "model": "REFUSE", "detail": "pointer operation on an array subobject", "native_o0": 0, "native_o2": 0, "sanitizer": 1, "sanitizer_detail": "undefined-behavior"},
+    {"source": "gcc.c-torture/execute/va-arg-21.c", "model": "REFUSE", "detail": "pointer operation on an array subobject", "native_o0": 0, "native_o2": 0, "sanitizer": "leak-diagnostic"},
+    {"source": "gcc.c-torture/execute/pr30778.c", "model": "MATCH", "value": 0, "native_o0": 0, "native_o2": 0, "sanitizer": 0},
+    {"source": "gcc.c-torture/execute/pr44468.c", "model": "REFUSE", "detail": "pointer bit-cast across incompatible effective types", "native_o0": 0, "native_o2": 0, "sanitizer": 0},
+    {"source": "gcc.c23-run/gcc/testsuite/gcc.dg/c23-empty-init-5.c", "model": "REFUSE", "detail": "indeterminate lvalue read requires a representation choice", "native_o0": 0, "native_o2": 0, "sanitizer": 0}
+  ],
+  "focused_delta": {
+    "anonymous_field_layout_matches_added": 4,
+    "offsetof_matches_added": 1,
+    "array_subobject_matches_added": 0,
+    "diverge": 0
+  }
+}

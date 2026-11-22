@@ -278,6 +278,9 @@ inductive Expr where
   type. The cursor is abstract state, not an ABI representation. -/
   | vaArg (ap : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
+  | offsetOf (ty : String) (span : CSpan)
+      (offsetBytes : Option Nat)
+      (structuredType : Option LeanModels.Clang.QualType)
   /-- Outside the pinned vocabulary: clang's own class name and ≤200 chars
   of source. Never silently dropped, never guessed at. -/
   | unsupported (cKind : String) (text : String) (span : CSpan)
@@ -293,6 +296,7 @@ def Expr.span : Expr → CSpan
   | .arrayInitList _ _ _ _ span .. | .designatedUpdate _ _ _ span ..
   | .implicitValueInit _ span .. | .compoundLit _ _ span ..
   | .typeTrait _ _ _ _ span .. | .constExpr _ _ _ span .. | .vaArg _ _ span ..
+  | .offsetOf _ span ..
   | .unsupported _ _ span => span
 
 /-- C declarations that can appear at BLOCK scope as well as file scope —
@@ -468,7 +472,8 @@ def Expr.ty : Expr → String
   | .implicitCast _ _ t _ .. | .cast _ _ t _ .. => t
   | .initList _ _ t _ .. | .compoundLit _ t _ .. | .implicitValueInit t _ .. => t
   | .arrayInitList _ _ _ t _ .. | .designatedUpdate _ _ t _ .. => t
-  | .typeTrait _ _ _ t _ .. | .constExpr _ _ t _ .. | .vaArg _ t _ .. => t
+  | .typeTrait _ _ _ t _ .. | .constExpr _ _ t _ .. | .vaArg _ t _ ..
+  | .offsetOf t _ _ _ => t
   | .unsupported .. => ""
 
 /-- The parser-native QualType carried directly by an expression node. -/
@@ -482,6 +487,7 @@ def Expr.structuredType? : Expr → Option LeanModels.Clang.QualType
   | .arrayInitList _ _ _ _ _ q | .designatedUpdate _ _ _ _ q
   | .implicitValueInit _ _ q | .compoundLit _ _ _ q
   | .typeTrait _ _ _ _ _ _ _ _ q | .constExpr _ _ _ _ q | .vaArg _ _ _ q => q
+  | .offsetOf _ _ _ q => q
   | .unsupported .. => none
 
 /-- clang's own class name for this node, for diagnostics. A refusal a
@@ -512,6 +518,7 @@ def Expr.kindName : Expr → String
   | .typeTrait .. => "UnaryExprOrTypeTraitExpr"
   | .constExpr .. => "ConstantExpr"
   | .vaArg .. => "VAArgExpr"
+  | .offsetOf .. => "OffsetOfExpr"
   | .unsupported k _ _ => k
 
 /-- Sub-expressions, including the expression itself. Effect checks can omit

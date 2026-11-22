@@ -432,6 +432,8 @@ structure Layout where
   pointeeSizeDecl : DeclarationId → Option Nat := fun _ => none
   elementSizeDecl : DeclarationId → Option Nat := fun _ => none
   fieldOffTypeDecl : DeclarationId → String → Option Nat := fun _ _ => none
+  fieldOffStructuredDecl : DeclarationId → LeanModels.Clang.QualType → Option Nat :=
+    fun _ _ => none
   fieldSizeDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldStructuredDecl : DeclarationId → String → Option LeanModels.Clang.QualType := fun _ _ => none
   fieldDecl : DeclarationId → String → Option DeclarationId := fun _ _ => none
@@ -497,6 +499,10 @@ def Layout.fieldDeclAt (layout : Layout) (decl : Option DeclarationId)
 def Layout.fieldOffTypeDeclAt (layout : Layout) (decl : Option DeclarationId)
     (ty fieldTy : String) : Option Nat :=
   decl.bind (fun did => layout.fieldOffTypeDecl did fieldTy)
+
+def Layout.fieldOffStructuredDeclAt (layout : Layout) (decl : Option DeclarationId)
+    (structured : Option LeanModels.Clang.QualType) : Option Nat :=
+  structured.bind (fun q => decl.bind (fun did => layout.fieldOffStructuredDecl did q))
 
 /-- Resolve a member extent from parser-native member facts. -/
 def Layout.fieldExtentAt (layout : Layout) (base : Expr) (field : String) (fieldTy : String)
@@ -1643,7 +1649,9 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
       | none => refuseUnsupported s!"unbound name '{name}'"
   -- §6.5.3.4p4: `p->f` is DEFINED as `(*p).f`, so the two spellings are
   -- ONE rule here. 226 arrow sites, 184 dot.
-  | .member base field arrow ty _ recordId .. => memberAddr ctx base field arrow ty recordId
+  | .member base field arrow ty span recordId structuredType =>
+      memberAddr ctx (.member base field arrow ty span recordId structuredType)
+        base field arrow ty recordId
   -- §6.5.3.2p2: `a[i]` is DEFINED as `*(a + i)`. The base arrives already
   -- decayed (clang inserts ArrayToPointerDecay), so it is a VALUE here.
   | .index base idx ty _ .. => indexAddr ctx base idx ty
@@ -2038,7 +2046,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- aggregate-valued cases; evaluating the address and loading is the rule
   -- either way (§6.3.2.1p2).
   | .member base field arrow ty span recordId structuredType => do
-      let p ← memberAddr ctx base field arrow ty recordId
+      let memberExpr := .member base field arrow ty span recordId structuredType
+      let p ← memberAddr ctx memberExpr base field arrow ty recordId
       match ctx.layout.fieldBitsAtResolved base field with
       | some (offsetBits, width) => loadBitFieldAt ty p offsetBits width structuredType
       | none =>
@@ -2152,6 +2161,14 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       | some t => pure (.int t (n : Int))
       | none => refuseUnsupported s!"{trait} result lacks parser-native QualType"
 
+  | .offsetOf _ _ offsetBytes structuredType => do
+      let n ← match offsetBytes with
+        | some value => pure value
+        | none => refuseUnsupported "offsetof: parser supplied no constant byte offset"
+      match structuredType.bind intTyOfStructured with
+      | some t => pure (.int t (n : Int))
+      | none => refuseUnsupported "offsetof result lacks parser-native QualType"
+
   | .constExpr v (some sub) ty _ structuredType => do
       -- Clang's folded spelling drops the sign from a negative constant
       -- (`value = "1"`, with `sub = -1`).  The approved AST keeps that
@@ -2226,7 +2243,7 @@ def evalArgs (ctx : Ctx) : List Expr → EvalM (List CVal)
 Takes `base` — a strict SUBTERM — rather than the reassembled node. The
 node this replaces was rebuilt as `.member base field arrow ty sp`, which
 is not a subterm of anything, and that is what defeated the recursion. -/
-def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
+def memberAddr (ctx : Ctx) (memberExpr : Expr) (base : Expr) (field : String) (arrow : Bool)
     (fieldTy : String) (recordId : Option DeclarationId) : EvalM Ptr := do
   let basePtr ← if arrow then (do let v ← evalExpr ctx base; asPtr v)
                 else evalLValue ctx base
@@ -2237,7 +2254,8 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
   | none =>
       let declaration := recordId.orElse (fun _ => directDeclId base)
       let off? := if field.isEmpty then
-          ctx.layout.fieldOffTypeDeclAt declaration base.ty fieldTy
+          ctx.layout.fieldOffStructuredDeclAt declaration memberExpr.structuredType?
+            |>.orElse (fun _ => ctx.layout.fieldOffTypeDeclAt declaration base.ty fieldTy)
         else ctx.layout.fieldOffDeclAt declaration base.ty field
       match off? with
       | some off =>
@@ -2979,10 +2997,10 @@ Stated with their sub-evaluations' invariance as HYPOTHESES, so neither
 needs an induction of its own: both take strict SUBTERMS, which is the
 same property that made the termination measure work. -/
 
-theorem MemInvariant.memberAddr' {ctx : Ctx} {base : Expr} {field : String} {arrow : Bool}
+theorem MemInvariant.memberAddr' {ctx : Ctx} {memberExpr base : Expr} {field : String} {arrow : Bool}
     {fieldTy : String} {recordId : Option DeclarationId}
     (hv : MemInvariant (evalExpr ctx base)) (hl : MemInvariant (evalLValue ctx base)) :
-    MemInvariant (memberAddr ctx base field arrow fieldTy recordId) := by
+    MemInvariant (memberAddr ctx memberExpr base field arrow fieldTy recordId) := by
   first | simp only [memberAddr] | rw [memberAddr.eq_def]
   mem_inv
 
@@ -3028,6 +3046,7 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
             by open_lvalue; mem_inv⟩
       | declRef _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | typeTrait _ _ _ _ _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | offsetOf _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | constExpr value sub ty span _ =>
           cases sub with
           | none => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
@@ -3065,10 +3084,12 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
           apply MemInvariant.ite' <;>
             first | (simp [floatCast]; mem_inv) | exact MemInvariant.floatCast' _ _ | mem_inv
           all_goals (simp [loadBitFieldAt]; mem_inv)
-      | member b f a fieldTy _ recordId _ =>
+      | member b f a fieldTy span recordId structuredType =>
           obtain ⟨i1, i2⟩ := ih b (by simp only [Expr.size_member] at he; omega)
             (Expr.isPure_member hp)
-          have hma : MemInvariant (memberAddr ctx b f a fieldTy recordId) := MemInvariant.memberAddr' i1 i2
+          let memberExpr := Expr.member b f a fieldTy span recordId structuredType
+          have hma : MemInvariant (memberAddr ctx memberExpr b f a fieldTy recordId) :=
+            MemInvariant.memberAddr' i1 i2
           exact ⟨by open_eval; simp [loadBitFieldAt]; mem_inv,
             by open_lvalue; mem_inv⟩
       | index b i ty _ _ =>
