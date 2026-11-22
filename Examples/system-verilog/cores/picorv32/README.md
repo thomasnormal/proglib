@@ -2322,3 +2322,28 @@ mean not reached and do not assign a refusal to that construct.
 No clean-room fixture is attributed to this run because no construct-specific
 classifier was reached.  This measurement used the clocked stages and did
 not use `#reduce`.
+
+## 2026-11-22 rebased-master rerun
+
+After rebasing onto current public master, the same real RISCV_FORMAL envelope
+and 26-parameter vector were passed to the clocked `sv_structure` stage.  The
+run exited 1 after 44.957 seconds and reached a peak process-tree RSS of
+808,916 KiB.  The first and only reached diagnostic was the controlled
+simplification timeout below.  Construct classifiers were not reached, so
+their zeroes are `not reached`, not admissions.
+
+| construct family | refusal count | exact refusal message | status |
+| --- | ---: | --- | --- |
+| source-shaped normalization inside clocked instantiation | 1 | `Tactic simp failed with a nested error: (deterministic) timeout at simp, maximum number of heartbeats (200000) has been reached` | reached |
+| plain or edge event lists | 0 | — | not reached |
+| procedural `for` | 0 | — | not reached |
+| generate `for` / `if` | 0 | — | not reached |
+| parameter type and width cases | 0 | — | not reached |
+| function call | 0 | — | not reached |
+| aggregate read | 0 | — | not reached |
+| select or concatenation target | 0 | — | not reached |
+| several continuous drivers / resolved net | 0 | — | not reached |
+| unsupported declaration or process member | 0 | — | not reached |
+
+No construct-specific fixture is attributed to this run.  The measurement used
+the clocked stages and did not use `#reduce`.
