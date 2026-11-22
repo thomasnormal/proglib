@@ -836,3 +836,13 @@ with machine rows in
 [`docs/c-field-layout-price-20261122.json`](c-field-layout-price-20261122.json).
 The refusal remains the anonymous-field declaration-identity and layout join
 boundary.
+
+**Array-subobject pointer wall price (2026-11-22).** The dynamic ranking has
+four sole rows refusing `pointer operation on an array subobject`. Two rows
+have clean pinned O0/O2 and UBSan/ASan runs. `strlen-4.c` reports an UBSan
+out-of-bounds index. `va-arg-21.c` reports AddressSanitizer leak diagnostics,
+which are recorded separately from UB. The receipt is in
+[`docs/c-array-subobject-price-20261122.md`](c-array-subobject-price-20261122.md),
+with machine rows in
+[`docs/c-array-subobject-price-20261122.json`](c-array-subobject-price-20261122.json).
+The refusal remains the parser-native subobject-boundary family.

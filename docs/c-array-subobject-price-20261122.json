@@ -1,0 +1,122 @@
+{
+  "rows": [
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "pointer operation on an array subobject",
+      "name": "20080424-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "pointer operation on an array subobject",
+      "name": "pr124358.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "pointer operation on an array subobject",
+      "name": "strlen-4.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "<path> runtime error: index -1 out of bounds for type 'const A3_28' (aka 'const char[3][28]') SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior <path>",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "sanitizer-witness",
+      "model": "pointer operation on an array subobject",
+      "name": "va-arg-21.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "hello world hello world",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "hello world hello world",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 1,
+          "status": "run",
+          "stderr": "<path> #3 0x7f3d3ae2a60f (/lib64/libc.so.6+0x2a60f) (BuildId: 532128629d009067b3e72d28853811db8e40dc50) Direct leak of 24 byte(s) in 1 object(s) allocated from: #0 0x55d62ec781ad (<path> #1 0x55d62ecc8487 (<path> #2 0x55d62ecc82fb (<path> #3 0x7f3d3ae2a60f (/lib64/libc.so.6+0x2a60f) (BuildId: 532128629d009067b3e72d28853811db8e40dc50) SUMMARY: AddressSanitizer: 48 byte(s) leaked in 2 allocation(s).",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    }
+  ],
+  "schema": "c-array-subobject-price-1",
+  "total": 4
+}
