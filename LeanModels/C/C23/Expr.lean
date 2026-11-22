@@ -520,6 +520,14 @@ def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : String) 
         | .record declaration => layout.recordSizeDecl { value := declaration.value }
         | _ => objectSizeOfStructured structured)
 
+def Layout.sizeAtStructured (layout : Layout) (decl : Option DeclarationId)
+    (ty : String) (structured : Option LeanModels.Clang.QualType) : Option Nat :=
+  structured.bind (LeanModels.Clang.QualType.resolveTypedefs
+      (fun handle => layout.structuredType { value := handle.value }) 32)
+    |>.bind (fun type => objectSizeOfStructured type
+      (fun handle => layout.recordSizeDecl { value := handle.value }))
+    |>.orElse (fun _ => layout.sizeAt decl ty)
+
 
 /-- Resolve the byte size needed by an expression load through the
 declaration identity carried by that expression before consulting the
@@ -1643,8 +1651,8 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
   | .unop op sub _ _ _ .. =>
       if op == "*" then (do let v ← evalExpr ctx sub; asPtr v)
       else refuseUnsupported s!"unary '{op}' is not an lvalue"
-  | .compoundLit init ty span .. => do
-      match ctx.layout.sizeAt none ty with
+  | .compoundLit init ty span structured => do
+      match ctx.layout.sizeAtStructured none ty structured with
       | none => refuseUnsupported s!"no layout for compound literal type '{ty}'"
       | some sz => do
           let m ← get
@@ -1665,8 +1673,8 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
 /-- §6.5 — an expression in VALUE position. -/
 def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   | .paren sub _ _ .. => evalExpr ctx sub
-  | .compoundLit init ty span .. => do
-      match ctx.layout.sizeAt none ty with
+  | .compoundLit init ty span structured => do
+      match ctx.layout.sizeAtStructured none ty structured with
       | none => refuseUnsupported s!"no layout for compound literal type '{ty}'"
       | some sz => do
           let m ← get
