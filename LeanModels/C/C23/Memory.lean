@@ -1912,7 +1912,7 @@ theorem natOfBytes_natToBytes (n v : Nat) (hv : v < 256 ^ n) :
 integer (`Value.lean`'s invariant), so it is reduced into the type's
 unsigned residue first — that is what a representation IS. -/
 def encodeInt (t : IntTy) (v : Int) : List CByte :=
-  let width := max 1 (t.bits / 8)
+  let width := t.storageBytes
   let u := (v % t.modulus + t.modulus) % t.modulus
   (natToBytes width u.toNat).map CByte.conc
 
@@ -2287,7 +2287,7 @@ theorem checkEffectiveAt_renameAddresses
 
 /-- The integer interpretation after structural resolution. -/
 def loadIntResolved (t : IntTy) (o : ObjId) (c : CObj) (off : Nat) : MRes CVal :=
-  let width := max 1 (t.bits / 8)
+  let width := t.storageBytes
   let bs := (c.bytes.drop off).take width
   match decodeInt t bs with
   | some v => .ok (.int t v)
@@ -2348,7 +2348,7 @@ The corpus has exactly one site where the third could fire and one where
 the second could; neither is detectable by any sanitizer on either
 development host, which is why the byte lattice is here at all. -/
 def loadInt (m : Mem) (p : Ptr) (t : IntTy) : MRes CVal := do
-  let width := max 1 (t.bits / 8)
+  let width := t.storageBytes
   let (o, c, off) ← m.resolve p width
   loadIntResolved t o c off
 
