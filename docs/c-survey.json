@@ -13,10 +13,10 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 1,
-   "passed": 1063,
+   "passed": 1073,
    "refused-libc": 24,
-   "refused-ub": 50,
-   "refused-unsupported": 284,
+   "refused-ub": 51,
+   "refused-unsupported": 273,
    "timeout": 10
   },
   "gcc.c23-run": {
@@ -34,10 +34,10 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 1,
-  "passed": 1257,
+  "passed": 1267,
   "refused-libc": 26,
-  "refused-ub": 55,
-  "refused-unsupported": 429,
+  "refused-ub": 56,
+  "refused-unsupported": 418,
   "timeout": 11
  },
  "dynamic_wall_ranking": [
@@ -520,6 +520,7 @@
     "loop-15.c",
     "pr22493-1.c",
     "pr23047.c",
+    "pr28982a.c",
     "pr34099-2.c",
     "pr34099.c",
     "pr34176.c",
@@ -538,8 +539,8 @@
     "shiftdi-2.c",
     "vla-dealloc-1.c"
    ],
-   "present": 55,
-   "sole": 55,
+   "present": 56,
+   "sole": 56,
    "wall": "undefined-behavior"
   },
   {
@@ -757,24 +758,6 @@
    "present": 11,
    "sole": 11,
    "wall": "timeout"
-  },
-  {
-   "files": [
-    "20000605-1.c",
-    "20021120-1.c",
-    "20071030-1.c",
-    "961223-1.c",
-    "cbrt.c",
-    "ieee/pr28634.c",
-    "postmod-1.c",
-    "pr15262-2.c",
-    "pr28982a.c",
-    "pr29798.c",
-    "pr47538.c"
-   ],
-   "present": 11,
-   "sole": 11,
-   "wall": "unsupported:floating store without a floating layout"
   },
   {
    "files": [
@@ -1712,8 +1695,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "c68917867c69eef570eaad12cd19a0e6941954fbf37960dfa431654a9e6cebb4",
- "measured_at_utc": "2026-11-22T13:20:00Z",
- "measured_commit": "42d7204e3",
+ "measured_at_utc": "2026-11-22T14:30:00Z",
+ "measured_commit": "2baafb62f",
  "pin": "C1-C3",
  "rows": [
   {
@@ -4688,8 +4671,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000605-1.c",
    "sha256": "0201957d2776e0467c21a5428affeae829962f43c4ab93ebe71ad375e5939bf1",
@@ -4699,7 +4682,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6624,8 +6607,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20021120-1.c",
    "sha256": "fd35d6e5ec5fcb01655f03844bed5aa884c774699e3f5f28081a35201aa2a612",
@@ -6633,7 +6616,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8654,8 +8637,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20071030-1.c",
    "sha256": "a149547a4bb6485847d48252da6eaf6d3b2e8185b74b062ac88bd6bcc23d79c2",
@@ -8665,7 +8648,7 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -12133,15 +12116,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "961223-1.c",
    "sha256": "46501b824f2ecd0efdd8168ed271fdfd62542e6707f5a2fa2d58ae58cd17b654",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -15370,8 +15353,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "cbrt.c",
    "sha256": "5af344d4e08d8326268b026f474dbc63d51f5528aa5fa97b5e0fa7ebaa982b14",
@@ -15379,7 +15362,7 @@
     "cast:FloatingToIntegral",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17625,8 +17608,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ieee/pr28634.c",
    "sha256": "26b484351490de1bd2cdb5f968a3258c61bb5d980473450aae9053527e90a7d3",
@@ -17634,7 +17617,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18646,8 +18629,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "postmod-1.c",
    "sha256": "f681a8610186c63caee06160883642ced6bb41bac20755d2b9a966f185f94a5d",
@@ -18655,7 +18638,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19782,15 +19765,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr15262-2.c",
    "sha256": "a97399092d6dc7b06b43ceb3f86a6940aa371c44bee2c6f453529be8c093bffb",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20452,8 +20435,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "LeanModels.C.C23.MemFault.outOfBounds 4 340 4 320",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "pr28982a.c",
    "sha256": "7fa896d2f4c4deb42265759ddc905bfaf7f9f1f64d9083caba86e357624a76ac",
@@ -20461,7 +20444,7 @@
     "cast:IntegralToFloating",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20543,15 +20526,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr29798.c",
    "sha256": "c2c8752fa5868b5e5d188eb4944586c6ab3cd5e0ca2649b474d1bd346511b97e",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22157,8 +22140,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "floating store without a floating layout",
-   "dynamic_wall": "unsupported:floating store without a floating layout",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr47538.c",
    "sha256": "7ddc400661a1d3c0585c8a1e3c93d6aa4a0ec3410b9e099eaf7a9c2331f9fbb0",
@@ -22168,7 +22151,7 @@
     "libc-call: __builtin_memcpy",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",

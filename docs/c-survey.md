@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1257/2114 MATCH (passed 1257, failed 2, oracle 0)
+- verdicts: 1267/2114 MATCH (passed 1267, failed 2, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `c68917867c69eef570eaad12cd19a0e6941954fbf37960dfa431654a9e6cebb4`
-- measured commit: `42d7204e3`
-- measured at: `2026-11-22T13:20:00Z`
+- measured commit: `2baafb62f`
+- measured at: `2026-11-22T14:30:00Z`
 
 ## Verdict counts
 
@@ -17,10 +17,10 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 1 |
-| `passed` | 1257 |
+| `passed` | 1267 |
 | `refused-libc` | 26 |
-| `refused-ub` | 55 |
-| `refused-unsupported` | 429 |
+| `refused-ub` | 56 |
+| `refused-unsupported` | 418 |
 | `timeout` | 11 |
 
 ## Counts by corpus
@@ -37,10 +37,10 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 1 |
-| `gcc.c-torture/execute` | `passed` | 1063 |
+| `gcc.c-torture/execute` | `passed` | 1073 |
 | `gcc.c-torture/execute` | `refused-libc` | 24 |
-| `gcc.c-torture/execute` | `refused-ub` | 50 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 284 |
+| `gcc.c-torture/execute` | `refused-ub` | 51 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 273 |
 | `gcc.c-torture/execute` | `timeout` | 10 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 9 |
@@ -274,7 +274,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | wall | sole | present | example files |
 | --- | ---: | ---: | --- |
 | `frontend` | 432 | 432 | 00162.c, 00209.c, 00210.c, 20000112-1.c, 20000227-1.c |
-| `undefined-behavior` | 55 | 55 | 00032.c, 00141.c, 00144.c, 00200.c, 20000910-1.c |
+| `undefined-behavior` | 56 | 56 | 00032.c, 00141.c, 00144.c, 00200.c, 20000910-1.c |
 | `unsupported:extern object 'inside_main' has no definition in the translation unit` | 39 | 39 | builtins/20010124-1-lib.c, builtins/fputs-lib.c, builtins/lib/abs.c, builtins/lib/bfill.c, builtins/lib/bzero.c |
 | `unsupported:pointer bit-cast across incompatible effective types` | 25 | 25 | 00103.c, 00170.c, 00217.c, 20060412-1.c, 20080222-1.c |
 | `unsupported:partly initialized bit-field byte` | 23 | 23 | 20000113-1.c, 20190901-1.c, 921016-1.c, bitfld-1.c, bitfld-10.c |
@@ -283,7 +283,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:long double floating literal` | 14 | 14 | 20030914-1.c, 20040208-1.c, 20080502-1.c, 960405-1.c, gcc/testsuite/gcc.dg/c23-float-1.c |
 | `unsupported:integer-to-pointer conversion outside pointer type` | 12 | 12 | 00214.c, 20000622-1.c, 20010329-1.c, 20021010-2.c, 20041112-1.c |
 | `timeout` | 11 | 11 | 00040.c, 20011008-3.c, 960521-1.c, memcpy-1.c, minmaxcmp-1.c |
-| `unsupported:floating store without a floating layout` | 11 | 11 | 20000605-1.c, 20021120-1.c, 20071030-1.c, 961223-1.c, cbrt.c |
 | `unsupported:no layout for bit-field record 'struct S'` | 11 | 11 | 20230630-1.c, 20230630-2.c, 20230630-3.c, 20230630-4.c, pr52979-1.c |
 | `unsupported:signed compound shift requires an exact parser path` | 9 | 9 | 20121108-1.c, 921202-2.c, 960311-1.c, 960311-2.c, loop-4.c |
 | `unsupported:indeterminate lvalue read requires a representation choice` | 8 | 8 | 20071120-1.c, 20090113-1.c, 20090527-1.c, 20100430-1.c, builtin-prefetch-2.c |
