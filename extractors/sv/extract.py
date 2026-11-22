@@ -36796,6 +36796,38 @@ def _sym_function_node(sm, subroutine):
         return internal_error(exc)
 
 
+def _sym_package_constant_expr(node):
+    if not isinstance(node, dict):
+        return True
+    kind = node.get("kind")
+    if kind == "ParamRef":
+        return node.get("from_package") is not None
+    if kind in ("Int", "Literal"):
+        return True
+    return all(_sym_package_constant_expr(value)
+               for key, value in node.items()
+               if key not in ("span", "width", "resolved_width"))
+
+
+def _sym_package_default_fill(sm, initializer, width):
+    if type(initializer).__name__ != "StructuredAssignmentPatternExpression":
+        return None
+    if (getattr(initializer, "typeSetters", [])
+            or getattr(initializer, "indexSetters", [])
+            or getattr(initializer, "memberSetters", [])):
+        return None
+    default = getattr(initializer, "defaultSetter", None)
+    if (default is None
+            or type(default).__name__ != "UnbasedUnsizedIntegerLiteral"):
+        return None
+    bit = svint_bits(default.value).lower()
+    if bit not in ("0", "1", "x", "z") or width <= 0:
+        return None
+    return {"kind": "Literal", "span": node_span(sm, initializer),
+            "width": width, "bits": bit * width,
+            "assignment_pattern_default_fill": True}
+
+
 def _sym_package_params(sm):
     """Retain fixed-width integral package parameters for sv-0.2.
 
@@ -36862,6 +36894,27 @@ def _sym_package_params(sm):
                         if node.get("aggregate_default"):
                             node.pop("default", None)
                     ptype = node.get("type")
+                    initial = node.get("default") or node.get("expr")
+                    if (isinstance(initial, dict)
+                            and initial.get("kind") == "Unsupported"):
+                        fill = _sym_package_default_fill(
+                            sm, getattr(member, "initializer", None),
+                            getattr(t, "bitWidth", 0))
+                        if fill is not None:
+                            node = dict(node)
+                            if node.get("kind") == "LocalParam":
+                                node["expr"] = fill
+                            else:
+                                node["default"] = fill
+                    if ptype is None and type(t).__name__ == "TypeAliasType":
+                        width = getattr(t, "bitWidth", None)
+                        if isinstance(width, int) and 1 <= width <= 256:
+                            node = dict(node)
+                            node["type"] = {
+                                "kind": "TypeRef", "name": getattr(t, "name", ""),
+                                "from_package": _pkg_of(t), "resolved": width,
+                            }
+                            ptype = node["type"]
                     # An untyped package parameter is the same 32-bit signed
                     # integer class as an untyped module parameter.  Keep its
                     # source-shaped default so Param2 can bind it in package
@@ -36878,20 +36931,34 @@ def _sym_package_params(sm):
                         node["package"] = package.name
                         result.append(node)
                         continue
-                    if (ptype.get("kind") != "PackedType"
-                            or not isinstance(ptype.get("resolved"), int)
-                            or not (1 <= ptype["resolved"] <= 32)):
+                    if ptype.get("kind") == "TypeRef":
+                        if not isinstance(ptype.get("resolved"), int) or not (
+                                1 <= ptype["resolved"] <= 256):
+                            continue
+                    elif (ptype.get("kind") != "PackedType"
+                          or not isinstance(ptype.get("resolved"), int)
+                          or not (1 <= ptype["resolved"] <= 256)):
                         continue
                     # The package table is a fixed-width slice.  A bound that
                     # contains a parameter would be the default-point shape
                     # and must stay loud until package width metadata is
                     # carried per point.
-                    if any(
+                    if ptype.get("kind") == "PackedType" and any(
                         bound.get("kind") != "Int"
                         for dim in ptype.get("packed", [])
                         for bound in (dim.get("msb", {}), dim.get("lsb", {}))
                     ):
-                        continue
+                        if all(_sym_package_constant_expr(bound)
+                               for dim in ptype.get("packed", [])
+                               for bound in (dim.get("msb", {}), dim.get("lsb", {}))):
+                            node = dict(node)
+                            node["type"] = {
+                                "kind": "TypeRef", "name": getattr(t, "name", ""),
+                                "from_package": _pkg_of(t),
+                                "resolved": ptype.get("resolved"),
+                            }
+                        else:
+                            continue
                     if node.get("kind") == "LocalParam":
                         node = dict(node)
                         node["kind"] = "ParameterDecl"
