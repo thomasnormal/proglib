@@ -846,3 +846,10 @@ which are recorded separately from UB. The receipt is in
 with machine rows in
 [`docs/c-array-subobject-price-20261122.json`](c-array-subobject-price-20261122.json).
 The refusal remains the parser-native subobject-boundary family.
+
+**printf wall price (2026-11-22).** The dynamic ranking has four sole rows
+refusing `printf: unsupported format`. All four have clean pinned O0/O2 and
+UBSan/ASan runs. The receipt is in
+[`docs/c-printf-price-20261122.md`](c-printf-price-20261122.md), with machine
+rows in [`docs/c-printf-price-20261122.json`](c-printf-price-20261122.json).
+The refusal remains the exact unsupported-format boundary.
