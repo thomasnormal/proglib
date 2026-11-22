@@ -782,3 +782,13 @@ with its rendered table in
 Twenty-five rows have sanitizer diagnostics, 27 have clean sanitizer runs and
 therefore no UB witness, and five have no native oracle result because Clang
 could not link them. The `930529-1.c` O2 execution is recorded as a timeout.
+
+**Timeout wall price (2026-11-22).** The fresh survey has 84 sole timeout
+rows. Bounded native qualification finds 79 clean O0/O2/sanitizer rows, three
+sanitizer-witnessed rows (`arith-rand-ll.c`, `arith-rand.c`, and `shiftdi-2.c`),
+and two native disagreements (`fprintf-chk-1.c` and `printf-chk-1.c`). The
+complete receipt is in
+[`docs/c-timeout-price-20261122.md`](c-timeout-price-20261122.md), with
+machine rows in
+[`docs/c-timeout-price-20261122.json`](c-timeout-price-20261122.json).
+Native qualification does not establish a Lean termination bound.
