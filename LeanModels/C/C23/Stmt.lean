@@ -980,7 +980,7 @@ def bindParams (lay : Layout) : Ctx → List LeanModels.C.Decl → List CVal →
   | ctx, d :: ps, v :: vs =>
     match d with
     | .param id n ty vaList _ structuredType =>
-        match if vaList then some 1 else lay.sizeAt id ty with
+        match if vaList then some 1 else lay.sizeAtStructured id ty structuredType with
         | none => refuseUnsupported s!"no layout for parameter type '{ty}'"
         | some sz => do
             -- §6.9.2p7 holds for an UNNAMED parameter too: the object
