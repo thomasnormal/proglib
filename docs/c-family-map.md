@@ -639,12 +639,13 @@ current loud refusal is therefore retained pending the effective-type and
 pointer-provenance family.
 
 **Partly initialized bit-field wall price (2026-11-22).** The dynamic ranking
-has 23 sole rows at `partly initialized bit-field byte`. The eight registered
-audit rows (`20000113-1.c`, `bf-sign-2.c`, `bitfld-8.c`, `bitfld-9.c`,
-`pr108498-2.c`, `pr110166-1.c`, `pr70566.c`, `pr86844.c`) have clean pinned
-Clang `-O0`/`-O2` and UBSan/ASan runs. The remaining 15 rows need the same
-native qualification before a bit-field byte rule can replace the loud
-read-modify-write refusal.
+has 23 sole rows at `partly initialized bit-field byte`. All 23 have clean
+pinned Clang `-O0`/`-O2` and UBSan/ASan runs. This is no UB evidence. The
+complete receipt is in
+[`docs/c-bitfield-price-20261122.md`](c-bitfield-price-20261122.md), with the
+machine rows in [`docs/c-bitfield-price-20261122.json`](c-bitfield-price-20261122.json).
+The next rule must use the parser-provided bit-field storage span for the
+read-modify-write byte operation.
 
 **String-pointer wall price (2026-11-22).** The dynamic ranking has 19 sole
 rows refusing pointer operations involving string literals. Nine available C1
