@@ -292,7 +292,7 @@ def floatBitsOfStructured : LeanModels.Clang.QualType → Option Nat
 layout observation, while scalar pointer strides can be obtained directly
 from Clang's recursive `QualType` tree. -/
 def scalarSizeOfStructured (type : LeanModels.Clang.QualType) : Option Nat :=
-  (intTyOfStructured type).map (fun integer => integer.bits / 8)
+  (intTyOfStructured type).map IntTy.storageBytes
     |>.orElse (fun _ => (floatBitsOfStructured type).map (· / 8))
 
 def objectSizeOfStructured : LeanModels.Clang.QualType → Option Nat

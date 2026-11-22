@@ -100,6 +100,10 @@ def ulong : IntTy := ⟨false, 64⟩
 def int128_ : IntTy := ⟨true, 128⟩
 def uint128 : IntTy := ⟨false, 128⟩
 
+/-- Integer object extent in bytes on the pinned profile. C23 §6.2.6.2
+distinguishes the one value bit of `bool` from its object representation. -/
+abbrev storageBytes (t : IntTy) : Nat := max 1 (t.bits / 8)
+
 /-- `2 ^ bits`, the modulus. -/
 def modulus (t : IntTy) : Int := (2 : Int) ^ t.bits
 
