@@ -690,6 +690,15 @@ with machine rows in
 The loud refusal is therefore an exact profile boundary, not a native mismatch
 or sanitizer-qualified UB result.
 
+**Floating-cast wall price (2026-11-22).** The dynamic ranking has five sole
+rows refusing `floating cast has incompatible source and destination`. All five
+have clean pinned O0/O2 and UBSan/ASan runs. The receipt is in
+[`docs/c-floating-cast-price-20261122.md`](c-floating-cast-price-20261122.md),
+with machine rows in
+[`docs/c-floating-cast-price-20261122.json`](c-floating-cast-price-20261122.json).
+The refusal remains the exact parser-native source/destination representation
+conversion boundary.
+
 **Integer-to-pointer wall price (2026-11-22).** The dynamic ranking has 12
 sole rows refusing `integer-to-pointer conversion outside pointer type`. The
 rows are address arithmetic, pointer round-trips and builtin-prefetch cases.

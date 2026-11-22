@@ -1,0 +1,151 @@
+{
+  "rows": [
+    {
+      "corpus": "c-testsuite/single-exec",
+      "evidence": "clean-no-ub-witness",
+      "model": "floating cast has incompatible source and destination",
+      "name": "00204.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "3f80 1ff01ff01ff01ff 7fffc0 3fff80003fff800 7fffffffffe00 abcd1234 abcd00001234 abcd000000001234 abcd12340000 abcd000012340000 abcd123400000000 ffffffffabcd1234 ffffabcdffff1234 abcdffffffff1234 ffffabcd1234ffff abcdffff1234ffff abcd1234ffffffff ffffef0123456789 abcdef012345ffff abcdef0123456789 3e8 3e8 463 36d fffffffffffff3e9 7b3e8 3421 ffffd3af fffffc17 fffffffffffffc18 fffffc93 fffffffffffffc93 0 3e8 3e8 ffffffff 3e8 fffffffffffffc17 e0 3f8 318 3e8 3e8 3e8 7d0 0 7d0 0 1f4 0 1f4 0 1f4 0 1f4 0",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "3f80 1ff01ff01ff01ff 7fffc0 3fff80003fff800 7fffffffffe00 abcd1234 abcd00001234 abcd000000001234 abcd12340000 abcd000012340000 abcd123400000000 ffffffffabcd1234 ffffabcdffff1234 abcdffffffff1234 ffffabcd1234ffff abcdffff1234ffff abcd1234ffffffff ffffef0123456789 abcdef012345ffff abcdef0123456789 3e8 3e8 463 36d fffffffffffff3e9 7b3e8 3421 ffffd3af fffffc17 fffffffffffffc18 fffffc93 fffffffffffffc93 0 3e8 3e8 ffffffff 3e8 fffffffffffffc17 e0 3f8 318 3e8 3e8 3e8 7d0 0 7d0 0 1f4 0 1f4 0 1f4 0 1f4 0",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "3f80 1ff01ff01ff01ff 7fffc0 3fff80003fff800 7fffffffffe00 abcd1234 abcd00001234 abcd000000001234 abcd12340000 abcd000012340000 abcd123400000000 ffffffffabcd1234 ffffabcdffff1234 abcdffffffff1234 ffffabcd1234ffff abcdffff1234ffff abcd1234ffffffff ffffef0123456789 abcdef012345ffff abcdef0123456789 3e8 3e8 463 36d fffffffffffff3e9 7b3e8 3421 ffffd3af fffffc17 fffffffffffffc18 fffffc93 fffffffffffffc93 0 3e8 3e8 ffffffff 3e8 fffffffffffffc17 e0 3f8 318 3e8 3e8 3e8 7d0 0 7d0 0 1f4 0 1f4 0 1f4 0 1f4 0",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "floating cast has incompatible source and destination",
+      "name": "20020413-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "floating cast has incompatible source and destination",
+      "name": "990413-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "floating cast has incompatible source and destination",
+      "name": "align-2.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    },
+    {
+      "corpus": "gcc.c-torture/execute",
+      "evidence": "clean-no-ub-witness",
+      "model": "floating cast has incompatible source and destination",
+      "name": "ieee/20011123-1.c",
+      "phases": {
+        "o0": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "o2": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        },
+        "san": {
+          "returncode": 0,
+          "status": "run",
+          "stderr": "",
+          "stdout": "",
+          "timeout": false
+        }
+      }
+    }
+  ],
+  "schema": "c-floating-cast-price-1",
+  "total": 5
+}
