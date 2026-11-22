@@ -669,3 +669,10 @@ sole rows at `long double floating literal`. These rows exercise profile-sized
 `long double` constants and builtins, while the approved IEEE parser currently
 models binary32 and binary64 only. The loud refusal is therefore an exact
 profile boundary, not a native mismatch or sanitizer-qualified UB result.
+
+**Integer-to-pointer wall price (2026-11-22).** The dynamic ranking has 12
+sole rows refusing `integer-to-pointer conversion outside pointer type`. The
+rows are address arithmetic, pointer round-trips and builtin-prefetch cases.
+The current PNVI-ae contract requires an exposure flag and recovery choice for
+each integer-to-pointer conversion, so these refusals remain the correct
+boundary until S2 supplies that choice.
