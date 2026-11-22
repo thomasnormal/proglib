@@ -1566,11 +1566,31 @@ normalized simulator-row digest is
 `9720ed942650d4c75e14671a017b476c65621874b5370de30a759c69639714df`.
 
 The checked-in `darkriscv/rv32ui/programs.txt` inventories 42 upstream
-`riscv-tests` RV32UI programs.  This host has no cross-toolchain and no image
-builder for the testbench, so the compiled-and-run count is **0/42**.  No
-RV32UI simulator or Lean result is claimed.  The bundled witness remains an
-all-NOP image and does not exercise a memory stall or an unknown-valued
-register.
+`riscv-tests` RV32UI programs.  The original all-NOP witness left the
+compiled-and-run count at **0/42** and did not exercise a memory stall or an
+unknown-valued register.  The first compiled image below moves the measured
+count to **1/42**.
+
+## 2026-11-22 DarkRISCV rv32ui/ld_st differential
+
+The first compiled RV32UI image is `darkriscv/rv32ui_ldst.hex`, built from
+`riscv-tests` `isa/rv32ui/ld_st.S` at commit
+`3df703cd52d5f0d8224e3c50bf03c6cb70efff98` with the pinned source hashes and
+toolchain recorded in `darkriscv/rv32ui_ldst_provenance.txt`.  The image is
+loaded at reset address zero by the unchanged-source testbench
+`darkriscv/rv32ui_ldst_tb.sv`.
+
+`darkriscv/rv32ui_ldst_check.py` runs 300 rising edges with both instruction
+and data acknowledgement stalls.  Icarus Verilog 13.0
+(`s20250103-64-gdad78d525`), Xcelium 24.03-s004, and canonical E agree on all
+printed fields for **300/300** rows.  The checker validates the transcript
+hash and rejects a corrupted expected row through its negative control.
+Transcript SHA-256 is
+`3400eeedcb8f2121397d603ea8b3be72b8633b79fe1a540c8eb7ea9c0381adaa`.
+
+This image does not leave an x-valued register.  The x-register requirement
+remains open because DarkRISCV initializes its register file to zero and the
+PicoRV32 x-register run currently stops at the canonical-E scheduling wall.
 
 ## 2026-11-20 loader-backed census
 
