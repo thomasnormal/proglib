@@ -1,0 +1,23 @@
+riscv-tests commit: 3df703cd52d5f0d8224e3c50bf03c6cb70efff98
+program: isa/rv32ui/ld_st.S
+included source: isa/rv64ui/ld_st.S
+included source: env/p/riscv_test.h
+included source: isa/macros/scalar/test_macros.h
+included source: env/encoding.h
+
+source SHA-256
+  isa/rv32ui/ld_st.S bf97dab99c89561f9b9663d7bb5e478b54cc309bd7082e27a4676afaf1eff9e2
+  isa/rv64ui/ld_st.S 6dabe1e43ef87e96754a4e0249f5abc8d7b6144a2374c40cfd2d2b690d284681
+  env/p/riscv_test.h 894ff1753c08fbab504921b14a38ed8cf88156bcb8bf61f75a390e02b9b21563
+  isa/macros/scalar/test_macros.h b09abb7eec47539dde829096ca973a33b2d293d38f0902133ad2aaa6fab892dc
+  env/encoding.h 8a8480aaf6cce6df02b483e0cbdf8e375866c5ed86986075e9111fe9149a38c2
+
+image build
+  clang 21.1.8 (conda-forge clangdev-feedstock 334cf9a5e6c0331e9f261eaf01fc3568724fcce9)
+  target riscv32, -march=rv32i, -mabi=ilp32
+  linker LLD 21.1.8, -m elf32lriscv, --image-base=0, -Ttext=0
+  image SHA-256 4aa921432971ef34eaca03e5baa3ccbe7da290459e31a8b2e0d00e068ffa7415
+
+The image is loaded at reset address zero by rv32ui_ldst_tb.sv.  The
+testbench drives instruction and data acknowledgements low on deterministic
+falling-edge slots and prints 300 rising-edge rows.
