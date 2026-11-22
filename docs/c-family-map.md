@@ -647,3 +647,11 @@ String-literal storage and pointer provenance are therefore the next
 self-contained evaluator boundary after the current layout and evidence
 prices. Native cleanliness alone does not establish the model's pointer-byte
 or lifetime rule.
+
+**String-literal pointer boundary (2026-11-22).** The smallest priced row,
+`20000910-2.c`, uses two string literals as `char *` values passed through
+`strchr`. The envelope carries decoded bytes and the model allocates static
+objects for each literal. Pointer equality and arithmetic still refuse because
+literal pooling and object identity are implementation choices. C's permitted
+same-address and distinct-address resolutions must be represented before these
+operations can be admitted universally.
