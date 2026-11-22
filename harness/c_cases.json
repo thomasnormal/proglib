@@ -576,8 +576,8 @@
     "expect": "refuse",
     "return_value": 0,
     "error": "no layout for compound literal type 'int[3]'",
-    "structured_expect": "match",
-    "structured_return_value": 0
+    "structured_expect": "refuse",
+    "structured_error": "nonValueRepresentation"
   },
   {
     "id": "pointer-integer-compound-literal-side-effect",
@@ -585,8 +585,8 @@
     "expect": "refuse",
     "return_value": 0,
     "error": "no layout for compound literal type 'int[3]'",
-    "structured_expect": "match",
-    "structured_return_value": 0
+    "structured_expect": "refuse",
+    "structured_error": "nonValueRepresentation"
   },
   {
     "id": "signed-bitfield-layout-wall",
@@ -717,7 +717,9 @@
     "id": "pointer-unsigned-int-wall",
     "source": "int main(void) { int x = 3; unsigned int u = (unsigned int)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
     "expect": "refuse",
-    "error": "pointer-to-integer conversion outside uintptr_t/intptr_t"
+    "error": "pointer-to-integer conversion outside uintptr_t/intptr_t",
+    "structured_expect": "refuse",
+    "structured_error": "nonValueRepresentation"
   },
   {
     "id": "void-pointer-roundtrip",
