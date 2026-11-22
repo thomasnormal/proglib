@@ -522,7 +522,11 @@ def Layout.exprSizeAt (layout : Layout) (expression : Expr) (ty : String) :
               | _ => scalarSizeOfStructured element
           | _ => none
     | _ => none
-  indexedElementSize.orElse (fun _ =>
+  let nodeRecordSize := expression.structuredType?.bind fun q =>
+    match q.unqualified with
+    | .record handle => layout.recordSizeDecl { value := handle.value }
+    | _ => none
+  (nodeRecordSize.orElse (fun _ => indexedElementSize)).orElse (fun _ =>
     ((directDeclId expression).bind layout.structuredType |>.orElse
       (fun _ => (Expr.span expression).offset.bind (fun offset =>
         (layout.structuredExprTypeAt offset (Expr.span expression).endOffset
@@ -585,15 +589,19 @@ def Layout.structuredTypeAt (layout : Layout) (base : Expr) :
 
 def Layout.fieldBitsAtResolved (layout : Layout) (base : Expr) (field : String) :
     Option (Nat × Nat) :=
-  (layout.fieldBitsAt base field).orElse (fun _ =>
-    (layout.structuredTypeAt base).bind (fun q =>
-      match q.unqualified with
+  match layout.structuredTypeAt base with
+  | some type => do
+      let resolved ← type.resolveTypedefs
+        (fun handle => layout.structuredType { value := handle.value }) 32
+      match (resolved.pointee.getD resolved).unqualified with
       | .record handle => layout.fieldBitsDecl { value := handle.value } field
-      | .pointer pointee =>
-          match pointee.unqualified with
-          | .record handle => layout.fieldBitsDecl { value := handle.value } field
-          | _ => none
-      | _ => none))
+      | _ => none
+  | none => layout.fieldBitsAt base field
+
+def Layout.bitFieldOf (layout : Layout) : Expr → Option (Nat × Nat)
+  | .paren sub .. => layout.bitFieldOf sub
+  | .member base field .. => layout.fieldBitsAtResolved base field
+  | _ => none
 
 /-- Resolve an aggregate's element extent from its declaration's structured
 array type before using the legacy spelling-derived element table.  The
@@ -640,22 +648,6 @@ def Layout.storageTypeAt (layout : Layout) (decl : Option DeclarationId)
 def Layout.pointeeSizeAt (layout : Layout) (base : Option Expr) (ty : String) :
     Option Nat :=
   base.bind fun expression => layout.elementSizeAt expression ty
-
-/-! A bit-field's storage unit is the record object for a direct base and the
-parser-observed pointee for an arrow base.  Missing observations stay a loud
-layout absence. -/
-def Layout.bitFieldStorageSizeAt (layout : Layout) (base : Option Expr)
-    (recordTy : String) : Option Nat :=
-  match base with
-  | some expression =>
-      match layout.structuredTypeAt expression with
-      | some structured =>
-          if (structured.unqualified.pointee).isSome then
-            layout.pointeeSizeAt (some expression) recordTy
-          else
-            layout.sizeAt (directDeclId expression) recordTy
-      | none => layout.sizeAt (directDeclId expression) recordTy
-  | none => layout.sizeAt none recordTy
 
 /-- A layout that knows nothing: every query refuses. The DEFAULT, so a
 missing layout fact is a loud refusal rather than a guessed offset. -/
@@ -1380,7 +1372,7 @@ def binaryHasUnsequencedWrite (lhs rhs : Expr) : Bool :=
     writesKeyIn leftWrites rightReads ||
     writesKeyIn rightWrites leftReads
 
-/-! ### C23 §6.7.2.1p11 — bit-field object representation
+/-! ### C23 §6.7.3.2 — bit-field object representation
 
 Bit-fields share the record's storage bytes.  The offset and width below are
 the parser-native `ASTRecordLayout` observations carried by the envelope;
@@ -1399,66 +1391,73 @@ def bitFieldSignedValue (t : IntTy) (width raw : Nat) : Int :=
     (value : Int) - (modulus : Int)
   else value
 
-def bitFieldStoreBytes (bs : List CByte) (offset width value : Nat) : List CByte :=
-  let updateByte := fun (byteIndex : Nat) (b : CByte) =>
-    let original := match b with | .conc x => x.toNat | _ => 0
-    let result := (List.range 8).foldl (fun acc bit =>
-      let absolute := byteIndex * 8 + bit
-      if absolute < offset || absolute ≥ offset + width then acc
-      else
-        let want := ((value / (2 ^ (absolute - offset))) % 2) == 1
-        if want then acc ||| (2 ^ bit)
-        else acc &&& (Nat.xor (2 ^ bit) 255)) original
-    .conc (UInt8.ofNat result)
-  bs.mapIdx updateByte
+def mergeBitFieldBytes (bs : List CByte) (mask value : Nat) : Option (List CByte) :=
+  bs.zipIdx.mapM fun (byte, i) => do
+    let factor := 256 ^ i
+    let written := mask / factor % 256
+    if written == 0 then return byte
+    -- The old store can replace a whole byte or preserve concrete bits.
+    -- It cannot keep the unwritten part of an indeterminate or tagged byte.
+    let original ← match byte with
+      | .conc b => some b.toNat
+      | _ => if written == 255 then some 0 else none
+    let result := (original &&& Nat.xor written 255) ||| ((value / factor % 256) &&& written)
+    pure (.conc (UInt8.ofNat result))
 
+def bitFieldByteCount (offsetBits width : Nat) : Nat :=
+  (offsetBits % 8 + width + 7) / 8
 
-def loadBitFieldAt (ctx : Ctx) (recordTy : String) (field : String)
-    (fieldTy : String) (fieldPtr : Ptr) (base : Option Expr := none)
-    (structured : Option LeanModels.Clang.QualType := none) : EvalM CVal := do
-  match (base.map (ctx.layout.fieldBitsAt · field)).getD none,
-      ctx.layout.bitFieldStorageSizeAt base recordTy,
-      structured.bind intTyOfStructured with
-  | some (offsetBits, width), some recordSize, some storageTy =>
-      if width > 8 then
-        refuseUnsupported s!"unsupported bit-field width {width} for '{fieldTy}'"
-      else
-      let basePtr := { fieldPtr with off := fieldPtr.off - (offsetBits / 8 : Int), bound := none }
-      let bs ← readMem (fun m => m.loadBytes basePtr recordSize)
-      match bitFieldBytesNat bs with
-      | none => refuseUnsupported "bit-field reads an indeterminate representation"
-      | some raw =>
-          let mask := (2 : Nat) ^ width - 1
-          pure (.int storageTy (bitFieldSignedValue storageTy width
-            ((raw / ((2 : Nat) ^ offsetBits)) &&& mask)))
-  | some _, none, _ => refuseUnsupported s!"no layout for bit-field record '{recordTy}'"
-  | some _, _, none => refuseUnsupported s!"unsupported bit-field type '{fieldTy}'"
-  | none, _, _ => refuseUnsupported s!"no bit-field layout for '{field}'"
+def bitFieldIntTy (structured : Option LeanModels.Clang.QualType) (width : Nat) :
+    Option IntTy := do
+  let type ← structured
+  -- The compatible integer type of an enum is implementation-defined.
+  -- A declaration handle alone carries no signedness observation.
+  match type.unqualified with
+  | .enumeration _ => none
+  | _ =>
+      let t ← intTyOfStructured type
+      if width > 0 && width ≤ t.bits then some t else none
 
-def storeBitFieldAt (ctx : Ctx) (recordTy : String) (field : String)
-    (fieldTy : String) (fieldPtr : Ptr) (v : CVal) (base : Option Expr := none)
-    (structured : Option LeanModels.Clang.QualType := none) : EvalM Unit := do
-  match (base.map (ctx.layout.fieldBitsAt · field)).getD none,
-      ctx.layout.bitFieldStorageSizeAt base recordTy,
-      structured.bind intTyOfStructured, v with
-  | some (offsetBits, width), some recordSize, some storageTy, .int _ n =>
-      if width > 8 then
-        refuseUnsupported s!"unsupported bit-field width {width} for '{fieldTy}'"
-      else
-      let fieldTy' := storageTy
-      -- C23 §6.3.1.3p3 leaves conversion to a signed type outside its
-      -- range implementation-defined (J.3.6(3)).  The pinned profile's
-      -- `uint_to_int_wraps` fact records Clang's choice for this conversion.
-      -- A bit-field stores the low `width` bits, and `loadBitFieldAt` applies
-      -- the signed interpretation to those bits on read.
-      let basePtr := { fieldPtr with off := fieldPtr.off - (offsetBits / 8 : Int), bound := none }
-      let bs ← readMem (fun m => m.loadBytes basePtr recordSize)
-      let modulus : Int := (2 : Int) ^ width
-      let fieldValue := ((n % modulus + modulus) % modulus).toNat
-      let bytes := bitFieldStoreBytes bs offsetBits width fieldValue
-      writeMem (fun m => m.storeBytes basePtr bytes)
-  | some _, _, _, _ => refuseUnsupported s!"unsupported bit-field store '{fieldTy}'"
-  | none, _, _, _ => refuseUnsupported s!"no bit-field layout for '{field}'"
+def bitFieldTypeError (structured : Option LeanModels.Clang.QualType)
+    (fieldTy : String) (width : Nat) : String :=
+  match structured.map LeanModels.Clang.QualType.unqualified with
+  | some (.enumeration _) => "enum bit-field lacks parser-native compatible integer type"
+  | _ => s!"unsupported bit-field width {width} for '{fieldTy}'"
+
+def bitFieldResidue (t : IntTy) (width : Nat) (n : Int) : Nat :=
+  let converted := if t == IntTy.bool_ then (if n == 0 then 0 else 1) else n
+  (converted % ((2 : Int) ^ width)).toNat
+
+def loadBitFieldAt (fieldTy : String) (fieldPtr : Ptr) (offsetBits width : Nat)
+    (structured : Option LeanModels.Clang.QualType) : EvalM CVal := do
+  let storageTy ← match bitFieldIntTy structured width with
+    | some t => pure t
+    | none => refuseUnsupported (bitFieldTypeError structured fieldTy width)
+  let bs ← readMem (fun m => m.loadBytes fieldPtr (bitFieldByteCount offsetBits width))
+  match bitFieldBytesNat bs with
+  | none => refuseUnsupported "bit-field reads an indeterminate representation"
+  | some raw =>
+      pure (.int storageTy (bitFieldSignedValue storageTy width
+        (raw / ((2 : Nat) ^ (offsetBits % 8)))))
+
+/-- Update the bit-field's bytes for assignment or initialization. The offset
+is record-relative, while `fieldPtr` already points to the first byte. -/
+def storeBitField (fieldTy : String) (fieldPtr : Ptr) (offsetBits width : Nat)
+    (structured : Option LeanModels.Clang.QualType) (v : CVal) : EvalM CVal := do
+  match bitFieldIntTy structured width, v with
+  | some storageTy, .int _ n =>
+      let bs ← readMem (fun m => m.loadBytes fieldPtr (bitFieldByteCount offsetBits width))
+      -- The pinned two's-complement conversion retains the low field bits.
+      -- Boolean conversion first maps all nonzero values to one.
+      let fieldValue := bitFieldResidue storageTy width n
+      let factor := 2 ^ (offsetBits % 8)
+      match mergeBitFieldBytes bs ((2 ^ width - 1) * factor) (fieldValue * factor) with
+      | some bytes =>
+          writeMem (fun m => m.storeBytes fieldPtr bytes)
+          pure (.int storageTy (bitFieldSignedValue storageTy width fieldValue))
+      | none => refuseUnsupported "partly initialized bit-field byte"
+  | none, _ => refuseUnsupported (bitFieldTypeError structured fieldTy width)
+  | _, _ => refuseUnsupported s!"unsupported bit-field store '{fieldTy}'"
 
 
 mutual
@@ -1579,15 +1578,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           match functionValue with
           | some id => pure (.funPtr id)
           | none =>
-              match sub with
-              | .member base field arrow fieldTy _ _ .. =>
-                  if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-                    loadBitFieldAt ctx base.ty field fieldTy p (some base) structuredType
-                  else
-                    loadAt ctx.aliasModel p ty
-                      (ctx.layout.exprSizeAt sub ty)
-                      (ctx.layout.structuredTypeAt sub)
-              | _ =>
+              match ctx.layout.bitFieldOf sub with
+              | some (offsetBits, width) =>
+                  loadBitFieldAt sub.ty p offsetBits width (ctx.layout.structuredTypeAt sub)
+              | none =>
                   loadAt ctx.aliasModel p ty
                     (ctx.layout.exprSizeAt sub ty)
                     (ctx.layout.structuredTypeAt sub)
@@ -1730,24 +1724,11 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let p ← evalLValue ctx l
         let v ← evalExpr ctx r
         let lStructured := ctx.layout.structuredTypeAt l
-        match l with
-        | .member base field arrow fieldTy _ _ .. =>
-            if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-              storeBitFieldAt ctx base.ty field fieldTy p v (some base) lStructured
-              -- §6.5.16.2: the assignment expression has the value after
-              -- conversion to the assigned bit-field type.  Returning the
-              -- RHS here would expose 1081 for an 11-bit field and disagree
-              -- with Clang's truncation before the surrounding comparison.
-              loadBitFieldAt ctx base.ty field fieldTy p (some base) lStructured
-            else
-              storeAt ctx.aliasModel p l.ty v
-                (ctx.layout.structuredTypeAt l)
-              match lStructured.bind intTyOfStructured, v with
-              | some t, .int _ n => pure (convert t n)
-              | _, _ => pure v
-        | _ =>
-            storeAt ctx.aliasModel p l.ty v
-              (ctx.layout.structuredTypeAt l)
+        match ctx.layout.bitFieldOf l with
+        | some (offsetBits, width) =>
+            storeBitField l.ty p offsetBits width lStructured v
+        | none =>
+            storeAt ctx.aliasModel p l.ty v lStructured
             match lStructured.bind intTyOfStructured, v with
             | some t, .int _ n => pure (convert t n)
             | _, _ => pure v
@@ -1817,12 +1798,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         -- the update, and the update itself can overflow (`J.2(35)`).
         let p ← evalLValue ctx sub
         let subStructured := ctx.layout.structuredTypeAt sub
-        let old ← match sub with
-          | .member base field arrow fieldTy _ _ .. =>
-              if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-                loadBitFieldAt ctx base.ty field fieldTy p (some base) subStructured
-              else loadAt ctx.aliasModel p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured
-          | _ => loadAt ctx.aliasModel p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured
+        let bits := ctx.layout.bitFieldOf sub
+        let old ← match bits with
+          | some (offsetBits, width) => loadBitFieldAt sub.ty p offsetBits width subStructured
+          | none => loadAt ctx.aliasModel p sub.ty (ctx.layout.exprSizeAt sub sub.ty) subStructured
         match old with
         | .ptr _ =>
             -- C23 §6.5.3.5p2 defines pointer increment/decrement in terms
@@ -1830,16 +1809,20 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
             -- arithmetic rule, so one-past and object bounds stay exact.
             let nv ← evalArith ctx (if op == "++" then "+" else "-") old
               (.int IntTy.int_ 1) sub.ty none (some sub) subStructured
-            match sub with
-            | .member base field arrow fieldTy _ _ .. =>
-                if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-                  storeBitFieldAt ctx base.ty field fieldTy p nv (some base) subStructured
-                else storeAt ctx.aliasModel p sub.ty nv
-            | _ => storeAt ctx.aliasModel p sub.ty nv
+            storeAt ctx.aliasModel p sub.ty nv subStructured
             pure (if post then old else nv)
         | _ =>
             let (storageT, n) ← asInt old
-            let t := promoteIntTy storageT
+            -- C23 §6.3.1.1p2 uses the bit-field's value range for
+            -- integer promotions of bool, signed int, and unsigned int.
+            let t ← match bits with
+              | none => pure (promoteIntTy storageT)
+              | some (_, width) =>
+                  if storageT == IntTy.bool_ || storageT == IntTy.int_ ||
+                      (storageT == IntTy.uint && width < IntTy.int_.bits) then
+                    pure IntTy.int_
+                  else if storageT == IntTy.uint then pure IntTy.uint
+                  else refuseUnsupported "increment of an extended-type bit-field"
             match (if op == "++" then addOp t n 1 else subOp t n 1) with
             | .ub u => refuseValue u
             | .ok (.int _ nv) => do
@@ -1847,13 +1830,13 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
                   | some projected => pure projected
                   | none => refuseUnsupported "increment lacks parser-native storage type"
                 let stored := convert storedT nv
-                match sub with
-                | .member base field arrow fieldTy _ _ .. =>
-                    if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-                      storeBitFieldAt ctx base.ty field fieldTy p stored (some base) subStructured
-                    else storeAt ctx.aliasModel p sub.ty stored subStructured
-                | _ => storeAt ctx.aliasModel p sub.ty stored subStructured
-                pure (if post then old else stored)
+                let updated ← match bits with
+                  | some (offsetBits, width) =>
+                      storeBitField sub.ty p offsetBits width subStructured stored
+                  | none =>
+                      storeAt ctx.aliasModel p sub.ty stored subStructured
+                      pure stored
+                pure (if post then old else updated)
             | .ok _ => refuseUnsupported "increment of a non-integer value"
       else refuseUnsupported s!"unary operator '{op}'"
 
@@ -1868,11 +1851,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         -- representability (§6.5.8p4-5). Keep this boundary loud until every
         -- parser-generated compound path reaches that value check.
         refuseUnsupported "signed compound shift requires an exact parser path"
-      match l with
-      | .member base field _ _ _ _ .. =>
-          if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-            refuseUnsupported "compound assignment to a bit-field"
-      | _ => pure ()
+      let bits := ctx.layout.bitFieldOf l
       let p ← evalLValue ctx l
       let lStructured := ctx.layout.structuredTypeAt l
       let rv ← evalExpr ctx r
@@ -1881,14 +1860,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       -- its address, while its stored value is read only after the RHS has
       -- completed; this preserves writes made by a called RHS (for example
       -- `x |= foo()` where `foo` updates `x`).
-      let old ← match l with
-        | .member base field arrow fieldTy _ _ .. =>
-            if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-              loadBitFieldAt ctx base.ty field fieldTy p (some base) lStructured
-            else
-              loadAt ctx.aliasModel p l.ty
-                (ctx.layout.exprSizeAt l (Expr.ty l)) lStructured
-        | _ =>
+      let old ← match bits with
+        | some (offsetBits, width) =>
+            loadBitFieldAt l.ty p offsetBits width lStructured
+        | none =>
             loadAt ctx.aliasModel p l.ty
               (ctx.layout.exprSizeAt l (Expr.ty l)) lStructured
       match old, rv with
@@ -1898,36 +1873,15 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           -- operator, with the lvalue evaluated once.  `evalArith` already
           -- performs the provenance, bound, and element-size checks.
           let nv ← evalArith ctx (compoundBase op) old rv computeResultType none (some l) lStructured
-          match l with
-          | .member base field arrow fieldTy _ _ .. =>
-              if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-                storeBitFieldAt ctx base.ty field fieldTy p nv (some base) lStructured
-              else
-                storeAt ctx.aliasModel p l.ty nv
-          | _ =>
-              storeAt ctx.aliasModel p l.ty nv
+          storeAt ctx.aliasModel p l.ty nv
           pure nv
       | .float32 a, .float32 b => do
           let nv ← float32Binop (compoundBase op) a b
-          match l with
-          | .member base field arrow fieldTy _ _ .. =>
-              if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-                refuseUnsupported "floating compound assignment to a bit-field"
-              else
-                storeAt ctx.aliasModel p l.ty nv
-          | _ =>
-              storeAt ctx.aliasModel p l.ty nv
+          storeAt ctx.aliasModel p l.ty nv
           pure nv
       | .float64 a, .float64 b => do
           let nv ← float64Binop (compoundBase op) a b
-          match l with
-          | .member base field arrow fieldTy _ _ .. =>
-              if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-                refuseUnsupported "floating compound assignment to a bit-field"
-              else
-                storeAt ctx.aliasModel p l.ty nv
-          | _ =>
-              storeAt ctx.aliasModel p l.ty nv
+          storeAt ctx.aliasModel p l.ty nv
           pure nv
       | .int oldT oldN, .int _ rvN => do
           match computeLhsNodeType.bind intTyOfStructured,
@@ -1942,8 +1896,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               match computed with
               | .int _ n =>
                   let stored := convert storedTy n
-                  storeAt ctx.aliasModel p l.ty stored lStructured
-                  pure stored
+                  match bits with
+                  | some (offsetBits, width) =>
+                      storeBitField l.ty p offsetBits width lStructured stored
+                  | none =>
+                      storeAt ctx.aliasModel p l.ty stored lStructured
+                      pure stored
               | _ => refuseUnsupported "integer compound assignment produced a non-integer value"
           | _, _, _ =>
               refuseUnsupported
@@ -1958,10 +1916,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- either way (§6.3.2.1p2).
   | .member base field arrow ty span recordId structuredType => do
       let p ← memberAddr ctx base field arrow ty recordId
-      if ctx.layout.fieldBitsAtResolved base field |>.isSome then
-        loadBitFieldAt ctx base.ty field ty p (some base) structuredType
-      else
-        loadAt ctx.aliasModel p ty (ctx.layout.exprSizeAt (.member base field arrow ty span recordId structuredType) ty)
+      match ctx.layout.fieldBitsAtResolved base field with
+      | some (offsetBits, width) => loadBitFieldAt ty p offsetBits width structuredType
+      | none =>
+          loadAt ctx.aliasModel p ty
+            (ctx.layout.exprSizeAt (.member base field arrow ty span recordId structuredType) ty)
+            structuredType
   | .index base idx ty _ .. => do
       let p ← indexAddr ctx base idx ty
       let elementStructured := (ctx.layout.structuredTypeAt base).bind fun q =>
@@ -2154,31 +2114,26 @@ def memberAddr (ctx : Ctx) (base : Expr) (field : String) (arrow : Bool)
     (fieldTy : String) (recordId : Option DeclarationId) : EvalM Ptr := do
   let basePtr ← if arrow then (do let v ← evalExpr ctx base; asPtr v)
                 else evalLValue ctx base
-  let off? := if field.isEmpty then
-      ctx.layout.fieldOffTypeDeclAt (recordId.orElse (fun _ => directDeclId base)) base.ty fieldTy
-    else
-      match ctx.layout.structuredTypeAt base with
-      | some structuredType =>
-          if structuredType.recordLike then
-            ctx.layout.fieldOffDeclAt (recordId.orElse (fun _ => directDeclId base)) base.ty field
-          else
-            ctx.layout.fieldOffDeclAt (recordId.orElse (fun _ => directDeclId base)) base.ty field
-      | none =>
-          ctx.layout.fieldOffDeclAt (recordId.orElse (fun _ => directDeclId base)) base.ty field
-  match off? with
-  | some off =>
-      let recordLike := (ctx.layout.structuredTypeAt base).map
-        LeanModels.Clang.QualType.recordLike |>.getD false
-      let fieldSize :=
-        if (ctx.layout.fieldBitsAtResolved base field).isSome then
-          ctx.layout.bitFieldStorageSizeAt (some base) base.ty
-        else
-          (ctx.layout.fieldExtentAt base field fieldTy recordLike).orElse
-            (fun _ => recordId.bind (fun rid => ctx.layout.fieldSizeDecl rid field))
-      match fieldSize with
-      | some sz => pure (Mem.memberRange basePtr off sz)
+  match ctx.layout.fieldBitsAtResolved base field with
+  | some (offsetBits, _) =>
+      -- The field operation supplies its byte count. Keep the parent bound.
+      pure (Mem.member basePtr (offsetBits / 8))
+  | none =>
+      let declaration := recordId.orElse (fun _ => directDeclId base)
+      let off? := if field.isEmpty then
+          ctx.layout.fieldOffTypeDeclAt declaration base.ty fieldTy
+        else ctx.layout.fieldOffDeclAt declaration base.ty field
+      match off? with
+      | some off =>
+          let recordLike := (ctx.layout.structuredTypeAt base).map
+            LeanModels.Clang.QualType.recordLike |>.getD false
+          let fieldSize :=
+            (ctx.layout.fieldExtentAt base field fieldTy recordLike).orElse
+              (fun _ => recordId.bind (fun rid => ctx.layout.fieldSizeDecl rid field))
+          match fieldSize with
+          | some sz => pure (Mem.memberRange basePtr off sz)
+          | none => refuseUnsupported s!"no layout for field '{field}'"
       | none => refuseUnsupported s!"no layout for field '{field}'"
-  | none => refuseUnsupported s!"no layout for field '{field}'"
   termination_by 2 * base.size + 2
   decreasing_by all_goals (simp_wf <;> omega)
 
@@ -3001,7 +2956,7 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
           · -- `++`/`--` store; `hnode` excludes both spellings.
             open_eval
             repeat (any_goals split)
-            all_goals first | (simp_all [loadBitFieldAt, storeBitFieldAt]; mem_inv; done) | (mem_inv; done) | simp_all
+            all_goals first | (simp_all [loadBitFieldAt, storeBitField]; mem_inv; done) | (mem_inv; done) | simp_all
           · open_lvalue
             repeat (any_goals split)
             all_goals first | (mem_inv; done) | simp_all
