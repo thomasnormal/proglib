@@ -386,6 +386,9 @@ private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) (parentPfx : 
                         pfx := parentPfx ++ pfx, parentPfx, generated }
           | .error e => .unsupported e
 
+/-! Whole aggregate output ports are continuous drivers of the parent
+aggregate. The canonical aggregate store copies the source-shaped root cell,
+retaining all member and index paths without flattening the declaration. -/
 /-- Build a one-child source-shaped memory design. The child may contain the
 parameter-sized unpacked storage; parent and child parameter names remain
 source-shaped, so `PDesign.instantiateCoreMem` binds dimensions at the top point. -/
@@ -435,6 +438,9 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
       | _ => none
   let outputPs := children.flatMap fun c => c.inst.conns.filterMap fun conn =>
       match conn with
+      | .output port (some (.aggregateMember parent path)) =>
+          some (.assignL (hLhs c.parentPfx (.aggregateMember parent path))
+            (.aggregateMember (c.pfx ++ port) []))
       | .output port (some target) => some (.assignL (hLhs c.parentPfx target) (.ident (c.pfx ++ port)))
       | _ => none
   let merged := { top with

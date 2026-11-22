@@ -3103,6 +3103,21 @@ def CoreMemProc.firesIn (a b : SvState) : CoreMemProc → Bool
   | .event events _ => coreMemEventsFire a b events
   | _ => false
 
+def CoreMemDesign.copyAggregateRoot (E : CoreMemDesign) (st : CoreMemState)
+    (target source : String) : Res CoreMemState :=
+  match E.aggregateDecl? target, E.aggregateDecl? source with
+  | some targetDecl, some sourceDecl =>
+      match st.aggregates.cells targetDecl.id, st.aggregates.cells sourceDecl.id with
+      | some targetCell, some sourceCell =>
+          let aggregates' := { cells := fun id =>
+            if id == targetDecl.id then some { targetCell with value := sourceCell.value }
+            else st.aggregates.cells id }
+          .ok { st with aggregates := aggregates' }
+      | none, _ => .unsupported s!"23.2.2: aggregate output target '{target}' has no state cell"
+      | _, none => .unsupported s!"23.2.2: aggregate output source '{source}' has no state cell"
+  | none, _ => .unsupported s!"23.2.2: aggregate output target '{target}' is undeclared"
+  | _, none => .unsupported s!"23.2.2: aggregate output source '{source}' is undeclared"
+
 def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (view : SvState) (index : Nat) : List CoreMemProc →
     Res (CoreMemState × SvState)
@@ -3126,6 +3141,12 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
       | _, _ => .unsupported s!"28: unsupported primitive '{op}' arity or target"
   | .assign target value :: rest => do
       match target with
+      | .aggregateMember targetBase [] =>
+          match value with
+          | .aggregateMember sourceBase [] => do
+              let st' ← E.copyAggregateRoot st targetBase sourceBase
+              E.settleAssignAt env elems st' view (index + 1) rest
+          | _ => .unsupported "23.2.2: aggregate output connection source is not a whole aggregate"
       | .ident name =>
           let width ← match E.scalarWidth? name with
             | some w => .ok w
