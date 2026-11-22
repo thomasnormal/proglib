@@ -3098,30 +3098,23 @@ def evalUntyped (env : IEnv) (e : PExpr) : Except String Int := do
   let ty ← ctype env e
   evalAt env ty e
 
-/-! The former refusal boundary is retained as a compatibility reference for
-`evalUntyped_legacy_preserved`; its admitted branch is the exact evaluator and
-its refused branch is the historical Icarus-width message. -/
-def evalUntypedLegacy (env : IEnv) (e : PExpr) : Except String Int :=
-  if e.icarusWidens env then .error untypedWidthMsg else evalUntyped env e
-
-/-- Every constant accepted before the Icarus-width refusal was removed keeps
-its value under the exact §6.20.2 evaluator.  Its width remains the same
-`ctype` result because this change only removes the refusal. -/
-theorem evalUntyped_legacy_preserved (env : IEnv) (e : PExpr) (v : Int)
-    (hold : evalUntypedLegacy env e = .ok v) :
-    evalUntyped env e = .ok v := by
-  cases h : e.icarusWidens env with
-  | false => simpa [evalUntypedLegacy, h] using hold
-  | true => simp [evalUntypedLegacy, h] at hold
-
-/-- Every old accepted constant retains its value, and its self-determined
-width remains the `ctype` width used by the exact evaluator. -/
-theorem evalUntyped_legacy_value_and_width (env : IEnv) (e : PExpr) (v : Int)
-    (w : Nat) (s : Bool)
-    (hold : evalUntypedLegacy env e = .ok v)
-    (hty : ctype env e = .ok (w, s)) :
-    evalUntyped env e = .ok v ∧ ctype env e = .ok (w, s) := by
-  exact ⟨evalUntyped_legacy_preserved env e v hold, hty⟩
+/-! The former refusal boundary is retained verbatim as a reference.  It is
+kept for audit comparisons only.  The exact §6.20.2 evaluator intentionally
+changes old INT-class readings at the 32-bit boundary, so no unconditional
+conservativity theorem is stated here.  For example, the old evaluator reads
+`-2147483648 / -1` and a 33-bit INT-class literal differently from the exact
+final-value evaluator required by §§6.20.2, 11.6, and 11.8. -/
+def evalUntypedLegacy (env : IEnv) (e : PExpr) : Except String Int := do
+  match e with
+  | .functionCall n args => return ← evalConstFunctionCall env n args
+  | _ => pure ()
+  if e.icarusWidens env then throw untypedWidthMsg
+  let v ← evalInt env e
+  if e.isInt env then .ok v
+  else
+    let (w, s) ← ctype env e
+    let v' ← evalAt env (w + 64, s) (e.shiftBarriers env)
+    if v' == v then .ok v else .error (untypedWrapMsg w v v')
 
 /- Negative and oversized shifts in the historical untyped constant tier stay
    loud: their self-determined width is not fixed by a declared `int` target.

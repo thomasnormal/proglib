@@ -414,8 +414,9 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture("signal_event_control.sv", "signal_event_control",
             (Port("clk", 1, clock=True), Port("d", 1)), (Port("q", 1),),
             retain_proc_rewrites=True),
-    Fixture("untyped_localparam_refuse.sv", "untyped_localparam_refuse",
-            (Port("x", 1),), (Port("y", 1),)),
+    Fixture("untyped_localparam_exact.sv", "untyped_localparam_exact",
+            (Port("x", 1),), (Port("y", 1),),
+            (Point("N10000", (10000,)), Point("N8", (8,)))),
     Fixture("hierarchy_parameterized.sv", "hierarchy_parameterized",
             (Port("a", 8),), (Port("y", 8),),
             (Point("W8", (8,)),)),
@@ -1057,6 +1058,7 @@ def testbench(fixture: Fixture, point: Point, rows: list[dict[str, int | str]]) 
             "packed_enum_case_e": ("W",),
             "assignment_pattern_param_e": ("P",),
             "assignment_pattern_param_width_e": ("W",),
+            "untyped_localparam_exact": ("N",),
         }[fixture.top]
         params = "" if fixture.top == "assignment_pattern_param_e" else ("#(" + ", ".join(f".{n}({v})" for n, v in zip(names, point.args)) + ")")
     declarations = []
