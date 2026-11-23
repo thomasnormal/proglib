@@ -2,7 +2,7 @@
 
 Generated from `docs/c-survey.json` and `harness/c_cases.json`.
 
-The pinned GNU17 target currently has 1349/2114 MATCH rows in the active survey denominator. Measurement commit `6ed71fce1`, date `2026-11-23T19:20:00Z`.
+The pinned GNU17 target currently has 1350/2114 MATCH rows in the active survey denominator. Measurement commit `6ce5f7b04`, date `2026-11-23T21:15:00Z`.
 
 A focused row is an admitted example when its harness expectation is `match`. A `refuse` row documents the exact refusal boundary. Corpus failures are listed as known wrong answers and remain separate from refusals.
 
@@ -40,7 +40,7 @@ A focused row is an admitted example when its harness expectation is `match`. A 
 
 - admitted: `record-forward-size` (match): `typedef struct s S; struct s { int a; int b; }; int main(void) { return sizeof(S); }`
 - refused: `local-anonymous-record` (refuse) — no layout for field 'x': `int main(void) { struct { int x; int y; } s; s.x = 3; s.y = 5; return s.y - s.x - 2; }`
-- known wrong: `bitfld-3.c` (failed)
+- known wrong: no scored failure in the current survey
 
 ## unions
 

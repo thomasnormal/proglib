@@ -9,15 +9,14 @@
    "runner-error": 1
   },
   "gcc.c-torture/execute": {
-   "failed": 3,
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1148,
+   "passed": 1149,
    "refused-libc": 26,
    "refused-ub": 36,
-   "refused-unsupported": 207,
-   "runner-error": 11
+   "refused-unsupported": 210,
+   "runner-error": 10
   },
   "gcc.c23-run": {
    "not-parsed": 34,
@@ -29,16 +28,15 @@
  },
  "corpus": "gcc.c-torture/execute",
  "counts": {
-  "failed": 3,
   "no-entry-point": 100,
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1349,
+  "passed": 1350,
   "refused-libc": 28,
   "refused-ub": 41,
-  "refused-unsupported": 345,
-  "runner-error": 12
+  "refused-unsupported": 348,
+  "runner-error": 11
  },
  "dynamic_wall_ranking": [
   {
@@ -790,6 +788,16 @@
   },
   {
    "files": [
+    "bitfld-3.c",
+    "pr32244-1.c",
+    "pr34971.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:arithmetic on bit-fields wider than int requires exact promotion semantics"
+  },
+  {
+   "files": [
     "00051.c",
     "00143.c",
     "medce-1.c"
@@ -1437,8 +1445,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-23T19:20:00Z",
- "measured_commit": "6ed71fce1",
+ "measured_at_utc": "2026-11-23T21:15:00Z",
+ "measured_commit": "6ce5f7b04",
  "pin": "C1-C3",
  "rows": [
   {
@@ -13075,15 +13083,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "arithmetic on bit-fields wider than int requires exact promotion semantics",
+   "dynamic_wall": "unsupported:arithmetic on bit-fields wider than int requires exact promotion semantics",
    "manifest_status": "parsed",
    "name": "bitfld-3.c",
    "sha256": "3bec021b8d98a23aa8a1154167df5c7c984f1c9390d8ccbb03f1b13572e24a7a",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "failed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20386,15 +20394,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "arithmetic on bit-fields wider than int requires exact promotion semantics",
+   "dynamic_wall": "unsupported:arithmetic on bit-fields wider than int requires exact promotion semantics",
    "manifest_status": "parsed",
    "name": "pr32244-1.c",
    "sha256": "1f3e091ac93fd1efcae495b1cbea01db21fcf546c0009e4e98d94173cc515525",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "failed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20640,15 +20648,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "arithmetic on bit-fields wider than int requires exact promotion semantics",
+   "dynamic_wall": "unsupported:arithmetic on bit-fields wider than int requires exact promotion semantics",
    "manifest_status": "parsed",
    "name": "pr34971.c",
    "sha256": "4eb46d66dc3dbb9dbc0a518d6c0101d616dbf983475b4c5cf462c3dce0c92638",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "failed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26476,7 +26484,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 30s",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strcpy-1.c",
@@ -26485,7 +26493,7 @@
     "libc-call: strcpy",
     "type-layout"
    ],
-   "verdict": "runner-error"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
