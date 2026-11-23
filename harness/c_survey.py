@@ -145,6 +145,47 @@ def effectful(node):
     return any(effectful(x) for x in child_nodes(node))
 
 
+# Keep this list aligned with the profile-indexed registry in
+# ``LeanModels/C/C23/Stmt.lean``. A call to one of these names is a modeled
+# operation, so it is not a static unresolved-libc wall. Argument-shape
+# refusals remain dynamic verdicts and are still visible in the replay.
+MODELED_EXTERNALS = {
+    "abort", "exit", "__builtin_abort", "__builtin_exit",
+    "strcmp", "__builtin_strcmp", "strncmp", "__builtin_strncmp",
+    "strncpy", "__builtin_strncpy", "strcat", "__builtin_strcat",
+    "strlen", "__builtin_strlen", "strnlen", "__builtin_strnlen",
+    "strchr", "strrchr", "memchr", "__builtin_memchr",
+    "memset", "__builtin_memset", "memcpy", "__builtin_memcpy",
+    "memmove", "__builtin_memmove", "mempcpy", "__builtin_mempcpy",
+    "memcmp", "__builtin_memcmp", "sprintf", "__builtin_sprintf",
+    "strcpy", "__builtin_strcpy", "printf", "__builtin_printf",
+    "putchar", "__builtin_putchar", "puts", "__builtin_puts",
+    "fprintf", "__builtin_fprintf", "vprintf", "__builtin_vprintf",
+    "vfprintf", "__builtin_vfprintf", "__builtin_va_start",
+    "__builtin_c23_va_start", "__builtin_va_copy", "__builtin_va_end",
+    "__builtin_bswap16", "__builtin_bswap32", "__builtin_bswap64",
+    "__builtin_fabs", "__builtin_fabsf", "__builtin_fabsl", "fabs",
+    "fabsf", "floor", "floorf", "__builtin_nanf", "__builtin_nan",
+    "__builtin_nanl", "__builtin_copysign", "__builtin_copysignf",
+    "__builtin_isfinite", "__builtin_isnan", "__builtin_isinf",
+    "__builtin_signbit", "__builtin_isunordered", "__builtin_inf",
+    "__builtin_inff", "__builtin_infl", "__builtin_huge_val",
+    "__builtin_huge_valf", "__builtin_huge_vall", "__builtin_abs", "abs",
+    "__sync_add_and_fetch_8", "__builtin_expect", "__builtin_prefetch",
+    "__builtin_alloca", "malloc", "__builtin_malloc", "calloc",
+    "__builtin_calloc", "free", "__builtin_free", "__builtin_ffs",
+    "__builtin_mul_overflow", "__builtin_add_overflow",
+}
+
+
+def modeled_external(name):
+    if not name:
+        return False
+    return name in MODELED_EXTERNALS or any(
+        marker in name for marker in ("ctz", "clz", "clrsb", "popcount", "parity", "ffs")
+    )
+
+
 def static_walls(env):
     """Return the conservative wall set visible in one envelope."""
     nodes = list(walk(env.get("translation_unit", {})))
@@ -161,8 +202,7 @@ def static_walls(env):
             walls.add("string-literal")
         elif kind == "CallExpr":
             name = callee_name(n.get("callee"))
-            if name not in ("abort", "exit", "__builtin_abort", "__builtin_exit") \
-                    and name not in definitions:
+            if name not in definitions and not modeled_external(name):
                 # Keep the generic fallback for an unresolved callee, but
                 # preserve Clang's resolved external name when available so
                 # the sole ranking prices one clause-sized library case at a
@@ -419,6 +459,14 @@ def selftest():
     ]}}
     if "libc-call: __builtin_abort" in static_walls(builtin_env):
         print("c_survey --self-test: handled builtin abort ranked as a wall", file=sys.stderr)
+        return 1
+    modeled_env = {"translation_unit": {"decls": [
+        {"kind": "FunctionDecl", "name": "main", "body": {
+            "kind": "CompoundStmt", "body": [{"kind": "CallExpr",
+                "callee": {"kind": "DeclRefExpr", "name": "__builtin_mul_overflow"}}]}}
+    ]}}
+    if any(w.startswith("libc-call: __builtin_mul_overflow") for w in static_walls(modeled_env)):
+        print("c_survey --self-test: modeled overflow builtin ranked as a wall", file=sys.stderr)
         return 1
     page = render({"counts": {"passed": 1}, "total": 1, "manifest_hash": "x",
                    "wall_ranking": [{"wall": "assignment-call", "sole": 1,

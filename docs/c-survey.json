@@ -1384,8 +1384,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-23T23:05:08Z",
- "measured_commit": "b752d989d",
+ "measured_at_utc": "2026-11-23T23:08:58Z",
+ "measured_commit": "cd6ae3b6b",
  "pin": "C1-C3",
  "rows": [
   {
@@ -1648,7 +1648,6 @@
    "name": "00025.c",
    "sha256": "9096fd094a7596a53ed720f728053226642c64e06babad4b49cf588b4f80ab96",
    "static_walls": [
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -1808,9 +1807,7 @@
    "manifest_status": "parsed",
    "name": "00040.c",
    "sha256": "cfa5225b5d1ffd079082937dfe73c3178eb75f7ac60fec50c43d9a159ac4d509",
-   "static_walls": [
-    "libc-call: calloc"
-   ],
+   "static_walls": [],
    "verdict": "runner-error"
   },
   {
@@ -1993,7 +1990,6 @@
    "name": "00056.c",
    "sha256": "00c4a038a3b12b353e5115c122b136eb175a7dc1dba5d36bec5ad6878c16f4ae",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -2743,7 +2739,6 @@
    "name": "00125.c",
    "sha256": "b3d7c7a17e8c9d4e0c15a435f32e0fe288bd154f1b250bcb323ac227a59245f0",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -2811,7 +2806,6 @@
    "name": "00131.c",
    "sha256": "213dcb02fe9c196840dd91ea3eb2c81ca13d8b3a216414cde713dfd02eb879be",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -2825,7 +2819,6 @@
    "name": "00132.c",
    "sha256": "6baff8442e410d6bd98e6dc4f1ff0b61db0fab15ef2ec7ae51b6ab777b32bfb9",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3075,7 +3068,6 @@
    "name": "00154.c",
    "sha256": "bf05a27879ccb6e512501c95c368e2f3f2b4bcb96aeccfe3f6a57847385e6369",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3099,7 +3091,6 @@
    "name": "00156.c",
    "sha256": "54ab4ae99d7d1f7afa2bdacf9296012a7776cc000ad6e4877f29ef32075a820d",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3113,7 +3104,6 @@
    "name": "00157.c",
    "sha256": "998a4efb891cc3fd13762abae41f1de8ce293081608c0638c2960274ae74c0fa",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3127,7 +3117,6 @@
    "name": "00158.c",
    "sha256": "abf44e80a4a0cad8d2214cc1cdb8fe1a550755ddde8c729bd667ac2f24cdc5b2",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3142,7 +3131,6 @@
    "sha256": "3a2cde505ed84255947fa24a6df17bc03636f7af215505eebc92ca6a7c4212c4",
    "static_walls": [
     "libc-call",
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3156,7 +3144,6 @@
    "name": "00160.c",
    "sha256": "12c491bee3cbe26de274402a5813a664be5d32f5ad82147d0d9eb71cc609f447",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3170,7 +3157,6 @@
    "name": "00161.c",
    "sha256": "f330014c7302b5d7e30b7ba902dc8130dde283d77d94e4a5df5dffb0901fd73d",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3194,7 +3180,6 @@
    "name": "00163.c",
    "sha256": "f56173b08aa78d2ce2c8753f9ca89542ced73a831a5fb3343cf23280b3f6a3f5",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3208,7 +3193,6 @@
    "name": "00164.c",
    "sha256": "1a7a3d700f1509890f6175aaad92ff4c923ab401a0f2619ef3727ced7d8497dd",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3222,7 +3206,6 @@
    "name": "00165.c",
    "sha256": "9118968eeccc74e136784555281ffe5eea6f6c615a10c88d4e0428a871afe507",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3236,7 +3219,6 @@
    "name": "00166.c",
    "sha256": "82a17c717f3d85d66c4b7b5f73dff4a4544a8303431345fece4dd86f24011305",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3250,7 +3232,6 @@
    "name": "00167.c",
    "sha256": "4e8838ecb463243d245df0db6c8851081be8ffc50858a04cbbe4e1852a90ba4c",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3264,7 +3245,6 @@
    "name": "00168.c",
    "sha256": "f222fef343f1d0f86da59e1da77bd7b93b3dcde04cc4d1d73195cf0df65ad4f2",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3278,7 +3258,6 @@
    "name": "00169.c",
    "sha256": "69cfb00323c7ab414844a6e6dd5c4262e5175a8d4b73d1ac2dbdb9385b93b90d",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3292,7 +3271,6 @@
    "name": "00170.c",
    "sha256": "85e0fb40f9e57b9410b3c6c7c57dfa90f834e8c029ce6b130f021fbcbfc411c3",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3306,7 +3284,6 @@
    "name": "00171.c",
    "sha256": "d3e31f6c40eb64eabcabf795cb470332fd085dc31eddef77c83586e3d4e46201",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3320,7 +3297,6 @@
    "name": "00172.c",
    "sha256": "5cdbe48598d505f93a3b16a164bb4f5350c52019642bf08688517f696998d49e",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3334,7 +3310,6 @@
    "name": "00173.c",
    "sha256": "e762670518c9ae8a9e4cc594e51b1fe0d5a6b90b0036d2ab91ace347d5bfa446",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3350,7 +3325,6 @@
    "static_walls": [
     "cast:FloatingCast",
     "cast:IntegralToFloating",
-    "libc-call: printf",
     "libc-call: sin",
     "string-literal",
     "type-layout"
@@ -3368,7 +3342,6 @@
     "cast:FloatingCast",
     "cast:FloatingToIntegral",
     "cast:IntegralToFloating",
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3382,7 +3355,6 @@
    "name": "00176.c",
    "sha256": "ab95d157702eda14220fdd3faeca45ea7beb6628b5f9e8717076771a67125281",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3396,7 +3368,6 @@
    "name": "00177.c",
    "sha256": "f474a1ac98c29fdf810538b5593c91496f8aeb45c17af641c3feeb7cd3634b61",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3410,7 +3381,6 @@
    "name": "00178.c",
    "sha256": "07fa819c5235994beee3d5da11aed588484948371cb353677b13bdd7897d19ee",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3424,18 +3394,6 @@
    "name": "00179.c",
    "sha256": "9d2a00c8420a356625a16e53a81d51ae5b00380039c8224e266d9a154509ee89",
    "static_walls": [
-    "libc-call: memcmp",
-    "libc-call: memcpy",
-    "libc-call: memset",
-    "libc-call: printf",
-    "libc-call: strcat",
-    "libc-call: strchr",
-    "libc-call: strcmp",
-    "libc-call: strcpy",
-    "libc-call: strlen",
-    "libc-call: strncmp",
-    "libc-call: strncpy",
-    "libc-call: strrchr",
     "string-literal",
     "type-layout"
    ],
@@ -3449,8 +3407,6 @@
    "name": "00180.c",
    "sha256": "88c60602178ed9f825bc74c372cab81b366d58d44d9af13a82831097d18c133b",
    "static_walls": [
-    "libc-call: printf",
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -3464,7 +3420,6 @@
    "name": "00181.c",
    "sha256": "3ac82fb82f9af999590e8c0d15094126d4f7ec132d7f2c7c1e714278496c28e7",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3478,7 +3433,6 @@
    "name": "00182.c",
    "sha256": "978fb36c70bcd39965a2f0a7be31495847662a496fc945024825d9e3b3c9f0de",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3492,7 +3446,6 @@
    "name": "00183.c",
    "sha256": "03d7d13d543951d43a945546cfdbee4589a96fca840c76780e71bfb3e2d60c0d",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3506,7 +3459,6 @@
    "name": "00184.c",
    "sha256": "706f51eee7da050fdb28acacb269f3b0a20aa78d6270b4bf365d18e5d10d8b98",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3520,7 +3472,6 @@
    "name": "00185.c",
    "sha256": "e5fe44c73d1daafdcae71aca64a3e420df631063d9e1863338f8441eadfd7664",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3534,8 +3485,6 @@
    "name": "00186.c",
    "sha256": "313641d23d56c9837e9b93096521374a6de5a2a9a08053090527808fdd5fb130",
    "static_walls": [
-    "libc-call: printf",
-    "libc-call: sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -3556,7 +3505,6 @@
     "libc-call: fread",
     "libc-call: fwrite",
     "libc-call: getc",
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3570,7 +3518,6 @@
    "name": "00188.c",
    "sha256": "1277cb2b5213a471d003fa2d04452501de72034914bcf081b2178acd0b92b7a7",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3586,7 +3533,6 @@
    "static_walls": [
     "libc-call",
     "libc-call: fprintfptr",
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3600,7 +3546,6 @@
    "name": "00190.c",
    "sha256": "81c9704a64902514cdbc4a93862c1a0d263b70a977bd2065e2a155e04426462f",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3614,7 +3559,6 @@
    "name": "00191.c",
    "sha256": "833b3339452c7a7300fdaebd68f4ea08d0d58aae7ab2667ef273d2fdb02ef1b3",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3628,7 +3572,6 @@
    "name": "00192.c",
    "sha256": "88e1581109fa61483e3da940ee731df2da124d50a99fd5abcdc4057c9d3dde08",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3642,7 +3585,6 @@
    "name": "00193.c",
    "sha256": "b5ee395e0fbddc3e95750fd6a7e9ee240ef46334dc7f03f693a4e41b5242a56d",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3656,7 +3598,6 @@
    "name": "00194.c",
    "sha256": "164f79be0581a1b748b21cf5f6bb6a827af39d3276c0ec075a2c4250e342f467",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3670,7 +3611,6 @@
    "name": "00195.c",
    "sha256": "7ce62ef70e5360efcad044f5342f90d16bd1b7f8b2b17e4ee27106c1f0904c9b",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3684,7 +3624,6 @@
    "name": "00196.c",
    "sha256": "36fa4c77a0cbb5055d92def9affaba99d90611eefd135628fff16577a381bda2",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3698,7 +3637,6 @@
    "name": "00197.c",
    "sha256": "681552c8a2b0f917a3fc10ea0ac32fe7808b0e03a93ba9ef4ca6c547ce9c5e0f",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3712,7 +3650,6 @@
    "name": "00198.c",
    "sha256": "d63ae893ae0fc3214d7afeaaccb22b668395f98bcbcb613f9e55f13405d13d2c",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3726,7 +3663,6 @@
    "name": "00199.c",
    "sha256": "f6bd6978742eccc62d87eab0458c2c47dfcc4cc5e7b411017d65961fc64c4185",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3740,7 +3676,6 @@
    "name": "00200.c",
    "sha256": "481edb6fc66664e6f39582d71e5994dc057219e351c9fb3f8777e357df250e6e",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3754,7 +3689,6 @@
    "name": "00201.c",
    "sha256": "935e90c432c89b4503281e9755ae71a3c272c529ab05be9ba335a83b239bf84f",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3768,7 +3702,6 @@
    "name": "00202.c",
    "sha256": "fd59bba67fcf1338a92826076779863807cdd16561655fb0747716b507ec2812",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3782,7 +3715,6 @@
    "name": "00203.c",
    "sha256": "67e9ea6d27a1879495dba564b3a452ccf8a2eb74fc55b95a8444abc4f4bfc862",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3797,9 +3729,6 @@
    "sha256": "cfa12d12c391f845fbc18176b14ae8f169cd680e1971902b10a4ac6f556530ea",
    "static_walls": [
     "cast:FloatingCast",
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: printf",
-    "libc-call: putchar",
     "string-literal",
     "type-layout",
     "unsupported:ExprWithCleanups"
@@ -3814,7 +3743,6 @@
    "name": "00205.c",
    "sha256": "aeee57466f8c7361ba59eb4a0146c5e07bab844ed5dacc605611f9bbe32a0903",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3828,7 +3756,6 @@
    "name": "00206.c",
    "sha256": "ffe817a4f1b8e449cc44a792c9bc56d7444b1a43ae458a172771b052dd504f7f",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3842,7 +3769,6 @@
    "name": "00207.c",
    "sha256": "261a273f53ae59fdfe39d2aca7eb69bb12bff03869d8d0a391cf7fcb19bf6523",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3856,7 +3782,6 @@
    "name": "00208.c",
    "sha256": "976ea0c08aac9af89c979c9db72c1792100f4e9f8ea2b70324b87db0c21f99e5",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3890,7 +3815,6 @@
    "name": "00211.c",
    "sha256": "4a9e8c5692db416b17cc78d755f16d3eae8c177a06584fc4aa8bd5a17127c39f",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3904,7 +3828,6 @@
    "name": "00212.c",
    "sha256": "13317e3f7e71347dee512fb89cf51b245c6155cca0563447941297afba1fc163",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3918,7 +3841,6 @@
    "name": "00213.c",
    "sha256": "5ed538b99fd0718984ef80e4cad7f442f51128688f531ae3b2d6f5e5a3ab28a5",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout",
     "unsupported:StmtExpr"
@@ -3934,8 +3856,6 @@
    "sha256": "5164bc3a4482815ba765ec253765a69bf59bc074e4313fdf607e4554daf798bb",
    "static_walls": [
     "cast:IntegralToPointer",
-    "libc-call: __builtin_expect",
-    "libc-call: printf",
     "string-literal",
     "type-layout",
     "unsupported:StmtExpr"
@@ -3950,7 +3870,6 @@
    "name": "00215.c",
    "sha256": "e4a5fb421df978c45734fcda23c74233a72bcecc9df977e6556f55d9a2f4583c",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3966,7 +3885,6 @@
    "static_walls": [
     "libc-call",
     "libc-call: p",
-    "libc-call: printf",
     "string-literal",
     "type-layout",
     "unsupported:IndirectFieldDecl"
@@ -3981,7 +3899,6 @@
    "name": "00217.c",
    "sha256": "a4095fd4b3b5e44aebc438f1375d161831d6f7e60140f61dc39e40ff975848fc",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -3995,7 +3912,6 @@
    "name": "00218.c",
    "sha256": "92fd92f656c2aa1677d705f2bc7acf3187dda642d7b21651ed0a84428abde331",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -4010,7 +3926,6 @@
    "sha256": "10a4f4d8ae4e76190fd5a66a22f41cf5d509ca4d824e7d052a55396c57a04537",
    "static_walls": [
     "libc-call",
-    "libc-call: printf",
     "string-literal",
     "type-layout",
     "unsupported:GenericSelectionExpr"
@@ -4025,7 +3940,6 @@
    "name": "00220.c",
    "sha256": "4e28e57decd754a60869fa2f49b87e3f77961e02f3211b272a37ed51e400f2d3",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -4311,7 +4225,6 @@
    "name": "20000519-1.c",
    "sha256": "52e57c1675511bacccab6a6a6af556a225ccf0d0094ebe36d76d0a5ce202c6ea",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
     "type-layout"
    ],
    "verdict": "passed"
@@ -4418,7 +4331,6 @@
    "name": "20000703-1.c",
    "sha256": "6e03635f6ee494d6150be8b259217d6ce090c847621f883aa79dc55fc796f41c",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
     "string-literal",
     "type-layout",
     "unsupported:StmtExpr"
@@ -4734,7 +4646,6 @@
    "name": "20000910-2.c",
    "sha256": "630dda2d782bd72273a5ba7df4a52c6c5a20344d88f270467652ba6eafaf738c",
    "static_walls": [
-    "libc-call: strchr",
     "string-literal",
     "type-layout"
    ],
@@ -4791,7 +4702,6 @@
    "name": "20001011-1.c",
    "sha256": "dc0bda8fcf21a79682e85cb0d53080c79e08e12dbcf9230ecd5567c85d77fce6",
    "static_walls": [
-    "libc-call: strcmp",
     "string-literal",
     "type-layout",
     "unsupported:PredefinedExpr"
@@ -4981,7 +4891,6 @@
    "name": "20001203-2.c",
    "sha256": "7cadd06740113c17aa0f79396a0b832269f3ba374b55c64b5af654750b9efd78",
    "static_walls": [
-    "libc-call: memset",
     "type-layout",
     "unsupported:StmtExpr"
    ],
@@ -5218,7 +5127,6 @@
    "name": "20010409-1.c",
    "sha256": "69ea3edd9718045635f1aaf4f5d81da4e617a06ff7e2bbc27ba909a1231add8d",
    "static_walls": [
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -5373,7 +5281,6 @@
    "name": "20010915-1.c",
    "sha256": "079287a9978b9ab65d73a966feb4a5b2962386f23619512e92c469b094e380bc",
    "static_walls": [
-    "libc-call: __builtin_strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -5400,7 +5307,6 @@
    "name": "20010925-1.c",
    "sha256": "01d55f1071c3e708492d5d9f6fddd4f479be4005528aebfa180cd0b1465f25f1",
    "static_walls": [
-    "libc-call: memcpy",
     "type-layout"
    ],
    "verdict": "passed"
@@ -5437,9 +5343,6 @@
    "name": "20011024-1.c",
    "sha256": "318630ae7d1dd6ab618fb7ff8ebfc135c6154cc1e7479fa430e7c8196a6291e7",
    "static_walls": [
-    "libc-call: memcpy",
-    "libc-call: strcmp",
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -5476,7 +5379,6 @@
    "name": "20011113-1.c",
    "sha256": "dc6368537064e8504888743d81c0f9e1ae1007420b398cda8d0e3c3cbea23bcd",
    "static_walls": [
-    "libc-call: memcpy",
     "type-layout"
    ],
    "verdict": "passed"
@@ -5513,7 +5415,6 @@
    "sha256": "2216e36dd34685972bc71aa1218499a28434b729114eac78a0a17f02fa527c64",
    "static_walls": [
     "cast:PointerToIntegral",
-    "libc-call: __builtin_memcpy",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -5884,9 +5785,6 @@
    "name": "20020406-1.c",
    "sha256": "34df7369b73cbc4f119553b58f5fa4fe373fa108f9c3d790a62e997f6a9b8816",
    "static_walls": [
-    "libc-call: __builtin_printf",
-    "libc-call: calloc",
-    "libc-call: malloc",
     "string-literal",
     "type-layout",
     "unsequenced-effects"
@@ -5934,7 +5832,6 @@
    "name": "20020418-1.c",
    "sha256": "89bb69824e93c2c64631ee83dc0ff752059f2d395a2938381f40595a651e215a",
    "static_walls": [
-    "libc-call: __builtin_expect",
     "libc-call: __builtin_trap",
     "type-layout"
    ],
@@ -6064,7 +5961,6 @@
    "name": "20020619-1.c",
    "sha256": "27fa68e11e5480bf75020118a6e17974d515fe225e0a46d4f6124465a6ddf174",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -6087,7 +5983,6 @@
    "name": "20020720-1.c",
    "sha256": "fa967332a209a596d6a8ef38a38d9ac2348073fb0087d597294abeb9010b9584",
    "static_walls": [
-    "libc-call: fabs",
     "type-layout"
    ],
    "verdict": "passed"
@@ -6197,8 +6092,6 @@
    "name": "20021011-1.c",
    "sha256": "cc2e4b4355551ef32eeca6b9fa46e4351f475f3c686f5287974a3f38fb427301",
    "static_walls": [
-    "libc-call: __builtin_strcmp",
-    "libc-call: __builtin_strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -6245,9 +6138,7 @@
    "manifest_status": "parsed",
    "name": "20021113-1.c",
    "sha256": "32dd9b3148cb09953d724b4180308c24ae13375f5a62100554a63ff497280bd8",
-   "static_walls": [
-    "libc-call: __builtin_alloca"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -6325,7 +6216,6 @@
    "name": "20021120-3.c",
    "sha256": "015a0910b2a6c7f94aad21ca1d54984e7760c78077dd53a38b876338d51fc086",
    "static_walls": [
-    "libc-call: __builtin_sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -6497,7 +6387,6 @@
    "name": "20030221-1.c",
    "sha256": "8ef3dfbb4073e72612ff4c6bc619338cbba186897f074e71ab3d669582a62d99",
    "static_walls": [
-    "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
    ],
@@ -6621,7 +6510,6 @@
    "name": "20030408-1.c",
    "sha256": "b730830bfaf0b0c5b6143bbf01fc554c7a6730872c605ea9e007b8d32427454d",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
     "type-layout"
    ],
    "verdict": "passed"
@@ -6644,7 +6532,6 @@
    "name": "20030606-1.c",
    "sha256": "341fec31cd56cc2cd043df3a94a0706e096fb9c6a189162ed4c324b2fd6c0124",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -6669,7 +6556,6 @@
    "name": "20030626-1.c",
    "sha256": "54d8cd932e3da3af64d53090514a9f615a0ea3eef956a98902a218a6ec5daf1f",
    "static_walls": [
-    "libc-call: sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -6683,7 +6569,6 @@
    "name": "20030626-2.c",
    "sha256": "a4a054bc1961d7e5e280cf838c02dc5084d5161e8a8a65da92457f753c358778",
    "static_walls": [
-    "libc-call: sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -6707,7 +6592,6 @@
    "name": "20030715-1.c",
    "sha256": "5237fc956973f647d62fdb0c09d77800107ac8ac95576a60aae21f519802610d",
    "static_walls": [
-    "libc-call: strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -6721,7 +6605,6 @@
    "name": "20030717-1.c",
    "sha256": "c104496dfac2cde6fbbf2ace57788e9df5fa6ea2ca791652a8caa9585d043281",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -6927,8 +6810,6 @@
    "name": "20031012-1.c",
    "sha256": "2be4085a942c317ac4fadd7db401d65a75c1c251d294584c244e68a21c8106cd",
    "static_walls": [
-    "libc-call: __builtin_strlen",
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -6963,7 +6844,6 @@
    "name": "20031204-1.c",
    "sha256": "f312b548f8ad48c4650e1c9598de8c702c605cb349fb7a0e7a50e1a993bf2431",
    "static_walls": [
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -7218,7 +7098,6 @@
    "name": "20040411-1.c",
    "sha256": "33154d781272908eb8c8a87e8f9b98c4f61a102e0585ae584f2dcd5e84bad109",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -7414,9 +7293,7 @@
    "manifest_status": "parsed",
    "name": "20040823-1.c",
    "sha256": "cce264d81c911a8eb4a391842234064d0ced758186d59bdbe081bc9d6cdc0ccc",
-   "static_walls": [
-    "libc-call: memset"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -7486,7 +7363,6 @@
    "sha256": "d40b2c94b2f3748b538b251eeffc3b1d944680e75e42eba841aea43d2cadfaf1",
    "static_walls": [
     "cast:FloatingToIntegral",
-    "libc-call: __builtin_c23_va_start",
     "type-layout"
    ],
    "verdict": "passed"
@@ -7519,7 +7395,6 @@
    "name": "20041126-1.c",
    "sha256": "63104591021a08ff1eba2b7b56e2b5890606a19a4dce8add5e3a365df73222ba",
    "static_walls": [
-    "libc-call: abs",
     "type-layout"
    ],
    "verdict": "passed"
@@ -7574,10 +7449,6 @@
    "name": "20041214-1.c",
    "sha256": "e6436d9cb5a6b0fffed64c76e64e45fd3cfec5ba9d034c6ab6f297423cb8b90b",
    "static_walls": [
-    "libc-call: __builtin_va_end",
-    "libc-call: __builtin_va_start",
-    "libc-call: strcmp",
-    "libc-call: strcpy",
     "string-literal",
     "type-layout",
     "unsupported:AddrLabelExpr",
@@ -7593,7 +7464,6 @@
    "name": "20041218-1.c",
    "sha256": "b5d1601f6799841f2bae31fac4e6e3f754cae2c1d23a4342665fd42f6668ffee",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "string-literal",
     "type-layout"
    ],
@@ -7753,8 +7623,6 @@
    "name": "20050218-1.c",
    "sha256": "58cee76083f39fa4acffe227c321e93f5fed969a9bbd5acafdc1676d461c13af",
    "static_walls": [
-    "libc-call: strlen",
-    "libc-call: strncmp",
     "string-literal",
     "type-layout"
    ],
@@ -7818,7 +7686,6 @@
    "name": "20050502-1.c",
    "sha256": "c0193c330a5aa8d3c7d85780afc61fc5f439792ebc6d90a9f25b0a46c9665cf4",
    "static_walls": [
-    "libc-call: strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -7832,7 +7699,6 @@
    "name": "20050502-2.c",
    "sha256": "b16fc089d1975840561e3f3b7af8720741cfb5d0b3cb76e48255820c3e1a7f0f",
    "static_walls": [
-    "libc-call: memcmp",
     "string-literal",
     "type-layout"
    ],
@@ -7890,9 +7756,6 @@
    "name": "20050826-1.c",
    "sha256": "12d49e96da44d258cf40619706a5605b3638de8421ba1e4e55faf5487cacc23d",
    "static_walls": [
-    "libc-call: memcmp",
-    "libc-call: memcpy",
-    "libc-call: memset",
     "string-literal",
     "type-layout"
    ],
@@ -7987,8 +7850,6 @@
    "name": "20051113-1.c",
    "sha256": "70b9ac38f0e7d3612a075307054fb8b6efb73d49dc365dea8392fc6eeee8099a",
    "static_walls": [
-    "libc-call: malloc",
-    "libc-call: memset",
     "type-layout",
     "unsupported:PackedAttr"
    ],
@@ -8120,7 +7981,6 @@
    "name": "20060930-2.c",
    "sha256": "b6b8418cefcd8d23907067f377a5168d454375ae3f4618e9df8c9bfcb9349604",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
     "type-layout"
    ],
    "verdict": "passed"
@@ -8173,7 +8033,6 @@
    "name": "20070201-1.c",
    "sha256": "79a6ffa40ce563a6f0b2ffb9dc77ae4738fadda63e9171fde370feb9e889b162",
    "static_walls": [
-    "libc-call: sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -8274,7 +8133,6 @@
    "name": "20070824-1.c",
    "sha256": "37762fbd1a61a1de6e9a4fe878f1a033a39e97cf6d5aa575258b8082cc73e631",
    "static_walls": [
-    "libc-call: __builtin_alloca",
     "type-layout"
    ],
    "verdict": "passed"
@@ -8307,7 +8165,6 @@
    "name": "20071018-1.c",
    "sha256": "933684cc6ff82204898950889f50a29fd41eedc455fa74a2cfd02e4b86aa5cbe",
    "static_walls": [
-    "libc-call: __builtin_malloc",
     "type-layout"
    ],
    "verdict": "passed"
@@ -8334,7 +8191,6 @@
    "static_walls": [
     "cast:FloatingToIntegral",
     "cast:IntegralToFloating",
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -8347,7 +8203,6 @@
    "name": "20071108-1.c",
    "sha256": "82eccbd5c130ddf9a7b881b9c621ab7206010f03e7eeba5a0514711b6e3a687f",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -8360,7 +8215,6 @@
    "name": "20071120-1.c",
    "sha256": "2a7087931d9add1d20c6b5247ab16d5917b09f557bff70413c7e69f58b275121",
    "static_walls": [
-    "libc-call: __builtin_malloc",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -8422,8 +8276,6 @@
    "name": "20071213-1.c",
    "sha256": "9b95dc93a8a8244f9f0fb97cb71013b229e361c542e51e1783bc4610f39c462b",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -8446,7 +8298,6 @@
    "name": "20071219-1.c",
    "sha256": "812db2e2f763b4790dab920ea5f0750e8061de9d80132c34c414cc73c7e86e62",
    "static_walls": [
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -8536,7 +8387,6 @@
    "sha256": "62937a986b39ec2488385c15c0c5aa46a97f396f8390fcb18f39fd9722255012",
    "static_walls": [
     "cast:FloatingCast",
-    "libc-call: __builtin_signbit",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -8638,8 +8488,6 @@
    "name": "20081103-1.c",
    "sha256": "f01355e1a5829fb1eac721c0f5bd45ba730faeb49cf444e5369ed660fef94f52",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
-    "libc-call: __builtin_memcpy",
     "type-layout"
    ],
    "verdict": "passed"
@@ -8674,7 +8522,6 @@
    "name": "20081218-1.c",
    "sha256": "f8a063c3a29bbea7c8f108c12c7eece2f2e4bfa5fa11640ae94f1e68351146a0",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -8933,8 +8780,6 @@
    "name": "20111212-1.c",
    "sha256": "2fe0e8876945d6cb65271a41da92289bb89fc4fa8b9d76d9483d924f4003eb79",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_memset",
     "type-layout",
     "unsupported:PackedAttr"
    ],
@@ -8958,8 +8803,6 @@
    "name": "20120105-1.c",
    "sha256": "e3071a89402ef81e3195825973cbb558d876e54f9eb0649389d702a7a240a50f",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_memset",
     "type-layout",
     "unsupported:PackedAttr"
    ],
@@ -8983,7 +8826,6 @@
    "name": "20120207-1.c",
    "sha256": "54547af0299635162ae5fbd31c63f73a2cf8bf3841ed501a5b465e999883cb22",
    "static_walls": [
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -9062,7 +8904,6 @@
    "name": "20121108-1.c",
    "sha256": "5f5958f038cc3cdd6f07d711409b5f540eaeb840bdf46497aaaf9707b2726066",
    "static_walls": [
-    "libc-call: __builtin_printf",
     "string-literal",
     "type-layout"
    ],
@@ -9153,7 +8994,6 @@
    "name": "20141022-1.c",
    "sha256": "65a76afcf9f6c93fd00f2811952eed12fe4e79a2e7efad7aa3529c0f3a2acb13",
    "static_walls": [
-    "libc-call: __builtin_printf",
     "string-literal",
     "type-layout"
    ],
@@ -9166,9 +9006,7 @@
    "manifest_status": "parsed",
    "name": "20141107-1.c",
    "sha256": "dd5f737716fbcc0aa3b23a2b3c00bc94de39cb17b03582a4e9f016c3a19e1f0d",
-   "static_walls": [
-    "libc-call: __builtin_memcpy"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -9656,10 +9494,6 @@
    "name": "920501-8.c",
    "sha256": "cb8282773b7c14ebe4c0d9bc436fc102145e62f43f2358affa849f01cd6ac1e6",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_strcmp",
-    "libc-call: __builtin_va_end",
-    "libc-call: sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -9758,8 +9592,6 @@
    "name": "920625-1.c",
    "sha256": "f52358d28729f1c4c4036e663871f090b9992c52d2669742b3aabf61c8728d4f",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -9836,11 +9668,6 @@
    "name": "920726-1.c",
    "sha256": "af90ff5eeb8799ed0e0d255bd276fbcac8bf6d890785a7fe998b82758e59d393",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_strcmp",
-    "libc-call: __builtin_strlen",
-    "libc-call: __builtin_va_end",
-    "libc-call: sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -9884,9 +9711,6 @@
    "name": "920810-1.c",
    "sha256": "69a81f788008f52368bd0fcaf13f657300f12fdc28d4ea4d9f816175017f9c91",
    "static_walls": [
-    "libc-call: malloc",
-    "libc-call: memcpy",
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -9919,8 +9743,6 @@
    "name": "920908-1.c",
    "sha256": "6450fe8db76151fb2b3fea161d4a23c2729b1ba8132a35226c46d5d3c4c72bc8",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -9976,7 +9798,6 @@
    "name": "921006-1.c",
    "sha256": "21d2c53547fd5d18d2019b248118063b6a5b16112fbe5a258ff5e0dd42d5849f",
    "static_walls": [
-    "libc-call: __builtin_strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -9990,7 +9811,6 @@
    "name": "921007-1.c",
    "sha256": "a5d368d43255b295a41f89061557d5f9edf7125baab0f4805dd952c98048fb5b",
    "static_walls": [
-    "libc-call: __builtin_strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -10115,8 +9935,6 @@
    "name": "921117-1.c",
    "sha256": "0e2ba7511fba9c9146762719400a71a9feb7764ef706b852d54089ab9a3b8534",
    "static_walls": [
-    "libc-call: __builtin_strcmp",
-    "libc-call: __builtin_strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -10588,7 +10406,6 @@
    "name": "930725-1.c",
    "sha256": "2921be94d182e4af56d4452f63c551624e91c53e3bdf5ee8c9326f2e4217e012",
    "static_walls": [
-    "libc-call: __builtin_strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -10688,8 +10505,6 @@
    "name": "931004-10.c",
    "sha256": "e309602b58651c94a95591af48d56495187a0ecaef392cc9d6dbaf0c96c674df",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -10714,8 +10529,6 @@
    "name": "931004-12.c",
    "sha256": "2e8eb60038e1cebb1439745893fcd9c285639180177dcc2b9de0f818c6814099",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -10740,8 +10553,6 @@
    "name": "931004-14.c",
    "sha256": "690c04d80d7a571ca5e94777e2939f0e7c20004a7e328397b9f692b20e167673",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -10754,8 +10565,6 @@
    "name": "931004-2.c",
    "sha256": "f00e81760f99222bac9d543f2868031bbc5cd7fc5a539eaf674c66e2a3cfad95",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -10780,8 +10589,6 @@
    "name": "931004-4.c",
    "sha256": "bf6f0ae1dd87118dcfc921f5faff4ff122f041f9ec0ed04b8f7c2ff3496f8be3",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -10806,8 +10613,6 @@
    "name": "931004-6.c",
    "sha256": "7299d2123bddad05c27e6147221863db907004007218f97ac78d36caa57e3973",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -10832,8 +10637,6 @@
    "name": "931004-8.c",
    "sha256": "ee628a68257bb72e28c09060828905f40a21d55aba748cf7e7d45f05a2fc3bf9",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -11015,8 +10818,6 @@
    "sha256": "188d52462aac626921914c0541fd63a4fb1a40601a4b891635a9d15cda08c109",
    "static_walls": [
     "cast:PointerToIntegral",
-    "libc-call: malloc",
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -11522,7 +11323,6 @@
    "name": "960327-1.c",
    "sha256": "92408d01ffcc6f11882093609e60c2321660e10bddbcae75f5b63799fa552a59",
    "static_walls": [
-    "libc-call: sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -11611,9 +11411,7 @@
    "manifest_status": "parsed",
    "name": "960521-1.c",
    "sha256": "b1b10c823890d29e57f42f2519e6a466a98cb61f933973702312df3c5bdf9b31",
-   "static_walls": [
-    "libc-call: malloc"
-   ],
+   "static_walls": [],
    "verdict": "runner-error"
   },
   {
@@ -11833,8 +11631,6 @@
    "name": "980205.c",
    "sha256": "12b700b76e4f3efe5726e041f39d370f71140cea0a6da7e7a84581af34845ce3",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -12002,7 +11798,6 @@
    "static_walls": [
     "cast:FloatingToIntegral",
     "cast:IntegralToFloating",
-    "libc-call: sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -12016,8 +11811,6 @@
    "name": "980608-1.c",
    "sha256": "588cf65bb572c64a84b3dcd18c3c078973b97cb6365308c146077c6623dd7412",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "string-literal",
     "type-layout"
    ],
@@ -12075,8 +11868,6 @@
    "name": "980707-1.c",
    "sha256": "5521d0bf62e7210d9e0d74cc80322eb8ca1e7379fa643d747b70c956c5c5b9e5",
    "static_walls": [
-    "libc-call: strcmp",
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -12103,8 +11894,6 @@
    "name": "980716-1.c",
    "sha256": "d189e2baf735a74eac5e1e25df6337877b239b370e5307eebb93078a74c20576",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "string-literal",
     "type-layout"
    ],
@@ -12328,7 +12117,6 @@
    "name": "990513-1.c",
    "sha256": "efc5173b45881fa5320d70c2b39564e0f17e1f1423de6f7e5a945bc5ec690fd6",
    "static_walls": [
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -12410,8 +12198,6 @@
    "name": "990628-1.c",
    "sha256": "39709895c4fbd3bd9e052230d4599f77ea07a826b7d62cca169c57d215aabf4e",
    "static_walls": [
-    "libc-call: __builtin_memset",
-    "libc-call: malloc",
     "type-layout"
    ],
    "verdict": "passed"
@@ -12446,7 +12232,6 @@
    "name": "990826-0.c",
    "sha256": "7e70b4b33d21827679805af7083a70624d91a6a4be7b59bf43ccd7644f162166",
    "static_walls": [
-    "libc-call: floor",
     "type-layout"
    ],
    "verdict": "passed"
@@ -12624,8 +12409,6 @@
    "name": "991216-2.c",
    "sha256": "6da27e5d003c8d1270f7a3daad574d2e138e218ab4b071c533e89f050b4a16ea",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -12796,7 +12579,6 @@
    "sha256": "2af69a1caaac8c57db3ae9e61d97a7237d6830ab8972c2fb9cd9ae3da60ad9f1",
    "static_walls": [
     "cast:PointerToIntegral",
-    "libc-call: __builtin_alloca",
     "unsupported:AlignedAttr"
    ],
    "verdict": "refused-unsupported"
@@ -13094,7 +12876,6 @@
    "name": "bswap-1.c",
    "sha256": "7224f5f087655d63cfe475c3925f57051fdfa5c5a7abfe3f1ce31d41f438c67c",
    "static_walls": [
-    "libc-call: __builtin_bswap64",
     "type-layout",
     "unsequenced-effects"
    ],
@@ -13120,7 +12901,6 @@
    "name": "bswap-3.c",
    "sha256": "a8081a9c0c78d3eb9ae83b8889764cb05de5162c31be3d1b258070a4223475ec",
    "static_walls": [
-    "libc-call: __builtin_bswap32",
     "unsequenced-effects"
    ],
    "verdict": "passed"
@@ -13133,11 +12913,8 @@
    "name": "built-in-setjmp.c",
    "sha256": "d2487c4a7733f29b51ab3db27fd7918589b4da586360772c994b53f88497497e",
    "static_walls": [
-    "libc-call: __builtin_alloca",
     "libc-call: __builtin_longjmp",
     "libc-call: __builtin_setjmp",
-    "libc-call: strcmp",
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -13151,24 +12928,6 @@
    "name": "builtin-bitops-1.c",
    "sha256": "d58024d311022fa610f9c447b80677f1cbeb4461fd70ca9f03ebb65a972f4279",
    "static_walls": [
-    "libc-call: __builtin_clrsb",
-    "libc-call: __builtin_clrsbl",
-    "libc-call: __builtin_clrsbll",
-    "libc-call: __builtin_clz",
-    "libc-call: __builtin_clzl",
-    "libc-call: __builtin_clzll",
-    "libc-call: __builtin_ctz",
-    "libc-call: __builtin_ctzl",
-    "libc-call: __builtin_ctzll",
-    "libc-call: __builtin_ffs",
-    "libc-call: __builtin_ffsl",
-    "libc-call: __builtin_ffsll",
-    "libc-call: __builtin_parity",
-    "libc-call: __builtin_parityl",
-    "libc-call: __builtin_parityll",
-    "libc-call: __builtin_popcount",
-    "libc-call: __builtin_popcountl",
-    "libc-call: __builtin_popcountll",
     "type-layout",
     "unsequenced-effects"
    ],
@@ -13196,7 +12955,6 @@
    "name": "builtin-prefetch-1.c",
    "sha256": "f5a50f44cb76761dbfc1c7b112b044ab2eb449ee71f97d622534b9220426c9f0",
    "static_walls": [
-    "libc-call: __builtin_prefetch",
     "type-layout"
    ],
    "verdict": "passed"
@@ -13209,7 +12967,6 @@
    "name": "builtin-prefetch-2.c",
    "sha256": "f0297aea28dc0548f7da366678740dec5faeedc3dd2b0197c79a8653212d56c4",
    "static_walls": [
-    "libc-call: __builtin_prefetch",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -13222,7 +12979,6 @@
    "name": "builtin-prefetch-3.c",
    "sha256": "8697eb4614fac2f01ef1bd600c7898eaa47a1e44748f36b3aac6c59b20239f40",
    "static_walls": [
-    "libc-call: __builtin_prefetch",
     "type-layout"
    ],
    "verdict": "passed"
@@ -13235,7 +12991,6 @@
    "name": "builtin-prefetch-4.c",
    "sha256": "8006b36cd1d1c0a4dea621c63774f59fadce07b338ab1d55b9dc4d77f54fe8ae",
    "static_walls": [
-    "libc-call: __builtin_prefetch",
     "type-layout"
    ],
    "verdict": "passed"
@@ -13248,7 +13003,6 @@
    "name": "builtin-prefetch-5.c",
    "sha256": "f7c357a38112c18c48b92d0265dc413497b071779b8e4702255cfcaeb7c0132c",
    "static_walls": [
-    "libc-call: __builtin_prefetch",
     "type-layout"
    ],
    "verdict": "passed"
@@ -13262,7 +13016,6 @@
    "sha256": "f2dceeb20e3502ea409668ace21144dfd392ed961a49eeb9646745b0b35d290a",
    "static_walls": [
     "cast:IntegralToPointer",
-    "libc-call: __builtin_prefetch",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -13324,7 +13077,6 @@
    "name": "builtins/abs-1.c",
    "sha256": "89d00f58bbe40e451a331c4022376dc199d2fc557e36e8e8535829af6fa8be3a",
    "static_walls": [
-    "libc-call: abs",
     "libc-call: labs"
    ],
    "verdict": "refused-unsupported"
@@ -13347,7 +13099,6 @@
    "name": "builtins/abs-2.c",
    "sha256": "cfacb41aae716e2c05c9953a41bc1f0a9a75f4841926c95152c7a7fd9c8bddef",
    "static_walls": [
-    "libc-call: abs",
     "libc-call: imaxabs",
     "libc-call: labs",
     "libc-call: link_error",
@@ -13423,8 +13174,7 @@
    "name": "builtins/fputs-lib.c",
    "sha256": "e232cc9dcd885e1900329d2a17938bb028b5dd374dacba44548b9a2948d7d66e",
    "static_walls": [
-    "libc-call: fwrite",
-    "libc-call: strlen"
+    "libc-call: fwrite"
    ],
    "verdict": "refused-unsupported"
   },
@@ -13476,10 +13226,7 @@
    "name": "builtins/lib/chk.c",
    "sha256": "65d4222e187651efd39074eadeb195ea4c525b49ff0f4f21d11bebfee9d64da6",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
     "libc-call: __builtin_longjmp",
-    "libc-call: __builtin_va_end",
-    "libc-call: strlen",
     "libc-call: vsprintf",
     "type-layout",
     "unsequenced-effects"
@@ -13494,9 +13241,6 @@
    "name": "builtins/lib/fprintf.c",
    "sha256": "3a1bc523c54e2276486e5d1f56739d256908b1466f3cf3d74c3a49c40a60511c",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: vfprintf",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -13571,9 +13315,6 @@
    "name": "builtins/lib/printf.c",
    "sha256": "20a1960eb44ba2304118db9bc080fcdc300572eabc73645d2a415e6be9c9f76d",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: vprintf",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -13586,8 +13327,6 @@
    "name": "builtins/lib/sprintf.c",
    "sha256": "8acdc56ed1b544ddea645fe20788dcedbec1e7714216e5c34053051839219f48",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "libc-call: vsprintf",
     "type-layout"
    ],
@@ -13761,8 +13500,6 @@
    "name": "builtins/memchr.c",
    "sha256": "33be41a4da1cd6a8048eaef259f03bfc92a8ca08e1c0e7454e3579dc6dc1400d",
    "static_walls": [
-    "libc-call: __builtin_memchr",
-    "libc-call: memchr",
     "string-literal",
     "type-layout"
    ],
@@ -13787,8 +13524,6 @@
    "sha256": "5649950ca6b90a18f8dc6159eed34d5db77be4a3ab8abe25fa29b71c1fd5505e",
    "static_walls": [
     "libc-call: link_error",
-    "libc-call: memcmp",
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -13833,8 +13568,6 @@
    "sha256": "b60dfe8e2e6631fbd5acf4d1cb5cf29cf6d6212815a9773e992325ea6a3bee9d",
    "static_walls": [
     "libc-call: bcopy",
-    "libc-call: memcmp",
-    "libc-call: memmove",
     "string-literal",
     "type-layout"
    ],
@@ -13879,10 +13612,7 @@
    "sha256": "856ff4798b9b1b8c5081432f37bddd45c080e117e788782035cebe546d7c6aa1",
    "static_walls": [
     "libc-call: __builtin_bcopy",
-    "libc-call: __builtin_memmove",
     "libc-call: bcopy",
-    "libc-call: memcmp",
-    "libc-call: memmove",
     "string-literal",
     "type-layout"
    ],
@@ -13907,11 +13637,7 @@
    "sha256": "48c4b37d8025ea739be2b51a18762ac82a0856235faa4396a1cce67031c33373",
    "static_walls": [
     "libc-call: __builtin_bzero",
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_memset",
     "libc-call: bcopy",
-    "libc-call: memcmp",
-    "libc-call: memcpy",
     "string-literal",
     "type-layout"
    ],
@@ -13935,10 +13661,6 @@
    "name": "builtins/mempcpy-2.c",
    "sha256": "5790232ed8fa94435140e74cd7e00a7ba23a24222d9e1300135ae2a2d4c63967",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_mempcpy",
-    "libc-call: memcmp",
-    "libc-call: mempcpy",
     "string-literal",
     "type-layout"
    ],
@@ -13982,10 +13704,6 @@
    "name": "builtins/mempcpy.c",
    "sha256": "2e8799fa40b4b7f35d9dfe2282fe79a3a5f95ecdc0ffd3673f6fea0c09fbe349",
    "static_walls": [
-    "libc-call: __builtin_mempcpy",
-    "libc-call: memcmp",
-    "libc-call: memcpy",
-    "libc-call: mempcpy",
     "string-literal",
     "type-layout"
    ],
@@ -14029,7 +13747,6 @@
    "name": "builtins/memset.c",
    "sha256": "0b19240ed32874e700d46b818aad1914dd59939bb410b8f21f545115750dc2c4",
    "static_walls": [
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -14196,9 +13913,6 @@
    "name": "builtins/sprintf.c",
    "sha256": "7382da9df5daa3c1631827c2ee4d44aa71025d55c9153fa7f54fed61e7ba1034",
    "static_walls": [
-    "libc-call: memcmp",
-    "libc-call: memset",
-    "libc-call: sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -14282,11 +13996,6 @@
    "name": "builtins/strcat.c",
    "sha256": "f9f661147cd7834d07faa455f8a40fec21e0ef63bf31657ae148a92f43fa9527",
    "static_walls": [
-    "libc-call: __builtin_strcat",
-    "libc-call: memcmp",
-    "libc-call: memset",
-    "libc-call: strcat",
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -14313,7 +14022,6 @@
     "libc-call: __builtin_index",
     "libc-call: __builtin_strchr",
     "libc-call: index",
-    "libc-call: strchr",
     "string-literal",
     "type-layout"
    ],
@@ -14337,8 +14045,6 @@
    "name": "builtins/strcmp.c",
    "sha256": "c427dc42ed16be7222ea7b1ecb2ab8ab91817aee8ccb07544a6a5e060d7b7574",
    "static_walls": [
-    "libc-call: __builtin_strcmp",
-    "libc-call: strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -14362,7 +14068,6 @@
    "name": "builtins/strcpy-2.c",
    "sha256": "41a8a145cc1e3a3174892f35243b35599f064ab19be10b8c696b2334934b8923",
    "static_walls": [
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -14406,11 +14111,6 @@
    "name": "builtins/strcpy.c",
    "sha256": "a1d14a66f4382dbcbef023721b22721f2062ad86d5ad2eb386c20f31a40b393a",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_strcpy",
-    "libc-call: memcmp",
-    "libc-call: memcpy",
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -14435,7 +14135,6 @@
    "sha256": "cb88553de26233a048f309756e43fad2fec22ebd43d6b36d91ce3a5146dddecc",
    "static_walls": [
     "libc-call: __builtin_strcspn",
-    "libc-call: strcpy",
     "libc-call: strcspn",
     "string-literal",
     "type-layout"
@@ -14460,7 +14159,6 @@
    "name": "builtins/strlen-2.c",
    "sha256": "b24b31635973ddf1be562ae76133f1b0cce60f5a0d6e92359f7a7d5fb22ec50a",
    "static_walls": [
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -14484,7 +14182,6 @@
    "name": "builtins/strlen-3.c",
    "sha256": "4be16d6f3e21333d79960d22d1c76134c70c06fe6d7f74b06980f3bfb8c6840f",
    "static_walls": [
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -14508,8 +14205,6 @@
    "name": "builtins/strlen.c",
    "sha256": "2a0ee641cf4d4d267ff62c5a32b61157b26acb7e8720155dcd904b0279a2e639",
    "static_walls": [
-    "libc-call: __builtin_strlen",
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -14554,9 +14249,6 @@
    "sha256": "d548d368a31363b2abfa9b5d5725f682a85c389e7c6f2f9c8744259c9aedfddc",
    "static_walls": [
     "libc-call: __builtin_strncat",
-    "libc-call: memcmp",
-    "libc-call: memset",
-    "libc-call: strcpy",
     "libc-call: strncat",
     "string-literal",
     "type-layout"
@@ -14581,7 +14273,6 @@
    "name": "builtins/strncmp-2.c",
    "sha256": "69129e82e65f6116726d64e4c61c9d24814f7159ec148059e9b9037944d3f407",
    "static_walls": [
-    "libc-call: strncmp",
     "string-literal",
     "type-layout"
    ],
@@ -14605,8 +14296,6 @@
    "name": "builtins/strncmp.c",
    "sha256": "aac75a74e27607a404b06400f395d70cfdcd17edc313e2da7b8125caf3fe308b",
    "static_walls": [
-    "libc-call: __builtin_strncmp",
-    "libc-call: strncmp",
     "string-literal",
     "type-layout"
    ],
@@ -14650,10 +14339,6 @@
    "name": "builtins/strncpy.c",
    "sha256": "360af1d5fdfb61e1dd0c2f3cbaeb497ca8d5bb5e731f94c53fe9ff81de12ab94",
    "static_walls": [
-    "libc-call: __builtin_strncpy",
-    "libc-call: memcmp",
-    "libc-call: memset",
-    "libc-call: strncpy",
     "string-literal",
     "type-layout"
    ],
@@ -14678,8 +14363,6 @@
    "sha256": "a882a43cd8068337ca4bba827f687c1e10736f1b351daaee11e77112b7d3e989",
    "static_walls": [
     "cast:PointerToIntegral",
-    "libc-call: __builtin_printf",
-    "libc-call: strnlen",
     "string-literal",
     "type-layout"
    ],
@@ -14704,7 +14387,6 @@
    "sha256": "52efe3421374784ae4861db84f151c5416e7b8cc50b7e6bcf9285b8209d7aa35",
    "static_walls": [
     "libc-call: __builtin_strpbrk",
-    "libc-call: strcmp",
     "libc-call: strpbrk",
     "string-literal",
     "type-layout"
@@ -14729,9 +14411,7 @@
    "name": "builtins/strpcpy-2.c",
    "sha256": "8f97bec22241d13de2d6b45aec2dffdc51f52ed20ce220e3cc8e878d361ea106",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
     "libc-call: __builtin_stpcpy",
-    "libc-call: memcmp",
     "libc-call: stpcpy",
     "string-literal",
     "type-layout"
@@ -14757,7 +14437,6 @@
    "sha256": "798d58736510a2edda83354806387c6c87ab88058a79f1311bbbe2a7aa5c0335",
    "static_walls": [
     "libc-call: __builtin_stpcpy",
-    "libc-call: memcmp",
     "libc-call: stpcpy",
     "string-literal",
     "type-layout"
@@ -14785,7 +14464,6 @@
     "libc-call: __builtin_rindex",
     "libc-call: __builtin_strrchr",
     "libc-call: rindex",
-    "libc-call: strrchr",
     "string-literal",
     "type-layout"
    ],
@@ -14810,7 +14488,6 @@
    "sha256": "fee1f98f1c9c240df7df6f339eefaae6830af438a84bd3780bcce1b964cb86dd",
    "static_walls": [
     "libc-call: __builtin_strspn",
-    "libc-call: strcpy",
     "libc-call: strspn",
     "string-literal",
     "type-layout"
@@ -14824,11 +14501,7 @@
    "manifest_status": "parsed",
    "name": "builtins/strstr-asm-lib.c",
    "sha256": "4fa12598165e53eb6240a8b7b00fbecd94ab014e07e94966e1d0e8cd317e6984",
-   "static_walls": [
-    "libc-call: strchr",
-    "libc-call: strlen",
-    "libc-call: strncmp"
-   ],
+   "static_walls": [],
    "verdict": "refused-unsupported"
   },
   {
@@ -15399,9 +15072,7 @@
    "manifest_status": "parsed",
    "name": "ffs-1.c",
    "sha256": "2cd39f8954aa815c393bc284e03f0d0338be751bda8ce762bb3fbb52a1e17a11",
-   "static_walls": [
-    "libc-call: __builtin_ffs"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -15412,7 +15083,6 @@
    "name": "ffs-2.c",
    "sha256": "b3ae15c3c3639ce034a6574ff705032168309638f7eb8bde4e4db1e60c5c0d25",
    "static_walls": [
-    "libc-call: __builtin_ffs",
     "type-layout"
    ],
    "verdict": "passed"
@@ -15427,7 +15097,6 @@
    "static_walls": [
     "cast:FloatingCast",
     "cast:FloatingToIntegral",
-    "libc-call: floor",
     "type-layout"
    ],
    "verdict": "passed"
@@ -15453,7 +15122,6 @@
    "name": "fprintf-1.c",
    "sha256": "06ca4691a6d3d3a47c26ca643ca2b962f3ed8be57af27c1454846e0324b73bca",
    "static_walls": [
-    "libc-call: fprintf",
     "string-literal",
     "type-layout"
    ],
@@ -15477,9 +15145,6 @@
    "name": "fprintf-chk-1.c",
    "sha256": "1f8ad943caf97cf3e4cd44c9466a36a57279d219a5185203225b99ab5480e837",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: vfprintf",
     "string-literal",
     "type-layout"
    ],
@@ -15493,7 +15158,6 @@
    "name": "frame-address.c",
    "sha256": "5dbc8c3ac2cc9a3ed71b68f0af8af7e50821db30d44ac34c0fa97aea20412ffd",
    "static_walls": [
-    "libc-call: __builtin_alloca",
     "libc-call: __builtin_frame_address"
    ],
    "verdict": "refused-libc"
@@ -15571,7 +15235,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-bool-1.c",
    "sha256": "0824e326b4cd8037e7ca69c34315da81dd30ffd266dc4f0a02ac38d2eb1d8217",
    "static_walls": [
-    "libc-call: strcmp",
     "string-literal",
     "type-layout",
     "unsupported:GenericSelectionExpr"
@@ -15670,7 +15333,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
    "sha256": "d9dd88de8b98e54c7503bf6f0711f6292841b52fd0a011181273f3f670022b54",
    "static_walls": [
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -15898,7 +15560,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-float-2.c",
    "sha256": "7018e704d1742c50aa52643da141033f0000d751e3ee07349545db851b2e2d3a",
    "static_walls": [
-    "libc-call: __builtin_inff",
     "type-layout",
     "unsupported:GenericSelectionExpr"
    ],
@@ -15912,7 +15573,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-float-3.c",
    "sha256": "3a69ae019b8f68f08dbb340f40eea80a880e7377add063468cb47b91cc81f1bd",
    "static_walls": [
-    "libc-call: __builtin_inff",
     "type-layout",
     "unsupported:GenericSelectionExpr"
    ],
@@ -15926,8 +15586,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-float-4.c",
    "sha256": "12aabedf9fbd84b9370e91c289de10780ee1a836053382cb381e8e60883d6648",
    "static_walls": [
-    "libc-call: __builtin_isnan",
-    "libc-call: __builtin_nanf",
     "string-literal",
     "type-layout",
     "unsupported:GenericSelectionExpr"
@@ -15942,7 +15600,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-float-5.c",
    "sha256": "c225f025b3d1be6f438035a66eaecef7f9ce1c2fd998848c8f09d2393eda3434",
    "static_walls": [
-    "libc-call: __builtin_nanf",
     "libc-call: fetestexcept",
     "string-literal",
     "type-layout"
@@ -16159,8 +15816,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-stdarg-9.c",
    "sha256": "d718d5356e4b69eeb4abad86148027b3914e95658586208e91de8b9df8eebfc2",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout",
     "unsupported:ExprWithCleanups"
    ],
@@ -16377,7 +16032,6 @@
     "cast:FloatingCast",
     "cast:FloatingToIntegral",
     "cast:IntegralToFloating",
-    "libc-call: fprintf",
     "string-literal",
     "type-layout"
    ],
@@ -16418,7 +16072,6 @@
    "sha256": "fa1cc9944dd41cf27dd9406f6e27621bf4d45a15abaadb2850c700713cfba192",
    "static_walls": [
     "cast:FloatingCast",
-    "libc-call: __builtin_fabs",
     "type-layout"
    ],
    "verdict": "passed"
@@ -16458,7 +16111,6 @@
    "sha256": "d52fa029a9083725230aecafc1227829a9465ba0a4da49b254ece90eb85c5d79",
    "static_walls": [
     "cast:FloatingCast",
-    "libc-call: __builtin_fabs",
     "type-layout"
    ],
    "verdict": "passed"
@@ -16576,8 +16228,6 @@
    "name": "ieee/builtin-nan-1.c",
    "sha256": "baeec4a1386bb5005c3e65f940ebb02cdb87223e71c5de6d7f03b57f5e72ed43",
    "static_walls": [
-    "libc-call: __builtin_nan",
-    "libc-call: memcmp",
     "string-literal",
     "type-layout"
    ],
@@ -16623,10 +16273,7 @@
    "static_walls": [
     "cast:FloatingCast",
     "cast:IntegralToFloating",
-    "libc-call: __builtin_inf",
     "libc-call: __builtin_islessgreater",
-    "libc-call: __builtin_isunordered",
-    "libc-call: __builtin_nan",
     "string-literal",
     "type-layout"
    ],
@@ -16654,7 +16301,6 @@
    "sha256": "0365e0cd9e0720d086b9ac13416572c4f748b1da5687779adeecd127106f2bf1",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_isunordered",
     "type-layout"
    ],
    "verdict": "passed"
@@ -16669,9 +16315,6 @@
    "static_walls": [
     "cast:FloatingCast",
     "cast:IntegralToFloating",
-    "libc-call: __builtin_inf",
-    "libc-call: __builtin_isunordered",
-    "libc-call: __builtin_nan",
     "string-literal",
     "type-layout"
    ],
@@ -16686,16 +16329,7 @@
    "sha256": "eaa559171205738e58dbe5e0bb0c390594e9193c8845b1b3d2d479d7746acae6",
    "static_walls": [
     "cast:FloatingCast",
-    "libc-call: __builtin_copysign",
-    "libc-call: __builtin_copysignf",
     "libc-call: __builtin_copysignl",
-    "libc-call: __builtin_inf",
-    "libc-call: __builtin_inff",
-    "libc-call: __builtin_infl",
-    "libc-call: __builtin_nan",
-    "libc-call: __builtin_nanf",
-    "libc-call: __builtin_nanl",
-    "libc-call: memcmp",
     "string-literal",
     "type-layout"
    ],
@@ -16710,16 +16344,7 @@
    "sha256": "fc8e48ba90e3146485d7acb6dede7c977cef18360756eb43f160238e4892b35c",
    "static_walls": [
     "cast:FloatingCast",
-    "libc-call: __builtin_copysign",
-    "libc-call: __builtin_copysignf",
     "libc-call: __builtin_copysignl",
-    "libc-call: __builtin_inf",
-    "libc-call: __builtin_inff",
-    "libc-call: __builtin_infl",
-    "libc-call: __builtin_nan",
-    "libc-call: __builtin_nanf",
-    "libc-call: __builtin_nanl",
-    "libc-call: memcmp",
     "string-literal",
     "type-layout"
    ],
@@ -16879,7 +16504,6 @@
     "libc-call: __builtin_isless",
     "libc-call: __builtin_islessequal",
     "libc-call: __builtin_islessgreater",
-    "libc-call: __builtin_isunordered",
     "type-layout"
    ],
    "verdict": "refused-libc"
@@ -16904,7 +16528,6 @@
    "name": "ieee/fp-cmp-7.c",
    "sha256": "4c5e4fd4f70ee0a7ad465f6b3c9bf2e55dbd156ad9fdc60aea0ba7ddfb6541e4",
    "static_walls": [
-    "libc-call: __builtin_inf",
     "libc-call: link_error",
     "type-layout"
    ],
@@ -16924,7 +16547,6 @@
     "libc-call: __builtin_isless",
     "libc-call: __builtin_islessequal",
     "libc-call: __builtin_islessgreater",
-    "libc-call: __builtin_isunordered",
     "type-layout"
    ],
    "verdict": "refused-libc"
@@ -16989,7 +16611,6 @@
    "name": "ieee/hugeval.c",
    "sha256": "cc39c196f7ed4ba25775b5de74fd939d082402f82b20d3136cfb3c70cbe31677",
    "static_walls": [
-    "libc-call: __builtin_huge_val",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17003,12 +16624,6 @@
    "sha256": "cd2bf9634f13f6b6e233c6ef6ae1dcedc871ffbf85d93fe724dbec04f1169153",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_huge_val",
-    "libc-call: __builtin_huge_valf",
-    "libc-call: __builtin_huge_vall",
-    "libc-call: __builtin_inf",
-    "libc-call: __builtin_inff",
-    "libc-call: __builtin_infl",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -17021,9 +16636,6 @@
    "name": "ieee/inf-2.c",
    "sha256": "fce93a1f743b41bdd5824363cf12ab818ccb5c9593a02ee6617f2785a5d91d9a",
    "static_walls": [
-    "libc-call: __builtin_inf",
-    "libc-call: __builtin_inff",
-    "libc-call: __builtin_infl",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -17036,9 +16648,6 @@
    "name": "ieee/inf-3.c",
    "sha256": "894876215030f8f5b2443f3d50ec5f172021158caae2b4c5a4afffa1ff3c0e39",
    "static_walls": [
-    "libc-call: __builtin_huge_val",
-    "libc-call: __builtin_huge_valf",
-    "libc-call: __builtin_huge_vall",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -17052,9 +16661,6 @@
    "sha256": "76765d088eb8c2d3a8ad82a8844d98a8d64b871ab6f144c077be493c06615b50",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_inf",
-    "libc-call: __builtin_isfinite",
-    "libc-call: __builtin_isnan",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17092,7 +16698,6 @@
    "name": "ieee/mzero2.c",
    "sha256": "b1bacef006256f3ef92cf8c10b2e8aa55376c81ac399c1b06fcc6ca3034ca8d9",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17106,7 +16711,6 @@
    "sha256": "d53f19ddc2a725234cc027113020e7d42af95b9599a7e6bcc1a4cbbd0f2fc228",
    "static_walls": [
     "cast:FloatingCast",
-    "libc-call: __builtin_memcmp",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17121,7 +16725,6 @@
    "static_walls": [
     "libc-call: atan",
     "libc-call: atanf",
-    "libc-call: memcmp",
     "libc-call: sin",
     "libc-call: sinf",
     "libc-call: tan",
@@ -17139,7 +16742,6 @@
    "sha256": "f3f1e0a190ddac55d529d702e9d7505b35389e4d39530dd8c126869f73b94e48",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_memcmp",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17152,7 +16754,6 @@
    "name": "ieee/mzero6.c",
    "sha256": "45b8dcb2138a1adb7dd09143de4f340feb9df5d3dea08d5b0f74e3be295c5ab7",
    "static_walls": [
-    "libc-call: __builtin_copysign",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17166,10 +16767,6 @@
    "sha256": "c3a36f26713ef8442f46e4536dba02335743f21093a375da5cac2c1fa8f5c0c0",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_isinf",
-    "libc-call: __builtin_isnan",
-    "libc-call: __builtin_signbit",
-    "libc-call: __builtin_strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -17207,10 +16804,6 @@
    "name": "ieee/pr109386.c",
    "sha256": "bd233004265f94f4e0565a548904bf827dfc6eb3692a553364cc28369ea3ff04",
    "static_walls": [
-    "libc-call: __builtin_fabsf",
-    "libc-call: __builtin_inff",
-    "libc-call: __builtin_isinf",
-    "libc-call: __builtin_nanf",
     "string-literal",
     "type-layout"
    ],
@@ -17224,7 +16817,6 @@
    "name": "ieee/pr119002.c",
    "sha256": "c400cfaef8076dbb1897ec7572ea228033c053134cf5ec0448429fb3d6ebaeb6",
    "static_walls": [
-    "libc-call: __builtin_nanf",
     "string-literal",
     "type-layout"
    ],
@@ -17265,8 +16857,6 @@
    "name": "ieee/pr30704.c",
    "sha256": "69e9e465770fdeb58624c8050bb90a150228d5972e4405d2062dd122b6640715",
    "static_walls": [
-    "libc-call: memcmp",
-    "libc-call: memcpy",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17279,7 +16869,6 @@
    "name": "ieee/pr36332.c",
    "sha256": "6cfdda7cae996f0d52c37f60e10368c0cb90983be70d6903fa4725b296ba71a7",
    "static_walls": [
-    "libc-call: __builtin_infl",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -17337,7 +16926,6 @@
    "sha256": "f2e081e169d6313652e22b6423123b584957f411d60949aee9d5b76bad9f8158",
    "static_walls": [
     "cast:FloatingCast",
-    "libc-call: __builtin_copysignf",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17377,7 +16965,6 @@
    "name": "ieee/unsafe-fp-assoc-1.c",
    "sha256": "34e1637d933dfffa381a748d759c1ed4851cc108711507dbb79dcc68232ef4e3",
    "static_walls": [
-    "libc-call: __builtin_expect",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17457,8 +17044,6 @@
    "name": "ipa-sra-2.c",
    "sha256": "ec09602287bd83ad97146911d37f177f4249422073304778523e3fd17e6d93b7",
    "static_walls": [
-    "libc-call: calloc",
-    "libc-call: free",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17857,8 +17442,6 @@
    "name": "memchr-1.c",
    "sha256": "fd62059556391313f163e4cca4c1f02898fdc77d579dd9a0fc61c5347c0c0f3d",
    "static_walls": [
-    "libc-call: __builtin_printf",
-    "libc-call: memchr",
     "string-literal",
     "type-layout"
    ],
@@ -17882,8 +17465,6 @@
    "name": "memcpy-1.c",
    "sha256": "781179a0dbc16a530021ae603f878eec0f86d816f7036315db85726e61c3024f",
    "static_walls": [
-    "libc-call: memcpy",
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "runner-error"
@@ -17896,7 +17477,6 @@
    "name": "memcpy-2.c",
    "sha256": "4b70077da1952fa302f5e5ba44b62625955714c8005995c76d3213c3552655db",
    "static_walls": [
-    "libc-call: memcpy",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17949,9 +17529,6 @@
    "name": "memcpy-bi.c",
    "sha256": "aef5169ff4a04008094748cc310d0a2ae689f9d9ca855b413f4092e0dc4e49dd",
    "static_walls": [
-    "libc-call: memcmp",
-    "libc-call: memcpy",
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17964,7 +17541,6 @@
    "name": "memset-1.c",
    "sha256": "ec4a2649b0a16fd7ae77591c0b3f37b0e6a24a90e7464ab6f2c14b2f2fd6061e",
    "static_walls": [
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17977,7 +17553,6 @@
    "name": "memset-2.c",
    "sha256": "9c05b5acd9d8b42857bccb176537bd9c315cb4cc314098c25fa4b688975ca767",
    "static_walls": [
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17990,7 +17565,6 @@
    "name": "memset-3.c",
    "sha256": "1e9c569754b474e3f86f4ad5037c08f370f5cf6f469e407bd636f0cb9fc1efd0",
    "static_walls": [
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18003,7 +17577,6 @@
    "name": "memset-4.c",
    "sha256": "a607f718ab3fb6d56f4190534a528d24b9f428f6b184d69922b10223909fcd0d",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18076,9 +17649,6 @@
    "name": "multi-ix.c",
    "sha256": "c419fe0b5c2f4ba23408553432f6a8fef6ea671ec815146fb8e08a11c9940fd1",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_memset",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18181,7 +17751,6 @@
    "name": "p18298.c",
    "sha256": "1513035cef91896f4384dec29c2aaf310fa7a4902adc43aa725cccb883106995",
    "static_walls": [
-    "libc-call: strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -18537,8 +18106,6 @@
    "name": "pr108498-2.c",
    "sha256": "f31a0536be78d73f7060b3a52475629b312e9ecbb7336c6a3dde5ef16b098bf9",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
-    "libc-call: __builtin_memset",
     "string-literal",
     "type-layout"
    ],
@@ -18551,10 +18118,7 @@
    "manifest_status": "parsed",
    "name": "pr108789.c",
    "sha256": "5e7e94668d51a5ee051d4a9028ca44db6a5946ff1a1a9652d99069d8c2da076b",
-   "static_walls": [
-    "libc-call: __builtin_add_overflow",
-    "libc-call: __builtin_mul_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18735,8 +18299,6 @@
    "name": "pr110914.c",
    "sha256": "f00c55da1029a7214d391a05e0983bfb4e0c43a3dcce34035423de0f78d515df",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
    ],
@@ -18842,7 +18404,6 @@
    "name": "pr111613.c",
    "sha256": "5da58fe5094271eee5c47f32e3c5970f50d7544f5a97eb3e162b3c97d3eb05db",
    "static_walls": [
-    "libc-call: malloc",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18855,7 +18416,6 @@
    "name": "pr111863-1.c",
    "sha256": "00dff7816a81b80f8c11d196f9c46352bffa362847c2658147b55a65b7bd1d98",
    "static_walls": [
-    "libc-call: __builtin_printf",
     "string-literal",
     "type-layout"
    ],
@@ -18968,7 +18528,6 @@
    "name": "pr115277.c",
    "sha256": "c674fdafda83fbd0d82d8d99185261aba5536ddbd42c98cb329ce512cfe394c2",
    "static_walls": [
-    "libc-call: __builtin_expect",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18981,7 +18540,6 @@
    "name": "pr116799.c",
    "sha256": "4c8b152e9be0e30fabe1ce363fddcd56e98107b8df401c0668b76260c6e7182d",
    "static_walls": [
-    "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
    ],
@@ -19005,8 +18563,6 @@
    "name": "pr117432.c",
    "sha256": "358d4a6891006ad25eb04f99e55096f70dba93ef0056a8a30f1da268b73025af",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -19089,7 +18645,6 @@
    "name": "pr119428.c",
    "sha256": "c61ae0c7e78c2776c192ea5271c4735eb8ebb4c993cec54011edf1e7ac7e6c76",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -19134,9 +18689,7 @@
    "manifest_status": "parsed",
    "name": "pr122000.c",
    "sha256": "7b2d3a0ae25c0e225dca35b2f36029752db2541460ec59c7be568c1cab070372",
-   "static_walls": [
-    "libc-call: __sync_add_and_fetch_8"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19207,7 +18760,6 @@
    "name": "pr123978.c",
    "sha256": "1ed8a36af452bfd14d600d31c3ce62b3d9241009455c4399adece59506cb5e9f",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -19277,7 +18829,6 @@
    "static_walls": [
     "cast:FloatingCast",
     "cast:IntegralToFloating",
-    "libc-call: __builtin_malloc",
     "type-layout"
    ],
    "verdict": "passed"
@@ -19636,7 +19187,6 @@
    "name": "pr22141-1.c",
    "sha256": "f24ba2ca68045af9d52caa176275f023f37ea9e1854528ba0302df52e39653cb",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -19649,7 +19199,6 @@
    "name": "pr22141-2.c",
    "sha256": "caef794b8da055fe44c2c362ada02f45f495a10b394b3f22168e1802b5d65cce",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -19861,7 +19410,6 @@
    "name": "pr27260.c",
    "sha256": "a5b8a50e9fe2db0cc753d4534d4facbeeaf6554af3fae65564ed1dd5f0a0677d",
    "static_walls": [
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20084,7 +19632,6 @@
    "name": "pr30778.c",
    "sha256": "47b07838ad6663a5e5caa8beef3dd7bec90928db3e7a52bc8e6f1c30cc764e18",
    "static_walls": [
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20189,7 +19736,6 @@
    "name": "pr33142.c",
    "sha256": "aa357be59d9f1e3c5625c004e99e5901c0dcc142af7db1f2c6f691ded2972b33",
    "static_walls": [
-    "libc-call: abs",
     "unsequenced-effects"
    ],
    "verdict": "passed"
@@ -20258,7 +19804,6 @@
    "name": "pr33870-1.c",
    "sha256": "5fc97b239cd3dc666ef73b5f8d03a865549749839b8abd0d943f94e4907f546c",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -20271,7 +19816,6 @@
    "name": "pr33870.c",
    "sha256": "64a9b80786fb99086ef2e1f0a05000b05528e43ec0ca7846e6aac45beebb629b",
    "static_walls": [
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20333,9 +19877,7 @@
    "manifest_status": "parsed",
    "name": "pr34130.c",
    "sha256": "667ad238fc85895410f9211aa644f8570ac9d58b424f550488b2f4892d74ab4f",
-   "static_walls": [
-    "libc-call: __builtin_abs"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -20471,7 +20013,6 @@
    "name": "pr35456.c",
    "sha256": "439a70fd3b4e169b9fa8e152cbfefa747f1d1fed58e6e7f96c59b244df6baf5d",
    "static_walls": [
-    "libc-call: __builtin_signbit",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20484,7 +20025,6 @@
    "name": "pr35472.c",
    "sha256": "fa2411b43c65fd0e7f3b1603e2c94ad77bac9700eaf5c1d8bea4a109da988718",
    "static_walls": [
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20536,7 +20076,6 @@
    "name": "pr36038.c",
    "sha256": "9dc503485913322bc0fb4dbd8fcc64f04b0522435773dfcc8faab0e200ce5a07",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20559,8 +20098,6 @@
    "name": "pr36321.c",
    "sha256": "78612d5c3cdb0a935d80cca0c89c39a74043854d4d9b677fda00e7db2a01c1fa",
    "static_walls": [
-    "libc-call: __builtin_alloca",
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -20611,9 +20148,7 @@
    "manifest_status": "parsed",
    "name": "pr36765.c",
    "sha256": "052031ec2e6ee0be696f449c5992d7cce5aa910d2933b6e8f7601517c6c5ce70",
-   "static_walls": [
-    "libc-call: __builtin_malloc"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -20644,7 +20179,6 @@
    "name": "pr37573.c",
    "sha256": "27ba2d916cdcf7c9e18241c4ae25c95506737584eaf20f6361584192476a75d2",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20656,10 +20190,7 @@
    "manifest_status": "parsed",
    "name": "pr37780.c",
    "sha256": "72a96ee8e5d191880ef7e1236d80466cd0c9b259a61ab3b99e0fb85a8c0b149a",
-   "static_walls": [
-    "libc-call: __builtin_clz",
-    "libc-call: __builtin_ctz"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -20729,7 +20260,6 @@
    "static_walls": [
     "cast:IntegralToPointer",
     "cast:PointerToIntegral",
-    "libc-call: __builtin_memcpy",
     "string-literal",
     "type-layout"
    ],
@@ -20874,8 +20404,6 @@
    "name": "pr39339.c",
    "sha256": "e3d8a2d36db7d11986a8795f7eeebedde778466688b78518594ec24585bbae0f",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
-    "libc-call: __builtin_memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20973,9 +20501,7 @@
    "manifest_status": "parsed",
    "name": "pr40668.c",
    "sha256": "e11fffe59899ff934501ad0ccad617f161291a70addcea34f1d4a104665230f7",
-   "static_walls": [
-    "libc-call: __builtin_memcpy"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -21018,7 +20544,6 @@
    "name": "pr41395-1.c",
    "sha256": "4cc37ccc4a9d458782da5950a2781604ea3d5850b329fa2b1c99332b5ccc97b4",
    "static_walls": [
-    "libc-call: malloc",
     "type-layout"
    ],
    "verdict": "passed"
@@ -21031,7 +20556,6 @@
    "name": "pr41395-2.c",
    "sha256": "70008d9ee8b68967030f14b4532af67033d145d89dfb1babb45beaaf859f36ca",
    "static_walls": [
-    "libc-call: malloc",
     "type-layout"
    ],
    "verdict": "passed"
@@ -21044,7 +20568,6 @@
    "name": "pr41463.c",
    "sha256": "37330d24a694d1f8bc7698260e437de7f13116762cab6c3d05ca2bc6f11fb960",
    "static_walls": [
-    "libc-call: malloc",
     "type-layout"
    ],
    "verdict": "passed"
@@ -21199,9 +20722,6 @@
    "name": "pr42614.c",
    "sha256": "41d8b6f6ad4a57c5c9f2a3a0fa9d542c7b8e694585d9474cfb7fd77bcb7580af",
    "static_walls": [
-    "libc-call: __builtin_abs",
-    "libc-call: free",
-    "libc-call: malloc",
     "type-layout"
    ],
    "verdict": "passed"
@@ -21249,7 +20769,6 @@
    "name": "pr43008.c",
    "sha256": "0e5c8a2e78e0a0ea514a4fec51bedceb61a489347d96f9a29537ca8a0e52e4bb",
    "static_walls": [
-    "libc-call: __builtin_malloc",
     "type-layout"
    ],
    "verdict": "passed"
@@ -21274,8 +20793,6 @@
    "name": "pr43236.c",
    "sha256": "c3d866d0679f94f16edbb549c30e71caac8283759be12a9a4d4f3c93f1c3f521",
    "static_walls": [
-    "libc-call: memcmp",
-    "libc-call: memset",
     "type-layout"
    ],
    "verdict": "passed"
@@ -21423,8 +20940,6 @@
    "sha256": "8fc674bb4a65450dfdaea5a7238d752ecdce2dfbfb3376ab3fc451ef170e0929",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -21437,7 +20952,6 @@
    "name": "pr44683.c",
    "sha256": "016c5bd32e7d9885030a194c02c0742ae1a2bca5a0d9af761f8150ae1f4b312a",
    "static_walls": [
-    "libc-call: __builtin_copysign",
     "type-layout"
    ],
    "verdict": "passed"
@@ -21480,8 +20994,6 @@
    "name": "pr44942.c",
    "sha256": "a593433333b8ef20fa39c196c472aca96eb4f332d3e0da4dcbafdaee61fdc75a",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -21627,7 +21139,6 @@
    "name": "pr47337.c",
    "sha256": "e35d8c36b3f0766784cbf87955951da4ad5d04912220fa78933b08c232bb91ce",
    "static_walls": [
-    "libc-call: __builtin_strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -21642,7 +21153,6 @@
    "sha256": "7ddc400661a1d3c0585c8a1e3c93d6aa4a0ec3410b9e099eaf7a9c2331f9fbb0",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_memcpy",
     "type-layout"
    ],
    "verdict": "passed"
@@ -22128,8 +21638,6 @@
    "name": "pr53688.c",
    "sha256": "010877ad5b37612d649fdcfde302dbba2e51c30064dd4da2d93f2ba874ae80a1",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_memset",
     "string-literal",
     "type-layout"
    ],
@@ -22321,7 +21829,6 @@
    "name": "pr57130.c",
    "sha256": "02486b8b9bdd58a0f840d1f8b727c325d16d92032a31cda078d222f833cc510c",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
     "type-layout"
    ],
    "verdict": "passed"
@@ -22750,9 +22257,6 @@
    "name": "pr59229.c",
    "sha256": "baa810f41ea53ccf4d1374734d2f1ec51b9b7dcecebe7483845bf763e4ce953d",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_memset",
     "string-literal",
     "type-layout"
    ],
@@ -22861,7 +22365,6 @@
    "name": "pr60062.c",
    "sha256": "76562729f3ce8b46ec7c4028fa6ce382b197f683272c71a1bb68cd3028e86409",
    "static_walls": [
-    "libc-call: __builtin_strcmp",
     "string-literal",
     "type-layout"
    ],
@@ -22988,9 +22491,7 @@
    "manifest_status": "parsed",
    "name": "pr61725.c",
    "sha256": "3c1576945873a0034645e2b836219a69ae8b16a3f223e0077b2290e7a6539f45",
-   "static_walls": [
-    "libc-call: __builtin_ffs"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23056,7 +22557,6 @@
    "name": "pr63843.c",
    "sha256": "259f4c6e20d69368e25db2962d6c4158182640b300d857e65723eaec7f5a25b7",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23069,7 +22569,6 @@
    "name": "pr64006.c",
    "sha256": "d2866f767e54748e574c2f7ea5bbd1cfde70c530b3568d0fdcf825161d7e2d5b",
    "static_walls": [
-    "libc-call: __builtin_mul_overflow",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23082,10 +22581,7 @@
    "name": "pr64242.c",
    "sha256": "4684cadf19a1718f3f85d9b16f90d8efc70c8e030f215d1559dd5830fe75c0c2",
    "static_walls": [
-    "libc-call: __builtin_alloca",
     "libc-call: __builtin_longjmp",
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_memset",
     "libc-call: __builtin_setjmp",
     "type-layout"
    ],
@@ -23159,8 +22655,6 @@
    "name": "pr64979.c",
    "sha256": "ebc80502935f4fca2dd98ae330c1da1e7e06d88ac8fa25d9f0a108ecc601e066",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23269,9 +22763,6 @@
    "name": "pr65369.c",
    "sha256": "8078474ab452306b8f45be23c335852cdaaaa541a63268bf5639f3aa2a753735",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_memset",
     "string-literal",
     "type-layout"
    ],
@@ -23545,9 +23036,7 @@
    "manifest_status": "parsed",
    "name": "pr68381.c",
    "sha256": "1598e758571b6af8f68f406332abd08552fb63c9abb28510ff36007ca82b885e",
-   "static_walls": [
-    "libc-call: __builtin_mul_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23870,7 +23359,6 @@
    "name": "pr71550.c",
    "sha256": "c3a7aba35712c06dcf78e7eacaaacfb625eb1de140f4ae251c63b56d7e1e55f2",
    "static_walls": [
-    "libc-call: __builtin_printf",
     "string-literal",
     "type-layout"
    ],
@@ -23883,9 +23371,7 @@
    "manifest_status": "parsed",
    "name": "pr71554.c",
    "sha256": "6eb3eb818b8454186b4d6dd0cd9edbe51160881ca420507f9838c42ec87cb475",
-   "static_walls": [
-    "libc-call: __builtin_mul_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23951,8 +23437,6 @@
    "name": "pr77718.c",
    "sha256": "382853d1420d8e80bda3d226a5614e1c3ee95c181daeae2816bea2a0634335d0",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
-    "libc-call: __builtin_memset",
     "string-literal",
     "type-layout"
    ],
@@ -24054,7 +23538,6 @@
    "name": "pr78586.c",
    "sha256": "b381c8f7fbc30e3f92c3a3c29047466b0bf0a914c5bafaf6aa5c43593891c204",
    "static_walls": [
-    "libc-call: __builtin_sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -24078,7 +23561,6 @@
    "name": "pr78622.c",
    "sha256": "2fbf1d51ec9a52a97fc707ec770611ecc252006620260510f0ada6eb0f2ed1d7",
    "static_walls": [
-    "libc-call: __builtin_printf",
     "libc-call: __builtin_snprintf",
     "string-literal",
     "type-layout"
@@ -24168,7 +23650,6 @@
    "name": "pr79286.c",
    "sha256": "c3792c3d9231d95841fc2efadec802bae368700bf12756a3464ea6b0a369df65",
    "static_walls": [
-    "libc-call: __builtin_printf",
     "string-literal",
     "type-layout"
    ],
@@ -24182,7 +23663,6 @@
    "name": "pr79327.c",
    "sha256": "462f173d138956bb675d6a98de5a649fabf8253d9dd5cc147b9cafdd9d8fe8f5",
    "static_walls": [
-    "libc-call: __builtin_sprintf",
     "string-literal",
     "type-layout"
    ],
@@ -24249,7 +23729,6 @@
    "name": "pr80153.c",
    "sha256": "154f48197e7d777dab2c8347e7ffa399cc0b1643b5430454c59d754981f331b7",
    "static_walls": [
-    "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
    ],
@@ -24486,9 +23965,7 @@
    "manifest_status": "parsed",
    "name": "pr84169.c",
    "sha256": "0446c97e3f9728fec5703b18a571142da7920a1f7ae84aca6e14dc7432345f0b",
-   "static_walls": [
-    "libc-call: __builtin_mul_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24499,10 +23976,6 @@
    "name": "pr84339.c",
    "sha256": "9a9dca877185622abd09a6b434e77b2b47df42ac718ab891f385159683c0df67",
    "static_walls": [
-    "libc-call: __builtin_free",
-    "libc-call: __builtin_malloc",
-    "libc-call: __builtin_strcpy",
-    "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
    ],
@@ -24526,7 +23999,6 @@
    "name": "pr84521.c",
    "sha256": "7e8cd3970fa28c4abf3de7b014abbb673d2fb6c75d99e28b8adebaa26302115c",
    "static_walls": [
-    "libc-call: __builtin_alloca",
     "libc-call: __builtin_longjmp",
     "libc-call: __builtin_setjmp",
     "type-layout"
@@ -24560,9 +24032,7 @@
    "manifest_status": "parsed",
    "name": "pr85095.c",
    "sha256": "0c8660d7423f40481f1b632e9addf2f407c2dba3e4d06e096769f5a4981856e0",
-   "static_walls": [
-    "libc-call: __builtin_add_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24690,11 +24160,6 @@
    "name": "pr86528.c",
    "sha256": "af206bddf203102d7dacd2a1eb95adfc187aa8b0ce304b607bd42686d68d2f4f",
    "static_walls": [
-    "libc-call: __builtin_alloca",
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_strcmp",
-    "libc-call: __builtin_strcpy",
-    "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
    ],
@@ -24732,9 +24197,6 @@
    "name": "pr86714.c",
    "sha256": "d33772251fbc170de4fea0464aa8f90aa3b929407613ed3d59193c14b7fccc15",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_memset",
     "string-literal",
     "type-layout"
    ],
@@ -24760,7 +24222,6 @@
    "name": "pr87053.c",
    "sha256": "3e6a38afab0b543c442a405f78d874aa37e590d43b38659a0f35f8c3e0471a39",
    "static_walls": [
-    "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout",
     "unsupported:IndirectFieldDecl"
@@ -24797,9 +24258,6 @@
    "name": "pr88693.c",
    "sha256": "ad4fd22a0cacfb3851fce1aa1d6356071daba3f42b95a81668bc4b6045d8bf46",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_memset",
-    "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
    ],
@@ -24870,9 +24328,7 @@
    "manifest_status": "parsed",
    "name": "pr89434.c",
    "sha256": "dc8c8967cba5a1a46e4e2594685d62671c8dbc4e96a4ac27c28b0456f656e5c2",
-   "static_walls": [
-    "libc-call: __builtin_mul_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24905,7 +24361,6 @@
    "name": "pr90025.c",
    "sha256": "444126cb1994cbd436f7d00f7692773deab2d45530e9835445f3413fed46548e",
    "static_walls": [
-    "libc-call: __builtin_bswap32",
     "string-literal",
     "type-layout"
    ],
@@ -24918,9 +24373,7 @@
    "manifest_status": "parsed",
    "name": "pr90311.c",
    "sha256": "da43b07aec6b737a26fe80cdb7f9d0aeb480202cb78627797956eee29632e4aa",
-   "static_walls": [
-    "libc-call: __builtin_add_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24967,9 +24420,7 @@
    "manifest_status": "parsed",
    "name": "pr91450-1.c",
    "sha256": "c8d125c7ae7e4c6efbfb8551ef09de2fad81909ac2e94a0ec0666e9c86d3d3d5",
-   "static_walls": [
-    "libc-call: __builtin_mul_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24979,9 +24430,7 @@
    "manifest_status": "parsed",
    "name": "pr91450-2.c",
    "sha256": "8e06e2daec44b2673d2cc9a42841bd5fa2271c77c603bf505108546161656eac",
-   "static_walls": [
-    "libc-call: __builtin_mul_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24993,7 +24442,6 @@
    "sha256": "ef124ef042801f9a25a98f8c87255d18402fb0d14d7d043fa6519e91b23b9054",
    "static_walls": [
     "cast:PointerToIntegral",
-    "libc-call: __builtin_expect",
     "type-layout",
     "unsupported:AlignedAttr"
    ],
@@ -25016,9 +24464,7 @@
    "manifest_status": "parsed",
    "name": "pr91635.c",
    "sha256": "d0694a2c845a3590b25d9f22fccd8455e09482d4531e403bca5c78a946193921",
-   "static_walls": [
-    "libc-call: __builtin_add_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25049,8 +24495,6 @@
    "name": "pr92904.c",
    "sha256": "bce28f06aa69e28c01ce5e66aefddfce0273244d17aa59cc4036b463a8bc0795",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout",
     "unsupported:AlignedAttr"
    ],
@@ -25064,9 +24508,6 @@
    "name": "pr93213.c",
    "sha256": "4217ebc7d4b628787de4cfce560f459f384c20fa55aaad1e1f6e1281febb478c",
    "static_walls": [
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_memmove",
-    "libc-call: __builtin_mul_overflow",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25079,7 +24520,6 @@
    "name": "pr93249.c",
    "sha256": "3cc26ac7719ebad6c8fc701c8ac03e73fc2784fe81be00dcf4b199c19e394bb5",
    "static_walls": [
-    "libc-call: __builtin_strncpy",
     "string-literal",
     "type-layout"
    ],
@@ -25117,9 +24557,7 @@
    "manifest_status": "parsed",
    "name": "pr93494.c",
    "sha256": "4ff01fb8f7e622b24c1931dcf0dbedc554b3554f93778304e74ece81a29e85c7",
-   "static_walls": [
-    "libc-call: __builtin_add_overflow"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25326,9 +24764,7 @@
    "manifest_status": "parsed",
    "name": "pr97325.c",
    "sha256": "74fff5b0fb483bde47106bccecd0869788a8e70e70abdba953d50de51d9ab4fc",
-   "static_walls": [
-    "libc-call: __builtin_ffs"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25338,9 +24774,7 @@
    "manifest_status": "parsed",
    "name": "pr97386-1.c",
    "sha256": "4c6fb402eaf79988969157c5746912807a089d3da6ce4a3348bd05a90820b3c2",
-   "static_walls": [
-    "libc-call: __builtin_bswap16"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25468,7 +24902,6 @@
    "name": "pr98366.c",
    "sha256": "30a197d210739fec4f1057c9d52115cf3fb4e144ec935b4309927538a18ba023",
    "static_walls": [
-    "libc-call: __builtin_memcmp",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25522,9 +24955,7 @@
    "manifest_status": "parsed",
    "name": "pr98853-1.c",
    "sha256": "a43645ed0862aa463206f73f2aa8a73e3c08c159a0b42ae1f6b87e42d28c161c",
-   "static_walls": [
-    "libc-call: __builtin_memcpy"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25565,7 +24996,6 @@
    "name": "printf-1.c",
    "sha256": "1135335188e0afab823dc45243ce84fcd6cfe0676f7302172dce49674cc2513f",
    "static_walls": [
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -25589,9 +25019,6 @@
    "name": "printf-chk-1.c",
    "sha256": "f085b13f50d60e7d4928c453fb38efbbc385625e16b4cb5313bc78eed03042d3",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: vprintf",
     "string-literal",
     "type-layout"
    ],
@@ -25688,7 +25115,6 @@
    "name": "return-addr.c",
    "sha256": "c8df956259082f63135debd4f9cf98bcb8158edec7dfafef387985a57a7aad9d",
    "static_walls": [
-    "libc-call: __builtin_printf",
     "string-literal",
     "type-layout"
    ],
@@ -25835,9 +25261,7 @@
    "manifest_status": "parsed",
    "name": "split-path-1.c",
    "sha256": "0053e25aabca452b2d795f7011c6ab90b8c5c7f37e6309efe639cb41f6b156c9",
-   "static_walls": [
-    "libc-call: malloc"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25848,7 +25272,6 @@
    "name": "ssad-run.c",
    "sha256": "93374b66425569aa08a54b30cfe8ed1769e8a0f0e20467edffe52fc7f30a2e2d",
    "static_walls": [
-    "libc-call: abs",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25862,9 +25285,6 @@
    "sha256": "468a06ec36cc47513c6108c9259e603a7b6a0ee5be1f7778920f05214fd27f74",
    "static_walls": [
     "cast:FloatingToIntegral",
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_copy",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -25877,8 +25297,6 @@
    "name": "stdarg-2.c",
    "sha256": "560b59b0eeaa2d180429fb10e96bb98373fcde1c85aa0601bc915bfc57546b73",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -25892,8 +25310,6 @@
    "sha256": "41807d647a4c4e20031c2bfedb1f37b6509863637fb45e6c12ef60412cf04bd3",
    "static_walls": [
     "cast:FloatingToIntegral",
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -25907,8 +25323,6 @@
    "sha256": "df92949fcdfbb1dec3c0d7fdad72e494a01ab6d678bd237196fa300234673e54",
    "static_walls": [
     "cast:FloatingToIntegral",
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -25931,7 +25345,6 @@
    "name": "strcmp-1.c",
    "sha256": "5ee8f8099598bc6ad7e34428623c2520642bcd93a3f7b275ffb6f0bf33470159",
    "static_walls": [
-    "libc-call: strcmp",
     "type-layout"
    ],
    "verdict": "runner-error"
@@ -25944,7 +25357,6 @@
    "name": "strcpy-1.c",
    "sha256": "1b3e448671092bdc6c1b79b6455e8a197c58280bf6bb82e3b2676fb4d470add3",
    "static_walls": [
-    "libc-call: strcpy",
     "type-layout"
    ],
    "verdict": "runner-error"
@@ -25957,7 +25369,6 @@
    "name": "strcpy-2.c",
    "sha256": "b59479450c7a33ca4b9e48c181d7aee5673cdb3481f33bd18594b30b6e9ac014",
    "static_walls": [
-    "libc-call: __builtin_strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -26022,8 +25433,6 @@
    "name": "strct-stdarg-1.c",
    "sha256": "ec51bc0af8c8f24d46dbac8bdd811e120c7e5fd3b81648a48c7163d4280a4d78",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26036,8 +25445,6 @@
    "name": "strct-varg-1.c",
    "sha256": "8b9d0f63a946ddf96a8693c67ea786314140c055e72b1cf2b36b9f30b121a2b1",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26050,8 +25457,6 @@
    "name": "string-opt-17.c",
    "sha256": "f1f764b90fd97e4b42a2a2faf505f26fd6c7fa8c4f5740f6092a1a63e0767e5c",
    "static_walls": [
-    "libc-call: memcmp",
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -26065,13 +25470,6 @@
    "name": "string-opt-18.c",
    "sha256": "0db5f8750dce95e307a431131f7da821500c48d19821beec17551f780f6bcb5d",
    "static_walls": [
-    "libc-call: memcmp",
-    "libc-call: memcpy",
-    "libc-call: memmove",
-    "libc-call: mempcpy",
-    "libc-call: strcmp",
-    "libc-call: strcpy",
-    "libc-call: strncmp",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -26084,13 +25482,6 @@
    "name": "string-opt-5.c",
    "sha256": "ae4d5bc865c6d2b4c4ca3a0633f3e87dd76e5c38b5a9dc6c2008b602e187ae8a",
    "static_walls": [
-    "libc-call: memcmp",
-    "libc-call: memset",
-    "libc-call: strchr",
-    "libc-call: strcmp",
-    "libc-call: strlen",
-    "libc-call: strncpy",
-    "libc-call: strrchr",
     "string-literal",
     "type-layout"
    ],
@@ -26104,7 +25495,6 @@
    "name": "strlen-1.c",
    "sha256": "93b80cc7255924aa74cfc03632dde0db9f7f4fe90c54aa3d4004100496ad19d3",
    "static_walls": [
-    "libc-call: strlen",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26117,8 +25507,6 @@
    "name": "strlen-2.c",
    "sha256": "0e7016a417851de83c72fa3f8a831300aca2d163a55c65576afd7d1f691d74cf",
    "static_walls": [
-    "libc-call: __builtin_printf",
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -26132,8 +25520,6 @@
    "name": "strlen-3.c",
    "sha256": "3d9d348f6e0a8dcb6db3950378215846746479c90a9d566ab2465df8373efde6",
    "static_walls": [
-    "libc-call: __builtin_printf",
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -26147,8 +25533,6 @@
    "name": "strlen-4.c",
    "sha256": "44a8f219723f11de84643fd2c9dff8af0a28fa1a23121bf8879d86c41fc6a6b0",
    "static_walls": [
-    "libc-call: printf",
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -26162,8 +25546,6 @@
    "name": "strlen-5.c",
    "sha256": "8721fdac48fc04356861299ca942b3a77499ae7f5ecdd7da80c325dc1cb848db",
    "static_walls": [
-    "libc-call: __builtin_printf",
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -26177,8 +25559,6 @@
    "name": "strlen-6.c",
    "sha256": "06b9b66210c9f2f154dd882779051d415a24c3de166269c10ff8efe4f6a06e1d",
    "static_walls": [
-    "libc-call: __builtin_printf",
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -26192,10 +25572,6 @@
    "name": "strlen-7.c",
    "sha256": "7f080d078dab57dee813a8622097872e856658755c7e12b223546048b9a250d5",
    "static_walls": [
-    "libc-call: __builtin_malloc",
-    "libc-call: __builtin_memcpy",
-    "libc-call: __builtin_strcpy",
-    "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
    ],
@@ -26209,7 +25585,6 @@
    "name": "strncmp-1.c",
    "sha256": "5144ae0223f0612c42ae17107f5caaed4b7bc90a4101eec4240fda8e8a18bfe3",
    "static_walls": [
-    "libc-call: strncmp",
     "type-layout"
    ],
    "verdict": "runner-error"
@@ -26296,9 +25671,6 @@
    "sha256": "cc8d3fc1dcaa9721231f0fcde3544356f5d859785219755cc649e9c7ead8fe78",
    "static_walls": [
     "libc-call",
-    "libc-call: sprintf",
-    "libc-call: strcmp",
-    "libc-call: strcpy",
     "string-literal",
     "type-layout"
    ],
@@ -26365,7 +25737,6 @@
    "name": "usad-run.c",
    "sha256": "804dcb3bf7fce195965bbf7919d8d810eec3fa42754f78109e636028e6c2afd6",
    "static_walls": [
-    "libc-call: abs",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26398,8 +25769,6 @@
    "name": "va-arg-1.c",
    "sha256": "0f7f0d1e757998090be6c94dd8920fd0e2a1c94e0162d670dd777814e026080f",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26412,10 +25781,6 @@
    "name": "va-arg-10.c",
    "sha256": "5cb2d6ed423c050aaa81f9a50ce99c3dd43e88f2757c460a46a8b5836b09c4df",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_copy",
-    "libc-call: __builtin_va_end",
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -26429,8 +25794,6 @@
    "name": "va-arg-11.c",
    "sha256": "d45a0dfea3dca4640a8b8f01cdc27f77c513ef6dcb2ee54f4c0aea98fb7d21b4",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26443,8 +25806,6 @@
    "name": "va-arg-12.c",
    "sha256": "3ac1c4f014534ca3b3c10d0fc66df11b7d2fe0e97fff567fd00560029e470662",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26457,8 +25818,6 @@
    "name": "va-arg-13.c",
    "sha256": "279279f98774c877ba8c2915b734a42166ab4f90ec7fba6b5f569b6ce3890d92",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26471,9 +25830,6 @@
    "name": "va-arg-14.c",
    "sha256": "3fdae71c9aec63384768b4a7c9b770f0fd9ae94d8f18f2549055e4a93bc31bb6",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_copy",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26487,8 +25843,6 @@
    "sha256": "bc9aefd3656145f3f3e0110bab4fe674903e26cdb8c23b474e6f185e5d705a3d",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "string-literal",
     "type-layout"
    ],
@@ -26502,8 +25856,6 @@
    "name": "va-arg-16.c",
    "sha256": "214db61e9e8a8749953ce90aa8d439142f6e51cca19d298af7cf268eb448b00a",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26516,8 +25868,6 @@
    "name": "va-arg-17.c",
    "sha256": "e3bd464100e2fc2a2657d338e921a84ff7e2626e1b04ca51fde765b56fd3f046",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "string-literal",
     "type-layout"
    ],
@@ -26531,8 +25881,6 @@
    "name": "va-arg-18.c",
    "sha256": "5164ef08accb5ddac18b0d27f4406fded13ae687a456aaeb76df3ba8f8cde462",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26545,8 +25893,6 @@
    "name": "va-arg-19.c",
    "sha256": "e0251e5c3506f5909a206d4523019424f7890dc5033296693ddd7cf35d165331",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "string-literal",
     "type-layout"
    ],
@@ -26570,8 +25916,6 @@
    "name": "va-arg-20.c",
    "sha256": "5a664bf0f0e716f4534dc388535e562b4976cd06cffbd96a2fd2a6a7c3a7e5b7",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26584,10 +25928,6 @@
    "name": "va-arg-21.c",
    "sha256": "dedc44188f3fd1c561cd63e1d964c7f0beb5c077b4802c961b0eb7f4a6c7fbd9",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: malloc",
-    "libc-call: vprintf",
     "string-literal",
     "type-layout"
    ],
@@ -26611,7 +25951,6 @@
    "name": "va-arg-23.c",
    "sha256": "3a2323c7449a4fb47db61e20103522b204413ba862aafa78a145e23b74a171d6",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26624,9 +25963,6 @@
    "name": "va-arg-24.c",
    "sha256": "8233497b9ce5e3bfb95e0904a1dcc22fe247159184cbad4aa312712884f1bc7e",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: printf",
     "string-literal",
     "type-layout"
    ],
@@ -26641,8 +25977,6 @@
    "sha256": "f3c7769ca80bb973c5251a07be8f90f0ab6580d55ca477b9f366c3d158c78e45",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26655,8 +25989,6 @@
    "name": "va-arg-4.c",
    "sha256": "35e96b3784d0410911414106b592d48cb8188f8ab18fcb503c43fe25a596a966",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "string-literal",
     "type-layout"
    ],
@@ -26670,8 +26002,6 @@
    "name": "va-arg-5.c",
    "sha256": "c4f21f1570c49976849ab2d5cb5fe9a49ae430ff19d27a3dd9069c0c6df8f2dd",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -26684,8 +26014,6 @@
    "name": "va-arg-6.c",
    "sha256": "b0eb9fc5a52d4e43b24c9eb561410f72dbfc27027a2afdfa4c6ac55c80173401",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -26698,8 +26026,6 @@
    "name": "va-arg-7.c",
    "sha256": "d566662a26a3f877293048b058ac53e7ed8ccdb93717ded2a73ed96a836d4226",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26712,8 +26038,6 @@
    "name": "va-arg-8.c",
    "sha256": "d3d69b63bca0f643c44af9e58cc010b11f952aa646e5cccf135d45563d26813b",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26726,9 +26050,6 @@
    "name": "va-arg-9.c",
    "sha256": "d81cf4ba2a988b659534a2037ecff6039bac090a41e316dad99cfd094c743cba",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
-    "libc-call: strlen",
     "string-literal",
     "type-layout"
    ],
@@ -26752,8 +26073,6 @@
    "name": "va-arg-trap-1.c",
    "sha256": "6fbbc2681a834c531d94a5e7c2d29fc13ce41857d726387ab0c7ef6e0f7e7dad",
    "static_walls": [
-    "libc-call: __builtin_c23_va_start",
-    "libc-call: __builtin_va_end",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26926,7 +26245,6 @@
    "name": "widechar-3.c",
    "sha256": "5d4286b40e5d9479dbf6b34789f480fd4b0f9f183ad4da1cc20d957bf31160b0",
    "static_walls": [
-    "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
    ],
@@ -27992,24 +27310,8 @@
     "zerolen-2.c"
    ],
    "present": 1004,
-   "sole": 430,
+   "sole": 546,
    "wall": "type-layout"
-  },
-  {
-   "files": [
-    "pr108789.c",
-    "pr64006.c",
-    "pr68381.c",
-    "pr71554.c",
-    "pr84169.c",
-    "pr89434.c",
-    "pr91450-1.c",
-    "pr91450-2.c",
-    "pr93213.c"
-   ],
-   "present": 9,
-   "sole": 6,
-   "wall": "libc-call: __builtin_mul_overflow"
   },
   {
    "files": [
@@ -28032,7 +27334,7 @@
     "pr63209.c"
    ],
    "present": 17,
-   "sole": 5,
+   "sole": 7,
    "wall": "unsequenced-effects"
   },
   {
@@ -28058,53 +27360,6 @@
    "present": 17,
    "sole": 4,
    "wall": "libc-call"
-  },
-  {
-   "files": [
-    "pr108789.c",
-    "pr85095.c",
-    "pr90311.c",
-    "pr91635.c",
-    "pr93494.c"
-   ],
-   "present": 5,
-   "sole": 4,
-   "wall": "libc-call: __builtin_add_overflow"
-  },
-  {
-   "files": [
-    "20000703-1.c",
-    "20011121-1.c",
-    "20030408-1.c",
-    "20040411-1.c",
-    "20060930-2.c",
-    "20081103-1.c",
-    "20111212-1.c",
-    "20120105-1.c",
-    "20141107-1.c",
-    "builtins/memops-asm.c",
-    "builtins/mempcpy-2.c",
-    "builtins/strcpy.c",
-    "builtins/strpcpy-2.c",
-    "pr110914.c",
-    "pr38051.c",
-    "pr40668.c",
-    "pr47538.c",
-    "pr53688.c",
-    "pr59229.c",
-    "pr63843.c",
-    "pr64242.c",
-    "pr65369.c",
-    "pr86528.c",
-    "pr86714.c",
-    "pr88693.c",
-    "pr93213.c",
-    "pr98853-1.c",
-    "strlen-7.c"
-   ],
-   "present": 28,
-   "sole": 3,
-   "wall": "libc-call: __builtin_memcpy"
   },
   {
    "files": [
@@ -28138,18 +27393,6 @@
    "present": 26,
    "sole": 3,
    "wall": "cast:IntegralToPointer"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c",
-    "ffs-1.c",
-    "ffs-2.c",
-    "pr61725.c",
-    "pr97325.c"
-   ],
-   "present": 5,
-   "sole": 3,
-   "wall": "libc-call: __builtin_ffs"
   },
   {
    "files": [
@@ -28196,26 +27439,6 @@
   },
   {
    "files": [
-    "20020406-1.c",
-    "20051113-1.c",
-    "920810-1.c",
-    "941014-2.c",
-    "960521-1.c",
-    "990628-1.c",
-    "pr111613.c",
-    "pr41395-1.c",
-    "pr41395-2.c",
-    "pr41463.c",
-    "pr42614.c",
-    "split-path-1.c",
-    "va-arg-21.c"
-   ],
-   "present": 13,
-   "sole": 2,
-   "wall": "libc-call: malloc"
-  },
-  {
-   "files": [
     "20010122-1.c",
     "20030323-1.c",
     "20030811-1.c",
@@ -28224,55 +27447,6 @@
    "present": 4,
    "sole": 2,
    "wall": "libc-call: __builtin_return_address"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20001203-2.c",
-    "20031012-1.c",
-    "20040823-1.c",
-    "20050826-1.c",
-    "20051113-1.c",
-    "20071030-1.c",
-    "20071219-1.c",
-    "920810-1.c",
-    "990513-1.c",
-    "builtins/memset.c",
-    "builtins/sprintf.c",
-    "builtins/strcat.c",
-    "builtins/strncat.c",
-    "builtins/strncpy.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
-    "memcpy-1.c",
-    "memcpy-bi.c",
-    "memset-1.c",
-    "memset-2.c",
-    "memset-3.c",
-    "pr27260.c",
-    "pr30778.c",
-    "pr35472.c",
-    "pr43236.c",
-    "string-opt-5.c"
-   ],
-   "present": 26,
-   "sole": 1,
-   "wall": "libc-call: memset"
-  },
-  {
-   "files": [
-    "20021113-1.c",
-    "20070824-1.c",
-    "alloca-1.c",
-    "built-in-setjmp.c",
-    "frame-address.c",
-    "pr36321.c",
-    "pr64242.c",
-    "pr84521.c",
-    "pr86528.c"
-   ],
-   "present": 9,
-   "sole": 1,
-   "wall": "libc-call: __builtin_alloca"
   },
   {
    "files": [
@@ -28304,20 +27478,6 @@
    "present": 8,
    "sole": 1,
    "wall": "unsupported:AddrLabelExpr"
-  },
-  {
-   "files": [
-    "20071018-1.c",
-    "20071120-1.c",
-    "pr15262-1.c",
-    "pr36765.c",
-    "pr43008.c",
-    "pr84339.c",
-    "strlen-7.c"
-   ],
-   "present": 7,
-   "sole": 1,
-   "wall": "libc-call: __builtin_malloc"
   },
   {
    "files": [
@@ -28356,38 +27516,29 @@
   },
   {
    "files": [
-    "00040.c",
-    "20020406-1.c",
-    "ipa-sra-2.c"
-   ],
-   "present": 3,
-   "sole": 1,
-   "wall": "libc-call: calloc"
-  },
-  {
-   "files": [
-    "pr34130.c",
-    "pr42614.c"
+    "00187.c",
+    "builtins/fputs-lib.c"
    ],
    "present": 2,
    "sole": 1,
-   "wall": "libc-call: __builtin_abs"
+   "wall": "libc-call: fwrite"
   },
   {
    "files": [
-    "pr97386-1.c"
+    "builtins/abs-1.c",
+    "builtins/abs-2.c"
    ],
-   "present": 1,
+   "present": 2,
    "sole": 1,
-   "wall": "libc-call: __builtin_bswap16"
+   "wall": "libc-call: labs"
   },
   {
    "files": [
-    "pr122000.c"
+    "frame-address.c"
    ],
    "present": 1,
    "sole": 1,
-   "wall": "libc-call: __sync_add_and_fetch_8"
+   "wall": "libc-call: __builtin_frame_address"
   },
   {
    "files": [
@@ -28684,84 +27835,6 @@
   },
   {
    "files": [
-    "00056.c",
-    "00125.c",
-    "00131.c",
-    "00132.c",
-    "00154.c",
-    "00156.c",
-    "00157.c",
-    "00158.c",
-    "00159.c",
-    "00160.c",
-    "00161.c",
-    "00163.c",
-    "00164.c",
-    "00165.c",
-    "00166.c",
-    "00167.c",
-    "00168.c",
-    "00169.c",
-    "00170.c",
-    "00171.c",
-    "00172.c",
-    "00173.c",
-    "00174.c",
-    "00175.c",
-    "00176.c",
-    "00177.c",
-    "00178.c",
-    "00179.c",
-    "00180.c",
-    "00181.c",
-    "00182.c",
-    "00183.c",
-    "00184.c",
-    "00185.c",
-    "00186.c",
-    "00187.c",
-    "00188.c",
-    "00189.c",
-    "00190.c",
-    "00191.c",
-    "00192.c",
-    "00193.c",
-    "00194.c",
-    "00195.c",
-    "00196.c",
-    "00197.c",
-    "00198.c",
-    "00199.c",
-    "00200.c",
-    "00201.c",
-    "00202.c",
-    "00203.c",
-    "00204.c",
-    "00205.c",
-    "00206.c",
-    "00207.c",
-    "00208.c",
-    "00211.c",
-    "00212.c",
-    "00213.c",
-    "00214.c",
-    "00215.c",
-    "00216.c",
-    "00217.c",
-    "00218.c",
-    "00219.c",
-    "00220.c",
-    "941014-2.c",
-    "printf-1.c",
-    "strlen-4.c",
-    "va-arg-24.c"
-   ],
-   "present": 71,
-   "sole": 0,
-   "wall": "libc-call: printf"
-  },
-  {
-   "files": [
     "00113.c",
     "00119.c",
     "00123.c",
@@ -28839,139 +27912,6 @@
   },
   {
    "files": [
-    "00204.c",
-    "20000519-1.c",
-    "20041113-1.c",
-    "20071213-1.c",
-    "920501-8.c",
-    "920625-1.c",
-    "920726-1.c",
-    "920908-1.c",
-    "931004-10.c",
-    "931004-12.c",
-    "931004-14.c",
-    "931004-2.c",
-    "931004-4.c",
-    "931004-6.c",
-    "931004-8.c",
-    "980205.c",
-    "980608-1.c",
-    "980716-1.c",
-    "991216-2.c",
-    "builtins/lib/chk.c",
-    "builtins/lib/fprintf.c",
-    "builtins/lib/printf.c",
-    "builtins/lib/sprintf.c",
-    "fprintf-chk-1.c",
-    "gcc/testsuite/gcc.dg/c23-stdarg-9.c",
-    "multi-ix.c",
-    "pr117432.c",
-    "pr44575.c",
-    "pr44942.c",
-    "pr64979.c",
-    "pr92904.c",
-    "printf-chk-1.c",
-    "stdarg-1.c",
-    "stdarg-2.c",
-    "stdarg-3.c",
-    "stdarg-4.c",
-    "strct-stdarg-1.c",
-    "strct-varg-1.c",
-    "va-arg-1.c",
-    "va-arg-10.c",
-    "va-arg-11.c",
-    "va-arg-12.c",
-    "va-arg-13.c",
-    "va-arg-14.c",
-    "va-arg-15.c",
-    "va-arg-16.c",
-    "va-arg-17.c",
-    "va-arg-18.c",
-    "va-arg-19.c",
-    "va-arg-20.c",
-    "va-arg-21.c",
-    "va-arg-23.c",
-    "va-arg-24.c",
-    "va-arg-26.c",
-    "va-arg-4.c",
-    "va-arg-5.c",
-    "va-arg-6.c",
-    "va-arg-7.c",
-    "va-arg-8.c",
-    "va-arg-9.c",
-    "va-arg-trap-1.c"
-   ],
-   "present": 61,
-   "sole": 0,
-   "wall": "libc-call: __builtin_c23_va_start"
-  },
-  {
-   "files": [
-    "20041214-1.c",
-    "20071213-1.c",
-    "920501-8.c",
-    "920625-1.c",
-    "920726-1.c",
-    "920908-1.c",
-    "931004-10.c",
-    "931004-12.c",
-    "931004-14.c",
-    "931004-2.c",
-    "931004-4.c",
-    "931004-6.c",
-    "931004-8.c",
-    "980205.c",
-    "980608-1.c",
-    "980716-1.c",
-    "991216-2.c",
-    "builtins/lib/chk.c",
-    "builtins/lib/fprintf.c",
-    "builtins/lib/printf.c",
-    "builtins/lib/sprintf.c",
-    "fprintf-chk-1.c",
-    "gcc/testsuite/gcc.dg/c23-stdarg-9.c",
-    "multi-ix.c",
-    "pr117432.c",
-    "pr44575.c",
-    "pr44942.c",
-    "pr64979.c",
-    "pr92904.c",
-    "printf-chk-1.c",
-    "stdarg-1.c",
-    "stdarg-2.c",
-    "stdarg-3.c",
-    "stdarg-4.c",
-    "strct-stdarg-1.c",
-    "strct-varg-1.c",
-    "va-arg-1.c",
-    "va-arg-10.c",
-    "va-arg-11.c",
-    "va-arg-12.c",
-    "va-arg-13.c",
-    "va-arg-14.c",
-    "va-arg-15.c",
-    "va-arg-16.c",
-    "va-arg-17.c",
-    "va-arg-18.c",
-    "va-arg-19.c",
-    "va-arg-20.c",
-    "va-arg-21.c",
-    "va-arg-24.c",
-    "va-arg-26.c",
-    "va-arg-4.c",
-    "va-arg-5.c",
-    "va-arg-6.c",
-    "va-arg-7.c",
-    "va-arg-8.c",
-    "va-arg-9.c",
-    "va-arg-trap-1.c"
-   ],
-   "present": 58,
-   "sole": 0,
-   "wall": "libc-call: __builtin_va_end"
-  },
-  {
-   "files": [
     "00174.c",
     "00175.c",
     "00204.c",
@@ -29023,40 +27963,6 @@
   },
   {
    "files": [
-    "20020619-1.c",
-    "20030606-1.c",
-    "20030717-1.c",
-    "20041218-1.c",
-    "20071108-1.c",
-    "20081218-1.c",
-    "20111212-1.c",
-    "20120105-1.c",
-    "990628-1.c",
-    "builtins/memops-asm.c",
-    "memset-4.c",
-    "multi-ix.c",
-    "pr108498-2.c",
-    "pr119428.c",
-    "pr123978.c",
-    "pr22141-1.c",
-    "pr22141-2.c",
-    "pr33870-1.c",
-    "pr33870.c",
-    "pr39339.c",
-    "pr53688.c",
-    "pr59229.c",
-    "pr64242.c",
-    "pr65369.c",
-    "pr77718.c",
-    "pr86714.c",
-    "pr88693.c"
-   ],
-   "present": 27,
-   "sole": 0,
-   "wall": "libc-call: __builtin_memset"
-  },
-  {
-   "files": [
     "00175.c",
     "20000605-1.c",
     "20010118-1.c",
@@ -29087,39 +27993,6 @@
    "present": 26,
    "sole": 0,
    "wall": "cast:FloatingToIntegral"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20050502-2.c",
-    "20050826-1.c",
-    "builtins/memcmp.c",
-    "builtins/memmove-2.c",
-    "builtins/memmove.c",
-    "builtins/memops-asm.c",
-    "builtins/mempcpy-2.c",
-    "builtins/mempcpy.c",
-    "builtins/sprintf.c",
-    "builtins/strcat.c",
-    "builtins/strcpy.c",
-    "builtins/strncat.c",
-    "builtins/strncpy.c",
-    "builtins/strpcpy-2.c",
-    "builtins/strpcpy.c",
-    "ieee/builtin-nan-1.c",
-    "ieee/copysign1.c",
-    "ieee/copysign2.c",
-    "ieee/mzero4.c",
-    "ieee/pr30704.c",
-    "memcpy-bi.c",
-    "pr43236.c",
-    "string-opt-17.c",
-    "string-opt-18.c",
-    "string-opt-5.c"
-   ],
-   "present": 26,
-   "sole": 0,
-   "wall": "libc-call: memcmp"
   },
   {
    "files": [
@@ -29154,145 +28027,6 @@
   },
   {
    "files": [
-    "00025.c",
-    "00179.c",
-    "20010409-1.c",
-    "20011024-1.c",
-    "20050218-1.c",
-    "builtins/fputs-lib.c",
-    "builtins/lib/chk.c",
-    "builtins/strlen-2.c",
-    "builtins/strlen-3.c",
-    "builtins/strlen.c",
-    "builtins/strstr-asm-lib.c",
-    "pr36321.c",
-    "string-opt-5.c",
-    "strlen-1.c",
-    "strlen-2.c",
-    "strlen-3.c",
-    "strlen-4.c",
-    "strlen-5.c",
-    "strlen-6.c",
-    "va-arg-10.c",
-    "va-arg-9.c"
-   ],
-   "present": 21,
-   "sole": 0,
-   "wall": "libc-call: strlen"
-  },
-  {
-   "files": [
-    "00179.c",
-    "00180.c",
-    "20031204-1.c",
-    "20041214-1.c",
-    "20120207-1.c",
-    "980707-1.c",
-    "built-in-setjmp.c",
-    "builtins/memcmp.c",
-    "builtins/strcat.c",
-    "builtins/strcpy-2.c",
-    "builtins/strcpy.c",
-    "builtins/strcspn.c",
-    "builtins/strncat.c",
-    "builtins/strspn.c",
-    "strcpy-1.c",
-    "string-opt-17.c",
-    "string-opt-18.c",
-    "struct-ret-1.c"
-   ],
-   "present": 18,
-   "sole": 0,
-   "wall": "libc-call: strcpy"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20001011-1.c",
-    "20011024-1.c",
-    "20030715-1.c",
-    "20041214-1.c",
-    "20050502-1.c",
-    "980707-1.c",
-    "built-in-setjmp.c",
-    "builtins/strcmp.c",
-    "builtins/strpbrk.c",
-    "gcc/testsuite/gcc.dg/c23-bool-1.c",
-    "p18298.c",
-    "strcmp-1.c",
-    "string-opt-18.c",
-    "string-opt-5.c",
-    "struct-ret-1.c"
-   ],
-   "present": 16,
-   "sole": 0,
-   "wall": "libc-call: strcmp"
-  },
-  {
-   "files": [
-    "20081103-1.c",
-    "ieee/mzero2.c",
-    "ieee/mzero3.c",
-    "ieee/mzero5.c",
-    "pr108498-2.c",
-    "pr36038.c",
-    "pr37573.c",
-    "pr39339.c",
-    "pr57130.c",
-    "pr59229.c",
-    "pr65369.c",
-    "pr77718.c",
-    "pr86714.c",
-    "pr98366.c"
-   ],
-   "present": 14,
-   "sole": 0,
-   "wall": "libc-call: __builtin_memcmp"
-  },
-  {
-   "files": [
-    "20020406-1.c",
-    "20121108-1.c",
-    "20141022-1.c",
-    "builtins/strnlen.c",
-    "memchr-1.c",
-    "pr111863-1.c",
-    "pr71550.c",
-    "pr78622.c",
-    "pr79286.c",
-    "return-addr.c",
-    "strlen-2.c",
-    "strlen-3.c",
-    "strlen-5.c",
-    "strlen-6.c"
-   ],
-   "present": 14,
-   "sole": 0,
-   "wall": "libc-call: __builtin_printf"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20010925-1.c",
-    "20011024-1.c",
-    "20011113-1.c",
-    "20050826-1.c",
-    "920810-1.c",
-    "builtins/memops-asm.c",
-    "builtins/mempcpy.c",
-    "builtins/strcpy.c",
-    "ieee/pr30704.c",
-    "memcpy-1.c",
-    "memcpy-2.c",
-    "memcpy-bi.c",
-    "string-opt-18.c"
-   ],
-   "present": 14,
-   "sole": 0,
-   "wall": "libc-call: memcpy"
-  },
-  {
-   "files": [
     "20010904-1.c",
     "20010904-2.c",
     "20171008-1.c",
@@ -29314,120 +28048,6 @@
   },
   {
    "files": [
-    "20010915-1.c",
-    "20021011-1.c",
-    "920501-8.c",
-    "920726-1.c",
-    "921006-1.c",
-    "921007-1.c",
-    "921117-1.c",
-    "930725-1.c",
-    "builtins/strcmp.c",
-    "ieee/pr108540-1.c",
-    "pr47337.c",
-    "pr60062.c",
-    "pr86528.c"
-   ],
-   "present": 13,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strcmp"
-  },
-  {
-   "files": [
-    "20030221-1.c",
-    "20031012-1.c",
-    "920726-1.c",
-    "builtins/strlen.c",
-    "pr110914.c",
-    "pr116799.c",
-    "pr80153.c",
-    "pr84339.c",
-    "pr86528.c",
-    "pr87053.c",
-    "pr88693.c",
-    "strlen-7.c",
-    "widechar-3.c"
-   ],
-   "present": 13,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strlen"
-  },
-  {
-   "files": [
-    "00186.c",
-    "20030626-1.c",
-    "20030626-2.c",
-    "20070201-1.c",
-    "920501-8.c",
-    "920726-1.c",
-    "960327-1.c",
-    "980605-1.c",
-    "builtins/sprintf.c",
-    "struct-ret-1.c"
-   ],
-   "present": 10,
-   "sole": 0,
-   "wall": "libc-call: sprintf"
-  },
-  {
-   "files": [
-    "ieee/compare-fp-1.c",
-    "ieee/compare-fp-4.c",
-    "ieee/copysign1.c",
-    "ieee/copysign2.c",
-    "ieee/fp-cmp-7.c",
-    "ieee/inf-1.c",
-    "ieee/inf-2.c",
-    "ieee/inf-4.c"
-   ],
-   "present": 8,
-   "sole": 0,
-   "wall": "libc-call: __builtin_inf"
-  },
-  {
-   "files": [
-    "gcc/testsuite/gcc.dg/c23-float-2.c",
-    "gcc/testsuite/gcc.dg/c23-float-3.c",
-    "ieee/copysign1.c",
-    "ieee/copysign2.c",
-    "ieee/inf-1.c",
-    "ieee/inf-2.c",
-    "ieee/pr109386.c"
-   ],
-   "present": 7,
-   "sole": 0,
-   "wall": "libc-call: __builtin_inff"
-  },
-  {
-   "files": [
-    "20021011-1.c",
-    "921117-1.c",
-    "builtins/strcpy.c",
-    "pr84339.c",
-    "pr86528.c",
-    "strcpy-2.c",
-    "strlen-7.c"
-   ],
-   "present": 7,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strcpy"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20050218-1.c",
-    "builtins/strncmp-2.c",
-    "builtins/strncmp.c",
-    "builtins/strstr-asm-lib.c",
-    "string-opt-18.c",
-    "strncmp-1.c"
-   ],
-   "present": 7,
-   "sole": 0,
-   "wall": "libc-call: strncmp"
-  },
-  {
-   "files": [
     "20040302-1.c",
     "20041214-1.c",
     "20071210-1.c",
@@ -29439,45 +28059,6 @@
    "present": 7,
    "sole": 0,
    "wall": "unsupported:IndirectGotoStmt"
-  },
-  {
-   "files": [
-    "gcc/testsuite/gcc.dg/c23-float-4.c",
-    "gcc/testsuite/gcc.dg/c23-float-5.c",
-    "ieee/copysign1.c",
-    "ieee/copysign2.c",
-    "ieee/pr109386.c",
-    "ieee/pr119002.c"
-   ],
-   "present": 6,
-   "sole": 0,
-   "wall": "libc-call: __builtin_nanf"
-  },
-  {
-   "files": [
-    "builtin-prefetch-1.c",
-    "builtin-prefetch-2.c",
-    "builtin-prefetch-3.c",
-    "builtin-prefetch-4.c",
-    "builtin-prefetch-5.c",
-    "builtin-prefetch-6.c"
-   ],
-   "present": 6,
-   "sole": 0,
-   "wall": "libc-call: __builtin_prefetch"
-  },
-  {
-   "files": [
-    "20041126-1.c",
-    "builtins/abs-1.c",
-    "builtins/abs-2.c",
-    "pr33142.c",
-    "ssad-run.c",
-    "usad-run.c"
-   ],
-   "present": 6,
-   "sole": 0,
-   "wall": "libc-call: abs"
   },
   {
    "files": [
@@ -29507,42 +28088,6 @@
   },
   {
    "files": [
-    "00214.c",
-    "20020418-1.c",
-    "ieee/unsafe-fp-assoc-1.c",
-    "pr115277.c",
-    "pr91597.c"
-   ],
-   "present": 5,
-   "sole": 0,
-   "wall": "libc-call: __builtin_expect"
-  },
-  {
-   "files": [
-    "ieee/copysign1.c",
-    "ieee/copysign2.c",
-    "ieee/inf-1.c",
-    "ieee/inf-2.c",
-    "ieee/pr36332.c"
-   ],
-   "present": 5,
-   "sole": 0,
-   "wall": "libc-call: __builtin_infl"
-  },
-  {
-   "files": [
-    "ieee/compare-fp-1.c",
-    "ieee/compare-fp-3.c",
-    "ieee/compare-fp-4.c",
-    "ieee/fp-cmp-5.c",
-    "ieee/fp-cmp-8.c"
-   ],
-   "present": 5,
-   "sole": 0,
-   "wall": "libc-call: __builtin_isunordered"
-  },
-  {
-   "files": [
     "built-in-setjmp.c",
     "builtins/lib/chk.c",
     "pr60003.c",
@@ -29552,30 +28097,6 @@
    "present": 5,
    "sole": 0,
    "wall": "libc-call: __builtin_longjmp"
-  },
-  {
-   "files": [
-    "ieee/builtin-nan-1.c",
-    "ieee/compare-fp-1.c",
-    "ieee/compare-fp-4.c",
-    "ieee/copysign1.c",
-    "ieee/copysign2.c"
-   ],
-   "present": 5,
-   "sole": 0,
-   "wall": "libc-call: __builtin_nan"
-  },
-  {
-   "files": [
-    "00179.c",
-    "20000910-2.c",
-    "builtins/strchr.c",
-    "builtins/strstr-asm-lib.c",
-    "string-opt-5.c"
-   ],
-   "present": 5,
-   "sole": 0,
-   "wall": "libc-call: strchr"
   },
   {
    "files": [
@@ -29591,17 +28112,6 @@
   },
   {
    "files": [
-    "ieee/copysign1.c",
-    "ieee/copysign2.c",
-    "ieee/mzero6.c",
-    "pr44683.c"
-   ],
-   "present": 4,
-   "sole": 0,
-   "wall": "libc-call: __builtin_copysign"
-  },
-  {
-   "files": [
     "built-in-setjmp.c",
     "pr60003.c",
     "pr64242.c",
@@ -29610,26 +28120,6 @@
    "present": 4,
    "sole": 0,
    "wall": "libc-call: __builtin_setjmp"
-  },
-  {
-   "files": [
-    "ieee/copysign1.c",
-    "ieee/copysign2.c",
-    "ieee/pr72824.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: __builtin_copysignf"
-  },
-  {
-   "files": [
-    "ieee/hugeval.c",
-    "ieee/inf-1.c",
-    "ieee/inf-3.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: __builtin_huge_val"
   },
   {
    "files": [
@@ -29643,46 +28133,6 @@
   },
   {
    "files": [
-    "gcc/testsuite/gcc.dg/c23-float-4.c",
-    "ieee/inf-4.c",
-    "ieee/pr108540-1.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: __builtin_isnan"
-  },
-  {
-   "files": [
-    "20080502-1.c",
-    "ieee/pr108540-1.c",
-    "pr35456.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: __builtin_signbit"
-  },
-  {
-   "files": [
-    "20021120-3.c",
-    "pr78586.c",
-    "pr79327.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: __builtin_sprintf"
-  },
-  {
-   "files": [
-    "stdarg-1.c",
-    "va-arg-10.c",
-    "va-arg-14.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: __builtin_va_copy"
-  },
-  {
-   "files": [
     "builtins/memmove-2.c",
     "builtins/memmove.c",
     "builtins/memops-asm.c"
@@ -29690,56 +28140,6 @@
    "present": 3,
    "sole": 0,
    "wall": "libc-call: bcopy"
-  },
-  {
-   "files": [
-    "builtins/memmove-2.c",
-    "builtins/memmove.c",
-    "string-opt-18.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: memmove"
-  },
-  {
-   "files": [
-    "builtins/mempcpy-2.c",
-    "builtins/mempcpy.c",
-    "string-opt-18.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: mempcpy"
-  },
-  {
-   "files": [
-    "00179.c",
-    "builtins/strncpy.c",
-    "string-opt-5.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: strncpy"
-  },
-  {
-   "files": [
-    "00179.c",
-    "builtins/strrchr.c",
-    "string-opt-5.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: strrchr"
-  },
-  {
-   "files": [
-    "builtins/lib/printf.c",
-    "printf-chk-1.c",
-    "va-arg-21.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: vprintf"
   },
   {
    "files": [
@@ -29773,15 +28173,6 @@
   },
   {
    "files": [
-    "bswap-3.c",
-    "pr90025.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_bswap32"
-  },
-  {
-   "files": [
     "20040709-1.c",
     "20040709-2.c"
    ],
@@ -29791,57 +28182,12 @@
   },
   {
    "files": [
-    "builtin-bitops-1.c",
-    "pr37780.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_clz"
-  },
-  {
-   "files": [
     "ieee/copysign1.c",
     "ieee/copysign2.c"
    ],
    "present": 2,
    "sole": 0,
    "wall": "libc-call: __builtin_copysignl"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c",
-    "pr37780.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_ctz"
-  },
-  {
-   "files": [
-    "ieee/20010114-2.c",
-    "ieee/20030331-1.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_fabs"
-  },
-  {
-   "files": [
-    "ieee/inf-1.c",
-    "ieee/inf-3.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_huge_valf"
-  },
-  {
-   "files": [
-    "ieee/inf-1.c",
-    "ieee/inf-3.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_huge_vall"
   },
   {
    "files": [
@@ -29863,15 +28209,6 @@
   },
   {
    "files": [
-    "ieee/pr108540-1.c",
-    "ieee/pr109386.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_isinf"
-  },
-  {
-   "files": [
     "ieee/fp-cmp-5.c",
     "ieee/fp-cmp-8.c"
    ],
@@ -29890,48 +28227,12 @@
   },
   {
    "files": [
-    "builtins/memmove.c",
-    "pr93213.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_memmove"
-  },
-  {
-   "files": [
-    "builtins/mempcpy-2.c",
-    "builtins/mempcpy.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_mempcpy"
-  },
-  {
-   "files": [
-    "ieee/copysign1.c",
-    "ieee/copysign2.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_nanl"
-  },
-  {
-   "files": [
     "builtins/strpcpy-2.c",
     "builtins/strpcpy.c"
    ],
    "present": 2,
    "sole": 0,
    "wall": "libc-call: __builtin_stpcpy"
-  },
-  {
-   "files": [
-    "builtins/strncpy.c",
-    "pr93249.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strncpy"
   },
   {
    "files": [
@@ -29971,42 +28272,6 @@
   },
   {
    "files": [
-    "990826-0.c",
-    "float-floor.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: floor"
-  },
-  {
-   "files": [
-    "fprintf-1.c",
-    "gofast.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: fprintf"
-  },
-  {
-   "files": [
-    "ipa-sra-2.c",
-    "pr42614.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: free"
-  },
-  {
-   "files": [
-    "00187.c",
-    "builtins/fputs-lib.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: fwrite"
-  },
-  {
-   "files": [
     "builtins/20010124-1.c",
     "gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c"
    ],
@@ -30016,30 +28281,12 @@
   },
   {
    "files": [
-    "builtins/abs-1.c",
-    "builtins/abs-2.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: labs"
-  },
-  {
-   "files": [
     "20210505-1.c",
     "pr56982.c"
    ],
    "present": 2,
    "sole": 0,
    "wall": "libc-call: longjmp"
-  },
-  {
-   "files": [
-    "builtins/memchr.c",
-    "memchr-1.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: memchr"
   },
   {
    "files": [
@@ -30079,15 +28326,6 @@
   },
   {
    "files": [
-    "00179.c",
-    "builtins/strcat.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: strcat"
-  },
-  {
-   "files": [
     "builtins/strstr-asm.c",
     "builtins/strstr.c"
    ],
@@ -30112,15 +28350,6 @@
    "present": 2,
    "sole": 0,
    "wall": "libc-call: ulabs"
-  },
-  {
-   "files": [
-    "builtins/lib/fprintf.c",
-    "fprintf-chk-1.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: vfprintf"
   },
   {
    "files": [
@@ -30167,14 +28396,6 @@
   },
   {
    "files": [
-    "bswap-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_bswap64"
-  },
-  {
-   "files": [
     "builtins/memops-asm.c"
    ],
    "present": 1,
@@ -30183,171 +28404,11 @@
   },
   {
    "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_clrsb"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_clrsbl"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_clrsbll"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_clzl"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_clzll"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_ctzl"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_ctzll"
-  },
-  {
-   "files": [
-    "ieee/pr109386.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_fabsf"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_ffsl"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_ffsll"
-  },
-  {
-   "files": [
-    "frame-address.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_frame_address"
-  },
-  {
-   "files": [
-    "pr84339.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_free"
-  },
-  {
-   "files": [
     "builtins/strchr.c"
    ],
    "present": 1,
    "sole": 0,
    "wall": "libc-call: __builtin_index"
-  },
-  {
-   "files": [
-    "ieee/inf-4.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_isfinite"
-  },
-  {
-   "files": [
-    "builtins/memchr.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_memchr"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_parity"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_parityl"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_parityll"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_popcount"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_popcountl"
-  },
-  {
-   "files": [
-    "builtin-bitops-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_popcountll"
   },
   {
    "files": [
@@ -30364,14 +28425,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: __builtin_snprintf"
-  },
-  {
-   "files": [
-    "builtins/strcat.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strcat"
   },
   {
    "files": [
@@ -30399,14 +28452,6 @@
   },
   {
    "files": [
-    "builtins/strncmp.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_strncmp"
-  },
-  {
-   "files": [
     "builtins/strpbrk.c"
    ],
    "present": 1,
@@ -30428,14 +28473,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: __builtin_strspn"
-  },
-  {
-   "files": [
-    "20041214-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_va_start"
   },
   {
    "files": [
@@ -30476,14 +28513,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: compare1"
-  },
-  {
-   "files": [
-    "20020720-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: fabs"
   },
   {
    "files": [
@@ -30687,14 +28716,6 @@
   },
   {
    "files": [
-    "00204.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: putchar"
-  },
-  {
-   "files": [
     "pr34456.c"
    ],
    "present": 1,
@@ -30740,14 +28761,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: strncat"
-  },
-  {
-   "files": [
-    "builtins/strnlen.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: strnlen"
   },
   {
    "files": [
