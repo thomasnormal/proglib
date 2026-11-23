@@ -589,6 +589,29 @@ theorem CoreMemDesign.setScalarState_view_lookup_two_of_ne
     (CoreMemDesign.setScalarState_spec hc hxN vN).2 hxM hneM]
   exact CoreMemDesign.setScalarState_view_lookup_of_ne hc hxN hneN
 
+/-! Two distinct scalar writes commute once the cross-slot scalar values are
+ explicitly equal.  This is the concrete cache-level frame used before any
+ scheduler diamond is stated. -/
+theorem CoreMemDesign.setScalarState_commute_of_cross_values
+    {E : CoreMemDesign} {st : CoreMemState}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hdecl : xN.decl ≠ xM.decl)
+    (hvalM : (E.setScalarState st n vN).scalar xM = st.scalar xM)
+    (hvalN : (E.setScalarState st m vM).scalar xN = st.scalar xN) :
+    E.setScalarState (E.setScalarState st n vN) m vM =
+      E.setScalarState (E.setScalarState st m vM) n vN := by
+  have hvalM' := hvalM
+  have hvalN' := hvalN
+  simp only [CoreMemDesign.setScalarState, hxN] at hvalM'
+  simp only [CoreMemDesign.setScalarState, hxM] at hvalN'
+  simp only [Array.set!] at hvalM' hvalN'
+  simp only [CoreMemDesign.setScalarState, hxN, hxM]
+  simp only [Array.set!]
+  rw [Array.setIfInBounds_comm _ _ hdecl]
+  rw [hvalM', hvalN']
+
 theorem CoreMemDesign.evalScalarV_congr_readsV_of_pure
     {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
     {v v' : SvState} {ctx : Option Nat} {e : PExpr}

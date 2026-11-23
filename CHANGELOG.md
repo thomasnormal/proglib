@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added an explicit cross-value cache frame showing when two distinct
+  `setScalarState` writes commute on the concrete state representation.
+
 - Added single- and two-write lookup frame lemmas for coherent
   `setScalarState` updates, exposing the unchanged-name boundary used by
   parser-native evaluator frames.
