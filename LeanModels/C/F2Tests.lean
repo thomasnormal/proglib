@@ -27,6 +27,12 @@ def one : TestStore :=
   (.address 16) 8).isSome
 #guard (allocateAligned empty { bytes := [oneByte], state := () }
   (.address 18) 8).isNone
+#guard placementWithin 8 4 16
+#guard !placementWithin 14 4 16
+#guard (allocateBounded empty { bytes := [oneByte], state := () }
+  (.address 8) 8 16).isOk
+#guard (allocateBounded empty { bytes := [oneByte], state := () }
+  (.address 14) 1 16) == .error .exhausted
 
 def footprintWidth : Footprint → Nat
   | { accesses := [(_, region)] } => region.width
