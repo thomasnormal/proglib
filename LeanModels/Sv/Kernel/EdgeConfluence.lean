@@ -152,6 +152,30 @@ theorem CoreMemDesign.edge_evalExprLocals_two_write_frame_of_parser_closure
   · intro y hy
     exact hguardN y (hclosureN y hy)
 
+theorem CoreMemDesign.edge_evalExprLocals_two_write_frame_of_driver_closure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    {processes : List PProcess} {fuelN fuelM : Nat} {namesN namesM : List String}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (hclosureN : ∀ y ∈ E.readsV env elems ctx e,
+      y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN)
+    (hclosureM : ∀ y ∈ E.readsV env elems ctx e,
+      y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM)
+    (hguardN : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN, y ≠ m)
+    (hguardM : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM, y ≠ n) :
+    E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st n vN) m vM) ctx locals e =
+      E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st m vM) n vN) ctx locals e := by
+  exact CoreMemDesign.edge_evalExprLocals_two_write_frame_of_parser_closure
+    hc hxN hxM hmem hcall hne hclosureN hclosureM hguardN hguardM
+
 def EdgeScheduleStep (E : CoreMemDesign) (before after v : SvState) (mv : MemV)
     (s t : EdgeScheduleState) : Prop :=
   ∃ i q, i ∈ s.pending ∧ edgeProcQ E before after v mv i = .ok q ∧
