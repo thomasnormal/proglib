@@ -822,6 +822,35 @@ theorem pairedLoadByte_corresponds
   obtain ⟨sourceResult, targetResult, hpair⟩ := hresult
   simp_all
 
+structure StoreLoadPair (Tag State : Type) where
+  sourceStore : Store Tag State × Footprint
+  targetStore : Store Tag State × Footprint
+  sourceLoad : Byte Tag × Footprint
+  targetLoad : Byte Tag × Footprint
+deriving Repr
+
+def pairedStoreLoadByte (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag) : Option (StoreLoadPair Tag State) := do
+  let stores ← pairedStoreByte resolve store id offset byte
+  let sourceLoad ← loadByte stores.1.1 id offset
+  let targetLoad ← loadByte stores.2.1 id offset
+  if targetLoad.1 = renameByte resolve sourceLoad.1 &&
+      targetLoad.2 = sourceLoad.2 then
+    some { sourceStore := stores.1, targetStore := stores.2
+           sourceLoad := sourceLoad, targetLoad := targetLoad }
+  else none
+
+theorem pairedStoreLoadByte_sound (resolve : AllocId → Nat)
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (pair : StoreLoadPair Tag State)
+    (hpair : pairedStoreLoadByte resolve store id offset byte = some pair) :
+    pair.targetStore.1 = renameStore resolve pair.sourceStore.1 ∧
+      pair.targetLoad.1 = renameByte resolve pair.sourceLoad.1 ∧
+      pair.targetStore.2 = pair.sourceStore.2 ∧
+      pair.targetLoad.2 = pair.sourceLoad.2 := by
+  simp [pairedStoreLoadByte, pairedStoreByte] at hpair
+  split at hpair <;> simp_all
+
 def endLifetime (store : Store Tag State) (id : AllocId) :
     Option (Store Tag State × Footprint) := do
   let allocation ← lookup store id
