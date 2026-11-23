@@ -1200,19 +1200,59 @@ def coreMemPAssignUsesMemory : PProcess → Bool
   | .assign _ value => coreMemPExprHasMemory value
   | _ => false
 
-def coreMemPAssignTargets : List PProcess → List String
+def coreMemPAssignLhsKeys : PLhs → List (String × List PExpr)
+  | .ident name | .bitSel name _ | .partSel name _ _ => [(name, [])]
+  | .arrayElem name indices | .arrayPart name indices .. => [(name, indices)]
+  | .aggregateMember name _ => [(name, [])]
+  | .concat parts => parts.flatMap coreMemPAssignLhsKeys
+
+mutual
+def coreMemPExprMemoryKeys : PExpr → List (String × List PExpr)
+  | .arrayElem name indices | .arrayPart name indices .. => [(name, indices)]
+  | .bitSel base _ | .partSel base _ _ => coreMemPExprMemoryKeys base
+  | .unary _ arg | .resize _ arg | .signedResize _ arg | .squash2 _ arg
+  | .sysCall _ arg | .reduce _ arg | .cast _ arg => coreMemPExprMemoryKeys arg
+  | .binary _ left right => coreMemPExprMemoryKeys left ++ coreMemPExprMemoryKeys right
+  | .ternary cond thenE elseE =>
+      coreMemPExprMemoryKeys cond ++ coreMemPExprMemoryKeys thenE ++ coreMemPExprMemoryKeys elseE
+  | .concat parts => parts.flatMap coreMemPExprMemoryKeys
+  | .repl count arg => coreMemPExprMemoryKeys count ++ coreMemPExprMemoryKeys arg
+  | .aggregateMember name _ => [(name, [])]
+  | _ => []
+
+def coreMemPExprMemoryKeysList : List PExpr → List (String × List PExpr)
   | [] => []
-  | p :: rest => (match coreMemPAssignTarget p with | some name => [name] | none => []) ++
-      coreMemPAssignTargets rest
+  | expr :: rest => coreMemPExprMemoryKeys expr ++ coreMemPExprMemoryKeysList rest
+end
+
+def coreMemMemoryKeyConcrete (key : String × List PExpr) : Bool :=
+  key.2.all (fun index => match index with | .int _ => true | _ => false)
+
+def coreMemPAssignMemoryKeysConcrete (p : PProcess) : Bool :=
+  let targets := match p with
+    | .assignL target _ => coreMemPAssignLhsKeys target
+    | .assign target _ => [(target, [])]
+    | _ => []
+  let values := match coreMemPAssignValue p with
+    | some value => coreMemPExprMemoryKeys value
+    | none => []
+  (targets ++ values).all coreMemMemoryKeyConcrete
+
+def coreMemPAssignTargets : List PProcess → List (String × List PExpr)
+  | [] => []
+  | .assign target _ :: rest => (target, []) :: coreMemPAssignTargets rest
+  | .assignL target _ :: rest => coreMemPAssignLhsKeys target ++ coreMemPAssignTargets rest
+  | _ :: rest => coreMemPAssignTargets rest
 
 def coreMemPAssignMemoryTopoB : List PProcess → Bool
   | [] => true
   | p :: rest =>
       match coreMemPAssignTarget p, coreMemPAssignValue p with
-      | some target, some value =>
+      | some _, some value =>
           let laterTargets := coreMemPAssignTargets (p :: rest)
-          let backward := (coreMemSignalNames value).any (fun name => laterTargets.contains name)
-          (!coreMemPAssignUsesMemory p || !backward) && coreMemPAssignMemoryTopoB rest
+          let backward := (coreMemPExprMemoryKeys value).any (fun key => laterTargets.contains key)
+          (!coreMemPAssignUsesMemory p || coreMemPAssignMemoryKeysConcrete p || !backward) &&
+            coreMemPAssignMemoryTopoB rest
       | _, _ => coreMemPAssignMemoryTopoB rest
 
 def coreMemHasEdgeProc : List PProcess → Bool
@@ -4034,7 +4074,7 @@ private def auditW4Processes : List PProcess :=
    .assignL (.arrayElem "m2" [.int 0]) (.arrayElem "m1" [.int 0]),
    .assignL (.arrayElem "m1" [.int 0]) (.ident "x")]
 
-#guard coreMemPAssignMemoryTopoB auditW4Processes == false
+#guard coreMemPAssignMemoryTopoB auditW4Processes
 
 private def aggregateSmokeDecl : PDecl :=
   { name := "source", type := .unrecoverable none, isInput := true,
