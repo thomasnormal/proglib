@@ -94,6 +94,37 @@ theorem EdgeScheduleAdmission.of_processes_range
 
 #print axioms EdgeScheduleAdmission.of_processes_range
 
+theorem edgeProcQ_targets
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {i : Nat} {p : CoreMemProc} {q : NbaQueue2}
+    (hi : E.processes[i]? = some p) (hp : p.nbaWholeP = true)
+    (hq : edgeProcQ E before after v mv i = .ok q) :
+    ∀ u ∈ q, u.1 ∈ p.targets := by
+  simp only [edgeProcQ, hi] at hq
+  cases hpe : p.edge? with
+  | none =>
+      rw [CoreMemDesign.procQ_of_none hpe] at hq
+      simp only [Res.ok.injEq] at hq
+      subst q
+      simp
+  | some f =>
+      rw [CoreMemDesign.procQ_of_edge? hpe] at hq
+      rw [CoreMemProc.targets_of_edge? hpe]
+      rw [CoreMemProc.nbaWholeP_of_edge? hpe] at hp
+      split at hq
+      · rename_i hf
+        simp only [Res.bind_eq_ok, Res.ok.injEq] at hq
+        obtain ⟨⟨v1, a, ma⟩, h1, rfl⟩ := hq
+        obtain ⟨rfl, ha, rfl⟩ := CoreMemDesign.execV_nbaWhole v mv f.body v1 a ma hp h1
+        intro u hu
+        exact List.mem_eraseDups.mpr (ha u hu)
+      · rename_i hf
+        simp only [Res.ok.injEq] at hq
+        subst q
+        simp
+
+#print axioms edgeProcQ_targets
+
 private theorem removeProcessId_mem_of_ne {i j : Nat} {xs : List Nat}
     (h : j ∈ xs) (hne : j ≠ i) : j ∈ removeProcessId i xs := by
   simp [removeProcessId, h, hne]
