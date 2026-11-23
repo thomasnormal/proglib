@@ -98,6 +98,26 @@ structure LocationState (TypeId : Type) where
   initialized : Bool
 deriving Repr
 
+abbrev LocationStore (TypeId : Type) :=
+  List (AllocId × Nat × LocationState TypeId)
+
+def setLocation (locations : LocationStore TypeId) (allocation offset : Nat)
+    (state : LocationState TypeId) : Option (LocationStore TypeId) :=
+  if locations.any (fun entry => entry.1 == allocation && entry.2 == offset) then
+    some (locations.map (fun entry =>
+      if entry.1 == allocation && entry.2 == offset then
+        (allocation, offset, state)
+      else entry))
+  else none
+
+theorem setLocation_length (locations : LocationStore TypeId)
+    (allocation offset : Nat) (state : LocationState TypeId)
+    (result : LocationStore TypeId)
+    (hresult : setLocation locations allocation offset state = some result) :
+    result.length = locations.length := by
+  simp [setLocation] at hresult
+  split at hresult <;> simp_all
+
 structure Store (Tag State : Type) where
   allocations : List (AllocId × Allocation Tag State)
   nextId : AllocId
