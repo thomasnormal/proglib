@@ -12,11 +12,11 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1159,
+   "passed": 1162,
    "refused-libc": 26,
    "refused-ub": 39,
-   "refused-unsupported": 196,
-   "runner-error": 11
+   "refused-unsupported": 194,
+   "runner-error": 10
   },
   "gcc.c23-run": {
    "not-parsed": 34,
@@ -32,11 +32,11 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1361,
+  "passed": 1364,
   "refused-libc": 28,
   "refused-ub": 45,
-  "refused-unsupported": 332,
-  "runner-error": 12
+  "refused-unsupported": 330,
+  "runner-error": 11
  },
  "dynamic_wall_ranking": [
   {
@@ -696,7 +696,7 @@
    ],
    "present": 12,
    "sole": 12,
-   "wall": "unsupported:integer-to-pointer conversion outside pointer type"
+   "wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery"
   },
   {
    "files": [
@@ -798,6 +798,16 @@
   },
   {
    "files": [
+    "gcc/testsuite/gcc.dg/c23-float-3.c",
+    "ieee/copysign1.c",
+    "ieee/copysign2.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'"
+  },
+  {
+   "files": [
     "00051.c",
     "00143.c",
     "medce-1.c"
@@ -872,15 +882,6 @@
   },
   {
    "files": [
-    "20020406-1.c",
-    "string-opt-5.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsequenced-effects"
-  },
-  {
-   "files": [
     "20071211-1.c",
     "pr81588.c"
    ],
@@ -914,15 +915,6 @@
    "present": 2,
    "sole": 2,
    "wall": "unsupported:byte copy spans a subobject boundary"
-  },
-  {
-   "files": [
-    "gcc/testsuite/gcc.dg/c23-float-3.c",
-    "ieee/copysign2.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'"
   },
   {
    "files": [
@@ -1229,14 +1221,6 @@
   },
   {
    "files": [
-    "ieee/copysign1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for declared type 'const struct Df[8]'"
-  },
-  {
-   "files": [
     "gcc/testsuite/gcc.dg/c23-parm-omit-3.c"
    ],
    "present": 1,
@@ -1384,8 +1368,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-23T23:08:58Z",
- "measured_commit": "cd6ae3b6b",
+ "measured_at_utc": "2026-11-23T23:30:00Z",
+ "measured_commit": "d8a03e68ce19020b583976ed42b34be8e9c44776",
  "pin": "C1-C3",
  "rows": [
   {
@@ -3849,8 +3833,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "00214.c",
    "sha256": "5164bc3a4482815ba765ec253765a69bf59bc074e4313fdf607e4554daf798bb",
@@ -4312,8 +4296,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "20000622-1.c",
    "sha256": "6205380b86f91172e9e941c846cc3f33c0e16affe937b04804bb497aad19ed96",
@@ -5099,8 +5083,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "20010329-1.c",
    "sha256": "2ceea77f27478e0417a31cf60b446e25b59d4e826a265a97088f22936bb30560",
@@ -5779,8 +5763,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in call arguments",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20020406-1.c",
    "sha256": "34df7369b73cbc4f119553b58f5fa4fe373fa108f9c3d790a62e997f6a9b8816",
@@ -5789,7 +5773,7 @@
     "type-layout",
     "unsequenced-effects"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6073,8 +6057,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "20021010-2.c",
    "sha256": "db712e8a4916d3e933ef6add4db64c1a0e3808452897a5156ffdffdf105d5574",
@@ -7344,8 +7328,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "20041112-1.c",
    "sha256": "1dea30cad5697db71e774a3f55f061505fdb9f09b27e79a0320d2171103f3576",
@@ -7570,8 +7554,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "20050125-1.c",
    "sha256": "4a29243c05c71c8eb655fe7dbe5212d8e9ba47756332e7d10c56d558e32174e9",
@@ -11150,8 +11134,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "960116-1.c",
    "sha256": "92c13b1c9671cba3398b79b5ee868843c8e42049627c1d62655bd652383d9d44",
@@ -13009,8 +12993,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "builtin-prefetch-6.c",
    "sha256": "f2dceeb20e3502ea409668ace21144dfd392ed961a49eeb9646745b0b35d290a",
@@ -16322,8 +16306,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for declared type 'const struct Df[8]'",
-   "dynamic_wall": "unsupported:no layout for declared type 'const struct Df[8]'",
+   "detail": "call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'",
+   "dynamic_wall": "unsupported:call to '__builtin_inff' in a context with no program \u2014 call it through 'callByName'",
    "manifest_status": "parsed",
    "name": "ieee/copysign1.c",
    "sha256": "eaa559171205738e58dbe5e0bb0c390594e9193c8845b1b3d2d479d7746acae6",
@@ -17190,8 +17174,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "loop-2e.c",
    "sha256": "565f5ebbedd5f99f00dbfc33f17706d2ee4e9224d9c4fc59e2b5f5b2970e438c",
@@ -17886,8 +17870,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "pr103255.c",
    "sha256": "3dc66d164d91b0e1ee7b0abad7977cd486f8d90081d495da6efc95bebd085760",
@@ -20375,8 +20359,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "pr39233.c",
    "sha256": "cef0e1c6fdd21df7977d0ee7966c919044f257bdc8359032ede0839ad94075da",
@@ -24129,8 +24113,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "integer-to-pointer conversion outside pointer type",
-   "dynamic_wall": "unsupported:integer-to-pointer conversion outside pointer type",
+   "detail": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
+   "dynamic_wall": "unsupported:isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
    "manifest_status": "parsed",
    "name": "pr86231.c",
    "sha256": "f564f3b69dd1ad15a61941cac42ad531d470a47b2472b7e9b3312f7d0bb74265",
@@ -25351,7 +25335,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 30s",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strcpy-1.c",
@@ -25359,7 +25343,7 @@
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "runner-error"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25476,8 +25460,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "unsequenced side effects in call arguments",
-   "dynamic_wall": "unsequenced-effects",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "string-opt-5.c",
    "sha256": "ae4d5bc865c6d2b4c4ca3a0633f3e87dd76e5c38b5a9dc6c2008b602e187ae8a",
@@ -25485,7 +25469,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
