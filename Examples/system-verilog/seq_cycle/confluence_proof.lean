@@ -117,8 +117,102 @@ theorem case_bridge {E : CoreMemDesign} (hE : caseF.e = .ok E) {st : CoreMemStat
   exact CoreMemDesign.edge_schedule_refines_step_guarded hP hdrivers htopo hinputs hsources hreads hedge hconverted
     hc hmc hty hslot hσ
 
+/-! Concrete scheduler-path receipts for the three source-shaped envelopes.
+    The queue, disjointness, and evaluator receipts remain explicit premises.
+    Each theorem therefore instantiates the scheduler relation on a real
+    envelope without hiding a design-specific admission assumption. -/
+theorem shreg_scheduler_terminal (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30)
+    {E : CoreMemDesign} (hE : shreg.e N = .ok E)
+    {s : EdgeScheduleState} (hs : s.pending = List.range E.processes.size)
+    (F : Nat → NbaQueue2) {mv : MemV}
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ s.view s.view s.view mv p = .ok (F k))
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, u.1 ≠ u'.1)
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV} (hroute : E.edgesV s.view s.view s.view mv E.processes.toList = .ok r) :
+    ∃ n t, EdgeScheduleTerminalPath E s.view s.view s.view mv n s t ∧
+      t.view = commitNba2 s.view r.2.1 := by
+  have hD : SeqDesign (shreg.e N) "clk" := by
+    cases hX : shreg.e N with
+    | ok E' =>
+        sv_seq_inst [shreg.e, shreg.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [shreg.e, shreg.pdesign] at hX
+    | unsupported m => sv_seq_inst [shreg.e, shreg.pdesign] at hX
+  obtain ⟨E', hE', _, _⟩ := hD
+  have hEq : E' = E := Res.ok.inj (hE'.symm.trans hE)
+  subst E'
+  obtain ⟨n, t, hp⟩ := EdgeScheduleTerminalPath.exists_processes_range F hs hw hq hdisj hkeys
+  obtain ⟨r', hr', hv⟩ := EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed F hs hw hq hdisj hkeys hp hroute
+  have heq : r' = r := Res.ok.inj (hr'.symm.trans hroute)
+  subst r'
+  exact ⟨n, t, hp, hv⟩
+
+theorem cnt_scheduler_terminal (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30)
+    {E : CoreMemDesign} (hE : cnt.e N = .ok E)
+    {s : EdgeScheduleState} (hs : s.pending = List.range E.processes.size)
+    (F : Nat → NbaQueue2) {mv : MemV}
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ s.view s.view s.view mv p = .ok (F k))
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, u.1 ≠ u'.1)
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV} (hroute : E.edgesV s.view s.view s.view mv E.processes.toList = .ok r) :
+    ∃ n t, EdgeScheduleTerminalPath E s.view s.view s.view mv n s t ∧
+      t.view = commitNba2 s.view r.2.1 := by
+  have hD : SeqDesign (cnt.e N) "clk" := by
+    cases hX : cnt.e N with
+    | ok E' =>
+        sv_seq_inst [cnt.e, cnt.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [cnt.e, cnt.pdesign] at hX
+    | unsupported m => sv_seq_inst [cnt.e, cnt.pdesign] at hX
+  obtain ⟨E', hE', _, _⟩ := hD
+  have hEq : E' = E := Res.ok.inj (hE'.symm.trans hE)
+  subst E'
+  obtain ⟨n, t, hp⟩ := EdgeScheduleTerminalPath.exists_processes_range F hs hw hq hdisj hkeys
+  obtain ⟨r', hr', hv⟩ := EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed F hs hw hq hdisj hkeys hp hroute
+  have heq : r' = r := Res.ok.inj (hr'.symm.trans hroute)
+  subst r'
+  exact ⟨n, t, hp, hv⟩
+
+theorem case_scheduler_terminal
+    {E : CoreMemDesign} (hE : caseF.e = .ok E)
+    {s : EdgeScheduleState} (hs : s.pending = List.range E.processes.size)
+    (F : Nat → NbaQueue2) {mv : MemV}
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ s.view s.view s.view mv p = .ok (F k))
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, u.1 ≠ u'.1)
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV} (hroute : E.edgesV s.view s.view s.view mv E.processes.toList = .ok r) :
+    ∃ n t, EdgeScheduleTerminalPath E s.view s.view s.view mv n s t ∧
+      t.view = commitNba2 s.view r.2.1 := by
+  have hD : SeqDesign caseF.e "clk" := by
+    cases hX : caseF.e with
+    | ok E' =>
+        sv_seq_inst [caseF.e, caseF.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [caseF.e, caseF.pdesign] at hX
+    | unsupported m => sv_seq_inst [caseF.e, caseF.pdesign] at hX
+  obtain ⟨E', hE', _, _⟩ := hD
+  have hEq : E' = E := Res.ok.inj (hE'.symm.trans hE)
+  subst E'
+  obtain ⟨n, t, hp⟩ := EdgeScheduleTerminalPath.exists_processes_range F hs hw hq hdisj hkeys
+  obtain ⟨r', hr', hv⟩ := EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed F hs hw hq hdisj hkeys hp hroute
+  have heq : r' = r := Res.ok.inj (hr'.symm.trans hroute)
+  subst r'
+  exact ⟨n, t, hp, hv⟩
+
 #print axioms shreg_bridge
 #print axioms cnt_bridge
 #print axioms case_bridge
+#print axioms shreg_scheduler_terminal
+#print axioms cnt_scheduler_terminal
+#print axioms case_scheduler_terminal
 
 end Examples.«system-verilog».seq_cycle.confluence_proof

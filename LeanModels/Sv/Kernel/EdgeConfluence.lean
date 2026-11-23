@@ -61,7 +61,7 @@ theorem EdgeScheduleAdmission.of_processes_range
     (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
     (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
       E.procQ before after v mv p = .ok (F k))
-    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, NbaDisj u u') :
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, u.1 ≠ u'.1) :
     EdgeScheduleAdmission E before after v mv (List.range E.processes.size) := by
   refine {
     nodup := List.nodup_range,
@@ -80,31 +80,19 @@ theorem EdgeScheduleAdmission.of_processes_range
     have hj' : j < E.processes.size := List.mem_range.mp hj
     have hqi : q₁ = F i := by
       apply Res.ok.inj
-      exact hq₁.symm.trans (hq i E.processes[i] (Array.getElem?_eq_getElem hi'))
+      exact hq₁.symm.trans (by
+        simpa [edgeProcQ, Array.getElem?_eq_getElem hi'] using
+          hq i E.processes[i] (Array.getElem?_eq_getElem hi'))
     have hqj : q₂ = F j := by
       apply Res.ok.inj
-      exact hq₂.symm.trans (hq j E.processes[j] (Array.getElem?_eq_getElem hj'))
+      exact hq₂.symm.trans (by
+        simpa [edgeProcQ, Array.getElem?_eq_getElem hj'] using
+          hq j E.processes[j] (Array.getElem?_eq_getElem hj'))
     subst q₁
     subst q₂
     exact hdisj i j hij u hu u' hu'
 
 #print axioms EdgeScheduleAdmission.of_processes_range
-
-theorem EdgeScheduleTerminalPath.exists_processes_range
-    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
-    {s : EdgeScheduleState} (F : Nat → NbaQueue2)
-    (hs : s.pending = List.range E.processes.size)
-    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
-    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
-      E.procQ before after v mv p = .ok (F k))
-    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, NbaDisj u u')
-    (hkeys : (s.view.map Prod.fst).Nodup) :
-    ∃ n t, EdgeScheduleTerminalPath E before after v mv n s t := by
-  have ad := EdgeScheduleAdmission.of_processes_range F hw hq hdisj
-  rw [hs]
-  exact EdgeScheduleTerminalPath.exists ad (by simp) (by simp) hkeys
-
-#print axioms EdgeScheduleTerminalPath.exists_processes_range
 
 private theorem removeProcessId_mem_of_ne {i j : Nat} {xs : List Nat}
     (h : j ∈ xs) (hne : j ≠ i) : j ∈ removeProcessId i xs := by
@@ -301,6 +289,23 @@ theorem EdgeScheduleTerminalPath.exists
             obtain ⟨n, t, ht⟩ := ih u.pending.length hlt u rfl hu.2.1 hu.1 hu.2.2
             exact ⟨n + 1, t, .head hempty hstep ht⟩
   exact aux s.pending.length s rfl hsub hnodup hkeys
+
+theorem EdgeScheduleTerminalPath.exists_processes_range
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {s : EdgeScheduleState} (F : Nat → NbaQueue2)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after v mv p = .ok (F k))
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, u.1 ≠ u'.1)
+    (hkeys : (s.view.map Prod.fst).Nodup) :
+    ∃ n t, EdgeScheduleTerminalPath E before after v mv n s t := by
+  have ad := EdgeScheduleAdmission.of_processes_range F hw hq hdisj
+  exact EdgeScheduleTerminalPath.exists ad
+    (by intro i hi; simpa [hs] using hi)
+    (by simpa [hs] using (List.nodup_range : (List.range E.processes.size).Nodup)) hkeys
+
+#print axioms EdgeScheduleTerminalPath.exists_processes_range
 
 /-! The terminal trace records the exact queue contributed by every selected
 process.  The process order remains a permutation, so this is the bridge used
@@ -533,7 +538,7 @@ theorem EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed
     (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
     (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
       E.procQ before after s.view mv p = .ok (F k))
-    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, NbaDisj u u')
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, u.1 ≠ u'.1)
     (hkeys : (s.view.map Prod.fst).Nodup)
     (hp : EdgeScheduleTerminalPath E before after s.view mv n s t)
     {r : ExecV}
@@ -564,7 +569,8 @@ theorem EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed
           rw [hs]
           simpa [Nat.zero_add] using hqroute
         simpa [hqroute']
-  have hview := EdgeScheduleTerminalPath.view_eq_edgesV_commit F hqEdge hdisj
+  have hview := EdgeScheduleTerminalPath.view_eq_edgesV_commit F hqEdge
+    (fun i j hij u hu u' hu' => Or.inl (hdisj i j hij u hu u' hu'))
     (by intro i hi; exact hi)
     (by simpa [hs] using (List.nodup_range : (List.range E.processes.size).Nodup))
     hkeys hp hroute'
@@ -587,7 +593,7 @@ theorem EdgeScheduleTerminalPath.refines_step
     (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
     (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
       E.procQ before after s.view mv p = .ok (F k))
-    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, NbaDisj u u')
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, u.1 ≠ u'.1)
     (hkeys : (s.view.map Prod.fst).Nodup)
     (hp : EdgeScheduleTerminalPath E before after s.view mv n s t)
     {r : ExecV}
