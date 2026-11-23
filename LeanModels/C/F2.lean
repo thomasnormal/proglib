@@ -522,6 +522,34 @@ def reallocMetadata (old : AllocationMetadata Tag State TypeId)
         footprint .metadata { allocation := 0, offset := 0,
           width := request.bytes.length })
 
+def pairedReallocMetadata (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement) :
+    Option ((ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint)) := do
+  let sourceResult ← reallocMetadata old request locations placement
+  let targetResult ← reallocMetadata (renameMetadata resolve 0 old) request locations
+    (match placement with
+    | .address _ => .address (resolve 0)
+    | .unaddressable => .unaddressable
+    | .fail => .fail)
+  if targetResult.2 = sourceResult.2 then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedReallocMetadata_footprint
+    (resolve : AllocId → Nat) (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old request locations placement =
+      some result) :
+    result.2.2 = result.1.2 := by
+  simp [pairedReallocMetadata] at hresult
+  split at hresult <;> simp_all
+
 inductive ZeroSizeOutcome (Tag State TypeId : Type) where
   | null
   | token (metadata : AllocationMetadata Tag State TypeId)
