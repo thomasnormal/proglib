@@ -51,6 +51,8 @@ def metadata : AllocationMetadata Unit Unit String :=
 #guard metadata.locations.length == metadata.allocation.bytes.length
 #guard (allocateMetadata { bytes := [oneByte], state := () } [location] (.address 8)).isSome
 #guard (allocateMetadata { bytes := [oneByte], state := () } [] (.address 8)).isNone
+#guard (storeMetadataByte metadata 0 (.value 66 none (some 0))).isSome
+#guard (storeMetadataByte metadata 1 oneByte).isNone
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 
