@@ -570,8 +570,8 @@ def Layout.exprSizeAt (layout : Layout) (expression : Expr) (ty : String) :
 change that type while preserving the underlying object declaration. -/
 def Layout.structuredStride (layout : Layout) (type : LeanModels.Clang.QualType) :
     Option Nat := do
-  let resolved ← type.resolveTypedefs
-    (fun handle => layout.structuredType { value := handle.value }) 32
+  let resolved := (type.resolveTypedefs
+    (fun handle => layout.structuredType { value := handle.value }) 32).getD type
   let element ← match resolved.unqualified with
     | .array element _ | .pointer element => some element
     | _ => none
@@ -1872,15 +1872,11 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       else do
         let lv ← evalExpr ctx l
         let rv ← evalExpr ctx r
-        let mem ← get
-        let stringPointer := fun value => match value with
-          | .ptr p => match p.obj.bind mem.get? with
-              | some obj => obj.effTy == some "char[]"
-              | none => false
-          | _ => false
-        if stringPointer lv || stringPointer rv then
-          refuseUnsupported "pointer operation involving a string literal"
-        else evalArith ctx op lv rv ty (some l.ty) (some l) structuredType
+        let pointerBase := match lv, rv with
+          | .ptr _, _ => some l
+          | _, .ptr _ => some r
+          | _, _ => some l
+        evalArith ctx op lv rv ty (some l.ty) pointerBase structuredType
 
   -- §6.5.16p4 — `?:`, the third short-circuit: EXACTLY ONE arm runs. 42 sites.
   | .cond c t e _ _ .. => do
