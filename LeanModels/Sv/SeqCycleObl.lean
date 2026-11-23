@@ -3395,7 +3395,7 @@ theorem CoreMemDesign.execV_frame {E : CoreMemDesign} (hnd : (E.scalar.decls.toL
       simp only [CoreMemDesign.execV] at h
       by_cases hlb : PStmt.loopBodyB body = true
       · simp only [hlb, ↓reduceIte] at h
-        cases hvals : forValues2 env it init cond step with
+        cases hvals : forValues2Int32 env it init cond step with
         | timeout => simp [hvals] at h
         | unsupported e => simp [hvals] at h
         | ok values =>

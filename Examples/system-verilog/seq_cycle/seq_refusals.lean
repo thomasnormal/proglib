@@ -210,16 +210,18 @@ example (mv : MemV) (N : Nat) (x : Int → LVec) (i : Int) (hi : i ∈ intRange 
   | _ => false)
 
 /-! The route allocates loop fuel from the evaluated header and runs 4999
-iterations.  After 5000 rising edges the last cell has received the constant
-input, so the checked result is `q = 1`, rather than merely `.ok _`. -/
+iterations. The penultimate sample is still x, and the 5000th rising edge
+has received the constant input. -/
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 2000000 in
 #guard (match sfr.e 1 5000 with
   | .ok E => match runCoreMemRows E E.initial
       (cycleRows "clk" (List.replicate 5000 [("d", .ofNat 1 1)])) with
-    | .ok rows => match rows.getLast? with
-      | some st => SvState.showSignal (CoreMemState.view E st) "q" == "1"
-      | none => false
+    | .ok rows => match rows[4998]?, rows[4999]? with
+      | some before, some after =>
+          SvState.showSignal (CoreMemState.view E before) "q" == "x" &&
+          SvState.showSignal (CoreMemState.view E after) "q" == "1"
+      | _, _ => false
     | _ => false
   | _ => false)
 

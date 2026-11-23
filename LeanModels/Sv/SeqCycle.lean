@@ -964,7 +964,7 @@ def CoreMemDesign.execV (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : Mem
       .unsupported "9.4.2: an automatic procedural declaration in an edge body is outside the clocked profile"
   | .forLoop iterator init condition step body =>
       if PStmt.loopBodyB body then
-        match forValues2 env iterator init condition step with
+        match forValues2Int32 env iterator init condition step with
         | .timeout => .timeout
         | .unsupported e => .unsupported s!"ForLoopStatement: {e}"
         | .ok values => execLoopV v (fun i => E.execV (env.bindVal iterator i) v mv body) values
@@ -2603,13 +2603,22 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
       obtain ⟨hbe, hlf⟩ := hb
       simp only [PStmt.need] at hf
       simp only [CoreMemDesign.execV, hlf, ↓reduceIte] at hv
-      cases hvals : forValues2 env it init cond step with
+      cases hvals : forValues2Int32 env it init cond step with
       | timeout => simp [hvals] at hv
       | unsupported e => simp [hvals] at hv
       | ok values =>
           simp only [hvals] at hv
-          have htr : loopTrips env it init cond step = values.length := by simp [loopTrips, hvals]
-          rw [htr] at hf
+          have hvals_old := forValues2_of_forValues2Int32_ok env it init cond step hvals
+          have hlen : values.length ≤ loopTrips env it init cond step := by
+            unfold forValues2 at hvals_old
+            unfold loopTrips
+            cases hfuel : forFuel2 env it init cond step with
+            | error e => simp [hfuel] at hvals_old
+            | ok fuel =>
+                rw [hfuel] at hvals_old
+                simp only at ⊢
+                have hl := forValuesFuel2_length_add_two_le env it init cond step hvals_old
+                omega
           obtain ⟨st', hs, hrest⟩ := CoreMemDesign.execLoopValuesFuel_V env it body (PStmt.need env body)
             (fun i v1 mv1 r1 h1 => CoreMemDesign.execV_loopBody (env.bindVal it i) v1 mv1 body r1 hlf h1)
             (fun i fuel' st1 v1 q1 mq1 hc1 hmc1 hf1 h1 =>
