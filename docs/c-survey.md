@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1323/2114 MATCH (passed 1323, failed 3, oracle 0)
+- verdicts: 1342/2114 MATCH (passed 1342, failed 3, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `dc3df24ac`
-- measured at: `2026-11-23T01:05:00Z`
+- measured commit: `c4eec8fff`
+- measured at: `2026-11-23T02:50:00Z`
 
 ## Verdict counts
 
@@ -17,31 +17,31 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1323 |
+| `passed` | 1342 |
 | `refused-libc` | 28 |
 | `refused-ub` | 41 |
-| `refused-unsupported` | 372 |
-| `runner-error` | 11 |
+| `refused-unsupported` | 354 |
+| `runner-error` | 10 |
 
 ## Counts by corpus
 
 | corpus | verdict | files |
 | --- | --- | ---: |
 | `c-testsuite/single-exec` | `not-parsed` | 3 |
-| `c-testsuite/single-exec` | `passed` | 189 |
+| `c-testsuite/single-exec` | `passed` | 190 |
 | `c-testsuite/single-exec` | `refused-libc` | 1 |
 | `c-testsuite/single-exec` | `refused-ub` | 4 |
-| `c-testsuite/single-exec` | `refused-unsupported` | 22 |
+| `c-testsuite/single-exec` | `refused-unsupported` | 21 |
 | `c-testsuite/single-exec` | `runner-error` | 1 |
 | `gcc.c-torture/execute` | `failed` | 3 |
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1124 |
+| `gcc.c-torture/execute` | `passed` | 1142 |
 | `gcc.c-torture/execute` | `refused-libc` | 26 |
 | `gcc.c-torture/execute` | `refused-ub` | 36 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 232 |
-| `gcc.c-torture/execute` | `runner-error` | 10 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 215 |
+| `gcc.c-torture/execute` | `runner-error` | 9 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 10 |
 | `gcc.c23-run` | `refused-libc` | 1 |
@@ -277,7 +277,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:extern object 'inside_main' has no definition in the translation unit` | 39 | 39 | builtins/20010124-1-lib.c, builtins/fputs-lib.c, builtins/lib/abs.c, builtins/lib/bfill.c, builtins/lib/bzero.c |
 | `unsupported:pointer bit-cast across incompatible effective types` | 26 | 26 | 00103.c, 00170.c, 00217.c, 20060412-1.c, 20080222-1.c |
 | `unsupported:goto-controlled pointer increment lacks an exact parser path` | 24 | 24 | 00207.c, 00213.c, 00215.c, 20000605-3.c, 20020418-1.c |
-| `unsupported:pointer operation involving a string literal` | 19 | 19 | 00112.c, 20000910-2.c, 20010915-1.c, 20011126-2.c, 20021204-1.c |
 | `unsupported:nonValueRepresentation` | 17 | 17 | 20011121-1.c, 20050215-1.c, 941014-1.c, 941014-2.c, 980526-2.c |
 | `unsupported:long double floating literal` | 14 | 14 | 20030914-1.c, 20040208-1.c, 20080502-1.c, 960405-1.c, gcc/testsuite/gcc.dg/c23-float-1.c |
 | `unsupported:integer-to-pointer conversion outside pointer type` | 12 | 12 | 00214.c, 20000622-1.c, 20010329-1.c, 20021010-2.c, 20041112-1.c |
@@ -285,8 +284,8 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:AddrLabelExpr` | 7 | 7 | 20040302-1.c, 20041214-1.c, 20071210-1.c, 920501-4.c, 920501-5.c |
 | `unsupported:StmtExpr` | 6 | 6 | 20000703-1.c, 20000917-1.c, 20020206-1.c, 20020320-1.c, 930406-1.c |
 | `unsupported:floating cast has incompatible source and destination` | 6 | 6 | 00204.c, 20020413-1.c, 990413-2.c, align-2.c, ieee/20011123-1.c |
+| `unsupported:pointer operation on an array subobject` | 5 | 5 | 20080424-1.c, memchr-1.c, pr124358.c, strlen-4.c, va-arg-21.c |
 | `unsupported:extern object 'b' has no definition in the translation unit` | 4 | 4 | alias-2.c, alias-3.c, alias-4.c, gcc/testsuite/gcc.dg/c23-bool-2.c |
-| `unsupported:pointer operation on an array subobject` | 4 | 4 | 20080424-1.c, pr124358.c, strlen-4.c, va-arg-21.c |
 | `libc-call: __builtin_setjmp` | 3 | 3 | built-in-setjmp.c, pr64242.c, pr84521.c |
 | `unsupported:ExprWithCleanups` | 3 | 3 | 950628-1.c, gcc/testsuite/gcc.dg/c23-stdarg-9.c, pr30185.c |
 | `unsupported:case label nested in a control statement` | 3 | 3 | 00051.c, 00143.c, medce-1.c |
@@ -299,6 +298,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `libc-call: __builtin_return_address` | 2 | 2 | 20010122-1.c, pr17377.c |
 | `libc-call: _setjmp` | 2 | 2 | 20210505-1.c, pr56982.c |
 | `libc-call: open` | 2 | 2 | loop-2f.c, loop-2g.c |
+| `unsequenced-effects` | 2 | 2 | 20020406-1.c, string-opt-5.c |
 | `unsupported:GCCAsmStmt` | 2 | 2 | 20071211-1.c, pr81588.c |
 | `unsupported:GenericSelectionExpr` | 2 | 2 | gcc/testsuite/gcc.dg/c23-bool-1.c, gcc/testsuite/gcc.dg/c23-float-2.c |
 | `unsupported:break, continue or goto escaped a function body` | 2 | 2 | 00199.c, 20040704-1.c |
@@ -327,7 +327,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `libc-call: signal` | 1 | 1 | 20101011-1.c |
 | `libc-call: sin` | 1 | 1 | ieee/mzero4.c |
 | `libc-call: sqrt` | 1 | 1 | ieee/20041213-1.c |
-| `unsequenced-effects` | 1 | 1 | 20020406-1.c |
 | `unsupported:AlignedAttr` | 1 | 1 | pr108064.c |
 | `unsupported:TypeTraitExpr` | 1 | 1 | builtin-types-compatible-p.c |
 | `unsupported:__builtin_infl` | 1 | 1 | ieee/inf-1.c |
@@ -351,7 +350,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:no layout for declared type 'const struct Df[8]'` | 1 | 1 | ieee/copysign1.c |
 | `unsupported:no layout for parameter type 'int *'` | 1 | 1 | gcc/testsuite/gcc.dg/c23-parm-omit-3.c |
 | `unsupported:no size for element type 'va_list'` | 1 | 1 | stdarg-2.c |
-| `unsupported:no size for pointee of 'char *'` | 1 | 1 | pr98853-1.c |
 | `unsupported:non-null string initializer element exceeds the array extent` | 1 | 1 | pr86714.c |
 | `unsupported:not an lvalue: PredefinedExpr` | 1 | 1 | 20001011-1.c |
 | `unsupported:operator '-' on pointers from different arrays` | 1 | 1 | 950710-1.c |
