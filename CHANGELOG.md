@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added a stateful scalar evaluator frame over the parser-native `readsV`
+  footprint, connecting source read closure to retained combinational
+  evaluation without assuming scheduler confluence.
+
 - Added a kernel-checked scalar evaluator frame for coherent scalar writes.
   Instantiated read windows that exclude the written signal evaluate identically
   before and after `setScalarState`, providing the next semantic bridge for the

@@ -452,6 +452,29 @@ theorem CoreMemDesign.readsV_eq_instExpr2_idents_of_pure
   cases e <;> simp_all [CoreMemDesign.readsV, CoreMemDesign.readsIdxV,
     LeanModels.Sv.PExpr.hasMemoryRead, instExpr2, Expr2.idents]
 
+/-! The same parser-native closure is available at the stateful scalar
+ evaluator used by retained combinational statements. -/
+theorem CoreMemDesign.evalScalarLocals_congr_readsV_of_pure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st st' : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hne : elems ≠ [])
+    (h : ∀ x ∈ E.readsV env elems ctx e,
+      SvState.lookup (locals ++ E.scalar.view st.scalar) x =
+        SvState.lookup (locals ++ E.scalar.view st'.scalar) x) :
+    E.evalScalarLocals env elems st ctx locals e =
+      E.evalScalarLocals env elems st' ctx locals e := by
+  unfold CoreMemDesign.evalScalarLocals
+  apply evalPure2_congr
+  intro x hx
+  have hr : E.readsV env elems ctx e =
+      (instExpr2 env (if elems.isEmpty then E.elems else elems) ctx e).idents := by
+    simpa [CoreMemDesign.widthsOf, hne] using
+      (CoreMemDesign.readsV_eq_instExpr2_idents_of_pure
+        (E := E) (env := env) (elems := elems) (ctx := ctx) (e := e) hmem)
+  rw [← hr] at hx
+  exact h x hx
+
 theorem CoreMemDesign.evalScalarV_congr_readsV_of_pure
     {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
     {v v' : SvState} {ctx : Option Nat} {e : PExpr}
