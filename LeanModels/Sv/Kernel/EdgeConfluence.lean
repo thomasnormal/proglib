@@ -1222,4 +1222,42 @@ theorem EdgeScheduleTerminalPath.confluent_processes_range_drivers
 #print axioms EdgeScheduleTerminalPath.confluent_processes_range_drivers
 #print axioms EdgeScheduleStep.executor_cons_bridge
 
+/-! End-to-end theorem for the smallest admitted scheduler class.  The
+indexed NBA relation terminates, all of its terminal paths have the same
+observable view, and that view is the one produced by the canonical executor.
+The source-order route and the scheduler relation remain distinct inputs, so
+this theorem does not identify either with a larger IEEE scheduler. -/
+theorem CoreMemDesign.edge_nba_confluence_refines_step_guarded
+    {E : CoreMemDesign} (hP : E.SeqProfileI) (hO : E.seqOblI = true)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {before after : SvState} {s : EdgeScheduleState}
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    (F : Nat → NbaQueue2)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after s.view (E.memOf st.memory) p = .ok (F k))
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV}
+    (hroute : E.edgesV before after s.view (E.memOf st.memory) E.processes.toList = .ok r) :
+    ∃ n t st',
+      EdgeScheduleTerminalPath E before after s.view (E.memOf st.memory) n s t ∧
+      (∀ n' t', EdgeScheduleTerminalPath E before after s.view (E.memOf st.memory) n' s t' →
+        t' = t) ∧
+      E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧
+      t.view = commitNba2 s.view r.2.1 := by
+  obtain ⟨n, t, hp, hunique, hview⟩ :=
+    EdgeScheduleTerminalPath.confluent_processes_range_drivers
+      hdrivers hdistinct F hs hw hq hkeys hroute
+  obtain ⟨st', hstep, hvstep, hmstep, hcommit⟩ :=
+    EdgeScheduleTerminalPath.refines_step_drivers
+      hP hO hc hmc hty hslot hdrivers hdistinct F hs hw hq hkeys hp hroute
+  exact ⟨n, t, st', hp, hunique, hstep, hvstep, hmstep, hcommit⟩
+
 end LeanModels.Sv.Kernel
