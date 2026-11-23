@@ -1352,6 +1352,31 @@ def allocateBounded (store : Store Tag State) (request : AllocationRequest Tag S
         | some result => .ok result
         | none => .error .overlap
 
+def renameBoundedResult (resolve : AllocId → Nat) :
+    Except PlacementFault (Store Tag State × Footprint) →
+      Except PlacementFault (Store Tag State × Footprint)
+  | .error fault => .error fault
+  | .ok (store, footprint) =>
+      .ok (renameStore resolve store, footprint)
+
+def pairedAllocateBounded (resolve : AllocId → Nat)
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (alignment limit : Nat) : Bool :=
+  let source := allocateBounded store request placement alignment limit
+  let target := allocateBounded (renameStore resolve store) request
+    (renamedPlacement resolve store.nextId placement) alignment limit
+  target = renameBoundedResult resolve source
+
+theorem pairedAllocateBounded_sound (resolve : AllocId → Nat)
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (alignment limit : Nat)
+    (h : pairedAllocateBounded resolve store request placement alignment limit) :
+    allocateBounded (renameStore resolve store) request
+      (renamedPlacement resolve store.nextId placement) alignment limit =
+      renameBoundedResult resolve
+        (allocateBounded store request placement alignment limit) := by
+  simpa [pairedAllocateBounded] using h
+
 def allocateMetadata (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) :
     Option (AllocationMetadata Tag State TypeId × Footprint) :=
