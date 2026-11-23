@@ -209,10 +209,17 @@ example (mv : MemV) (N : Nat) (x : Int → LVec) (i : Int) (hi : i ∈ intRange 
     | _ => false
   | _ => false)
 
--- The route allocates loop fuel from the evaluated header and runs 4999 iterations.
+/-! The route allocates loop fuel from the evaluated header and runs 4999
+iterations.  After 5000 rising edges the last cell has received the constant
+input, so the checked result is `q = 1`, rather than merely `.ok _`. -/
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 2000000 in
 #guard (match sfr.e 1 5000 with
-  | .ok E => match runCoreMemRows E E.initial (cycleRows "clk" [[("d", .ofNat 1 1)]]) with
-    | .ok _ => true
+  | .ok E => match runCoreMemRows E E.initial
+      (cycleRows "clk" (List.replicate 5000 [("d", .ofNat 1 1)])) with
+    | .ok rows => match rows.getLast? with
+      | some st => SvState.showSignal (CoreMemState.view E st) "q" == "1"
+      | none => false
     | _ => false
   | _ => false)
 
