@@ -794,6 +794,34 @@ def loadByte (store : Store Tag State) (id offset : Nat) :
     let byte ← allocation.bytes[offset]?
     some (byte, footprint .read { allocation := id, offset := offset, width := 1 })
 
+def loadTransitionCorresponds (resolve : AllocId → Nat)
+    (source target : Store Tag State)
+    (sourceResult targetResult : Byte Tag × Footprint) : Prop :=
+  target = renameStore resolve source ∧
+    targetResult.1 = renameByte resolve sourceResult.1 ∧
+    targetResult.2 = sourceResult.2
+
+def pairedLoadByte (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) :
+    Option ((Byte Tag × Footprint) × (Byte Tag × Footprint)) := do
+  let sourceResult ← loadByte store id offset
+  let targetResult ← loadByte (renameStore resolve store) id offset
+  if targetResult.1 = renameByte resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2 then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedLoadByte_corresponds
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedLoadByte resolve store id offset = some result) :
+    loadTransitionCorresponds resolve store (renameStore resolve store)
+      result.1 result.2 := by
+  simp [pairedLoadByte, loadTransitionCorresponds] at hresult
+  obtain ⟨sourceResult, targetResult, hpair⟩ := hresult
+  simp_all
+
 def endLifetime (store : Store Tag State) (id : AllocId) :
     Option (Store Tag State × Footprint) := do
   let allocation ← lookup store id
