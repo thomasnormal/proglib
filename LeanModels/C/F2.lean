@@ -692,6 +692,14 @@ theorem pairedMemmoveSnapshot_sound (resolve : AllocId → Nat)
   simp [pairedMemmoveSnapshot] at hresult
   split at hresult <;> simp_all
 
+def pairedMemmoveFootprint (source destination : Region) (width : Nat) : Bool :=
+  footprintAgrees (copyFootprint source destination width)
+    (copyFootprint source destination width)
+
+theorem pairedMemmoveFootprint_sound (source destination : Region) (width : Nat) :
+    pairedMemmoveFootprint source destination width := by
+  simp [pairedMemmoveFootprint, copyFootprint, footprintAgrees]
+
 inductive ReallocOutcome (Tag State TypeId : Type) where
   | failed (old : AllocationMetadata Tag State TypeId)
   | replaced (fresh : AllocationMetadata Tag State TypeId)
