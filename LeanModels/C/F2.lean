@@ -1099,6 +1099,12 @@ theorem renameStore_wf_iff (resolve : AllocId → Nat) (store : Store Tag State)
     WellFormed (renameStore resolve store) ↔ WellFormed store := by
   exact allocationsWf_rename resolve store.allocations
 
+theorem renameStore_comp_wf (first second : AllocId → Nat)
+    (store : Store Tag State) (hstore : WellFormed store) :
+    WellFormed (renameStore second (renameStore first store)) := by
+  rw [renameStore_comp]
+  exact renameStore_wf second store hstore
+
 def footprint (kind : AccessKind) (region : Region) : Footprint :=
   { accesses := [(kind, region)] }
 
@@ -1631,6 +1637,13 @@ theorem footprintAgrees_rename (resolve : AllocId → Nat) (footprint : Footprin
 theorem footprintAgrees_refl (footprint : Footprint) :
     footprintAgrees footprint footprint := by
   simp [footprintAgrees]
+
+theorem footprintAgrees_comp (first second : AllocId → Nat)
+    (footprint : Footprint) :
+    footprintAgrees (renameFootprint second (renameFootprint first footprint))
+      (renameFootprint second footprint) := by
+  rw [renameFootprint_comp]
+  exact footprintAgrees_refl _
 
 def allocateBounded (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment limit : Nat) :

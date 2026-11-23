@@ -87,6 +87,8 @@ def one : TestStore :=
 #guard renameFootprint (fun id => id + 300)
   (renameFootprint resolve (mergeFootprint 1 0 2)) =
   mergeFootprint 1 0 2
+#guard footprintAgrees_comp resolve (fun id => id + 300)
+  (mergeFootprint 1 0 2)
 #guard renameHookRequest resolve { choice := .default,
   footprint := mergeFootprint 1 0 2 } = { choice := .default,
   footprint := mergeFootprint 1 0 2 }
