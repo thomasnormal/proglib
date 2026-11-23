@@ -402,6 +402,17 @@ inductive Placement where
   | fail
 deriving Repr, BEq
 
+def intervalOverlap (leftBase leftSize rightBase rightSize : Nat) : Bool :=
+  leftBase < rightBase + rightSize && rightBase < leftBase + leftSize
+
+def placementAllowed (store : Store Tag State) (base size : Nat) : Bool :=
+  store.allocations.all fun entry =>
+    let allocation := entry.2
+    match allocation.live, allocation.address with
+    | true, some otherBase =>
+        !intervalOverlap base size otherBase allocation.bytes.length
+    | _, _ => true
+
 inductive EqualityChoice where
   | equal
   | unequal
@@ -493,13 +504,20 @@ def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) : Option (Store Tag State × Footprint) :=
   match placement with
   | .fail => none
-  | .address base | .unaddressable =>
+  | .address base =>
+      if !placementAllowed store base request.bytes.length then none
+      else
+        let id := store.nextId
+        let allocation : Allocation Tag State :=
+          { live := true, address := some base, bytes := request.bytes, state := request.state }
+        some ({ allocations := store.allocations ++ [(id, allocation)],
+                nextId := id + 1 },
+              footprint .metadata { allocation := id, offset := 0,
+                width := request.bytes.length })
+  | .unaddressable =>
       let id := store.nextId
       let allocation : Allocation Tag State :=
-        { live := true
-          address := match placement with | .address _ => some base | .unaddressable => none
-          bytes := request.bytes
-          state := request.state }
+        { live := true, address := none, bytes := request.bytes, state := request.state }
       some ({ allocations := store.allocations ++ [(id, allocation)],
               nextId := id + 1 },
             footprint .metadata { allocation := id, offset := 0,
