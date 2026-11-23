@@ -11,6 +11,8 @@ import tempfile
 
 
 ENVELOPE_REFUSAL = {
+    "ca7ba5a2e87ea6a1c2c0eb6b4975ac1a5c1787999241c4ba777adb25de82cd32":
+        "Event:edge-blocking-race: 4.7/10.4.1: same-edge blocking read/write processes have schedule-dependent visibility; canonical E refuses the race",
     "38b3c3253f79b006aac7a547d9c61fce31c86dfe26994a990ce324bd1ce321cf":
         "decl 'FLUSH': non-literal initializer outside the M0 tier",
     "5038a315ae61f44951ed400f61632ee29dfa30d7c1b092d5f5cddbafcd55243b":
@@ -100,6 +102,13 @@ def row (res : Nat) : SvState := [("CLK", bits 1 0), ("RES", bits 1 res), ("IRQ"
         script.unlink(missing_ok=True)
     if result.returncode != 0:
         raise SystemExit(result.stdout)
+    if expected_refusal is not None:
+        if expected_refusal not in result.stdout:
+            raise SystemExit("canonical-E refusal does not match the pinned receipt")
+        print("canonical E: loaded envelope and reported the pinned refusal")
+        print("E-RUN: 0/0")
+        print(f"envelope SHA-256: {digest}")
+        return
     if digest in COREMEM_ENVELOPES:
         staged = 'initial-ok\\ntwo-pass-ok\\nclock-prepare-ok\\nclock-edges-ok\\nclock-commit-built'
         edge_wall = 'clock-edges-unsupported: AssignmentExpression:target:'
@@ -113,11 +122,7 @@ def row (res : Nat) : SvState := [("CLK", bits 1 0), ("RES", bits 1 res), ("IRQ"
             raise SystemExit("canonical-E staged clock probe did not complete or reach the pinned assignment-target wall")
         print(f"envelope SHA-256: {digest}")
         return
-    if expected_refusal not in result.stdout:
-        raise SystemExit("canonical-E refusal does not match the pinned receipt")
-    print("canonical E: loaded envelope and reported the pinned refusal")
-    print("E-RUN: 0/0")
-    print(f"envelope SHA-256: {digest}")
+    raise SystemExit("canonical-E envelope has no recorded route")
 
 
 if __name__ == "__main__":
