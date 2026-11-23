@@ -1,14 +1,14 @@
 # Ibex SHA-2 digest packed-dimension boundary
 
-The pinned SHA-2 source declares `digest_i` as an unpacked array of the
-package typedef `sha_word64_t [7:0]`. Slang retains this source-shaped port,
-but ordinary `load_design_sv2` reports `decl 'digest_i': unrecoverable packed
-dimensions` when the canonical E declaration boundary is reached. A
-clean-room reduction with a package typedef and a parameter-sized unpacked
-port reproduces the same refusal through `load_design_sv2`.
+The pinned SHA-2 source declares `digest_i` as a packed array of the package
+typedef `sha_word64_t [7:0]`. Slang retains this source-shaped port. The
+extractor now recovers the fixed typedef ranges from the parser-backed target
+syntax, preserving both `[7:0]` and `[63:0]` in the envelope. The ordinary
+loader moves past `decl 'digest_i': unrecoverable packed dimensions` and
+reaches the next validated source-shaped boundary,
+`Schedule:preemptive`, under IEEE 1800-2023 §4.7.
 
-The extractor's existing fixed-array port path handles direct integral array
-ports. This typedef-backed port currently falls through that path, so no
-semantic approximation or typedef erasure was added. Simulator rows for this
-boundary remain pending because the source-wide SHA-2 module has additional
-unsupported dependencies.
+The extractor regression covers the typedef-backed packed array spelling.
+The existing parameter-sized unpacked-port receipt reports 10 ordinary rows
+at N=2 and N=3, with Icarus Verilog 13.0 and Xcelium 24.03-s004 MATCHing all
+rows, including x/z elements.

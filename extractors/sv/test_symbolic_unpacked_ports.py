@@ -69,6 +69,31 @@ class SymbolicUnpackedPorts(unittest.TestCase):
         self.assertEqual(len(grid["unpacked"]), 2)
         self.assertEqual(grid["unpacked"][0]["lsb"]["kind"], "Binary")
 
+    def test_fixed_typedef_array_ports_flatten_to_cells(self):
+        module = self.extract(
+            "package p; typedef logic [63:0] word_t; endpackage "
+            "module top #(parameter bit M = 0) ("
+            "input p::word_t digest_i [7:0], output logic [63:0] y); "
+            "assign y = digest_i[0]; endmodule")
+        ports = module["ports"]
+        self.assertEqual([p["name"] for p in ports],
+                         ["digest_i[7]", "digest_i[6]", "digest_i[5]",
+                          "digest_i[4]", "digest_i[3]", "digest_i[2]",
+                          "digest_i[1]", "digest_i[0]", "y"])
+        self.assertTrue(all(p["kind"] == "Port" for p in ports))
+
+    def test_fixed_typedef_packed_array_ports_recover_ranges(self):
+        module = self.extract(
+            "package p; typedef logic [63:0] word_t; endpackage "
+            "module top #(parameter bit M = 0) ("
+            "input p::word_t [7:0] digest_i, output logic [63:0] y); "
+            "assign y = digest_i[0]; endmodule")
+        digest = next(p for p in module["ports"]
+                      if p["name"] == "digest_i")
+        self.assertEqual(digest["kind"], "Port")
+        self.assertEqual([d["msb"]["value"] for d in digest["width"]["packed"]],
+                         [7, 63])
+
     def test_parameter_dependent_memory_keeps_array_selects(self):
         module = self.extract(
             "module top #(parameter int W = 8, parameter int N = 4) ("

@@ -32764,6 +32764,32 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False, scope=None):
                 packed = _syntax_packed_dims(sm, type_syntax, scope)
                 if packed is not None and len(packed) != ndims:
                     packed = None
+            if packed is None:
+                # A typedef-backed packed vector has no dimensions on the
+                # use-site syntax. Recover the canonical ranges from the
+                # typedef target when its source syntax is fixed across the
+                # parameter family. This covers source-shaped ports such as
+                # `sha_word64_t [7:0] digest_i` without sampling a
+                # parameter-dependent typedef at its default point.
+                target = ct.elementType
+                target_syntax = getattr(target, "syntax", None)
+                if (target_syntax is not None
+                        and not _sym_syntax_point_dependent(target_syntax, scope)):
+                    ranges = []
+                    current = ct
+                    while type(current).__name__ == "PackedArrayType":
+                        rng = current.range
+                        ranges.append({
+                            "msb": {"kind": "Int", "span": None,
+                                    "value": int(rng.left),
+                                    "resolved_width": None},
+                            "lsb": {"kind": "Int", "span": None,
+                                    "value": int(rng.right),
+                                    "resolved_width": None},
+                        })
+                        current = current.elementType.canonicalType
+                    if len(ranges) == ndims:
+                        packed = ranges
             return {
                 "kind": "PackedType",
                 "packed": packed,
@@ -33810,6 +33836,9 @@ def _convert_unpacked_decl_sym(sm, m, direction=None, isym=None):
         unpacked = _syntax_unpacked_dims(sm, getattr(m, "syntax", None))
         if unpacked is None:
             unpacked = _syntax_unpacked_dims(sm, getattr(symbol, "syntax", None))
+        if unpacked is None:
+            unpacked = _syntax_unpacked_dims(
+                sm, getattr(getattr(symbol, "type", None), "typeSyntax", None))
         if not unpacked:
             return None
         result = {
@@ -34166,13 +34195,34 @@ def _sym_array_point_dependent(sm, m):
         return False
     scope = getattr(m, "parentScope", None) or _SYM.scope
     try:
-        if _sym_syntax_point_dependent(getattr(m.syntax, "dimensions", None), scope):
+        # Slang stores unpacked dimensions after the declarator for
+        # `logic [W-1:0] a [N]`, but before the declarator for the ANSI
+        # typedef spelling `word_t [N] a`. Inspect both syntax locations.
+        dimension_syntax = getattr(getattr(m, "syntax", None),
+                                   "dimensions", None)
+        if dimension_syntax is None:
+            dimension_syntax = getattr(getattr(m, "type", None),
+                                       "typeSyntax", None)
+        if _sym_syntax_point_dependent(dimension_syntax, scope):
             return True
         type_syntax = _decl_type_syntax(m)
         if (type_syntax is not None
                 and type_syntax.kind in (SyntaxKind.LogicType, SyntaxKind.RegType)
                 and _syntax_packed_dims(sm, type_syntax) is not None):
             return False
+        # A typedef-backed fixed array can have a parameterized module around
+        # it without having a parameterized shape itself.  Check the
+        # canonical leaf's parser-native syntax before treating the typedef
+        # reference as a default-point fold.  This preserves the source
+        # shape of fixed package typedef arrays such as `sha_word64_t [7:0]`
+        # while retaining a loud refusal for typedefs whose packed bounds
+        # really depend on an override.
+        fixed = _fixed_array_dimensions(m.type.canonicalType, max_cells=None)
+        if fixed is not None:
+            leaf_syntax = getattr(fixed[1].canonicalType, "syntax", None)
+            if (leaf_syntax is not None
+                    and not _sym_syntax_point_dependent(leaf_syntax, scope)):
+                return False
         return _sym_syntax_point_dependent(type_syntax, scope)
     except Exception:
         return True
