@@ -190,6 +190,27 @@ theorem storeMetadataByte_preserves_locations
   simp [storeMetadataByte] at hresult
   split at hresult <;> simp_all
 
+def typedStoreMetadataByte (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
+    Option (AllocationMetadata Tag State TypeId × Footprint) :=
+  if offset ≥ metadata.allocation.bytes.length then none
+  else
+    let allocation := { metadata.allocation with
+      bytes := metadata.allocation.bytes.set! offset byte }
+    let locations := metadata.locations.set! offset
+      { effectiveType := .typed typeId, initialized := true }
+    some ({ allocation := allocation, locations := locations },
+      footprint .write { allocation := 0, offset := offset, width := 1 })
+
+theorem typedStoreMetadataByte_preserves_length
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : typedStoreMetadataByte metadata offset typeId byte = some result) :
+    result.1.locations.length = metadata.locations.length := by
+  simp [typedStoreMetadataByte] at hresult
+  split at hresult <;> simp_all
+
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
   | (id, allocation) :: rest =>
