@@ -33,6 +33,8 @@ def one : TestStore :=
   (.address 8) 8 16).isOk
 #guard (allocateBounded empty { bytes := [oneByte], state := () }
   (.address 14) 1 16) == .error .exhausted
+#guard (PlacementAgreement.mk (fun _ => some 8) (fun _ => some 8)
+  (fun _ => true)).agrees
 
 def footprintWidth : Footprint → Nat
   | { accesses := [(_, region)] } => region.width
