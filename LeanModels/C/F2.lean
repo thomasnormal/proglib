@@ -1438,6 +1438,30 @@ def pairedStaleStore (resolve : AllocId → Nat) (store : Store Tag State)
       (storeByte targetResult.1 id offset (renameByte resolve byte)).isNone
   | _, _ => false
 
+theorem storeByte_preserves_nextId
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (result : Store Tag State × Footprint)
+    (hresult : storeByte store id offset byte = some result) :
+    result.1.nextId = store.nextId := by
+  cases hlookup : lookup store id with
+  | none => simp [storeByte, hlookup] at hresult
+  | some allocation =>
+      simp [storeByte, hlookup] at hresult
+      rcases hresult with ⟨_, _, hEq⟩
+      exact congrArg (fun pair => pair.1.nextId) hEq.symm
+
+theorem storeByte_preserves_allocation_count
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (result : Store Tag State × Footprint)
+    (hresult : storeByte store id offset byte = some result) :
+    result.1.allocations.length = store.allocations.length := by
+  cases hlookup : lookup store id with
+  | none => simp [storeByte, hlookup] at hresult
+  | some allocation =>
+      simp [storeByte, hlookup] at hresult
+      rcases hresult with ⟨_, _, hEq⟩
+      simpa using congrArg (fun pair => pair.1.allocations.length) hEq.symm
+
 #guard true
 #guard (footprint .read { allocation := 1, offset := 0, width := 1 }).accesses.length == 1
 
