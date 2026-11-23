@@ -205,6 +205,13 @@ def listSet (values : List α) (offset : Nat) (value : α) : List α :=
   | _ :: rest, 0 => value :: rest
   | head :: rest, n + 1 => head :: listSet rest n value
 
+theorem listSet_length (values : List α) (offset : Nat) (value : α) :
+    (listSet values offset value).length = values.length := by
+  induction values generalizing offset with
+  | nil => rfl
+  | cons head rest ih =>
+      cases offset <;> simp [listSet, ih]
+
 structure Region where
   allocation : AllocId
   offset : Nat
@@ -392,8 +399,16 @@ theorem renameResult_comp {Tag State F : Type} (first second : AllocId → Nat)
     renameResult (Tag := Tag) (State := State) (F := F) second
         (renameResult (Tag := Tag) (State := State) (F := F) first result) =
       renameResult (Tag := Tag) (State := State) (F := F) second result := by
-  cases result <;> simp [renameResult, renameStore, renameAllocation,
-    renameFootprint, renameRegion, renameByte]
+  cases result with
+  | ok value store footprint =>
+      simp only [renameResult]
+      rw [renameByte_comp, renameStore_comp, renameFootprint_comp]
+  | fault error store footprint =>
+      simp only [renameResult]
+      rw [renameStore_comp, renameFootprint_comp]
+  | refused reason store footprint =>
+      simp only [renameResult]
+      rw [renameStore_comp, renameFootprint_comp]
 
 theorem renameResult_kind_preserved {Tag State F : Type} (resolve : AllocId → Nat)
     (result : Result Tag State F (Byte Tag)) :
@@ -414,19 +429,6 @@ theorem renameResult_refusal_reason {Tag State F : Type} (resolve : AllocId → 
 
 def lookup (store : Store Tag State) (id : AllocId) : Option (Allocation Tag State) :=
   store.allocations.find? (fun entry => entry.1 == id) |>.map (·.2)
-
-theorem lookup_renameStore (resolve : AllocId → Nat) (store : Store Tag State)
-    (id : AllocId) :
-    lookup (renameStore resolve store) id =
-      (lookup store id).map (renameAllocationValue resolve id) := by
-  cases store with
-  | mk allocations nextId =>
-      induction allocations with
-      | nil => simp [lookup, renameStore]
-      | cons entry rest ih =>
-          rcases entry with ⟨entryId, allocation⟩
-          by_cases h : entryId == id <;>
-            simp [lookup, renameStore, renameAllocation, renameAllocationValue, h, ih]
 
 def bytesWf (id : AllocId) : List (Byte Tag) → Prop
   | [] => True
@@ -456,7 +458,8 @@ theorem storeMetadataByte_preserves_locations
     (hresult : storeMetadataByte metadata offset byte = some result) :
     result.1.locations = metadata.locations := by
   simp [storeMetadataByte] at hresult
-  split at hresult <;> simp_all
+  rcases hresult with ⟨_, hEq⟩
+  rw [← hEq]
 
 def typedStoreMetadataByte (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
@@ -477,7 +480,9 @@ theorem typedStoreMetadataByte_preserves_length
     (hresult : typedStoreMetadataByte metadata offset typeId byte = some result) :
     result.1.locations.length = metadata.locations.length := by
   simp [typedStoreMetadataByte] at hresult
-  split at hresult <;> simp_all
+  rcases hresult with ⟨_, hEq⟩
+  rw [← hEq]
+  exact listSet_length metadata.locations offset _
 
 def renameMetadata (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) :
@@ -507,7 +512,16 @@ theorem renameMetadata_comp (first second : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) :
     renameMetadata second id (renameMetadata first id metadata) =
       renameMetadata second id metadata := by
-  simp [renameMetadata, renameByte]
+  cases metadata with
+  | mk allocation locations =>
+      cases allocation with
+      | mk live address bytes state =>
+          simp only [renameMetadata, Option.map_map]
+          congr 2
+          rw [List.map_map]
+          apply List.map_congr_left
+          intro value hvalue
+          exact renameByte_comp first second value
 
 def pairedTypedStoreMetadataByte (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
