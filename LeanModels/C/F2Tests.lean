@@ -49,6 +49,8 @@ def one : TestStore :=
   (fun _ => true)).agrees
 #guard (placementAgreementOfStores one one (fun _ => true)).agrees
 #guard (zeroTokenPlacementAgreement metadata metadata).agrees
+#guard (exposedPlacementAgreement (fun id => if id == 0 then 32 else 200)
+  one (fun id => id == 0)).agrees
 #guard pairedPlacementAllowed resolve one 128 0
 #guard zeroSizePlacementAllowed one 128
 #guard match allocate one { bytes := [.uninitialized], state := () } (.unaddressable) with
