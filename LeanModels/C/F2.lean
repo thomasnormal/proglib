@@ -232,6 +232,23 @@ def unionLoadMetadataByte
   if !location.initialized then none
   else some (byte, footprint .read { allocation := 0, offset := offset, width := 1 })
 
+inductive RepresentationChoice where
+  | byte (bits : UInt8)
+deriving Repr, BEq
+
+def representationLoadMetadataByte
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice) :
+    Option (Byte Tag × Footprint) := do
+  let byte ← metadata.allocation.bytes[offset]?
+  let location ← metadata.locations[offset]?
+  match location.effectiveType, choice with
+  | .padding, .byte bits | .indeterminate, .byte bits =>
+      some (.value bits none none,
+        footprint .read { allocation := 0, offset := offset, width := 1 })
+  | _, _ => some (byte,
+      footprint .read { allocation := 0, offset := offset, width := 1 })
+
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
   | (id, allocation) :: rest =>
