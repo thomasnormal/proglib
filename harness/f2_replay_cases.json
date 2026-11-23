@@ -1,6 +1,7 @@
 [
   {
-    "source_hash": "source-hash-recorded-by-native-replay",
+    "source_file": "harness/f2_replay_fixture.c",
+    "source_hash": "57b9a643ad8840d8b26e9deccd86faba017ebd91037aa4e4124d6005e2e90cf8",
     "compiler_version": "clang version 21.1.8",
     "target_triple": "x86_64-linux-gnu",
     "placements": [
