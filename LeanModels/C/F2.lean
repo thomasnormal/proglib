@@ -309,6 +309,33 @@ def reallocMetadata (old : AllocationMetadata Tag State TypeId)
         footprint .metadata { allocation := 0, offset := 0,
           width := request.bytes.length })
 
+inductive ZeroSizeOutcome (Tag State TypeId : Type) where
+  | null
+  | token (metadata : AllocationMetadata Tag State TypeId)
+deriving Repr
+
+def allocateZeroSize (state : State) (placement : Placement) :
+    ZeroSizeOutcome Tag State TypeId × Footprint :=
+  match placement with
+  | .fail => (.null, footprint .metadata { allocation := 0, offset := 0, width := 0 })
+  | .address base =>
+      (.token { allocation :=
+          { live := true, address := some base, bytes := [], state := state }
+          locations := [] },
+       footprint .metadata { allocation := 0, offset := 0, width := 0 })
+  | .unaddressable =>
+      (.token { allocation :=
+          { live := true, address := none, bytes := [], state := state }
+          locations := [] },
+       footprint .metadata { allocation := 0, offset := 0, width := 0 })
+
+inductive ReallocZeroOutcome where
+  | freedNull
+  | refusedUndefined
+deriving Repr, BEq
+
+def reallocZeroGNU17 : ReallocZeroOutcome := .freedNull
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
