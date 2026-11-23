@@ -222,6 +222,20 @@ structure Footprint where
   accesses : List (AccessKind × Region)
 deriving Repr
 
+def renameRegion (_resolve : AllocId → Nat) (region : Region) : Region := region
+
+def renameFootprint (resolve : AllocId → Nat) (footprint : Footprint) : Footprint :=
+  { accesses := footprint.accesses.map (fun access =>
+      (access.1, renameRegion resolve access.2)) }
+
+theorem renameRegion_identity (resolve : AllocId → Nat) (region : Region) :
+    renameRegion resolve region = region := by
+  rfl
+
+theorem renameFootprint_identity (resolve : AllocId → Nat) (footprint : Footprint) :
+    renameFootprint resolve footprint = footprint := by
+  simp [renameFootprint, renameRegion]
+
 structure HookRequest where
   choice : HookChoice
   footprint : Footprint
@@ -1041,6 +1055,10 @@ def footprintAgrees (left right : Footprint) : Prop :=
   left.accesses.length = right.accesses.length ∧
     List.zipWith (fun l r => l.1 == r.1 && l.2.width == r.2.width)
       left.accesses right.accesses |>.all id
+
+theorem footprintAgrees_rename (resolve : AllocId → Nat) (footprint : Footprint) :
+    footprintAgrees (renameFootprint resolve footprint) footprint := by
+  simp [renameFootprint, renameRegion, footprintAgrees]
 
 theorem footprintAgrees_refl (footprint : Footprint) :
     footprintAgrees footprint footprint := by
