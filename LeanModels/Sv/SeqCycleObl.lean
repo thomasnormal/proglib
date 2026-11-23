@@ -441,6 +441,17 @@ theorem CoreMemDesign.evalScalarV_congr {E : CoreMemDesign} {env : IEnv} {elems 
     E.evalScalarV env elems v ctx e = E.evalScalarV env elems v' ctx e :=
   evalPure2_congr h
 
+/-! In the scalar-only expression fragment, the source-shaped read walker is
+ exactly the identifier list of the instantiated expression. -/
+theorem CoreMemDesign.readsV_eq_instExpr2_idents_of_pure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {ctx : Option Nat} {e : PExpr}
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false) :
+    E.readsV env elems ctx e =
+      (instExpr2 env (E.widthsOf elems) ctx e).idents := by
+  cases e <;> simp_all [CoreMemDesign.readsV, CoreMemDesign.readsIdxV,
+    LeanModels.Sv.PExpr.hasMemoryRead, instExpr2, Expr2.idents]
+
 mutual
 
 theorem CoreMemDesign.evalIdxV_congr {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
