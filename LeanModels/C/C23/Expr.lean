@@ -1809,7 +1809,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           match v with
           | .ptrInt p => pure (.ptr p)
           | .int _ _ =>
-              refuseUnsupported "integer-to-pointer conversion outside pointer type"
+              refuseUnsupported "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery"
           | _ =>
               refuseUnsupported "integer-to-pointer conversion is not an unchanged uintptr_t/intptr_t round-trip"
         else refuseUnsupported "integer-to-pointer conversion outside pointer type"
