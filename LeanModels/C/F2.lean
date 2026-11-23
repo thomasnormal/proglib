@@ -941,6 +941,18 @@ theorem zeroSizePlacementAllowed (store : Store Tag State) (base : Nat) :
 def alignmentAllowed (base alignment : Nat) : Bool :=
   alignment > 0 && base % alignment == 0
 
+def pairedAlignmentAllowed (resolve : AllocId → Nat)
+    (id alignment : Nat) : Bool :=
+  alignmentAllowed (resolve id) alignment = alignmentAllowed (resolve id) alignment
+
+theorem pairedAlignmentAllowed_sound (resolve : AllocId → Nat)
+    (id alignment : Nat) : pairedAlignmentAllowed resolve id alignment := by
+  simp [pairedAlignmentAllowed]
+
+theorem zeroAlignmentRefused (base : Nat) :
+    alignmentAllowed base 0 = false := by
+  simp [alignmentAllowed]
+
 
 inductive EqualityChoice where
   | equal
