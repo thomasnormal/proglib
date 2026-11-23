@@ -1595,6 +1595,22 @@ def forValues2Int32 (env : IEnv) (iterator : String) (init condition step : PExp
       | _, _, _ => forValuesFuel2 env iterator init condition step fuel
   | .error e => .unsupported s!"for fuel: {e}"
 
+theorem forValues2_of_forValues2Int32_ok
+    (env : IEnv) (iterator : String) (init condition step : PExpr)
+    {values : List Int} (h : forValues2Int32 env iterator init condition step = .ok values) :
+    forValues2 env iterator init condition step = .ok values := by
+  unfold forValues2Int32 at h
+  unfold forValues2
+  cases hf : forFuel2 env iterator init condition step with
+  | error e => simp [hf] at h
+  | ok fuel =>
+      rw [hf] at h
+      split at h <;> try simp_all
+      all_goals split at h <;> try simp_all
+      all_goals split at h <;> try simp_all
+      all_goals split at h <;> try simp_all
+      all_goals split at h <;> try simp_all
+
 mutual
 /-- Lower a statement to `Stmt2`. -/
 def instStmt2 (env : IEnv) (elems : List (String × Nat)) : PStmt → Stmt2
