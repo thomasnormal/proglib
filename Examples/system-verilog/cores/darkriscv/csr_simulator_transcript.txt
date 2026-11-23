@@ -1,0 +1,14 @@
+DarkRISCV upstream-fixed CSR witness
+Source commit: db801bd10f35ef8feafce5506ece3223a0c369b2
+Source SHA-256: f3d370e910f016341fd90d0dc48aba2f4021643656b53a3d063171fbe0a136e9
+Program: four NOPs, rdcycle x1, rdinstret x2, sw x1,0(x0), sw x2,4(x0)
+
+Icarus Verilog 13.0 (s20250103-64-gdad78d525)
+  CSR_STORE addr=00000000 value=00000005
+  CSR_STORE addr=00000004 value=00000004
+
+Xcelium 24.03-s004
+  CSR_STORE addr=00000000 value=00000005
+  CSR_STORE addr=00000004 value=00000004
+
+Xcelium 26.09 was not installed on this host, so no 26.09 result is claimed.
