@@ -1942,6 +1942,16 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
               (.int IntTy.int_ 1) sub.ty none (some sub) subStructured
             storeAt ctx.aliasModel p sub.ty nv subStructured
             pure (if post then old else nv)
+        | .float32 f => do
+            let one := Float32.Model.ofInt 1
+            let nv ← float32Binop (if op == "++" then "+" else "-") f one
+            storeAt ctx.aliasModel p sub.ty nv subStructured
+            pure (if post then old else nv)
+        | .float64 f => do
+            let one := Float.Model.ofInt 1
+            let nv ← float64Binop (if op == "++" then "+" else "-") f one
+            storeAt ctx.aliasModel p sub.ty nv subStructured
+            pure (if post then old else nv)
         | _ =>
             let (storageT, n) ← asInt old
             -- C23 §6.3.1.1p2 uses the bit-field's value range for
