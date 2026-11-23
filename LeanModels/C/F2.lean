@@ -171,7 +171,7 @@ structure Allocation (Tag State : Type) where
   address : Option Nat
   bytes : List (Byte Tag)
   state : State
-deriving Repr
+deriving Repr, BEq
 
 inductive HookChoice where
   | default
@@ -184,12 +184,12 @@ inductive EffectiveTypeState (TypeId : Type) where
   | typed (type : TypeId)
   | padding
   | indeterminate
-deriving Repr
+deriving Repr, BEq
 
 structure LocationState (TypeId : Type) where
   effectiveType : EffectiveTypeState TypeId
   initialized : Bool
-deriving Repr
+deriving Repr, BEq
 
 abbrev LocationStore (TypeId : Type) :=
   List (AllocId × Nat × LocationState TypeId)
@@ -197,7 +197,7 @@ abbrev LocationStore (TypeId : Type) :=
 structure AllocationMetadata (Tag State TypeId : Type) where
   allocation : Allocation Tag State
   locations : List (LocationState TypeId)
-deriving Repr
+deriving Repr, BEq
 
 def listSet (values : List α) (offset : Nat) (value : α) : List α :=
   match values, offset with
@@ -224,7 +224,7 @@ deriving Repr, BEq
 
 structure Footprint where
   accesses : List (AccessKind × Region)
-deriving Repr
+deriving Repr, BEq
 
 def footprint (kind : AccessKind) (region : Region) : Footprint :=
   { accesses := [(kind, region)] }
@@ -249,7 +249,7 @@ theorem setLocation_length (locations : LocationStore TypeId)
 structure Store (Tag State : Type) where
   allocations : List (AllocId × Allocation Tag State)
   nextId : AllocId
-deriving Repr
+deriving Repr, BEq
 
 def renameAllocation (resolve : AllocId → Nat)
     (entry : AllocId × Allocation Tag State) : AllocId × Allocation Tag State :=
@@ -523,7 +523,8 @@ theorem renameMetadata_comp (first second : AllocId → Nat) (id : AllocId)
           intro value hvalue
           exact renameByte_comp first second value
 
-def pairedTypedStoreMetadataByte (resolve : AllocId → Nat) (id : AllocId)
+def pairedTypedStoreMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
     Option ((AllocationMetadata Tag State TypeId × Footprint) ×
@@ -531,8 +532,8 @@ def pairedTypedStoreMetadataByte (resolve : AllocId → Nat) (id : AllocId)
   let sourceResult ← typedStoreMetadataByte metadata offset typeId byte
   let targetResult ← typedStoreMetadataByte (renameMetadata resolve id metadata)
     offset typeId (renameByte resolve byte)
-  if targetResult.1 = renameMetadata resolve id sourceResult.1 &&
-      targetResult.2 = sourceResult.2 then
+  if targetResult.1 == renameMetadata resolve id sourceResult.1 &&
+      targetResult.2 == sourceResult.2 then
     some (sourceResult, targetResult)
   else none
 
@@ -549,7 +550,7 @@ def typedLoadMetadataByte [BEq TypeId]
   | .untyped => none
   | .padding | .indeterminate => none
 
-def pairedTypedLoadMetadataByte [BEq TypeId]
+def pairedTypedLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) :
@@ -557,12 +558,12 @@ def pairedTypedLoadMetadataByte [BEq TypeId]
   let sourceResult ← typedLoadMetadataByte metadata offset typeId
   let targetResult ← typedLoadMetadataByte (renameMetadata resolve id metadata)
     offset typeId
-  if targetResult.1 = renameByte resolve sourceResult.1 &&
-      targetResult.2 = sourceResult.2 then
+  if targetResult.1 == renameByte resolve sourceResult.1 &&
+      targetResult.2 == sourceResult.2 then
     some (sourceResult, targetResult)
   else none
 
-def pairedTypedStoreLoadMetadataByte [BEq TypeId]
+def pairedTypedStoreLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
@@ -575,10 +576,10 @@ def pairedTypedStoreLoadMetadataByte [BEq TypeId]
     offset typeId (renameByte resolve byte)
   let sourceLoad ← typedLoadMetadataByte sourceStore.1 offset typeId
   let targetLoad ← typedLoadMetadataByte targetStore.1 offset typeId
-  if targetStore.1 = renameMetadata resolve id sourceStore.1 &&
-      targetStore.2 = sourceStore.2 &&
-      targetLoad.1 = renameByte resolve sourceLoad.1 &&
-      targetLoad.2 = sourceLoad.2 then
+  if targetStore.1 == renameMetadata resolve id sourceStore.1 &&
+      targetStore.2 == sourceStore.2 &&
+      targetLoad.1 == renameByte resolve sourceLoad.1 &&
+      targetLoad.2 == sourceLoad.2 then
     some ((sourceStore, sourceLoad), (targetStore, targetLoad))
   else none
 
@@ -590,17 +591,18 @@ def unionLoadMetadataByte
   if !location.initialized then none
   else some (byte, footprint .read { allocation := 0, offset := offset, width := 1 })
 
-def pairedUnionLoadMetadataByte (resolve : AllocId → Nat) (id : AllocId)
+def pairedUnionLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat) :
     Option ((Byte Tag × Footprint) × (Byte Tag × Footprint)) := do
   let sourceResult ← unionLoadMetadataByte metadata offset
   let targetResult ← unionLoadMetadataByte (renameMetadata resolve id metadata) offset
-  if targetResult.1 = renameByte resolve sourceResult.1 &&
-      targetResult.2 = sourceResult.2 then
+  if targetResult.1 == renameByte resolve sourceResult.1 &&
+      targetResult.2 == sourceResult.2 then
     some (sourceResult, targetResult)
   else none
 
-def pairedStoreUnionLoadMetadataByte
+def pairedStoreUnionLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (byte : Byte Tag) :
@@ -613,10 +615,10 @@ def pairedStoreUnionLoadMetadataByte
     offset (renameByte resolve byte)
   let sourceLoad ← unionLoadMetadataByte sourceStore.1 offset
   let targetLoad ← unionLoadMetadataByte targetStore.1 offset
-  if targetStore.1 = renameMetadata resolve id sourceStore.1 &&
-      targetStore.2 = sourceStore.2 &&
-      targetLoad.1 = renameByte resolve sourceLoad.1 &&
-      targetLoad.2 = sourceLoad.2 then
+  if targetStore.1 == renameMetadata resolve id sourceStore.1 &&
+      targetStore.2 == sourceStore.2 &&
+      targetLoad.1 == renameByte resolve sourceLoad.1 &&
+      targetLoad.2 == sourceLoad.2 then
     some ((sourceStore, sourceLoad), (targetStore, targetLoad))
   else none
 
