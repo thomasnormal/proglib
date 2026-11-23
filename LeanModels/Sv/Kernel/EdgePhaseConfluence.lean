@@ -1034,4 +1034,47 @@ theorem EdgePhaseTerminalPath.observable_confluent
     EdgePhaseState.observable E t₁ = EdgePhaseState.observable E t₂ := by
   exact EdgePhaseTerminalPath.observable_eq_of_trace ad q hqueue hp₁ hp₂ hkeys hdisj
 
+/-! End-to-end bridge for the source-shaped NBA phase.  The scheduler path is
+constructed from the real `EdgePhaseStep` relation, all terminal paths agree
+on the committed scalar observable, and one selected path is tied to the
+canonical executor by explicit settle/run/commit receipts. -/
+theorem EdgePhaseTerminalPath.confluence_refines_step
+    {E : CoreMemDesign} {s : EdgePhaseState}
+    (ad : EdgePhaseNbaAdmission E s)
+    (q : EdgeCursor → NbaQueue2)
+    (hqueue : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.scalarQ = q cursor)
+    (hkeys : (E.scalar.view s.state.scalar).map Prod.fst |>.Nodup)
+    (hdisj : ∀ {n t}, EdgePhaseTerminalPath E n s t → queuePairwiseDisjoint t.scalarQ)
+    (hcomb : E.hasComb = false) (himp : E.hasImplicit = false)
+    {n : Nat} {t : EdgePhaseState}
+    (hp : EdgePhaseTerminalPath E n s t)
+    {st : CoreMemState} {entry : SvState}
+    {pre0 s3 next : CoreMemState} {m : MemState}
+    (h0 : E.settleCanonical E.env E.elems (E.inputState st entry) E.processes.toList = .ok pre0)
+    (h1 : E.settleCanonical E.env E.elems pre0 E.processes.toList = .ok s.state)
+    (he : E.runEdges E.env E.elems t.state
+      (E.scalar.view st.scalar) (E.scalar.view t.state.scalar) E.processes.toList =
+      .ok { state := t.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] })
+    (hm : t.state.memory.commitNba t.memoryQ = some m)
+    (h3 : E.settleCanonical E.env E.elems
+      (E.committedState
+        { state := t.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] } m)
+      E.processes.toList = .ok s3)
+    (h4 : E.settleCanonical E.env E.elems s3 E.processes.toList = .ok next)
+    (hq : E.firesAny (E.scalar.view t.state.scalar) (E.scalar.view next.scalar) = false) :
+    (∀ n' t', EdgePhaseTerminalPath E n' s t' →
+      EdgePhaseState.observable E t' = EdgePhaseState.observable E t) ∧
+    E.step st entry = .ok next := by
+  have hstate := EdgePhaseTerminalPath.state_eq ad hp
+  have hq' : E.firesAny (E.scalar.view s.state.scalar) (E.scalar.view next.scalar) = false := by
+    simpa [hstate] using hq
+  have hstep := EdgePhaseTerminalPath.executor_result ad hp hcomb himp h0 h1 he hm h3 h4 hq'
+  have hobs : ∀ n' t', EdgePhaseTerminalPath E n' s t' →
+      EdgePhaseState.observable E t' = EdgePhaseState.observable E t := by
+    intro n' t' hp'
+    exact EdgePhaseTerminalPath.observable_eq_of_trace ad q hqueue hp' hp hkeys
+      (hdisj hp')
+  exact ⟨hobs, hstep⟩
+
 end LeanModels.Sv.Kernel
