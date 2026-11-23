@@ -560,6 +560,37 @@ theorem CoreMemDesign.evalExprLocals_setScalarState_two_of_not_read_pure
       CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
         (CoreMemDesign.setScalarState_spec hc hxN vN).2 hxM hmem hcall hne hreadM
 
+/-! The parser-native read frame makes the evaluator result independent of the
+ order of two scalar writes that are both outside the expression's read set.
+This compares the real stateful evaluator at the two concrete write orders;
+it does not identify the updated states themselves. -/
+theorem CoreMemDesign.evalExprLocals_setScalarState_two_order_frame
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (hreadN : ∀ y ∈ E.readsV env elems ctx e, y ≠ n)
+    (hreadM : ∀ y ∈ E.readsV env elems ctx e, y ≠ m) :
+    E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st n vN) m vM) ctx locals e =
+      E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st m vM) n vN) ctx locals e := by
+  calc
+    E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st n vN) m vM) ctx locals e =
+        E.evalExprLocals env elems st ctx locals e :=
+      (CoreMemDesign.evalExprLocals_setScalarState_two_of_not_read_pure
+        hc hxN hxM hmem hcall hne hreadN hreadM).symm
+    _ = E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st m vM) n vN) ctx locals e :=
+      CoreMemDesign.evalExprLocals_setScalarState_two_of_not_read_pure
+        hc hxM hxN hmem hcall hne hreadM hreadN
+
 /-! A coherent scalar write changes the materialized view only at its target
  name. -/
 theorem CoreMemDesign.setScalarState_view_lookup_of_ne

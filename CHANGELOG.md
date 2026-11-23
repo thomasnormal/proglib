@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added a parser-native two-order frame for `evalExprLocals`: when both scalar
+  write targets are outside the expression's read closure, the real evaluator
+  returns the same result for either concrete write order.
+
 - Added the coherent typed wrapper that discharges the cross-value premises
   of concrete scalar-write commutation for distinct declaration slots.
 
