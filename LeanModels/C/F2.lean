@@ -280,6 +280,26 @@ def loadByte (store : Store Tag State) (id offset : Nat) :
     let byte ← allocation.bytes[offset]?
     some (byte, footprint .read { allocation := id, offset := offset, width := 1 })
 
+def endLifetime (store : Store Tag State) (id : AllocId) :
+    Option (Store Tag State × Footprint) := do
+  let allocation ← lookup store id
+  if !allocation.live then none
+  else
+    let updated := { allocation with live := false }
+    let allocations := store.allocations.map (fun entry =>
+      if entry.1 == id then (id, updated) else entry)
+    some ({ store with allocations := allocations },
+      footprint .metadata { allocation := id, offset := 0,
+        width := allocation.bytes.length })
+
+theorem endLifetime_wf {Tag State : Type} (store : Store Tag State)
+    (hstore : WellFormed store) (id : AllocId)
+    (result : Store Tag State × Footprint)
+    (hresult : endLifetime store id = some result) :
+    WellFormed result.1 := by
+  simp [endLifetime] at hresult
+  split at hresult <;> simp_all [WellFormed, allocationsWf, bytesWf]
+
 theorem storeByte_wf {Tag State : Type} (store : Store Tag State)
     (hstore : WellFormed store) (id offset : Nat) (byte : Byte Tag)
     (result : Store Tag State × Footprint)
