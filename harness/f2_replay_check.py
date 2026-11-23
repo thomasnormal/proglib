@@ -4,6 +4,8 @@
 import argparse
 import hashlib
 import json
+import subprocess
+import tempfile
 from pathlib import Path
 
 PIN = "clang version 21.1.8"
@@ -37,6 +39,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("fixture", type=Path, nargs="?")
     parser.add_argument("--source", type=Path)
+    parser.add_argument("--native", action="store_true")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
@@ -56,6 +59,24 @@ def main():
         error = check(item, args.source)
         if error:
             raise SystemExit("f2_replay_check: " + error)
+        if args.native:
+            source = args.source or Path(item.get("source_file", ""))
+            with tempfile.TemporaryDirectory(prefix="f2-replay-") as tmp:
+                outcomes = []
+                for opt in ("-O0", "-O2"):
+                    binary = Path(tmp) / opt[1:]
+                    build = subprocess.run(["clang", "-std=gnu17", opt,
+                                            str(source), "-o", str(binary)],
+                                           capture_output=True, text=True)
+                    if build.returncode:
+                        raise SystemExit("f2_replay_check: native compile failed")
+                    run = subprocess.run([str(binary)], capture_output=True)
+                    outcomes.append((run.returncode, run.stdout))
+                if outcomes[0] != outcomes[1]:
+                    raise SystemExit("f2_replay_check: O0/O2 outcome mismatch")
+                ending = item["ending"]
+                if ending.get("kind") == "exit" and outcomes[0][0] != ending["status"]:
+                    raise SystemExit("f2_replay_check: exit status mismatch")
     print("f2_replay_check: ok")
 
 
