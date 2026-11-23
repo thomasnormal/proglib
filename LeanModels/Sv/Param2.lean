@@ -2880,9 +2880,9 @@ and a descending inclusive loop. -/
 private def loopAscCond : PExpr :=
   .binary (.m0 .lt) (.genvarRef "i") (.int 200)
 private def loopInc : PExpr := .unary .inc (.genvarRef "i")
+private def loopDec : PExpr := .unary .dec (.genvarRef "i")
 private def loopDescCond : PExpr :=
   .binary (.m0 .ge) (.genvarRef "i") (.int 0)
-private def loopDec : PExpr := .unary .dec (.genvarRef "i")
 
 #guard (forFuel2 {} "i" (.int 0) loopAscCond loopInc).toOption == some 202
 #guard (forFuel2 {} "i" (.int 200) loopDescCond loopDec).toOption == some 203
@@ -2915,18 +2915,27 @@ private def loopEqBigStep : PExpr :=
   .binary (.m0 .add) (.genvarRef "i") (.int 4294967296)
 private def loopNeWideCond : PExpr :=
   .binary (.m0 .ne) (.genvarRef "i") (.int 2147483650)
+private def loopLeWrapCond : PExpr :=
+  .binary (.m0 .le) (.genvarRef "i") (.int 2147483647)
+private def loopGeWrapCond : PExpr :=
+  .binary (.m0 .ge) (.genvarRef "i") (.int (-2147483648))
 private def loopUnsignedBoundCond : PExpr :=
   .binary (.m0 .lt) (.genvarRef "i") (.paramRef "N" none)
 private def loopUnsignedBoundEnv : IEnv :=
   { nvals := [("N", (2147483650, 32, false))] }
 
-/-! Equality, inequality, and unsigned comparison headers use the same checked
-range boundary. This keeps the unbounded arithmetic tier from manufacturing a
-value for a 32-bit trace that wraps or does not terminate. -/
+/-! Every linear comparison header uses the same checked range boundary. This
+includes signed and unsigned `<`, `<=`, `>`, `>=`, `==`, and `!=` forms. It
+keeps the unbounded arithmetic tier from manufacturing a value for a 32-bit
+trace that wraps or does not terminate. -/
 #guard iteratorWrapRefused (forValues2Int32 {} "i" (.int 5) loopEqBigStepCond loopEqBigStep)
 #guard iteratorWrapRefused
   (forValues2Int32 loopUnsignedBoundEnv "i" (.int 2147483646) loopUnsignedBoundCond loopInc)
 #guard iteratorWrapRefused (forValues2Int32 {} "i" (.int 0) loopNeWideCond loopInc)
+#guard iteratorWrapRefused
+  (forValues2Int32 {} "i" (.int 2147483647) loopLeWrapCond loopInc)
+#guard iteratorWrapRefused
+  (forValues2Int32 {} "i" (.int (-2147483648)) loopGeWrapCond loopDec)
 
 -- Generate guards read 32-bit int parameters from `nvals` as well as the
 -- unbounded `vals` table; both paths must select the same guarded family.
