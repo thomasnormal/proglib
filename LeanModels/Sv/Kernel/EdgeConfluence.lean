@@ -452,6 +452,25 @@ theorem EdgeScheduleTerminalPath.exists_processes_range
 
 #print axioms EdgeScheduleTerminalPath.exists_processes_range
 
+theorem EdgeScheduleTerminalPath.exists_processes_range_drivers
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {s : EdgeScheduleState} (hs : s.pending = List.range E.processes.size)
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    (F : Nat → NbaQueue2)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after v mv p = .ok (F k))
+    (hkeys : (s.view.map Prod.fst).Nodup) :
+    ∃ n t, EdgeScheduleTerminalPath E before after v mv n s t := by
+  have ad := EdgeScheduleAdmission.of_processes_range_drivers hdrivers hdistinct F hw hq
+  exact EdgeScheduleTerminalPath.exists ad
+    (by intro i hi; simpa [hs] using hi)
+    (by simpa [hs] using (List.nodup_range : (List.range E.processes.size).Nodup)) hkeys
+
+#print axioms EdgeScheduleTerminalPath.exists_processes_range_drivers
+
 /-! The terminal trace records the exact queue contributed by every selected
 process.  The process order remains a permutation, so this is the bridge used
 to compare a scheduler path with the canonical source-order edge pass. -/
