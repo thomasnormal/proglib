@@ -349,6 +349,95 @@ private theorem EdgePhaseTerminalPath.state_eq
 
 #print axioms EdgePhaseTerminalPath.state_eq
 
+private theorem perm_cons_append_insert {α : Type} (x : α) :
+    ∀ (before after : List α),
+      (x :: (before ++ after)).Perm (before ++ x :: after)
+  | [], _ => List.Perm.refl _
+  | b :: before, after => by
+      simp only [List.cons_append]
+      exact (List.Perm.swap b x (before ++ after)).trans
+        (List.Perm.cons b (perm_cons_append_insert x before after))
+
+/-! A path records each selected cursor exactly once.  The queue function is
+explicitly supplied because the admission theorem is the scheduler-side
+obligation that a cursor's stable NBA result is independent of the path. -/
+theorem EdgePhaseTerminalPath.scalar_queue_trace
+    {E : CoreMemDesign} {s t : EdgePhaseState} {n : Nat}
+    (ad : EdgePhaseNbaAdmission E s)
+    (q : EdgeCursor → NbaQueue2)
+    (hqueue : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.scalarQ = q cursor)
+    (hp : EdgePhaseTerminalPath E n s t) :
+    ∃ choices : List EdgeCursor, choices.Perm s.active ∧
+      t.scalarQ = s.scalarQ ++ List.flatMap q choices := by
+  induction hp with
+  | @terminal s0 hterm =>
+      have hactive : s0.active = [] := by simpa [EdgePhaseQuiescent] using hterm
+      refine ⟨[], ?_, ?_⟩
+      · rw [hactive]
+      · simp [List.flatMap]
+  | @head n s u t hn hstep htail ih =>
+      cases hstep with
+      | select hactive hresume =>
+          rename_i before after cursor next result
+          have hmem : cursor ∈ s.active := by
+            rw [hactive]
+            simp
+          have hempty := ad.continuation_empty cursor result next hmem hresume
+          have hstable := ad.stable_state cursor result next hmem hresume
+          have hqcur := hqueue cursor result next hmem hresume
+          let u' : EdgePhaseState := s.after result next before after
+          have hstate : u'.state = s.state := by
+            simp [u', EdgePhaseState.after, hstable]
+          have hsub : ∀ c, c ∈ u'.active → c ∈ s.active := by
+            intro c hc
+            have hc' : c ∈ before ++ after := by
+              simpa [u', EdgePhaseState.after, hempty] using hc
+            rw [hactive]
+            rcases List.mem_append.mp hc' with hb | ha
+            · exact List.mem_append_left _ hb
+            · exact List.mem_append_right before (List.mem_cons_of_mem cursor ha)
+          have huad : EdgePhaseNbaAdmission E u' :=
+            ad.restrict hstate hsub
+          have hqueue' : ∀ c result' next', c ∈ u'.active →
+              c.resume E u'.state = .ok (result', next') →
+              result'.scalarQ = q c := by
+            intro c result' next' hc hresume'
+            apply hqueue c result' next' (hsub c hc)
+            simpa [hstate] using hresume'
+          obtain ⟨choices, hchoices, htrace⟩ := ih huad hqueue'
+          refine ⟨cursor :: choices, ?_, ?_⟩
+          · have hperm := List.Perm.cons cursor hchoices
+            exact hperm.trans (by
+              simpa [u', EdgePhaseState.after, hempty, hactive] using
+                (perm_cons_append_insert cursor before after))
+          · simpa [u', EdgePhaseState.after, hempty, hqcur,
+              List.flatMap, List.append_assoc] using htrace
+
+#print axioms EdgePhaseTerminalPath.scalar_queue_trace
+
+theorem EdgePhaseTerminalPath.scalar_queue_perm
+    {E : CoreMemDesign} {s t₁ t₂ : EdgePhaseState}
+    {n₁ n₂ : Nat}
+    (ad : EdgePhaseNbaAdmission E s)
+    (q : EdgeCursor → NbaQueue2)
+    (hqueue : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.scalarQ = q cursor)
+    (hp₁ : EdgePhaseTerminalPath E n₁ s t₁)
+    (hp₂ : EdgePhaseTerminalPath E n₂ s t₂) :
+    t₁.scalarQ.Perm t₂.scalarQ := by
+  obtain ⟨choices₁, hchoices₁, htrace₁⟩ :=
+    EdgePhaseTerminalPath.scalar_queue_trace ad q hqueue hp₁
+  obtain ⟨choices₂, hchoices₂, htrace₂⟩ :=
+    EdgePhaseTerminalPath.scalar_queue_trace ad q hqueue hp₂
+  have hchoices : choices₁.Perm choices₂ := hchoices₁.trans hchoices₂.symm
+  have hflat : (List.flatMap q choices₁).Perm (List.flatMap q choices₂) :=
+    List.Perm.flatMap_right q hchoices
+  rw [htrace₁, htrace₂]
+  exact hflat.append_left _
+
+#print axioms EdgePhaseTerminalPath.scalar_queue_perm
+
 end LeanModels.Sv.Kernel
 
 namespace LeanModels.Sv.Kernel
@@ -440,5 +529,24 @@ theorem EdgePhaseTerminalPath.observable_eq_of_perm
   exact EdgePhaseState.observable_eq_of_perm hstate hkeys₁ hdisj hperm
 
 #print axioms EdgePhaseTerminalPath.observable_eq_of_perm
+
+/-- The scheduler's path order is observationally irrelevant when each cursor
+has a path-independent scalar NBA queue and the complete updates are disjoint. -/
+theorem EdgePhaseTerminalPath.observable_eq_of_trace
+    {E : CoreMemDesign} {s t₁ t₂ : EdgePhaseState}
+    {n₁ n₂ : Nat}
+    (ad : EdgePhaseNbaAdmission E s)
+    (q : EdgeCursor → NbaQueue2)
+    (hqueue : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.scalarQ = q cursor)
+    (hp₁ : EdgePhaseTerminalPath E n₁ s t₁)
+    (hp₂ : EdgePhaseTerminalPath E n₂ s t₂)
+    (hkeys : (E.scalar.view s.state.scalar).map Prod.fst |>.Nodup)
+    (hdisj : queuePairwiseDisjoint t₁.scalarQ) :
+    EdgePhaseState.observable E t₁ = EdgePhaseState.observable E t₂ := by
+  apply EdgePhaseTerminalPath.observable_eq_of_perm ad hp₁ hp₂ hkeys hdisj
+  exact EdgePhaseTerminalPath.scalar_queue_perm ad q hqueue hp₁ hp₂
+
+#print axioms EdgePhaseTerminalPath.observable_eq_of_trace
 
 end LeanModels.Sv.Kernel
