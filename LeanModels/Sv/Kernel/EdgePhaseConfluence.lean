@@ -1,6 +1,7 @@
 import LeanModels.Sv.Kernel.CoreMemResume
 import LeanModels.Sv.Scheduler
 import LeanModels.Sv.SeqCycleStep
+import LeanModels.Sv.SeqCycle
 
 /-!
 # Observable confluence for the source-shaped edge phase
@@ -225,6 +226,19 @@ theorem CoreMemDesign.evalScalarLocals_setScalarState_of_not_read
   · cases hval : SvState.lookup locals r.name with
     | none => exact False.elim (hlocal hval)
     | some lv => simp [hval]
+
+theorem CoreMemDesign.evalScalarLocals_setScalarState_of_not_read_coherent
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n : String} {x : VarId} {v : LVec}
+    (hc : E.Coherent st) (hx : E.scalar.resolve n = some x)
+    (hread : ∀ r ∈ (instExpr2 env (if elems.isEmpty then E.elems else elems) ctx e).reads,
+      r.name ≠ n) :
+    E.evalScalarLocals env elems st ctx locals e =
+      E.evalScalarLocals env elems (E.setScalarState st n v) ctx locals e := by
+  apply CoreMemDesign.evalScalarLocals_setScalarState_of_not_read hx
+  exact (CoreMemDesign.setScalarState_spec hc hx v).1
+  exact hread
 
 /-! The four source-level obligations for a level-sensitive admission.  They
 are retained as a proposition over `PDesign`, where the access closure and

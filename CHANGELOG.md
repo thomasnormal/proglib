@@ -7,6 +7,9 @@
   before and after `setScalarState`, providing the next semantic bridge for the
   retained level-sensitive scheduler.
 
+- Added the coherent-state wrapper for the scalar evaluator frame, reusing the
+  canonical `setScalarState_spec` view-update theorem.
+
 - Added the kernel-checked pure scalar evaluator frame used by the retained
   level-sensitive scheduler.  The parser-native admission obligations are
   recorded separately, while the guard-to-resume semantic frame remains open.
