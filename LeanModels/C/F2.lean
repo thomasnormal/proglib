@@ -241,6 +241,13 @@ structure HookRequest where
   footprint : Footprint
 deriving Repr
 
+def renameHookRequest (resolve : AllocId → Nat) (request : HookRequest) : HookRequest :=
+  { request with footprint := renameFootprint resolve request.footprint }
+
+theorem renameHookRequest_identity (resolve : AllocId → Nat) (request : HookRequest) :
+    renameHookRequest resolve request = request := by
+  simp [renameHookRequest, renameFootprint_identity]
+
 structure Fault (F : Type) where
   value : F
 deriving Repr

@@ -65,6 +65,9 @@ def one : TestStore :=
   | _ => false
 #guard footprintAgrees (mergeFootprint 1 0 2) (mergeFootprint 1 0 2)
 #guard renameFootprint resolve (mergeFootprint 1 0 2) == mergeFootprint 1 0 2
+#guard renameHookRequest resolve { choice := .default,
+  footprint := mergeFootprint 1 0 2 } = { choice := .default,
+  footprint := mergeFootprint 1 0 2 }
 
 def footprintWidth : Footprint → Nat
   | { accesses := [(_, region)] } => region.width
