@@ -35,5 +35,7 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 
 #guard decodePointer (encodePointer pointer) == some pointer
 #guard copyEncoded (encodePointer pointer) == encodePointer pointer
+#guard pointerEqual pointer pointer .equal
+#guard !(pointerEqual pointer pointer .unequal)
 
 end LeanModels.C.F2Tests
