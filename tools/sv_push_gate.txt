@@ -314,3 +314,4 @@ Examples/system-verilog/sem2/event_self_write_latch_refuse/agree.lean
 Examples/system-verilog/sem2/edge_multiple_write_blocking_refuse/agree.lean
 Examples/system-verilog/sem2/edge_multiple_write_nba_refuse/agree.lean
 Examples/system-verilog/sem2/edge_two_level_child_port_race_refuse/agree.lean
+Examples/system-verilog/sem2/edge_driver_closure_race_refuse/agree.lean

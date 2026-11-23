@@ -74223,6 +74223,23 @@
       ],
       "refusal": "Event:edge-blocking-race",
       "measured": "2026-11-23: Icarus Verilog 13.0 gives x,1,1,1,1,1 and Xcelium 24.03-s004 gives x,x,x,1,1,0; canonical E closes the two flattened clock-port aliases and refuses the same-edge blocking race under IEEE 1800-2023 §§4.7 and 10.4.1."
+    },
+    {
+      "name": "edge_driver_closure_race_refuse",
+      "example": "sem2/edge_driver_closure_race_refuse",
+      "top": "edge_driver_closure_race_refuse",
+      "file": "edge_driver_closure_race_refuse",
+      "signals": ["clk", "d", "b_assign", "b_comb"],
+      "stimulus": [
+        {"clk": "0", "d": "0"},
+        {"clk": "1", "d": "1"},
+        {"clk": "0", "d": "1"},
+        {"clk": "1", "d": "0"},
+        {"clk": "0", "d": "0"},
+        {"clk": "1", "d": "1"}
+      ],
+      "refusal": "Event:edge-blocking-race",
+      "measured": "2026-11-23: selected assign and always_comb driver paths are schedule-dependent. Icarus Verilog 13.0 gives xx,xx,xx,01,01,00; Xcelium 24.03-s004 gives xx,xx,xx,11,11,00; canonical E refuses after driver closure under IEEE 1800-2023 §§4.7 and 10.4.1."
     }
   ]
 }
