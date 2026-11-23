@@ -4386,3 +4386,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: add a two-write `ReadWin` frame lemma for disjoint existing scalar bindings, preserving read-window agreement after sequential updates.
 - sv: compose scalar evaluator frame lemmas across two explicit sequential state updates, retaining the source read-footprint premises.
 - sv: expose the source-shaped scalar blocking-assignment leaf equation at the retained combinational resume boundary.
+- sv: add the scalar blocking-leaf resume equation with an explicit no-plusargs premise and exact evaluator result.
