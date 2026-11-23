@@ -30,6 +30,48 @@ structure Pointer (Tag : Type) where
   address : Nat
 deriving Repr, BEq
 
+def pointerByte (address fragment : Nat) : UInt8 :=
+  UInt8.ofNat ((address / (256 ^ fragment)) % 256)
+
+def renamePointer (resolve : AllocId → Nat) (pointer : Pointer Tag) : Pointer Tag :=
+  { pointer with
+    address := match pointer.provenance with
+      | none => pointer.address
+      | some provenance => resolve provenance.allocation }
+
+def renameByte (resolve : AllocId → Nat) : Byte Tag → Byte Tag
+  | .uninitialized => .uninitialized
+  | .value bits provenance fragment =>
+      match provenance, fragment with
+      | some provenance, some fragment =>
+          .value (pointerByte (resolve provenance.allocation) fragment)
+            (some provenance) (some fragment)
+      | _, _ => .value bits provenance fragment
+
+def byteFragment : Byte Tag → Option Nat
+  | .uninitialized => none
+  | .value _ _ fragment => fragment
+
+def byteProvenance : Byte Tag → Option (Provenance Tag)
+  | .uninitialized => none
+  | .value _ provenance _ => provenance
+
+theorem renamePointer_provenance (resolve : AllocId → Nat) (pointer : Pointer Tag) :
+    (renamePointer resolve pointer).provenance = pointer.provenance := by
+  rfl
+
+theorem renamePointer_idempotent (resolve : AllocId → Nat) (pointer : Pointer Tag) :
+    renamePointer resolve (renamePointer resolve pointer) = renamePointer resolve pointer := by
+  cases pointer.provenance <;> simp [renamePointer]
+
+theorem renameByte_preserves_fragment (resolve : AllocId → Nat) (byte : Byte Tag) :
+    byteFragment (renameByte resolve byte) = byteFragment byte := by
+  cases byte <;> simp [renameByte, byteFragment]
+
+theorem renameByte_preserves_provenance (resolve : AllocId → Nat) (byte : Byte Tag) :
+    byteProvenance (renameByte resolve byte) = byteProvenance byte := by
+  cases byte <;> simp [renameByte, byteProvenance]
+
 inductive Value (Tag : Type) where
   | scalar (bytes : List UInt8)
   | pointer (pointer : Pointer Tag)
@@ -38,7 +80,7 @@ deriving Repr
 
 def encodePointer (pointer : Pointer Tag) : List (Byte Tag) :=
   (List.range 8).map (fun fragment =>
-    .value (UInt8.ofNat ((pointer.address / (256 ^ fragment)) % 256))
+    .value (pointerByte pointer.address fragment)
       pointer.provenance (some fragment))
 
 def encodeValue : Value Tag → List (Byte Tag)
@@ -127,6 +169,44 @@ structure Store (Tag State : Type) where
   allocations : List (AllocId × Allocation Tag State)
   nextId : AllocId
 deriving Repr
+
+def renameAllocation (resolve : AllocId → Nat)
+    (entry : AllocId × Allocation Tag State) : AllocId × Allocation Tag State :=
+  let allocation := entry.2
+  (entry.1,
+    { allocation with
+      address := allocation.address.map (fun _ => resolve entry.1)
+      bytes := allocation.bytes.map (renameByte resolve) })
+
+def renameStore (resolve : AllocId → Nat) (store : Store Tag State) : Store Tag State :=
+  { store with allocations := store.allocations.map (renameAllocation resolve) }
+
+def storesCorrespond (resolve : AllocId → Nat)
+    (source target : Store Tag State) : Prop :=
+  target = renameStore resolve source
+
+theorem renameAllocation_preserves_id (resolve : AllocId → Nat)
+    (entry : AllocId × Allocation Tag State) :
+    (renameAllocation resolve entry).1 = entry.1 := by
+  rfl
+
+theorem renameAllocation_preserves_liveness (resolve : AllocId → Nat)
+    (entry : AllocId × Allocation Tag State) :
+    (renameAllocation resolve entry).2.live = entry.2.live := by
+  rfl
+
+theorem renameAllocation_preserves_state (resolve : AllocId → Nat)
+    (entry : AllocId × Allocation Tag State) :
+    (renameAllocation resolve entry).2.state = entry.2.state := by
+  rfl
+
+theorem renameStore_idempotent (resolve : AllocId → Nat) (store : Store Tag State) :
+    renameStore resolve (renameStore resolve store) = renameStore resolve store := by
+  simp [renameStore, renameAllocation, renameByte]
+
+theorem storesCorrespond_refl (resolve : AllocId → Nat) (store : Store Tag State) :
+    storesCorrespond resolve (renameStore resolve store) (renameStore resolve store) := by
+  simp [storesCorrespond, renameStore_idempotent]
 
 structure Region where
   allocation : AllocId
@@ -638,6 +718,34 @@ def storeByte (store : Store Tag State) (id offset : Nat)
       if entry.1 == id then (id, updated) else entry)
     some ({ store with allocations := allocations }, footprint .write
       { allocation := id, offset := offset, width := 1 })
+
+def storeTransitionCorresponds (resolve : AllocId → Nat)
+    (source target : Store Tag State)
+    (sourceResult targetResult : Store Tag State × Footprint) : Prop :=
+  target = renameStore resolve source ∧
+    targetResult.1 = renameStore resolve sourceResult.1 ∧
+    targetResult.2 = sourceResult.2
+
+def pairedStoreByte (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : AllocId) (byte : Byte Tag) :
+    Option ((Store Tag State × Footprint) × (Store Tag State × Footprint)) := do
+  let sourceResult ← storeByte store id offset byte
+  let targetResult ← storeByte (renameStore resolve store) id offset (renameByte resolve byte)
+  if targetResult.1 = renameStore resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2 then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedStoreByte_corresponds
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : AllocId) (byte : Byte Tag)
+    (result : (Store Tag State × Footprint) × (Store Tag State × Footprint))
+    (hresult : pairedStoreByte resolve store id offset byte = some result) :
+    storeTransitionCorresponds resolve store (renameStore resolve store)
+      result.1 result.2 := by
+  simp [pairedStoreByte, storeTransitionCorresponds] at hresult
+  obtain ⟨sourceResult, targetResult, hpair⟩ := hresult
+  simp_all
 
 def loadByte (store : Store Tag State) (id offset : Nat) :
     Option (Byte Tag × Footprint) := do
