@@ -78,6 +78,24 @@ theorem CoreMemDesign.edge_evalExprLocals_frame_of_parser_closure
   intro y hy
   exact hguard y (hclosure y hy)
 
+theorem CoreMemDesign.edge_evalExprLocals_frame_of_driver_closure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n : String} {x : VarId} {v : LVec} {processes : List PProcess}
+    {fuel : Nat} {names : List String}
+    (hc : E.Coherent st)
+    (hx : E.scalar.resolve n = some x)
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (hclosure : ∀ y ∈ E.readsV env elems ctx e,
+      y ∈ coreMemReadNamesThroughDrivers processes fuel names)
+    (hguard : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuel names, y ≠ n) :
+    E.evalExprLocals env elems st ctx locals e =
+      E.evalExprLocals env elems (E.setScalarState st n v) ctx locals e := by
+  exact CoreMemDesign.edge_evalExprLocals_frame_of_parser_closure
+    hc hx hmem hcall hne hclosure hguard
+
 theorem CoreMemDesign.edge_setScalarState_commute_of_disjoint
     {E : CoreMemDesign} {st : CoreMemState}
     {n m : String} {xN xM : VarId} {vN vM : LVec}
