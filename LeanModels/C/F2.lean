@@ -143,6 +143,20 @@ inductive Placement where
   | fail
 deriving Repr, BEq
 
+inductive EqualityChoice where
+  | equal
+  | unequal
+deriving Repr, BEq
+
+def pointerEqual (left right : Pointer Tag) (choice : EqualityChoice) : Bool :=
+  match choice with
+  | .equal => left.address == right.address
+  | .unequal => false
+
+theorem pointerEqual_choice (left right : Pointer Tag) :
+    pointerEqual left right .equal = (left.address == right.address) := by
+  rfl
+
 def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) : Option (Store Tag State × Footprint) :=
   match placement with
