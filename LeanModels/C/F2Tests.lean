@@ -103,6 +103,10 @@ def metadata : AllocationMetadata Unit Unit String :=
 #guard (storeMetadataByte metadata 1 oneByte).isNone
 #guard (typedStoreMetadataByte metadata 0 "long" oneByte).isSome
 #guard (typedStoreMetadataByte metadata 1 "long" oneByte).isNone
+#guard (pairedTypedStoreMetadataByte (fun id => if id == 0 then 100 else 200)
+  0 metadata 0 "long" fragmentByte).isSome
+#guard (renameMetadata (fun id => if id == 0 then 100 else 200) 0 metadata).locations ==
+  metadata.locations
 def typedMetadata : AllocationMetadata Unit Unit String :=
   (typedStoreMetadataByte metadata 0 "long" oneByte).getD (metadata, {}).1
 #guard (typedLoadMetadataByte typedMetadata 0 "long").isSome

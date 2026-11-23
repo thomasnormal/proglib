@@ -291,6 +291,45 @@ theorem typedStoreMetadataByte_preserves_length
   simp [typedStoreMetadataByte] at hresult
   split at hresult <;> simp_all
 
+def renameMetadata (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    AllocationMetadata Tag State TypeId :=
+  { metadata with
+    allocation := { metadata.allocation with
+      address := metadata.allocation.address.map (fun _ => resolve id)
+      bytes := metadata.allocation.bytes.map (renameByte resolve) } }
+
+theorem renameMetadata_preserves_locations (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameMetadata resolve id metadata).locations = metadata.locations := by
+  rfl
+
+def pairedTypedStoreMetadataByte (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
+    Option ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint)) := do
+  let sourceResult ← typedStoreMetadataByte metadata offset typeId byte
+  let targetResult ← typedStoreMetadataByte (renameMetadata resolve id metadata)
+    offset typeId (renameByte resolve byte)
+  if targetResult.1 = renameMetadata resolve id sourceResult.1 &&
+      targetResult.2 = sourceResult.2 then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedTypedStoreMetadataByte_corresponds
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedTypedStoreMetadataByte resolve id metadata offset typeId byte =
+      some result) :
+    result.2.1 = renameMetadata resolve id result.1.1 ∧
+      result.2.2 = result.1.2 := by
+  simp [pairedTypedStoreMetadataByte] at hresult
+  split at hresult <;> simp_all
+
 def typedLoadMetadataByte [BEq TypeId]
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) : Option (Byte Tag × Footprint) := do
