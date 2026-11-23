@@ -481,6 +481,23 @@ def memcpySnapshot (source destination : Region) (bytes : List (Byte Tag)) :
 def memmoveSnapshot (_source _destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag)) := some bytes
 
+def pairedMemmoveSnapshot (resolve : AllocId → Nat)
+    (source destination : Region) (bytes : List (Byte Tag)) :
+    Option (List (Byte Tag) × List (Byte Tag)) := do
+  let sourceResult ← memmoveSnapshot source destination bytes
+  let targetResult ← memmoveSnapshot source destination (bytes.map (renameByte resolve))
+  if targetResult = sourceResult.map (List.map (renameByte resolve)) then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedMemmoveSnapshot_sound (resolve : AllocId → Nat)
+    (source destination : Region) (bytes : List (Byte Tag))
+    (result : List (Byte Tag) × List (Byte Tag))
+    (hresult : pairedMemmoveSnapshot resolve source destination bytes = some result) :
+    result.2 = result.1.map (renameByte resolve) := by
+  simp [pairedMemmoveSnapshot] at hresult
+  split at hresult <;> simp_all
+
 inductive ReallocOutcome (Tag State TypeId : Type) where
   | failed (old : AllocationMetadata Tag State TypeId)
   | replaced (fresh : AllocationMetadata Tag State TypeId)

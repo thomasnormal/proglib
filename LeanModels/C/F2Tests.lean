@@ -143,6 +143,9 @@ def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
   { allocation := 1, offset := 1, width := 2 } [oneByte, oneByte]).isNone
 #guard (memmoveSnapshot { allocation := 1, offset := 0, width := 2 }
   { allocation := 1, offset := 1, width := 2 } [oneByte, oneByte]).isSome
+#guard (pairedMemmoveSnapshot resolve
+  { allocation := 1, offset := 0, width := 2 }
+  { allocation := 1, offset := 1, width := 2 } [fragmentByte]).isSome
 #guard match reallocMetadata metadata { bytes := [oneByte], state := () } [location] .fail with
   | some (.failed old, _) => old.allocation.address == metadata.allocation.address
   | _ => false
