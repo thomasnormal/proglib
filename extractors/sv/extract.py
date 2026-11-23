@@ -23376,12 +23376,15 @@ def _sym_for_values(statement):
     # overflow rather than guessing the wraparound point of a source loop.
     values = []
     value = initial
+    if value < -(1 << 31) or value >= (1 << 31):
+        return None
     while test(value):
-        if len(values) >= 128 or value < -(1 << 31) or value >= (1 << 31):
+        if len(values) >= 128:
             return None
         values.append(value)
         next_value = value + delta
-        if next_value == value:
+        if (next_value == value or next_value < -(1 << 31)
+                or next_value >= (1 << 31)):
             return None
         value = next_value
     return symbol, values

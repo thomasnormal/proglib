@@ -1574,6 +1574,27 @@ def forValues2 (env : IEnv) (iterator : String) (init condition step : PExpr) :
   | .ok fuel => forValuesFuel2 env iterator init condition step fuel
   | .error e => .unsupported s!"for fuel: {e}"
 
+/-- Checked entry for instantiated procedural loops. -/
+def forValues2Int32 (env : IEnv) (iterator : String) (init condition step : PExpr) :
+    Res (List Int) :=
+  match forFuel2 env iterator init condition step with
+  | .ok fuel =>
+      match condition, evalInt env init, procStepDelta2 env iterator step with
+      | .binary op _ rhs, .ok start, .ok delta =>
+          if op == .slt || op == .sle || op == .sgt || op == .sge then
+            match evalInt env rhs with
+            | .ok _ =>
+                let trips := fuel - 2
+                let exit := start + (trips : Int) * delta
+                if start < (-2147483648 : Int) || start > 2147483647 ||
+                    exit < (-2147483648 : Int) || exit > 2147483647 then
+                  .unsupported "for iterator leaves signed 32-bit range"
+                else forValuesFuel2 env iterator init condition step fuel
+            | .error _ => forValuesFuel2 env iterator init condition step fuel
+          else forValuesFuel2 env iterator init condition step fuel
+      | _, _, _ => forValuesFuel2 env iterator init condition step fuel
+  | .error e => .unsupported s!"for fuel: {e}"
+
 mutual
 /-- Lower a statement to `Stmt2`. -/
 def instStmt2 (env : IEnv) (elems : List (String × Nat)) : PStmt → Stmt2
@@ -1598,7 +1619,7 @@ def instStmt2 (env : IEnv) (elems : List (String × Nat)) : PStmt → Stmt2
          | none => none)
   | .block body => .block (instStmts2 env elems body).toArray
   | .forLoop iterator init condition step body =>
-      match forValues2 env iterator init condition step with
+      match forValues2Int32 env iterator init condition step with
       | .ok values =>
           .block (values.map fun i => instStmt2 (env.bindVal iterator i) elems body).toArray
       | .unsupported e => .unsupported "ForLoopStatement" e
@@ -2810,6 +2831,27 @@ private def loopDec : PExpr := .unary .dec (.genvarRef "i")
 #guard (forFuel2 {} "i" (.int 0) loopAscCond loopInc).toOption == some 202
 #guard (forFuel2 {} "i" (.int 200) loopDescCond loopDec).toOption == some 203
 #guard (Res.toOption (forValues2 {} "i" (.int 0) loopAscCond loopInc)).map List.length == some 200
+
+/-! Signed `int` iterator traces that would wrap or run forever are loud. -/
+private def loopWrap1Cond : PExpr :=
+  .binary .slt (.genvarRef "i") (.int 1342177280)
+private def loopWrap1Step : PExpr :=
+  .binary (.m0 .add) (.genvarRef "i") (.int 1073741825)
+private def loopWrap4096Cond : PExpr :=
+  .binary .slt (.genvarRef "i") (.int 2146697210)
+private def loopWrap4096Step : PExpr :=
+  .binary (.m0 .add) (.genvarRef "i") (.int 1048584)
+private def loopInfCond : PExpr :=
+  .binary .sle (.genvarRef "i") (.int 2147483647)
+
+private def iteratorWrapRefused (r : Res (List Int)) : Bool :=
+  match r with
+  | .unsupported msg => msg == "for iterator leaves signed 32-bit range"
+  | _ => false
+
+#guard iteratorWrapRefused (forValues2Int32 {} "i" (.int 1342177279) loopWrap1Cond loopWrap1Step)
+#guard iteratorWrapRefused (forValues2Int32 {} "i" (.int (-2147483647)) loopWrap4096Cond loopWrap4096Step)
+#guard iteratorWrapRefused (forValues2Int32 {} "i" (.int 2147483640) loopInfCond loopInc)
 
 -- Generate guards read 32-bit int parameters from `nvals` as well as the
 -- unbounded `vals` table; both paths must select the same guarded family.
