@@ -40,6 +40,7 @@ def main():
     parser.add_argument("fixture", type=Path, nargs="?")
     parser.add_argument("--source", type=Path)
     parser.add_argument("--native", action="store_true")
+    parser.add_argument("--sanitizer", action="store_true")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
@@ -77,6 +78,17 @@ def main():
                 ending = item["ending"]
                 if ending.get("kind") == "exit" and outcomes[0][0] != ending["status"]:
                     raise SystemExit("f2_replay_check: exit status mismatch")
+                if args.sanitizer:
+                    binary = Path(tmp) / "sanitized"
+                    build = subprocess.run(
+                        ["clang", "-std=gnu17", "-O0", "-fsanitize=undefined,address",
+                         "-fno-sanitize-recover=all", str(source), "-o", str(binary)],
+                        capture_output=True, text=True)
+                    if build.returncode:
+                        raise SystemExit("f2_replay_check: sanitizer compile failed")
+                    run = subprocess.run([str(binary)], capture_output=True, text=True)
+                    if run.returncode != ending.get("status", run.returncode) or run.stderr:
+                        raise SystemExit("f2_replay_check: sanitizer evidence mismatch")
     print("f2_replay_check: ok")
 
 
