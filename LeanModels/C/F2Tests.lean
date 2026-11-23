@@ -36,6 +36,11 @@ def dead : TestStore := (endLifetime one 0).getD (one, {}) |>.1
 #guard (loadByte dead 0 0).isNone
 #guard (storeByte dead 0 0 oneByte).isNone
 
+def location : LocationState String :=
+  { effectiveType := .typed "int", initialized := true }
+#guard location.initialized
+#guard HookChoice.unspecified 3 == HookChoice.unspecified 3
+
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 
 #guard decodePointer (encodePointer pointer) == some pointer
