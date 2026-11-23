@@ -431,4 +431,19 @@ theorem EdgePhaseStep.active_source_order
       simp [EdgePhaseState.after]
       split <;> simp_all <;> omega
 
+/-! The active-region relation has an explicit progress premise.  Once every
+active cursor can resume, any nonempty active list admits a legal next step.
+The selected cursor is obtained by the relation's source-shaped list split, so
+this theorem does not impose source order. -/
+theorem EdgePhaseStep.progress
+    {E : CoreMemDesign} {s : EdgePhaseState} (hn : s.active ≠ [])
+    (hresume : ∀ cursor, cursor ∈ s.active →
+      ∃ result next, cursor.resume E s.state = .ok (result, next)) :
+    ∃ t, EdgePhaseStep E s t := by
+  cases hs : s.active with
+  | nil => exact False.elim (hn hs)
+  | cons cursor rest =>
+      obtain ⟨result, next, hnext⟩ := hresume cursor (by simp [hs])
+      exact ⟨s.after result next [] rest, .select (by simp [hs]) hnext⟩
+
 end LeanModels.Sv.Kernel
