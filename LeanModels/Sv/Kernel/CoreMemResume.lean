@@ -73,7 +73,7 @@ def CombWork.openNode (E : CoreMemDesign) (st : CoreMemState)
           let branch ← E.combCaseBranch env E.elems st locals subj items dflt mode check
           return ((st, view, locals), branch.toList.map (.stmt env))
       | .forLoop name init cond step body =>
-          match forValues2 env name init cond step with
+          match forValues2Int32 env name init cond step with
           | .ok vs => return ((st, view, locals), [.loop env name body vs])
           | .unsupported msg => .unsupported s!"ForLoopStatement: {msg}"
           | .timeout => .timeout
@@ -185,7 +185,7 @@ theorem CombWork.openNode_correct (E : CoreMemDesign) (st : CoreMemState)
           CombWork.runList, CombWork.run, bind_right]
     | forLoop name init cond step body =>
       simp only [CombWork.run, CoreMemDesign.execCombStmtFuel, openNode]
-      cases forValues2 env name init cond step <;>
+      cases forValues2Int32 env name init cond step <;>
         first | rfl | simp only [ok_bind, pure_ok, run_one, CombWork.run]
     | block ss => exact (run_one E fuel (st, view, locals) (.block env ss)).symm
     | blockingAssignL target value =>
@@ -332,7 +332,7 @@ def EdgeWork.openNode (E : CoreMemDesign) (st : CoreMemState)
       let branch := if cv.condTrue then some yes else no
       .ok ({ state := st, scalarQ := [], memoryQ := [], locals }, branch.toList.map (EdgeWork.edgeStmt env))
   | EdgeWork.edgeStmt env (.forLoop name init cond step body) =>
-      match forValues2 env name init cond step with
+      match forValues2Int32 env name init cond step with
       | .ok values =>
           .ok ({ state := st, scalarQ := [], memoryQ := [], locals },
             [.edgeLoop env name body values])
