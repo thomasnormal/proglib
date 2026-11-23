@@ -4388,3 +4388,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: expose the source-shaped scalar blocking-assignment leaf equation at the retained combinational resume boundary.
 - sv: add the scalar blocking-leaf resume equation with an explicit no-plusargs premise and exact evaluator result.
 - sv: prove the real scalar blocking statement executor composes two leaves with the second evaluator seeing the first state.
+- sv: prove a retained scalar blocking cursor resumes through the real `CombCursor.resume` definition with its exact state and view update.

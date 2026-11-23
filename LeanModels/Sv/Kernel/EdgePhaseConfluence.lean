@@ -306,6 +306,23 @@ theorem ReadWin.agree_set_two
   · exact hq
   · exact hrM
 
+/-! A retained scalar blocking leaf resumes to the exact updated state and
+view, leaving the suspended tail untouched. -/
+theorem CombCursor.resume_blocking_scalar
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n : String} {value : PExpr} {width : Nat}
+    {tail : List CombWork} {v : LVec}
+    (hlocal : SvState.lookup locals n = none)
+    (htarget : E.scalarTarget n = some width)
+    (htest : PExpr.hasTestPlusargs value = false)
+    (hvalue : E.evalExprLocals env E.elems st (some width) locals value = .ok v) :
+    CombCursor.resume E st view
+      { work := .stmt env (.blockingAssign n value) :: tail, locals := locals } =
+      .ok (E.setScalarState st n v, SvState.set view n v,
+        { work := tail, locals := locals }) := by
+  simp [CombCursor.resume, CombWork.openNode, CoreMemDesign.execCombStmtFuel,
+    hlocal, htarget, htest, hvalue]
+
 /-! The retained blocking scalar leaf is source-shaped at the resume boundary.
 This equation exposes its exact evaluator input and state/view update. -/
 theorem CombWork.openNode_blockingAssign_scalar
