@@ -631,6 +631,21 @@ theorem CoreMemDesign.setScalarState_scalar_of_decl_ne
       rw [hxN, hc.store]
       simp [CoreMemDesign.scalarStore, hdecl]
 
+/-! Coherence now discharges the cross-slot value conditions of the concrete
+ write commutation theorem. -/
+theorem CoreMemDesign.setScalarState_commute_of_coherent_decl_ne
+    {E : CoreMemDesign} {st : CoreMemState}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hdecl : xN.decl ≠ xM.decl) :
+    E.setScalarState (E.setScalarState st n vN) m vM =
+      E.setScalarState (E.setScalarState st m vM) n vN := by
+  apply CoreMemDesign.setScalarState_commute_of_cross_values hxN hxM hdecl
+  · exact CoreMemDesign.setScalarState_scalar_of_decl_ne hc hxN hxM hdecl
+  · exact CoreMemDesign.setScalarState_scalar_of_decl_ne hc hxM hxN (Ne.symm hdecl)
+
 theorem CoreMemDesign.evalScalarV_congr_readsV_of_pure
     {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
     {v v' : SvState} {ctx : Option Nat} {e : PExpr}

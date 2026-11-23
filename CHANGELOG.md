@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the coherent typed wrapper that discharges the cross-value premises
+  of concrete scalar-write commutation for distinct declaration slots.
+
 - Added a typed scalar-slot frame showing that a coherent update to one
   declaration leaves every distinct resolved slot unchanged.
 
