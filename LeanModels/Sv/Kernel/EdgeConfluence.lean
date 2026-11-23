@@ -469,6 +469,87 @@ theorem CoreMemDesign.edgesV_queue_processes_indexed
 
 #print axioms CoreMemDesign.edgesV_queue_processes_indexed
 
+/-! The indexed receipt feeds the terminal-path bridge.  The queue receipt is
+    still an explicit evaluator premise, so this theorem does not identify a
+    scheduler path with `CoreMemDesign.step`. -/
+theorem EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed
+    {E : CoreMemDesign} {before after : SvState} {mv : MemV}
+    {s t : EdgeScheduleState} {n : Nat} (F : Nat → NbaQueue2)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after s.view mv p = .ok (F k))
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, NbaDisj u u')
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    (hp : EdgeScheduleTerminalPath E before after s.view mv n s t)
+    {r : ExecV}
+    (hroute : E.edgesV before after s.view mv E.processes.toList = .ok r) :
+    ∃ r', E.edgesV before after s.view mv E.processes.toList = .ok r' ∧
+      t.view = commitNba2 s.view r'.2.1 := by
+  have hqEdge : ∀ i ∈ s.pending, edgeProcQ E before after s.view mv i = .ok (F i) := by
+    intro i hi
+    have hi' : i < E.processes.size := by
+      rw [hs] at hi
+      exact List.mem_range.mp hi
+    simp only [edgeProcQ, Array.getElem?_eq_getElem hi']
+    exact hq i E.processes[i] (Array.getElem?_eq_getElem hi')
+  have hqroute := CoreMemDesign.edgesV_queue_processes_indexed
+    (E := E) (before := before) (after := after) (v := s.view) (mv := mv)
+    0 F hw (by
+      intro k p hk
+      simpa [Nat.zero_add] using hq k p hk) hroute
+  have hroute' : E.edgesV before after s.view mv E.processes.toList =
+      .ok (r.1, s.pending.flatMap F, r.2.2) := by
+    rw [hroute]
+    cases r with
+    | mk rv rm =>
+      cases rm with
+      | mk rq mm =>
+        simp only at hqroute ⊢
+        have hqroute' : rq = List.flatMap F s.pending := by
+          rw [hs]
+          simpa [Nat.zero_add] using hqroute
+        simpa [hqroute']
+  have hview := EdgeScheduleTerminalPath.view_eq_edgesV_commit F hqEdge hdisj
+    (by intro i hi; exact hi)
+    (by simpa [hs] using (List.nodup_range : (List.range E.processes.size).Nodup))
+    hkeys hp hroute'
+  exact hview
+
+#print axioms EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed
+
+/-! Carry the scheduler's canonical terminal view through the real step
+    refinement.  The route receipt remains explicit, so this is a bridge for
+    the admitted class rather than a claim that every slot has such a receipt. -/
+theorem EdgeScheduleTerminalPath.refines_step
+    {E : CoreMemDesign} (hP : E.SeqProfileI) (hO : E.seqOblI = true)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {before after : SvState} {mv : MemV}
+    {s t : EdgeScheduleState} {n : Nat} (F : Nat → NbaQueue2)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after s.view mv p = .ok (F k))
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, NbaDisj u u')
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    (hp : EdgeScheduleTerminalPath E before after s.view mv n s t)
+    {r : ExecV}
+    (hroute : E.edgesV before after s.view mv E.processes.toList = .ok r) :
+    ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧ t.view = commitNba2 s.view r.2.1 := by
+  obtain ⟨st', hstep, hvstep, hmstep, -, -⟩ :=
+    CoreMemDesign.step_seqI hP hO hc hmc hty hslot
+  obtain ⟨r', hr', hview⟩ :=
+    EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed F hs hw hq hdisj hkeys hp hroute
+  have hreq : r' = r := Res.ok.inj (hr'.symm.trans hroute)
+  subst r'
+  exact ⟨st', hstep, hvstep, hmstep, hview⟩
+
+#print axioms EdgeScheduleTerminalPath.refines_step
+
 theorem EdgeScheduleTerminalPath.unique
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
     {ids : List Nat} (ad : EdgeScheduleAdmission E before after v mv ids)
