@@ -23,6 +23,8 @@ def one : TestStore :=
   (.address 32)).isNone
 #guard alignmentAllowed 16 8
 #guard !alignmentAllowed 18 8
+#guard pairedAlignmentAllowed resolve 0 8
+#guard zeroAlignmentRefused 16
 #guard (allocateAligned empty { bytes := [oneByte], state := () }
   (.address 16) 8).isSome
 #guard (allocateAligned empty { bytes := [oneByte], state := () }
