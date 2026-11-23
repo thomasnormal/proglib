@@ -1473,6 +1473,11 @@ def coreMemEventSelfReadViol : List PProcess → Option String
       | none => coreMemEventSelfReadViol rest
   | _ :: rest => coreMemEventSelfReadViol rest
 
+def coreMemHasEventProcess : List PProcess → Bool
+  | [] => false
+  | .alwaysEvent _ _ :: _ => true
+  | _ :: rest => coreMemHasEventProcess rest
+
 /-! Static block-local declarations are allocated in the same scalar store as
 their enclosing process. Automatic declarations stay in the activation-local
 environment and are therefore absent from this design-level declaration list. -/
@@ -1633,7 +1638,10 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
               | some name =>
                   .unsupported s!"AlwaysLatch:self-read: 9.2.2.3: always_latch reads '{name}' before writing it; canonical E refuses the simulator-dependent activation value"
               | none =>
-                  match coreMemEventSelfReadViol allProcesses with
+                  let eventViol := if coreMemHasEventProcess allProcesses then
+                    coreMemEventSelfReadViol allProcesses
+                  else none
+                  match eventViol with
                   | some name =>
                       .unsupported s!"AlwaysEvent:self-write: 9.4.2: explicit event control includes '{name}', which the body reads before a blocking write; canonical E refuses self-trigger reactivation"
                   | none =>
