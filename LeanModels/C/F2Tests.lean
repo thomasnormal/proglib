@@ -123,6 +123,20 @@ def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 
+def resolve : AllocId → Nat := fun id => if id == 0 then 100 else 200
+def renamedOne : TestStore := renameStore resolve one
+#guard renamedOne.allocations.head!.2.address == some 100
+#guard (renameStore resolve renamedOne) == renamedOne
+#guard (renamePointer resolve pointer).provenance == pointer.provenance
+#guard (renameByte resolve fragmentByte).fragment == fragmentByte.fragment
+#guard (renameByte resolve fragmentByte).provenance == fragmentByte.provenance
+#guard (pairedStoreByte resolve one 0 0 (.value 66 none (some 0))).isSome
+#guard match pairedStoreByte resolve one 0 0 (.value 66 none (some 0)) with
+  | some (sourceResult, targetResult) =>
+      targetResult.1 = renameStore resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2
+  | none => false
+
 #guard decodePointer (encodePointer pointer) == some pointer
 #guard copyEncoded (encodePointer pointer) == encodePointer pointer
 #guard pointerEqual pointer pointer .equal
