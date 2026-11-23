@@ -544,6 +544,20 @@ deriving Repr, BEq
 def placementWithin (base size limit : Nat) : Bool :=
   base ≤ limit && size ≤ limit - base
 
+structure PlacementAgreement where
+  left right : AllocId → Option Nat
+  exposed : AllocId → Bool
+
+def PlacementAgreement.agrees (agreement : PlacementAgreement) : Prop :=
+  ∀ allocation, agreement.exposed allocation →
+    agreement.left allocation = agreement.right allocation
+
+theorem PlacementAgreement.refl (left : AllocId → Option Nat)
+    (exposed : AllocId → Bool) :
+    (PlacementAgreement.mk left left exposed).agrees := by
+  intro allocation _
+  rfl
+
 def allocateBounded (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment limit : Nat) :
     Except PlacementFault (Store Tag State × Footprint) :=
