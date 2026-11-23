@@ -1561,10 +1561,8 @@ encoding):
   the definitions it instantiates) also `ff_one.plib : List PDesign`, the
   module library, and `ff_one.sem` flattens through
   `PDesign.instantiateHD2 ff_one.pdesign ff_one.plib` (`Hier2.lean`); every
-  each library module is checked by the same `crossCheck` gate at its own
-  defaults and a mismatch refuses the hierarchy. A child whose default
-  record contains only the canonical-memory boundary may pass through a
-  complete reached-point memory comparison in its probe sidecar, and
+  library module is checked by the same `crossCheck` gate at its own
+  defaults and a mismatch refuses the hierarchy, and
   the hierarchy flattened at the defaults must have distinct names
   (`Design2.namesNodup`) and one driver per bit (`driversOk`: no
   `PortConn:driver` process).
@@ -1616,9 +1614,9 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
       throwErrorAt path
         "load_design_sv2: '{pathStr}' REFUSED — our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):\n  {String.intercalate "\n  " msgs}"
   -- Parse the optional probe sidecar before checking library defaults.  Its
-  -- reachable-instance coverage check only adds refusals.  A library module
-  -- still has to pass its own default differential unless its complete
-  -- reached-point memory comparison is the explicit exception below.
+  -- reachable-instance coverage check only adds refusals.  Every library
+  -- module still has to pass its own default differential below, whether or
+  -- not a sidecar is present.
   let sidePath := probeSidecarPath pathStr
   let probes? ← if ← System.FilePath.pathExists ⟨sidePath⟩ then
     let prText ←
@@ -1643,21 +1641,14 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
   | none => pure ()
   -- A hierarchical envelope (F3): each library module is checked by the
   -- differential gate against ITS defaults (the extractor elaborated each
-  -- definition alone at its own defaults). A memory-only defaults record may
-  -- pass only through the complete reached-point canonical memory comparison.
+  -- definition alone at its own defaults), and a mismatch refuses the load.
   let lib := envl.lib
   for c in lib do
     match c.crossCheck with
     | [] => pure ()
     | msgs =>
-        let memoryCovered := match probes? with
-          | some pr =>
-              msgs.all (·.startsWith "defaults:") &&
-                pr.memoryModuleAgrees c.name lib
-          | none => false
-        if memoryCovered then pure () else
-          throwErrorAt path
-            "load_design_sv2: '{pathStr}' REFUSED — module '{c.name}' of the hierarchy: our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):\n  {String.intercalate "\n  " msgs}"
+        throwErrorAt path
+          "load_design_sv2: '{pathStr}' REFUSED — module '{c.name}' of the hierarchy: our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):\n  {String.intercalate "\n  " msgs}"
   -- The defaults point with exact 32-bit `int` constants (`int32Agrees`).
   match pd.atPoint [] with
   | .ok (pdD, argsD) =>
