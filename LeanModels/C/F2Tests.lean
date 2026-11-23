@@ -64,6 +64,7 @@ def one : TestStore :=
   | (.token token, _) => (pairedFreeMetadata resolve token).isSome
   | _ => false
 #guard footprintAgrees (mergeFootprint 1 0 2) (mergeFootprint 1 0 2)
+#guard renameFootprint resolve (mergeFootprint 1 0 2) == mergeFootprint 1 0 2
 
 def footprintWidth : Footprint → Nat
   | { accesses := [(_, region)] } => region.width
