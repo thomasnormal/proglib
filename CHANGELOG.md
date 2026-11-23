@@ -4390,3 +4390,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: prove the real scalar blocking statement executor composes two leaves with the second evaluator seeing the first state.
 - sv: prove a retained scalar blocking cursor resumes through the real `CombCursor.resume` definition with its exact state and view update.
 - sv: prove the two-direction scalar evaluator cross-write frame used by a blocking-resume diamond.
+- sv: derive coherent scalar-view commutation for two distinct writes from `setScalarState_spec` and the duplicate-free view invariant.

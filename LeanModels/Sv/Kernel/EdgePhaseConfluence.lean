@@ -362,6 +362,33 @@ theorem CoreMemDesign.evalScalarLocals_cross_write_frame
   · rw [hstateM]
     exact (CoreMemDesign.evalScalarLocals_setScalarState_of_not_read hxM hsetM' hreadN).symm
 
+/-! Under coherent scalar updates, the two updated views commute when the
+converted values at the untouched declarations retain their declared types. -/
+theorem CoreMemDesign.scalar_view_commute_of_coherent
+    {E : CoreMemDesign} {st : CoreMemState}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hn : n ∈ (E.scalar.view st.scalar).map Prod.fst)
+    (hm : m ∈ (E.scalar.view st.scalar).map Prod.fst)
+    (hneq : n ≠ m)
+    (hkeys : ((E.scalar.view st.scalar).map Prod.fst).Nodup)
+    (hcompatM :
+      (Val.ofLVec ((E.setScalarState st n vN).scalar xM).ty vM).bits =
+        (Val.ofLVec (st.scalar xM).ty vM).bits)
+    (hcompatN :
+      (Val.ofLVec ((E.setScalarState st m vM).scalar xN).ty vN).bits =
+        (Val.ofLVec (st.scalar xN).ty vN).bits) :
+    E.scalar.view (E.setScalarState (E.setScalarState st n vN) m vM).scalar =
+      E.scalar.view (E.setScalarState (E.setScalarState st m vM) n vN).scalar := by
+  have hspecN := CoreMemDesign.setScalarState_spec hc hxN vN
+  have hspecM := CoreMemDesign.setScalarState_spec hc hxM vM
+  have hspecNM := CoreMemDesign.setScalarState_spec hspecN.2 hxM vM
+  have hspecMN := CoreMemDesign.setScalarState_spec hspecM.2 hxN vN
+  rw [hspecNM.1, hspecMN.1, hspecN.1, hspecM.1, hcompatM, hcompatN]
+  exact SvState.set_commute_of_mem hn hm hneq hkeys
+
 /-! The retained blocking scalar leaf is source-shaped at the resume boundary.
 This equation exposes its exact evaluator input and state/view update. -/
 theorem CombWork.openNode_blockingAssign_scalar
