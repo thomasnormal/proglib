@@ -35,6 +35,59 @@ def edgeProcQ (E : CoreMemDesign) (before after v : SvState) (mv : MemV) (i : Na
   | some p => E.procQ before after v mv p
   | none => .unsupported "4.7: edge process index is outside the design"
 
+/-! ## Evaluator frame lemmas
+
+These are the concrete frame facts used by the scheduler diamond.  They are
+stated directly on the canonical evaluator and scalar store, so an admission
+proof can discharge them from parser-native `readsV` receipts without
+introducing a second expression semantics. -/
+
+theorem CoreMemDesign.edge_evalExprLocals_frame_of_readsV
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n : String} {x : VarId} {v : LVec}
+    (hc : E.Coherent st)
+    (hx : E.scalar.resolve n = some x)
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (hread : ∀ y ∈ E.readsV env elems ctx e, y ≠ n) :
+    E.evalExprLocals env elems st ctx locals e =
+      E.evalExprLocals env elems (E.setScalarState st n v) ctx locals e := by
+  exact CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
+    hc hx hmem hcall hne hread
+
+theorem CoreMemDesign.edge_setScalarState_commute_of_disjoint
+    {E : CoreMemDesign} {st : CoreMemState}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hdecl : xN.decl ≠ xM.decl) :
+    E.setScalarState (E.setScalarState st n vN) m vM =
+      E.setScalarState (E.setScalarState st m vM) n vN := by
+  exact CoreMemDesign.setScalarState_commute_of_coherent_decl_ne
+    hc hxN hxM hdecl
+
+theorem CoreMemDesign.edge_evalExprLocals_two_write_frame
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (hreadN : ∀ y ∈ E.readsV env elems ctx e, y ≠ n)
+    (hreadM : ∀ y ∈ E.readsV env elems ctx e, y ≠ m) :
+    E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st n vN) m vM) ctx locals e =
+      E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st m vM) n vN) ctx locals e := by
+  exact CoreMemDesign.evalExprLocals_setScalarState_two_order_frame
+    hc hxN hxM hmem hcall hne hreadN hreadM
+
 def EdgeScheduleStep (E : CoreMemDesign) (before after v : SvState) (mv : MemV)
     (s t : EdgeScheduleState) : Prop :=
   ∃ i q, i ∈ s.pending ∧ edgeProcQ E before after v mv i = .ok q ∧
