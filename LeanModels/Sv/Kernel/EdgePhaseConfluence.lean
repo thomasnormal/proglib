@@ -972,4 +972,66 @@ theorem EdgePhaseTerminalPath.observable_eq_of_trace
 
 #print axioms EdgePhaseTerminalPath.observable_eq_of_trace
 
+/-! Termination of the actual source-shaped active-region relation in the
+admitted NBA-only class.  The admission record is restricted to the remaining
+cursor list after each selection, while the shared state stays fixed. -/
+theorem EdgePhaseTerminalPath.exists
+    {E : CoreMemDesign} {s : EdgePhaseState}
+    (ad : EdgePhaseNbaAdmission E s) :
+    ∃ n t, EdgePhaseTerminalPath E n s t := by
+  have aux : ∀ k, ∀ (s : EdgePhaseState), s.active.length = k →
+      EdgePhaseNbaAdmission E s → ∃ n t, EdgePhaseTerminalPath E n s t := by
+    intro k
+    induction k using Nat.strongRecOn with
+    | ind k ih =>
+        intro s hlen ads
+        by_cases hempty : EdgePhaseQuiescent s
+        · exact ⟨0, s, .terminal hempty⟩
+        · obtain ⟨u, hstep⟩ := EdgePhaseStep.nba_progress ads hempty
+          have hlt : u.active.length < k := by
+            have hdec := EdgePhaseStep.nba_measure_decreases ads hstep
+            simpa [hlen] using hdec
+          have hstable : u.state = s.state := by
+            cases hstep with
+            | select hactive hresume =>
+                rename_i before after cursor next result
+                have hmem : cursor ∈ s.active := by
+                  rw [hactive]
+                  simp
+                have hs := ads.stable_state cursor result next hmem hresume
+                simp [EdgePhaseState.after, hs]
+          have hsub : ∀ cursor, cursor ∈ u.active → cursor ∈ s.active := by
+            intro cursor hcursor
+            cases hstep with
+            | select hactive hresume =>
+                rename_i before after selected next result
+                have hempty' := ads.continuation_empty selected result next
+                  (by rw [hactive]; simp) hresume
+                have hc' : cursor ∈ before ++ after := by
+                  simpa [EdgePhaseState.after, hempty'] using hcursor
+                rw [hactive]
+                rcases List.mem_append.mp hc' with hb | ha
+                · exact List.mem_append_left _ hb
+                · exact List.mem_append_right before (List.mem_cons_of_mem selected ha)
+          have adu := ads.restrict hstable hsub
+          obtain ⟨n, t, ht⟩ := ih u.active.length hlt u rfl adu
+          exact ⟨n + 1, t, .head hempty hstep ht⟩
+  exact aux s.active.length s rfl ad
+
+/-! Every terminal path from an admitted NBA-only active region has the same
+committed observable scalar view. -/
+theorem EdgePhaseTerminalPath.observable_confluent
+    {E : CoreMemDesign} {s : EdgePhaseState}
+    (ad : EdgePhaseNbaAdmission E s)
+    (q : EdgeCursor → NbaQueue2)
+    (hqueue : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.scalarQ = q cursor)
+    (hkeys : (E.scalar.view s.state.scalar).map Prod.fst |>.Nodup)
+    {n₁ n₂ : Nat} {t₁ t₂ : EdgePhaseState}
+    (hp₁ : EdgePhaseTerminalPath E n₁ s t₁)
+    (hp₂ : EdgePhaseTerminalPath E n₂ s t₂)
+    (hdisj : queuePairwiseDisjoint t₁.scalarQ) :
+    EdgePhaseState.observable E t₁ = EdgePhaseState.observable E t₂ := by
+  exact EdgePhaseTerminalPath.observable_eq_of_trace ad q hqueue hp₁ hp₂ hkeys hdisj
+
 end LeanModels.Sv.Kernel
