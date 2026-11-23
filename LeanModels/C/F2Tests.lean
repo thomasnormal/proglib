@@ -31,4 +31,9 @@ def footprintWidth : Footprint → Nat
 #guard (loadByte one 0 0).isSome
 #guard (loadByte one 0 0).map (fun result => footprintWidth result.2) == some 1
 
+def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
+
+#guard decodePointer (encodePointer pointer) == some pointer
+#guard copyEncoded (encodePointer pointer) == encodePointer pointer
+
 end LeanModels.C.F2Tests

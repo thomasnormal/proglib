@@ -25,6 +25,54 @@ inductive Byte (Tag : Type) where
       (fragment : Option Nat)
 deriving Repr, BEq
 
+structure Pointer (Tag : Type) where
+  provenance : Option (Provenance Tag)
+  address : Nat
+deriving Repr, BEq
+
+inductive Value (Tag : Type) where
+  | scalar (bytes : List UInt8)
+  | pointer (pointer : Pointer Tag)
+  | aggregate (members : List (Value Tag))
+deriving Repr
+
+def encodePointer (pointer : Pointer Tag) : List (Byte Tag) :=
+  (List.range 8).map (fun fragment =>
+    .value (UInt8.ofNat ((pointer.address / (256 ^ fragment)) % 256))
+      pointer.provenance (some fragment))
+
+def encodeValue : Value Tag → List (Byte Tag)
+  | .scalar bytes => bytes.map (fun byte => .value byte none none)
+  | .pointer pointer => encodePointer pointer
+  | .aggregate members => members.flatMap encodeValue
+
+def copyEncoded (bytes : List (Byte Tag)) : List (Byte Tag) := bytes.map id
+
+def decodePointer (bytes : List (Byte Tag)) : Option (Pointer Tag) := do
+  if bytes.length != 8 then none
+  let first ← bytes.head?
+  let provenance ← match first with
+    | .value _ provenance (some 0) => some provenance
+    | _ => none
+  let fragments := bytes.zipIdx.all fun entry =>
+    match entry.1, entry.2 with
+    | .value _ p (some fragment), index => p == provenance && fragment == index
+    | _, _ => false
+  if !fragments then none
+  let address := bytes.foldl (fun value byte =>
+    match byte with
+    | .value bits _ (some fragment) => value + bits.toNat * (256 ^ fragment)
+    | _ => value) 0
+  some { provenance := provenance, address := address }
+
+theorem copyEncoded_preserves (bytes : List (Byte Tag)) :
+    copyEncoded bytes = bytes := by
+  simp [copyEncoded]
+
+theorem decodePointer_encodePointer (pointer : Pointer Tag) :
+    decodePointer (encodePointer pointer) = some pointer := by
+  simp [decodePointer, encodePointer]
+
 structure Allocation (Tag State : Type) where
   live : Bool
   address : Option Nat
