@@ -80,6 +80,24 @@ structure Allocation (Tag State : Type) where
   state : State
 deriving Repr
 
+inductive HookChoice where
+  | default
+  | placement (site : Nat)
+  | unspecified (site : Nat)
+deriving Repr, BEq
+
+inductive EffectiveTypeState (TypeId : Type) where
+  | untyped
+  | typed (type : TypeId)
+  | padding
+  | indeterminate
+deriving Repr
+
+structure LocationState (TypeId : Type) where
+  effectiveType : EffectiveTypeState TypeId
+  initialized : Bool
+deriving Repr
+
 structure Store (Tag State : Type) where
   allocations : List (AllocId × Allocation Tag State)
   nextId : AllocId
@@ -97,6 +115,11 @@ deriving Repr, BEq
 
 structure Footprint where
   accesses : List (AccessKind × Region)
+deriving Repr
+
+structure HookRequest where
+  choice : HookChoice
+  footprint : Footprint
 deriving Repr
 
 structure Fault (F : Type) where
