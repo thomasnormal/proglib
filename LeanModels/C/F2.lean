@@ -343,6 +343,31 @@ def typedLoadMetadataByte [BEq TypeId]
   | .untyped => none
   | .padding | .indeterminate => none
 
+def pairedTypedLoadMetadataByte [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) :
+    Option ((Byte Tag × Footprint) × (Byte Tag × Footprint)) := do
+  let sourceResult ← typedLoadMetadataByte metadata offset typeId
+  let targetResult ← typedLoadMetadataByte (renameMetadata resolve id metadata)
+    offset typeId
+  if targetResult.1 = renameByte resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2 then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedTypedLoadMetadataByte_corresponds [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedTypedLoadMetadataByte resolve id metadata offset typeId =
+      some result) :
+    result.2.1 = renameByte resolve result.1.1 ∧
+      result.2.2 = result.1.2 := by
+  simp [pairedTypedLoadMetadataByte] at hresult
+  split at hresult <;> simp_all
+
 def unionLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) : Option (Byte Tag × Footprint) := do
