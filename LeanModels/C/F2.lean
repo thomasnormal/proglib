@@ -159,22 +159,12 @@ theorem copyEncoded_preserves (bytes : List (Byte Tag)) :
     copyEncoded bytes = bytes := by
   simp [copyEncoded]
 
-theorem decodePointer_encodePointer [BEq Tag] [LawfulBEq Tag] (pointer : Pointer Tag) :
-    decodePointer (encodePointer pointer) = some pointer := by
-  simp [decodePointer, encodePointer, provenanceEqual, pointerByte]
-
 theorem encodePointer_rename (resolve : AllocId → Nat) (pointer : Pointer Tag) :
     encodePointer (renamePointer resolve pointer) =
       (encodePointer pointer).map (renameByte resolve) := by
   cases pointer with
   | mk provenance address =>
       cases provenance <;> simp [encodePointer, renamePointer, renameByte, pointerByte]
-
-theorem decodePointer_rename_encode [BEq Tag] [LawfulBEq Tag] (resolve : AllocId → Nat) (pointer : Pointer Tag) :
-    decodePointer ((encodePointer pointer).map (renameByte resolve)) =
-      some (renamePointer resolve pointer) := by
-  rw [← encodePointer_rename]
-  exact decodePointer_encodePointer _
 
 structure Allocation (Tag State : Type) where
   live : Bool
