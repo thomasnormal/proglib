@@ -1320,6 +1320,16 @@ def coreMemReadNamesThroughAssign (processes : List PProcess) : Nat → List Str
       let expanded := (names ++ names.flatMap (coreMemAssignSources processes)).eraseDups
       if expanded == names then names else coreMemReadNamesThroughAssign processes fuel expanded
 
+def coreMemEventSourcesThroughAssign (processes : List PProcess) :
+    Nat → List (String × PEventEdge) → List (String × PEventEdge)
+  | 0, events => events
+  | fuel + 1, events =>
+      let expanded :=
+        (events ++ events.flatMap fun event =>
+          (coreMemAssignSources processes event.1).map fun source => (source, event.2)).eraseDups
+      if expanded == events then events
+      else coreMemEventSourcesThroughAssign processes fuel expanded
+
 def coreMemPProcessAllReadNames : PProcess → List String
   | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
@@ -1363,6 +1373,13 @@ def coreMemHasCommonEventSource (p q : PProcess) : Bool :=
     (coreMemPProcessEdgeEvents q).any (fun other =>
       source.1 == other.1 && coreMemEventEdgesOverlap source.2 other.2))
 
+def coreMemHasCommonEventSourceThroughAssign
+    (processes : List PProcess) (p q : PProcess) : Bool :=
+  (coreMemEventSourcesThroughAssign processes 32 (coreMemPProcessEdgeEvents p)).any
+    (fun source =>
+      (coreMemEventSourcesThroughAssign processes 32 (coreMemPProcessEdgeEvents q)).any
+        (fun other => source.1 == other.1 && coreMemEventEdgesOverlap source.2 other.2))
+
 def coreMemEdgeBlockingReadRacePair (p q : PProcess) : Bool :=
   coreMemHasCommonEventSource p q &&
     ((coreMemProcBlockingWrites p).any (fun name =>
@@ -1385,17 +1402,40 @@ def coreMemEdgeMultipleWrite : List PProcess → Bool
   | p :: rest =>
       coreMemEdgeMultipleWriteAt p rest || coreMemEdgeMultipleWrite rest
 
+def coreMemEdgeMultipleWritePairThroughAssign
+    (processes : List PProcess) (p q : PProcess) : Bool :=
+  coreMemHasCommonEventSourceThroughAssign processes p q &&
+    (coreMemProcWriteLhss p).any (fun lhs =>
+      (coreMemProcWriteLhss q).any (coreMemLhsMayOverlap lhs))
+
+def coreMemEdgeMultipleWriteAtThroughAssign
+    (processes : List PProcess) (p : PProcess) : List PProcess → Bool
+  | [] => false
+  | q :: rest =>
+      coreMemEdgeMultipleWritePairThroughAssign processes p q ||
+        coreMemEdgeMultipleWriteAtThroughAssign processes p rest
+
+def coreMemEdgeMultipleWriteThroughAssignFrom
+    (allProcesses : List PProcess) : List PProcess → Bool
+  | [] | [_] => false
+  | p :: rest =>
+      coreMemEdgeMultipleWriteAtThroughAssign allProcesses p rest ||
+        coreMemEdgeMultipleWriteThroughAssignFrom allProcesses rest
+
+def coreMemEdgeMultipleWriteThroughAssign (processes : List PProcess) : Bool :=
+  coreMemEdgeMultipleWriteThroughAssignFrom processes processes
+
 def coreMemEdgeMultipleWriteViol (d : PDesign) (generated : List PProcess) :
     Option (String × String) :=
   let processes := d.processes ++ generated
-  if coreMemEdgeMultipleWrite processes then
+  if coreMemEdgeMultipleWriteThroughAssign processes then
     some ("Event:multiple-write",
       "4.7/10.4.1: same-event processes write the same variable; the standard leaves the update order open and canonical E refuses the race")
   else none
 
 def coreMemEdgeBlockingReadRacePairThroughAssign
     (processes : List PProcess) (p q : PProcess) : Bool :=
-  coreMemHasCommonEventSource p q &&
+  coreMemHasCommonEventSourceThroughAssign processes p q &&
     ((coreMemProcBlockingWrites p).any (fun name =>
       (coreMemReadNamesThroughAssign processes 32 (coreMemPProcessReadNames q)).contains name) ||
      (coreMemProcBlockingWrites q).any (fun name =>

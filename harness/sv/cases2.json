@@ -74206,6 +74206,23 @@
       ],
       "refusal": "Event:multiple-write",
       "measured": "2026-11-23: Icarus Verilog 13.0 gives x,1,1,1,1,1 and Xcelium 24.03-s004 gives x,1,1,0,0,1; canonical E refuses two same-edge nonblocking writers under IEEE 1800-2023 §§4.7 and 10.4.1."
+    },
+    {
+      "name": "edge_two_level_child_port_race_refuse",
+      "example": "sem2/edge_two_level_child_port_race_refuse",
+      "top": "edge_two_level_child_port_race",
+      "file": "edge_two_level_child_port_race_refuse",
+      "signals": ["clk", "d", "q"],
+      "stimulus": [
+        {"clk": "0", "d": "0"},
+        {"clk": "1", "d": "1"},
+        {"clk": "0", "d": "1"},
+        {"clk": "1", "d": "0"},
+        {"clk": "0", "d": "0"},
+        {"clk": "1", "d": "1"}
+      ],
+      "refusal": "Event:edge-blocking-race",
+      "measured": "2026-11-23: Icarus Verilog 13.0 gives x,1,1,1,1,1 and Xcelium 24.03-s004 gives x,x,x,1,1,0; canonical E closes the two flattened clock-port aliases and refuses the same-edge blocking race under IEEE 1800-2023 §§4.7 and 10.4.1."
     }
   ]
 }
