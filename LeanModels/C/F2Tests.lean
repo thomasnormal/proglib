@@ -141,6 +141,22 @@ def renamedOne : TestStore := renameStore resolve one
       targetResult.1 = renameStore resolve sourceResult.1 &&
       targetResult.2 = sourceResult.2
   | none => false
+#guard (pairedLoadByte resolve one 0 0).isSome
+#guard match pairedLoadByte resolve one 0 0 with
+  | some (sourceResult, targetResult) =>
+      targetResult.1 = renameByte resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2
+  | none => false
+def pointerStore : TestStore :=
+  { allocations := [(0, { live := true, address := some 32,
+                           bytes := [.value 7 (some { allocation := 0, tag := () }) (some 0)],
+                           state := () })]
+    nextId := 1 }
+#guard match pairedLoadByte resolve pointerStore 0 0 with
+  | some (sourceResult, targetResult) =>
+      targetResult.1 = .value 100 (some { allocation := 0, tag := () }) (some 0) &&
+      targetResult.2 = sourceResult.2
+  | none => false
 
 #guard decodePointer (encodePointer pointer) == some pointer
 #guard copyEncoded (encodePointer pointer) == encodePointer pointer
