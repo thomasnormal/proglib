@@ -922,6 +922,22 @@ def placementAllowed (store : Store Tag State) (base size : Nat) : Bool :=
         !intervalOverlap base size otherBase allocation.bytes.length
     | _, _ => true
 
+def pairedPlacementAllowed (resolve : AllocId → Nat)
+    (store : Store Tag State) (base size : Nat) : Bool :=
+  placementAllowed store base size =
+    placementAllowed (renameStore resolve store) (resolve store.nextId) size
+
+theorem pairedPlacementAllowed_sound (resolve : AllocId → Nat)
+    (store : Store Tag State) (base size : Nat)
+    (h : pairedPlacementAllowed resolve store base size) :
+    placementAllowed store base size =
+      placementAllowed (renameStore resolve store) (resolve store.nextId) size := by
+  simpa [pairedPlacementAllowed] using h
+
+theorem zeroSizePlacementAllowed (store : Store Tag State) (base : Nat) :
+    placementAllowed store base 0 = true := by
+  simp [placementAllowed, intervalOverlap]
+
 def alignmentAllowed (base alignment : Nat) : Bool :=
   alignment > 0 && base % alignment == 0
 
