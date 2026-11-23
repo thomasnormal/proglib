@@ -2,26 +2,25 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1349/2114 MATCH (passed 1349, failed 3, oracle 0)
+- verdicts: 1350/2114 MATCH (passed 1350, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `6ed71fce1`
-- measured at: `2026-11-23T19:20:00Z`
+- measured commit: `6ce5f7b04`
+- measured at: `2026-11-23T21:15:00Z`
 
 ## Verdict counts
 
 | verdict | files |
 | --- | ---: |
-| `failed` | 3 |
 | `no-entry-point` | 100 |
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1349 |
+| `passed` | 1350 |
 | `refused-libc` | 28 |
 | `refused-ub` | 41 |
-| `refused-unsupported` | 345 |
-| `runner-error` | 12 |
+| `refused-unsupported` | 348 |
+| `runner-error` | 11 |
 
 ## Counts by corpus
 
@@ -33,15 +32,14 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `c-testsuite/single-exec` | `refused-ub` | 4 |
 | `c-testsuite/single-exec` | `refused-unsupported` | 20 |
 | `c-testsuite/single-exec` | `runner-error` | 1 |
-| `gcc.c-torture/execute` | `failed` | 3 |
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1148 |
+| `gcc.c-torture/execute` | `passed` | 1149 |
 | `gcc.c-torture/execute` | `refused-libc` | 26 |
 | `gcc.c-torture/execute` | `refused-ub` | 36 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 207 |
-| `gcc.c-torture/execute` | `runner-error` | 11 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 210 |
+| `gcc.c-torture/execute` | `runner-error` | 10 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 10 |
 | `gcc.c23-run` | `refused-libc` | 1 |
@@ -287,6 +285,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:extern object 'b' has no definition in the translation unit` | 4 | 4 | alias-2.c, alias-3.c, alias-4.c, gcc/testsuite/gcc.dg/c23-bool-2.c |
 | `libc-call: __builtin_setjmp` | 3 | 3 | built-in-setjmp.c, pr64242.c, pr84521.c |
 | `unsupported:ExprWithCleanups` | 3 | 3 | 950628-1.c, gcc/testsuite/gcc.dg/c23-stdarg-9.c, pr30185.c |
+| `unsupported:arithmetic on bit-fields wider than int requires exact promotion semantics` | 3 | 3 | bitfld-3.c, pr32244-1.c, pr34971.c |
 | `unsupported:case label nested in a control statement` | 3 | 3 | 00051.c, 00143.c, medce-1.c |
 | `unsupported:floating value used as an integer` | 3 | 3 | 20000731-1.c, 20011217-1.c, pr92904.c |
 | `unsupported:integer-to-floating conversion lacks parser-native destination type` | 3 | 3 | 930622-2.c, 960215-1.c, regstack-1.c |
