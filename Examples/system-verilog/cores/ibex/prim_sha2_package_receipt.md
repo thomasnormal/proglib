@@ -8,6 +8,6 @@ wall. Its bounded probe reaches the next source-shaped declaration boundary,
 `digest_i: unrecoverable packed dimensions`.
 
 The clean-room package-constant receipt was rerun with
-`TMPDIR=/scratch/thomas-ahle/gate/ls-sv3/tmp-bits-package-param python3 harness/sv/batch_receipt.py --cleanroom-dir /var/tmp/thomas-ahle/fleet2/cleanroom --ordinary-timeout 120 --lean-group-size 1 --only bits_package_param_e`.
+`TMPDIR=<scratch> python3 harness/sv/batch_receipt.py --cleanroom-dir <cleanroom> --ordinary-timeout 120 --lean-group-size 1 --only bits_package_param_e`.
 It produced eight ordinary cycles. Icarus Verilog 13.0 and Xcelium
 24.03-s004 MATCHed all rows, including x/z input rows.
