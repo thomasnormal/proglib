@@ -1,5 +1,16 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## NBA edge scheduler confluence rung — 2026-11-23
+
+The first admitted scheduler class now has a source-shaped NBA observable
+relation. Under explicit process-index validity, successful `procQ` evaluation,
+and the no-overlap guard, every active choice decreases the pending work,
+different choices form a local diamond, and all terminal paths have the same
+observable state. Each selected process is bridged back to `edgesV`, while the
+existing `edgesV_order` theorem carries the canonical executor result. This
+class intentionally excludes blocking edge writes and level-sensitive
+reactivation. The boundary follows IEEE 1800-2023 §§4.7 and 10.4.2.
+
 ## Canonical-E preemption refusal — 2026-11-21
 
 Canonical E now refuses a reactive process with multiple blocking writes when

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added the admitted NBA-only edge scheduler relation. Its progress, local
+  diamond, terminal-path uniqueness, and one-step bridge to `edgesV` are
+  kernel checked under the explicit no-overlap guard.
+
 - The retained edge-phase scheduler now proves that every active cursor is a
   selectable IEEE 1800-2023 §4.7 interleaving, and exposes the scalar and
   memory NBA queues as prefixes extended in issue order. The

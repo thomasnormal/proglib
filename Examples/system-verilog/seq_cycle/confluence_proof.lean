@@ -1,6 +1,7 @@
 import LeanModels.Sv.Ingest2
 import LeanModels.Sv.SeqCycleObl
 import LeanModels.Sv.SeqCycleTactic
+import LeanModels.Sv.Kernel.EdgeConfluence
 
 /-!
 # Concrete schedule bridges
@@ -16,6 +17,12 @@ at which the cycle equations for each design supply their concrete row proof.
 open LeanModels.Sv LeanModels.Sv.Kernel
 
 namespace Examples.«system-verilog».seq_cycle.confluence_proof
+
+/-! The three concrete wrappers below retain the executor bridge for the
+parameterized shift register, counter and case-process examples.  The
+NBA-only scheduler relation is in `EdgeConfluence`: its terminal paths are
+unique under the same no-overlap guard, and each selected process is bridged
+back to `edgesV` by `EdgeScheduleStep.executor_cons_bridge`. -/
 
 load_design_sv2 shreg from "Examples/system-verilog/sem2/clk_shreg/clk_shreg.sv.json"
 load_design_sv2 cnt from "Examples/system-verilog/sem2/clk_cnt/clk_cnt.sv.json"
