@@ -131,6 +131,12 @@ theorem encodeValue_rename (resolve : AllocId → Nat) (value : Value Tag) :
 
 def copyEncoded (bytes : List (Byte Tag)) : List (Byte Tag) := bytes.map id
 
+def provenanceEqual [BEq Tag] : Option (Provenance Tag) →
+    Option (Provenance Tag) → Bool
+  | none, none => true
+  | some left, some right => left.allocation == right.allocation && left.tag == right.tag
+  | _, _ => false
+
 def decodePointer [BEq Tag] (bytes : List (Byte Tag)) : Option (Pointer Tag) := do
   if bytes.length != 8 then none
   let first ← bytes.head?
@@ -139,7 +145,8 @@ def decodePointer [BEq Tag] (bytes : List (Byte Tag)) : Option (Pointer Tag) := 
     | _ => none
   let fragments := bytes.zipIdx.all fun entry =>
     match entry.1, entry.2 with
-    | .value _ p (some fragment), index => p == provenance && fragment == index
+    | .value _ p (some fragment), index =>
+        provenanceEqual p provenance && fragment == index
     | _, _ => false
   if !fragments then none
   let address := bytes.foldl (fun value byte =>
