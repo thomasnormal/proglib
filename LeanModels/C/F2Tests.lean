@@ -50,6 +50,7 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard pairedAllocateMetadata resolve 0 { bytes := [oneByte], state := () } [location] (.address 8)
 #guard (storeMetadataByte metadata 0 (.value 66 none (some 0))).isSome
 #guard (typedStoreMetadataByte metadata 0 "long" oneByte).isSome
+#guard (pairedTypedStoreMetadataByte resolve 0 metadata 0 "long" fragmentByte).isSome
 #guard (typedLoadMetadataByte ((typedStoreMetadataByte metadata 0 "long" oneByte).getD (metadata, { accesses := [] })).1 0 "long").isSome
 #guard (typedLoadMetadataByte metadata 0 "short").isNone
 #guard (representationLoadMetadataByte metadata 0 (.byte 7)).isSome
@@ -61,6 +62,9 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (copySnapshot [oneByte] []).isNone
 #guard (memmoveSnapshot { allocation := 1, offset := 0, width := 2 } { allocation := 1, offset := 1, width := 2 } [oneByte, oneByte]).isSome
 #guard (reallocMetadata metadata { bytes := [oneByte], state := () } [location] .fail).isSome
+#guard (reallocMetadata metadata { bytes := [oneByte], state := () } [location] (.address 64)).isSome
+#guard (reallocMetadata metadata { bytes := [oneByte], state := () } [location] .unaddressable).isSome
+#guard (pairedReallocMetadata resolve metadata { bytes := [oneByte], state := () } [location] (.address 64)).isSome
 #guard ((allocateZeroSize (Tag := Unit) (TypeId := String) () (.address 128)).2.accesses.length == 1)
 #guard reallocZeroGNU17 == .freedNull
 #guard (freeMetadata metadata).isSome
