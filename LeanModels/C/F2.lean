@@ -654,6 +654,14 @@ def copyFootprint (source destination : Region) (width : Nat) : Footprint :=
   { accesses := [(.read { source with width := width }),
                  (.write { destination with width := width })] }
 
+def pairedCopyFootprint (source destination : Region) (width : Nat) : Bool :=
+  footprintAgrees (copyFootprint source destination width)
+    (copyFootprint source destination width)
+
+theorem pairedCopyFootprint_sound (source destination : Region) (width : Nat) :
+    pairedCopyFootprint source destination width := by
+  simp [pairedCopyFootprint, copyFootprint, footprintAgrees]
+
 def regionsOverlap (source destination : Region) (width : Nat) : Bool :=
   source.allocation == destination.allocation &&
     source.offset < destination.offset + width &&
