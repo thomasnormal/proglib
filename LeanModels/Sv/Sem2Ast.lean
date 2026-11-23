@@ -84,6 +84,9 @@ does not parse the construct at all, so its rows are Xcelium-verified only
 
 namespace LeanModels.Sv
 
+instance [BEq α] : BEq (Array α) where
+  beq a b := a.toList == b.toList
+
 /-! ## Value-core additions (`LVec`) -/
 
 namespace LVec
@@ -235,7 +238,7 @@ inductive Stmt2 where
   | caseStmt (subject : Expr2) (items : Array CaseItem2)
       (default? : Option Stmt2) (mode : CaseMode) (check : CaseCheck)
   | unsupported (svKind : String) (text : String)
-deriving Repr, Inhabited
+deriving Repr, BEq, Inhabited
 
 /-- One case arm: pattern list (source order) and body. -/
 inductive CaseItem2 where

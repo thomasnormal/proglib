@@ -23,7 +23,7 @@ inductive AggType where
   | scalar (ty : VType)
   | struct (fields : List (String × AggType))
   | array (msb lsb : Int) (elem : AggType)
-deriving Repr, Inhabited
+deriving Repr, BEq, Inhabited
 
 inductive AggStep where
   | field (name : String)
