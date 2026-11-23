@@ -430,6 +430,19 @@ theorem mergeByte_preserves_pointer_fragment
       some fragment := by
   simp [mergeByte]
 
+def pairedMergeByte (resolve : AllocId → Nat) (old : Byte Tag)
+    (mask value choice : UInt8) : Option (Byte Tag × Byte Tag) :=
+  let source := mergeByte old mask value choice
+  let target := mergeByte (renameByte resolve old) mask value choice
+  if target = renameByte resolve source then some (source, target) else none
+
+theorem pairedMergeByte_sound (resolve : AllocId → Nat) (old : Byte Tag)
+    (mask value choice : UInt8) (result : Byte Tag × Byte Tag)
+    (hresult : pairedMergeByte resolve old mask value choice = some result) :
+    result.2 = renameByte resolve result.1 := by
+  simp [pairedMergeByte] at hresult
+  split at hresult <;> simp_all
+
 def copySnapshot (source destination : List (Byte Tag)) : Option (List (Byte Tag)) :=
   if source.length == destination.length then some source else none
 
