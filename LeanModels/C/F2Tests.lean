@@ -45,6 +45,7 @@ def one : TestStore :=
       targetResult.1 = renameStore resolve sourceResult.1 &&
       targetResult.2 = sourceResult.2
   | none => false
+#guard pairedAllocateFailure resolve one { bytes := [.uninitialized], state := () } .fail
 #guard footprintAgrees (mergeFootprint 1 0 2) (mergeFootprint 1 0 2)
 
 def footprintWidth : Footprint → Nat
