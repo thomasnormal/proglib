@@ -2045,26 +2045,46 @@ end
 
 mutual
 
-partial def coreMemAutomaticNames : PStmt → List String
-  | .automaticDecl name _ _ => [name]
-  | .localDecl _ _ _ | .blockingAssign _ _ | .nbaAssign _ _ | .unsupported .. => []
-  | .blockingAssignL _ _ | .nbaAssignL _ _ => []
-  | .ifStmt _ yes none => coreMemAutomaticNames yes
-  | .ifStmt _ yes (some no) => coreMemAutomaticNames yes ++ coreMemAutomaticNames no
-  | .block body => coreMemAutomaticNamesList body
-  | .forLoop _ _ _ _ body => coreMemAutomaticNames body
-  | .caseStmt _ items default? _ _ =>
-      coreMemAutomaticNamesCase items ++ default?.toList.flatMap coreMemAutomaticNames
+def coreMemAutomaticNamesFuel : Nat → PStmt → List String
+  | 0, _ => []
+  | n + 1, .automaticDecl name _ _ => [name]
+  | n + 1, .localDecl _ _ _ => []
+  | n + 1, .blockingAssign _ _ => []
+  | n + 1, .nbaAssign _ _ => []
+  | n + 1, .unsupported _ _ => []
+  | n + 1, .blockingAssignL _ _ => []
+  | n + 1, .nbaAssignL _ _ => []
+  | n + 1, .ifStmt _ yes none => coreMemAutomaticNamesFuel n yes
+  | n + 1, .ifStmt _ yes (some no) =>
+      coreMemAutomaticNamesFuel n yes ++ coreMemAutomaticNamesFuel n no
+  | n + 1, .block body => coreMemAutomaticNamesListFuel n body
+  | n + 1, .forLoop _ _ _ _ body => coreMemAutomaticNamesFuel n body
+  | n + 1, .caseStmt _ items default? _ _ =>
+      coreMemAutomaticNamesCaseFuel n items ++
+        default?.toList.flatMap (coreMemAutomaticNamesFuel n)
 
-partial def coreMemAutomaticNamesList : List PStmt → List String
-  | [] => []
-  | stmt :: rest => coreMemAutomaticNames stmt ++ coreMemAutomaticNamesList rest
+def coreMemAutomaticNamesListFuel : Nat → List PStmt → List String
+  | 0, _ => []
+  | n + 1, [] => []
+  | n + 1, stmt :: rest =>
+      coreMemAutomaticNamesFuel n stmt ++ coreMemAutomaticNamesListFuel n rest
 
-partial def coreMemAutomaticNamesCase : List (List PExpr × PStmt) → List String
-  | [] => []
-  | (_, body) :: rest => coreMemAutomaticNames body ++ coreMemAutomaticNamesCase rest
+def coreMemAutomaticNamesCaseFuel : Nat → List (List PExpr × PStmt) → List String
+  | 0, _ => []
+  | n + 1, [] => []
+  | n + 1, (_, body) :: rest =>
+      coreMemAutomaticNamesFuel n body ++ coreMemAutomaticNamesCaseFuel n rest
 
 end
+
+def coreMemAutomaticNames (stmt : PStmt) : List String :=
+  coreMemAutomaticNamesFuel 4096 stmt
+
+def coreMemAutomaticNamesList (stmts : List PStmt) : List String :=
+  coreMemAutomaticNamesListFuel 4096 stmts
+
+def coreMemAutomaticNamesCase (items : List (List PExpr × PStmt)) : List String :=
+  coreMemAutomaticNamesCaseFuel 4096 items
 
 def coreMemExternalReadExprs (body : PStmt) : List PExpr :=
   let locals := coreMemAutomaticNames body
