@@ -183,6 +183,7 @@ def self_test() -> None:
         ROOT / "Examples/system-verilog/seq_neg/overlap.sv.json",
         ROOT / "Examples/system-verilog/sem2/preempt_block_refuse/preempt_block_refuse.sv.json",
         ROOT / "Examples/system-verilog/seq_neg/untyped_child_override.sv.json",
+        ROOT / "Examples/system-verilog/seq_neg/serv_child_default.sv.json",
     ]
     results = []
     for fixture in fixtures:
@@ -235,6 +236,18 @@ def self_test() -> None:
         raise AssertionError(
             "loader self-test lost the exact untyped-child diagnostic: "
             + repr(untyped_requirement)
+        )
+    serv_result = results[5]
+    if serv_result["counts"] != {"ADMITTED": 0, "REFUSED": 1, "NOT REACHED": 0}:
+        raise AssertionError(
+            "loader self-test SERV child-default wall changed: "
+            + repr(serv_result["counts"])
+        )
+    serv_requirement = serv_result["rows"][0]["requirement"]
+    if "module 'serv_child_ram'" not in serv_requirement or "division by zero" not in serv_requirement:
+        raise AssertionError(
+            "loader self-test lost the exact SERV child-default diagnostic: "
+            + repr(serv_requirement)
         )
     print(
         "core_census --self-test ok: "
