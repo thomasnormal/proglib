@@ -106,18 +106,32 @@ def renameValue (resolve : AllocId → Nat) : Value Tag → Value Tag
 theorem encodeValue_rename (resolve : AllocId → Nat) (value : Value Tag) :
     encodeValue (renameValue resolve value) =
       (encodeValue value).map (renameByte resolve) := by
-  induction value with
-  | scalar bytes => simp [encodeValue, renameValue, renameByte]
-  | pointer pointer =>
-      cases pointer.provenance <;>
-        simp [encodeValue, renameValue, encodePointer, renamePointer, renameByte,
-          pointerByte]
-  | aggregate members ih =>
-      simp [encodeValue, renameValue, List.flatMap_map, ih]
+  refine Value.rec
+    (motive_1 := fun value =>
+      encodeValue (renameValue resolve value) =
+        (encodeValue value).map (renameByte resolve))
+    (motive_2 := fun members =>
+      (members.map (renameValue resolve)).flatMap encodeValue =
+        (members.flatMap encodeValue).map (renameByte resolve))
+    (scalar := ?_) (pointer := ?_) (aggregate := ?_) (nil := ?_) (cons := ?_) value
+  · intro bytes
+    simp [encodeValue, renameValue, renameByte]
+  · intro pointer
+    cases pointer with
+    | mk provenance address =>
+        cases provenance <;>
+          simp [encodeValue, renameValue, encodePointer, renamePointer,
+            renameByte, pointerByte]
+  · intro members ih
+    simp [encodeValue, renameValue, ih]
+  · simp
+  · intro head tail headIh tailIh
+    simp only [List.map_cons, List.flatMap_cons, List.map_append]
+    rw [headIh, tailIh]
 
 def copyEncoded (bytes : List (Byte Tag)) : List (Byte Tag) := bytes.map id
 
-def decodePointer (bytes : List (Byte Tag)) : Option (Pointer Tag) := do
+def decodePointer [BEq Tag] (bytes : List (Byte Tag)) : Option (Pointer Tag) := do
   if bytes.length != 8 then none
   let first ← bytes.head?
   let provenance ← match first with
@@ -138,7 +152,7 @@ theorem copyEncoded_preserves (bytes : List (Byte Tag)) :
     copyEncoded bytes = bytes := by
   simp [copyEncoded]
 
-theorem decodePointer_encodePointer (pointer : Pointer Tag) :
+theorem decodePointer_encodePointer [BEq Tag] [LawfulBEq Tag] (pointer : Pointer Tag) :
     decodePointer (encodePointer pointer) = some pointer := by
   simp [decodePointer, encodePointer]
 
@@ -149,7 +163,7 @@ theorem encodePointer_rename (resolve : AllocId → Nat) (pointer : Pointer Tag)
   | mk provenance address =>
       cases provenance <;> simp [encodePointer, renamePointer, renameByte, pointerByte]
 
-theorem decodePointer_rename_encode (resolve : AllocId → Nat) (pointer : Pointer Tag) :
+theorem decodePointer_rename_encode [BEq Tag] [LawfulBEq Tag] (resolve : AllocId → Nat) (pointer : Pointer Tag) :
     decodePointer ((encodePointer pointer).map (renameByte resolve)) =
       some (renamePointer resolve pointer) := by
   rw [← encodePointer_rename]
@@ -190,9 +204,9 @@ deriving Repr
 
 def setLocation (locations : LocationStore TypeId) (allocation offset : Nat)
     (state : LocationState TypeId) : Option (LocationStore TypeId) :=
-  if locations.any (fun entry => entry.1 == allocation && entry.2 == offset) then
+  if locations.any (fun entry => entry.1 == allocation && entry.2.1 == offset) then
     some (locations.map (fun entry =>
-      if entry.1 == allocation && entry.2 == offset then
+      if entry.1 == allocation && entry.2.1 == offset then
         (allocation, offset, state)
       else entry))
   else none
@@ -203,7 +217,7 @@ theorem setLocation_length (locations : LocationStore TypeId)
     (hresult : setLocation locations allocation offset state = some result) :
     result.length = locations.length := by
   simp [setLocation] at hresult
-  split at hresult <;> simp_all
+  rw [← hresult.2, List.length_map]
 
 structure Store (Tag State : Type) where
   allocations : List (AllocId × Allocation Tag State)
