@@ -59,6 +59,7 @@ def typedMetadata : AllocationMetadata Unit Unit String :=
   (typedStoreMetadataByte metadata 0 "long" oneByte).getD (metadata, {}).1
 #guard (typedLoadMetadataByte typedMetadata 0 "long").isSome
 #guard (typedLoadMetadataByte typedMetadata 0 "int").isNone
+#guard (unionLoadMetadataByte typedMetadata 0).isSome
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 

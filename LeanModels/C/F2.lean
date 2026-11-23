@@ -224,6 +224,14 @@ def typedLoadMetadataByte [BEq TypeId]
   | .untyped => none
   | .padding | .indeterminate => none
 
+def unionLoadMetadataByte
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) : Option (Byte Tag × Footprint) := do
+  let byte ← metadata.allocation.bytes[offset]?
+  let location ← metadata.locations[offset]?
+  if !location.initialized then none
+  else some (byte, footprint .read { allocation := 0, offset := offset, width := 1 })
+
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
   | (id, allocation) :: rest =>
