@@ -120,6 +120,8 @@ def paddingMetadata : AllocationMetadata Unit Unit String :=
   { metadata with locations := [{ effectiveType := .padding, initialized := false }] }
 #guard (representationLoadMetadataByte paddingMetadata 0 (.byte 7)).isSome
 #guard (representationLoadMetadataByte metadata 0 (.byte 7)).isSome
+#guard (pairedRepresentationLoadMetadataByte
+  (fun id => if id == 0 then 100 else 200) 0 paddingMetadata 0 (.byte 7)).isSome
 #guard mergeByte .uninitialized 1 1 0 == .value 1 none none
 #guard mergeByte (.value 255 none none) 1 0 0 == .value 254 none none
 #guard (mergeBytes [.uninitialized, .value 255 none none]
