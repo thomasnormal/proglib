@@ -376,6 +376,27 @@ def unionLoadMetadataByte
   if !location.initialized then none
   else some (byte, footprint .read { allocation := 0, offset := offset, width := 1 })
 
+def pairedUnionLoadMetadataByte (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat) :
+    Option ((Byte Tag × Footprint) × (Byte Tag × Footprint)) := do
+  let sourceResult ← unionLoadMetadataByte metadata offset
+  let targetResult ← unionLoadMetadataByte (renameMetadata resolve id metadata) offset
+  if targetResult.1 = renameByte resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2 then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedUnionLoadMetadataByte_corresponds
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedUnionLoadMetadataByte resolve id metadata offset =
+      some result) :
+    result.2.1 = renameByte resolve result.1.1 ∧
+      result.2.2 = result.1.2 := by
+  simp [pairedUnionLoadMetadataByte] at hresult
+  split at hresult <;> simp_all
+
 inductive RepresentationChoice where
   | byte (bits : UInt8)
 deriving Repr, BEq
