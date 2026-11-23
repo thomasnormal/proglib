@@ -72,6 +72,10 @@ def paddingMetadata : AllocationMetadata Unit Unit String :=
 #guard (mergeFootprint 3 4 2).accesses.length == 1
 def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
 #guard (mergeByte fragmentByte 1 0 0).fragment == some 4
+#guard copySnapshot [oneByte] [.uninitialized] == some [oneByte]
+#guard copySnapshot [oneByte] [] |>.isNone
+#guard (copyFootprint { allocation := 1, offset := 0, width := 0 }
+  { allocation := 2, offset := 4, width := 0 } 1).accesses.length == 2
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 

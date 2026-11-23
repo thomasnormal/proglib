@@ -265,6 +265,13 @@ theorem mergeByte_preserves_pointer_fragment
       some fragment := by
   simp [mergeByte]
 
+def copySnapshot (source destination : List (Byte Tag)) : Option (List (Byte Tag)) :=
+  if source.length == destination.length then some source else none
+
+def copyFootprint (source destination : Region) (width : Nat) : Footprint :=
+  { accesses := [(.read { source with width := width }),
+                 (.write { destination with width := width })] }
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
