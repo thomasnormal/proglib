@@ -738,49 +738,6 @@ termination_by structural xs => xs
 
 end
 
-/-- **The trip count of a procedural `for` header** at an environment: the length of the route's value list
-(`forValues2`), 0 when the route refuses the header (the loop then refuses, whatever the fuel). -/
-def loopTrips (env : IEnv) (iterator : String) (init condition step : PExpr) : Nat :=
-  match forValues2 env iterator init condition step with
-  | .ok values => values.length
-  | _ => 0
-
-mutual
-
-/-- The fuel the route's statement executor (`execStmtFuel`) needs for a body at an environment: one per nesting level
-and per list element, and for a procedural `for` loop one per trip (`execLoopValuesFuel` spends one unit of the
-statement fuel per iteration): `2 + trips + need body`. So the profile's bound `need ≤ 4096` bounds a loop's trip
-count; above it the route itself answers `timeout`. -/
-def _root_.LeanModels.Sv.PStmt.need (env : IEnv) : PStmt → Nat
-  | .ifStmt _ y n => 1 + max (PStmt.need env y) (PStmt.optNeed env n)
-  | .block body => 1 + PStmt.listNeed env body
-  | .caseStmt _ items d _ _ => 1 + max (PStmt.itemsNeed env items) (PStmt.optNeed env d)
-  | .forLoop iterator init condition step body =>
-      2 + loopTrips env iterator init condition step + PStmt.need env body
-  | .automaticDecl .. => 1
-  | _ => 1
-termination_by structural s => s
-
-/-- `need` of an optional statement. -/
-def _root_.LeanModels.Sv.PStmt.optNeed (env : IEnv) : Option PStmt → Nat
-  | none => 0
-  | some s => PStmt.need env s
-termination_by structural o => o
-
-/-- The fuel `execStmtsFuel` needs for a list. -/
-def _root_.LeanModels.Sv.PStmt.listNeed (env : IEnv) : List PStmt → Nat
-  | [] => 1
-  | s :: ss => 1 + max (PStmt.need env s) (PStmt.listNeed env ss)
-termination_by structural xs => xs
-
-/-- The largest `need` of the arms of a `case`. -/
-def _root_.LeanModels.Sv.PStmt.itemsNeed (env : IEnv) : List (List PExpr × PStmt) → Nat
-  | [] => 0
-  | (_, b) :: rest => max (PStmt.need env b) (PStmt.itemsNeed env rest)
-termination_by structural xs => xs
-
-end
-
 mutual
 
 /-- The fuel need of a loop body of the profile does not read the environment. -/
@@ -3053,7 +3010,8 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
       have hp := h p (by simp)
       cases p with
       | edge f =>
-          obtain ⟨hb, hn⟩ := hp
+          have hb := hp.1
+          have hn := hp.2
           simp only [CoreMemDesign.edgesV] at hv
           by_cases hf : f.fires before after = true
           · simp only [hf, ↓reduceIte, Res.bind_eq_ok, Res.ok.injEq] at hv
@@ -3061,7 +3019,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
             simp only [Prod.mk.injEq] at hq
             obtain ⟨rfl, rfl, rfl⟩ := hq
             obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ :=
-              CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env 4096 st v1 a ma hc hmc hb hn h1
+              CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env (4096 + PStmt.runtimeNeed E.env f.body) st v1 a ma hc hmc hb (by omega) h1
             obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 before after rest hrest st1
               v2 b mb hc1 (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact h2)
             refine ⟨st2, by simp [CoreMemDesign.runEdges, hf, CoreMemDesign.execStmt, hs1, hs2, CoreMemExec.append],
@@ -3089,7 +3047,8 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
               simp only [CoreMemDesign.ProcShapeI, hfe] at hp
               rw [CoreMemDesign.edgesV_event hfe] at hv
               rw [CoreMemDesign.runEdges_event hfe]
-              obtain ⟨hb, hn⟩ := hp
+              have hb := hp.1
+              have hn := hp.2
               simp only [CoreMemDesign.edgesV] at hv
               by_cases hf : f.fires before after = true
               · simp only [hf, ↓reduceIte, Res.bind_eq_ok, Res.ok.injEq] at hv
@@ -3097,7 +3056,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
                 simp only [Prod.mk.injEq] at hq
                 obtain ⟨rfl, rfl, rfl⟩ := hq
                 obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ :=
-                  CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env 4096 st v1 a ma hc hmc hb hn h1
+                  CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env (4096 + PStmt.runtimeNeed E.env f.body) st v1 a ma hc hmc hb (by omega) h1
                 obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 before after rest hrest st1
                   v2 b mb hc1 (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact h2)
                 refine ⟨st2, by simp [CoreMemDesign.runEdges, hf, CoreMemDesign.execStmt, hs1, hs2, CoreMemExec.append],

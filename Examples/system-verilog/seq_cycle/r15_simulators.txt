@@ -1,0 +1,11 @@
+R15 procedural-for fuel differential row
+
+Fixture: shift_for.sv, W=1, N=5000, one rising clock edge with d=1.
+
+Icarus Verilog 13.0 (devel) (s20250103-64-gdad78d525)
+  command: iverilog -g2012 -s tb ... && vvp a.out
+  result: N=5000 q=x
+
+Xcelium 24.03-s004
+  command: xrun -64bit -sv -top tb shift_for.sv tb.sv -exit
+  result: N=5000 q=x
