@@ -244,6 +244,8 @@ def pointerStore : TestStore :=
 #guard !(pointerEqual pointer pointer .unequal)
 #guard pairedPointerEqual_self resolve pointer .equal
 #guard pairedPointerEqual_self resolve pointer .unequal
+#guard renamePointer_empty_provenance resolve 77 =
+  { provenance := none, address := 77 }
 #guard (offsetPointer pointer 1 0 pointer.address) == .ok pointer
 #guard (offsetPointer pointer 0 1 pointer.address).isError
 #guard pairedOffsetPointer resolve pointer 1 0 pointer.address
