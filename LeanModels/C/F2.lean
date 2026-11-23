@@ -611,6 +611,30 @@ def representationLoadMetadataByte
   | _, _ => some (byte,
       footprint .read { allocation := 0, offset := offset, width := 1 })
 
+def pairedRepresentationLoadMetadataByte (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice) :
+    Option ((Byte Tag × Footprint) × (Byte Tag × Footprint)) := do
+  let sourceResult ← representationLoadMetadataByte metadata offset choice
+  let targetResult ← representationLoadMetadataByte (renameMetadata resolve id metadata)
+    offset choice
+  if targetResult.1 = renameByte resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2 then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedRepresentationLoadMetadataByte_corresponds
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedRepresentationLoadMetadataByte resolve id metadata offset choice =
+      some result) :
+    result.2.1 = renameByte resolve result.1.1 ∧
+      result.2.2 = result.1.2 := by
+  simp [pairedRepresentationLoadMetadataByte] at hresult
+  split at hresult <;> simp_all
+
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
   | (id, allocation) :: rest =>
