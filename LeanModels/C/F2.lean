@@ -246,6 +246,10 @@ theorem renameStore_idempotent (resolve : AllocId → Nat) (store : Store Tag St
     renameStore resolve (renameStore resolve store) = renameStore resolve store := by
   simp [renameStore, renameAllocation, renameByte]
 
+theorem renameStore_comp (first second : AllocId → Nat) (store : Store Tag State) :
+    renameStore second (renameStore first store) = renameStore second store := by
+  simp [renameStore, renameAllocation, renameByte]
+
 theorem storesCorrespond_refl (resolve : AllocId → Nat) (store : Store Tag State) :
     storesCorrespond resolve (renameStore resolve store) (renameStore resolve store) := by
   simp [storesCorrespond, renameStore_idempotent]
