@@ -1191,6 +1191,24 @@ def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag S
       else allocate store request placement
   | _ => allocate store request placement
 
+def pairedAllocateAligned (resolve : AllocId → Nat)
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (alignment : Nat) : Bool :=
+  let source := allocateAligned store request placement alignment
+  let target := allocateAligned (renameStore resolve store) request
+    (renamedPlacement resolve store.nextId placement) alignment
+  target = source.map (fun result => (renameStore resolve result.1, result.2))
+
+theorem pairedAllocateAligned_sound (resolve : AllocId → Nat)
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (alignment : Nat)
+    (h : pairedAllocateAligned resolve store request placement alignment) :
+    allocateAligned (renameStore resolve store) request
+      (renamedPlacement resolve store.nextId placement) alignment =
+      (allocateAligned store request placement alignment).map
+        (fun result => (renameStore resolve result.1, result.2)) := by
+  simpa [pairedAllocateAligned] using h
+
 inductive PlacementFault where
   | exhausted
   | overlap
