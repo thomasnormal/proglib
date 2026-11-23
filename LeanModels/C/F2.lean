@@ -675,6 +675,14 @@ def pairedCopySnapshot [BEq Tag] (resolve : AllocId → Nat)
     (destination.map (renameByte resolve))
   some (sourceResult, targetResult)
 
+theorem copySnapshot_preserves_length
+    (source destination : List (Byte Tag)) (result : List (Byte Tag))
+    (hresult : copySnapshot source destination = some result) :
+    result.length = source.length := by
+  simp [copySnapshot] at hresult
+  rcases hresult with ⟨_, rfl⟩
+  rfl
+
 def copyFootprint (source destination : Region) (width : Nat) : Footprint :=
   { accesses := [(AccessKind.read, { source with width := width }),
                  (AccessKind.write, { destination with width := width })] }
@@ -698,6 +706,13 @@ def memcpySnapshot (source destination : Region) (bytes : List (Byte Tag)) :
 
 def memmoveSnapshot (_source _destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag)) := some bytes
+
+theorem memmoveSnapshot_preserves_length
+    (source destination : Region) (bytes result : List (Byte Tag))
+    (hresult : memmoveSnapshot source destination bytes = some result) :
+    result.length = bytes.length := by
+  simp [memmoveSnapshot] at hresult
+  exact congrArg List.length hresult.symm
 
 def pairedMemmoveSnapshot [BEq Tag] (resolve : AllocId → Nat)
     (source destination : Region) (bytes : List (Byte Tag)) :
