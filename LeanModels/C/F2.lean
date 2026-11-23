@@ -1436,6 +1436,14 @@ theorem pairedLoadByte_corresponds
   obtain ⟨sourceResult, targetResult, hpair⟩ := hresult
   simp_all
 
+theorem loadByte_lookup_correspondence
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedLoadByte resolve store id offset = some result) :
+    result.2.1 = renameByte resolve result.1.1 := by
+  exact (pairedLoadByte_corresponds resolve store id offset result hresult).2.2.1
+
 structure StoreLoadPair (Tag State : Type) where
   sourceStore : Store Tag State × Footprint
   targetStore : Store Tag State × Footprint
