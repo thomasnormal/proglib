@@ -47,6 +47,7 @@ python3 "$ROOT/extractors/c/extract.py" --selftest || exit 1
 python3 "$ROOT/harness/c_extract_determinism.py" || exit 1
 python3 "$ROOT/harness/c_survey.py" --self-test || exit 1
 python3 "$ROOT/harness/c_admitted_subset.py" --self-test || exit 1
+python3 "$ROOT/harness/f2_replay_check.py" --self-test || exit 1
 python3 "$ROOT/harness/divergence_register.py" || exit 1
 python3 "$ROOT/harness/c_divergence_probe.py" || exit 1
 # --offline: verifies every cached file's sha256 against docs/c-torture-pin.json
@@ -69,6 +70,10 @@ python3 "$ROOT/harness/c_admitted_subset.py" \
   --survey "$ROOT/docs/c-survey.json" \
   --cases "$ROOT/harness/c_cases.json" \
   --output "$ROOT/docs/c-admitted-subset.md" || exit 1
+python3 "$ROOT/harness/f2_replay_check.py" \
+  "$ROOT/harness/f2_replay_cases.json" \
+  --source "$ROOT/harness/f2_replay_fixture.c" \
+  --native --sanitizer || exit 1
 
 # THE PUBLISHED NUMBER IS A SECOND ARTIFACT (qol-21's law).  Correcting the
 # instrument corrects the NEXT run; the committed figure is corrected where
