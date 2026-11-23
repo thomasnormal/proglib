@@ -32593,6 +32593,21 @@ def _syntax_name(sm, sn, scope, name, from_package):
             "member": name,
             "from_package": pkg,
         }
+    if cls == "TypeAliasType":
+        # `$bits(type)` is a parser-native type query.  Preserve the query's
+        # type operand as a resolved TypeBits node so the constant evaluator
+        # can apply the alias's declared width without treating it as a
+        # signal identifier (IEEE 1800-2023 §20.7).
+        target = getattr(sym, "targetType", None) or sym
+        canonical = getattr(target, "canonicalType", None) or target
+        width = (getattr(target, "bitWidth", None)
+                 or getattr(canonical, "bitWidth", None)
+                 or getattr(sym, "bitWidth", None)
+                 or _sym_enum_width(sym))
+        if isinstance(width, int) and 1 <= width <= 256:
+            return {"kind": "TypeBits", "span": _syntax_span(sm, sn),
+                    "name": name, "width": width}
+        return _syntax_unsupported(sm, sn, "TypeAliasType:width")
     return _syntax_unsupported(sm, sn, "Syntax:Identifier:" + cls)
 
 

@@ -1548,6 +1548,7 @@ def evalAt (env : IEnv) (ty : Nat × Bool) : PExpr → Except String Int
                   | some (_, w, _) => .ok (convertConst 32 ty.1 ty.2 (w : Int))
                   | none => .error s!"$bits/$size of undeclared parameter '{p}::{n}'"
       | .bits, .int v => .ok (convertConst 32 ty.1 ty.2 v)
+      | .bits, .typeBits _ w => .ok (convertConst 32 ty.1 ty.2 (w : Int))
       | .size, .ident n => do
           let v ← dimQuery env "$size" n false
           .ok (convertConst 32 ty.1 ty.2 v)
@@ -2055,6 +2056,7 @@ def evalInt (env : IEnv) : PExpr → Except String Int
                   match env.packageNVal p n with
                   | some (_, w, _) => .ok (w : Int)
                   | none => .error s!"$bits/$size of undeclared parameter '{p}::{n}'"
+      | .bits, .typeBits _ w => .ok (w : Int)
       | .size, .ident n => dimQuery env "$size" n false
       | .high, .ident n => dimQuery env "$high" n true
       | f, _ => .error s!"{f.sym} argument outside the declared-signal tier"
