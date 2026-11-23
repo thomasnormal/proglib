@@ -148,6 +148,50 @@ private theorem flatMap_nodup_pairwise {α β : Type} {xs : List α} {f : α →
 
 #print axioms flatMap_nodup_pairwise
 
+theorem CoreMemDesign.edge_queue_disjoint_of_drivers
+    {E : CoreMemDesign} (hdrivers : E.oblDrivers = true)
+    {i j : Nat} {p q : CoreMemProc} {before after v : SvState} {mv : MemV}
+    (hi : E.processes[i]? = some p) (hj : E.processes[j]? = some q)
+    (hij : i ≠ j)
+    (hproc : ∀ (hi : i < E.processes.size) (hj : j < E.processes.size),
+      E.processes[i]'hi ≠ E.processes[j]'hj)
+    (hp : p.nbaWholeP = true) (hq : q.nbaWholeP = true)
+    {qp qq : NbaQueue2}
+    (hqp : edgeProcQ E before after v mv i = .ok qp)
+    (hqq : edgeProcQ E before after v mv j = .ok qq) :
+    ∀ u ∈ qp, ∀ u' ∈ qq, u.1 ≠ u'.1 := by
+  have hflat : (E.processes.toList.flatMap CoreMemProc.targets).Nodup := by
+    change decide (E.processes.toList.flatMap CoreMemProc.targets).Nodup = true at hdrivers
+    exact of_decide_eq_true hdrivers
+  have hi' : i < E.processes.size := by
+    have h := Array.getElem?_eq_none (xs := E.processes) (i := i)
+    by_cases hlt : i < E.processes.size
+    · exact hlt
+    · have hle : E.processes.size ≤ i := Nat.le_of_not_gt hlt
+      rw [h hle] at hi
+      simp at hi
+  have hj' : j < E.processes.size := by
+    have h := Array.getElem?_eq_none (xs := E.processes) (i := j)
+    by_cases hlt : j < E.processes.size
+    · exact hlt
+    · have hle : E.processes.size ≤ j := Nat.le_of_not_gt hlt
+      rw [h hle] at hj
+      simp at hj
+  have hpi : p = E.processes[i] := Option.some.inj (hi.symm.trans (Array.getElem?_eq_getElem hi'))
+  have hqj : q = E.processes[j] := Option.some.inj (hj.symm.trans (Array.getElem?_eq_getElem hj'))
+  subst p
+  subst q
+  have htargets := flatMap_nodup_pairwise hflat
+    (a := E.processes[i]) (b := E.processes[j])
+    (Array.getElem_mem_toList hi')
+    (Array.getElem_mem_toList hj') (hproc hi' hj')
+  intro u hu u' hu'
+  have huT := edgeProcQ_targets hi hp hqp u hu
+  have hu'T := edgeProcQ_targets hj hq hqq u' hu'
+  exact htargets u.1 huT u'.1 hu'T
+
+#print axioms CoreMemDesign.edge_queue_disjoint_of_drivers
+
 private theorem removeProcessId_mem_of_ne {i j : Nat} {xs : List Nat}
     (h : j ∈ xs) (hne : j ≠ i) : j ∈ removeProcessId i xs := by
   simp [removeProcessId, h, hne]
