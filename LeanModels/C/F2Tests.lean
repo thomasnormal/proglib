@@ -159,6 +159,8 @@ def paddingMetadata : AllocationMetadata Unit Unit String :=
 #guard (representationLoadMetadataByte metadata 0 (.byte 7)).isSome
 #guard (pairedRepresentationLoadMetadataByte
   (fun id => if id == 0 then 100 else 200) 0 paddingMetadata 0 (.byte 7)).isSome
+#guard (pairedStoreRepresentationLoadMetadataByte
+  (fun id => if id == 0 then 100 else 200) 0 metadata 0 fragmentByte (.byte 7)).isSome
 #guard mergeByte .uninitialized 1 1 0 == .value 1 none none
 #guard mergeByte (.value 255 none none) 1 0 0 == .value 254 none none
 #guard (pairedMergeByte resolve (.value 255 none none) 1 0 0).isSome
