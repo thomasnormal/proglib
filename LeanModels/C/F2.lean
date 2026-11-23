@@ -208,6 +208,18 @@ def renameAllocation (resolve : AllocId → Nat)
       address := allocation.address.map (fun _ => resolve entry.1)
       bytes := allocation.bytes.map (renameByte resolve) })
 
+def renameAllocationValue (resolve : AllocId → Nat) (id : AllocId)
+    (allocation : Allocation Tag State) : Allocation Tag State :=
+  { allocation with
+    address := allocation.address.map (fun _ => resolve id)
+    bytes := allocation.bytes.map (renameByte resolve) }
+
+theorem renameAllocation_value (resolve : AllocId → Nat)
+    (entry : AllocId × Allocation Tag State) :
+    (renameAllocation resolve entry).2 =
+      renameAllocationValue resolve entry.1 entry.2 := by
+  rfl
+
 def renameStore (resolve : AllocId → Nat) (store : Store Tag State) : Store Tag State :=
   { store with allocations := store.allocations.map (renameAllocation resolve) }
 
@@ -315,6 +327,19 @@ theorem renameResult_refusal_reason (resolve : AllocId → Nat)
 
 def lookup (store : Store Tag State) (id : AllocId) : Option (Allocation Tag State) :=
   store.allocations.find? (fun entry => entry.1 == id) |>.map (·.2)
+
+theorem lookup_renameStore (resolve : AllocId → Nat) (store : Store Tag State)
+    (id : AllocId) :
+    lookup (renameStore resolve store) id =
+      (lookup store id).map (renameAllocationValue resolve id) := by
+  cases store with
+  | mk allocations nextId =>
+      induction allocations with
+      | nil => simp [lookup, renameStore]
+      | cons entry rest ih =>
+          rcases entry with ⟨entryId, allocation⟩
+          by_cases h : entryId == id <;>
+            simp [lookup, renameStore, renameAllocation, renameAllocationValue, h, ih]
 
 def bytesWf (id : AllocId) : List (Byte Tag) → Prop
   | [] => True
