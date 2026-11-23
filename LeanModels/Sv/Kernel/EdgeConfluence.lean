@@ -1040,6 +1040,45 @@ theorem EdgeScheduleTerminalPath.unique_processes_range_drivers
     hkeys hp₁ hp₂
 
 #print axioms EdgeScheduleTerminalPath.unique_processes_range_drivers
+
+/-! The smallest concrete confluence package combines termination, terminal
+    uniqueness, and the canonical source-order committed view for the real
+    indexed NBA scheduler relation. -/
+theorem EdgeScheduleTerminalPath.confluent_processes_range_drivers
+    {E : CoreMemDesign} {before after : SvState} {mv : MemV}
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s : EdgeScheduleState} (F : Nat → NbaQueue2)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after s.view mv p = .ok (F k))
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV}
+    (hroute : E.edgesV before after s.view mv E.processes.toList = .ok r) :
+    ∃ n t, EdgeScheduleTerminalPath E before after s.view mv n s t ∧
+      (∀ n' t', EdgeScheduleTerminalPath E before after s.view mv n' s t' → t' = t) ∧
+      t.view = commitNba2 s.view r.2.1 := by
+  have ad := EdgeScheduleAdmission.of_processes_range_drivers
+    hdrivers hdistinct F hw hq
+  obtain ⟨n, t, hp⟩ := EdgeScheduleTerminalPath.exists ad
+    (by intro i hi; simpa [hs] using hi)
+    (by simpa [hs] using (List.nodup_range : (List.range E.processes.size).Nodup)) hkeys
+  have hunique : ∀ n' t', EdgeScheduleTerminalPath E before after s.view mv n' s t' → t' = t := by
+    intro n' t' hp'
+    exact EdgeScheduleTerminalPath.unique ad
+      (by intro i hi; simpa [hs] using hi)
+      (by simpa [hs] using (List.nodup_range : (List.range E.processes.size).Nodup))
+      hkeys hp' hp
+  obtain ⟨r', hr', hview⟩ :=
+    EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed_drivers
+      hdrivers hdistinct F hs hw hq hkeys hp hroute
+  have hreq : r' = r := Res.ok.inj (hr'.symm.trans hroute)
+  subst r'
+  exact ⟨n, t, hp, hunique, hview⟩
+
+#print axioms EdgeScheduleTerminalPath.confluent_processes_range_drivers
 #print axioms EdgeScheduleStep.executor_cons_bridge
 
 end LeanModels.Sv.Kernel
