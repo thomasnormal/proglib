@@ -127,4 +127,64 @@ theorem CombCursor.two_blocking_scalar_cross_resume
 
 #print axioms CombCursor.two_blocking_scalar_cross_resume
 
+/-! The concrete frame instantiates the retained scheduler's local diamond.
+The only scheduler fact used here is the existing `CombPhaseStep` relation.
+-/
+theorem CombPhaseStep.two_blocking_scalar_diamond
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hdecl : xN.decl ≠ xM.decl)
+    (hn : n ∈ view.map Prod.fst)
+    (hm : m ∈ view.map Prod.fst)
+    (hneq : n ≠ m)
+    (hkeys : (view.map Prod.fst).Nodup)
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : PExpr.hasTestPlusargs eN = false)
+    (htestM : PExpr.hasTestPlusargs eM = false)
+    (hmemN : PExpr.hasMemoryRead eN = false)
+    (hcallN : PExpr.hasFunctionCall eN = false)
+    (hmemM : PExpr.hasMemoryRead eM = false)
+    (hcallM : PExpr.hasFunctionCall eM = false)
+    (hne : E.elems ≠ [])
+    (hvalN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
+    (hreadM : ∀ y ∈ E.readsV env E.elems (some widthM) eM, y ≠ n)
+    (hreadN : ∀ y ∈ E.readsV env E.elems (some widthN) eN, y ≠ m) :
+    let cN : CombCursor :=
+      { work := [.stmt env (.blockingAssign n eN)], locals := locals }
+    let cM : CombCursor :=
+      { work := [.stmt env (.blockingAssign m eM)], locals := locals }
+    ∃ u₁ u₂ z,
+      CombPhaseStep E { state := st, view := view, active := [cN, cM] } u₁ ∧
+      CombPhaseStep E { state := st, view := view, active := [cN, cM] } u₂ ∧
+      CombPhaseStep E u₁ z ∧ CombPhaseStep E u₂ z := by
+  dsimp
+  let cN : CombCursor :=
+    { work := [.stmt env (.blockingAssign n eN)], locals := locals }
+  let cM : CombCursor :=
+    { work := [.stmt env (.blockingAssign m eM)], locals := locals }
+  have hfirstN : cN.resume E st view =
+      .ok (E.setScalarState st n vN, SvState.set view n vN,
+        { work := [], locals := locals }) := by
+    exact CombCursor.resume_blocking_scalar hlocalN htargetN htestN hvalN
+  have hfirstM : cM.resume E st view =
+      .ok (E.setScalarState st m vM, SvState.set view m vM,
+        { work := [], locals := locals }) := by
+    exact CombCursor.resume_blocking_scalar hlocalM htargetM htestM hvalM
+  have hcross := CombCursor.two_blocking_scalar_cross_resume
+    hc hxN hxM hdecl hn hm hneq hkeys hlocalN hlocalM htargetN htargetM
+    htestN htestM hmemN hcallN hmemM hcallM hne hvalN hvalM hreadM hreadN
+  rcases hcross with ⟨h₂₁, h₁₂, hstate, hview⟩
+  exact CombPhaseStep.two_cursor_commute
+    (ha := rfl) hfirstN hfirstM h₂₁ h₁₂ hstate hview rfl rfl
+
+#print axioms CombPhaseStep.two_blocking_scalar_diamond
+
 end LeanModels.Sv.Kernel

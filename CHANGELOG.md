@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added the concrete two-leaf `CombPhaseStep` diamond.  It instantiates both
+  first resumes and both cross-resumes from the exact retained cursor, then
+  derives the shared successor from the evaluator and write frames.
+
 - Added a concrete retained-resume frame for two blocking scalar leaves.  It
   derives both cross-expression evaluator values from parser-native read
   exclusion, then exposes the coherent state-write and materialized-view
