@@ -254,6 +254,7 @@ def pointerStore : TestStore :=
 #guard match recoverAddress 104 [(3, 96, 104, ())] with
   | .empty _ => true
   | _ => false
+#guard pairedRecoverAddress resolve 100 []
 
 def fixture : ReplayFixture :=
   { sourceHash := "source-sha256"
