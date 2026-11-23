@@ -1200,6 +1200,20 @@ deriving Repr, BEq
 def placementWithin (base size limit : Nat) : Bool :=
   base ≤ limit && size ≤ limit - base
 
+def pairedPlacementWithin (resolve : AllocId → Nat)
+    (id size limit : Nat) (base : Nat) : Bool :=
+  placementWithin base size limit = placementWithin (resolve id) size limit
+
+theorem pairedPlacementWithin_sound (resolve : AllocId → Nat)
+    (id size limit base : Nat)
+    (h : pairedPlacementWithin resolve id size limit base) :
+    placementWithin base size limit = placementWithin (resolve id) size limit := by
+  simpa [pairedPlacementWithin] using h
+
+theorem placementWithin_zero (base limit : Nat) :
+    placementWithin base 0 limit = (base ≤ limit) := by
+  simp [placementWithin]
+
 structure PlacementAgreement where
   left right : AllocId → Option Nat
   exposed : AllocId → Bool
