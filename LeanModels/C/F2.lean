@@ -546,6 +546,43 @@ theorem pairedUnionLoadMetadataByte_corresponds
   simp [pairedUnionLoadMetadataByte] at hresult
   split at hresult <;> simp_all
 
+def pairedStoreUnionLoadMetadataByte
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) :
+    Option ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint))) := do
+  let sourceStore ← storeMetadataByte metadata offset byte
+  let targetStore ← storeMetadataByte (renameMetadata resolve id metadata)
+    offset (renameByte resolve byte)
+  let sourceLoad ← unionLoadMetadataByte sourceStore.1 offset
+  let targetLoad ← unionLoadMetadataByte targetStore.1 offset
+  if targetStore.1 = renameMetadata resolve id sourceStore.1 &&
+      targetStore.2 = sourceStore.2 &&
+      targetLoad.1 = renameByte resolve sourceLoad.1 &&
+      targetLoad.2 = sourceLoad.2 then
+    some ((sourceStore, sourceLoad), (targetStore, targetLoad))
+  else none
+
+theorem pairedStoreUnionLoadMetadataByte_sound
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)))
+    (hresult : pairedStoreUnionLoadMetadataByte resolve id metadata offset byte =
+      some result) :
+    result.2.1.1 = renameMetadata resolve id result.1.1.1 ∧
+      result.2.1.2 = result.1.1.2 ∧
+      result.2.2.1 = renameByte resolve result.1.2.1 ∧
+      result.2.2.2 = result.1.2.2 := by
+  simp [pairedStoreUnionLoadMetadataByte] at hresult
+  split at hresult <;> simp_all
+
 inductive RepresentationChoice where
   | byte (bits : UInt8)
 deriving Repr, BEq
