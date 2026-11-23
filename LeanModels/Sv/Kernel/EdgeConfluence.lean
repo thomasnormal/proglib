@@ -52,6 +52,60 @@ structure EdgeScheduleAdmission (E : CoreMemDesign) (before after v : SvState) (
       edgeProcQ E before after v mv j = .ok q₂ →
       ∀ u ∈ q₁, ∀ u' ∈ q₂, u.1 ≠ u'.1
 
+/-! Build the scheduler admission record directly from the indexed parser
+    queue receipt.  This keeps the process-index/range correspondence in one
+    place for concrete admitted designs. -/
+theorem EdgeScheduleAdmission.of_processes_range
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    (F : Nat → NbaQueue2)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after v mv p = .ok (F k))
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, NbaDisj u u') :
+    EdgeScheduleAdmission E before after v mv (List.range E.processes.size) := by
+  refine {
+    nodup := List.nodup_range,
+    inRange := ?_,
+    defined := ?_,
+    disjoint := ?_ }
+  · intro i hi
+    have hi' : i < E.processes.size := List.mem_range.mp hi
+    exact ⟨E.processes[i], Array.getElem?_eq_getElem hi'⟩
+  · intro i hi
+    have hi' : i < E.processes.size := List.mem_range.mp hi
+    simp only [edgeProcQ, Array.getElem?_eq_getElem hi']
+    exact ⟨F i, hq i E.processes[i] (Array.getElem?_eq_getElem hi')⟩
+  · intro i hi j hj hij q₁ q₂ hq₁ hq₂ u hu u' hu'
+    have hi' : i < E.processes.size := List.mem_range.mp hi
+    have hj' : j < E.processes.size := List.mem_range.mp hj
+    have hqi : q₁ = F i := by
+      apply Res.ok.inj
+      exact hq₁.symm.trans (hq i E.processes[i] (Array.getElem?_eq_getElem hi'))
+    have hqj : q₂ = F j := by
+      apply Res.ok.inj
+      exact hq₂.symm.trans (hq j E.processes[j] (Array.getElem?_eq_getElem hj'))
+    subst q₁
+    subst q₂
+    exact hdisj i j hij u hu u' hu'
+
+#print axioms EdgeScheduleAdmission.of_processes_range
+
+theorem EdgeScheduleTerminalPath.exists_processes_range
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {s : EdgeScheduleState} (F : Nat → NbaQueue2)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after v mv p = .ok (F k))
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, NbaDisj u u')
+    (hkeys : (s.view.map Prod.fst).Nodup) :
+    ∃ n t, EdgeScheduleTerminalPath E before after v mv n s t := by
+  have ad := EdgeScheduleAdmission.of_processes_range F hw hq hdisj
+  rw [hs]
+  exact EdgeScheduleTerminalPath.exists ad (by simp) (by simp) hkeys
+
+#print axioms EdgeScheduleTerminalPath.exists_processes_range
+
 private theorem removeProcessId_mem_of_ne {i j : Nat} {xs : List Nat}
     (h : j ∈ xs) (hne : j ≠ i) : j ∈ removeProcessId i xs := by
   simp [removeProcessId, h, hne]
