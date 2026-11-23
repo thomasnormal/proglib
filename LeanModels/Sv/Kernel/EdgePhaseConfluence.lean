@@ -306,6 +306,22 @@ theorem ReadWin.agree_set_two
   · exact hq
   · exact hrM
 
+/-! The retained blocking scalar leaf is source-shaped at the resume boundary.
+This equation exposes its exact evaluator input and state/view update. -/
+theorem CombWork.openNode_blockingAssign_scalar
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n : String} {value : PExpr} {width : Nat}
+    (hlocal : SvState.lookup locals n = none)
+    (htarget : E.scalarTarget n = some width)
+    (htest : PExpr.hasTestPlusargs value = false) :
+    CombWork.openNode E st view locals
+        (.stmt env (.blockingAssign n value)) =
+      (do
+        let v ← E.evalExprLocals env E.elems st (some width) locals value
+        .ok ((E.setScalarState st n v, SvState.set view n v, locals), [])) := by
+  simp only [CombWork.openNode, CoreMemDesign.execCombStmtFuel, hlocal, htarget, htest]
+  cases h : E.evalExprLocals env E.elems st (some width) locals value <;> simp [h]
+
 /-! Composing the single-write evaluator frame gives the exact two-write
 frame needed by a cross-resume proof.  The two view equations are explicit so
 this theorem does not hide any scheduler or coherence assumption. -/
