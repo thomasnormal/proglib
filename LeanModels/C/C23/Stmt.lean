@@ -521,6 +521,11 @@ def initMembers : Nat → Ctx → Ptr → String → List (String × String) →
         if ctx.layout.flexibleFieldDeclAt declaration ty nm || fieldIsFlexible then
           match e with
           | .implicitValueInit _ _ .. => initMembers fuel ctx p ty mrest erest declaration
+          | .initList [] _ _ _ _ .. =>
+              -- C23 §6.7.11p2: an empty initializer contributes no
+              -- elements.  For a flexible array member this is the only
+              -- defined explicit initializer shape in the corpus.
+              initMembers fuel ctx p ty mrest erest declaration
           | _ => refuseUnsupported s!"explicit initializer for flexible array member '{nm}'"
         else if nm.isEmpty && bits.isSome then
           -- §6.7.11p9: an unnamed bit-field has no member and consumes no
