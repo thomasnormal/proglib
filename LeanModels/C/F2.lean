@@ -742,6 +742,34 @@ theorem pairedAllocateFailure_preserves
         (renamedPlacement resolve store.nextId placement)).isNone := by
   simpa [pairedAllocateFailure] using hfailure
 
+def unaddressableToken (store : Store Tag State) (id : AllocId) : Bool :=
+  match lookup store id with
+  | some allocation => allocation.live && allocation.address.isNone
+  | none => false
+
+def pairedUnaddressableAllocation (resolve : AllocId → Nat)
+    (store : Store Tag State) (request : AllocationRequest Tag State) :
+    Bool :=
+  match allocate store request .unaddressable,
+    allocate (renameStore resolve store) request .unaddressable with
+  | some (source, _), some (target, _) =>
+      target = renameStore resolve source &&
+      unaddressableToken source (store.nextId) &&
+      unaddressableToken target (store.nextId)
+  | _, _ => false
+
+theorem pairedUnaddressableAllocation_sound
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State)
+    (h : pairedUnaddressableAllocation resolve store request = true) :
+    ∃ source target sourceFootprint targetFootprint,
+      allocate store request .unaddressable = some (source, sourceFootprint) ∧
+      allocate (renameStore resolve store) request .unaddressable =
+        some (target, targetFootprint) ∧
+      target = renameStore resolve source := by
+  simp [pairedUnaddressableAllocation] at h
+  split at h <;> simp_all
+
 def footprintAgrees (left right : Footprint) : Prop :=
   left.accesses.length = right.accesses.length ∧
     List.zipWith (fun l r => l.1 == r.1 && l.2.width == r.2.width)
