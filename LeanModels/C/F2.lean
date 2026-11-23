@@ -566,8 +566,8 @@ def pairedTypedStoreLoadMetadataByte [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
-    Option ((AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint) ×
+    Option (((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
       ((AllocationMetadata Tag State TypeId × Footprint) ×
       (Byte Tag × Footprint))) := do
   let sourceStore ← typedStoreMetadataByte metadata offset typeId byte
@@ -604,8 +604,8 @@ def pairedStoreUnionLoadMetadataByte
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (byte : Byte Tag) :
-    Option ((AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint) ×
+    Option (((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
       ((AllocationMetadata Tag State TypeId × Footprint) ×
       (Byte Tag × Footprint))) := do
   let sourceStore ← storeMetadataByte metadata offset byte
