@@ -1504,6 +1504,24 @@ theorem pairedEndLifetime_corresponds
   simp [pairedEndLifetime] at hresult
   split at hresult <;> simp_all
 
+def pairedLifetimeLookup (resolve : AllocId → Nat)
+    (store : Store Tag State) (id : AllocId) : Bool :=
+  match endLifetime store id, endLifetime (renameStore resolve store) id with
+  | some (source, _), some (target, _) =>
+      target = renameStore resolve source &&
+      (lookup target id).map (renameAllocationValue resolve id) = lookup source id
+  | _, _ => false
+
+theorem pairedLifetimeLookup_sound (resolve : AllocId → Nat)
+    (store : Store Tag State) (id : AllocId)
+    (h : pairedLifetimeLookup resolve store id = true) :
+    ∃ source target sourceFootprint targetFootprint,
+      endLifetime store id = some (source, sourceFootprint) ∧
+      endLifetime (renameStore resolve store) id = some (target, targetFootprint) ∧
+      target = renameStore resolve source := by
+  simp [pairedLifetimeLookup] at h
+  split at h <;> simp_all
+
 def pairedStaleLoad (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) : Bool :=
   match endLifetime store id, endLifetime (renameStore resolve store) id with
