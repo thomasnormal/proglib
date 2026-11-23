@@ -17,6 +17,11 @@ def one : TestStore :=
                            bytes := [oneByte], state := () })]
     nextId := 1 }
 
+#guard placementAllowed one 8 1
+#guard !placementAllowed one 32 1
+#guard (allocate one { bytes := [Byte.uninitialized], state := () }
+  (.address 32)).isNone
+
 def footprintWidth : Footprint → Nat
   | { accesses := [(_, region)] } => region.width
   | _ => 0
