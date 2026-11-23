@@ -39,6 +39,12 @@ def one : TestStore :=
 #guard match allocate one { bytes := [.uninitialized], state := () } (.unaddressable) with
   | some (store, _) => store.nextId == one.nextId + 1
   | none => false
+#guard match pairedAllocate resolve one { bytes := [.uninitialized], state := () }
+    (.address 100) with
+  | some (sourceResult, targetResult) =>
+      targetResult.1 = renameStore resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2
+  | none => false
 #guard footprintAgrees (mergeFootprint 1 0 2) (mergeFootprint 1 0 2)
 
 def footprintWidth : Footprint → Nat
