@@ -863,6 +863,23 @@ theorem pointerEqual_choice (left right : Pointer Tag) :
     pointerEqual left right .equal = (left.address == right.address) := by
   rfl
 
+def pairedPointerEqual (resolve : AllocId → Nat)
+    (left right : Pointer Tag) (choice : EqualityChoice) : Bool :=
+  pointerEqual (renamePointer resolve left) (renamePointer resolve right) choice =
+    pointerEqual left right choice
+
+theorem pairedPointerEqual_self (resolve : AllocId → Nat)
+    (pointer : Pointer Tag) (choice : EqualityChoice) :
+    pairedPointerEqual resolve pointer pointer choice := by
+  simp [pairedPointerEqual, pointerEqual]
+
+theorem pairedPointerEqual_sound (resolve : AllocId → Nat)
+    (left right : Pointer Tag) (choice : EqualityChoice)
+    (h : pairedPointerEqual resolve left right choice) :
+    pointerEqual (renamePointer resolve left) (renamePointer resolve right) choice =
+      pointerEqual left right choice := by
+  simpa [pairedPointerEqual] using h
+
 inductive OffsetFault where
   | outOfBounds
   | alignment

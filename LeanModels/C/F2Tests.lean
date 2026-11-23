@@ -242,6 +242,8 @@ def pointerStore : TestStore :=
 #guard copyEncoded (encodePointer pointer) == encodePointer pointer
 #guard pointerEqual pointer pointer .equal
 #guard !(pointerEqual pointer pointer .unequal)
+#guard pairedPointerEqual_self resolve pointer .equal
+#guard pairedPointerEqual_self resolve pointer .unequal
 #guard (offsetPointer pointer 1 0 pointer.address) == .ok pointer
 #guard (offsetPointer pointer 0 1 pointer.address).isError
 #guard pairedOffsetPointer resolve pointer 1 0 pointer.address
