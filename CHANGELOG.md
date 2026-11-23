@@ -4383,3 +4383,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: pin the exact twelve legal-order outcomes of the concrete two-process NBA scheduler witness.
 
 - sv: prove active-cursor length balance for every admitted source-shaped NBA edge-phase terminal path.
+- sv: add a two-write `ReadWin` frame lemma for disjoint existing scalar bindings, preserving read-window agreement after sequential updates.

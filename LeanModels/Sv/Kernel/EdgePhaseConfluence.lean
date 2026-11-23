@@ -289,6 +289,23 @@ theorem SvState.set_commute_of_mem
         simp [SvState.lookup_set, hneq, Ne.symm hneq]
       · simp [SvState.lookup_set, hqn, hqm, Ne.symm hqn, Ne.symm hqm]
 
+theorem ReadWin.agree_set_two
+    {st : SvState} {n m : String} {oldN oldM p q : LVec} {loN wN loM wM : Nat}
+    (hn : SvState.lookup st n = some oldN) (hm : SvState.lookup st m = some oldM)
+    (hp : p.width = wN) (hq : q.width = wM)
+    (hneq : n ≠ m)
+    {r : ReadWin}
+    (hrN : r.overlaps (n, loN, wN) = false)
+    (hrM : r.overlaps (m, loM, wM) = false) :
+    r.agree st (SvState.set (SvState.set st n (oldN.insertAt loN p)) m
+      (oldM.insertAt loM q)) := by
+  apply ReadWin.agree_trans (ReadWin.agree_set hn hp hrN)
+  apply ReadWin.agree_set
+  · rw [SvState.lookup_set_ne _ _ hneq]
+    exact hm
+  · exact hq
+  · exact hrM
+
 /-! The four source-level obligations for a level-sensitive admission.  They
 are retained as a proposition over `PDesign`, where the access closure and
 reactive dependency walks still have their parser-native inputs.  The first
