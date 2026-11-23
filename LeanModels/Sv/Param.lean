@@ -3116,6 +3116,23 @@ def evalUntypedLegacy (env : IEnv) (e : PExpr) : Except String Int := do
     let v' ← evalAt env (w + 64, s) (e.shiftBarriers env)
     if v' == v then .ok v else .error (untypedWrapMsg w v v')
 
+/-! **Conservativity away from the INT class.**  For a non-INT-class root,
+the former evaluator's accepted branch is already the same own-type
+`ctype`/`evalAt` computation used by the §6.20.2 evaluator.  The INT-class
+boundary is intentionally excluded because the exact evaluator applies the
+32-bit signed rule there, where the old unbounded proof path had different
+answers. -/
+theorem evalUntyped_legacy_preserved_nonInt (env : IEnv) (e : PExpr) (v : Int)
+    (hInt : e.isInt env = false)
+    (hold : evalUntypedLegacy env e = .ok v) :
+    evalUntyped env e = .ok v := by
+  cases hw : e.icarusWidens env with
+  | true => simp [evalUntypedLegacy, hw] at hold
+  | false =>
+      cases e <;>
+        simp [evalUntypedLegacy, evalUntyped, evalInt, evalSized, ctype, hInt, hw] at hold ⊢
+      all_goals simp_all [Except.bind]
+
 /- The old and exact evaluators deliberately disagree on these boundary cases.
 These rows make the dropped conservativity claim explicit while retaining the
 old evaluator verbatim for audit comparison. -/
