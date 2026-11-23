@@ -480,6 +480,27 @@ def freeMetadata (metadata : AllocationMetadata Tag State TypeId) :
         width := metadata.allocation.bytes.length })
   else none
 
+def pairedFreeMetadata (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    Option ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint)) := do
+  let sourceResult ← freeMetadata metadata
+  let targetResult ← freeMetadata (renameZeroTokenMetadata resolve metadata)
+  if targetResult.1 = renameZeroTokenMetadata resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2 then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedFreeMetadata_corresponds
+    (resolve : AllocId → Nat) (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.2.1 = renameZeroTokenMetadata resolve result.1.1 ∧
+      result.2.2 = result.1.2 := by
+  simp [pairedFreeMetadata] at hresult
+  split at hresult <;> simp_all
+
 inductive FreeOutcome where
   | nullSuccess
   | freed

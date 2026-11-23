@@ -60,6 +60,9 @@ def one : TestStore :=
         (renameZeroTokenMetadata resolve token) &&
       zeroTokenFreeable (renameZeroTokenMetadata resolve token)
   | _ => false
+#guard match allocateZeroSize () (.address 128) with
+  | (.token token, _) => (pairedFreeMetadata resolve token).isSome
+  | _ => false
 #guard footprintAgrees (mergeFootprint 1 0 2) (mergeFootprint 1 0 2)
 
 def footprintWidth : Footprint → Nat
