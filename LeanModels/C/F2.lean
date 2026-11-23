@@ -1423,6 +1423,24 @@ theorem allocateMetadata_wf {Tag State TypeId : Type}
   · simp_all [AllocationMetadata.wellFormed]
   · simp_all [AllocationMetadata.wellFormed]
 
+def pairedAllocateMetadata (resolve : AllocId → Nat) (id : AllocId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement) : Bool :=
+  let source := allocateMetadata request locations placement
+  let target := allocateMetadata request locations
+    (renamedPlacement resolve id placement)
+  target = source.map (fun result =>
+    (renameMetadata resolve id result.1, result.2))
+
+theorem pairedAllocateMetadata_sound (resolve : AllocId → Nat) (id : AllocId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (h : pairedAllocateMetadata resolve id request locations placement) :
+    allocateMetadata request locations (renamedPlacement resolve id placement) =
+      (allocateMetadata request locations placement).map (fun result =>
+        (renameMetadata resolve id result.1, result.2)) := by
+  simpa [pairedAllocateMetadata] using h
+
 theorem allocate_wf {Tag State : Type} (store : Store Tag State)
     (hstore : WellFormed store) (request : AllocationRequest Tag State)
     (placement : Placement) (result : Store Tag State × Footprint)

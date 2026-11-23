@@ -126,6 +126,10 @@ def metadata : AllocationMetadata Unit Unit String :=
 #guard metadata.locations.length == metadata.allocation.bytes.length
 #guard (allocateMetadata { bytes := [oneByte], state := () } [location] (.address 8)).isSome
 #guard (allocateMetadata { bytes := [oneByte], state := () } [] (.address 8)).isNone
+#guard pairedAllocateMetadata resolve 0
+  { bytes := [oneByte], state := () } [location] (.address 8)
+#guard pairedAllocateMetadata resolve 0
+  { bytes := [oneByte], state := () } [location] .unaddressable
 #guard (storeMetadataByte metadata 0 (.value 66 none (some 0))).isSome
 #guard (storeMetadataByte metadata 1 oneByte).isNone
 #guard (typedStoreMetadataByte metadata 0 "long" oneByte).isSome
