@@ -37,6 +37,10 @@ def one : TestStore :=
   (.address 8) 8 16).isOk
 #guard (allocateBounded empty { bytes := [oneByte], state := () }
   (.address 14) 1 16) == .error .exhausted
+#guard pairedAllocateBounded resolve empty { bytes := [oneByte], state := () }
+  (.address 8) 8 16
+#guard pairedAllocateBounded resolve empty { bytes := [oneByte], state := () }
+  (.address 14) 1 16
 #guard (PlacementAgreement.mk (fun _ => some 8) (fun _ => some 8)
   (fun _ => true)).agrees
 #guard (placementAgreementOfStores one one (fun _ => true)).agrees
