@@ -452,6 +452,26 @@ def zeroTokenEqual (left right : AllocationMetadata Tag State TypeId) : Bool :=
 def zeroTokenFreeable (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   isZeroToken metadata
 
+def renameZeroTokenMetadata (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    AllocationMetadata Tag State TypeId :=
+  { metadata with
+    allocation := { metadata.allocation with
+      address := metadata.allocation.address.map (fun _ => resolve 0) } }
+
+theorem renameZeroTokenMetadata_selfEqual (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (h : isZeroToken metadata) :
+    zeroTokenEqual (renameZeroTokenMetadata resolve metadata)
+      (renameZeroTokenMetadata resolve metadata) = true := by
+  simp [zeroTokenEqual, renameZeroTokenMetadata, isZeroToken, h]
+
+theorem renameZeroTokenMetadata_freeable (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    zeroTokenFreeable (renameZeroTokenMetadata resolve metadata) =
+      zeroTokenFreeable metadata := by
+  simp [zeroTokenFreeable, isZeroToken, renameZeroTokenMetadata]
+
 def freeMetadata (metadata : AllocationMetadata Tag State TypeId) :
     Option (AllocationMetadata Tag State TypeId × Footprint) :=
   if metadata.allocation.live then
