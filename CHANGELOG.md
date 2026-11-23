@@ -10,6 +10,9 @@
 - Added the coherent-state wrapper for the scalar evaluator frame, reusing the
   canonical `setScalarState_spec` view-update theorem.
 
+- Added a whole-binding scalar evaluator congruence for instantiated
+  identifier sets, giving parser-native read-name walkers a direct entry point.
+
 - Added the kernel-checked pure scalar evaluator frame used by the retained
   level-sensitive scheduler.  The parser-native admission obligations are
   recorded separately, while the guard-to-resume semantic frame remains open.

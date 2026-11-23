@@ -187,6 +187,22 @@ theorem CoreMemDesign.evalScalarLocals_congr_view
 
 #print axioms CoreMemDesign.evalScalarLocals_congr_view
 
+/-! A whole-binding variant matches the parser-native name walkers.  It is
+ intentionally conservative about slices, but lets a source read closure be
+ connected to the instantiated expression without exposing `Expr2.reads`. -/
+theorem CoreMemDesign.evalScalarLocals_congr_idents
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st st' : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    (h : ∀ n ∈ (instExpr2 env (if elems.isEmpty then E.elems else elems) ctx e).idents,
+      SvState.lookup (locals ++ E.scalar.view st.scalar) n =
+        SvState.lookup (locals ++ E.scalar.view st'.scalar) n) :
+    E.evalScalarLocals env elems st ctx locals e =
+      E.evalScalarLocals env elems st' ctx locals e := by
+  unfold CoreMemDesign.evalScalarLocals
+  exact evalPure2_congr h
+
+#print axioms CoreMemDesign.evalScalarLocals_congr_idents
+
 /-! A source-shaped blocking write can be framed at the evaluator boundary
 when none of the instantiated read windows names the written signal.  This is
 the small semantic bridge needed before the parser-native guard can be used to
