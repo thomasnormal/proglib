@@ -2,10 +2,10 @@
  "by_corpus": {
   "c-testsuite/single-exec": {
    "not-parsed": 3,
-   "passed": 189,
+   "passed": 190,
    "refused-libc": 1,
    "refused-ub": 4,
-   "refused-unsupported": 22,
+   "refused-unsupported": 21,
    "runner-error": 1
   },
   "gcc.c-torture/execute": {
@@ -13,11 +13,11 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1124,
+   "passed": 1142,
    "refused-libc": 26,
    "refused-ub": 36,
-   "refused-unsupported": 232,
-   "runner-error": 10
+   "refused-unsupported": 215,
+   "runner-error": 9
   },
   "gcc.c23-run": {
    "not-parsed": 34,
@@ -34,11 +34,11 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1323,
+  "passed": 1342,
   "refused-libc": 28,
   "refused-ub": 41,
-  "refused-unsupported": 372,
-  "runner-error": 11
+  "refused-unsupported": 354,
+  "runner-error": 10
  },
  "dynamic_wall_ranking": [
   {
@@ -640,32 +640,6 @@
   },
   {
    "files": [
-    "00112.c",
-    "20000910-2.c",
-    "20010915-1.c",
-    "20011126-2.c",
-    "20021204-1.c",
-    "20030928-1.c",
-    "20050218-1.c",
-    "20100827-1.c",
-    "930429-1.c",
-    "961125-1.c",
-    "991227-1.c",
-    "memchr-1.c",
-    "pr116799.c",
-    "pr34415.c",
-    "pr53084.c",
-    "string-opt-17.c",
-    "string-opt-5.c",
-    "va-arg-10.c",
-    "va-arg-9.c"
-   ],
-   "present": 19,
-   "sole": 19,
-   "wall": "unsupported:pointer operation involving a string literal"
-  },
-  {
-   "files": [
     "20011121-1.c",
     "20050215-1.c",
     "941014-1.c",
@@ -787,6 +761,18 @@
   },
   {
    "files": [
+    "20080424-1.c",
+    "memchr-1.c",
+    "pr124358.c",
+    "strlen-4.c",
+    "va-arg-21.c"
+   ],
+   "present": 5,
+   "sole": 5,
+   "wall": "unsupported:pointer operation on an array subobject"
+  },
+  {
+   "files": [
     "alias-2.c",
     "alias-3.c",
     "alias-4.c",
@@ -795,17 +781,6 @@
    "present": 4,
    "sole": 4,
    "wall": "unsupported:extern object 'b' has no definition in the translation unit"
-  },
-  {
-   "files": [
-    "20080424-1.c",
-    "pr124358.c",
-    "strlen-4.c",
-    "va-arg-21.c"
-   ],
-   "present": 4,
-   "sole": 4,
-   "wall": "unsupported:pointer operation on an array subobject"
   },
   {
    "files": [
@@ -920,6 +895,15 @@
    "present": 2,
    "sole": 2,
    "wall": "libc-call: open"
+  },
+  {
+   "files": [
+    "20020406-1.c",
+    "string-opt-5.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "unsequenced-effects"
   },
   {
    "files": [
@@ -1161,14 +1145,6 @@
   },
   {
    "files": [
-    "20020406-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsequenced-effects"
-  },
-  {
-   "files": [
     "pr108064.c"
    ],
    "present": 1,
@@ -1353,14 +1329,6 @@
   },
   {
    "files": [
-    "pr98853-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no size for pointee of 'char *'"
-  },
-  {
-   "files": [
     "pr86714.c"
    ],
    "present": 1,
@@ -1492,8 +1460,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-23T01:05:00Z",
- "measured_commit": "dc3df24ac",
+ "measured_at_utc": "2026-11-23T02:50:00Z",
+ "measured_commit": "c4eec8fff",
  "pin": "C1-C3",
  "rows": [
   {
@@ -2690,8 +2658,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00112.c",
    "sha256": "eac2b9833390803455c480ba73f78e5a5e8bd543bffd7d99da71f313f67a4bf1",
@@ -2699,7 +2667,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4836,8 +4804,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000910-2.c",
    "sha256": "630dda2d782bd72273a5ba7df4a52c6c5a20344d88f270467652ba6eafaf738c",
@@ -4846,7 +4814,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5475,8 +5443,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20010915-1.c",
    "sha256": "079287a9978b9ab65d73a966feb4a5b2962386f23619512e92c469b094e380bc",
@@ -5485,7 +5453,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5638,8 +5606,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20011126-2.c",
    "sha256": "52fc3596a01688ff5a126d07bc7b88811bed3bd82fba8bd18dc097201da6c4f9",
@@ -5647,7 +5615,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6451,8 +6419,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20021204-1.c",
    "sha256": "b407c0ab2f50f4983839a7038f4d76dc87a934f88bf5e897b53b95187a3ee55f",
@@ -6460,7 +6428,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -6982,8 +6950,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20030928-1.c",
    "sha256": "4ced138b6a79c6da681fcac01cc1c46b96233522a01c3fa5710744cff28b0bf6",
@@ -6991,7 +6959,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7855,8 +7823,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20050218-1.c",
    "sha256": "58cee76083f39fa4acffe227c321e93f5fed969a9bbd5acafdc1676d461c13af",
@@ -7866,7 +7834,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8973,8 +8941,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20100827-1.c",
    "sha256": "02d59f1d5c866906ecaa3ae45ec45753dea383ddba352250caf74df884d40d60",
@@ -8982,7 +8950,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10471,8 +10439,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "930429-1.c",
    "sha256": "f4412cbe15519cd91f247f90fbc00b6c4c6de1c51243d95ff7410d6eb37c7c88",
@@ -10480,7 +10448,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11878,8 +11846,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "961125-1.c",
    "sha256": "43365ddefcd738cbf9a632528b4c27b43243b2d67a7060665190177e9bd7bd10",
@@ -11887,7 +11855,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -12792,8 +12760,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "991227-1.c",
    "sha256": "7d4eaa0209fc478b2cb84ae4c54bc94c81959c4be3af0fdb167ee65a358eed9c",
@@ -12801,7 +12769,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18031,8 +17999,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "pointer operation on an array subobject",
+   "dynamic_wall": "unsupported:pointer operation on an array subobject",
    "manifest_status": "parsed",
    "name": "memchr-1.c",
    "sha256": "fd62059556391313f163e4cca4c1f02898fdc77d579dd9a0fc61c5347c0c0f3d",
@@ -18192,7 +18160,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "minmaxcmp-1.c",
@@ -18200,7 +18168,7 @@
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "runner-error"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19226,8 +19194,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr116799.c",
    "sha256": "4c8b152e9be0e30fabe1ce363fddcd56e98107b8df401c0668b76260c6e7182d",
@@ -19237,7 +19205,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20644,8 +20612,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr34415.c",
    "sha256": "13ab9e6adebc2c6da13d7014094af60ceb5c4bdb067348ac9ab7fcbfa58b054c",
@@ -20653,7 +20621,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22369,8 +22337,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr53084.c",
    "sha256": "4859f7937a03ccc0ef5d43c3229458ef7ec1b3c2f219e8a52a7dd000d0490779",
@@ -22378,7 +22346,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26100,8 +26068,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no size for pointee of 'char *'",
-   "dynamic_wall": "unsupported:no size for pointee of 'char *'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr98853-1.c",
    "sha256": "a43645ed0862aa463206f73f2aa8a73e3c08c159a0b42ae1f6b87e42d28c161c",
@@ -26109,7 +26077,7 @@
     "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26638,8 +26606,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "string-opt-17.c",
    "sha256": "f1f764b90fd97e4b42a2a2faf505f26fd6c7fa8c4f5740f6092a1a63e0767e5c",
@@ -26649,7 +26617,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26672,8 +26640,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "unsequenced side effects in call arguments",
+   "dynamic_wall": "unsequenced-effects",
    "manifest_status": "parsed",
    "name": "string-opt-5.c",
    "sha256": "ae4d5bc865c6d2b4c4ca3a0633f3e87dd76e5c38b5a9dc6c2008b602e187ae8a",
@@ -27008,8 +26976,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "va-arg-10.c",
    "sha256": "5cb2d6ed423c050aaa81f9a50ce99c3dd43e88f2757c460a46a8b5836b09c4df",
@@ -27021,7 +26989,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27322,8 +27290,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation involving a string literal",
-   "dynamic_wall": "unsupported:pointer operation involving a string literal",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "va-arg-9.c",
    "sha256": "d81cf4ba2a988b659534a2037ecff6039bac090a41e316dad99cfd094c743cba",
@@ -27334,7 +27302,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
