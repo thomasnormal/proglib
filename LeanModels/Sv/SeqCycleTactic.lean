@@ -515,10 +515,21 @@ theorem seqK_index?_ofInt32 (m : MemShape) {i : Int} (h0 : 0 ≤ i) (h1 : i < 42
     m.index? false (LVec.ofInt 32 i) = if m.inRange i then some i else none := by
   simp [MemShape.index?, seqK_toNat?_ofInt32 h0 h1, Int.toNat_of_nonneg h0]
 
-/-- The trip count of a loop whose header's value list is known. -/
+/-- The statically allocated trip fuel covers every value in a checked loop
+header's trace. The checked route can refuse a wrapping trace, while the
+legacy arithmetic mirror is used only to expose its fuel count. -/
 theorem seqE_loopTrips_ok {env : IEnv} {it : String} {init cond step : PExpr} {values : List Int}
-    (h : forValues2 env it init cond step = .ok values) : loopTrips env it init cond step = values.length := by
-  simp [loopTrips, h]
+    (h : forValues2Int32 env it init cond step = .ok values) : values.length ≤ loopTrips env it init cond step := by
+  have hlegacy := forValues2_of_forValues2Int32_ok env it init cond step h
+  unfold forValues2 at hlegacy
+  unfold loopTrips
+  cases hfuel : forFuel2 env it init cond step with
+  | error e => simp [hfuel] at hlegacy
+  | ok fuel =>
+      rw [hfuel] at hlegacy
+      have hl := forValuesFuel2_length_add_two_le env it init cond step hlegacy
+      simp [hfuel] at *
+      omega
 
 /-- An element of a written memory has the element width when the old elements and the written value have it. -/
 theorem seqE_memWrite_width {mv : MemV} {n : String} {k? : Option Int} {x : LVec} {w : Nat}
