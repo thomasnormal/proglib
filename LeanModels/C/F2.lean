@@ -288,6 +288,24 @@ theorem renameByte_comp (first second : AllocId → Nat) (byte : Byte Tag) :
   | value bits provenance fragment =>
       cases provenance <;> cases fragment <;> rfl
 
+theorem optionResolve_idempotent (resolve : AllocId → Nat)
+    (address : Option Nat) :
+    Option.map (fun _ => resolve 0) (Option.map (fun _ => resolve 0) address) =
+      address.map (fun _ => resolve 0) := by
+  cases address <;> rfl
+
+theorem optionResolve_comp (first second : AllocId → Nat)
+    (id : AllocId) (address : Option Nat) :
+    Option.map (fun _ => second id) (Option.map (fun _ => first id) address) =
+      address.map (fun _ => second id) := by
+  cases address <;> rfl
+
+theorem optionResolve_comp_direct (first second : AllocId → Nat)
+    (id : AllocId) (address : Option Nat) :
+    Option.map ((fun x => second id) ∘ (fun x => first id)) address =
+      Option.map (fun _ => second id) address := by
+  cases address <;> rfl
+
 def renameStore (resolve : AllocId → Nat) (store : Store Tag State) : Store Tag State :=
   { store with allocations := store.allocations.map (renameAllocation resolve) }
 
@@ -314,13 +332,15 @@ theorem renameStore_idempotent (resolve : AllocId → Nat) (store : Store Tag St
     renameStore resolve (renameStore resolve store) = renameStore resolve store := by
   cases store with
   | mk allocations nextId =>
-      simp [renameStore, renameAllocation, renameByte_idempotent]
+      simp [renameStore, renameAllocation, renameByte_idempotent,
+        optionResolve_idempotent, optionResolve_comp_direct]
 
 theorem renameStore_comp (first second : AllocId → Nat) (store : Store Tag State) :
     renameStore second (renameStore first store) = renameStore second store := by
   cases store with
   | mk allocations nextId =>
-      simp [renameStore, renameAllocation, renameByte_comp]
+      simp [renameStore, renameAllocation, renameByte_comp,
+        optionResolve_comp, optionResolve_comp_direct]
 
 theorem storesCorrespond_refl (resolve : AllocId → Nat) (store : Store Tag State) :
     storesCorrespond resolve (renameStore resolve store) (renameStore resolve store) := by
