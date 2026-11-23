@@ -1392,6 +1392,14 @@ theorem pairedStoreByte_corresponds
   obtain ⟨sourceResult, targetResult, hpair⟩ := hresult
   simp_all
 
+theorem storeByte_lookup_correspondence
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : (Store Tag State × Footprint) × (Store Tag State × Footprint))
+    (hresult : pairedStoreByte resolve store id offset byte = some result) :
+    result.2.1 = renameStore resolve result.1.1 := by
+  exact (pairedStoreByte_corresponds resolve store id offset byte result hresult).2.1
+
 def loadByte (store : Store Tag State) (id offset : Nat) :
     Option (Byte Tag × Footprint) := do
   let allocation ← lookup store id
