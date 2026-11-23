@@ -128,6 +128,64 @@ theorem CombCursor.two_blocking_scalar_cross_resume
 
 #print axioms CombCursor.two_blocking_scalar_cross_resume
 
+/-! The same retained-resume diamond with source-shaped driver closures.  The
+closure receipts are intentionally separate for the two expressions and are
+translated by the evaluator adapter before the cursor proof is invoked. -/
+theorem CombCursor.two_blocking_scalar_cross_resume_of_driver_closure
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {xN xM : VarId} {vN vM : LVec}
+    {processes : List PProcess} {fuelN fuelM : Nat}
+    {namesN namesM : List String}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hdecl : xN.decl ≠ xM.decl)
+    (hn : n ∈ view.map Prod.fst)
+    (hm : m ∈ view.map Prod.fst)
+    (hneq : n ≠ m)
+    (hkeys : (view.map Prod.fst).Nodup)
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : PExpr.hasTestPlusargs eN = false)
+    (htestM : PExpr.hasTestPlusargs eM = false)
+    (hmemN : PExpr.hasMemoryRead eN = false)
+    (hcallN : PExpr.hasFunctionCall eN = false)
+    (hmemM : PExpr.hasMemoryRead eM = false)
+    (hcallM : PExpr.hasFunctionCall eM = false)
+    (hne : E.elems ≠ [])
+    (hvalN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
+    (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
+      y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM)
+    (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
+      y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN)
+    (hguardM : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM, y ≠ n)
+    (hguardN : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN, y ≠ m) :
+    let cN : CombCursor :=
+      { work := [.stmt env (.blockingAssign n eN)], locals := locals }
+    let cM : CombCursor :=
+      { work := [.stmt env (.blockingAssign m eM)], locals := locals }
+    cM.resume E (E.setScalarState st n vN) (SvState.set view n vN) =
+        .ok (E.setScalarState (E.setScalarState st n vN) m vM,
+          SvState.set (SvState.set view n vN) m vM, { work := [], locals := locals }) ∧
+      cN.resume E (E.setScalarState st m vM) (SvState.set view m vM) =
+        .ok (E.setScalarState (E.setScalarState st m vM) n vN,
+          SvState.set (SvState.set view m vM) n vN, { work := [], locals := locals }) ∧
+      E.setScalarState (E.setScalarState st n vN) m vM =
+        E.setScalarState (E.setScalarState st m vM) n vN ∧
+      SvState.set (SvState.set view n vN) m vM =
+        SvState.set (SvState.set view m vM) n vN := by
+  apply CombCursor.two_blocking_scalar_cross_resume
+    hc hxN hxM hdecl hn hm hneq hkeys hlocalN hlocalM htargetN htargetM
+    htestN htestM hmemN hcallN hmemM hcallM hne hvalN hvalM
+  · exact fun y hy => by
+      exact hguardM y (hclosureM y hy)
+  · exact fun y hy => by
+      exact hguardN y (hclosureN y hy)
+
 /-! The concrete frame instantiates the retained scheduler's local diamond.
 The only scheduler fact used here is the existing `CombPhaseStep` relation.
 -/
