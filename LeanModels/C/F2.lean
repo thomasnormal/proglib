@@ -336,6 +336,15 @@ deriving Repr, BEq
 
 def reallocZeroGNU17 : ReallocZeroOutcome := .freedNull
 
+def isZeroToken (metadata : AllocationMetadata Tag State TypeId) : Bool :=
+  metadata.allocation.live && metadata.allocation.bytes.isEmpty
+
+def zeroTokenEqual (left right : AllocationMetadata Tag State TypeId) : Bool :=
+  isZeroToken left && isZeroToken right && left.allocation.address == right.allocation.address
+
+def zeroTokenFreeable (metadata : AllocationMetadata Tag State TypeId) : Bool :=
+  isZeroToken metadata
+
 def freeMetadata (metadata : AllocationMetadata Tag State TypeId) :
     Option (AllocationMetadata Tag State TypeId × Footprint) :=
   if metadata.allocation.live then
