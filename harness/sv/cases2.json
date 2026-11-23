@@ -73978,6 +73978,26 @@
       "measured": "2026-11-22: Icarus Verilog 13.0 and Xcelium 24.03-s004 retain x,x,0,0,0,0 while canonical E refuses the simulator-dependent latch activation."
     },
     {
+      "name": "event_self_write_list_refuse",
+      "example": "sem2/event_self_write_list_refuse",
+      "file": "event_self_write_list_refuse",
+      "top": "event_self_write_list",
+      "signals": ["a", "t", "y"],
+      "stimulus": [{"a":"0"}, {"a":"1"}, {"a":"0"}, {"a":"1"}, {"a":"0"}],
+      "refusal": "AlwaysEvent:self-write",
+      "measured": "2026-11-23: Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on five rows 0 x, 1 0, 0 1, 1 0, 0 1; canonical E refuses the explicit event-list blocking self-write under IEEE 1800-2023 §9.4.2."
+    },
+    {
+      "name": "event_self_write_latch_refuse",
+      "example": "sem2/event_self_write_latch_refuse",
+      "file": "event_self_write_latch_refuse",
+      "top": "event_self_write_latch",
+      "signals": ["en", "a", "t", "y"],
+      "stimulus": [{"en":"0","a":"0"}, {"en":"1","a":"1"}, {"en":"0","a":"0"}, {"en":"1","a":"0"}, {"en":"0","a":"1"}],
+      "refusal": "AlwaysEvent:self-write",
+      "measured": "2026-11-23: Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on five rows x x, 1 x, 1 x, 0 1, 0 1; canonical E refuses the explicit event-list latch self-write under IEEE 1800-2023 §9.4.2."
+    },
+    {
       "name": "edge_assign_race_refuse",
       "example": "sem2/edge_assign_race_refuse",
       "top": "edge_assign_race_refuse",

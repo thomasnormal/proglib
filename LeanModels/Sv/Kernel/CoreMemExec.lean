@@ -1457,6 +1457,22 @@ def coreMemLatchSelfReadViol : List PProcess → Option String
       | none => coreMemLatchSelfReadViol rest
   | _ :: rest => coreMemLatchSelfReadViol rest
 
+/-! An explicit event control re-arms after a process returns to the Active
+region. A blocking write to a name that the same body read before writing is
+therefore a self-trigger when that name is listed in the event control
+(IEEE 1800-2023 §9.4.2). NBA writes are committed in the NBA region and are
+handled by the existing quiescence pass. -/
+def coreMemEventSelfReadViol : List PProcess → Option String
+  | [] => none
+  | (.alwaysEvent events body) :: rest =>
+      let reads := (coreMemStmtReadBeforeWritesFrom [] body).1
+      let blockingWrites := coreMemStmtBlockingWrites body
+      match reads.find? (fun name =>
+        blockingWrites.contains name && events.any (fun e => e.signal == name)) with
+      | some name => some name
+      | none => coreMemEventSelfReadViol rest
+  | _ :: rest => coreMemEventSelfReadViol rest
+
 /-! Static block-local declarations are allocated in the same scalar store as
 their enclosing process. Automatic declarations stay in the activation-local
 environment and are therefore absent from this design-level declaration list. -/
@@ -1617,6 +1633,10 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
               | some name =>
                   .unsupported s!"AlwaysLatch:self-read: 9.2.2.3: always_latch reads '{name}' before writing it; canonical E refuses the simulator-dependent activation value"
               | none =>
+                  match coreMemEventSelfReadViol allProcesses with
+                  | some name =>
+                      .unsupported s!"AlwaysEvent:self-write: 9.4.2: explicit event control includes '{name}', which the body reads before a blocking write; canonical E refuses self-trigger reactivation"
+                  | none =>
                   if coreMemHasEdgeProc allProcesses && !coreMemPAssignMemoryTopoB allProcesses then
                     .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
                   else match coreMemAssignReactiveChainViol (d.processes ++ generated) with
@@ -3871,6 +3891,17 @@ private def auditEdgeAssignProcesses : List PProcess :=
 
 #guard (coreMemReadNamesThroughAssign auditEdgeAssignProcesses 32 ["w"]).contains "a"
 #guard coreMemEdgeBlockingReadRaceThroughAssign auditEdgeAssignProcesses
+
+private def auditEventSelfWriteProcesses : List PProcess :=
+  [.alwaysEvent [{ signal := "a", edge := .any }, { signal := "t", edge := .any }]
+    (.block [.blockingAssign "y" (.ident "t"), .blockingAssign "t" (.ident "a")])]
+
+private def auditEventSelfWriteNbaProcesses : List PProcess :=
+  [.alwaysEvent [{ signal := "a", edge := .any }, { signal := "t", edge := .any }]
+    (.block [.blockingAssign "y" (.ident "t"), .nbaAssign "t" (.ident "a")])]
+
+#guard coreMemEventSelfReadViol auditEventSelfWriteProcesses == some "t"
+#guard coreMemEventSelfReadViol auditEventSelfWriteNbaProcesses == none
 
 end LeanModels.Sv.Kernel
 

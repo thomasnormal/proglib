@@ -1,0 +1,184 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "event_self_write_list",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/event_self_write_list_refuse/event_self_write_list_refuse.sv",
+      "sha256": "59d6327a8bb7c95ae35aadfdba64233ac0134f03641f9d25e7d92759fa42e437"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 3,
+          "col": 1,
+          "end_line": 8,
+          "end_col": 10
+        },
+        "name": "event_self_write_list",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 42,
+              "end_line": 3,
+              "end_col": 43
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 58,
+              "end_line": 3,
+              "end_col": 59
+            },
+            "name": "t",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 74,
+              "end_line": 3,
+              "end_col": 75
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysEvent",
+            "span": {
+              "line": 4,
+              "col": 3,
+              "end_line": 7,
+              "end_col": 6
+            },
+            "events": [
+              {
+                "signal": "a",
+                "edge": "any"
+              },
+              {
+                "signal": "t",
+                "edge": "any"
+              }
+            ],
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 4,
+                "col": 20,
+                "end_line": 7,
+                "end_col": 6
+              },
+              "stmts": [
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 5,
+                    "col": 5,
+                    "end_line": 5,
+                    "end_col": 11
+                  },
+                  "target": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 5,
+                      "col": 5,
+                      "end_line": 5,
+                      "end_col": 6
+                    },
+                    "width": 1,
+                    "name": "y"
+                  },
+                  "value": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 5,
+                      "col": 9,
+                      "end_line": 5,
+                      "end_col": 10
+                    },
+                    "width": 1,
+                    "name": "t"
+                  }
+                },
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 6,
+                    "col": 5,
+                    "end_line": 6,
+                    "end_col": 11
+                  },
+                  "target": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 6,
+                      "col": 5,
+                      "end_line": 6,
+                      "end_col": 6
+                    },
+                    "width": 1,
+                    "name": "t"
+                  },
+                  "value": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 6,
+                      "col": 9,
+                      "end_line": 6,
+                      "end_col": 10
+                    },
+                    "width": 1,
+                    "name": "a"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

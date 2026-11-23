@@ -309,4 +309,5 @@ Examples/system-verilog/sem2/clocked_reset_guard_e/agree.lean
 Examples/system-verilog/sem2/clocked_param_loop_e/agree.lean
 Examples/system-verilog/sem2/latch_self_read_refuse/agree.lean
 Examples/system-verilog/sem2/edge_assign_race_refuse/agree.lean
-Examples/system-verilog/sem2/edge_child_port_race_refuse/agree.lean
+Examples/system-verilog/sem2/event_self_write_list_refuse/agree.lean
+Examples/system-verilog/sem2/event_self_write_latch_refuse/agree.lean
