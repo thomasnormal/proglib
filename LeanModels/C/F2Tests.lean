@@ -245,6 +245,7 @@ def pointerStore : TestStore :=
   | none => false
 #guard pairedStaleLoad resolve one 0 0
 #guard pairedStaleStore resolve one 0 0 (.value 66 none (some 0))
+#guard pairedLifetimeLookup resolve one 0
 
 #guard decodePointer (encodePointer pointer) == some pointer
 #guard decodePointer ((encodePointer pointer).map (renameByte resolve)) ==
