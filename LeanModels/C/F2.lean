@@ -791,6 +791,19 @@ def reallocMetadata (old : AllocationMetadata Tag State TypeId)
           locations := locations },
         footprint AccessKind.metadata (Region.mk 0 0 request.bytes.length))
 
+theorem reallocMetadata_failure_preserves_length
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (result : ReallocOutcome Tag State TypeId × Footprint)
+    (hresult : reallocMetadata old request locations .fail = some result) :
+    match result.1 with
+    | .failed previous => previous.allocation.bytes.length = old.allocation.bytes.length
+    | .replaced _ => False := by
+  simp [reallocMetadata] at hresult
+  rcases hresult with ⟨rfl, rfl⟩
+  rfl
+
 def pairedReallocMetadata (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
     (request : AllocationRequest Tag State)
