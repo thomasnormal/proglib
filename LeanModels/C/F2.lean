@@ -468,6 +468,45 @@ def allocationsWf : List (AllocId × Allocation Tag State) → Prop
 def WellFormed (store : Store Tag State) : Prop :=
   allocationsWf store.allocations
 
+theorem bytesWf_renameByte (resolve : AllocId → Nat) (id : AllocId)
+    (bytes : List (Byte Tag)) :
+    bytesWf id (bytes.map (renameByte resolve)) ↔ bytesWf id bytes := by
+  induction bytes with
+  | nil => simp [bytesWf]
+  | cons byte rest ih =>
+      cases byte <;> simp [bytesWf, renameByte, ih]
+
+theorem allocationsWf_rename (resolve : AllocId → Nat)
+    (allocations : List (AllocId × Allocation Tag State)) :
+    allocationsWf (allocations.map (renameAllocation resolve)) ↔
+      allocationsWf allocations := by
+  induction allocations with
+  | nil => simp [allocationsWf]
+  | cons entry rest ih =>
+      rcases entry with ⟨id, allocation⟩
+      simp only [List.map_cons, allocationsWf, renameAllocation]
+      constructor
+      · intro h
+        refine ⟨?_, ?_, ?_⟩
+        · exact (bytesWf_renameByte resolve id allocation.bytes).mp h.1
+        · exact ih.mp h.2.1
+        · intro other hmem
+          apply h.2.2 other
+          obtain ⟨entry, hentry, rfl⟩ := List.mem_map.1 hmem
+          exact ⟨entry, hentry, by rfl⟩
+      · intro h
+        refine ⟨?_, ?_, ?_⟩
+        · exact (bytesWf_renameByte resolve id allocation.bytes).mpr h.1
+        · exact ih.mpr h.2.1
+        · intro other hmem
+          apply h.2.2 other
+          obtain ⟨entry, hentry, rfl⟩ := List.mem_map.1 hmem
+          exact ⟨entry, hentry, by rfl⟩
+
+theorem renameStore_wf (resolve : AllocId → Nat) (store : Store Tag State)
+    (hstore : WellFormed store) : WellFormed (renameStore resolve store) := by
+  exact (allocationsWf_rename resolve store.allocations).mpr hstore
+
 def footprint (kind : AccessKind) (region : Region) : Footprint :=
   { accesses := [(kind, region)] }
 

@@ -127,9 +127,14 @@ def resolve : AllocId → Nat := fun id => if id == 0 then 100 else 200
 def renamedOne : TestStore := renameStore resolve one
 #guard renamedOne.allocations.head!.2.address == some 100
 #guard (renameStore resolve renamedOne) == renamedOne
+#guard (WellFormed (renameStore resolve one) : Prop) = True
 #guard (renamePointer resolve pointer).provenance == pointer.provenance
 #guard (renameByte resolve fragmentByte).fragment == fragmentByte.fragment
 #guard (renameByte resolve fragmentByte).provenance == fragmentByte.provenance
+#guard match renameByte resolve (.value 7 (some { allocation := 0, tag := () }) (some 0)) with
+  | .value bits (some provenance) (some fragment) =>
+      bits == 100 && provenance.allocation == 0 && fragment == 0
+  | _ => false
 #guard (pairedStoreByte resolve one 0 0 (.value 66 none (some 0))).isSome
 #guard match pairedStoreByte resolve one 0 0 (.value 66 none (some 0)) with
   | some (sourceResult, targetResult) =>
