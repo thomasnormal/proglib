@@ -31,6 +31,7 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard alignmentAllowed 16 8
 #guard !alignmentAllowed 18 8
 #guard pairedAlignmentAllowed resolve 0 8
+#guard pairedPlacementAllowed resolve one 128 0
 #guard (allocateAligned empty { bytes := [oneByte], state := () } (.address 16) 8).isSome
 #guard (allocateAligned empty { bytes := [oneByte], state := () } (.address 18) 8).isNone
 #guard pairedAllocateAligned resolve empty { bytes := [oneByte], state := () } (.address 16) 8
@@ -38,6 +39,9 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard !placementWithin 14 4 16
 #guard pairedPlacementWithin resolve 0 4 16 100
 #guard pairedAllocateBounded resolve empty { bytes := [oneByte], state := () } (.address 8) 8 16
+#guard match allocateBounded empty { bytes := [oneByte], state := () } (.address 16) 1 16 with
+  | .error .exhausted => true
+  | _ => false
 #guard (PlacementAgreement.mk (fun _ => some 8) (fun _ => some 8) (fun _ => true)).agrees
 #guard (zeroTokenPlacementAgreement metadata metadata).agrees
 #guard (allocate empty { bytes := [.uninitialized], state := () } (.address 32)).isSome
@@ -90,8 +94,11 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard pairedStaleStore resolve one 0 0 (.value 66 none (some 0))
 #guard (offsetPointer pointer 1 0 pointer.address).isOk
 #guard match offsetPointer pointer 0 1 pointer.address with | .error _ => true | _ => false
+#guard match offsetPointer pointer 1 (-1) pointer.address with | .ok _ => true | _ => false
+#guard pairedOffsetPointer resolve pointer 1 0 pointer.address
 #guard match recoverAddress 100 [(3, 96, 104, ())] with | .recovered _ => true | _ => false
 #guard match recoverAddress 104 [(3, 96, 104, ())] with | .empty _ => true | _ => false
+#guard pairedRecoverAddress resolve 100 ([] : List (AllocId × Nat × Nat × Unit))
 #guard renameReplayEvents resolve [.io "write" "stdout" "ok", .volatileRead [1, 2]] == [.io "write" "stdout" "ok", .volatileRead [1, 2]]
 
 end LeanModels.C.F2Tests
