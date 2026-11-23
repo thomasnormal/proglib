@@ -5,8 +5,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 - verdicts: 1361/2114 MATCH (passed 1361, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `9d472f01b`
-- measured at: `2026-11-24T12:00:00Z`
+- measured commit: `b752d989d`
+- measured at: `2026-11-23T23:05:08Z`
 
 ## Verdict counts
 
@@ -52,11 +52,15 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 
 | wall | sole | present | example files |
 | --- | ---: | ---: | --- |
-| `type-layout` | 345 | 1004 | 00015.c, 00016.c, 00017.c, 00018.c, 00019.c |
-| `libc-call: __builtin_abort` | 146 | 348 | 20080719-1.c, 20081103-1.c, 20081218-1.c, 20110418-1.c, 20121108-1.c |
+| `type-layout` | 430 | 1004 | 00015.c, 00016.c, 00017.c, 00018.c, 00019.c |
+| `libc-call: __builtin_mul_overflow` | 6 | 9 | pr108789.c, pr64006.c, pr68381.c, pr71554.c, pr84169.c |
+| `unsequenced-effects` | 5 | 17 | 00121.c, 20001228-1.c, 20020406-1.c, 20060102-1.c, 20230802-1.c |
 | `libc-call` | 4 | 17 | 00087.c, 00089.c, 00124.c, 00159.c, 00189.c |
+| `libc-call: __builtin_add_overflow` | 4 | 5 | pr108789.c, pr85095.c, pr90311.c, pr91635.c, pr93494.c |
+| `libc-call: __builtin_memcpy` | 3 | 28 | 20000703-1.c, 20011121-1.c, 20030408-1.c, 20040411-1.c, 20060930-2.c |
 | `cast:IntegralToPointer` | 3 | 26 | 00214.c, 20000314-1.c, 20000622-1.c, 20010329-1.c, 20021010-2.c |
-| `unsequenced-effects` | 3 | 17 | 00121.c, 20001228-1.c, 20020406-1.c, 20060102-1.c, 20230802-1.c |
+| `libc-call: __builtin_ffs` | 3 | 5 | builtin-bitops-1.c, ffs-1.c, ffs-2.c, pr61725.c, pr97325.c |
+| `libc-call: __builtin_unreachable` | 3 | 4 | 20230509-1.c, gcc/testsuite/gcc.dg/c23-unreachable-1.c, pr81281.c, pr97888-1.c |
 | `cast:PointerToIntegral` | 2 | 25 | 00144.c, 20000622-1.c, 20011121-1.c, 20030811-1.c, 20050215-1.c |
 | `libc-call: malloc` | 2 | 13 | 20020406-1.c, 20051113-1.c, 920810-1.c, 941014-2.c, 960521-1.c |
 | `libc-call: __builtin_return_address` | 2 | 4 | 20010122-1.c, 20030323-1.c, 20030811-1.c, pr17377.c |
@@ -66,20 +70,22 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `unsupported:AddrLabelExpr` | 1 | 8 | 20040302-1.c, 20041214-1.c, 20071210-1.c, 920501-4.c, 920501-5.c |
 | `libc-call: __builtin_malloc` | 1 | 7 | 20071018-1.c, 20071120-1.c, pr15262-1.c, pr36765.c, pr43008.c |
 | `libc-call: link_error` | 1 | 6 | 20030330-1.c, builtins/abs-2.c, builtins/memcmp.c, builtins/uabs-2.c, ieee/fp-cmp-7.c |
-| `libc-call: __builtin_ffs` | 1 | 5 | builtin-bitops-1.c, ffs-1.c, ffs-2.c, pr61725.c, pr97325.c |
 | `libc-call: __builtin_constant_p` | 1 | 4 | 20030330-1.c, bcp-1.c, builtin-constant.c, pr19449.c |
+| `unsupported:GCCAsmStmt` | 1 | 4 | 20071211-1.c, 990413-2.c, pr56982.c, pr81588.c |
 | `libc-call: calloc` | 1 | 3 | 00040.c, 20020406-1.c, ipa-sra-2.c |
 | `libc-call: __builtin_abs` | 1 | 2 | pr34130.c, pr42614.c |
+| `libc-call: __builtin_bswap16` | 1 | 1 | pr97386-1.c |
+| `libc-call: __sync_add_and_fetch_8` | 1 | 1 | pr122000.c |
 | `libc-call: fun` | 1 | 1 | pr42231.c |
 | `libc-call: main_test` | 1 | 1 | builtins/lib/main.c |
 | `libc-call: signal` | 1 | 1 | 20101011-1.c |
+| `unsupported:BinaryConditionalOperator` | 1 | 1 | pr68249.c |
 | `string-literal` | 0 | 254 | 00025.c, 00026.c, 00056.c, 00058.c, 00112.c |
 | `libc-call: printf` | 0 | 71 | 00056.c, 00125.c, 00131.c, 00132.c, 00154.c |
 | `cast:IntegralToFloating` | 0 | 70 | 00113.c, 00119.c, 00123.c, 00174.c, 00175.c |
 | `libc-call: __builtin_c23_va_start` | 0 | 61 | 00204.c, 20000519-1.c, 20041113-1.c, 20071213-1.c, 920501-8.c |
 | `libc-call: __builtin_va_end` | 0 | 58 | 20041214-1.c, 20071213-1.c, 920501-8.c, 920625-1.c, 920726-1.c |
 | `cast:FloatingCast` | 0 | 44 | 00174.c, 00175.c, 00204.c, 20000605-1.c, 20020413-1.c |
-| `libc-call: __builtin_memcpy` | 0 | 28 | 20000703-1.c, 20011121-1.c, 20030408-1.c, 20040411-1.c, 20060930-2.c |
 | `libc-call: __builtin_memset` | 0 | 27 | 20020619-1.c, 20030606-1.c, 20030717-1.c, 20041218-1.c, 20071108-1.c |
 | `cast:FloatingToIntegral` | 0 | 26 | 00175.c, 20000605-1.c, 20010118-1.c, 20031003-1.c, 20040709-1.c |
 | `libc-call: memcmp` | 0 | 26 | 00179.c, 20050502-2.c, 20050826-1.c, builtins/memcmp.c, builtins/memmove-2.c |
@@ -94,7 +100,6 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `libc-call: __builtin_strcmp` | 0 | 13 | 20010915-1.c, 20021011-1.c, 920501-8.c, 920726-1.c, 921006-1.c |
 | `libc-call: __builtin_strlen` | 0 | 13 | 20030221-1.c, 20031012-1.c, 920726-1.c, builtins/strlen.c, pr110914.c |
 | `libc-call: sprintf` | 0 | 10 | 00186.c, 20030626-1.c, 20030626-2.c, 20070201-1.c, 920501-8.c |
-| `libc-call: __builtin_mul_overflow` | 0 | 9 | pr108789.c, pr64006.c, pr68381.c, pr71554.c, pr84169.c |
 | `libc-call: __builtin_inf` | 0 | 8 | ieee/compare-fp-1.c, ieee/compare-fp-4.c, ieee/copysign1.c, ieee/copysign2.c, ieee/fp-cmp-7.c |
 | `libc-call: __builtin_inff` | 0 | 7 | gcc/testsuite/gcc.dg/c23-float-2.c, gcc/testsuite/gcc.dg/c23-float-3.c, ieee/copysign1.c, ieee/copysign2.c, ieee/inf-1.c |
 | `libc-call: __builtin_strcpy` | 0 | 7 | 20021011-1.c, 921117-1.c, builtins/strcpy.c, pr84339.c, pr86528.c |
@@ -105,7 +110,6 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `libc-call: abs` | 0 | 6 | 20041126-1.c, builtins/abs-1.c, builtins/abs-2.c, pr33142.c, ssad-run.c |
 | `unsupported:GenericSelectionExpr` | 0 | 6 | 00219.c, gcc/testsuite/gcc.dg/c23-bool-1.c, gcc/testsuite/gcc.dg/c23-bool-2.c, gcc/testsuite/gcc.dg/c23-float-2.c, gcc/testsuite/gcc.dg/c23-float-3.c |
 | `unsupported:IndirectFieldDecl` | 0 | 6 | 00046.c, 00050.c, 00216.c, anon-1.c, gcc/testsuite/gcc.dg/c23-tag-5.c |
-| `libc-call: __builtin_add_overflow` | 0 | 5 | pr108789.c, pr85095.c, pr90311.c, pr91635.c, pr93494.c |
 | `libc-call: __builtin_expect` | 0 | 5 | 00214.c, 20020418-1.c, ieee/unsafe-fp-assoc-1.c, pr115277.c, pr91597.c |
 | `libc-call: __builtin_infl` | 0 | 5 | ieee/copysign1.c, ieee/copysign2.c, ieee/inf-1.c, ieee/inf-2.c, ieee/pr36332.c |
 | `libc-call: __builtin_isunordered` | 0 | 5 | ieee/compare-fp-1.c, ieee/compare-fp-3.c, ieee/compare-fp-4.c, ieee/fp-cmp-5.c, ieee/fp-cmp-8.c |
@@ -115,8 +119,6 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `unsupported:ExprWithCleanups` | 0 | 5 | 00204.c, 20020320-1.c, 950628-1.c, gcc/testsuite/gcc.dg/c23-stdarg-9.c, pr30185.c |
 | `libc-call: __builtin_copysign` | 0 | 4 | ieee/copysign1.c, ieee/copysign2.c, ieee/mzero6.c, pr44683.c |
 | `libc-call: __builtin_setjmp` | 0 | 4 | built-in-setjmp.c, pr60003.c, pr64242.c, pr84521.c |
-| `libc-call: __builtin_unreachable` | 0 | 4 | 20230509-1.c, gcc/testsuite/gcc.dg/c23-unreachable-1.c, pr81281.c, pr97888-1.c |
-| `unsupported:GCCAsmStmt` | 0 | 4 | 20071211-1.c, 990413-2.c, pr56982.c, pr81588.c |
 | `libc-call: __builtin_copysignf` | 0 | 3 | ieee/copysign1.c, ieee/copysign2.c, ieee/pr72824.c |
 | `libc-call: __builtin_huge_val` | 0 | 3 | ieee/hugeval.c, ieee/inf-1.c, ieee/inf-3.c |
 | `libc-call: __builtin_islessgreater` | 0 | 3 | ieee/compare-fp-1.c, ieee/fp-cmp-5.c, ieee/fp-cmp-8.c |
@@ -177,7 +179,6 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `unsupported:StaticAssertDecl` | 0 | 2 | gcc/testsuite/gcc.dg/c23-bool-2.c, gcc/testsuite/gcc.dg/c23-digit-separators-1.c |
 | `libc-call: __assert_fail` | 0 | 1 | pr58831.c |
 | `libc-call: __builtin_bcopy` | 0 | 1 | builtins/memmove.c |
-| `libc-call: __builtin_bswap16` | 0 | 1 | pr97386-1.c |
 | `libc-call: __builtin_bswap64` | 0 | 1 | bswap-1.c |
 | `libc-call: __builtin_bzero` | 0 | 1 | builtins/memops-asm.c |
 | `libc-call: __builtin_clrsb` | 0 | 1 | builtin-bitops-1.c |
@@ -212,7 +213,6 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `libc-call: __builtin_strrchr` | 0 | 1 | builtins/strrchr.c |
 | `libc-call: __builtin_strspn` | 0 | 1 | builtins/strspn.c |
 | `libc-call: __builtin_va_start` | 0 | 1 | 20041214-1.c |
-| `libc-call: __sync_add_and_fetch_8` | 0 | 1 | pr122000.c |
 | `libc-call: alloca` | 0 | 1 | 20010122-1.c |
 | `libc-call: atan` | 0 | 1 | ieee/mzero4.c |
 | `libc-call: atanf` | 0 | 1 | ieee/mzero4.c |
@@ -260,7 +260,6 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `libc-call: ullabs` | 0 | 1 | builtins/uabs-2.c |
 | `libc-call: umaxabs` | 0 | 1 | builtins/uabs-2.c |
 | `libc-call: x` | 0 | 1 | 991112-1.c |
-| `unsupported:BinaryConditionalOperator` | 0 | 1 | pr68249.c |
 | `unsupported:LabelDecl` | 0 | 1 | 980526-1.c |
 | `unsupported:TypeTraitExpr` | 0 | 1 | builtin-types-compatible-p.c |
 

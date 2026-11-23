@@ -161,7 +161,8 @@ def static_walls(env):
             walls.add("string-literal")
         elif kind == "CallExpr":
             name = callee_name(n.get("callee"))
-            if name not in ("abort", "exit") and name not in definitions:
+            if name not in ("abort", "exit", "__builtin_abort", "__builtin_exit") \
+                    and name not in definitions:
                 # Keep the generic fallback for an unresolved callee, but
                 # preserve Clang's resolved external name when available so
                 # the sole ranking prices one clause-sized library case at a
@@ -410,6 +411,14 @@ def selftest():
     walls = static_walls(env)
     if "assignment-call" in walls:
         print("c_survey --self-test: stale assignment wall", file=sys.stderr)
+        return 1
+    builtin_env = {"translation_unit": {"decls": [
+        {"kind": "FunctionDecl", "name": "main", "body": {
+            "kind": "CompoundStmt", "body": [{"kind": "CallExpr",
+                "callee": {"kind": "DeclRefExpr", "name": "__builtin_abort"}}]}}
+    ]}}
+    if "libc-call: __builtin_abort" in static_walls(builtin_env):
+        print("c_survey --self-test: handled builtin abort ranked as a wall", file=sys.stderr)
         return 1
     page = render({"counts": {"passed": 1}, "total": 1, "manifest_hash": "x",
                    "wall_ranking": [{"wall": "assignment-call", "sole": 1,

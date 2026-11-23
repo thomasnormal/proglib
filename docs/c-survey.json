@@ -1384,8 +1384,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T12:00:00Z",
- "measured_commit": "9d472f01b",
+ "measured_at_utc": "2026-11-23T23:05:08Z",
+ "measured_commit": "b752d989d",
  "pin": "C1-C3",
  "rows": [
   {
@@ -8616,7 +8616,6 @@
    "name": "20080719-1.c",
    "sha256": "8729d02876bba7cb4a080c80c915a531d97f295723f92d5df3365d02ebe5da50",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -8639,7 +8638,6 @@
    "name": "20081103-1.c",
    "sha256": "f01355e1a5829fb1eac721c0f5bd45ba730faeb49cf444e5369ed660fef94f52",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "libc-call: __builtin_memcpy",
     "type-layout"
@@ -8676,7 +8674,6 @@
    "name": "20081218-1.c",
    "sha256": "f8a063c3a29bbea7c8f108c12c7eece2f2e4bfa5fa11640ae94f1e68351146a0",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memset",
     "type-layout"
    ],
@@ -8915,9 +8912,7 @@
    "manifest_status": "parsed",
    "name": "20110418-1.c",
    "sha256": "c4f60d357a8e31c2d78f5d0f9c6c2dc2f925181a67ed3e9169d838aeef389955",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -9067,7 +9062,6 @@
    "name": "20121108-1.c",
    "sha256": "5f5958f038cc3cdd6f07d711409b5f540eaeb840bdf46497aaaf9707b2726066",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_printf",
     "string-literal",
     "type-layout"
@@ -9104,9 +9098,7 @@
    "manifest_status": "parsed",
    "name": "20140212-2.c",
    "sha256": "9f0471620be897ef3c8a113f6a5b37550d5e71e43a99ff9becd7aa95e4fd6a67",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -9138,9 +9130,7 @@
    "manifest_status": "parsed",
    "name": "20140622-1.c",
    "sha256": "73c5618e89e0ddcc47a54f6cd27eaa70aae6dda9f5c6d62bbe97cfc061e665ae",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -9151,7 +9141,6 @@
    "name": "20140828-1.c",
    "sha256": "244defc818f4f2efc88ea99bd5ad1353043d47b0898c3e5fd68e281d8d8e59c2",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -9164,7 +9153,6 @@
    "name": "20141022-1.c",
    "sha256": "65a76afcf9f6c93fd00f2811952eed12fe4e79a2e7efad7aa3529c0f3a2acb13",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_printf",
     "string-literal",
     "type-layout"
@@ -9179,7 +9167,6 @@
    "name": "20141107-1.c",
    "sha256": "dd5f737716fbcc0aa3b23a2b3c00bc94de39cb17b03582a4e9f016c3a19e1f0d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy"
    ],
    "verdict": "passed"
@@ -9191,9 +9178,7 @@
    "manifest_status": "parsed",
    "name": "20141125-1.c",
    "sha256": "f3d2b4215342a34fc32229f2d718817fb3c57bd2422a6ccfb50588cde193d155",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -9250,9 +9235,7 @@
    "manifest_status": "parsed",
    "name": "20170419-1.c",
    "sha256": "75e729f0ce6b1eeac0961a1b1dd5237e9f574aa87d489fba59490e5b85876333",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -9263,7 +9246,6 @@
    "name": "20171008-1.c",
    "sha256": "9ead3cbf5a1c234f638b8175a6cedf392b3d547763079f41d440cf3f0f63c849",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout",
     "unsupported:AlignedAttr"
    ],
@@ -9321,7 +9303,6 @@
    "name": "20181120-1.c",
    "sha256": "244ff6672843fc6ffb9b9ff7edd92fe6e87e6b1daa603bd3b62bb8327d9a1ea1",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -9333,9 +9314,7 @@
    "manifest_status": "parsed",
    "name": "20190228-1.c",
    "sha256": "bc848ce532bba0a74f91510400197b4a73ae2df044241890bc84d046b7920ccc",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -9356,7 +9335,6 @@
    "name": "20190901-1.c",
    "sha256": "1a26bfd6faf94ca757cbd11d36a5a35eb6acc4f8a08edda0086e10f3f451d650",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -9368,9 +9346,7 @@
    "manifest_status": "parsed",
    "name": "20191023-1.c",
    "sha256": "2aece4edc922ee236840668c7b7ae7b2c0fe4e18bffcbce23b55f8a09dd1b71e",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "refused-unsupported"
   },
   {
@@ -9408,7 +9384,6 @@
    "name": "20230509-1.c",
    "sha256": "b6325b71e87aa8fd3e523d18823fe3da2c076ec3b5e18d7a479364f6029c6d65",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_unreachable"
    ],
    "verdict": "passed"
@@ -9420,9 +9395,7 @@
    "manifest_status": "parsed",
    "name": "20230510-1.c",
    "sha256": "13c379f0104d0379ee184e504eac839270d8937a8f370347fabda575640f55be",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -9433,7 +9406,6 @@
    "name": "20230630-1.c",
    "sha256": "41f9aad43dadb0658bf7ba63e59587cd873656fc79936ff5fa08c5acab6bb4f9",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -9446,7 +9418,6 @@
    "name": "20230630-2.c",
    "sha256": "3fee99e4e5c5b5ba4cd56c80287630d2a3b6f9e3eea2751f37cf6880393dc43f",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "oracle-tests-compiler"
@@ -9459,7 +9430,6 @@
    "name": "20230630-3.c",
    "sha256": "b738f362510553934b0e1dd18248a2ed1204f4b13f61781686f66a68a4d581e0",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -9472,7 +9442,6 @@
    "name": "20230630-4.c",
    "sha256": "75b86123dbfa571b0c34576552ccbccb0a9e3a1166f7e90ef8400f7961749868",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "oracle-tests-compiler"
@@ -9485,7 +9454,6 @@
    "name": "20230802-1.c",
    "sha256": "21790d49552c3c162daea7d78c058aeebe56ab4b2f4abbe83a0455ee7b08a439",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "unsequenced-effects"
    ],
    "verdict": "passed"
@@ -12716,7 +12684,6 @@
    "sha256": "fd08dfdb4638caa58a4d9f1cf776db731899779e5b64d6b666d4ae9c104be57d",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -12729,7 +12696,6 @@
    "name": "alias-2.c",
    "sha256": "b455c33a73ede31ed46f5bab6e7b8b6923acf1dd5387c9869ba149d900f2ea5f",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -12741,9 +12707,7 @@
    "manifest_status": "parsed",
    "name": "alias-3.c",
    "sha256": "7281d6034b51239a924b1842f275088be830d94f5d57fe81220f9f48f367a7de",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "refused-unsupported"
   },
   {
@@ -12753,9 +12717,7 @@
    "manifest_status": "parsed",
    "name": "alias-4.c",
    "sha256": "d5f91e1e0ee448136806eea2436ddf8252086c6aa3ec8af8def2f6393e680862",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "refused-unsupported"
   },
   {
@@ -12766,7 +12728,6 @@
    "name": "alias-access-path-1.c",
    "sha256": "30518b3b7bbdfab8d0ba31faa94ca3b124f1fec9324b3696dab282e683719552",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -12779,7 +12740,6 @@
    "name": "alias-access-path-2.c",
    "sha256": "ac94eb840bc0fc8f966cd25630706f2026d0069d9555bfabc88be1ce9bf4a471",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -13005,7 +12965,6 @@
    "name": "bitfld-10.c",
    "sha256": "51dddb1cf15cf1881c4f752d605bd1fae97adc006de6d1bd361249a186babafd",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -13086,7 +13045,6 @@
    "name": "bitfld-8.c",
    "sha256": "d144ff4f91c3f67e261a5f718286656dde69f85afb589a9c63c610767fdc70c1",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -13099,7 +13057,6 @@
    "name": "bitfld-9.c",
    "sha256": "eed82318a87124605e1440087fb972ca315a8ba16496b66a322fcbfabb0599d1",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -13112,7 +13069,6 @@
    "name": "bitfld-signed1-1.c",
    "sha256": "a589061a77d3f05727e69d900f54549419ab23ab93e487dadf3d03848abb786d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -13125,7 +13081,6 @@
    "name": "bitops-1.c",
    "sha256": "af4365ba1e1b2fe87545d82bd9cf8be1fc2b5cfea7237655a135bef0c6247965",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout",
     "unsequenced-effects"
    ],
@@ -13139,7 +13094,6 @@
    "name": "bswap-1.c",
    "sha256": "7224f5f087655d63cfe475c3925f57051fdfa5c5a7abfe3f1ce31d41f438c67c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_bswap64",
     "type-layout",
     "unsequenced-effects"
@@ -13154,7 +13108,6 @@
    "name": "bswap-2.c",
    "sha256": "89b664eba9f6220422b3395c3d96099c591b0f3fdcbf154da9e992fcf8c3e22c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-ub"
@@ -13167,7 +13120,6 @@
    "name": "bswap-3.c",
    "sha256": "a8081a9c0c78d3eb9ae83b8889764cb05de5162c31be3d1b258070a4223475ec",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_bswap32",
     "unsequenced-effects"
    ],
@@ -16094,9 +16046,7 @@
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-labels-1.c",
    "sha256": "811d1ee95c60a79f53eb0295bdb41b67e070f76d54d95a1589649b40cd155e4e",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "refused-unsupported"
   },
   {
@@ -16209,7 +16159,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-stdarg-9.c",
    "sha256": "d718d5356e4b69eeb4abad86148027b3914e95658586208e91de8b9df8eebfc2",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_c23_va_start",
     "libc-call: __builtin_va_end",
     "type-layout",
@@ -16239,7 +16188,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-tag-alias-1.c",
    "sha256": "edd988da4030c019f97f854e8100aa5b4536d2dd131240eb45978059859fe64a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -16252,7 +16200,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-tag-alias-2.c",
    "sha256": "2ba04a1959b626f527dfe0039c50e97f947aa7ea59d8e067cf0313302e1dc697",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -16264,9 +16211,7 @@
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-tag-alias-3.c",
    "sha256": "765c8154d674f2e015a033a5ec2a09328a82fcdaf79aab0b4ca75c27d758bc77",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -16277,7 +16222,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-tag-alias-4.c",
    "sha256": "409b3052c60e33faae1db30d7a72451e73af597facbd9af560e0156296235b3b",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -16300,7 +16244,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-tag-alias-7.c",
    "sha256": "4d60df32f4ba3aa8352cdba680fc16845571b1203d50d88bc24f141ab19b2107",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -16333,7 +16276,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-tag-incomplete-alias-1.c",
    "sha256": "705bafd95a0fe0993ebc5667a8a850a4c9c676f54c29db0699ad2a7156df5267",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17110,7 +17052,6 @@
    "sha256": "76765d088eb8c2d3a8ad82a8844d98a8d64b871ab6f144c077be493c06615b50",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_inf",
     "libc-call: __builtin_isfinite",
     "libc-call: __builtin_isnan",
@@ -17225,7 +17166,6 @@
    "sha256": "c3a36f26713ef8442f46e4536dba02335743f21093a375da5cac2c1fa8f5c0c0",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_isinf",
     "libc-call: __builtin_isnan",
     "libc-call: __builtin_signbit",
@@ -17243,7 +17183,6 @@
    "name": "ieee/pr108540-2.c",
    "sha256": "63cfae9c4ba2854693e84b520b2f3f96b8e3196c5e96ed2cf7eeac36805bad1c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17256,7 +17195,6 @@
    "name": "ieee/pr109008.c",
    "sha256": "727ae59f67a8660f37ea16709cf059a5fc1f72f8a3350d4de1a50b95733f74ed",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17269,7 +17207,6 @@
    "name": "ieee/pr109386.c",
    "sha256": "bd233004265f94f4e0565a548904bf827dfc6eb3692a553364cc28369ea3ff04",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_fabsf",
     "libc-call: __builtin_inff",
     "libc-call: __builtin_isinf",
@@ -17287,7 +17224,6 @@
    "name": "ieee/pr119002.c",
    "sha256": "c400cfaef8076dbb1897ec7572ea228033c053134cf5ec0448429fb3d6ebaeb6",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_nanf",
     "string-literal",
     "type-layout"
@@ -17343,7 +17279,6 @@
    "name": "ieee/pr36332.c",
    "sha256": "6cfdda7cae996f0d52c37f60e10368c0cb90983be70d6903fa4725b296ba71a7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_infl",
     "type-layout"
    ],
@@ -17402,7 +17337,6 @@
    "sha256": "f2e081e169d6313652e22b6423123b584957f411d60949aee9d5b76bad9f8158",
    "static_walls": [
     "cast:FloatingCast",
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_copysignf",
     "type-layout"
    ],
@@ -17416,7 +17350,6 @@
    "name": "ieee/pr84235.c",
    "sha256": "d98635f47584257120157627bd02ef5564e00aa96b875fd29b20b71a3adedd75",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17692,7 +17625,6 @@
    "sha256": "a2d52eb6a92ce7d5dc7f225de6b18392b6153fff41c98fe76aa1380c4999788a",
    "static_walls": [
     "cast:IntegralToPointer",
-    "libc-call: __builtin_abort",
     "libc-call: mmap",
     "libc-call: open",
     "string-literal",
@@ -17709,7 +17641,6 @@
    "sha256": "268c47639d02a1978808b460f8bb5545ba9476058ddacbe376f5bdcf0ef36221",
    "static_walls": [
     "cast:IntegralToPointer",
-    "libc-call: __builtin_abort",
     "libc-call: mmap",
     "libc-call: open",
     "string-literal",
@@ -17866,7 +17797,6 @@
    "name": "lto-tbaa-1.c",
    "sha256": "9e8dfcd6a42b4b75851495ff672e84442e0b59d8cd71d23fdac32c8883bb363c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -17889,7 +17819,6 @@
    "name": "mayalias-2.c",
    "sha256": "6f2b91e772c254e1d3f215174512763caac70e4e5508a058aa552ed386374e0a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout",
     "unsupported:MayAliasAttr"
    ],
@@ -17903,7 +17832,6 @@
    "name": "mayalias-3.c",
    "sha256": "9e79619fae347d877b8e88bfc61f5284f832ed4acb18ee55165d451c81a89757",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout",
     "unsupported:MayAliasAttr"
    ],
@@ -17929,7 +17857,6 @@
    "name": "memchr-1.c",
    "sha256": "fd62059556391313f163e4cca4c1f02898fdc77d579dd9a0fc61c5347c0c0f3d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_printf",
     "libc-call: memchr",
     "string-literal",
@@ -18076,7 +18003,6 @@
    "name": "memset-4.c",
    "sha256": "a607f718ab3fb6d56f4190534a528d24b9f428f6b184d69922b10223909fcd0d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memset",
     "type-layout"
    ],
@@ -18089,9 +18015,7 @@
    "manifest_status": "parsed",
    "name": "minmaxcmp-1.c",
    "sha256": "c8373ae57ea0dec72ae5329a74a82f467b092ce0c3f95a8a4ce9181a9bba503e",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "runner-error"
   },
   {
@@ -18131,9 +18055,7 @@
    "manifest_status": "parsed",
    "name": "mul-sext.c",
    "sha256": "dafc4cd9e28afeee62a0f5193db2a750a44b3cc04eefb90c52bf7e325eb842b2",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18349,7 +18271,6 @@
    "sha256": "5eeea37eee1a69d67b71267c616946c410729b9d6336cb05ca1849fc4ed37914",
    "static_walls": [
     "libc-call",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -18361,9 +18282,7 @@
    "manifest_status": "parsed",
    "name": "pr101335.c",
    "sha256": "8fba905c8245087e6053e4252743ede28cd9f43fc1052f4d00fc0cf3e15295a9",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18373,9 +18292,7 @@
    "manifest_status": "parsed",
    "name": "pr102134.c",
    "sha256": "0d4ed4c189b93e84f3d89b10450ccc7974e4fc4bcdbfae8f6d950878683e7602",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18408,7 +18325,6 @@
    "static_walls": [
     "cast:IntegralToPointer",
     "cast:PointerToIntegral",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -18441,7 +18357,6 @@
    "name": "pr103417.c",
    "sha256": "f2bd608d4d70b6dde5f5c706f3461c86ddfc17f4ab3cc990ebbf242607a52c27",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18454,7 +18369,6 @@
    "name": "pr10352-1.c",
    "sha256": "81b88afd97994794065a4223ad03538a469dee171dd3df46265d3d6a8a52dcd6",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -18466,9 +18380,7 @@
    "manifest_status": "parsed",
    "name": "pr104196.c",
    "sha256": "94f4631e5c3d65fec7c458f6e221a750b969515245cc61d671a50540c5a415fb",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18488,9 +18400,7 @@
    "manifest_status": "parsed",
    "name": "pr104814.c",
    "sha256": "e4ce851d81f9e0f5994d851606da8524e16d4dbffe5e5458004bd81d7c98a9eb",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18500,9 +18410,7 @@
    "manifest_status": "parsed",
    "name": "pr104839.c",
    "sha256": "73ae5fb9b5a3cea3883ed8adf3f04d47ad1cfb9fc26d4827452e2a9297444865",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18542,9 +18450,7 @@
    "manifest_status": "parsed",
    "name": "pr106032.c",
    "sha256": "d3e1e14f0fb4f88efea8b697bf14c437ce929c53dde14dfe2224dc403b312ad2",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18554,9 +18460,7 @@
    "manifest_status": "parsed",
    "name": "pr106523.c",
    "sha256": "b477badd3ee6173e956cc21d86fbcaf2cf62b16eb373b6a82d0063395fc749f3",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18566,9 +18470,7 @@
    "manifest_status": "parsed",
    "name": "pr107131.c",
    "sha256": "ab3b480e783c342845ec3dac4b38ded330d656e36ecc5e30f74a58c10afbf611",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18580,7 +18482,6 @@
    "sha256": "38af7839f7d7752343dbd042917b5e1c2202685d71220bcaccb5e1298409f039",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18592,9 +18493,7 @@
    "manifest_status": "parsed",
    "name": "pr107881-1.c",
    "sha256": "4f5bf8c312f703b7a7f11112ec0f1a30b603d1c1e9bbefefb078ccdf79162cab",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "runner-error"
   },
   {
@@ -18605,7 +18504,6 @@
    "name": "pr108064.c",
    "sha256": "c8d12e6997090874a3e21ef1611f44f6fe6a910f53102495a58f440944a30af7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout",
     "unsupported:AlignedAttr"
    ],
@@ -18639,7 +18537,6 @@
    "name": "pr108498-2.c",
    "sha256": "f31a0536be78d73f7060b3a52475629b312e9ecbb7336c6a3dde5ef16b098bf9",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "libc-call: __builtin_memset",
     "string-literal",
@@ -18655,7 +18552,6 @@
    "name": "pr108789.c",
    "sha256": "5e7e94668d51a5ee051d4a9028ca44db6a5946ff1a1a9652d99069d8c2da076b",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_add_overflow",
     "libc-call: __builtin_mul_overflow"
    ],
@@ -18678,9 +18574,7 @@
    "manifest_status": "parsed",
    "name": "pr109778.c",
    "sha256": "5fe621790ebe8959fdc2d73e5028f651f5007e847ebd70a03b87d413d11f7a53",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18691,7 +18585,6 @@
    "name": "pr109925.c",
    "sha256": "0a103325f8b3728f8bd9f66fb2f73bf47ea91d6772ee4d2f519f121dbfb47638",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18736,7 +18629,6 @@
    "name": "pr110165-1.c",
    "sha256": "37f7a9004a4003bfb6c30caf4024a0cec35bda612b135942170f7cc80ac25d15",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18749,7 +18641,6 @@
    "name": "pr110166-1.c",
    "sha256": "30bcfb7d37f2f641c25bde007f17671a1cd2b6db16610c55a0d638896d6cd67b",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18761,9 +18652,7 @@
    "manifest_status": "parsed",
    "name": "pr110252-1.c",
    "sha256": "2335f7af5967eb8d5aa87e009a07e76103e1cdc0bc95ba2eae4d6dedfe36e715",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18783,9 +18672,7 @@
    "manifest_status": "parsed",
    "name": "pr110252-3.c",
    "sha256": "626de6a01b209a80f364ddc544bfcc6fd4a6faf0ac48fe1615897e1297efbce2",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18795,9 +18682,7 @@
    "manifest_status": "parsed",
    "name": "pr110252-4.c",
    "sha256": "b380a9bea5c2d04feca648d19b624e0d4a2c69b005c4fce89d6f1c6e21ab1d2e",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18808,7 +18693,6 @@
    "name": "pr110666-1.c",
    "sha256": "e1fe0d3fc5f2e0bf0b9ca15156b0571c390d86c1146912d506fb9a5398db796d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "unsequenced-effects"
    ],
    "verdict": "passed"
@@ -18851,7 +18735,6 @@
    "name": "pr110914.c",
    "sha256": "f00c55da1029a7214d391a05e0983bfb4e0c43a3dcce34035423de0f78d515df",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy",
     "libc-call: __builtin_strlen",
     "string-literal",
@@ -18866,9 +18749,7 @@
    "manifest_status": "parsed",
    "name": "pr110954-1.c",
    "sha256": "6ffecbf8789f6d935d78a505a43ebdf57a8b84746612073fc2c36d6a8c5f39c6",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18878,9 +18759,7 @@
    "manifest_status": "parsed",
    "name": "pr111151.c",
    "sha256": "2d048aff36ecf7b0af39cfb1df98283620e167d73202e39b996ff0b191b03665",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18890,9 +18769,7 @@
    "manifest_status": "parsed",
    "name": "pr111331-1.c",
    "sha256": "0453436ff839ace1041cc13f6238b7bc1e63406f0c135ace89fe08b225d4ff9a",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18902,9 +18779,7 @@
    "manifest_status": "parsed",
    "name": "pr111331-2.c",
    "sha256": "d1a249c03132adaa831d459c8e4fe57fcdaacea9a5fc36d5cdb137092bd28ffa",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18914,9 +18789,7 @@
    "manifest_status": "parsed",
    "name": "pr111331-3.c",
    "sha256": "ba0df02197bbed1a80bddbbeb1bd9b7345b68845cfe82f63b1ce6f09ed36ae3e",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18926,9 +18799,7 @@
    "manifest_status": "parsed",
    "name": "pr111408.c",
    "sha256": "a714a8762a064786540be89842108514c05316f3d7819fe8d99f41804496eb10",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18939,7 +18810,6 @@
    "name": "pr111422.c",
    "sha256": "c42abda5f16acd31ef04a1327552f1efc0fa771169dafe2c830f2f7a3cf69793",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -18951,9 +18821,7 @@
    "manifest_status": "parsed",
    "name": "pr111431-1.c",
    "sha256": "321041c1acd0b62fb67aa7d69cf0b2936849bbf927c1357e70c062f036930425",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -18974,7 +18842,6 @@
    "name": "pr111613.c",
    "sha256": "5da58fe5094271eee5c47f32e3c5970f50d7544f5a97eb3e162b3c97d3eb05db",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: malloc",
     "type-layout"
    ],
@@ -18988,7 +18855,6 @@
    "name": "pr111863-1.c",
    "sha256": "00dff7816a81b80f8c11d196f9c46352bffa362847c2658147b55a65b7bd1d98",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_printf",
     "string-literal",
     "type-layout"
@@ -19012,9 +18878,7 @@
    "manifest_status": "parsed",
    "name": "pr112758.c",
    "sha256": "1200e3ca862f26a89394a4db7410beaecefa5bef0edc682ef27655e7f9b6a114",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19024,9 +18888,7 @@
    "manifest_status": "parsed",
    "name": "pr113010.c",
    "sha256": "79d0e8d042db4347956a808b082e0e52cd96b105d5b675e0680fc4a8f3362700",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19037,7 +18899,6 @@
    "name": "pr113787.c",
    "sha256": "73e8b58eb348f4decf7e89429747b4f7df3246c55476f5dc9192c7c90cbd002a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -19050,7 +18911,6 @@
    "name": "pr114207.c",
    "sha256": "3d7769700f76f455717bbff3e5499abd4f15c37361d2d6ca15deaba10d1a3834",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -19063,7 +18923,6 @@
    "name": "pr114396.c",
    "sha256": "23d02e979233f044300c571e65768b6e652330b353ae238eaaed15a7c828c80d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -19086,7 +18945,6 @@
    "name": "pr114965.c",
    "sha256": "e1713aa47404a0f7d0ad498dd32da1e03b5cc3f21a81af38a31e591f5bd4bcfb",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "string-literal",
     "type-layout"
    ],
@@ -19110,7 +18968,6 @@
    "name": "pr115277.c",
    "sha256": "c674fdafda83fbd0d82d8d99185261aba5536ddbd42c98cb329ce512cfe394c2",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_expect",
     "type-layout"
    ],
@@ -19124,7 +18981,6 @@
    "name": "pr116799.c",
    "sha256": "4c8b152e9be0e30fabe1ce363fddcd56e98107b8df401c0668b76260c6e7182d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
@@ -19138,9 +18994,7 @@
    "manifest_status": "parsed",
    "name": "pr117095.c",
    "sha256": "d2785321e996f432cf05df8afe8e1d08cf3ea895cc7ccd73a0ccc7600d513ec8",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19151,7 +19005,6 @@
    "name": "pr117432.c",
    "sha256": "358d4a6891006ad25eb04f99e55096f70dba93ef0056a8a30f1da268b73025af",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_c23_va_start",
     "libc-call: __builtin_va_end",
     "type-layout"
@@ -19175,9 +19028,7 @@
    "manifest_status": "parsed",
    "name": "pr118623.c",
    "sha256": "5744ea45814e18424374baac5bebe6adb76de382ca573cc86db26e5303ae0e86",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19187,9 +19038,7 @@
    "manifest_status": "parsed",
    "name": "pr118638.c",
    "sha256": "a717de8c9b3e63e3b97b9d748905bd0ccf92f15e3640b60debe31a1abead4f64",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19199,9 +19048,7 @@
    "manifest_status": "parsed",
    "name": "pr118915.c",
    "sha256": "276d5d9572323434916f50fa9643e9f567fc449cb6bc1b327862088e78684755",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19211,9 +19058,7 @@
    "manifest_status": "parsed",
    "name": "pr119030.c",
    "sha256": "e15d383731ab964d13c49e3c41586cee15797eb7f6a8409d0f29fec830132301",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19223,9 +19068,7 @@
    "manifest_status": "parsed",
    "name": "pr119071.c",
    "sha256": "2d72ae5fdf26025581383043516bdecee1c0466fee2a24b38492cda6a31cae72",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19235,9 +19078,7 @@
    "manifest_status": "parsed",
    "name": "pr119291.c",
    "sha256": "7dbfd419cfb2d453bea955c97df92b82bdab1d3d95c92dd14719ca739b2bf33f",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19248,7 +19089,6 @@
    "name": "pr119428.c",
    "sha256": "c61ae0c7e78c2776c192ea5271c4735eb8ebb4c993cec54011edf1e7ac7e6c76",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memset",
     "type-layout"
    ],
@@ -19262,7 +19102,6 @@
    "name": "pr120630.c",
    "sha256": "1aa8d360e44df6da762d8eef80684cb41c933c4c1139626c03ef57dabf690def",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "string-literal",
     "type-layout"
    ],
@@ -19275,9 +19114,7 @@
    "manifest_status": "parsed",
    "name": "pr120677.c",
    "sha256": "aad231e615d9f32a22ce72ebaa06bfabcc21c9b7a694ea9a6e56998c715b0750",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19298,7 +19135,6 @@
    "name": "pr122000.c",
    "sha256": "7b2d3a0ae25c0e225dca35b2f36029752db2541460ec59c7be568c1cab070372",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __sync_add_and_fetch_8"
    ],
    "verdict": "passed"
@@ -19310,9 +19146,7 @@
    "manifest_status": "parsed",
    "name": "pr122943.c",
    "sha256": "8ea3ac0eeda989033311c68e415e42ab7171647ea61e65db1386326f40fe146d",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -19373,7 +19207,6 @@
    "name": "pr123978.c",
    "sha256": "1ed8a36af452bfd14d600d31c3ce62b3d9241009455c4399adece59506cb5e9f",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memset",
     "type-layout"
    ],
@@ -19387,7 +19220,6 @@
    "name": "pr124358.c",
    "sha256": "4bfac3671278712097cedc58d0c1524f1bec0b73bb30895d10b947b0103806b5",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20053,9 +19885,7 @@
    "manifest_status": "parsed",
    "name": "pr27364.c",
    "sha256": "b80a3964eba972703914768e9e42f2e0c47bab839988e5a84ceef623c52b462b",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -20266,9 +20096,7 @@
    "manifest_status": "parsed",
    "name": "pr31072.c",
    "sha256": "f5d175d2316357d7c4cec3bf3f4ed9623b03f5d6a8f03ccb3b5f37e0a1b67c48",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "refused-unsupported"
   },
   {
@@ -20303,7 +20131,6 @@
    "name": "pr31448-2.c",
    "sha256": "f82edd474dc8881ef13be1ff096859ede174fe3fdda3c5ed4bb2208947b9615d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20316,7 +20143,6 @@
    "name": "pr31448.c",
    "sha256": "bf8ef014bfb7759820baaeaa2540051f4ff5cdfa1a9ced0f1a56eb17e9cb78d9",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20710,7 +20536,6 @@
    "name": "pr36038.c",
    "sha256": "9dc503485913322bc0fb4dbd8fcc64f04b0522435773dfcc8faab0e200ce5a07",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "type-layout"
    ],
@@ -20819,7 +20644,6 @@
    "name": "pr37573.c",
    "sha256": "27ba2d916cdcf7c9e18241c4ae25c95506737584eaf20f6361584192476a75d2",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "type-layout"
    ],
@@ -20833,7 +20657,6 @@
    "name": "pr37780.c",
    "sha256": "72a96ee8e5d191880ef7e1236d80466cd0c9b259a61ab3b99e0fb85a8c0b149a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_clz",
     "libc-call: __builtin_ctz"
    ],
@@ -20847,7 +20670,6 @@
    "name": "pr37882.c",
    "sha256": "42e857eda926cfe2b0f91bfd35e4805079c0ea0b517e53d3bed67956aad79786",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -20907,7 +20729,6 @@
    "static_walls": [
     "cast:IntegralToPointer",
     "cast:PointerToIntegral",
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy",
     "string-literal",
     "type-layout"
@@ -20996,7 +20817,6 @@
    "name": "pr39100.c",
    "sha256": "6ffc618abbed6bb3b0de05863a7a356afa736aafded64ec890ef2eeb50577c97",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -21054,7 +20874,6 @@
    "name": "pr39339.c",
    "sha256": "e3d8a2d36db7d11986a8795f7eeebedde778466688b78518594ec24585bbae0f",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "libc-call: __builtin_memset",
     "type-layout"
@@ -21155,7 +20974,6 @@
    "name": "pr40668.c",
    "sha256": "e11fffe59899ff934501ad0ccad617f161291a70addcea34f1d4a104665230f7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy"
    ],
    "verdict": "passed"
@@ -21520,7 +21338,6 @@
    "name": "pr43784.c",
    "sha256": "e84096a5fa025d38be9550d80dc8761150e73dcec82c323cc7efed1e888095cb",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -21620,7 +21437,6 @@
    "name": "pr44683.c",
    "sha256": "016c5bd32e7d9885030a194c02c0742ae1a2bca5a0d9af761f8150ae1f4b312a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_copysign",
     "type-layout"
    ],
@@ -21664,7 +21480,6 @@
    "name": "pr44942.c",
    "sha256": "a593433333b8ef20fa39c196c472aca96eb4f332d3e0da4dcbafdaee61fdc75a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_c23_va_start",
     "libc-call: __builtin_va_end",
     "type-layout"
@@ -21771,9 +21586,7 @@
    "manifest_status": "parsed",
    "name": "pr47148.c",
    "sha256": "a957535db7abdcd45462ea6ad5f6daa24efbd265e591a1d6b1a9af291e5922cb",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -21783,9 +21596,7 @@
    "manifest_status": "parsed",
    "name": "pr47155.c",
    "sha256": "5f356c0018a4e716eca1398ee6b88541995760d4415c9775d164abd5a6eff332",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -21816,7 +21627,6 @@
    "name": "pr47337.c",
    "sha256": "e35d8c36b3f0766784cbf87955951da4ad5d04912220fa78933b08c232bb91ce",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_strcmp",
     "string-literal",
     "type-layout"
@@ -21832,7 +21642,6 @@
    "sha256": "7ddc400661a1d3c0585c8a1e3c93d6aa4a0ec3410b9e099eaf7a9c2331f9fbb0",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy",
     "type-layout"
    ],
@@ -22097,9 +21906,7 @@
    "manifest_status": "parsed",
    "name": "pr50865.c",
    "sha256": "81791d0f051a147330eadbd8c33544603730d8c54e756bc9cbf97bac07435e0a",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -22228,7 +22035,6 @@
    "name": "pr52760.c",
    "sha256": "cb1974c398f372b8a299c449957111e1f1b42c33fdba5304274b70538483fc7c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -22322,7 +22128,6 @@
    "name": "pr53688.c",
    "sha256": "010877ad5b37612d649fdcfde302dbba2e51c30064dd4da2d93f2ba874ae80a1",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy",
     "libc-call: __builtin_memset",
     "string-literal",
@@ -22468,9 +22273,7 @@
    "manifest_status": "parsed",
    "name": "pr56899.c",
    "sha256": "768ca2c2a90c755916fe38fe384598a09767ff3506ca7d5bc9bc33e63417c152",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -22518,7 +22321,6 @@
    "name": "pr57130.c",
    "sha256": "02486b8b9bdd58a0f840d1f8b727c325d16d92032a31cda078d222f833cc510c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "type-layout"
    ],
@@ -22625,9 +22427,7 @@
    "manifest_status": "parsed",
    "name": "pr57829.c",
    "sha256": "65711bbf18a23d3b5dc51251f0516f8eeb6706f139e286e216e93385ab5bc2c5",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -22727,9 +22527,7 @@
    "manifest_status": "parsed",
    "name": "pr58364.c",
    "sha256": "05d69e01b54e859a0dd671493dbe860a2c5ad76e065f84859fe407164d9c2c72",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -22781,9 +22579,7 @@
    "manifest_status": "parsed",
    "name": "pr58431.c",
    "sha256": "57de9fa73820736d4a848e53762bdc019d5bb221a05a0d63ea2d3146fdaf98f1",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -22804,7 +22600,6 @@
    "name": "pr58570.c",
    "sha256": "8977d3d9cbbb7d40a055648e256eeae11819545f4a918fafdd366aebc281fc5d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout",
     "unsupported:MaxFieldAlignmentAttr"
    ],
@@ -22820,7 +22615,6 @@
    "static_walls": [
     "cast:FloatingToIntegral",
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -22865,7 +22659,6 @@
    "name": "pr58726.c",
    "sha256": "ad7637c7a08451bd802eb4a496cc4d28bab5812dc2a4ac0e7fc412d9be7500d7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -22893,7 +22686,6 @@
    "name": "pr58943.c",
    "sha256": "112d9b05a6654221cf70194e8a6505827acf269fd4f7614e8cc83c5caf40a308",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -22906,7 +22698,6 @@
    "name": "pr58984.c",
    "sha256": "6a381d191ff13091896ce1c93245da2ab5efa82c7bf8dff15aa29d74903bf7a7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -22918,9 +22709,7 @@
    "manifest_status": "parsed",
    "name": "pr59014-2.c",
    "sha256": "493ec3be46cbf379e4ee26100cfc7fe2ae1d7a4cef9bd6b24497584cf73dbfb6",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -22930,9 +22719,7 @@
    "manifest_status": "parsed",
    "name": "pr59014.c",
    "sha256": "5109d88f513c75483021548d75348744d7404fa98d958a5bf85a3d8edbd7f10d",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -22942,9 +22729,7 @@
    "manifest_status": "parsed",
    "name": "pr59101.c",
    "sha256": "f3e74fd714aa69cfb55133b9ada17634670a701f5488e08cf308a0c1b9fbeaa0",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -22954,9 +22739,7 @@
    "manifest_status": "parsed",
    "name": "pr59221.c",
    "sha256": "820cc1184b2c15bc7aa08a64096e898d3449e0a5fb9de95334ed77f845bcb3d8",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -22967,7 +22750,6 @@
    "name": "pr59229.c",
    "sha256": "baa810f41ea53ccf4d1374734d2f1ec51b9b7dcecebe7483845bf763e4ce953d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "libc-call: __builtin_memcpy",
     "libc-call: __builtin_memset",
@@ -22983,9 +22765,7 @@
    "manifest_status": "parsed",
    "name": "pr59358.c",
    "sha256": "16c9af853827413a07a9bdc29eb04281999fc7f20b89deb12841ed8f8cd3a0b0",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23019,9 +22799,7 @@
    "manifest_status": "parsed",
    "name": "pr59413.c",
    "sha256": "1304806c13adf8ff6416cb9c117c93b0848ab996878e08b32fc34a6806c068b0",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23033,7 +22811,6 @@
    "sha256": "9b103825a04442bb465f754a33ad4788b5138f6189cf87fbc0422f9bfdd55a23",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23084,7 +22861,6 @@
    "name": "pr60062.c",
    "sha256": "76562729f3ce8b46ec7c4028fa6ce382b197f683272c71a1bb68cd3028e86409",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_strcmp",
     "string-literal",
     "type-layout"
@@ -23108,9 +22884,7 @@
    "manifest_status": "parsed",
    "name": "pr60454.c",
    "sha256": "e5bb603b5e2557fae211e63699590066d2aaf178d46488d5bf5b852648fef3fd",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23121,7 +22895,6 @@
    "name": "pr60822.c",
    "sha256": "4b50a2c2460faee05635f4d97cdd63642a1ecf6f6a7e15bbd61e0a334b4bd7d7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23143,9 +22916,7 @@
    "manifest_status": "parsed",
    "name": "pr61306-1.c",
    "sha256": "0b0e760f3c94bdb3361262056e5a40ded627363c388f0ecf8cd85eac56a13249",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23155,9 +22926,7 @@
    "manifest_status": "parsed",
    "name": "pr61306-2.c",
    "sha256": "5342800fc58674bcae581b56c62dec73e0a425e04a5797e4d093dd49146e094f",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23167,9 +22936,7 @@
    "manifest_status": "parsed",
    "name": "pr61306-3.c",
    "sha256": "7380171cf2202ee359b27863f53ae1c5a354e8eca63b82e7fcbe41f799b3de02",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23179,9 +22946,7 @@
    "manifest_status": "parsed",
    "name": "pr61375.c",
    "sha256": "0aa2ed3fb7c3a9401cffb623b1fd8d555d5d3e5118f2551cd8f77d14092f7437",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23191,9 +22956,7 @@
    "manifest_status": "parsed",
    "name": "pr61517.c",
    "sha256": "cd6ce7a1ea03bdc3939b3dbd96b918edddc6d12d5cb5468d5454ce8e01b02724",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23204,7 +22967,6 @@
    "name": "pr61673.c",
    "sha256": "c6cc8be44338b98fc420e8c2202c12fe2a2a6e3a53d4a753d8992bc15302506a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23216,9 +22978,7 @@
    "manifest_status": "parsed",
    "name": "pr61682.c",
    "sha256": "6ac8d46fa83b61731ae4e6f941ec421b26d939743404542b9596ed3720d7298b",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23229,7 +22989,6 @@
    "name": "pr61725.c",
    "sha256": "3c1576945873a0034645e2b836219a69ae8b16a3f223e0077b2290e7a6539f45",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_ffs"
    ],
    "verdict": "passed"
@@ -23242,7 +23001,6 @@
    "name": "pr62151.c",
    "sha256": "990c13169cd5758aa302b0073e35c2f67334c914a086961a1286494e3cd9adf9",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23267,9 +23025,7 @@
    "manifest_status": "parsed",
    "name": "pr63302.c",
    "sha256": "eb8cf4285b292457a770b7170dc8470beaec2c813262d9de0fa19f843736049a",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "refused-ub"
   },
   {
@@ -23289,9 +23045,7 @@
    "manifest_status": "parsed",
    "name": "pr63659.c",
    "sha256": "d883b59c021c41ae71483d6421abf6ec9d8e0239c100b1fdd7a1e1f893cedbbc",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23302,7 +23056,6 @@
    "name": "pr63843.c",
    "sha256": "259f4c6e20d69368e25db2962d6c4158182640b300d857e65723eaec7f5a25b7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy",
     "type-layout"
    ],
@@ -23316,7 +23069,6 @@
    "name": "pr64006.c",
    "sha256": "d2866f767e54748e574c2f7ea5bbd1cfde70c530b3568d0fdcf825161d7e2d5b",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_mul_overflow",
     "type-layout"
    ],
@@ -23346,9 +23098,7 @@
    "manifest_status": "parsed",
    "name": "pr64255.c",
    "sha256": "678141caca47a7f7c47ff1069b0dff8e6e833480141e6b9e50ab733b72059a14",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23358,9 +23108,7 @@
    "manifest_status": "parsed",
    "name": "pr64260.c",
    "sha256": "522dc95e98dc7ded9055ecfde5a737c6b681e04584ab963feff4d2a7a26d41d9",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23370,9 +23118,7 @@
    "manifest_status": "parsed",
    "name": "pr64682.c",
    "sha256": "365dd4aae93345511d4f759203adee76e27509672f105fe79c999f2fcea9a8d3",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23382,9 +23128,7 @@
    "manifest_status": "parsed",
    "name": "pr64718.c",
    "sha256": "90f7aaae5611443d57e0e277735d91df5afbdeb4dcc81d382af143c5ea5950bb",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23394,9 +23138,7 @@
    "manifest_status": "parsed",
    "name": "pr64756.c",
    "sha256": "93367d2dba7f180a841e6b4ec78b7a2a790903052cc0994960b309f913b4e0ba",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23406,9 +23148,7 @@
    "manifest_status": "parsed",
    "name": "pr64957.c",
    "sha256": "209c1e8e9625746a75658e71766383dd212a3cb9cb11513029154bff7058800e",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23419,7 +23159,6 @@
    "name": "pr64979.c",
    "sha256": "ebc80502935f4fca2dd98ae330c1da1e7e06d88ac8fa25d9f0a108ecc601e066",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_c23_va_start",
     "libc-call: __builtin_va_end",
     "type-layout"
@@ -23453,9 +23192,7 @@
    "manifest_status": "parsed",
    "name": "pr65170.c",
    "sha256": "e53b8ecef0f9ec1c676e3e7bf6b81d54567d73f6f4b8539c009f08000a0150d8",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23465,9 +23202,7 @@
    "manifest_status": "parsed",
    "name": "pr65215-1.c",
    "sha256": "870911bdc6d41c571801d7d0c5be1ef68b8a3f32e90a276c4a4552c0b9dd5b12",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23477,9 +23212,7 @@
    "manifest_status": "parsed",
    "name": "pr65215-2.c",
    "sha256": "9f33f235b0b6ae0b409d884a446016d78b034550146af8d947f8856b7cfd5077",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23490,7 +23223,6 @@
    "name": "pr65215-3.c",
    "sha256": "aa51efc493256a8f652ffa64ce3a5460a45bbf6a14e7725788bdc0df63334c2a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23503,7 +23235,6 @@
    "name": "pr65215-4.c",
    "sha256": "9ea6a52eeb795c567ff8c8d19806425f9a8105fe969c995b3b744a1df0217925",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23516,7 +23247,6 @@
    "name": "pr65215-5.c",
    "sha256": "f55016df26c522b69bc17aa8416299bbd2ac33415af5e3c30dd2eeb48ba2f65a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23528,9 +23258,7 @@
    "manifest_status": "parsed",
    "name": "pr65216.c",
    "sha256": "2232ea56c59beaddc78140857195903327c72fb9c5053fefe9482e2b9f68def4",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23541,7 +23269,6 @@
    "name": "pr65369.c",
    "sha256": "8078474ab452306b8f45be23c335852cdaaaa541a63268bf5639f3aa2a753735",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "libc-call: __builtin_memcpy",
     "libc-call: __builtin_memset",
@@ -23558,7 +23285,6 @@
    "name": "pr65401.c",
    "sha256": "357a6e4951f76bad634a9f65a1d78f214c35b371a4253ea2b77eb58313a061e4",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23570,9 +23296,7 @@
    "manifest_status": "parsed",
    "name": "pr65418-1.c",
    "sha256": "52aa63b4e5981ab5f2aefefc2610ff076cf58792b41a057dc5e56792c1aeaa27",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23582,9 +23306,7 @@
    "manifest_status": "parsed",
    "name": "pr65418-2.c",
    "sha256": "ad6cd3ba65f9c6444d77d3368b1e5aaed9395577e7ab70bb82a90610730b00fd",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23624,9 +23346,7 @@
    "manifest_status": "parsed",
    "name": "pr66187.c",
    "sha256": "e5a701d6f7859890266449844c7bd05ce23a2ab11dd98eab87474a518412668c",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23639,7 +23359,6 @@
    "static_walls": [
     "cast:FloatingToIntegral",
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23663,9 +23382,7 @@
    "manifest_status": "parsed",
    "name": "pr66757.c",
    "sha256": "698a7fc20809c08659d70693ba7123dc59ed75a420b003566b5d20665d429c54",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23675,9 +23392,7 @@
    "manifest_status": "parsed",
    "name": "pr66940.c",
    "sha256": "b950c702e4179bf9278ba0897428e3831968eb332f983e7be8a9c4c05afc382c",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23698,7 +23413,6 @@
    "name": "pr67226.c",
    "sha256": "73d22ae855f2a6f278cf1aaf29e39f6e41a6538795bdde5f5475b7f281278a73",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23710,9 +23424,7 @@
    "manifest_status": "parsed",
    "name": "pr67714.c",
    "sha256": "69fbd7a5251f04ff9b33f51b649cdf3c03abf5a152c5bd65232365d84a1bba45",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23723,7 +23435,6 @@
    "name": "pr67781.c",
    "sha256": "f921c13fd6871fa3847097a672b1b112385a34e147fed6fb0c786501872622d8",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23737,7 +23448,6 @@
    "sha256": "7564232499a44eab571882bed7b328ea5d95920939bc2231bb6f510621c242cd",
    "static_walls": [
     "cast:FloatingToIntegral",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23750,7 +23460,6 @@
    "name": "pr68143_1.c",
    "sha256": "02f03718fb32dba275895a844b3cd06e6c448b8aedb4424b3c2f35cad64834b1",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23762,9 +23471,7 @@
    "manifest_status": "parsed",
    "name": "pr68185.c",
    "sha256": "13ecb89024d02c966f621f3198f28229f457cc855322791f4562f2f7299ca722",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23775,7 +23482,6 @@
    "name": "pr68249.c",
    "sha256": "bd5d046ed3b03d9881b0c799e2887419f70326af62936bbf1156a6cc2bc5b7c6",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "unsupported:BinaryConditionalOperator"
    ],
    "verdict": "passed"
@@ -23787,9 +23493,7 @@
    "manifest_status": "parsed",
    "name": "pr68250.c",
    "sha256": "308482c725cd6171bbb48493a56b137b214bd54080202d1291623adda720be14",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23800,7 +23504,6 @@
    "name": "pr68321.c",
    "sha256": "f933510fdb6f757c43dc62f3304d417c81b9e79548b6decec679d5bbe035f3fb",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23822,9 +23525,7 @@
    "manifest_status": "parsed",
    "name": "pr68376-1.c",
    "sha256": "041431963290c31c50cc2797cca44d6bed80766ebdd237ce4c4b8649832f1626",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23845,7 +23546,6 @@
    "name": "pr68381.c",
    "sha256": "1598e758571b6af8f68f406332abd08552fb63c9abb28510ff36007ca82b885e",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_mul_overflow"
    ],
    "verdict": "passed"
@@ -23859,7 +23559,6 @@
    "sha256": "bab36ab4474180ee6b3e51c921e2b9322995f4da27066febed276f13b5e3bebf",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "libc-call: indirect",
     "type-layout"
    ],
@@ -23883,7 +23582,6 @@
    "name": "pr68532.c",
    "sha256": "9db2c92f99a575b3a687b0e691577e6c22527686454d608316528d851395ff2c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -23895,9 +23593,7 @@
    "manifest_status": "parsed",
    "name": "pr68624.c",
    "sha256": "a873b76b31b82100ff4da8918b93d4b7bd9c136e965fc548c2d34dbc46cf64f3",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23907,9 +23603,7 @@
    "manifest_status": "parsed",
    "name": "pr68648.c",
    "sha256": "c70ababdf42081efa3d41ae08466608eb25fe101cad092809db23ffeebc26bfb",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23919,9 +23613,7 @@
    "manifest_status": "parsed",
    "name": "pr68841.c",
    "sha256": "72b92c0ee5fab233ec4d48bc1651c137c49473621365436b7f6220b355e5c342",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -23951,9 +23643,7 @@
    "manifest_status": "parsed",
    "name": "pr69097-2.c",
    "sha256": "13080509d11ab069a2301e97c03432ad989f7c7b9da6ead0b2bb2c9a3032585a",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24005,9 +23695,7 @@
    "manifest_status": "parsed",
    "name": "pr69403.c",
    "sha256": "0342ce544bcc6154b913f5e5e56cdd2957cf323a05696cf331f295e88ef8ca9b",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24017,9 +23705,7 @@
    "manifest_status": "parsed",
    "name": "pr69447.c",
    "sha256": "dc90b28a70f0269c6df3cbc798136f9a34f428c1bc3ab64e5368f656b9b93ade",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24039,9 +23725,7 @@
    "manifest_status": "parsed",
    "name": "pr70005.c",
    "sha256": "259727df2c6dda05906c3386cb85c67f7439c17e090d10d91daeaa72b184e9cb",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24052,7 +23736,6 @@
    "name": "pr70127.c",
    "sha256": "5d953d45464793f22890f1ab67863a08b782484471f773d0374d60b36c6b94db",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -24064,9 +23747,7 @@
    "manifest_status": "parsed",
    "name": "pr70222-1.c",
    "sha256": "38e04fd9d0bb6f105e348c0bb6a559be9efb44ac2ef2a98db1d04375766e2396",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24076,9 +23757,7 @@
    "manifest_status": "parsed",
    "name": "pr70222-2.c",
    "sha256": "609b542e54b1d8e43fb30194ac92f9651ca1b506a6199ada38d06347a63d431e",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24088,9 +23767,7 @@
    "manifest_status": "parsed",
    "name": "pr70429.c",
    "sha256": "cdf898603c7f8c9e0f75ac345b1116d9eab455abc2da4cd6f75e838e4ea6bee4",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24101,7 +23778,6 @@
    "name": "pr70460.c",
    "sha256": "8b9fea7f9750e533b9ed63f775c9c02d4b748963e80383cbfd8dfce65a911300",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout",
     "unsupported:AddrLabelExpr",
     "unsupported:IndirectGotoStmt"
@@ -24116,7 +23792,6 @@
    "name": "pr70566.c",
    "sha256": "8ccd33487db82bd1646a431759856eadf07b5db6e451757a632a11eae3a09282",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -24209,7 +23884,6 @@
    "name": "pr71554.c",
    "sha256": "6eb3eb818b8454186b4d6dd0cd9edbe51160881ca420507f9838c42ec87cb475",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_mul_overflow"
    ],
    "verdict": "passed"
@@ -24242,7 +23916,6 @@
    "name": "pr71631.c",
    "sha256": "bbcf356ce773fb861b23822b21d24a0cff08fc5ec2a32e74fb5b044751a275bb",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "string-literal",
     "type-layout"
    ],
@@ -24256,7 +23929,6 @@
    "name": "pr71700.c",
    "sha256": "2c73560c6890d92f8b2e0715c7d0951859d1861c8d38660870fc163c635204cc",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -24279,7 +23951,6 @@
    "name": "pr77718.c",
    "sha256": "382853d1420d8e80bda3d226a5614e1c3ee95c181daeae2816bea2a0634335d0",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "libc-call: __builtin_memset",
     "string-literal",
@@ -24307,7 +23978,6 @@
    "name": "pr77767.c",
    "sha256": "bac099a33ceecc4194f62ffdb8adb74e3cf7f83bd0a8db40f89222d9fcf4d63a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -24320,7 +23990,6 @@
    "name": "pr78170.c",
    "sha256": "d835b10ea07ed5c1b11febb521abf16e17adca6155adb6bf237b5b64fb56a597",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -24332,9 +24001,7 @@
    "manifest_status": "parsed",
    "name": "pr78378.c",
    "sha256": "7a5df65b0b5a69b60629d813778cc00515ef38f2e0ae5d04128e37ddc80b5110",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24345,7 +24012,6 @@
    "name": "pr78436.c",
    "sha256": "100f540a96dd4a8911acde75b7a88659f073f047a900fde504c3a5999db3afed",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -24367,9 +24033,7 @@
    "manifest_status": "parsed",
    "name": "pr78477.c",
    "sha256": "e01d402f9a249e31f196ab73a22273de6ae6b1d71c6745b5a1236042f1749edb",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24379,9 +24043,7 @@
    "manifest_status": "parsed",
    "name": "pr78559.c",
    "sha256": "ec8289c0a22cf11ad76d35d713e13074107a384e9b9b18d4b1cf886346afd225",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "refused-unsupported"
   },
   {
@@ -24392,7 +24054,6 @@
    "name": "pr78586.c",
    "sha256": "b381c8f7fbc30e3f92c3a3c29047466b0bf0a914c5bafaf6aa5c43593891c204",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_sprintf",
     "string-literal",
     "type-layout"
@@ -24406,9 +24067,7 @@
    "manifest_status": "parsed",
    "name": "pr78617.c",
    "sha256": "e3c5f94f219fad9f169e0c0df6d7fe6cb755f17625267ead6afe67dfa3378287",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24419,7 +24078,6 @@
    "name": "pr78622.c",
    "sha256": "2fbf1d51ec9a52a97fc707ec770611ecc252006620260510f0ada6eb0f2ed1d7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_printf",
     "libc-call: __builtin_snprintf",
     "string-literal",
@@ -24434,9 +24092,7 @@
    "manifest_status": "parsed",
    "name": "pr78675.c",
    "sha256": "a46ecededcd420e023218a9949ffd721367ceb0cc493107110bd20619ea1d335",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24446,9 +24102,7 @@
    "manifest_status": "parsed",
    "name": "pr78720.c",
    "sha256": "9d13429ad4bd4c260440b766621b55b44861240418f3dc29ad3ab10f633979e2",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24468,9 +24122,7 @@
    "manifest_status": "parsed",
    "name": "pr78791.c",
    "sha256": "ddd9fd7c313c877e1b03352b582e2da437ecf14d3c4d9b12536e9576958ac7a4",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24494,7 +24146,6 @@
    "sha256": "b37ea12ac505bec71f75c369e0f54242b9c09d2fb5b3d2ee2a1ea960a9720b83",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -24531,7 +24182,6 @@
    "name": "pr79327.c",
    "sha256": "462f173d138956bb675d6a98de5a649fabf8253d9dd5cc147b9cafdd9d8fe8f5",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_sprintf",
     "string-literal",
     "type-layout"
@@ -24555,9 +24205,7 @@
    "manifest_status": "parsed",
    "name": "pr79388.c",
    "sha256": "b8d8f737158753d81f89a7967b9ad7bc8b964caaaae02c935dc857d90af2731e",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24567,9 +24215,7 @@
    "manifest_status": "parsed",
    "name": "pr79450.c",
    "sha256": "2db035d6e16625bb6aeebfd23a86d117de5e96bc75bf03d7c2845d2d000f8b63",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24580,7 +24226,6 @@
    "name": "pr79737-1.c",
    "sha256": "c3a27bdc31cf152a26e369151558e5e5afe7ff7267c4163d51249293dae31655",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout",
     "unsupported:MaxFieldAlignmentAttr"
    ],
@@ -24604,7 +24249,6 @@
    "name": "pr80153.c",
    "sha256": "154f48197e7d777dab2c8347e7ffa399cc0b1643b5430454c59d754981f331b7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout"
@@ -24628,9 +24272,7 @@
    "manifest_status": "parsed",
    "name": "pr80501.c",
    "sha256": "a1a7cd38d71db3cb5fc5f92eaa6a10fd64b8d2c37ce5908adc4ad8f4b9a47161",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24651,7 +24293,6 @@
    "name": "pr81281.c",
    "sha256": "5a85435a2c68ebff5942b0986e709efb9cbde8be77775df3dd8368995a818c29",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_unreachable"
    ],
    "verdict": "passed"
@@ -24683,9 +24324,7 @@
    "manifest_status": "parsed",
    "name": "pr81555.c",
    "sha256": "5895b1fff53e400de56ef21288aa9a670f792039b42dcdeaf35027ee13964306",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24695,9 +24334,7 @@
    "manifest_status": "parsed",
    "name": "pr81556.c",
    "sha256": "f2b46461e12f504fe6a508cc77b802f1e3622e157b732f338da81c67d9191fae",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24708,7 +24345,6 @@
    "name": "pr81588.c",
    "sha256": "6d5bdcb0839f9cad9c990646060be3c9a4f9a1cc02af2db569eebd4b1c66fb6c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "unsupported:GCCAsmStmt"
    ],
    "verdict": "refused-unsupported"
@@ -24720,9 +24356,7 @@
    "manifest_status": "parsed",
    "name": "pr81913.c",
    "sha256": "148d7eaa549818b5f2e27327b6265085a946365d726004bbf740265feb14ec91",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24733,7 +24367,6 @@
    "name": "pr82192.c",
    "sha256": "768b845670f0615b09abbcb192cbe52095e2460677e95a4fb3593363c4dd6e3b",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -24780,7 +24413,6 @@
    "name": "pr82524.c",
    "sha256": "396b3905e87fb23ff60e00b001acafe160aa23d81beea6fd2a30a89838201409",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -24802,9 +24434,7 @@
    "manifest_status": "parsed",
    "name": "pr83269.c",
    "sha256": "73a8fd9ab5bb02d659537683da83071fb14a5c4d0f329c67bd90a4b60320b91e",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24814,9 +24444,7 @@
    "manifest_status": "parsed",
    "name": "pr83298.c",
    "sha256": "d46e201ca0da61131dd0effbdc6502be7f234bda532abc2786949af26e2302b9",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24826,9 +24454,7 @@
    "manifest_status": "parsed",
    "name": "pr83362.c",
    "sha256": "a15ddecfa386b33d54f71d426b087ad4d9bf20d132badce1621ee900021ff1a5",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24839,7 +24465,6 @@
    "name": "pr83383.c",
    "sha256": "d3086f67547883e6cd68a5972542b70d79d4dbe70b2ade47f6194e9b883a5b39",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -24851,9 +24476,7 @@
    "manifest_status": "parsed",
    "name": "pr83477.c",
    "sha256": "b411a7c4e43e50f8fee1d23784acdb954d7d57ed107472040bceca4f7c74a379",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24864,7 +24487,6 @@
    "name": "pr84169.c",
    "sha256": "0446c97e3f9728fec5703b18a571142da7920a1f7ae84aca6e14dc7432345f0b",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_mul_overflow"
    ],
    "verdict": "passed"
@@ -24877,7 +24499,6 @@
    "name": "pr84339.c",
    "sha256": "9a9dca877185622abd09a6b434e77b2b47df42ac718ab891f385159683c0df67",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_free",
     "libc-call: __builtin_malloc",
     "libc-call: __builtin_strcpy",
@@ -24929,9 +24550,7 @@
    "manifest_status": "parsed",
    "name": "pr84748.c",
    "sha256": "c4c08466fb13a612110da22bdf0dbe4d4b72c349461093de6f757a648f90ddf8",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24942,7 +24561,6 @@
    "name": "pr85095.c",
    "sha256": "0c8660d7423f40481f1b632e9addf2f407c2dba3e4d06e096769f5a4981856e0",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_add_overflow"
    ],
    "verdict": "passed"
@@ -24985,7 +24603,6 @@
    "name": "pr85529-1.c",
    "sha256": "287913ffd62ba4f9e37b99416c48607e984ace84463eb28e534cc87b77716912",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -24997,9 +24614,7 @@
    "manifest_status": "parsed",
    "name": "pr85529-2.c",
    "sha256": "0fd5d91644e8b6fed2bcd117b73de5e79154ce10410a4c2581d06b1d902a9338",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25019,9 +24634,7 @@
    "manifest_status": "parsed",
    "name": "pr85582-2.c",
    "sha256": "62621a3b67d3ec395ca500d8a3f0521f444d82f0027af542816498a9687fa6a9",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25031,9 +24644,7 @@
    "manifest_status": "parsed",
    "name": "pr85582-3.c",
    "sha256": "5f566f4795eba3052f5d36c828ebbbde6e72af377a4e979664998c006a340faa",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25055,7 +24666,6 @@
    "sha256": "f564f3b69dd1ad15a61941cac42ad531d470a47b2472b7e9b3312f7d0bb74265",
    "static_walls": [
     "cast:IntegralToPointer",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -25068,7 +24678,6 @@
    "name": "pr86492.c",
    "sha256": "db6f6e5f76afb528164225737f93e818ea209848429f8cc8cd9c015260833655",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25081,7 +24690,6 @@
    "name": "pr86528.c",
    "sha256": "af206bddf203102d7dacd2a1eb95adfc187aa8b0ce304b607bd42686d68d2f4f",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_alloca",
     "libc-call: __builtin_memcpy",
     "libc-call: __builtin_strcmp",
@@ -25100,7 +24708,6 @@
    "name": "pr86659-1.c",
    "sha256": "18f01430fad2ecf32cd90db2ad9e9a39d8410d04a36673ef387872987d804820",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25113,7 +24720,6 @@
    "name": "pr86659-2.c",
    "sha256": "b7c34b3c2b5c426680dd9737a3625dc0bfeca2e953e7bf8c7cabc09500988b8c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25126,7 +24732,6 @@
    "name": "pr86714.c",
    "sha256": "d33772251fbc170de4fea0464aa8f90aa3b929407613ed3d59193c14b7fccc15",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "libc-call: __builtin_memcpy",
     "libc-call: __builtin_memset",
@@ -25143,7 +24748,6 @@
    "name": "pr86844.c",
    "sha256": "4f9133c672019c7a8c6cfe4fcff46e8e3a3d3bb24a2a0dfe72dbcc015d26eb31",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25156,7 +24760,6 @@
    "name": "pr87053.c",
    "sha256": "3e6a38afab0b543c442a405f78d874aa37e590d43b38659a0f35f8c3e0471a39",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_strlen",
     "string-literal",
     "type-layout",
@@ -25171,9 +24774,7 @@
    "manifest_status": "parsed",
    "name": "pr87290.c",
    "sha256": "4762b49fdc1f430185be5b8dc5d5bb60d33378445cf1b967577dd487fed2ca46",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25184,7 +24785,6 @@
    "name": "pr87623.c",
    "sha256": "58bab44dc5bf63430fad3f87b225694e7e2b4ce541aefedce5fbe93fbdebd13c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25197,7 +24797,6 @@
    "name": "pr88693.c",
    "sha256": "ad4fd22a0cacfb3851fce1aa1d6356071daba3f42b95a81668bc4b6045d8bf46",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy",
     "libc-call: __builtin_memset",
     "libc-call: __builtin_strlen",
@@ -25214,7 +24813,6 @@
    "name": "pr88714.c",
    "sha256": "cbe7cef9464f07f6f23935313cf2b1dbd9410df92e6b26dc52b9d8bd3d4679e8",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25227,7 +24825,6 @@
    "name": "pr88739.c",
    "sha256": "2a61a6bbeb2cc166299055a3d95df24b5c38bb98b8174136499275ed0422b426",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25250,7 +24847,6 @@
    "name": "pr89195.c",
    "sha256": "1afb15d2c63e9b41489be21084b7c0a9590d51ab1a5ad664a5f414cad1603a4b",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25263,7 +24859,6 @@
    "name": "pr89369.c",
    "sha256": "c5c728a00d17660eab807e809dae421334d58a549e8e0438514d196747a9e2da",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25276,7 +24871,6 @@
    "name": "pr89434.c",
    "sha256": "dc8c8967cba5a1a46e4e2594685d62671c8dbc4e96a4ac27c28b0456f656e5c2",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_mul_overflow"
    ],
    "verdict": "passed"
@@ -25289,7 +24883,6 @@
    "name": "pr89634.c",
    "sha256": "f76b02a8419ebc4bf57f3814163216e22f714f48892ca22c9211ab37ca6ae8c9",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25301,9 +24894,7 @@
    "manifest_status": "parsed",
    "name": "pr89826.c",
    "sha256": "d8fc03a8e01154030caa071919016f94aa9fa5f373fe17050918d7d1875fcf89",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25314,7 +24905,6 @@
    "name": "pr90025.c",
    "sha256": "444126cb1994cbd436f7d00f7692773deab2d45530e9835445f3413fed46548e",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_bswap32",
     "string-literal",
     "type-layout"
@@ -25329,7 +24919,6 @@
    "name": "pr90311.c",
    "sha256": "da43b07aec6b737a26fe80cdb7f9d0aeb480202cb78627797956eee29632e4aa",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_add_overflow"
    ],
    "verdict": "passed"
@@ -25342,7 +24931,6 @@
    "name": "pr90348.c",
    "sha256": "04fe6743c653de1d60d379db7e724fe3ff7700522031be77c3c4bb1e87f17e36",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25368,7 +24956,6 @@
    "name": "pr91137.c",
    "sha256": "923926c7e51f1ad1398b2743bccf76bf798bd7bff71de9645a38516a0a4b0296",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "runner-error"
@@ -25381,7 +24968,6 @@
    "name": "pr91450-1.c",
    "sha256": "c8d125c7ae7e4c6efbfb8551ef09de2fad81909ac2e94a0ec0666e9c86d3d3d5",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_mul_overflow"
    ],
    "verdict": "passed"
@@ -25394,7 +24980,6 @@
    "name": "pr91450-2.c",
    "sha256": "8e06e2daec44b2673d2cc9a42841bd5fa2271c77c603bf505108546161656eac",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_mul_overflow"
    ],
    "verdict": "passed"
@@ -25408,7 +24993,6 @@
    "sha256": "ef124ef042801f9a25a98f8c87255d18402fb0d14d7d043fa6519e91b23b9054",
    "static_walls": [
     "cast:PointerToIntegral",
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_expect",
     "type-layout",
     "unsupported:AlignedAttr"
@@ -25422,9 +25006,7 @@
    "manifest_status": "parsed",
    "name": "pr91632.c",
    "sha256": "1e52951fee9532c2eda4feffd091dd9e907c5f9bcac060b1e4e680155469cf9d",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25435,7 +25017,6 @@
    "name": "pr91635.c",
    "sha256": "d0694a2c845a3590b25d9f22fccd8455e09482d4531e403bca5c78a946193921",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_add_overflow"
    ],
    "verdict": "passed"
@@ -25447,9 +25028,7 @@
    "manifest_status": "parsed",
    "name": "pr92140.c",
    "sha256": "4bd868d5589db82bfd3137d04eb9a06fd3ee49ac696e9fe015fe083f25efa8e9",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25470,7 +25049,6 @@
    "name": "pr92904.c",
    "sha256": "bce28f06aa69e28c01ce5e66aefddfce0273244d17aa59cc4036b463a8bc0795",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_c23_va_start",
     "libc-call: __builtin_va_end",
     "type-layout",
@@ -25486,7 +25064,6 @@
    "name": "pr93213.c",
    "sha256": "4217ebc7d4b628787de4cfce560f459f384c20fa55aaad1e1f6e1281febb478c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy",
     "libc-call: __builtin_memmove",
     "libc-call: __builtin_mul_overflow",
@@ -25502,7 +25079,6 @@
    "name": "pr93249.c",
    "sha256": "3cc26ac7719ebad6c8fc701c8ac03e73fc2784fe81be00dcf4b199c19e394bb5",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_strncpy",
     "string-literal",
     "type-layout"
@@ -25517,7 +25093,6 @@
    "name": "pr93402.c",
    "sha256": "b2218c5b53b1f68346a2f7331a7cb9fd687b236b1247aba3b9d95445bdfb01cd",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25531,7 +25106,6 @@
    "sha256": "6ecc8ddf38cbd2d69b38cc301b3fbb9860b980e49059dea9552573b788dd68cc",
    "static_walls": [
     "cast:IntegralToFloating",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25544,7 +25118,6 @@
    "name": "pr93494.c",
    "sha256": "4ff01fb8f7e622b24c1931dcf0dbedc554b3554f93778304e74ece81a29e85c7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_add_overflow"
    ],
    "verdict": "passed"
@@ -25556,9 +25129,7 @@
    "manifest_status": "parsed",
    "name": "pr93582.c",
    "sha256": "9b807fd42b7a055009a0e151824ad4b67817549560c49fbaeb2cd6b5eaeb25fd",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25568,9 +25139,7 @@
    "manifest_status": "parsed",
    "name": "pr93744-1.c",
    "sha256": "46afabc0974e89925bd0e393b6be644681aa77c50690ba3a5c2f5d17ae3e92f0",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25580,9 +25149,7 @@
    "manifest_status": "parsed",
    "name": "pr93744-2.c",
    "sha256": "2fc9a07ab60fab06e44084c418b3ae77aae0644be85499adb65609be53632b8c",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25592,9 +25159,7 @@
    "manifest_status": "parsed",
    "name": "pr93744-3.c",
    "sha256": "634d4ad81d36da78f41da11ffa6c39fffac46b21b9740228d5d7ed22c1641e85",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25605,7 +25170,6 @@
    "name": "pr93908.c",
    "sha256": "f5695316d24f7cba2ad9d28ef1693525012eb3236807b3bd88daa303fc12b5db",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "string-literal",
     "type-layout"
    ],
@@ -25638,9 +25202,7 @@
    "manifest_status": "parsed",
    "name": "pr94134.c",
    "sha256": "b74d21ab472f10c02fcdbcd4b0cf321b8ebaa63e2052fb947b530a23ff9c5b9b",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25680,9 +25242,7 @@
    "manifest_status": "parsed",
    "name": "pr94567.c",
    "sha256": "fc3de5158ce35f20e3692828e9cf0207fb8c1262d3960aba84f00049c49cf757",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25702,9 +25262,7 @@
    "manifest_status": "parsed",
    "name": "pr94724.c",
    "sha256": "c49d9a572b9504ae0344e6221d02295b3cfdc4e3d841cf5febde8943f23d83c8",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25715,7 +25273,6 @@
    "name": "pr94734.c",
    "sha256": "037905731554f9a8ff8272b0466db99d49181caa5e11dc145538d5109a0d9c73",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25727,9 +25284,7 @@
    "manifest_status": "parsed",
    "name": "pr94809.c",
    "sha256": "f0dc5f8c4fb01256b9a30397ae8dfc143106eac2b7981d80a78b0aebd4201c15",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25739,9 +25294,7 @@
    "manifest_status": "parsed",
    "name": "pr95731.c",
    "sha256": "3211922bc5a45bdecd017b0040bd5d6288aebb37fc11abdae7ff8a7d7c43c9ec",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25751,9 +25304,7 @@
    "manifest_status": "parsed",
    "name": "pr96549.c",
    "sha256": "186987ece281b1ebe49eccc5aa6a5d6a0c475c00bd4f8903bd8150a2906a4cc5",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25764,7 +25315,6 @@
    "name": "pr97073.c",
    "sha256": "761480f0594796b01d469231c87c0b3adae7e013b61a4688c2529a2c1b9be47c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25777,7 +25327,6 @@
    "name": "pr97325.c",
    "sha256": "74fff5b0fb483bde47106bccecd0869788a8e70e70abdba953d50de51d9ab4fc",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_ffs"
    ],
    "verdict": "passed"
@@ -25790,7 +25339,6 @@
    "name": "pr97386-1.c",
    "sha256": "4c6fb402eaf79988969157c5746912807a089d3da6ce4a3348bd05a90820b3c2",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_bswap16"
    ],
    "verdict": "passed"
@@ -25802,9 +25350,7 @@
    "manifest_status": "parsed",
    "name": "pr97386-2.c",
    "sha256": "cd93bb4c47184307365690c146712ea5deadfb9fd181fbfe75af47624151c32f",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25814,9 +25360,7 @@
    "manifest_status": "parsed",
    "name": "pr97404.c",
    "sha256": "3f641e874d1ce4dce6f01f0e7dfcbd8b36f72de162adede67efb2430a686dc26",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25826,9 +25370,7 @@
    "manifest_status": "parsed",
    "name": "pr97421-1.c",
    "sha256": "294355995cca11c326670cdd8be011ee3c2c6e53f419c8d1d64460fe00d39d00",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25838,9 +25380,7 @@
    "manifest_status": "parsed",
    "name": "pr97421-2.c",
    "sha256": "d2a08a93b8f58dd23c28a0a7ccc63ca9b752b28c6272557fc7345a1f732f580a",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25852,7 +25392,6 @@
    "sha256": "5310faba6674536fd87499fb3d33a75a6aa98019f61b84cbc05650be1c2271dd",
    "static_walls": [
     "cast:PointerToIntegral",
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-unsupported"
@@ -25875,7 +25414,6 @@
    "name": "pr97764.c",
    "sha256": "0b1d95b7ada4a96c08362ff8a73f547f85fbf8e25a8704fdd71e14f259917a8a",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25887,9 +25425,7 @@
    "manifest_status": "parsed",
    "name": "pr97836.c",
    "sha256": "f0217abf254dc163c46a250d7878f59dccab59e34c384203d72afb0fb54fb3ea",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25900,7 +25436,6 @@
    "name": "pr97888-1.c",
    "sha256": "77b428e5d6455abd88ed092974bb80d6225a0655d383befb3a0d9f7f92cf3fad",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_unreachable"
    ],
    "verdict": "passed"
@@ -25912,9 +25447,7 @@
    "manifest_status": "parsed",
    "name": "pr97888-2.c",
    "sha256": "a972408de3977d84fc5d3be6ee1d5f4466c6566f3962404a15588c2372e3991d",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25935,7 +25468,6 @@
    "name": "pr98366.c",
    "sha256": "30a197d210739fec4f1057c9d52115cf3fb4e144ec935b4309927538a18ba023",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcmp",
     "type-layout"
    ],
@@ -25948,9 +25480,7 @@
    "manifest_status": "parsed",
    "name": "pr98474.c",
    "sha256": "25a1e42975163cadb179af80ba282b87b21d3ea1ff216656041b9cd7796aec14",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25960,9 +25490,7 @@
    "manifest_status": "parsed",
    "name": "pr98681.c",
    "sha256": "b2cff3282d782912e611c45bba4d76f58004323f7b7ff9319e85863fafaf127f",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25972,9 +25500,7 @@
    "manifest_status": "parsed",
    "name": "pr98727.c",
    "sha256": "d9153220b4bb2b615b68f8845c41a73c7ecced72a6edf8fc1943775f134ccffc",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -25985,7 +25511,6 @@
    "name": "pr98736.c",
    "sha256": "39951ef7d20f500160492ab198b58f797e76f9ec72f5df4dac4e12fbad4c3d31",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -25998,7 +25523,6 @@
    "name": "pr98853-1.c",
    "sha256": "a43645ed0862aa463206f73f2aa8a73e3c08c159a0b42ae1f6b87e42d28c161c",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_memcpy"
    ],
    "verdict": "passed"
@@ -26010,9 +25534,7 @@
    "manifest_status": "parsed",
    "name": "pr98853-2.c",
    "sha256": "6ae450d1c031df2f6863bb5d1913785179f8ada0ce25dfe97d27eb891f07cc56",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -26022,9 +25544,7 @@
    "manifest_status": "parsed",
    "name": "pr99079.c",
    "sha256": "72cd2091e68c02cee35a137f250896ecfe14d59e4780ceded26c16d9fa2e2911",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "refused-ub"
   },
   {
@@ -26034,9 +25554,7 @@
    "manifest_status": "parsed",
    "name": "pr99751.c",
    "sha256": "b0b977a73685d2ad21a8c5c90c141740d6c79c311f32465551c4f36c9481ecd9",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -26170,7 +25688,6 @@
    "name": "return-addr.c",
    "sha256": "c8df956259082f63135debd4f9cf98bcb8158edec7dfafef387985a57a7aad9d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_printf",
     "string-literal",
     "type-layout"
@@ -26225,7 +25742,6 @@
    "name": "shiftdi-2.c",
    "sha256": "210a1059e5c915545f0f9da2df78b5ef202493300b6af461019d1ff6e9f67156",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "refused-ub"
@@ -26258,7 +25774,6 @@
    "name": "signed1bitfield-1.c",
    "sha256": "5a15170d1b0c815407047c65320c0faafd59c80697c799c5253174d3a6fb15b7",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "type-layout"
    ],
    "verdict": "passed"
@@ -26442,7 +25957,6 @@
    "name": "strcpy-2.c",
    "sha256": "b59479450c7a33ca4b9e48c181d7aee5673cdb3481f33bd18594b30b6e9ac014",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_strcpy",
     "string-literal",
     "type-layout"
@@ -26603,7 +26117,6 @@
    "name": "strlen-2.c",
    "sha256": "0e7016a417851de83c72fa3f8a831300aca2d163a55c65576afd7d1f691d74cf",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_printf",
     "libc-call: strlen",
     "string-literal",
@@ -26619,7 +26132,6 @@
    "name": "strlen-3.c",
    "sha256": "3d9d348f6e0a8dcb6db3950378215846746479c90a9d566ab2465df8373efde6",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_printf",
     "libc-call: strlen",
     "string-literal",
@@ -26635,7 +26147,6 @@
    "name": "strlen-4.c",
    "sha256": "44a8f219723f11de84643fd2c9dff8af0a28fa1a23121bf8879d86c41fc6a6b0",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: printf",
     "libc-call: strlen",
     "string-literal",
@@ -26651,7 +26162,6 @@
    "name": "strlen-5.c",
    "sha256": "8721fdac48fc04356861299ca942b3a77499ae7f5ecdd7da80c325dc1cb848db",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_printf",
     "libc-call: strlen",
     "string-literal",
@@ -26667,7 +26177,6 @@
    "name": "strlen-6.c",
    "sha256": "06b9b66210c9f2f154dd882779051d415a24c3de166269c10ff8efe4f6a06e1d",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_printf",
     "libc-call: strlen",
     "string-literal",
@@ -26683,7 +26192,6 @@
    "name": "strlen-7.c",
    "sha256": "7f080d078dab57dee813a8622097872e856658755c7e12b223546048b9a250d5",
    "static_walls": [
-    "libc-call: __builtin_abort",
     "libc-call: __builtin_malloc",
     "libc-call: __builtin_memcpy",
     "libc-call: __builtin_strcpy",
@@ -26816,9 +26324,7 @@
    "manifest_status": "parsed",
    "name": "subcmp-1.c",
    "sha256": "4a0f1afd79aa5237b4e8118b8e69e2cb1c962d1a6150b1e4a184c39980cef841",
-   "static_walls": [
-    "libc-call: __builtin_abort"
-   ],
+   "static_walls": [],
    "verdict": "runner-error"
   },
   {
@@ -28486,363 +27992,48 @@
     "zerolen-2.c"
    ],
    "present": 1004,
-   "sole": 345,
+   "sole": 430,
    "wall": "type-layout"
   },
   {
    "files": [
-    "20080719-1.c",
-    "20081103-1.c",
-    "20081218-1.c",
-    "20110418-1.c",
-    "20121108-1.c",
-    "20140212-2.c",
-    "20140622-1.c",
-    "20140828-1.c",
-    "20141022-1.c",
-    "20141107-1.c",
-    "20141125-1.c",
-    "20170419-1.c",
-    "20171008-1.c",
-    "20181120-1.c",
-    "20190228-1.c",
-    "20190901-1.c",
-    "20191023-1.c",
-    "20230509-1.c",
-    "20230510-1.c",
-    "20230630-1.c",
-    "20230630-2.c",
-    "20230630-3.c",
-    "20230630-4.c",
-    "20230802-1.c",
-    "alias-1.c",
-    "alias-2.c",
-    "alias-3.c",
-    "alias-4.c",
-    "alias-access-path-1.c",
-    "alias-access-path-2.c",
-    "bitfld-10.c",
-    "bitfld-8.c",
-    "bitfld-9.c",
-    "bitfld-signed1-1.c",
-    "bitops-1.c",
-    "bswap-1.c",
-    "bswap-2.c",
-    "bswap-3.c",
-    "gcc/testsuite/gcc.dg/c23-labels-1.c",
-    "gcc/testsuite/gcc.dg/c23-stdarg-9.c",
-    "gcc/testsuite/gcc.dg/c23-tag-alias-1.c",
-    "gcc/testsuite/gcc.dg/c23-tag-alias-2.c",
-    "gcc/testsuite/gcc.dg/c23-tag-alias-3.c",
-    "gcc/testsuite/gcc.dg/c23-tag-alias-4.c",
-    "gcc/testsuite/gcc.dg/c23-tag-alias-7.c",
-    "gcc/testsuite/gcc.dg/c23-tag-incomplete-alias-1.c",
-    "ieee/inf-4.c",
-    "ieee/pr108540-1.c",
-    "ieee/pr108540-2.c",
-    "ieee/pr109008.c",
-    "ieee/pr109386.c",
-    "ieee/pr119002.c",
-    "ieee/pr36332.c",
-    "ieee/pr72824.c",
-    "ieee/pr84235.c",
-    "loop-2f.c",
-    "loop-2g.c",
-    "lto-tbaa-1.c",
-    "mayalias-2.c",
-    "mayalias-3.c",
-    "memchr-1.c",
-    "memset-4.c",
-    "minmaxcmp-1.c",
-    "mul-sext.c",
-    "pr101188.c",
-    "pr101335.c",
-    "pr102134.c",
-    "pr103255.c",
-    "pr103417.c",
-    "pr10352-1.c",
-    "pr104196.c",
-    "pr104814.c",
-    "pr104839.c",
-    "pr106032.c",
-    "pr106523.c",
-    "pr107131.c",
-    "pr107879.c",
-    "pr107881-1.c",
-    "pr108064.c",
-    "pr108498-2.c",
     "pr108789.c",
-    "pr109778.c",
-    "pr109925.c",
-    "pr110165-1.c",
-    "pr110166-1.c",
-    "pr110252-1.c",
-    "pr110252-3.c",
-    "pr110252-4.c",
-    "pr110666-1.c",
-    "pr110914.c",
-    "pr110954-1.c",
-    "pr111151.c",
-    "pr111331-1.c",
-    "pr111331-2.c",
-    "pr111331-3.c",
-    "pr111408.c",
-    "pr111422.c",
-    "pr111431-1.c",
-    "pr111613.c",
-    "pr111863-1.c",
-    "pr112758.c",
-    "pr113010.c",
-    "pr113787.c",
-    "pr114207.c",
-    "pr114396.c",
-    "pr114965.c",
-    "pr115277.c",
-    "pr116799.c",
-    "pr117095.c",
-    "pr117432.c",
-    "pr118623.c",
-    "pr118638.c",
-    "pr118915.c",
-    "pr119030.c",
-    "pr119071.c",
-    "pr119291.c",
-    "pr119428.c",
-    "pr120630.c",
-    "pr120677.c",
-    "pr122000.c",
-    "pr122943.c",
-    "pr123978.c",
-    "pr124358.c",
-    "pr27364.c",
-    "pr31072.c",
-    "pr31448-2.c",
-    "pr31448.c",
-    "pr36038.c",
-    "pr37573.c",
-    "pr37780.c",
-    "pr37882.c",
-    "pr38051.c",
-    "pr39100.c",
-    "pr39339.c",
-    "pr40668.c",
-    "pr43784.c",
-    "pr44683.c",
-    "pr44942.c",
-    "pr47148.c",
-    "pr47155.c",
-    "pr47337.c",
-    "pr47538.c",
-    "pr50865.c",
-    "pr52760.c",
-    "pr53688.c",
-    "pr56899.c",
-    "pr57130.c",
-    "pr57829.c",
-    "pr58364.c",
-    "pr58431.c",
-    "pr58570.c",
-    "pr58574.c",
-    "pr58726.c",
-    "pr58943.c",
-    "pr58984.c",
-    "pr59014-2.c",
-    "pr59014.c",
-    "pr59101.c",
-    "pr59221.c",
-    "pr59229.c",
-    "pr59358.c",
-    "pr59413.c",
-    "pr59643.c",
-    "pr60062.c",
-    "pr60454.c",
-    "pr60822.c",
-    "pr61306-1.c",
-    "pr61306-2.c",
-    "pr61306-3.c",
-    "pr61375.c",
-    "pr61517.c",
-    "pr61673.c",
-    "pr61682.c",
-    "pr61725.c",
-    "pr62151.c",
-    "pr63302.c",
-    "pr63659.c",
-    "pr63843.c",
     "pr64006.c",
-    "pr64255.c",
-    "pr64260.c",
-    "pr64682.c",
-    "pr64718.c",
-    "pr64756.c",
-    "pr64957.c",
-    "pr64979.c",
-    "pr65170.c",
-    "pr65215-1.c",
-    "pr65215-2.c",
-    "pr65215-3.c",
-    "pr65215-4.c",
-    "pr65215-5.c",
-    "pr65216.c",
-    "pr65369.c",
-    "pr65401.c",
-    "pr65418-1.c",
-    "pr65418-2.c",
-    "pr66187.c",
-    "pr66233.c",
-    "pr66757.c",
-    "pr66940.c",
-    "pr67226.c",
-    "pr67714.c",
-    "pr67781.c",
-    "pr67929_1.c",
-    "pr68143_1.c",
-    "pr68185.c",
-    "pr68249.c",
-    "pr68250.c",
-    "pr68321.c",
-    "pr68376-1.c",
     "pr68381.c",
-    "pr68390.c",
-    "pr68532.c",
-    "pr68624.c",
-    "pr68648.c",
-    "pr68841.c",
-    "pr69097-2.c",
-    "pr69403.c",
-    "pr69447.c",
-    "pr70005.c",
-    "pr70127.c",
-    "pr70222-1.c",
-    "pr70222-2.c",
-    "pr70429.c",
-    "pr70460.c",
-    "pr70566.c",
     "pr71554.c",
-    "pr71631.c",
-    "pr71700.c",
-    "pr77718.c",
-    "pr77767.c",
-    "pr78170.c",
-    "pr78378.c",
-    "pr78436.c",
-    "pr78477.c",
-    "pr78559.c",
-    "pr78586.c",
-    "pr78617.c",
-    "pr78622.c",
-    "pr78675.c",
-    "pr78720.c",
-    "pr78791.c",
-    "pr79043.c",
-    "pr79327.c",
-    "pr79388.c",
-    "pr79450.c",
-    "pr79737-1.c",
-    "pr80153.c",
-    "pr80501.c",
-    "pr81281.c",
-    "pr81555.c",
-    "pr81556.c",
-    "pr81588.c",
-    "pr81913.c",
-    "pr82192.c",
-    "pr82524.c",
-    "pr83269.c",
-    "pr83298.c",
-    "pr83362.c",
-    "pr83383.c",
-    "pr83477.c",
     "pr84169.c",
-    "pr84339.c",
-    "pr84748.c",
-    "pr85095.c",
-    "pr85529-1.c",
-    "pr85529-2.c",
-    "pr85582-2.c",
-    "pr85582-3.c",
-    "pr86231.c",
-    "pr86492.c",
-    "pr86528.c",
-    "pr86659-1.c",
-    "pr86659-2.c",
-    "pr86714.c",
-    "pr86844.c",
-    "pr87053.c",
-    "pr87290.c",
-    "pr87623.c",
-    "pr88693.c",
-    "pr88714.c",
-    "pr88739.c",
-    "pr89195.c",
-    "pr89369.c",
     "pr89434.c",
-    "pr89634.c",
-    "pr89826.c",
-    "pr90025.c",
-    "pr90311.c",
-    "pr90348.c",
-    "pr91137.c",
     "pr91450-1.c",
     "pr91450-2.c",
-    "pr91597.c",
-    "pr91632.c",
-    "pr91635.c",
-    "pr92140.c",
-    "pr92904.c",
-    "pr93213.c",
-    "pr93249.c",
-    "pr93402.c",
-    "pr93434.c",
-    "pr93494.c",
-    "pr93582.c",
-    "pr93744-1.c",
-    "pr93744-2.c",
-    "pr93744-3.c",
-    "pr93908.c",
-    "pr94134.c",
-    "pr94567.c",
-    "pr94724.c",
-    "pr94734.c",
-    "pr94809.c",
-    "pr95731.c",
-    "pr96549.c",
-    "pr97073.c",
-    "pr97325.c",
-    "pr97386-1.c",
-    "pr97386-2.c",
-    "pr97404.c",
-    "pr97421-1.c",
-    "pr97421-2.c",
-    "pr97421-3.c",
-    "pr97764.c",
-    "pr97836.c",
-    "pr97888-1.c",
-    "pr97888-2.c",
-    "pr98366.c",
-    "pr98474.c",
-    "pr98681.c",
-    "pr98727.c",
-    "pr98736.c",
-    "pr98853-1.c",
-    "pr98853-2.c",
-    "pr99079.c",
-    "pr99751.c",
-    "return-addr.c",
-    "shiftdi-2.c",
-    "signed1bitfield-1.c",
-    "strcpy-2.c",
-    "strlen-2.c",
-    "strlen-3.c",
-    "strlen-4.c",
-    "strlen-5.c",
-    "strlen-6.c",
-    "strlen-7.c",
-    "subcmp-1.c"
+    "pr93213.c"
    ],
-   "present": 348,
-   "sole": 146,
-   "wall": "libc-call: __builtin_abort"
+   "present": 9,
+   "sole": 6,
+   "wall": "libc-call: __builtin_mul_overflow"
+  },
+  {
+   "files": [
+    "00121.c",
+    "20001228-1.c",
+    "20020406-1.c",
+    "20060102-1.c",
+    "20230802-1.c",
+    "930930-2.c",
+    "991202-3.c",
+    "bitops-1.c",
+    "bswap-1.c",
+    "bswap-3.c",
+    "builtin-bitops-1.c",
+    "builtins/lib/chk.c",
+    "cvt-1.c",
+    "pr110666-1.c",
+    "pr20621-1.c",
+    "pr33142.c",
+    "pr63209.c"
+   ],
+   "present": 17,
+   "sole": 5,
+   "wall": "unsequenced-effects"
   },
   {
    "files": [
@@ -28867,6 +28058,53 @@
    "present": 17,
    "sole": 4,
    "wall": "libc-call"
+  },
+  {
+   "files": [
+    "pr108789.c",
+    "pr85095.c",
+    "pr90311.c",
+    "pr91635.c",
+    "pr93494.c"
+   ],
+   "present": 5,
+   "sole": 4,
+   "wall": "libc-call: __builtin_add_overflow"
+  },
+  {
+   "files": [
+    "20000703-1.c",
+    "20011121-1.c",
+    "20030408-1.c",
+    "20040411-1.c",
+    "20060930-2.c",
+    "20081103-1.c",
+    "20111212-1.c",
+    "20120105-1.c",
+    "20141107-1.c",
+    "builtins/memops-asm.c",
+    "builtins/mempcpy-2.c",
+    "builtins/strcpy.c",
+    "builtins/strpcpy-2.c",
+    "pr110914.c",
+    "pr38051.c",
+    "pr40668.c",
+    "pr47538.c",
+    "pr53688.c",
+    "pr59229.c",
+    "pr63843.c",
+    "pr64242.c",
+    "pr65369.c",
+    "pr86528.c",
+    "pr86714.c",
+    "pr88693.c",
+    "pr93213.c",
+    "pr98853-1.c",
+    "strlen-7.c"
+   ],
+   "present": 28,
+   "sole": 3,
+   "wall": "libc-call: __builtin_memcpy"
   },
   {
    "files": [
@@ -28903,27 +28141,26 @@
   },
   {
    "files": [
-    "00121.c",
-    "20001228-1.c",
-    "20020406-1.c",
-    "20060102-1.c",
-    "20230802-1.c",
-    "930930-2.c",
-    "991202-3.c",
-    "bitops-1.c",
-    "bswap-1.c",
-    "bswap-3.c",
     "builtin-bitops-1.c",
-    "builtins/lib/chk.c",
-    "cvt-1.c",
-    "pr110666-1.c",
-    "pr20621-1.c",
-    "pr33142.c",
-    "pr63209.c"
+    "ffs-1.c",
+    "ffs-2.c",
+    "pr61725.c",
+    "pr97325.c"
    ],
-   "present": 17,
+   "present": 5,
    "sole": 3,
-   "wall": "unsequenced-effects"
+   "wall": "libc-call: __builtin_ffs"
+  },
+  {
+   "files": [
+    "20230509-1.c",
+    "gcc/testsuite/gcc.dg/c23-unreachable-1.c",
+    "pr81281.c",
+    "pr97888-1.c"
+   ],
+   "present": 4,
+   "sole": 3,
+   "wall": "libc-call: __builtin_unreachable"
   },
   {
    "files": [
@@ -29097,18 +28334,6 @@
   },
   {
    "files": [
-    "builtin-bitops-1.c",
-    "ffs-1.c",
-    "ffs-2.c",
-    "pr61725.c",
-    "pr97325.c"
-   ],
-   "present": 5,
-   "sole": 1,
-   "wall": "libc-call: __builtin_ffs"
-  },
-  {
-   "files": [
     "20030330-1.c",
     "bcp-1.c",
     "builtin-constant.c",
@@ -29117,6 +28342,17 @@
    "present": 4,
    "sole": 1,
    "wall": "libc-call: __builtin_constant_p"
+  },
+  {
+   "files": [
+    "20071211-1.c",
+    "990413-2.c",
+    "pr56982.c",
+    "pr81588.c"
+   ],
+   "present": 4,
+   "sole": 1,
+   "wall": "unsupported:GCCAsmStmt"
   },
   {
    "files": [
@@ -29136,6 +28372,22 @@
    "present": 2,
    "sole": 1,
    "wall": "libc-call: __builtin_abs"
+  },
+  {
+   "files": [
+    "pr97386-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "libc-call: __builtin_bswap16"
+  },
+  {
+   "files": [
+    "pr122000.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "libc-call: __sync_add_and_fetch_8"
   },
   {
    "files": [
@@ -29160,6 +28412,14 @@
    "present": 1,
    "sole": 1,
    "wall": "libc-call: signal"
+  },
+  {
+   "files": [
+    "pr68249.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:BinaryConditionalOperator"
   },
   {
    "files": [
@@ -29763,41 +29023,6 @@
   },
   {
    "files": [
-    "20000703-1.c",
-    "20011121-1.c",
-    "20030408-1.c",
-    "20040411-1.c",
-    "20060930-2.c",
-    "20081103-1.c",
-    "20111212-1.c",
-    "20120105-1.c",
-    "20141107-1.c",
-    "builtins/memops-asm.c",
-    "builtins/mempcpy-2.c",
-    "builtins/strcpy.c",
-    "builtins/strpcpy-2.c",
-    "pr110914.c",
-    "pr38051.c",
-    "pr40668.c",
-    "pr47538.c",
-    "pr53688.c",
-    "pr59229.c",
-    "pr63843.c",
-    "pr64242.c",
-    "pr65369.c",
-    "pr86528.c",
-    "pr86714.c",
-    "pr88693.c",
-    "pr93213.c",
-    "pr98853-1.c",
-    "strlen-7.c"
-   ],
-   "present": 28,
-   "sole": 0,
-   "wall": "libc-call: __builtin_memcpy"
-  },
-  {
-   "files": [
     "20020619-1.c",
     "20030606-1.c",
     "20030717-1.c",
@@ -30146,22 +29371,6 @@
   },
   {
    "files": [
-    "pr108789.c",
-    "pr64006.c",
-    "pr68381.c",
-    "pr71554.c",
-    "pr84169.c",
-    "pr89434.c",
-    "pr91450-1.c",
-    "pr91450-2.c",
-    "pr93213.c"
-   ],
-   "present": 9,
-   "sole": 0,
-   "wall": "libc-call: __builtin_mul_overflow"
-  },
-  {
-   "files": [
     "ieee/compare-fp-1.c",
     "ieee/compare-fp-4.c",
     "ieee/copysign1.c",
@@ -30298,18 +29507,6 @@
   },
   {
    "files": [
-    "pr108789.c",
-    "pr85095.c",
-    "pr90311.c",
-    "pr91635.c",
-    "pr93494.c"
-   ],
-   "present": 5,
-   "sole": 0,
-   "wall": "libc-call: __builtin_add_overflow"
-  },
-  {
-   "files": [
     "00214.c",
     "20020418-1.c",
     "ieee/unsafe-fp-assoc-1.c",
@@ -30413,28 +29610,6 @@
    "present": 4,
    "sole": 0,
    "wall": "libc-call: __builtin_setjmp"
-  },
-  {
-   "files": [
-    "20230509-1.c",
-    "gcc/testsuite/gcc.dg/c23-unreachable-1.c",
-    "pr81281.c",
-    "pr97888-1.c"
-   ],
-   "present": 4,
-   "sole": 0,
-   "wall": "libc-call: __builtin_unreachable"
-  },
-  {
-   "files": [
-    "20071211-1.c",
-    "990413-2.c",
-    "pr56982.c",
-    "pr81588.c"
-   ],
-   "present": 4,
-   "sole": 0,
-   "wall": "unsupported:GCCAsmStmt"
   },
   {
    "files": [
@@ -30992,14 +30167,6 @@
   },
   {
    "files": [
-    "pr97386-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_bswap16"
-  },
-  {
-   "files": [
     "bswap-1.c"
    ],
    "present": 1,
@@ -31269,14 +30436,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: __builtin_va_start"
-  },
-  {
-   "files": [
-    "pr122000.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __sync_add_and_fetch_8"
   },
   {
    "files": [
@@ -31653,14 +30812,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: x"
-  },
-  {
-   "files": [
-    "pr68249.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "unsupported:BinaryConditionalOperator"
   },
   {
    "files": [
