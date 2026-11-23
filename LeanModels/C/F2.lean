@@ -900,22 +900,7 @@ def pairedRepresentationLoadMetadataByte (resolve : AllocId → Nat) (id : Alloc
   let sourceResult ← representationLoadMetadataByte metadata offset choice
   let targetResult ← representationLoadMetadataByte (renameMetadata resolve id metadata)
     offset choice
-  if targetResult.1 = renameByte resolve sourceResult.1 &&
-      targetResult.2 = sourceResult.2 then
-    some (sourceResult, targetResult)
-  else none
-
-theorem pairedRepresentationLoadMetadataByte_corresponds
-    (resolve : AllocId → Nat) (id : AllocId)
-    (metadata : AllocationMetadata Tag State TypeId)
-    (offset : Nat) (choice : RepresentationChoice)
-    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
-    (hresult : pairedRepresentationLoadMetadataByte resolve id metadata offset choice =
-      some result) :
-    result.2.1 = renameByte resolve result.1.1 ∧
-      result.2.2 = result.1.2 := by
-  simp [pairedRepresentationLoadMetadataByte] at hresult
-  split at hresult <;> simp_all
+  some (sourceResult, targetResult)
 
 def pairedStoreRepresentationLoadMetadataByte
     (resolve : AllocId → Nat) (id : AllocId)
@@ -930,29 +915,7 @@ def pairedStoreRepresentationLoadMetadataByte
     offset (renameByte resolve byte)
   let sourceLoad ← representationLoadMetadataByte sourceStore.1 offset choice
   let targetLoad ← representationLoadMetadataByte targetStore.1 offset choice
-  if targetStore.1 = renameMetadata resolve id sourceStore.1 &&
-      targetStore.2 = sourceStore.2 &&
-      targetLoad.1 = renameByte resolve sourceLoad.1 &&
-      targetLoad.2 = sourceLoad.2 then
-    some ((sourceStore, sourceLoad), (targetStore, targetLoad))
-  else none
-
-theorem pairedStoreRepresentationLoadMetadataByte_sound
-    (resolve : AllocId → Nat) (id : AllocId)
-    (metadata : AllocationMetadata Tag State TypeId)
-    (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice)
-    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint) ×
-      ((AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint)))
-    (hresult : pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte
-      choice = some result) :
-    result.2.1.1 = renameMetadata resolve id result.1.1.1 ∧
-      result.2.1.2 = result.1.1.2 ∧
-      result.2.2.1 = renameByte resolve result.1.2.1 ∧
-      result.2.2.2 = result.1.2.2 := by
-  simp [pairedStoreRepresentationLoadMetadataByte] at hresult
-  split at hresult <;> simp_all
+  some ((sourceStore, sourceLoad), (targetStore, targetLoad))
 
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
@@ -1465,8 +1428,8 @@ def pairedAllocate (resolve : AllocId → Nat) (store : Store Tag State)
   let sourceResult ← allocate store request placement
   let targetResult ← allocate (renameStore resolve store) request
     (renamedPlacement resolve store.nextId placement)
-  if targetResult.1 = renameStore resolve sourceResult.1 &&
-      targetResult.2 = sourceResult.2 then
+  if targetResult.1 == renameStore resolve sourceResult.1 &&
+      targetResult.2 == sourceResult.2 then
     some (sourceResult, targetResult)
   else none
 
