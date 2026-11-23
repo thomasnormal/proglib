@@ -496,6 +496,43 @@ theorem CoreMemDesign.evalExprLocals_congr_readsV_of_pure
     LeanModels.Sv.PExpr.hasFunctionCall, CoreMemDesign.evalScalarLocals] <;>
     exact hs
 
+/-! A coherent scalar write is therefore invisible to the full evaluator when
+ the parser-native read closure excludes its target. -/
+theorem CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n : String} {x : VarId} {v : LVec}
+    (hc : E.Coherent st)
+    (hx : E.scalar.resolve n = some x)
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (hread : ∀ y ∈ E.readsV env elems ctx e, y ≠ n) :
+    E.evalExprLocals env elems st ctx locals e =
+      E.evalExprLocals env elems (E.setScalarState st n v) ctx locals e := by
+  apply CoreMemDesign.evalExprLocals_congr_readsV_of_pure hmem hcall hne
+  intro y hy
+  have hset := (CoreMemDesign.setScalarState_spec hc hx v).1
+  rw [hset]
+  let lookupAppend : ∀ (a b : SvState) (q : String),
+      SvState.lookup (a ++ b) q =
+        (SvState.lookup a q).or (SvState.lookup b q) := by
+    intro a
+    induction a with
+    | nil => intro b q; rfl
+    | cons kv rest ih =>
+        intro b q
+        obtain ⟨k, w⟩ := kv
+        simp only [List.cons_append, SvState.lookup]
+        split
+        · rfl
+        · simp only [ih]
+  rw [lookupAppend, lookupAppend]
+  have hny : n ≠ y := Ne.symm (hread y hy)
+  by_cases hlocal : SvState.lookup locals y = none
+  · simp [hlocal, SvState.lookup_set, hny]
+  · simp [hlocal, SvState.lookup_set, hny]
+
 theorem CoreMemDesign.evalScalarV_congr_readsV_of_pure
     {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
     {v v' : SvState} {ctx : Option Nat} {e : PExpr}

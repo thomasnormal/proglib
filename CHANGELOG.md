@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added the coherent scalar-write frame for `evalExprLocals` in the
+  parser-native pure, function-free fragment, preserving source read closure
+  through the actual state update path.
+
 - Added a parser-native read-footprint frame for the full `evalExprLocals`
   evaluator in the pure, function-free fragment, reusing the stateful scalar
   evaluator theorem without making a scheduler-confluence claim.
