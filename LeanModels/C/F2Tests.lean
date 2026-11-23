@@ -148,6 +148,8 @@ def typedMetadata : AllocationMetadata Unit Unit String :=
 #guard (typedLoadMetadataByte typedMetadata 0 "int").isNone
 #guard (pairedTypedLoadMetadataByte (fun id => if id == 0 then 100 else 200)
   0 typedMetadata 0 "long").isSome
+#guard (pairedTypedStoreLoadMetadataByte
+  (fun id => if id == 0 then 100 else 200) 0 metadata 0 "long" fragmentByte).isSome
 #guard (unionLoadMetadataByte typedMetadata 0).isSome
 #guard (pairedUnionLoadMetadataByte (fun id => if id == 0 then 100 else 200)
   0 typedMetadata 0).isSome

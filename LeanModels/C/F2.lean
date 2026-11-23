@@ -480,6 +480,43 @@ theorem pairedTypedLoadMetadataByte_corresponds [BEq TypeId]
   simp [pairedTypedLoadMetadataByte] at hresult
   split at hresult <;> simp_all
 
+def pairedTypedStoreLoadMetadataByte [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
+    Option ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint))) := do
+  let sourceStore ← typedStoreMetadataByte metadata offset typeId byte
+  let targetStore ← typedStoreMetadataByte (renameMetadata resolve id metadata)
+    offset typeId (renameByte resolve byte)
+  let sourceLoad ← typedLoadMetadataByte sourceStore.1 offset typeId
+  let targetLoad ← typedLoadMetadataByte targetStore.1 offset typeId
+  if targetStore.1 = renameMetadata resolve id sourceStore.1 &&
+      targetStore.2 = sourceStore.2 &&
+      targetLoad.1 = renameByte resolve sourceLoad.1 &&
+      targetLoad.2 = sourceLoad.2 then
+    some ((sourceStore, sourceLoad), (targetStore, targetLoad))
+  else none
+
+theorem pairedTypedStoreLoadMetadataByte_sound [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)))
+    (hresult : pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte =
+      some result) :
+    result.2.1.1 = renameMetadata resolve id result.1.1.1 ∧
+      result.2.1.2 = result.1.1.2 ∧
+      result.2.2.1 = renameByte resolve result.1.2.1 ∧
+      result.2.2.2 = result.1.2.2 := by
+  simp [pairedTypedStoreLoadMetadataByte] at hresult
+  split at hresult <;> simp_all
+
 def unionLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) : Option (Byte Tag × Footprint) := do
