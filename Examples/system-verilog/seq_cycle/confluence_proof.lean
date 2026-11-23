@@ -19,7 +19,6 @@ open LeanModels.Sv LeanModels.Sv.Kernel
 
 namespace Examples.«system-verilog».seq_cycle.confluence_proof
 
-#check EdgePhaseStep.two_nba_observable_diamond
 
 /-! The three concrete wrappers below retain the executor bridge for the
 parameterized shift register, counter and case-process examples.  The

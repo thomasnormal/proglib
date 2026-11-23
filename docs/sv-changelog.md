@@ -7172,3 +7172,5 @@ flattened into one storage cell. The source-shaped
 Verilog 13.0 and Xcelium 24.03-s004.
 
 - The source-shaped edge-phase scheduler now has a kernel-checked observable NBA diamond for two stable disjoint active cursors. Raw issue order remains explicit, and the theorem compares the committed four-state view.
+
+- The edge-phase packet now proves that its memory/scalar commit is the canonical `CoreMemDesign.committedState`, and exposes the existing one-pass step refinement at that boundary.

@@ -1,4 +1,5 @@
 import LeanModels.Sv.Kernel.CoreMemResume
+import LeanModels.Sv.SeqCycleStep
 
 /-!
 # Observable confluence for the source-shaped edge phase
@@ -94,5 +95,45 @@ theorem EdgePhaseStep.two_nba_observable_diamond
 
 
 #print axioms EdgePhaseStep.two_nba_observable_diamond
+
+end LeanModels.Sv.Kernel
+
+namespace LeanModels.Sv.Kernel
+
+open LeanModels.Sv
+
+/-- The real edge-phase commit is definitionally the executor's canonical
+`committedState`, including its memory NBA result. -/
+theorem EdgePhaseState.commit_eq_committedState
+    {E : CoreMemDesign} {s : EdgePhaseState} {m : MemState}
+    (hm : s.state.memory.commitNba s.memoryQ = some m) :
+    s.commit E = .ok (E.committedState
+      { state := s.state, scalarQ := s.scalarQ, memoryQ := s.memoryQ, locals := [] } m) := by
+  unfold EdgePhaseState.commit CoreMemDesign.committedState
+  simp [hm]
+  cases s.state
+  rfl
+
+#print axioms EdgePhaseState.commit_eq_committedState
+
+/-- Once the surrounding pre-edge and post-edge settle receipts are available,
+the source-shaped edge-phase commit enters the same `CoreMemDesign.step`
+refinement used by the canonical executor. -/
+theorem CoreMemDesign.edge_phase_commit_refines_step
+    {E : CoreMemDesign} {st : CoreMemState} {entry : SvState}
+    (hcomb : E.hasComb = false) (himp : E.hasImplicit = false)
+    {pre0 pre s3 next : CoreMemState} {edge : CoreMemExecResult} {m : MemState}
+    (h0 : E.settleCanonical E.env E.elems (E.inputState st entry) E.processes.toList = .ok pre0)
+    (h1 : E.settleCanonical E.env E.elems pre0 E.processes.toList = .ok pre)
+    (he : E.runEdges E.env E.elems pre (E.scalar.view st.scalar)
+      (E.scalar.view pre.scalar) E.processes.toList = .ok edge)
+    (hm : edge.state.memory.commitNba edge.memoryQ = some m)
+    (h3 : E.settleCanonical E.env E.elems (E.committedState edge m) E.processes.toList = .ok s3)
+    (h4 : E.settleCanonical E.env E.elems s3 E.processes.toList = .ok next)
+    (hq : E.firesAny (E.scalar.view pre.scalar) (E.scalar.view next.scalar) = false) :
+    E.step st entry = .ok next := by
+  exact CoreMemDesign.step_of_onePass hcomb himp h0 h1 he hm h3 h4 hq
+
+#print axioms CoreMemDesign.edge_phase_commit_refines_step
 
 end LeanModels.Sv.Kernel
