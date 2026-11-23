@@ -700,6 +700,56 @@ theorem forValues2_sle_nval_add {env : IEnv} {it p : String} (h : nvalInt env p 
         (.binary (.m0 .add) (.genvarRef it) (.int 1)) = .ok (intRange s (nvalOf env p + 1 - s).toNat) :=
   forValues2_up_nval (c := .le) (.inr rfl) (procStepDelta2_add_one env it) h hne s
 
+theorem forValuesFuel2_slt_nval {env : IEnv} {it p : String} (h : nvalInt env p = true)
+    (hne : p ≠ it) (s : Int) :
+    forValuesFuel2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
+        (.unary .inc (.genvarRef it)) ((nvalOf env p - s).toNat + 2) =
+      .ok (intRange s (nvalOf env p - s).toNat) := by
+  have hlegacy := forValues2_slt_nval (env := env) (it := it) (p := p) h hne s
+  unfold forValues2 at hlegacy
+  simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at h
+  obtain ⟨hv, hn⟩ := h
+  cases hl : env.nvals.lookup p with
+  | none => simp [hl] at hn
+  | some t =>
+    obtain ⟨B, w, sg⟩ := t
+    have hval : nvalOf env p = B := by simp [nvalOf, hl]
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    have hfuel : forFuel2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
+        (.unary .inc (.genvarRef it)) = .ok ((B - s).toNat + 2) := by
+      by_cases hsB : s < B
+      · have ht : 0 ≤ B - s := by omega
+        have ht0 : ¬ B - s < 0 := by omega
+        simp [forFuel2, procLoopIterator, Gen2.except_ok_bind, heval, hsB, ht, ht0]
+        rfl
+      · have ht : (B - s).toNat = 0 := by omega
+        simp [forFuel2, procLoopIterator, Gen2.except_ok_bind, heval, hsB, ht]
+        rfl
+    rw [hfuel] at hlegacy
+    simpa [hval] using hlegacy
+
+theorem forFuel2_slt_nval {env : IEnv} {it p : String} (h : nvalInt env p = true)
+    (hne : p ≠ it) (s : Int) :
+    forFuel2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
+        (.unary .inc (.genvarRef it)) = .ok ((nvalOf env p - s).toNat + 2) := by
+  have hh := h
+  simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at hh
+  obtain ⟨hv, hn⟩ := hh
+  cases hl : env.nvals.lookup p with
+  | none => simp [hl] at hn
+  | some t =>
+    obtain ⟨B, w, sg⟩ := t
+    have hval : nvalOf env p = B := by simp [nvalOf, hl]
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    by_cases hsB : s < B
+    · have ht : 0 ≤ B - s := by omega
+      have ht0 : ¬ B - s < 0 := by omega
+      simp [forFuel2, procLoopIterator, Gen2.except_ok_bind, heval, hsB, ht, ht0, hval]
+      rfl
+    · have ht : (B - s).toNat = 0 := by omega
+      simp [forFuel2, procLoopIterator, Gen2.except_ok_bind, heval, hsB, ht, hval]
+      rfl
+
 end LeanModels.Sv.Loop2
 
 open LeanModels.Sv LeanModels.Sv.Kernel in
@@ -906,6 +956,11 @@ macro "sv_seq_prof_procs" : tactic =>
       LeanModels.Sv.Loop2.forValues2_sle,
       LeanModels.Sv.Loop2.forValues2_slt_nval, LeanModels.Sv.Loop2.forValues2_sle_nval,
       LeanModels.Sv.Loop2.forValues2_slt_nval_add, LeanModels.Sv.Loop2.forValues2_sle_nval_add,
+      LeanModels.Sv.Loop2.forValuesFuel2_slt_nval, LeanModels.Sv.Loop2.forFuel2_slt_nval,
+      LeanModels.Sv.Loop2.forValuesFuel2_slt_nval, LeanModels.Sv.Loop2.forFuel2_slt_nval,
+      LeanModels.Sv.Loop2.forValuesFuel2_slt_nval,
+      LeanModels.Sv.Loop2.forFuel2_slt_nval,
+      LeanModels.Sv.forValues2Int32, LeanModels.Sv.forValues2, LeanModels.Sv.forFuel2, LeanModels.Sv.procLoopIterator,
       LeanModels.Sv.Loop2.forValues2_slt_add, LeanModels.Sv.Loop2.forValues2_sle_add, LeanModels.Sv.Loop2.nvalOf, LeanModels.Sv.Loop2.nvalInt, LeanModels.Sv.Loop2.envVal, LeanModels.Sv.intRange_length, List.lookup]
     <;> omega))
 
@@ -926,6 +981,8 @@ macro "sv_seq_prof_procsI" : tactic =>
       LeanModels.Sv.Loop2.forValues2_sle,
       LeanModels.Sv.Loop2.forValues2_slt_nval, LeanModels.Sv.Loop2.forValues2_sle_nval,
       LeanModels.Sv.Loop2.forValues2_slt_nval_add, LeanModels.Sv.Loop2.forValues2_sle_nval_add,
+      LeanModels.Sv.Loop2.forValuesFuel2_slt_nval,
+      LeanModels.Sv.Loop2.forFuel2_slt_nval,
       LeanModels.Sv.Loop2.forValues2_slt_add, LeanModels.Sv.Loop2.forValues2_sle_add, LeanModels.Sv.Loop2.nvalOf, LeanModels.Sv.Loop2.nvalInt, LeanModels.Sv.Loop2.envVal, LeanModels.Sv.intRange_length, List.lookup]
     <;> omega))
 
@@ -1051,9 +1108,11 @@ macro "sv_seq_eval_pass_at " d:num " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : 
       LeanModels.Sv.instIndex2,
       LeanModels.Sv.PStmt.loopBodyB, LeanModels.Sv.PStmt.optLoopBodyB, LeanModels.Sv.PStmt.listLoopBodyB,
       LeanModels.Sv.PStmt.itemsLoopBodyB, LeanModels.Sv.Loop2.forValues2_slt, LeanModels.Sv.Loop2.forValues2_sle,
+      LeanModels.Sv.forValues2Int32, LeanModels.Sv.forValues2, LeanModels.Sv.forFuel2, LeanModels.Sv.procLoopIterator,
       LeanModels.Sv.Loop2.forValues2_slt_nval, LeanModels.Sv.Loop2.forValues2_sle_nval,
       LeanModels.Sv.Loop2.forValues2_slt_nval_add, LeanModels.Sv.Loop2.forValues2_sle_nval_add,
       LeanModels.Sv.Loop2.forValues2_slt_add, LeanModels.Sv.Loop2.forValues2_sle_add, LeanModels.Sv.Loop2.nvalOf, LeanModels.Sv.Loop2.nvalInt,
+      LeanModels.Sv.Loop2.forValuesFuel2_upto, LeanModels.Sv.Loop2.forFuel2_upto,
       LeanModels.Sv.Loop2.envVal, LeanModels.Sv.IEnv.bindVal, LeanModels.Sv.Kernel.execLoopV_ok,
       LeanModels.Sv.Kernel.seqE_flatMap_nil,
       LeanModels.Sv.Kernel.commitMemV_flatMap_memIss, LeanModels.Sv.Kernel.commitMemV_flatMap_memIss_append,

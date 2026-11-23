@@ -217,7 +217,7 @@ set_option maxHeartbeats 2000000 in
 #guard (match sfr.e 1 5000 with
   | .ok E => match runCoreMemRows E E.initial
       (cycleRows "clk" (List.replicate 5000 [("d", .ofNat 1 1)])) with
-    | .ok rows => match rows[4998]?, rows[4999]? with
+    | .ok rows => match rows[9997]?, rows[9999]? with
       | some before, some after =>
           SvState.showSignal (CoreMemState.view E before) "q" == "x" &&
           SvState.showSignal (CoreMemState.view E after) "q" == "1"
