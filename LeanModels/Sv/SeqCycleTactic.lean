@@ -877,9 +877,8 @@ macro "sv_seq_prof_four" : tactic => `(tactic| simp [LeanModels.Sv.Kernel.AllFou
 /-- No resolved net (`resolvedNets = []`). -/
 macro "sv_seq_prof_resolved" : tactic => `(tactic| simp [LeanModels.Sv.Kernel.coreMemResolvedNetNames])
 
-/-- Every process in the single-clock profile (`procsOkFrom`); a loop's trip count (the header's value list in closed
-form, `Loop2.forValues2_slt`/`_sle`) is bounded by the route's statement fuel by `omega` from the hypotheses in
-context. -/
+/-- Every process in the single-clock profile (`procsOkFrom`); a supported loop header is evaluated in closed form
+(`Loop2.forValues2_slt`/`_sle`) and its runtime fuel is allocated by the executor. -/
 macro "sv_seq_prof_procs" : tactic =>
   `(tactic| (simp (config := {decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.procsOkFrom,
       LeanModels.Sv.Kernel.CoreMemDesign.procOkB, LeanModels.Sv.Kernel.coreMemEventEdge?, LeanModels.Sv.Kernel.CoreMemEvent.clockEdge?,

@@ -3697,11 +3697,12 @@ end
 
 def CoreMemDesign.execStmt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmt : PStmt) : CoreMemExec :=
-  E.execStmtFuel env elems st [] (4096 + PStmt.runtimeNeed env stmt) stmt
+  E.execStmtFuel env elems st [] (4096 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
 
 def CoreMemDesign.execStmts (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmts : List PStmt) : CoreMemExec :=
-  E.execStmtsFuel env elems st [] (4096 + PStmt.listRuntimeNeed env stmts) stmts
+  E.execStmtsFuel env elems st []
+    (4096 + PStmt.listNeed env stmts + PStmt.listRuntimeNeed env stmts) stmts
 
 def CoreMemDesign.execLoopValues (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (values : List Int) (body : PStmt) (iterator : String) : CoreMemExec :=

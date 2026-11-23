@@ -22,10 +22,9 @@ clocked views mirror exactly that (`execLoopV`), and the cycle equations carry t
 list (`memWriteL`). Its closed form is the shift: element 0 loads `d`, element `k` loads what element `k - 1` held
 BEFORE the edge (nonblocking assignments sample at issue, IEEE 1800-2017 §10.4.2), 4-state exact.
 
-1. **Structure** (`sf_structure`, `sv_structure`): the instantiation at every `1 ≤ W < 2^30`, `1 ≤ N ≤ 4000`, in the
-   clocked profile with the obligations. The bound on `N` is a fact about the route, visible here as a hypothesis:
-   the route runs a loop one unit of its statement fuel (4096) per iteration and answers `timeout` beyond
-   (`PStmt.need`: `2 + trips + need body`); the stage bounds the trip count `N - 1` by `omega` from `h2`.
+1. **Structure** (`sf_structure`, `sv_structure`): the instantiation at every `1 ≤ W < 2^30`, `1 ≤ N < 2^30`, in the
+   clocked profile with the obligations. Runtime fuel comes from the evaluated header, and the stage keeps the trip
+   count symbolic.
 2. **The cycle equations** (`sf_cycle`): one cycle is `sfF`: the post memory is `shiftM` (`sf_post`: the loop's write
    equation in closed form), `q` shows element `N - 1`.
 3. **The claim over every run** (`sf_runs`), from every coherent state (the x start, every power-up contents), on every
@@ -50,7 +49,7 @@ load_design_sv2 sf from "Examples/system-verilog/seq_cycle/shift_for.sv.json"
 
 -- The instantiation at every width and depth, computed once (`sf.mirror`, `sf.mirror_eq`); the stages read it.
 set_option maxHeartbeats 1000000 in
-seq_mirror (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) : sf.e W N
+seq_mirror (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : sf.e W N
 
 /-! ## Runs on the route, against Icarus Verilog 12.0 -/
 
@@ -177,12 +176,12 @@ seq_mirror (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N
 /-! ## 1. Structure and interface -/
 
 set_option maxHeartbeats 1000000 in
-theorem sf_structure (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem sf_structure (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqDesign (sf.e W N) "clk" := by
   sv_structure
 
 set_option maxHeartbeats 1000000 in
-theorem sf_ports (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem sf_ports (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqPorts (sf.e W N) [("clk", 1), ("d", W)] [("q", W)] := by
   sv_interface
 
@@ -222,7 +221,7 @@ theorem sf_index {N : Nat} (hN : 1 ≤ N) {m : MemShape} (h0 : m.msb = 0) (h1 : 
 /-- **The loop's write equation in closed form**: the write of `d` at element 0 followed by the loop
 `for (i = 1; i < N; i++) pipe[i] <= pipe[i-1]` (the loop's values `intRange 1 (N - 1)`, each iteration reading the
 memory before the edge) is the shift. Proved from the list's membership (`mem_intRange`), not by unrolling. -/
-theorem sf_post {W N : Nat} (h1 : 1 ≤ N) (h2 : N ≤ 4000) {m : MemShape} (h0 : m.msb = 0)
+theorem sf_post {W N : Nat} (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {m : MemShape} (h0 : m.msb = 0)
     (hl : m.lsb = (N : Int) - 1) (mv : MemV) (d : LVec) :
     memWriteL (memWrite mv "pipe" (m.index? false (LVec.ofInt 32 0)) d) "pipe" (intRange 1 (N - 1))
         (fun i => m.index? false (LVec.ofInt 32 i))
@@ -252,7 +251,7 @@ theorem sf_post {W N : Nat} (h1 : 1 ≤ N) (h2 : N ≤ 4000) {m : MemShape} (h0 
   · rw [if_neg fun h => hn h.1, if_neg fun h => hn h.1, if_neg fun h => hn h.1]
 
 /-- The read of the last element, at the constant index `N - 1`. -/
-theorem sf_last {W N : Nat} (h1 : 1 ≤ N) (h2 : N ≤ 4000) {m : MemShape} (h0 : m.msb = 0)
+theorem sf_last {W N : Nat} (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {m : MemShape} (h0 : m.msb = 0)
     (hl : m.lsb = (N : Int) - 1) (mv : MemV) :
     memRd mv "pipe" (m.index? false (LVec.ofInt 32 ((N : Int) - 1))) W = mv "pipe" ((N : Int) - 1) := by
   rw [sf_index h1 h0 hl (by omega) (by omega), if_pos (by omega)]
@@ -278,7 +277,7 @@ theorem sfF_inv {W N : Nat} {σ : SvState × MemV} {dt : SvState} (hm : ∀ k, (
 set_option maxHeartbeats 4000000 in
 /-- **The cycle equations**: from every state of the shape, on every typed data entry, the route's cycle is `sfF`, and
 the post state keeps the shape. -/
-theorem sf_cycle (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) {E : CoreMemDesign}
+theorem sf_cycle (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign}
     (hE : sf.e W N = .ok E) (σ : SvState × MemV) (dt : SvState) (hσ : SfInv W σ) (hd : E.DataTyped "clk" dt) :
     E.cycleMV "clk" σ dt = .ok (sfF N σ dt) ∧ SfInv W (sfF N σ dt).2 := by
   obtain ⟨E', hE', hP, -⟩ := sf_structure W N hW1 hW2 h1 h2
@@ -388,7 +387,7 @@ theorem sf_delay {N : Nat} (hN : 1 ≤ N) {tr : List ((SvState × MemV) × (SvSt
 set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state (memory contents arbitrary), on every typed
 stimulus. -/
-theorem sf_runs (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem sf_runs (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqRunsM (sf.e W N) "clk" (SfClaim N) := by
   obtain ⟨E, hE, hP, hO⟩ := sf_structure W N hW1 hW2 h1 h2
   have hE0 : sf.mirror W N = E := Res.ok.inj ((sf.mirror_eq W N hW1 hW2 h1 h2).symm.trans hE)
@@ -409,7 +408,7 @@ theorem sf_runs (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h
 
 /-- **THE DELAY, over every run**: in every run of the route, from every coherent state, on every typed stimulus, the
 post sample of `q` in cycle `c + N - 1` is the `d` applied in cycle `c`. -/
-theorem sf_runs_delay (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem sf_runs_delay (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqRunsM (sf.e W N) "clk" fun tr => ∀ (c : Nat) (pc pc0 : (SvState × MemV) × (SvState × MemV)),
       tr[c + (N - 1)]? = some pc → tr[c]? = some pc0 → lk pc.2.1 "q" = lk pc0.1.1 "d" :=
   (sf_runs W N hW1 hW2 h1 h2).mono fun _ h _ _ _ hpc hpc0 => sf_delay h1 h hpc hpc0
@@ -437,7 +436,7 @@ set_option maxRecDepth 100000 in
 load_design_sv2 sp from "Examples/system-verilog/seq_cycle/shift_v2001.sv.json"
 
 set_option maxHeartbeats 1000000 in
-seq_mirror (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) : sp.e W N
+seq_mirror (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : sp.e W N
 
 -- W = 8, N = 4 (28 rows)
 #guard (match sp.e 8 4 with
@@ -516,13 +515,13 @@ seq_mirror (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N
   | _ => false)
 
 set_option maxHeartbeats 1000000 in
-theorem sp_structure (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem sp_structure (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqDesign (sp.e W N) "clk" := by
   sv_structure
 
 set_option maxHeartbeats 4000000 in
 /-- **The cycle equations** of the plain-`always` design: the same cycle function. -/
-theorem sp_cycle (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) {E : CoreMemDesign}
+theorem sp_cycle (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign}
     (hE : sp.e W N = .ok E) (σ : SvState × MemV) (dt : SvState) (hσ : SfInv W σ) (hd : E.DataTyped "clk" dt) :
     E.cycleMV "clk" σ dt = .ok (sfF N σ dt) ∧ SfInv W (sfF N σ dt).2 := by
   obtain ⟨E', hE', hP, -⟩ := sp_structure W N hW1 hW2 h1 h2
@@ -552,7 +551,7 @@ theorem sp_cycle (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (
 
 set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM** of the plain-`always` design, over every run. -/
-theorem sp_runs (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem sp_runs (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqRunsM (sp.e W N) "clk" (SfClaim N) := by
   obtain ⟨E, hE, hP, hO⟩ := sp_structure W N hW1 hW2 h1 h2
   have hE0 : sp.mirror W N = E := Res.ok.inj ((sp.mirror_eq W N hW1 hW2 h1 h2).symm.trans hE)
@@ -572,7 +571,7 @@ theorem sp_runs (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h
   exact ⟨x1, x2, x3, rfl, hw.1, hw.2.1, hw.2.2, fun k => hms k⟩
 
 /-- **THE DELAY** of the plain-`always` design, over every run. -/
-theorem sp_runs_delay (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem sp_runs_delay (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqRunsM (sp.e W N) "clk" fun tr => ∀ (c : Nat) (pc pc0 : (SvState × MemV) × (SvState × MemV)),
       tr[c + (N - 1)]? = some pc → tr[c]? = some pc0 → lk pc.2.1 "q" = lk pc0.1.1 "d" :=
   (sp_runs W N hW1 hW2 h1 h2).mono fun _ h _ _ _ hpc hpc0 => sf_delay h1 h hpc hpc0

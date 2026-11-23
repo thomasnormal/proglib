@@ -35,8 +35,8 @@ deciding x/z exactly as the route does (`MemShape.index?`: an x/z or out-of-rang
   qualified), blocks, and a procedural `for` loop of nonblocking writes: the fold of its body over the header's value
   list (`execLoopV` over the route's `forValues2`, the body under `env.bindVal iterator i`; the list is a function of
   the parameters and is never unrolled); `execStmtFuel_V`: the route's executor lands on its view and issues exactly
-  its updates, at every fuel from the body's need on (`PStmt.need`: for a loop, `2 + trips + need body`, so the
-  profile's bound `need ≤ 4096` bounds the trip count; beyond it the route itself answers `timeout`).
+  its updates, at every fuel from the body's need on (`PStmt.need`: for a loop, `2 + trips + need body`). The normal
+  entry point adds runtime fuel from the evaluated header, so the profile does not impose a trip-count bound.
 * `memWriteL`: the write equation of a loop of element writes, over the header's value list; `memWriteL_at`,
   `memWriteL_index`, `memWriteL_id`, `memWriteL_of_not_key`: its cells in closed form.
 * `CoreMemDesign.edgesV`: the route's edge pass on views, each process firing by `CoreMemEdge.fires` (the clock's rise or
@@ -1242,7 +1242,7 @@ theorem CoreMemDesign.mem_events {E : CoreMemDesign} {e : SeqEvent} :
 /-- A process of the clocked profile, at index `i` of the design, for any number of clocks: a continuous assign to a
 whole declared scalar (function-free; a memory read is evaluated by the route's evaluator, anything else by its compiled
 expression, which must be present), or an edge process on either edge of any clock (with or without an asynchronous
-reset of either polarity) whose body the view-level executor mirrors, within the route's statement fuel; a plain
+reset of either polarity) whose body the view-level executor mirrors with evaluated runtime fuel; a plain
 `always` whose event list is one clock edge with an optional reset edge is that edge process (`coreMemEventEdge?`). An
 `always_comb`, `always_latch`, `always @*` or `initial` process, and a plain `always` on any other event list, is outside
 (refused by name by the structure stage). -/
@@ -1250,10 +1250,10 @@ def CoreMemDesign.ProcOkI (E : CoreMemDesign) (i : Nat) : CoreMemProc → Prop
   | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
       (E.scalarWidth? n).isSome = true ∧ n ∉ E.resolvedNets
-  | .edge f => f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
+  | .edge f => f.body.edgeOkB = true
   | .event evs body =>
       match coreMemEventEdge? evs body with
-      | some f => f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
+      | some f => f.body.edgeOkB = true
       | none => False
   | _ => False
 
@@ -1263,10 +1263,10 @@ def CoreMemDesign.ProcOk (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMemP
   | .assign (.ident n) v => LeanModels.Sv.PExpr.hasFunctionCall v = false ∧
       (LeanModels.Sv.PExpr.hasMemoryRead v = false → ∃ c, E.compiledAssigns[i]? = some (some c)) ∧
       (E.scalarWidth? n).isSome = true ∧ n ∉ E.resolvedNets
-  | .edge f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
+  | .edge f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true
   | .event evs body =>
       match coreMemEventEdge? evs body with
-      | some f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
+      | some f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true
       | none => False
   | _ => False
 
@@ -1308,10 +1308,10 @@ def CoreMemDesign.procOkB (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMem
       (LeanModels.Sv.PExpr.hasMemoryRead v || (match E.compiledAssigns[i]? with
         | some (some _) => true
         | _ => false)) && (E.scalarWidth? n).isSome && !E.resolvedNets.contains n
-  | .edge f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need E.env ≤ 4096)
+  | .edge f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB
   | .event evs body =>
       match coreMemEventEdge? evs body with
-      | some f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need E.env ≤ 4096)
+      | some f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB
       | none => false
   | _ => false
 
@@ -1333,7 +1333,7 @@ theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} 
       | _ => simp [CoreMemDesign.procOkB] at h
   | edge f =>
       simp only [CoreMemDesign.procOkB, Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at h
-      exact ⟨h.1.1.1, h.1.1.2, h.1.2, h.2⟩
+      exact ⟨h.1.1, h.1.2, h.2⟩
   | primitive _ _ _ => simp [CoreMemDesign.procOkB] at h
   | initial _ => simp [CoreMemDesign.procOkB] at h
   | comb _ => simp [CoreMemDesign.procOkB] at h
@@ -1345,7 +1345,7 @@ theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} 
       | some f =>
           simp only [CoreMemDesign.procOkB, hfe, Bool.and_eq_true, beq_iff_eq, decide_eq_true_eq] at h
           simp only [CoreMemDesign.ProcOk, hfe]
-          exact ⟨h.1.1.1, h.1.1.2, h.1.2, h.2⟩
+          exact ⟨h.1.1, h.1.2, h.2⟩
   | unsupported _ _ => simp [CoreMemDesign.procOkB] at h
 
 /-- Every process from index `i` on is `ProcOk`, decided. -/
@@ -1377,14 +1377,14 @@ theorem CoreMemDesign.ProcOk.toI {E : CoreMemDesign} {clk : String} {i : Nat} {p
       cases t with
       | ident n => exact ⟨⟨h.1, h.2.1, h.2.2.1, h.2.2.2⟩, trivial⟩
       | _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
-  | edge f => exact ⟨⟨h.2.2.1, h.2.2.2⟩, h.1, h.2.1⟩
+  | edge f => exact ⟨h.2.2, h.1, h.2.1⟩
   | event evs body =>
       cases hfe : coreMemEventEdge? evs body with
       | none => exact absurd h (by simp [CoreMemDesign.ProcOk, hfe])
       | some f =>
           simp only [CoreMemDesign.ProcOk, hfe] at h
           simp only [CoreMemDesign.ProcOkI, CoreMemProc.OnRise, hfe]
-          exact ⟨⟨h.2.2.1, h.2.2.2⟩, h.1, h.2.1⟩
+          exact ⟨h.2.2, h.1, h.2.1⟩
   | _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
 
 /-- An edge process of a design in the single-clock profile is on the rising edge of the clock. -/
@@ -1406,10 +1406,10 @@ def CoreMemDesign.procOkIB (E : CoreMemDesign) (i : Nat) : CoreMemProc → Bool
       (LeanModels.Sv.PExpr.hasMemoryRead v || (match E.compiledAssigns[i]? with
         | some (some _) => true
         | _ => false)) && (E.scalarWidth? n).isSome && !E.resolvedNets.contains n
-  | .edge f => f.body.edgeOkB && decide (f.body.need E.env ≤ 4096)
+  | .edge f => f.body.edgeOkB
   | .event evs body =>
       match coreMemEventEdge? evs body with
-      | some f => f.body.edgeOkB && decide (f.body.need E.env ≤ 4096)
+      | some f => f.body.edgeOkB
       | none => false
   | _ => false
 
@@ -1434,7 +1434,7 @@ theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
       | _ => simp [CoreMemDesign.procOkIB] at h
   | edge f =>
       simp only [CoreMemDesign.procOkIB, Bool.and_eq_true, decide_eq_true_eq] at h
-      exact ⟨h.1, h.2⟩
+      exact h
   | primitive _ _ _ => simp [CoreMemDesign.procOkIB] at h
   | initial _ => simp [CoreMemDesign.procOkIB] at h
   | comb _ => simp [CoreMemDesign.procOkIB] at h
@@ -1446,7 +1446,7 @@ theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
       | some f =>
           simp only [CoreMemDesign.procOkIB, hfe, Bool.and_eq_true, decide_eq_true_eq] at h
           simp only [CoreMemDesign.ProcOkI, hfe]
-          exact ⟨h.1, h.2⟩
+          exact h
   | unsupported _ _ => simp [CoreMemDesign.procOkIB] at h
 
 /-- Every process from index `i` on is `ProcOkI`, decided. -/
@@ -2949,10 +2949,10 @@ theorem CoreMemDesign.edgesV_cons_none {E : CoreMemDesign} {before after v : SvS
 /-- The shape of a process of the clocked profile, without its index (any clock, either edge). -/
 def CoreMemDesign.ProcShapeI (E : CoreMemDesign) : CoreMemProc → Prop
   | .assign _ _ => True
-  | .edge f => f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
+  | .edge f => f.body.edgeOkB = true
   | .event evs body =>
       match coreMemEventEdge? evs body with
-      | some f => f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
+      | some f => f.body.edgeOkB = true
       | none => False
   | _ => False
 
@@ -3010,8 +3010,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
       have hp := h p (by simp)
       cases p with
       | edge f =>
-          have hb := hp.1
-          have hn := hp.2
+          have hb := hp
           simp only [CoreMemDesign.edgesV] at hv
           by_cases hf : f.fires before after = true
           · simp only [hf, ↓reduceIte, Res.bind_eq_ok, Res.ok.injEq] at hv
@@ -3019,7 +3018,9 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
             simp only [Prod.mk.injEq] at hq
             obtain ⟨rfl, rfl, rfl⟩ := hq
             obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ :=
-              CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env (4096 + PStmt.runtimeNeed E.env f.body) st v1 a ma hc hmc hb (by omega) h1
+              CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env
+                (4096 + PStmt.need E.env f.body + PStmt.runtimeNeed E.env f.body)
+                st v1 a ma hc hmc hb (by omega) h1
             obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 before after rest hrest st1
               v2 b mb hc1 (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact h2)
             refine ⟨st2, by simp [CoreMemDesign.runEdges, hf, CoreMemDesign.execStmt, hs1, hs2, CoreMemExec.append],
@@ -3047,8 +3048,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
               simp only [CoreMemDesign.ProcShapeI, hfe] at hp
               rw [CoreMemDesign.edgesV_event hfe] at hv
               rw [CoreMemDesign.runEdges_event hfe]
-              have hb := hp.1
-              have hn := hp.2
+              have hb := hp
               simp only [CoreMemDesign.edgesV] at hv
               by_cases hf : f.fires before after = true
               · simp only [hf, ↓reduceIte, Res.bind_eq_ok, Res.ok.injEq] at hv
@@ -3056,7 +3056,9 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
                 simp only [Prod.mk.injEq] at hq
                 obtain ⟨rfl, rfl, rfl⟩ := hq
                 obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ :=
-                  CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env (4096 + PStmt.runtimeNeed E.env f.body) st v1 a ma hc hmc hb (by omega) h1
+                  CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env
+                    (4096 + PStmt.need E.env f.body + PStmt.runtimeNeed E.env f.body)
+                    st v1 a ma hc hmc hb (by omega) h1
                 obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 before after rest hrest st1
                   v2 b mb hc1 (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact h2)
                 refine ⟨st2, by simp [CoreMemDesign.runEdges, hf, CoreMemDesign.execStmt, hs1, hs2, CoreMemExec.append],
