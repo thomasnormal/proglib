@@ -246,4 +246,52 @@ theorem CombPhaseStep.two_blocking_scalar_diamond
 
 #print axioms CombPhaseStep.two_blocking_scalar_diamond
 
+theorem CombPhaseStep.two_blocking_scalar_diamond_of_driver_closure
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {xN xM : VarId} {vN vM : LVec}
+    {processes : List PProcess} {fuelN fuelM : Nat}
+    {namesN namesM : List String}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hdecl : xN.decl ≠ xM.decl)
+    (hn : n ∈ view.map Prod.fst)
+    (hm : m ∈ view.map Prod.fst)
+    (hneq : n ≠ m)
+    (hkeys : (view.map Prod.fst).Nodup)
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : PExpr.hasTestPlusargs eN = false)
+    (htestM : PExpr.hasTestPlusargs eM = false)
+    (hmemN : PExpr.hasMemoryRead eN = false)
+    (hcallN : PExpr.hasFunctionCall eN = false)
+    (hmemM : PExpr.hasMemoryRead eM = false)
+    (hcallM : PExpr.hasFunctionCall eM = false)
+    (hne : E.elems ≠ [])
+    (hvalN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
+    (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
+      y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM)
+    (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
+      y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN)
+    (hguardM : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM, y ≠ n)
+    (hguardN : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN, y ≠ m) :
+    let cN : CombCursor :=
+      { work := [.stmt env (.blockingAssign n eN)], locals := locals }
+    let cM : CombCursor :=
+      { work := [.stmt env (.blockingAssign m eM)], locals := locals }
+    ∃ u₁ u₂ z,
+      CombPhaseStep E { state := st, view := view, active := [cN, cM] } u₁ ∧
+      CombPhaseStep E { state := st, view := view, active := [cN, cM] } u₂ ∧
+      CombPhaseStep E u₁ z ∧ CombPhaseStep E u₂ z := by
+  dsimp
+  exact CombPhaseStep.two_blocking_scalar_diamond
+    hc hxN hxM hdecl hn hm hneq hkeys hlocalN hlocalM htargetN htargetM
+    htestN htestM hmemN hcallN hmemM hcallM hne hvalN hvalM
+    (fun y hy => hguardM y (hclosureM y hy))
+    (fun y hy => hguardN y (hclosureN y hy))
+
 end LeanModels.Sv.Kernel
