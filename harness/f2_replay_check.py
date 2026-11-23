@@ -32,6 +32,13 @@ def check(fixture, source=None):
         return "placements overlap"
     if not isinstance(fixture["events"], list):
         return "events must be a list"
+    forbidden = {"address", "allocation", "base", "pointer_id"}
+    for event in fixture["events"]:
+        if isinstance(event, dict) and forbidden.intersection(event):
+            return "observable event exposes placement identity"
+    for placement in placements:
+        if not isinstance(placement.get("exposed"), bool):
+            return "placement exposure flag is not boolean"
     ending = fixture["ending"]
     if ending.get("kind") == "ub" and not ending.get("clause_operand"):
         return "UB ending lacks cited clause and operand"
@@ -52,9 +59,11 @@ def main():
                 "events": [], "ending": {"kind": "exit", "status": 0}}
         bad = dict(good, compiler_version="clang version 20")
         placeholder = dict(good, source_hash="placeholder")
+        leaking = dict(good, events=[{"kind": "io", "address": 4}])
         assert check(good) is None
         assert check(bad) == "compiler pin mismatch"
         assert check(placeholder) == "source hash is not a SHA-256 digest"
+        assert check(leaking) == "observable event exposes placement identity"
         print("f2_replay_check --self-test: ok")
         return 0
     if args.fixture is None:
