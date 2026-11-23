@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1359/2114 MATCH (passed 1359, failed 0, oracle 0)
+- verdicts: 1361/2114 MATCH (passed 1361, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `591fc99f6`
-- measured at: `2026-11-24T10:00:00Z`
+- measured commit: `9d472f01b`
+- measured at: `2026-11-24T12:00:00Z`
 
 ## Verdict counts
 
@@ -16,11 +16,11 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1359 |
+| `passed` | 1361 |
 | `refused-libc` | 28 |
 | `refused-ub` | 45 |
-| `refused-unsupported` | 335 |
-| `runner-error` | 11 |
+| `refused-unsupported` | 332 |
+| `runner-error` | 12 |
 
 ## Counts by corpus
 
@@ -35,11 +35,11 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1157 |
+| `gcc.c-torture/execute` | `passed` | 1159 |
 | `gcc.c-torture/execute` | `refused-libc` | 26 |
 | `gcc.c-torture/execute` | `refused-ub` | 39 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 199 |
-| `gcc.c-torture/execute` | `runner-error` | 10 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 196 |
+| `gcc.c-torture/execute` | `runner-error` | 11 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 10 |
 | `gcc.c23-run` | `refused-libc` | 1 |
@@ -287,7 +287,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:ExprWithCleanups` | 3 | 3 | 950628-1.c, gcc/testsuite/gcc.dg/c23-stdarg-9.c, pr30185.c |
 | `unsupported:arithmetic on bit-fields wider than int requires exact promotion semantics` | 3 | 3 | bitfld-3.c, pr32244-1.c, pr34971.c |
 | `unsupported:case label nested in a control statement` | 3 | 3 | 00051.c, 00143.c, medce-1.c |
-| `unsupported:floating value used as an integer` | 3 | 3 | 20000731-1.c, 20011217-1.c, pr92904.c |
 | `unsupported:integer-to-floating conversion lacks parser-native destination type` | 3 | 3 | 930622-2.c, 960215-1.c, regstack-1.c |
 | `libc-call: __builtin_classify_type` | 2 | 2 | 20040709-1.c, 20040709-2.c |
 | `libc-call: __builtin_constant_p` | 2 | 2 | bcp-1.c, builtin-constant.c |
