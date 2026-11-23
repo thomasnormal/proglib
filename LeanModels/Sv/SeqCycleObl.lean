@@ -533,6 +533,33 @@ theorem CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
   · simp [hlocal, SvState.lookup_set, hny]
   · simp [hlocal, SvState.lookup_set, hny]
 
+/-! Two coherent scalar writes compose through the same full evaluator frame.
+ The state order is explicit, so this does not claim that the writes commute. -/
+theorem CoreMemDesign.evalExprLocals_setScalarState_two_of_not_read_pure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (hreadN : ∀ y ∈ E.readsV env elems ctx e, y ≠ n)
+    (hreadM : ∀ y ∈ E.readsV env elems ctx e, y ≠ m) :
+    E.evalExprLocals env elems st ctx locals e =
+      E.evalExprLocals env elems (E.setScalarState (E.setScalarState st n vN) m vM)
+        ctx locals e := by
+  calc
+    E.evalExprLocals env elems st ctx locals e =
+        E.evalExprLocals env elems (E.setScalarState st n vN) ctx locals e :=
+      CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
+        hc hxN hmem hcall hne hreadN
+    _ = E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st n vN) m vM) ctx locals e :=
+      CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
+        (CoreMemDesign.setScalarState_spec hc hxN vN).2 hxM hmem hcall hne hreadM
+
 theorem CoreMemDesign.evalScalarV_congr_readsV_of_pure
     {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
     {v v' : SvState} {ctx : Option Nat} {e : PExpr}

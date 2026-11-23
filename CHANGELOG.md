@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the ordered two-write composition of the coherent full-expression
+  evaluator frame, keeping both state updates explicit for retained resumes.
+
 - Added the coherent scalar-write frame for `evalExprLocals` in the
   parser-native pure, function-free fragment, preserving source read closure
   through the actual state update path.
