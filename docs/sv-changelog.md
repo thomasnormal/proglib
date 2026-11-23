@@ -7176,3 +7176,5 @@ Verilog 13.0 and Xcelium 24.03-s004.
 - The edge-phase packet now proves that its memory/scalar commit is the canonical `CoreMemDesign.committedState`, and exposes the existing one-pass step refinement at that boundary.
 
 - The source-shaped edge phase now has an explicit active-cursor measure decrease and progress theorem for stable NBA-only admissions.
+
+- The scheduler bridge includes a concrete two-process `oneStep` NBA witness. Its bounded active-event exploration checks both legal orders and the common committed result in the kernel.

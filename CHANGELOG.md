@@ -4352,3 +4352,5 @@ change is listed here under **Changed** or **Removed**.
 - sv: connect the source-shaped edge-phase commit to `CoreMemDesign.committedState` and the one-pass `CoreMemDesign.step` refinement.
 
 - sv: add the admitted NBA-only edge-phase progress measure and nonempty-step theorem.
+
+- sv: add a kernel-checked `Scheduler.oneStep` two-process NBA witness whose bounded legal-order outcomes all agree.

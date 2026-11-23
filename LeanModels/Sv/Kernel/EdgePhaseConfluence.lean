@@ -1,4 +1,5 @@
 import LeanModels.Sv.Kernel.CoreMemResume
+import LeanModels.Sv.Scheduler
 import LeanModels.Sv.SeqCycleStep
 
 /-!
@@ -183,4 +184,37 @@ theorem EdgePhaseStep.nba_progress
 #print axioms EdgePhaseStep.nba_measure_decreases
 #print axioms EdgePhaseStep.nba_progress
 
+
 end LeanModels.Sv.Kernel
+
+namespace LeanModels.Sv.Scheduler
+
+/-- A concrete two-process NBA-only scheduler witness.  Both source-shaped
+processes issue one disjoint scalar NBA, then terminate.  `allSlotOutcomes`
+therefore explores both legal §4.7 active-event orders and the common NBA
+commit. -/
+def twoNbaWitness : SchedulerDesign :=
+  { eval := fun p resume _ =>
+      match p, resume with
+      | 0, 0 => .nonblocking 0 "a" (.lit "0") 1
+      | 1, 0 => .nonblocking 0 "b" (.lit "1") 1
+      | _, _ => .done
+    initial :=
+      { store := [("a", .lit "x"), ("b", .lit "x")]
+        active := [.eval 0 0, .eval 1 0] }
+    admitted := true }
+
+private def twoNbaExpected : SvState :=
+  [("a", .lit "0"), ("b", .lit "1")]
+
+#guard (allSlotOutcomes 16 twoNbaWitness twoNbaWitness.initial).all
+  (fun o => o == .value twoNbaExpected)
+
+theorem twoNbaWitness_all_orders :
+    (allSlotOutcomes 16 twoNbaWitness twoNbaWitness.initial).all
+      (fun o => o == .value twoNbaExpected) = true := by
+  decide
+
+#print axioms twoNbaWitness_all_orders
+
+end LeanModels.Sv.Scheduler
