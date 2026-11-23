@@ -195,6 +195,9 @@ def resolve : AllocId → Nat := fun id => if id == 0 then 100 else 200
 def renamedOne : TestStore := renameStore resolve one
 #guard renamedOne.allocations.head!.2.address == some 100
 #guard (renameStore resolve renamedOne) == renamedOne
+#guard lookup (renameStore resolve one) 0 =
+  (lookup one 0).map (renameAllocationValue resolve 0)
+#guard lookup (renameStore resolve one) 99 |>.isNone
 #guard (WellFormed (renameStore resolve one) : Prop) = True
 #guard (WellFormed (renameStore resolve one) ↔ WellFormed one : Prop) = True
 #guard (renamePointer resolve pointer).provenance == pointer.provenance
