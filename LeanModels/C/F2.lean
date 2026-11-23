@@ -863,6 +863,26 @@ theorem renameZeroTokenMetadata_selfEqual (resolve : AllocId → Nat)
       (renameZeroTokenMetadata resolve metadata) = true := by
   simp [zeroTokenEqual, renameZeroTokenMetadata, isZeroToken, h]
 
+theorem zeroTokenEqual_distinct_address
+    (left right : AllocationMetadata Tag State TypeId)
+    (hleft : isZeroToken left) (hright : isZeroToken right)
+    (haddr : left.allocation.address ≠ right.allocation.address) :
+    zeroTokenEqual left right = false := by
+  simp [zeroTokenEqual, hleft, hright, haddr]
+
+def pairedZeroTokenEqual (resolve : AllocId → Nat)
+    (left right : AllocationMetadata Tag State TypeId) : Bool :=
+  zeroTokenEqual (renameZeroTokenMetadata resolve left)
+    (renameZeroTokenMetadata resolve right) =
+    zeroTokenEqual left right
+
+theorem pairedZeroTokenEqual_sound (resolve : AllocId → Nat)
+    (left right : AllocationMetadata Tag State TypeId)
+    (h : pairedZeroTokenEqual resolve left right) :
+    zeroTokenEqual (renameZeroTokenMetadata resolve left)
+      (renameZeroTokenMetadata resolve right) = zeroTokenEqual left right := by
+  simpa [pairedZeroTokenEqual] using h
+
 theorem renameZeroTokenMetadata_freeable (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
     zeroTokenFreeable (renameZeroTokenMetadata resolve metadata) =
