@@ -2292,18 +2292,6 @@ def memberAddr (ctx : Ctx) (memberExpr : Expr) (base : Expr) (field : String) (a
 /-- §6.5.3.2p2 — the ADDRESS of `base[idx]`. Same discipline: the parts,
 never the rebuilt node. -/
 def indexAddr (ctx : Ctx) (base idx : Expr) (ty : String) : EvalM Ptr := do
-  let charPointerLongIndex :=
-    match ctx.layout.structuredTypeAt base, ctx.layout.structuredTypeAt idx with
-    | some baseType, some indexType =>
-        match baseType.unqualified, indexType.unqualified with
-        | .pointer pointee, .cBuiltinKind .long =>
-            pointee.unqualified == .cBuiltinKind .char
-        | .pointer pointee, .cBuiltinKind .unsignedLong =>
-            pointee.unqualified == .cBuiltinKind .char
-        | _, _ => false
-    | _, _ => false
-  if charPointerLongIndex == true then
-    refuseUnsupported "character-pointer subscript with long index requires an exact parser path"
   match ctx.layout.structuredTypeAt base with
   | some structuredType =>
       if !structuredIndexable (some structuredType) base.ty then
