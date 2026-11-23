@@ -652,6 +652,25 @@ def layoutFor (envl : Envelope) : Layout :=
     | some (.record _ _ fields (some layout) ..) =>
         (checkedRecordLayout? fields layout).map (·.tagKind == "union") |>.getD false
     | _ => false
+  let flexibleExtraFor := fun (did : DeclarationId) =>
+    let rec findExtra : List (String × String) → List Expr → Option Nat
+      | (name, _) :: members, initializer :: initializers =>
+          match observedFlexibleDeclFor did name with
+          | true =>
+              match initializer, observedFieldStructuredDeclFor did name with
+              | .initList values _ _ _ _, some (.array element none) =>
+                  objectSizeOfStructured element
+                    (fun handle => observedRecordSizeDecl { value := handle.value })
+                    |>.map (· * values.length)
+              | _, _ => none
+          | false => findExtra members initializers
+      | _, _ => none
+    match ds.find? (fun q => match q with
+      | .var (some declaration) _ _ _ (some (.initList ..)) _ _ _ _ => declaration == did
+      | _ => false) with
+    | some (.var _ _ _ _ (some (.initList inits _ _ _ _)) (some owner) _ _ _) =>
+        observedMembersDeclFor owner |>.bind (fun members => findExtra members inits)
+    | _ => none
   { zeroNullPointer := envl.zeroNullPointer
     declSize := observedDeclSize
     recordSizeDecl := observedRecordSizeDecl
@@ -666,6 +685,7 @@ def layoutFor (envl : Envelope) : Layout :=
     fieldDecl := observedFieldDeclFor
     fieldBitsDecl := observedFieldBitsDeclFor
     flexibleFieldDecl := observedFlexibleDeclFor
+    flexibleInitializerExtra := flexibleExtraFor
     terminalFieldDecl := observedTerminalDeclFor
     fieldOffTypeDecl := observedFieldOffTypeDeclFor
     fieldOffStructuredDecl := observedFieldOffStructuredDeclFor
@@ -774,6 +794,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
             match lay.sizeAt declaration ty with
             | none => setupGlobalsWithIds fuel lay ds acc ids
             | some sz =>
+              let sz := sz + (declaration.bind lay.flexibleInitializerExtra).getD 0
               match init with
               | none => do
                   let m ← get

@@ -526,6 +526,22 @@ def initMembers : Nat → Ctx → Ptr → String → List (String × String) →
               -- elements.  For a flexible array member this is the only
               -- defined explicit initializer shape in the corpus.
               initMembers fuel ctx p ty mrest erest declaration
+          | .initList values _ _ _ _ => do
+              let some (offset, memberType, _) := declaration.bind (fun owner =>
+                  initializerField ctx.layout owner nm)
+                | refuseUnsupported s!"initializer lacks layout for flexible member '{nm}'"
+              let some owner := declaration
+                | refuseUnsupported s!"flexible member '{nm}' lacks declaration identity"
+              let some (.array element none) :=
+                  (ctx.layout.fieldStructuredDecl owner nm).map
+                    LeanModels.Clang.QualType.unqualified
+                | refuseUnsupported s!"flexible member '{nm}' lacks parser-native array type"
+              let some stride := objectSizeOfStructured element
+                  (fun handle => ctx.layout.recordSizeDecl { value := handle.value })
+                | refuseUnsupported s!"flexible member '{nm}' lacks element layout"
+              initElems fuel ctx (Mem.member p offset) mty stride values.length 0 values
+                (some element)
+              initMembers fuel ctx p ty mrest erest declaration
           | _ => refuseUnsupported s!"explicit initializer for flexible array member '{nm}'"
         else if nm.isEmpty && bits.isSome then
           -- §6.7.11p9: an unnamed bit-field has no member and consumes no
