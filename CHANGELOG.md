@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added the pair evaluator frame for two retained expressions, exposing both
+  cross-order `evalExprLocals` equalities needed by a level-sensitive diamond.
+
 - Added a parser-native read lookup frame showing that local-plus-view
   lookups agree after either order of two scalar writes when both targets are
   excluded from the read closure.

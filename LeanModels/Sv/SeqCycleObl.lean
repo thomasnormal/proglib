@@ -591,6 +591,39 @@ theorem CoreMemDesign.evalExprLocals_setScalarState_two_order_frame
       CoreMemDesign.evalExprLocals_setScalarState_two_of_not_read_pure
         hc hxM hxN hmem hcall hne hreadM hreadN
 
+/-! The pair form exposes both evaluator equalities needed by a two-cursor
+diamond.  Each expression has its own parser-native read exclusion, while the
+underlying write orders remain the actual `setScalarState` calls. -/
+theorem CoreMemDesign.evalExprLocals_two_expr_setScalarState_order_frame
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctxN ctxM : Option Nat} {locals : SvState}
+    {eN eM : PExpr} {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hmemN : LeanModels.Sv.PExpr.hasMemoryRead eN = false)
+    (hcallN : LeanModels.Sv.PExpr.hasFunctionCall eN = false)
+    (hmemM : LeanModels.Sv.PExpr.hasMemoryRead eM = false)
+    (hcallM : LeanModels.Sv.PExpr.hasFunctionCall eM = false)
+    (hne : elems ≠ [])
+    (hreadMN : ∀ y ∈ E.readsV env elems ctxM eM, y ≠ n)
+    (hreadMM : ∀ y ∈ E.readsV env elems ctxM eM, y ≠ m)
+    (hreadNN : ∀ y ∈ E.readsV env elems ctxN eN, y ≠ n)
+    (hreadNM : ∀ y ∈ E.readsV env elems ctxN eN, y ≠ m) :
+    E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st n vN) m vM) ctxM locals eM =
+      E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st m vM) n vN) ctxM locals eM ∧
+    E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st n vN) m vM) ctxN locals eN =
+      E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st m vM) n vN) ctxN locals eN := by
+  constructor
+  · exact CoreMemDesign.evalExprLocals_setScalarState_two_order_frame
+      hc hxN hxM hmemM hcallM hne hreadMN hreadMM
+  · exact CoreMemDesign.evalExprLocals_setScalarState_two_order_frame
+      hc hxN hxM hmemN hcallN hne hreadNN hreadNM
+
 /-! A coherent scalar write changes the materialized view only at its target
  name. -/
 theorem CoreMemDesign.setScalarState_view_lookup_of_ne
