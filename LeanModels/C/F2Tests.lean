@@ -65,11 +65,19 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (reallocMetadata metadata { bytes := [oneByte], state := () } [location] (.address 64)).isSome
 #guard (reallocMetadata metadata { bytes := [oneByte], state := () } [location] .unaddressable).isSome
 #guard (pairedReallocMetadata resolve metadata { bytes := [oneByte], state := () } [location] (.address 64)).isSome
+#guard match allocateZeroSize (Tag := Unit) (TypeId := String) () .fail with
+  | (.null, _) => true
+  | _ => false
+#guard pairedAllocateZeroSize resolve () (.address 128)
 #guard ((allocateZeroSize (Tag := Unit) (TypeId := String) () (.address 128)).2.accesses.length == 1)
 #guard reallocZeroGNU17 == .freedNull
 #guard (freeMetadata metadata).isSome
+#guard (pairedFreeMetadata resolve metadata).isSome
+#guard (freeMetadata ((freeMetadata metadata).getD (metadata, { accesses := [] })).1).isNone
 #guard freePointer (Tag := Unit) (State := Unit) (TypeId := String) none == .nullSuccess
 #guard freePointer (Tag := Unit) (State := Unit) (TypeId := String) (some metadata) == .freed
+#guard freePointer (Tag := Unit) (State := Unit) (TypeId := String)
+  (some ((freeMetadata metadata).getD (metadata, { accesses := [] })).1) == .stalePointer
 #guard (loadByte one 0 0).isSome
 #guard (storeByte one 0 0 (.value 66 none (some 0))).isSome
 #guard (pairedStoreByte resolve one 0 0 (.value 66 none (some 0))).isSome
