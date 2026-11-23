@@ -25,9 +25,9 @@ parameter) and the clocked views mirror that; the cycle equations carry it as ON
 that does not read 1 (0, x, z) takes the write branch; a `we` that does not read 1 writes nothing; an address with an
 x/z bit, or one at or beyond `N`, selects nothing (IEEE 1800-2017 §11.5.1).
 
-1. **Structure** (`rz_structure`, `sv_structure`): the instantiation at every `1 ≤ W < 2^30`, `1 ≤ N ≤ 4000`, in the
-   clocked profile with the obligations. The bound on `N` is the route's: a loop runs one unit of the statement fuel
-   (4096) per iteration, and beyond it the route itself answers `timeout`.
+1. **Structure** (`rz_structure`, `sv_structure`): the instantiation at every `1 ≤ W < 2^30`, `1 ≤ N < 2^30`, in the
+   clocked profile with the obligations. Runtime fuel comes from the evaluated header, and the stage keeps the trip
+   count symbolic.
 2. **The cycle equations** (`rz_cycle`): one cycle is `rzF`: under `rst` the post memory is `clearM` (`rz_post`: the
    loop's write equation in closed form), else the write equation under `we`.
 3. **The claim over every run** (`rz_runs`), from every coherent state (memory contents arbitrary), on every typed
@@ -50,7 +50,7 @@ load_design_sv2 rz from "Examples/system-verilog/seq_cycle/reset_for.sv.json"
 
 -- The instantiation at every width and depth, computed once (`rz.mirror`, `rz.mirror_eq`); the stages read it.
 set_option maxHeartbeats 1000000 in
-seq_mirror (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) : rz.e W N
+seq_mirror (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : rz.e W N
 
 /-! ## Runs on the route, against Icarus Verilog 12.0 -/
 
@@ -156,12 +156,12 @@ seq_mirror (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N
 /-! ## 1. Structure and interface -/
 
 set_option maxHeartbeats 1000000 in
-theorem rz_structure (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem rz_structure (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqDesign (rz.e W N) "clk" := by
   sv_structure
 
 set_option maxHeartbeats 1000000 in
-theorem rz_ports (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem rz_ports (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqPorts (rz.e W N) [("clk", 1), ("rst", 1), ("we", 1), ("wa", 5), ("wd", W), ("ra", 5)] [("rd", W)] := by
   sv_interface
 
@@ -216,7 +216,7 @@ def rzF (W N : Nat) (σ : SvState × MemV) (dt : SvState) : (SvState × MemV) ×
 
 /-- **The loop's write equation in closed form**: `for (i = 0; i < N; i++) mem[i] <= '0` (the loop's values
 `intRange 0 N`) is the cleared memory. Proved from the list's membership (`mem_intRange`), not by unrolling. -/
-theorem rz_post {W N : Nat} (h1 : 1 ≤ N) (h2 : N ≤ 4000) {m : MemShape} (h0 : m.msb = 0)
+theorem rz_post {W N : Nat} (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {m : MemShape} (h0 : m.msb = 0)
     (hl : m.lsb = (N : Int) - 1) (mv : MemV) :
     memWriteL mv "mem" (intRange 0 N) (fun i => m.index? false (LVec.ofInt 32 i)) (fun _ => LVec.ofBitVec 0#W) =
       clearM W N mv := by
@@ -263,7 +263,7 @@ theorem rzF_inv {W N : Nat} {σ : SvState × MemV} {dt : SvState} (hm : ∀ k, (
 set_option maxHeartbeats 4000000 in
 /-- **The cycle equations**: from every state of the shape, on every typed data entry, the route's cycle is `rzF`, and
 the post state keeps the shape. -/
-theorem rz_cycle (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) {E : CoreMemDesign}
+theorem rz_cycle (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign}
     (hE : rz.e W N = .ok E) (σ : SvState × MemV) (dt : SvState) (hσ : RzInv W σ) (hd : E.DataTyped "clk" dt) :
     E.cycleMV "clk" σ dt = .ok (rzF W N σ dt) ∧ RzInv W (rzF W N σ dt).2 := by
   obtain ⟨E', hE', hP, -⟩ := rz_structure W N hW1 hW2 h1 h2
@@ -389,7 +389,7 @@ theorem rz_read_after_reset {W N : Nat} {tr : List ((SvState × MemV) × (SvStat
 set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state (memory contents arbitrary), on every typed
 stimulus. -/
-theorem rz_runs (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem rz_runs (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqRunsM (rz.e W N) "clk" (RzClaim W N) := by
   obtain ⟨E, hE, hP, hO⟩ := rz_structure W N hW1 hW2 h1 h2
   have hE0 : rz.mirror W N = E := Res.ok.inj ((rz.mirror_eq W N hW1 hW2 h1 h2).symm.trans hE)
@@ -412,7 +412,7 @@ theorem rz_runs (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h
 
 /-- **READ AFTER RESET, over every run**: in every run of the route, from every coherent state, on every typed
 stimulus, after a cycle whose `rst` reads 1 a read of a known address `a < N` in the next cycle's pre sample shows 0. -/
-theorem rz_runs_reset (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
+theorem rz_runs_reset (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) :
     SeqRunsM (rz.e W N) "clk" fun tr => ∀ (c : Nat) (pc pc' : (SvState × MemV) × (SvState × MemV)) (a : BitVec 5),
       tr[c]? = some pc → tr[c + 1]? = some pc' → DecisionKnown (lk pc.1.1 "rst") →
       (lk pc.1.1 "rst").condTrue = true → a.toNat < N →

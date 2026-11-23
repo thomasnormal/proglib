@@ -11,7 +11,7 @@ name gets a further elaborator, tried first, that recognizes ONLY its clocked go
 
 | name | clocked goal | what runs |
 |---|---|---|
-| `sv_structure` | `SeqDesign (X.e P…) clk` | the instantiation at symbolic parameters, the single-clock profile (a procedural `for` loop's trip count bounded by the route's statement fuel from the hypotheses in context), the obligations |
+| `sv_structure` | `SeqDesign (X.e P…) clk` | the instantiation at symbolic parameters, the single-clock profile (a supported procedural `for` header is evaluated at run time), the obligations |
 | `sv_structure` | `SeqDesignI (X.e P…)` | the same for any number of events (any clocks, either edge): the instant profile and obligations |
 | `sv_interface` | `SeqPorts (X.e P…) ins outs` | the instantiation, the ports |
 | `sv_equations` | `E.cycleV clk v d = rhs` or `E.cycleMV clk σ d = rhs`, with `hE : X.e P… = .ok E` in the context | the cycle equations, computed (with the context's width facts `x.width = n`), then `rhs` checked against them |
@@ -111,7 +111,7 @@ def whyProc (clk? : Option String) (i : Nat) (p : Lean.Expr) (resolved : List St
         match unsupportedStmtKind? body with
         | some k => return s!"{at_} ({kind}) holds a statement ingestion kept unconverted ({k}), refused"
         | none => return s!"{at_} ({kind}) holds a statement ingestion kept unconverted"
-      -- a procedural `for` loop: its body outside the loop fragment, or its trip count not bounded
+      -- a procedural `for` loop: its body outside the loop fragment, or its header outside the stage fragment
       if let some loop := body.find? (·.isAppOfArity ``PStmt.forLoop 5) then
         let lb ← whnf (loop.getArg! 4)
         let inBody (c : Name) : Bool := (lb.find? (·.isConstOf c)).isSome
@@ -137,7 +137,6 @@ def whyProc (clk? : Option String) (i : Nat) (p : Lean.Expr) (resolved : List St
                 ((step.getArg! 0).find? (·.isConstOf ``BinOp.add)).isSome))
         unless canonical do
           return s!"{at_} ({kind}) has a procedural `for` loop whose header the clocked stages do not evaluate: they read `for (i = a; i < P; i++)` and `i <= P` (a literal start `a`, a parameter bound `P`, a unit step `i++` or `i = i + 1`) as the route's value list in closed form; any other header (another step, a bound that is not a parameter, a descending loop) is refused"
-        return s!"{at_} ({kind}) has a procedural `for` loop whose trip count is not bounded by the route's statement fuel from the hypotheses in context: the route runs a loop one fuel unit per iteration out of 4096 and answers `timeout` beyond, so state the bound as a hypothesis on the parameters (for `for (i = a; i < N; i++)`: `N ≤ 4000`), refused"
       return s!"{at_} ({kind}): its body is outside the edge-body fragment the clocked stages mirror"
     return s!"{at_} ({kind}): outside the clocked profile"
   if p.isAppOfArity ``CoreMemProc.event 2 then

@@ -158,8 +158,8 @@ list as the route does. What stays outside, each refused by name:
 * a `while` loop (`seq_neg/while_loop`): ingestion keeps it unconverted and the route itself refuses it.
 * a header the stage does not evaluate (`seq_neg/for_step2`: `i += 2`): the stage reads `for (i = a; i < P; i++)` and
   `i <= P` (the step `i++` or `i = i + 1`) in closed form. The route runs the loop.
-* a trip count the hypotheses do not bound: the route runs a loop one unit of its statement fuel (4096) per iteration
-  and answers `timeout` beyond (the run below at `N = 5000`), so a structure theorem states the bound on the parameter.
+* a supported loop header has no proof-facing trip-count bound: the route allocates additional execution fuel from the
+  evaluated header, and the clocked stages carry the loop as one symbolic write equation.
 
 An index that is not the iterator itself (`mem[N-1-i] <= …`, `mem[2*i] <= …`) is NOT refused: the loop's write equation
 `memWriteL` carries the index as its key function, and its closed form (`memWriteL_at`, `memWriteL_index`) asks for the
@@ -220,7 +220,7 @@ example (mv : MemV) (N : Nat) (x : Int → LVec) (i : Int) (hi : i ∈ intRange 
 error: sv_structure: process 0 (an edge process) has a procedural `for` loop with a blocking assignment in its body (an iteration would read what an earlier iteration wrote): the clocked stages read a loop of nonblocking assignments only, refused
 -/
 #guard_msgs (whitespace := lax) in
-example (N : Nat) (h1 : 1 ≤ N) (h2 : N ≤ 4000) : SeqDesign (fbk.e N) "clk" := by
+example (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqDesign (fbk.e N) "clk" := by
   sv_structure
 
 /--
@@ -230,17 +230,11 @@ error: sv_structure: process 0 (an edge process) holds a statement ingestion kep
 example : SeqDesign whl.e "clk" := by
   sv_structure
 
-/--
-error: sv_structure: process 0 (an edge process) has a procedural `for` loop whose header the clocked stages do not evaluate: they read `for (i = a; i < P; i++)` and `i <= P` (a literal start `a`, a parameter bound `P`, a unit step `i++` or `i = i + 1`) as the route's value list in closed form; any other header (another step, a bound that is not a parameter, a descending loop) is refused
--/
-#guard_msgs (whitespace := lax) in
-example (N : Nat) (h1 : 1 ≤ N) (h2 : N ≤ 4000) : SeqDesign (fs2.e N) "clk" := by
+/-- A supported loop header is accepted without a statement-fuel bound. -/
+example (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqDesign (fs2.e N) "clk" := by
   sv_structure
 
-/--
-error: sv_structure: process 0 (an edge process) has a procedural `for` loop whose trip count is not bounded by the route's statement fuel from the hypotheses in context: the route runs a loop one fuel unit per iteration out of 4096 and answers `timeout` beyond, so state the bound as a hypothesis on the parameters (for `for (i = a; i < N; i++)`: `N ≤ 4000`), refused
--/
-#guard_msgs (whitespace := lax) in
+/-! The structure route accepts a loop whose trip count exceeds the old fixed statement fuel. -/
 set_option maxHeartbeats 1000000 in
 example (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqDesign (sfr.e W N) "clk" := by
   sv_structure
