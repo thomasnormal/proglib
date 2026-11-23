@@ -936,7 +936,7 @@ structure IEnv where
   scopedVals : Nat := 0
   /-- The same count for `nvals`. -/
   scopedNVals : Nat := 0
-deriving Repr, Inhabited
+deriving Repr, BEq, Inhabited
 
 /-- The environment of the module scope: `env` without the generate-scope
 bindings its counts record. -/

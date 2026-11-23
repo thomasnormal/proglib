@@ -39,6 +39,7 @@ One flat module, one time slot, the Active region only: continuous assigns
 
 namespace LeanModels.Sv.Kernel
 
+
 set_option autoImplicit false
 
 /-! ## Names, types, values, stores -/
@@ -122,7 +123,7 @@ inductive Proc0 where
   source-shaped `Stmt2` engine as `always_comb`; only startup/sensitivity
   metadata differs. -/
   | implicit (body : Stmt2)
-deriving Inhabited
+deriving BEq, Inhabited
 
 /-- A process index. -/
 abbrev ProcId := Nat
@@ -134,7 +135,7 @@ structure Elab where
   procs : Array Proc0
   /-- The module's name (carried to the corresponding Design2; E never reads it). -/
   name : String := "core0"
-deriving Inhabited
+deriving BEq, Inhabited
 
 def Proc0.toProcess2 : Proc0 → Process2
   | .assign t e => .assign t e

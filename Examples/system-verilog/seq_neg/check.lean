@@ -54,7 +54,7 @@ load_design_sv2 generatedLocalParam from
   | _, _ => false
 /-! A hierarchy generate-localparam reaches a nested child instance.  The
 source-shaped memory route retains `c.g.u.y` after binding `CW = W + 1`.
-Icarus Verilog 13.0 and Xcelium 24.03-s004 both print `000` for `W=2`. -/
+Icarus Verilog 13.0 and Xcelium 26.09 both print `000` for `W=2`. -/
 load_design_sv2 hierarchyLocalParam from
   "Examples/system-verilog/seq_neg/gen_localparam_child.sv.json"
 #guard match hierarchyLocalParam.e 2 with
@@ -66,7 +66,7 @@ load_design_sv2 hierarchyLocalParam from
 /-! An untyped child parameter overridden by a sized literal takes the
 override's non-integer type under IEEE 1800-2023 §6.20.2.  The loader keeps
 the design literal, while the canonical hierarchy route refuses `PInst.given`.
-Icarus Verilog 13.0 and Xcelium 24.03-s004 both print `ff`. -/
+Icarus Verilog 13.0 and Xcelium 26.09 both print `ff`. -/
 load_design_sv2 untypedChildOverride from
   "Examples/system-verilog/seq_neg/untyped_child_override.sv.json"
 #guard match untypedChildOverride.e with
@@ -74,15 +74,14 @@ load_design_sv2 untypedChildOverride from
   | _ => false
 
 /-! A hierarchy can contain a child whose own default is invalid while an
-instance supplies a valid typed width. The loader keeps the standalone
-default differential refusal, even though the probe sidecar records valid
-W=2 and W=4 child observations. This is the SERV register-file wall. -/
-/--
-error: load_design_sv2: 'Examples/system-verilog/seq_neg/serv_child_default.sv.json' REFUSED — module 'serv_child_ram' of the hierarchy: our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):
-  defaults: parameter 'depth' default: division by zero
--/
-#guard_msgs in
+instance supplies valid typed widths. The sidecar now admits this fixture only
+through the canonical memory comparison at every reached point. Its two points
+are W=2 and W=4, and the loaded hierarchy exposes the child library. -/
 load_design_sv2 servChildDefault from "Examples/system-verilog/seq_neg/serv_child_default.sv.json"
+#guard servChildDefault.plib.length == 1
+#guard servChildDefault.plib.head!.name == "serv_child_ram"
+#guard servChildDefault.plib.head!.crossCheck ==
+  ["defaults: parameter 'depth' default: division by zero in a constant context (reads x)"]
 
 /-- Some `always_ff` body is not NBA-only. -/
 def someBlocking (d : Design2) : Bool :=

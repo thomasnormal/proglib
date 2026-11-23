@@ -32,13 +32,13 @@ set_option autoImplicit false
 structure CoreMemDecl where
   source : PDecl
   shape : MemShape
-deriving Repr, Inhabited
+deriving Repr, BEq, Inhabited
 
 structure CoreMemAggDecl where
   source : PDecl
   ty : AggType
   id : VarId
-deriving Repr, Inhabited
+deriving Repr, BEq, Inhabited
 
 structure CoreMemEdge where
   clock : String
@@ -50,12 +50,12 @@ structure CoreMemEdge where
   resetHigh : Bool := false
   body : PStmt
   style : EdgeStyle := .alwaysFF
-deriving Repr, Inhabited
+deriving Repr, BEq, Inhabited
 
 structure CoreMemEvent where
   signal : String
   edge : PEventEdge := .any
-deriving Repr, Inhabited
+deriving Repr, BEq, Inhabited
 
 inductive CoreMemProc where
   | edge (p : CoreMemEdge)
@@ -76,7 +76,7 @@ inductive CoreMemProc where
       implicit-sensitivity executor while remaining distinct in the AST. -/
   | latch (body : PStmt)
   | unsupported (kind text : String)
-deriving Repr, Inhabited
+deriving Repr, BEq, Inhabited
 
 structure CoreMemDesign where
   name : String
@@ -119,7 +119,7 @@ structure CoreMemDesign where
       initial state.  They execute in declaration order before retained
       `initial` processes (§6.8), without lowering the declaration node. -/
   declInitializers : List (String × PExpr × Nat) := []
-deriving Inhabited
+deriving BEq, Inhabited
 
 /-- Install the simulator's explicit plus-argument environment on a design.
     This keeps `$test$plusargs` dependent on an input chosen by the caller,

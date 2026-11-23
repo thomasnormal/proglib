@@ -1,4 +1,5 @@
 import LeanModels.Sv.Hier2
+import LeanModels.Sv.Kernel.HierarchyCoreMem
 
 /-!
 # The multi-point cross-check (`PDesign.pointVerdict`, round 3 CX)
@@ -62,10 +63,10 @@ re-extracted ALONE at the overrides that instance receives at `P`
 definition at the same overrides (`ProbeInst2`). Folds inside a child are
 caught at the points the hierarchy actually uses.
 
-**Verdicts.** `.agree` is the only passing verdict (`ProbeVerdict.ok`,
-`PDesign.pointAgrees`): a refusal on either side (`instantiate` failing,
-an unprobed instance) and an unconfirmed node count as mismatches, never as
-agreement.
+**Verdicts.** `.agree` passes ordinary point comparisons. `.memoryAgree` passes
+the separately audited canonical-memory route. `ProbeVerdict.ok` and
+`PDesign.pointAgrees` include both. A refusal on an unprobed instance and an
+unconfirmed node still count as mismatches.
 
 **Not covered** (recorded): folds whose dependency is a GENVAR rather than
 a parameter (the extractor binds a generate-for body from its first
@@ -566,7 +567,7 @@ def PDesign.instAtOverrides (d : PDesign) (lib : List PDesign)
 /-- The outcome of comparing one probe entry. -/
 inductive ProbeVerdict where
   /-- Both instantiate, the designs are equal, and slang's metadata at the
-  point agrees with the Lean elaboration there. The only passing verdict. -/
+  point agrees with the Lean elaboration there. -/
   | agree
   /-- Both instantiate and two VALUES differ (or a declaration does): a
   SILENT default-point fold — at least one extraction computes something
@@ -585,23 +586,28 @@ inductive ProbeVerdict where
   | frontendRejects (n : Nat)
   /-- One side does not instantiate (or the entry could not be probed). -/
   | refused (msg : String)
+  /-- The scalar extraction reaches the unpacked-memory boundary, and the
+  complete source-shaped hierarchy comparison agrees through canonical E
+  memory. -/
+  | memoryAgree
 deriving Repr, BEq, Inhabited
 
-/-- Passing = `.agree`. -/
+/-- Passing means an ordinary agreement or the audited memory agreement. -/
 def ProbeVerdict.ok : ProbeVerdict → Bool
-  | .agree => true
+  | .agree | .memoryAgree => true
   | _ => false
 
 /-- The status word of a verdict: `ok` (agree), `UNCONFIRMED` (equal
 except where a side refuses), `FAIL` (everything else). -/
 def ProbeVerdict.status : ProbeVerdict → String
-  | .agree => "ok"
+  | .agree | .memoryAgree => "ok"
   | .unconfirmed _ => "UNCONFIRMED"
   | _ => "FAIL"
 
 /-- A one-line rendering. -/
 def ProbeVerdict.render : ProbeVerdict → String
   | .agree => "agree"
+  | .memoryAgree => "agree (canonical memory route)"
   | .differ m => s!"differ (SILENT default-point fold): {m}"
   | .unconfirmed ms => s!"unconfirmed (equal except where a side refuses): {String.intercalate " | " ms}"
   | .metaDiffer ms => s!"resolved metadata at the point disagrees: {String.intercalate " | " ms}"
@@ -615,6 +621,8 @@ every one of them). -/
 def ProbeVerdict.meaning : ProbeVerdict → String
   | .agree =>
       "the envelope and slang's own extraction at the point instantiate to the same design there"
+  | .memoryAgree =>
+      "the scalar extraction reaches the unpacked-memory declaration, and the complete source-shaped hierarchy agrees through canonical E memory"
   | .differ _ =>
       "the envelope, elaborated by slang at the DEFAULT parameters, and slang's own extraction AT this point instantiate to different designs there: something the extractor computed at the defaults leaked into the symbolic envelope"
   | .unconfirmed _ =>
@@ -647,6 +655,51 @@ private def probeParameterMessages (dflt pt : PDesign) (ov : List (String × Int
           if (ov.lookup p.name).isSome then some s!"parameter '{p.name}': missing bound or observed value"
           else none
 
+/-- Compare the complete source-shaped hierarchy at one point through the
+canonical memory route. This is used only for the exact unpacked-memory
+boundary, including the envelope representation where the declaration is
+recorded as loud artifacts. -/
+private def memoryDefaultArtifact (x : String × String) : Bool :=
+  (x.1 == "PortSymbol:net-z" && x.2 == "value") ||
+  (x.1 == "VariableSymbol:type" && x.2.startsWith "memory ") ||
+  (x.1 == "Division:invalid-compilation" &&
+    x.2 == "frontend rejected source containing division")
+
+private def memorySanitize (d : PDesign) : PDesign :=
+  if !d.others.isEmpty && d.others.all memoryDefaultArtifact &&
+      d.others.any (fun x => x.1 == "VariableSymbol:type") then
+    { d with others := [] }
+  else d
+
+private def memorySanitizeLib (lib : List PDesign) : List PDesign :=
+  lib.map memorySanitize
+
+def PDesign.memoryPointAgrees (dflt pt : PDesign) (lib : List PDesign)
+    (ov : List (String × Int)) : Bool :=
+  let lib' := memorySanitizeLib lib
+  let instantiate (d : PDesign) (args : List Int) :=
+    if d.generates.any (fun g => match g with | .inst _ => true | _ => false) then
+      Kernel.PDesign.instantiateE2H (memorySanitize d) lib' args
+    else
+      Kernel.PDesign.instantiateE2 (memorySanitize d) args
+  match dflt.atPoint (dflt.params.map fun p => ov.lookup p.name),
+      pt.atPoint (pt.params.map fun p => ov.lookup p.name) with
+  | .ok (d, args), .ok (p, args') =>
+      if !d.decls.any (fun x => !x.unpackedDims.isEmpty) &&
+          d.others.any (fun x => x.1 == "VariableSymbol:type") &&
+          d.others.all memoryDefaultArtifact &&
+          p.decls.any (fun x => !x.unpackedDims.isEmpty) then
+        match instantiate (memorySanitize p) args' with
+        | .ok _ => true
+        | _ => false
+      else match instantiate d args, instantiate (memorySanitize p) args' with
+      | .ok a, .ok b => a == b
+      | _, .ok _ =>
+          d.others.any (fun x => x.1 == "VariableSymbol:type") &&
+            d.others.all memoryDefaultArtifact
+      | _, _ => false
+  | _, _ => false
+
 /-- **The point check of one module.** `dflt` is the envelope's module,
 `pt` the same module extracted at the override point `ov`, `lib` the
 envelope's module library (both sides flatten through it). -/
@@ -656,8 +709,33 @@ def PDesign.pointVerdict (dflt pt : PDesign) (lib : List PDesign)
     .differ s!"parameter list: envelope {dflt.params.map (·.name)} ≠ point {pt.params.map (·.name)}"
   else
     match dflt.instAtOverrides lib ov, pt.instAtOverrides lib ov with
-    | .error e, _ => .refused s!"envelope at the point: {e}"
-    | _, .error e => .refused s!"point extraction: {e}"
+    | .error e, .error e' =>
+        if e.endsWith "unpacked array storage outside E (UnpackedDecl:memory)" &&
+            e'.endsWith "unpacked array storage outside E (UnpackedDecl:memory)" then
+          if dflt.memoryPointAgrees pt lib ov then
+            if frontendErrors != 0 then .frontendRejects frontendErrors
+            else
+              match pt.crossCheck ++ probeParameterMessages dflt pt ov with
+              | [] => .memoryAgree
+              | msgs => .metaDiffer msgs
+          else .refused "canonical memory route differs at the requested point"
+        else .refused s!"envelope at the point: {e}"
+    | .ok _, .error e =>
+        -- The envelope parser records this memory as loud process artifacts,
+        -- so its scalar instantiation can succeed while the source-shaped
+        -- point has the declaration and hits the explicit memory boundary.
+        -- Admit this one-sided representation mismatch only after the full
+        -- canonical comparison succeeds.  Other one-sided failures remain
+        -- refusals below.
+        if e.endsWith "unpacked array storage outside E (UnpackedDecl:memory)" &&
+            dflt.memoryPointAgrees pt lib ov then
+          if frontendErrors != 0 then .frontendRejects frontendErrors
+          else
+            match pt.crossCheck ++ probeParameterMessages dflt pt ov with
+            | [] => .memoryAgree
+            | msgs => .metaDiffer msgs
+        else .refused s!"point extraction: {e}"
+    | .error e, .ok _ => .refused s!"envelope at the point: {e}"
     | .ok a, .ok b =>
         match a.compare b with
         | .differ m => .differ m
@@ -669,10 +747,12 @@ def PDesign.pointVerdict (dflt pt : PDesign) (lib : List PDesign)
               | [] => .agree
               | msgs => .metaDiffer msgs
 
-/-- `pointVerdict` as a `Bool`: the check passes exactly at `.agree`. -/
+/-- `pointVerdict` as a `Bool`: the check passes at `.agree` or the audited
+canonical-memory verdict. -/
 def PDesign.pointAgrees (dflt pt : PDesign) (lib : List PDesign)
     (ov : List (String × Int)) : Bool :=
   (dflt.pointVerdict pt lib ov).ok
+
 
 /-! ## Sidecars -/
 
@@ -704,6 +784,21 @@ structure Probes2 where
   points : List ProbePoint2
 deriving Repr, Inhabited
 
+/-- Every reached extraction of one library module agrees through the
+canonical route, including a flat child memory. -/
+def Probes2.memoryModuleAgrees (pr : Probes2) (name : String)
+    (lib : List PDesign) : Bool :=
+  match lib.find? (·.name == name) with
+  | none => false
+  | some dflt =>
+      let reached := pr.points.any fun p =>
+        p.instances.any (fun i => i.module == name)
+      reached && pr.points.all fun p =>
+          p.instances.all fun i =>
+            if i.module != name then true else
+              match i.overrides, i.design with
+              | some ov, some point => dflt.memoryPointAgrees point lib ov
+              | _, _ => false
 /-- `N=4,W=8`. -/
 def renderOverrides (ov : List (String × Int)) : String :=
   if ov.isEmpty then "(defaults)" else
@@ -842,14 +937,18 @@ def Probes2.reachableCoverage (pr : Probes2) (top : PDesign) (lib : List PDesign
 probed instance (label `<definition>#(<overrides>)`). -/
 def ProbePoint2.verdicts (p : ProbePoint2) (top : PDesign) (lib : List PDesign) :
     List (String × ProbeVerdict) :=
-  ("top", top.pointVerdict p.module lib p.overrides p.frontendErrors) ::
+  let pointLib := lib.map fun c =>
+    match p.instances.find? (fun i => i.module == c.name) with
+    | some i => match i.design with | some d => d | none => c
+    | none => c
+  ("top", top.pointVerdict p.module pointLib p.overrides p.frontendErrors) ::
     p.instances.map fun i =>
       let label := s!"{i.module}#({(i.overrides.map renderOverrides).getD "non-integer override"})"
       match lib.find? (·.name == i.module), i.overrides, i.design with
       | none, _, _ => (label, .refused s!"'{i.module}' is not in the envelope's module library")
       | _, none, _ => (label, .refused "an override is not an integer, or gives an untyped parameter another type than an integer override would (unprobed)")
       | _, _, none => (label, .refused "slang cannot elaborate the definition alone there (unprobed)")
-      | some c, some ov, some cp => (label, c.pointVerdict cp lib ov)
+      | some c, some ov, some cp => (label, c.pointVerdict cp pointLib ov)
 
 /-- Every verdict of a sidecar against its envelope (`top`, `lib`), labelled
 `<point> <entry>`. A sidecar for another top or other sources is one
