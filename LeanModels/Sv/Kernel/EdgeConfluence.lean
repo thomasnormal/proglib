@@ -388,6 +388,87 @@ theorem CoreMemDesign.edgesV_queue_map
 
 #print axioms CoreMemDesign.edgesV_queue_map
 
+/-! The indexed form aligns each source-order process with the queue slot
+    consumed by the scheduler's process-index list. -/
+theorem CoreMemDesign.edgesV_queue_indexed
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {ps : List CoreMemProc} {r : ExecV} (offset : Nat)
+    (F : Nat → NbaQueue2)
+    (hw : ∀ p ∈ ps, p.nbaWholeP = true)
+    (hq : ∀ k p, ps[k]? = some p →
+      E.procQ before after v mv p = .ok (F (offset + k)))
+    (hroute : E.edgesV before after v mv ps = .ok r) :
+    r.2.1 = (List.range ps.length).flatMap (fun k => F (offset + k)) := by
+  induction ps generalizing offset r with
+  | nil =>
+      simp only [CoreMemDesign.edgesV, Res.ok.injEq] at hroute
+      subst r
+      simp
+  | cons p rest ih =>
+      obtain ⟨qp, rr, hqp, htargets, hrest, hr⟩ :=
+        CoreMemDesign.edgesV_cons_inv (hw p (by simp)) hroute
+      have hpq : qp = F offset := by
+        apply Res.ok.inj
+        exact hqp.symm.trans (hq 0 p (by simp))
+      have hqrest : ∀ k p', (rest[k]? = some p') →
+          E.procQ before after v mv p' = .ok (F (offset + (k + 1))) := by
+        intro k p' hk
+        apply hq (k + 1) p'
+        simpa using hk
+      have hqrest' : ∀ k p', (rest[k]? = some p') →
+          E.procQ before after v mv p' = .ok (F ((offset + 1) + k)) := by
+        intro k p' hk
+        simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using hqrest k p' hk
+      have htail := ih (offset := offset + 1) (r := rr)
+        (fun p' hp' => hw p' (by simp [hp'])) hqrest' hrest
+      rw [hr, hpq, htail]
+      simp only [List.length_cons, List.range_succ_eq_map, List.flatMap_cons,
+        List.flatMap_map]
+      have hpoint : ∀ xs : List Nat,
+          List.flatMap (fun k => F ((offset + 1) + k)) xs =
+            List.flatMap (fun k => F (offset + (k + 1))) xs := by
+        intro xs
+        induction xs with
+        | nil => rfl
+        | cons k ks ih =>
+            simp only [List.flatMap_cons]
+            rw [ih]
+            congr 1
+            congr 1
+            omega
+      simpa [Nat.zero_add, Nat.succ_eq_add_one] using
+        congrArg (fun xs => F offset ++ xs) (hpoint (List.range rest.length))
+
+#print axioms CoreMemDesign.edgesV_queue_indexed
+
+theorem CoreMemDesign.edgesV_queue_processes_indexed
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV} {r : ExecV}
+    (offset : Nat) (F : Nat → NbaQueue2)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after v mv p = .ok (F (offset + k)))
+    (hroute : E.edgesV before after v mv E.processes.toList = .ok r) :
+    r.2.1 = (List.range E.processes.size).flatMap (fun k => F (offset + k)) := by
+  apply CoreMemDesign.edgesV_queue_indexed offset F
+    (ps := E.processes.toList) (r := r)
+  · intro p hp
+    obtain ⟨k, hk, hpk⟩ := List.mem_iff_getElem.mp hp
+    have hk' : k < E.processes.size := by simpa using hk
+    have hopt : E.processes[k]? = some p := by
+      rw [← Array.getElem?_toList]
+      exact (List.getElem?_eq_getElem hk).trans (congrArg some hpk)
+    exact hw k p hopt
+  · intro k p hk
+    obtain ⟨hklt, hkp⟩ := List.getElem?_eq_some_iff.mp hk
+    have hk' : k < E.processes.size := by simpa using hklt
+    have hopt : E.processes[k]? = some p := by
+      rw [← Array.getElem?_toList]
+      exact hk
+    exact hq k p hopt
+  · exact hroute
+
+#print axioms CoreMemDesign.edgesV_queue_processes_indexed
+
 theorem EdgeScheduleTerminalPath.unique
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
     {ids : List Nat} (ad : EdgeScheduleAdmission E before after v mv ids)
