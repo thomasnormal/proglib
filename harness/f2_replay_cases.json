@@ -1,0 +1,14 @@
+[
+  {
+    "source_hash": "source-hash-recorded-by-native-replay",
+    "compiler_version": "clang version 21.1.8",
+    "target_triple": "x86_64-linux-gnu",
+    "placements": [
+      {"allocation": 3, "base": 96, "size": 8, "exposed": true}
+    ],
+    "events": [
+      {"kind": "io", "operation": "write", "channel": "stdout", "data": "ok"}
+    ],
+    "ending": {"kind": "exit", "status": 0}
+  }
+]
