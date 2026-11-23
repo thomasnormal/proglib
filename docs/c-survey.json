@@ -15,8 +15,8 @@
    "passed": 1149,
    "refused-libc": 26,
    "refused-ub": 36,
-   "refused-unsupported": 210,
-   "runner-error": 10
+   "refused-unsupported": 209,
+   "runner-error": 11
   },
   "gcc.c23-run": {
    "not-parsed": 34,
@@ -35,8 +35,8 @@
   "passed": 1350,
   "refused-libc": 28,
   "refused-ub": 41,
-  "refused-unsupported": 348,
-  "runner-error": 11
+  "refused-unsupported": 347,
+  "runner-error": 12
  },
  "dynamic_wall_ranking": [
   {
@@ -1218,14 +1218,6 @@
   },
   {
    "files": [
-    "20030109-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:explicit initializer for flexible array member 'z'"
-  },
-  {
-   "files": [
     "pr31072.c"
    ],
    "present": 1,
@@ -1445,8 +1437,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-23T21:15:00Z",
- "measured_commit": "6ce5f7b04",
+ "measured_at_utc": "2026-11-24T00:00:00Z",
+ "measured_commit": "0707323ed",
  "pin": "C1-C3",
  "rows": [
   {
@@ -6442,15 +6434,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "explicit initializer for flexible array member 'z'",
-   "dynamic_wall": "unsupported:explicit initializer for flexible array member 'z'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20030109-1.c",
    "sha256": "9840fbaf77ea2b8da4c9d7cddbcf165b48016d42febd1daa4ee776c35eee3915",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26484,7 +26476,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strcpy-1.c",
@@ -26493,7 +26485,7 @@
     "libc-call: strcpy",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "runner-error"
   },
   {
    "corpus": "gcc.c-torture/execute",

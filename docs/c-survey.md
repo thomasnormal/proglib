@@ -5,8 +5,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 - verdicts: 1350/2114 MATCH (passed 1350, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `6ce5f7b04`
-- measured at: `2026-11-23T21:15:00Z`
+- measured commit: `0707323ed`
+- measured at: `2026-11-24T00:00:00Z`
 
 ## Verdict counts
 
@@ -19,8 +19,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `passed` | 1350 |
 | `refused-libc` | 28 |
 | `refused-ub` | 41 |
-| `refused-unsupported` | 348 |
-| `runner-error` | 11 |
+| `refused-unsupported` | 347 |
+| `runner-error` | 12 |
 
 ## Counts by corpus
 
@@ -38,8 +38,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `passed` | 1149 |
 | `gcc.c-torture/execute` | `refused-libc` | 26 |
 | `gcc.c-torture/execute` | `refused-ub` | 36 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 210 |
-| `gcc.c-torture/execute` | `runner-error` | 10 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 209 |
+| `gcc.c-torture/execute` | `runner-error` | 11 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 10 |
 | `gcc.c23-run` | `refused-libc` | 1 |
@@ -335,7 +335,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:explicit initializer for flexible array member 'a3p'` | 1 | 1 | 20010924-1.c |
 | `unsupported:explicit initializer for flexible array member 'j'` | 1 | 1 | pr33382.c |
 | `unsupported:explicit initializer for flexible array member 's'` | 1 | 1 | 00216.c |
-| `unsupported:explicit initializer for flexible array member 'z'` | 1 | 1 | 20030109-1.c |
 | `unsupported:extern object 'ReadyFlag_NotProperlyInitialized' has no definition in the translation unit` | 1 | 1 | pr31072.c |
 | `unsupported:extern object 'aa' has no definition in the translation unit` | 1 | 1 | 20000403-1.c |
 | `unsupported:extern object 'i' has no definition in the translation unit` | 1 | 1 | pure-1.c |

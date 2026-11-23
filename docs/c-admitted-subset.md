@@ -2,7 +2,7 @@
 
 Generated from `docs/c-survey.json` and `harness/c_cases.json`.
 
-The pinned GNU17 target currently has 1350/2114 MATCH rows in the active survey denominator. Measurement commit `6ce5f7b04`, date `2026-11-23T21:15:00Z`.
+The pinned GNU17 target currently has 1350/2114 MATCH rows in the active survey denominator. Measurement commit `0707323ed`, date `2026-11-24T00:00:00Z`.
 
 A focused row is an admitted example when its harness expectation is `match`. A `refuse` row documents the exact refusal boundary. Corpus failures are listed as known wrong answers and remain separate from refusals.
 
