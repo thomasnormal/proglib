@@ -234,6 +234,8 @@ def resolve : AllocId → Nat := fun id => if id == 0 then 100 else 200
 def renamedOne : TestStore := renameStore resolve one
 #guard renamedOne.allocations.head!.2.address == some 100
 #guard (renameStore resolve renamedOne) == renamedOne
+#guard renameStore (fun id => id + 300) (renameStore resolve one) ==
+  renameStore (fun id => id + 300) one
 #guard lookup (renameStore resolve one) 0 =
   (lookup one 0).map (renameAllocationValue resolve 0)
 #guard lookup (renameStore resolve one) 99 |>.isNone
