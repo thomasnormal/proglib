@@ -1613,11 +1613,10 @@ elab "load_design_sv2 " name:ident " from " path:str : command => do
   | (msgs, _) =>
       throwErrorAt path
         "load_design_sv2: '{pathStr}' REFUSED — our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):\n  {String.intercalate "\n  " msgs}"
-  -- Parse the optional probe sidecar before checking library defaults.  A
-  -- child may be invalid at its standalone defaults while every point the
-  -- parent actually reaches is valid.  The coverage check below is the
-  -- only route that may admit that case; a standalone child has no sidecar
-  -- and keeps the ordinary default differential refusal.
+  -- Parse the optional probe sidecar before checking library defaults.  Its
+  -- reachable-instance coverage check only adds refusals.  Every library
+  -- module still has to pass its own default differential below, whether or
+  -- not a sidecar is present.
   let sidePath := probeSidecarPath pathStr
   let probes? ← if ← System.FilePath.pathExists ⟨sidePath⟩ then
     let prText ←
