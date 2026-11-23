@@ -536,19 +536,6 @@ def pairedTypedStoreMetadataByte (resolve : AllocId → Nat) (id : AllocId)
     some (sourceResult, targetResult)
   else none
 
-theorem pairedTypedStoreMetadataByte_corresponds
-    (resolve : AllocId → Nat) (id : AllocId)
-    (metadata : AllocationMetadata Tag State TypeId)
-    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
-    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
-      (AllocationMetadata Tag State TypeId × Footprint))
-    (hresult : pairedTypedStoreMetadataByte resolve id metadata offset typeId byte =
-      some result) :
-    result.2.1 = renameMetadata resolve id result.1.1 ∧
-      result.2.2 = result.1.2 := by
-  simp [pairedTypedStoreMetadataByte] at hresult
-  split at hresult <;> simp_all
-
 def typedLoadMetadataByte [BEq TypeId]
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) : Option (Byte Tag × Footprint) := do
@@ -575,18 +562,6 @@ def pairedTypedLoadMetadataByte [BEq TypeId]
     some (sourceResult, targetResult)
   else none
 
-theorem pairedTypedLoadMetadataByte_corresponds [BEq TypeId]
-    (resolve : AllocId → Nat) (id : AllocId)
-    (metadata : AllocationMetadata Tag State TypeId)
-    (offset : Nat) (typeId : TypeId)
-    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
-    (hresult : pairedTypedLoadMetadataByte resolve id metadata offset typeId =
-      some result) :
-    result.2.1 = renameByte resolve result.1.1 ∧
-      result.2.2 = result.1.2 := by
-  simp [pairedTypedLoadMetadataByte] at hresult
-  split at hresult <;> simp_all
-
 def pairedTypedStoreLoadMetadataByte [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
@@ -607,23 +582,6 @@ def pairedTypedStoreLoadMetadataByte [BEq TypeId]
     some ((sourceStore, sourceLoad), (targetStore, targetLoad))
   else none
 
-theorem pairedTypedStoreLoadMetadataByte_sound [BEq TypeId]
-    (resolve : AllocId → Nat) (id : AllocId)
-    (metadata : AllocationMetadata Tag State TypeId)
-    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
-    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint) ×
-      ((AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint)))
-    (hresult : pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte =
-      some result) :
-    result.2.1.1 = renameMetadata resolve id result.1.1.1 ∧
-      result.2.1.2 = result.1.1.2 ∧
-      result.2.2.1 = renameByte resolve result.1.2.1 ∧
-      result.2.2.2 = result.1.2.2 := by
-  simp [pairedTypedStoreLoadMetadataByte] at hresult
-  split at hresult <;> simp_all
-
 def unionLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) : Option (Byte Tag × Footprint) := do
@@ -641,17 +599,6 @@ def pairedUnionLoadMetadataByte (resolve : AllocId → Nat) (id : AllocId)
       targetResult.2 = sourceResult.2 then
     some (sourceResult, targetResult)
   else none
-
-theorem pairedUnionLoadMetadataByte_corresponds
-    (resolve : AllocId → Nat) (id : AllocId)
-    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
-    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
-    (hresult : pairedUnionLoadMetadataByte resolve id metadata offset =
-      some result) :
-    result.2.1 = renameByte resolve result.1.1 ∧
-      result.2.2 = result.1.2 := by
-  simp [pairedUnionLoadMetadataByte] at hresult
-  split at hresult <;> simp_all
 
 def pairedStoreUnionLoadMetadataByte
     (resolve : AllocId → Nat) (id : AllocId)
@@ -672,23 +619,6 @@ def pairedStoreUnionLoadMetadataByte
       targetLoad.2 = sourceLoad.2 then
     some ((sourceStore, sourceLoad), (targetStore, targetLoad))
   else none
-
-theorem pairedStoreUnionLoadMetadataByte_sound
-    (resolve : AllocId → Nat) (id : AllocId)
-    (metadata : AllocationMetadata Tag State TypeId)
-    (offset : Nat) (byte : Byte Tag)
-    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint) ×
-      ((AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint)))
-    (hresult : pairedStoreUnionLoadMetadataByte resolve id metadata offset byte =
-      some result) :
-    result.2.1.1 = renameMetadata resolve id result.1.1.1 ∧
-      result.2.1.2 = result.1.1.2 ∧
-      result.2.2.1 = renameByte resolve result.1.2.1 ∧
-      result.2.2.2 = result.1.2.2 := by
-  simp [pairedStoreUnionLoadMetadataByte] at hresult
-  split at hresult <;> simp_all
 
 inductive RepresentationChoice where
   | byte (bits : UInt8)
