@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1355/2114 MATCH (passed 1355, failed 0, oracle 0)
+- verdicts: 1356/2114 MATCH (passed 1356, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `08de1a330`
-- measured at: `2026-11-24T02:00:00Z`
+- measured commit: `be65bd268`
+- measured at: `2026-11-24T04:00:00Z`
 
 ## Verdict counts
 
@@ -16,10 +16,10 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1355 |
+| `passed` | 1356 |
 | `refused-libc` | 28 |
-| `refused-ub` | 42 |
-| `refused-unsupported` | 342 |
+| `refused-ub` | 44 |
+| `refused-unsupported` | 339 |
 | `runner-error` | 11 |
 
 ## Counts by corpus
@@ -29,16 +29,16 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `c-testsuite/single-exec` | `not-parsed` | 3 |
 | `c-testsuite/single-exec` | `passed` | 192 |
 | `c-testsuite/single-exec` | `refused-libc` | 1 |
-| `c-testsuite/single-exec` | `refused-ub` | 4 |
-| `c-testsuite/single-exec` | `refused-unsupported` | 19 |
+| `c-testsuite/single-exec` | `refused-ub` | 5 |
+| `c-testsuite/single-exec` | `refused-unsupported` | 18 |
 | `c-testsuite/single-exec` | `runner-error` | 1 |
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1153 |
+| `gcc.c-torture/execute` | `passed` | 1154 |
 | `gcc.c-torture/execute` | `refused-libc` | 26 |
-| `gcc.c-torture/execute` | `refused-ub` | 37 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 205 |
+| `gcc.c-torture/execute` | `refused-ub` | 38 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 203 |
 | `gcc.c-torture/execute` | `runner-error` | 10 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 10 |
@@ -271,7 +271,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | wall | sole | present | example files |
 | --- | ---: | ---: | --- |
 | `frontend` | 432 | 432 | 00162.c, 00209.c, 00210.c, 20000112-1.c, 20000227-1.c |
-| `undefined-behavior` | 42 | 42 | 00032.c, 00141.c, 00144.c, 00200.c, 20000910-1.c |
+| `undefined-behavior` | 44 | 44 | 00032.c, 00141.c, 00144.c, 00200.c, 00216.c |
 | `unsupported:extern object 'inside_main' has no definition in the translation unit` | 39 | 39 | builtins/20010124-1-lib.c, builtins/fputs-lib.c, builtins/lib/abs.c, builtins/lib/bfill.c, builtins/lib/bzero.c |
 | `unsupported:goto-controlled pointer increment lacks an exact parser path` | 24 | 24 | 00207.c, 00213.c, 00215.c, 20000605-3.c, 20020418-1.c |
 | `unsupported:pointer bit-cast across incompatible effective types` | 20 | 20 | 00103.c, 00170.c, 20060412-1.c, 991228-1.c, alias-1.c |
@@ -332,9 +332,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:call to '__builtin_nan' in a context with no program — call it through 'callByName'` | 1 | 1 | ieee/builtin-nan-1.c |
 | `unsupported:default union initialization has no named member` | 1 | 1 | pr23324.c |
 | `unsupported:enum bit-field lacks parser-native compatible integer type` | 1 | 1 | 00218.c |
-| `unsupported:explicit initializer for flexible array member 'a3p'` | 1 | 1 | 20010924-1.c |
-| `unsupported:explicit initializer for flexible array member 'j'` | 1 | 1 | pr33382.c |
-| `unsupported:explicit initializer for flexible array member 's'` | 1 | 1 | 00216.c |
 | `unsupported:extern object 'ReadyFlag_NotProperlyInitialized' has no definition in the translation unit` | 1 | 1 | pr31072.c |
 | `unsupported:extern object 'aa' has no definition in the translation unit` | 1 | 1 | 20000403-1.c |
 | `unsupported:extern object 'i' has no definition in the translation unit` | 1 | 1 | pure-1.c |
