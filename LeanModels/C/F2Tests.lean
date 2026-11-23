@@ -97,6 +97,9 @@ def one : TestStore :=
 #guard match renameResult resolve (.refused "reason" one (mergeFootprint 1 0 1)) with
   | .refused "reason" _ _ => true
   | _ => false
+#guard renameResult (fun id => id + 300)
+  (renameResult resolve (.ok fragmentByte one (mergeFootprint 1 0 1))) =
+  renameResult (fun id => id + 300) (.ok fragmentByte one (mergeFootprint 1 0 1))
 
 def footprintWidth : Footprint → Nat
   | { accesses := [(_, region)] } => region.width
@@ -336,6 +339,9 @@ def fixture : ReplayFixture :=
 #guard renameReplayEvents resolve
   [.io "write" "stdout" "ok", .volatileRead [1, 2]] =
   [.io "write" "stdout" "ok", .volatileRead [1, 2]]
+#guard renameReplayEvents (fun id => id + 300)
+  (renameReplayEvents resolve [.io "write" "stdout" "ok"]) =
+  renameReplayEvents (fun id => id + 300) [.io "write" "stdout" "ok"]
 #guard (renameReplayFixture resolve fixture).events = fixture.events
 #guard (renameReplayFixture resolve fixture).ending = fixture.ending
 #guard (renameReplayFixture resolve fixture).placements.head!.base == resolve 3

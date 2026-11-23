@@ -323,6 +323,13 @@ def renameResult (resolve : AllocId → Nat) :
   | .refused reason store footprint =>
       .refused reason (renameStore resolve store) (renameFootprint resolve footprint)
 
+theorem renameResult_comp (first second : AllocId → Nat)
+    (result : Result Tag State F (Byte Tag)) :
+    renameResult second (renameResult first result) =
+      renameResult second result := by
+  cases result <;> simp [renameResult, renameStore, renameAllocation,
+    renameFootprint, renameRegion, renameByte]
+
 theorem renameResult_kind_preserved (resolve : AllocId → Nat)
     (result : Result Tag State F (Byte Tag)) :
     match result, renameResult resolve result with
@@ -1242,6 +1249,12 @@ def renameReplayEvents (resolve : AllocId → Nat) (events : List ReplayEvent) :
 theorem renameReplayEvents_identity (resolve : AllocId → Nat)
     (events : List ReplayEvent) : renameReplayEvents resolve events = events := by
   simp [renameReplayEvents, renameReplayEvent_identity]
+
+theorem renameReplayEvents_comp (first second : AllocId → Nat)
+    (events : List ReplayEvent) :
+    renameReplayEvents second (renameReplayEvents first events) =
+      renameReplayEvents second events := by
+  simp [renameReplayEvents, renameReplayEvent]
 
 inductive ReplayEnding where
   | exit (status : Int)
