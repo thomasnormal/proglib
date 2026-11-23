@@ -215,6 +215,12 @@ theorem twoNbaWitness_all_orders :
       (fun o => o == .value twoNbaExpected) = true := by
   decide
 
+theorem twoNbaWitness_outcomes :
+    allSlotOutcomes 16 twoNbaWitness twoNbaWitness.initial =
+      List.replicate 12 (.value twoNbaExpected) := by
+  decide
+
 #print axioms twoNbaWitness_all_orders
+#print axioms twoNbaWitness_outcomes
 
 end LeanModels.Sv.Scheduler

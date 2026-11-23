@@ -4354,3 +4354,5 @@ change is listed here under **Changed** or **Removed**.
 - sv: add the admitted NBA-only edge-phase progress measure and nonempty-step theorem.
 
 - sv: add a kernel-checked `Scheduler.oneStep` two-process NBA witness whose bounded legal-order outcomes all agree.
+
+- sv: pin the exact twelve legal-order outcomes of the concrete two-process NBA scheduler witness.
