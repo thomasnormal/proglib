@@ -38226,7 +38226,7 @@ def convert_module_sym(sm, inst):
 
 def process_symbolic(top, sources, incdirs, out_path, probed=False,
                      retain_loops=True, retain_proc_rewrites=False,
-                     defines=None):
+                     defines=None, undefines=None):
     """`--top` mode: compile all sources as ONE slang compilation (name
     resolution across packages/files) and emit the top module in the
     extended symbolic vocabulary as one sv-0.2 envelope. `probed`: the
@@ -38259,13 +38259,15 @@ def process_symbolic(top, sources, incdirs, out_path, probed=False,
             "sha256": hashlib.sha256(data).hexdigest(),
         })
 
-    if incdirs or defines:
+    if incdirs or defines or undefines:
         sm_obj = pyslang.SourceManager()
         popt = pyslang.parsing.PreprocessorOptions()
         if incdirs:
             popt.additionalIncludePaths = list(incdirs)
         if defines:
             popt.predefines = list(defines)
+        if undefines:
+            popt.undefines = list(undefines)
         bag = pyslang.Bag([popt])
         tree = SyntaxTree.fromFiles(list(sources), sm_obj, bag)
     else:
@@ -38525,7 +38527,7 @@ def _probe_strip_spans(node):
 
 def write_probe_sidecar(top, sources, incdirs, out_path, points,
                         retain_loops=True, retain_proc_rewrites=False,
-                        defines=None):
+                        defines=None, undefines=None):
     """Extract `top` at every probe point (`parse_probe_points`) and write
     the sidecar next to the envelope `out_path` (already written at the
     defaults). Returns the sidecar path. Each point holds its overrides,
@@ -38561,14 +38563,16 @@ def write_probe_sidecar(top, sources, incdirs, out_path, points,
                 process_symbolic(top, sources, incdirs, tmp,
                                  retain_loops=retain_loops,
                                  retain_proc_rewrites=retain_proc_rewrites,
-                                 defines=defines)
+                                 defines=defines, undefines=undefines)
                 # The P-elaborated hierarchy (slang's own instance values).
-                if incdirs or defines:
+                if incdirs or defines or undefines:
                     popt = pyslang.parsing.PreprocessorOptions()
                     if incdirs:
                         popt.additionalIncludePaths = list(incdirs)
                     if defines:
                         popt.predefines = list(defines)
+                    if undefines:
+                        popt.undefines = list(undefines)
                     tree = SyntaxTree.fromFiles(list(sources), pyslang.SourceManager(),
                                                 pyslang.Bag([popt]))
                 else:
@@ -38762,6 +38766,9 @@ def main(argv=None):
                         default=[], metavar="NAME[=VALUE]",
                         help="predefine NAME (or NAME=VALUE) in Slang's "
                              "SystemVerilog preprocessor")
+    parser.add_argument("-U", "--undefine", dest="undefines", action="append",
+                        default=[], metavar="NAME",
+                        help="undefine NAME in Slang's SystemVerilog preprocessor")
     parser.add_argument("-o", dest="out", default=None, metavar="OUT.json",
                         help="symbolic mode: output path (default: next to "
                         "the file defining the top module)")
@@ -38801,7 +38808,7 @@ def main(argv=None):
                                    args.out, probed=points is not None,
                                    retain_loops=args.retain_loops,
                                    retain_proc_rewrites=args.retain_proc_rewrites,
-                                   defines=args.defines)
+                                   defines=args.defines, undefines=args.undefines)
             print(out)
             if args.census:
                 with open(out, encoding="utf-8") as f:
@@ -38813,7 +38820,7 @@ def main(argv=None):
                                           out, points,
                                           retain_loops=args.retain_loops,
                                           retain_proc_rewrites=args.retain_proc_rewrites,
-                                          defines=args.defines))
+                                          defines=args.defines, undefines=args.undefines))
         else:
             if args.incdirs or args.out:
                 raise ExtractError("-I/-o require --top (symbolic mode)")
