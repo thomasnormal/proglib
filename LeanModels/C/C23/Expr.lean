@@ -632,6 +632,7 @@ def Layout.fieldBitsAtResolved (layout : Layout) (base : Expr) (field : String) 
 
 def Layout.bitFieldOf (layout : Layout) : Expr → Option (Nat × Nat)
   | .paren sub .. => layout.bitFieldOf sub
+  | .implicitCast _ sub .. | .cast _ sub .. => layout.bitFieldOf sub
   | .member base field .. => layout.fieldBitsAtResolved base field
   | _ => none
 
@@ -1848,11 +1849,17 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       else do
         let lv ← evalExpr ctx l
         let rv ← evalExpr ctx r
-        let pointerBase := match lv, rv with
-          | .ptr _, _ => some l
-          | _, .ptr _ => some r
-          | _, _ => some l
-        evalArith ctx op lv rv ty (some l.ty) pointerBase structuredType
+        let wideBitField :=
+          (ctx.layout.bitFieldOf l).orElse (fun _ => ctx.layout.bitFieldOf r) |>.any
+            (fun (_, width) => width > 32)
+        if wideBitField then
+          refuseUnsupported "arithmetic on bit-fields wider than int requires exact promotion semantics"
+        else
+          let pointerBase := match lv, rv with
+            | .ptr _, _ => some l
+            | _, .ptr _ => some r
+            | _, _ => some l
+          evalArith ctx op lv rv ty (some l.ty) pointerBase structuredType
 
   -- §6.5.16p4 — `?:`, the third short-circuit: EXACTLY ONE arm runs. 42 sites.
   | .cond c t e _ _ .. => do
