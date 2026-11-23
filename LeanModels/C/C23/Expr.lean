@@ -1236,15 +1236,7 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : String)
   -- §6.5.7p8 — pointer + integer, and it is the pointer rule that applies
   -- whenever either operand is one. Measured: 8 `+`, 4 `-`.
   | .ptr p, .int _ i =>
-      let nestedArrayPointer :=
-        (base.bind (ctx.layout.structuredTypeAt ·)).bind
-          LeanModels.Clang.QualType.pointee |>.map (fun pointee =>
-            match pointee.unqualified with
-            | .array _ _ => true
-            | _ => false) |>.getD false
-      if nestedArrayPointer then
-        refuseUnsupported "pointer operation on an array subobject"
-      else if op == "+" || op == "-" then
+      if op == "+" || op == "-" then
         match ctx.layout.pointeeSizeAt base ty with
         | some esz => do
             let d := if op == "+" then i else -i
@@ -1253,15 +1245,7 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : String)
         | none => refuseUnsupported s!"no size for pointee of '{ty}'"
       else refuseUnsupported s!"operator '{op}' on a pointer and an integer"
   | .int _ i, .ptr p =>
-      let nestedArrayPointer :=
-        (base.bind (ctx.layout.structuredTypeAt ·)).bind
-          LeanModels.Clang.QualType.pointee |>.map (fun pointee =>
-            match pointee.unqualified with
-            | .array _ _ => true
-            | _ => false) |>.getD false
-      if nestedArrayPointer then
-        refuseUnsupported "pointer operation on an array subobject"
-      else if op == "+" then
+      if op == "+" then
         match ctx.layout.pointeeSizeAt base ty with
         | some esz => do
             let q ← readMem (fun m => Mem.offsetPtr m p esz i)
@@ -1271,15 +1255,7 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : String)
   -- §6.5.10p7 vs §6.5.9p6 — the asymmetry: `==`/`!=` across unrelated
   -- objects is DEFINED, `<` and friends are UNDEFINED.
   | .ptr a, .ptr b =>
-      let nestedArrayPointer :=
-        (base.bind (ctx.layout.structuredTypeAt ·)).bind
-          LeanModels.Clang.QualType.pointee |>.map (fun pointee =>
-            match pointee.unqualified with
-            | .array _ _ => true
-            | _ => false) |>.getD false
-      if nestedArrayPointer then
-        refuseUnsupported "pointer operation on an array subobject"
-      else if op == "-" then
+      if op == "-" then
         -- C23 §6.5.7p9: subtracting pointers is defined only within one
         -- array (including its one-past element), and the byte distance must
         -- be an exact multiple of the element size.  The envelope retains
