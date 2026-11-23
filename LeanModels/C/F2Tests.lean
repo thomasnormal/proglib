@@ -54,6 +54,12 @@ def one : TestStore :=
 #guard pairedAllocateZeroSize resolve () (.address 128)
 #guard pairedAllocateZeroSize resolve () .unaddressable
 #guard pairedAllocateZeroSize resolve () .fail
+#guard match allocateZeroSize () (.address 128) with
+  | (.token token, _) =>
+      zeroTokenEqual (renameZeroTokenMetadata resolve token)
+        (renameZeroTokenMetadata resolve token) &&
+      zeroTokenFreeable (renameZeroTokenMetadata resolve token)
+  | _ => false
 #guard footprintAgrees (mergeFootprint 1 0 2) (mergeFootprint 1 0 2)
 
 def footprintWidth : Footprint → Nat
