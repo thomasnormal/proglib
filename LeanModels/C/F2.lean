@@ -166,6 +166,43 @@ structure Exposure where
   exposed : Bool
 deriving Repr, BEq
 
+structure ReplayPlacement where
+  allocation : AllocId
+  base : Nat
+  size : Nat
+  exposed : Bool
+deriving Repr, BEq
+
+inductive ReplayEvent where
+  | io (operation channel data : String)
+  | volatileRead (data : List UInt8)
+  | volatileWrite (data : List UInt8)
+deriving Repr, BEq
+
+inductive ReplayEnding where
+  | exit (status : Int)
+  | signal (number : Nat)
+  | exhausted
+  | diverges
+  | ub (clause operand : String)
+  | refused (name : String)
+deriving Repr, BEq
+
+structure ReplayFixture where
+  sourceHash : String
+  compilerVersion : String
+  targetTriple : String
+  placements : List ReplayPlacement
+  events : List ReplayEvent
+  ending : ReplayEnding
+deriving Repr
+
+def ReplayFixture.wellFormed (fixture : ReplayFixture) : Prop :=
+  fixture.sourceHash ≠ "" ∧ fixture.compilerVersion ≠ "" ∧
+    fixture.targetTriple ≠ "" ∧
+    fixture.placements.Pairwise (fun left right =>
+      left.base + left.size ≤ right.base ∨ right.base + right.size ≤ left.base)
+
 def expose (state : Exposure) : Exposure := { exposed := true }
 
 inductive Recovery where

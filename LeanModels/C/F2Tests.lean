@@ -47,4 +47,14 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
   | .empty _ => true
   | _ => false
 
+def fixture : ReplayFixture :=
+  { sourceHash := "source-sha256"
+    compilerVersion := "clang version 21.1.8"
+    targetTriple := "x86_64-linux-gnu"
+    placements := [{ allocation := 3, base := 96, size := 8, exposed := true }]
+    events := [.io "write" "stdout" "ok"]
+    ending := .exit 0 }
+
+#guard fixture.wellFormed
+
 end LeanModels.C.F2Tests
