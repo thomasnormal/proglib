@@ -196,6 +196,7 @@ def renamedOne : TestStore := renameStore resolve one
 #guard renamedOne.allocations.head!.2.address == some 100
 #guard (renameStore resolve renamedOne) == renamedOne
 #guard (WellFormed (renameStore resolve one) : Prop) = True
+#guard (WellFormed (renameStore resolve one) ↔ WellFormed one : Prop) = True
 #guard (renamePointer resolve pointer).provenance == pointer.provenance
 #guard (renameByte resolve fragmentByte).fragment == fragmentByte.fragment
 #guard (renameByte resolve fragmentByte).provenance == fragmentByte.provenance
