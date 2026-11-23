@@ -906,8 +906,8 @@ def pairedStoreRepresentationLoadMetadataByte
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice) :
-    Option ((AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint) ×
+    Option (((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
       ((AllocationMetadata Tag State TypeId × Footprint) ×
       (Byte Tag × Footprint))) := do
   let sourceStore ← storeMetadataByte metadata offset byte
@@ -982,9 +982,6 @@ theorem renameStore_comp_wf (first second : AllocId → Nat)
     WellFormed (renameStore second (renameStore first store)) := by
   rw [renameStore_comp]
   exact renameStore_wf second store hstore
-
-def footprint (kind : AccessKind) (region : Region) : Footprint :=
-  { accesses := [(kind, region)] }
 
 def intervalOverlap (leftBase leftSize rightBase rightSize : Nat) : Bool :=
   leftBase < rightBase + rightSize && rightBase < leftBase + leftSize
