@@ -258,6 +258,31 @@ inductive Result (Tag State F A : Type) where
   | refused (reason : String) (store : Store Tag State) (footprint : Footprint)
 deriving Repr
 
+def renameResult (resolve : AllocId → Nat) :
+    Result Tag State F (Byte Tag) → Result Tag State F (Byte Tag)
+  | .ok value store footprint =>
+      .ok (renameByte resolve value) (renameStore resolve store)
+        (renameFootprint resolve footprint)
+  | .fault error store footprint =>
+      .fault error (renameStore resolve store) (renameFootprint resolve footprint)
+  | .refused reason store footprint =>
+      .refused reason (renameStore resolve store) (renameFootprint resolve footprint)
+
+theorem renameResult_kind_preserved (resolve : AllocId → Nat)
+    (result : Result Tag State F (Byte Tag)) :
+    match result, renameResult resolve result with
+    | .ok .., .ok .. => True
+    | .fault .., .fault .. => True
+    | .refused .., .refused .. => True
+    | _, _ => False := by
+  cases result <;> simp [renameResult]
+
+theorem renameResult_refusal_reason (resolve : AllocId → Nat)
+    (reason : String) (store : Store Tag State) (footprint : Footprint) :
+    renameResult resolve (.refused reason store footprint) =
+      .refused reason (renameStore resolve store) (renameFootprint resolve footprint) := by
+  rfl
+
 def lookup (store : Store Tag State) (id : AllocId) : Option (Allocation Tag State) :=
   store.allocations.find? (fun entry => entry.1 == id) |>.map (·.2)
 
