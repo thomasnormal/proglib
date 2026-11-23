@@ -4450,3 +4450,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: carry the driver-backed indexed NBA view through the real step refinement.
 - sv: expose driver-backed terminal-path uniqueness for the admitted NBA range.
 - sv: package admitted NBA progress, uniqueness, and canonical-view confluence.
+- sv: instantiate admitted NBA confluence on shift-register, counter, and case-process envelopes.

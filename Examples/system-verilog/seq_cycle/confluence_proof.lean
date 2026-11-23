@@ -215,4 +215,98 @@ theorem case_scheduler_terminal
 #print axioms cnt_scheduler_terminal
 #print axioms case_scheduler_terminal
 
+/-! Driver-backed confluence receipts for the same three real envelopes.  The
+    process-record distinctness premise stays explicit because the parser can
+    represent duplicate empty-target records. -/
+theorem shreg_confluent_drivers (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30)
+    {E : CoreMemDesign} (hE : shreg.e N = .ok E)
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s : EdgeScheduleState} (F : Nat → NbaQueue2) (hs : s.pending = List.range E.processes.size)
+    {mv : MemV}
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ s.view s.view s.view mv p = .ok (F k))
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV} (hroute : E.edgesV s.view s.view s.view mv E.processes.toList = .ok r) :
+    ∃ n t, EdgeScheduleTerminalPath E s.view s.view s.view mv n s t ∧
+      (∀ n' t', EdgeScheduleTerminalPath E s.view s.view s.view mv n' s t' → t' = t) ∧
+      t.view = commitNba2 s.view r.2.1 := by
+  have hD : SeqDesign (shreg.e N) "clk" := by
+    cases hX : shreg.e N with
+    | ok E' =>
+        sv_seq_inst [shreg.e, shreg.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [shreg.e, shreg.pdesign] at hX
+    | unsupported m => sv_seq_inst [shreg.e, shreg.pdesign] at hX
+  obtain ⟨E', hE', _, _⟩ := hD
+  have hEq : E' = E := Res.ok.inj (hE'.symm.trans hE)
+  subst E'
+  exact EdgeScheduleTerminalPath.confluent_processes_range_drivers
+    hdrivers hdistinct F hs hw hq hkeys hroute
+
+theorem cnt_confluent_drivers (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30)
+    {E : CoreMemDesign} (hE : cnt.e N = .ok E)
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s : EdgeScheduleState} (F : Nat → NbaQueue2) (hs : s.pending = List.range E.processes.size)
+    {mv : MemV}
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ s.view s.view s.view mv p = .ok (F k))
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV} (hroute : E.edgesV s.view s.view s.view mv E.processes.toList = .ok r) :
+    ∃ n t, EdgeScheduleTerminalPath E s.view s.view s.view mv n s t ∧
+      (∀ n' t', EdgeScheduleTerminalPath E s.view s.view s.view mv n' s t' → t' = t) ∧
+      t.view = commitNba2 s.view r.2.1 := by
+  have hD : SeqDesign (cnt.e N) "clk" := by
+    cases hX : cnt.e N with
+    | ok E' =>
+        sv_seq_inst [cnt.e, cnt.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [cnt.e, cnt.pdesign] at hX
+    | unsupported m => sv_seq_inst [cnt.e, cnt.pdesign] at hX
+  obtain ⟨E', hE', _, _⟩ := hD
+  have hEq : E' = E := Res.ok.inj (hE'.symm.trans hE)
+  subst E'
+  exact EdgeScheduleTerminalPath.confluent_processes_range_drivers
+    hdrivers hdistinct F hs hw hq hkeys hroute
+
+theorem case_confluent_drivers
+    {E : CoreMemDesign} (hE : caseF.e = .ok E)
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s : EdgeScheduleState} (F : Nat → NbaQueue2) (hs : s.pending = List.range E.processes.size)
+    {mv : MemV}
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ s.view s.view s.view mv p = .ok (F k))
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV} (hroute : E.edgesV s.view s.view s.view mv E.processes.toList = .ok r) :
+    ∃ n t, EdgeScheduleTerminalPath E s.view s.view s.view mv n s t ∧
+      (∀ n' t', EdgeScheduleTerminalPath E s.view s.view s.view mv n' s t' → t' = t) ∧
+      t.view = commitNba2 s.view r.2.1 := by
+  have hD : SeqDesign caseF.e "clk" := by
+    cases hX : caseF.e with
+    | ok E' =>
+        sv_seq_inst [caseF.e, caseF.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [caseF.e, caseF.pdesign] at hX
+    | unsupported m => sv_seq_inst [caseF.e, caseF.pdesign] at hX
+  obtain ⟨E', hE', _, _⟩ := hD
+  have hEq : E' = E := Res.ok.inj (hE'.symm.trans hE)
+  subst E'
+  exact EdgeScheduleTerminalPath.confluent_processes_range_drivers
+    hdrivers hdistinct F hs hw hq hkeys hroute
+
+#print axioms shreg_confluent_drivers
+#print axioms cnt_confluent_drivers
+#print axioms case_confluent_drivers
+
 end Examples.«system-verilog».seq_cycle.confluence_proof
