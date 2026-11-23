@@ -333,7 +333,8 @@ class LoopHeaders(Base):
         for header in (
                 "int i = 1342177279; i < 1342177280; i += 1073741825",
                 "int i = -2147483647; i < 2146697210; i += 1048584",
-                "int i = 2147483640; i <= 2147483647; i++"):
+                "int i = 2147483640; i <= 2147483647; i++",
+                "int i = 5; i == 5; i += 64'd4294967296"):
             m = self.module("module t (output logic y); always_comb begin y = 1'b0;"
                             " for (%s) y = 1'b1; end endmodule" % header)
             loops = [st for st in always_comb_body(m)["stmts"]

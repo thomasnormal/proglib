@@ -1581,19 +1581,59 @@ def forValues2Int32 (env : IEnv) (iterator : String) (init condition step : PExp
   | .ok fuel =>
       match condition, evalInt env init, procStepDelta2 env iterator step with
       | .binary op _ rhs, .ok start, .ok delta =>
-          if op == .slt || op == .sle || op == .sgt || op == .sge then
-            match evalInt env rhs with
-            | .ok _ =>
-                let trips := fuel - 2
-                let exit := start + (trips : Int) * delta
-                if start < (-2147483648 : Int) || start > 2147483647 ||
-                    exit < (-2147483648 : Int) || exit > 2147483647 then
-                  .unsupported "for iterator leaves signed 32-bit range"
-                else forValuesFuel2 env iterator init condition step fuel
-            | .error _ => forValuesFuel2 env iterator init condition step fuel
-          else forValuesFuel2 env iterator init condition step fuel
+          match evalInt env rhs with
+          | .ok _ =>
+              let trips := fuel - 2
+              let exit := start + (trips : Int) * delta
+              if start < (-2147483648 : Int) || start > 2147483647 ||
+                  exit < (-2147483648 : Int) || exit > 2147483647 then
+                .unsupported "for iterator leaves signed 32-bit range"
+              else forValuesFuel2 env iterator init condition step fuel
+          | .error _ => forValuesFuel2 env iterator init condition step fuel
       | _, _, _ => forValuesFuel2 env iterator init condition step fuel
   | .error e => .unsupported s!"for fuel: {e}"
+
+theorem forValuesFuel2_go_length_add_one_le
+    (env : IEnv) (iterator : String) (condition : PExpr) (delta : Int) :
+    ∀ {fuel : Nat} {i : Int} {values : List Int},
+      forValuesFuel2.go env iterator condition delta fuel i = .ok values →
+        values.length + 1 ≤ fuel := by
+  intro fuel
+  induction fuel with
+  | zero =>
+      intro i values h
+      simp [forValuesFuel2.go] at h
+  | succ fuel ih =>
+      intro i values h
+      simp only [forValuesFuel2.go] at h
+      split at h <;> try simp_all
+      next x guard heq =>
+        by_cases hz : guard = 0
+        · simp [hz] at h
+          subst values
+          exact Nat.zero_le fuel
+        · simp [hz, Res.bind_eq_ok, Res.ok.injEq] at h
+          obtain ⟨rest, hr, rfl⟩ := h
+          have hh := ih hr
+          simp only [List.length_cons] at *
+          omega
+
+theorem forValuesFuel2_length_add_two_le
+    (env : IEnv) (iterator : String) (init condition step : PExpr) :
+    ∀ {fuel : Nat} {values : List Int},
+      forValuesFuel2 env iterator init condition step fuel = .ok values →
+        values.length + 2 ≤ fuel := by
+  intro fuel
+  cases fuel with
+  | zero => simp [forValuesFuel2]
+  | succ fuel =>
+      intro values h
+      simp only [forValuesFuel2] at h
+      split at h <;> try simp_all
+      next i0 delta hi hd =>
+        have hg := forValuesFuel2_go_length_add_one_le env iterator condition delta h
+        omega
+
 
 theorem forValues2_of_forValues2Int32_ok
     (env : IEnv) (iterator : String) (init condition step : PExpr)
@@ -2868,6 +2908,25 @@ private def iteratorWrapRefused (r : Res (List Int)) : Bool :=
 #guard iteratorWrapRefused (forValues2Int32 {} "i" (.int 1342177279) loopWrap1Cond loopWrap1Step)
 #guard iteratorWrapRefused (forValues2Int32 {} "i" (.int (-2147483647)) loopWrap4096Cond loopWrap4096Step)
 #guard iteratorWrapRefused (forValues2Int32 {} "i" (.int 2147483640) loopInfCond loopInc)
+
+private def loopEqBigStepCond : PExpr :=
+  .binary (.m0 .eq) (.genvarRef "i") (.int 5)
+private def loopEqBigStep : PExpr :=
+  .binary (.m0 .add) (.genvarRef "i") (.int 4294967296)
+private def loopNeWideCond : PExpr :=
+  .binary (.m0 .ne) (.genvarRef "i") (.int 2147483650)
+private def loopUnsignedBoundCond : PExpr :=
+  .binary (.m0 .lt) (.genvarRef "i") (.paramRef "N" none)
+private def loopUnsignedBoundEnv : IEnv :=
+  { nvals := [("N", (2147483650, 32, false))] }
+
+/-! Equality, inequality, and unsigned comparison headers use the same checked
+range boundary. This keeps the unbounded arithmetic tier from manufacturing a
+value for a 32-bit trace that wraps or does not terminate. -/
+#guard iteratorWrapRefused (forValues2Int32 {} "i" (.int 5) loopEqBigStepCond loopEqBigStep)
+#guard iteratorWrapRefused
+  (forValues2Int32 loopUnsignedBoundEnv "i" (.int 2147483646) loopUnsignedBoundCond loopInc)
+#guard iteratorWrapRefused (forValues2Int32 {} "i" (.int 0) loopNeWideCond loopInc)
 
 -- Generate guards read 32-bit int parameters from `nvals` as well as the
 -- unbounded `vals` table; both paths must select the same guarded family.
