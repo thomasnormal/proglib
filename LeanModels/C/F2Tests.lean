@@ -246,6 +246,8 @@ def pointerStore : TestStore :=
 #guard (offsetPointer pointer 0 1 pointer.address).isError
 #guard pairedOffsetPointer resolve pointer 1 0 pointer.address
 #guard (expose { exposed := false }).exposed
+#guard renameExposure resolve { exposed := true } == { exposed := true }
+#guard (renameExposure resolve (expose { exposed := false })).exposed
 #guard match recoverAddress 100 [(3, 96, 104, ())] with
   | .recovered _ => true
   | _ => false
