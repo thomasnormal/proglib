@@ -322,6 +322,28 @@ theorem CombWork.openNode_blockingAssign_scalar
   simp only [CombWork.openNode, CoreMemDesign.execCombStmtFuel, hlocal, htarget, htest]
   cases h : E.evalExprLocals env E.elems st (some width) locals value <;> simp [h]
 
+/-! Two scalar blocking leaves compose through the real statement executor.
+The second expression is evaluated in the state and view produced by the first
+leaf, matching the retained-process cut used by `CombCursor.resume`. -/
+theorem CoreMemDesign.execCombStmtsFuel_two_blocking_scalar
+    {E : CoreMemDesign} {env : IEnv} {st : CoreMemState} {view locals : SvState}
+    {n m : String} {e₁ e₂ : PExpr} {widthN widthM : Nat} {v₁ v₂ : LVec}
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : PExpr.hasTestPlusargs e₁ = false)
+    (htestM : PExpr.hasTestPlusargs e₂ = false)
+    (hv₁ : E.evalExprLocals env E.elems st (some widthN) locals e₁ = .ok v₁)
+    (hv₂ : E.evalExprLocals env E.elems (E.setScalarState st n v₁)
+      (some widthM) locals e₂ = .ok v₂) :
+    E.execCombStmtsFuel env E.elems st view locals 3
+      [.blockingAssign n e₁, .blockingAssign m e₂] =
+      .ok (E.setScalarState (E.setScalarState st n v₁) m v₂,
+        SvState.set (SvState.set view n v₁) m v₂, locals) := by
+  simp [CoreMemDesign.execCombStmtsFuel, CoreMemDesign.execCombStmtFuel,
+    hlocalN, htargetN, htestN, hv₁, hlocalM, htargetM, htestM, hv₂]
+
 /-! Composing the single-write evaluator frame gives the exact two-write
 frame needed by a cross-resume proof.  The two view equations are explicit so
 this theorem does not hide any scheduler or coherence assumption. -/
