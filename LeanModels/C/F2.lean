@@ -446,6 +446,24 @@ theorem pairedMergeByte_sound (resolve : AllocId → Nat) (old : Byte Tag)
 def copySnapshot (source destination : List (Byte Tag)) : Option (List (Byte Tag)) :=
   if source.length == destination.length then some source else none
 
+def pairedCopySnapshot (resolve : AllocId → Nat)
+    (source destination : List (Byte Tag)) :
+    Option ((List (Byte Tag)) × (List (Byte Tag))) := do
+  let sourceResult ← copySnapshot source destination
+  let targetResult ← copySnapshot (source.map (renameByte resolve))
+    (destination.map (renameByte resolve))
+  if targetResult = sourceResult.map (List.map (renameByte resolve)) then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedCopySnapshot_sound (resolve : AllocId → Nat)
+    (source destination : List (Byte Tag))
+    (result : List (Byte Tag) × List (Byte Tag))
+    (hresult : pairedCopySnapshot resolve source destination = some result) :
+    result.2 = result.1.map (renameByte resolve) := by
+  simp [pairedCopySnapshot] at hresult
+  split at hresult <;> simp_all
+
 def copyFootprint (source destination : Region) (width : Nat) : Footprint :=
   { accesses := [(.read { source with width := width }),
                  (.write { destination with width := width })] }
