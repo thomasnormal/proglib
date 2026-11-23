@@ -134,6 +134,7 @@ def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
 #guard (mergeByte fragmentByte 1 0 0).fragment == some 4
 #guard copySnapshot [oneByte] [.uninitialized] == some [oneByte]
 #guard copySnapshot [oneByte] [] |>.isNone
+#guard (pairedCopySnapshot resolve [oneByte] [.uninitialized]).isSome
 #guard (copyFootprint { allocation := 1, offset := 0, width := 0 }
   { allocation := 2, offset := 4, width := 0 } 1).accesses.length == 2
 #guard regionsOverlap { allocation := 1, offset := 0, width := 2 }
