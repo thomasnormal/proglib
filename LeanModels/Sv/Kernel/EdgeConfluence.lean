@@ -152,9 +152,7 @@ theorem CoreMemDesign.edge_queue_disjoint_of_drivers
     {E : CoreMemDesign} (hdrivers : E.oblDrivers = true)
     {i j : Nat} {p q : CoreMemProc} {before after v : SvState} {mv : MemV}
     (hi : E.processes[i]? = some p) (hj : E.processes[j]? = some q)
-    (hij : i ≠ j)
-    (hproc : ∀ (hi : i < E.processes.size) (hj : j < E.processes.size),
-      E.processes[i]'hi ≠ E.processes[j]'hj)
+    (hij : i ≠ j) (hproc : p ≠ q)
     (hp : p.nbaWholeP = true) (hq : q.nbaWholeP = true)
     {qp qq : NbaQueue2}
     (hqp : edgeProcQ E before after v mv i = .ok qp)
@@ -184,13 +182,62 @@ theorem CoreMemDesign.edge_queue_disjoint_of_drivers
   have htargets := flatMap_nodup_pairwise hflat
     (a := E.processes[i]) (b := E.processes[j])
     (Array.getElem_mem_toList hi')
-    (Array.getElem_mem_toList hj') (hproc hi' hj')
+    (Array.getElem_mem_toList hj') hproc
   intro u hu u' hu'
   have huT := edgeProcQ_targets hi hp hqp u hu
   have hu'T := edgeProcQ_targets hj hq hqq u' hu'
   exact htargets u.1 huT u'.1 hu'T
 
 #print axioms CoreMemDesign.edge_queue_disjoint_of_drivers
+
+theorem EdgeScheduleAdmission.of_processes_range_drivers
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    (F : Nat → NbaQueue2)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after v mv p = .ok (F k)) :
+    EdgeScheduleAdmission E before after v mv (List.range E.processes.size) := by
+  refine {
+    nodup := List.nodup_range,
+    inRange := ?_,
+    defined := ?_,
+    disjoint := ?_ }
+  · intro i hiMem
+    have hi : i < E.processes.size := List.mem_range.mp hiMem
+    let pi := E.processes[i]'hi
+    exact ⟨pi, Array.getElem?_eq_getElem hi⟩
+  · intro i hiMem
+    have hi : i < E.processes.size := List.mem_range.mp hiMem
+    let pi := E.processes[i]'hi
+    exact ⟨F i, by
+      simpa [edgeProcQ, Array.getElem?_eq_getElem hi] using
+        (hq i pi (Array.getElem?_eq_getElem hi))⟩
+  · intro i hiMem j hjMem hij q₁ q₂ hq₁ hq₂ u hui u' hu'i
+    have hi : i < E.processes.size := List.mem_range.mp hiMem
+    have hj : j < E.processes.size := List.mem_range.mp hjMem
+    let pi := E.processes[i]'hi
+    let pj := E.processes[j]'hj
+    have hqi : q₁ = F i := by
+      apply Res.ok.inj
+      exact hq₁.symm.trans (by
+        simpa [edgeProcQ, Array.getElem?_eq_getElem hi] using
+          (hq i pi (Array.getElem?_eq_getElem hi)))
+    have hqj : q₂ = F j := by
+      apply Res.ok.inj
+      exact hq₂.symm.trans (by
+        simpa [edgeProcQ, Array.getElem?_eq_getElem hj] using
+          (hq j pj (Array.getElem?_eq_getElem hj)))
+    exact CoreMemDesign.edge_queue_disjoint_of_drivers hdrivers
+      (Array.getElem?_eq_getElem hi) (Array.getElem?_eq_getElem hj) hij
+      (hdistinct i j hi hj hij) (hw i pi (Array.getElem?_eq_getElem hi))
+      (hw j pj (Array.getElem?_eq_getElem hj))
+      (by simpa [hqi] using hq₁) (by simpa [hqj] using hq₂)
+      u hui u' hu'i
+
+#print axioms EdgeScheduleAdmission.of_processes_range_drivers
 
 private theorem removeProcessId_mem_of_ne {i j : Nat} {xs : List Nat}
     (h : j ∈ xs) (hne : j ≠ i) : j ∈ removeProcessId i xs := by
