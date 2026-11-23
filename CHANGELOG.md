@@ -4442,3 +4442,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: frame parser-native scalar reads and exact evaluator results across both orders of two disjoint scalar writes.
 - sv: instantiate the retained blocking cursor's two-write local diamond from the parser-native evaluator frames and coherent write commutation.
 - sv: record the exact queue trace of every admitted NBA edge-scheduler terminal path as a permutation of process contributions.
+- sv: derive the canonical committed view for an admitted NBA path from pairwise-disjoint queue contributions.

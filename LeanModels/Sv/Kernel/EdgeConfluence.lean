@@ -286,6 +286,26 @@ theorem EdgeScheduleTerminalPath.queue_trace
 
 #print axioms EdgeScheduleTerminalPath.queue_trace
 
+/-! Pairwise-disjoint queue contributions erase the scheduler permutation. -/
+theorem EdgeScheduleTerminalPath.canonical_view
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {ids : List Nat} {s t : EdgeScheduleState} {n : Nat}
+    (q : Nat → NbaQueue2)
+    (hq : ∀ i ∈ ids, edgeProcQ E before after v mv i = .ok (q i))
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ q i, ∀ u' ∈ q j, NbaDisj u u')
+    (hsub : ∀ i ∈ s.pending, i ∈ ids)
+    (hnodup : s.pending.Nodup)
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    (hp : EdgeScheduleTerminalPath E before after v mv n s t) :
+    t.view = commitNba2 s.view (s.pending.flatMap q) := by
+  obtain ⟨choices, hchoices, htrace⟩ :=
+    EdgeScheduleTerminalPath.queue_trace q hq hsub hnodup hp
+  rw [htrace]
+  have hchoices_nd : choices.Nodup := hchoices.nodup_iff.mpr hnodup
+  exact commitNba2_perm hdisj hchoices hchoices_nd hkeys
+
+#print axioms EdgeScheduleTerminalPath.canonical_view
+
 theorem EdgeScheduleTerminalPath.unique
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
     {ids : List Nat} (ad : EdgeScheduleAdmission E before after v mv ids)
