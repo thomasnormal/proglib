@@ -1416,6 +1416,32 @@ def PlacementAgreement.agrees (agreement : PlacementAgreement) : Prop :=
   ∀ allocation, agreement.exposed allocation →
     agreement.left allocation = agreement.right allocation
 
+theorem PlacementAgreement.agrees_iff (agreement : PlacementAgreement) :
+    agreement.agrees ↔
+      ∀ allocation, agreement.exposed allocation = false ∨
+        agreement.left allocation = agreement.right allocation := by
+  constructor
+  · intro h allocation
+    by_cases hexposed : agreement.exposed allocation
+    · right
+      exact h allocation hexposed
+    · left
+      exact Bool.eq_false_of_not_eq_true hexposed
+  · intro h allocation hexposed
+    exact (h allocation).resolve_left (Bool.eq_true_of_decide hexposed)
+
+def zeroTokenPlacementAgreement (left right : AllocationMetadata Tag State TypeId) :
+    PlacementAgreement :=
+  { left := fun _ => left.allocation.address
+    right := fun _ => right.allocation.address
+    exposed := fun _ => false }
+
+theorem zeroTokenPlacementAgreement_agrees
+    (left right : AllocationMetadata Tag State TypeId) :
+    (zeroTokenPlacementAgreement left right).agrees := by
+  intro allocation hexposed
+  simp [zeroTokenPlacementAgreement] at hexposed
+
 theorem PlacementAgreement.refl (left : AllocId → Option Nat)
     (exposed : AllocId → Bool) :
     (PlacementAgreement.mk left left exposed).agrees := by
