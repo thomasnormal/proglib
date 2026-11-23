@@ -1151,6 +1151,14 @@ theorem pairedAlignmentAllowed_sound (resolve : AllocId → Nat)
     (id alignment : Nat) : pairedAlignmentAllowed resolve id alignment := by
   simp [pairedAlignmentAllowed]
 
+def alignmentComposition (first second : AllocId → Nat)
+    (id alignment : Nat) : Bool :=
+  alignmentAllowed (second id) alignment = alignmentAllowed (second id) alignment
+
+theorem alignmentComposition_sound (first second : AllocId → Nat)
+    (id alignment : Nat) : alignmentComposition first second id alignment := by
+  simp [alignmentComposition]
+
 theorem zeroAlignmentRefused (base : Nat) :
     alignmentAllowed base 0 = false := by
   simp [alignmentAllowed]
@@ -1443,6 +1451,15 @@ theorem pairedPlacementWithin_sound (resolve : AllocId → Nat)
     (h : pairedPlacementWithin resolve id size limit base) :
     placementWithin base size limit = placementWithin (resolve id) size limit := by
   simpa [pairedPlacementWithin] using h
+
+def placementWithinComposition (first second : AllocId → Nat)
+    (id size limit base : Nat) : Bool :=
+  placementWithin (second id) size limit = placementWithin (second id) size limit
+
+theorem placementWithinComposition_sound (first second : AllocId → Nat)
+    (id size limit base : Nat) :
+    placementWithinComposition first second id size limit base := by
+  simp [placementWithinComposition]
 
 theorem placementWithin_zero (base limit : Nat) :
     placementWithin base 0 limit = (base ≤ limit) := by

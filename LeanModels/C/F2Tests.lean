@@ -24,6 +24,7 @@ def one : TestStore :=
 #guard alignmentAllowed 16 8
 #guard !alignmentAllowed 18 8
 #guard pairedAlignmentAllowed resolve 0 8
+#guard alignmentComposition resolve (fun id => id + 300) 0 8
 #guard zeroAlignmentRefused 16
 #guard (allocateAligned empty { bytes := [oneByte], state := () }
   (.address 16) 8).isSome
@@ -36,6 +37,7 @@ def one : TestStore :=
 #guard placementWithin 8 4 16
 #guard !placementWithin 14 4 16
 #guard pairedPlacementWithin resolve 0 4 16 8
+#guard placementWithinComposition resolve (fun id => id + 300) 0 4 16 8
 #guard placementWithin_zero 8 16
 #guard (allocateBounded empty { bytes := [oneByte], state := () }
   (.address 8) 8 16).isOk
