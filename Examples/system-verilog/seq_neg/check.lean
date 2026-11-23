@@ -74,14 +74,14 @@ load_design_sv2 untypedChildOverride from
   | _ => false
 
 /-! A hierarchy can contain a child whose own default is invalid while an
-instance supplies valid typed widths. The sidecar now admits this fixture only
-through the canonical memory comparison at every reached point. Its two points
-are W=2 and W=4, and the loaded hierarchy exposes the child library. -/
+instance supplies a valid typed width. The loader keeps the standalone
+default differential refusal. -/
+/--
+error: load_design_sv2: 'Examples/system-verilog/seq_neg/serv_child_default.sv.json' REFUSED — module 'serv_child_ram' of the hierarchy: our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):
+  defaults: parameter 'depth' default: division by zero in a constant context (reads x)
+-/
+#guard_msgs in
 load_design_sv2 servChildDefault from "Examples/system-verilog/seq_neg/serv_child_default.sv.json"
-#guard servChildDefault.plib.length == 1
-#guard servChildDefault.plib.head!.name == "serv_child_ram"
-#guard servChildDefault.plib.head!.crossCheck ==
-  ["defaults: parameter 'depth' default: division by zero in a constant context (reads x)"]
 
 /-- Some `always_ff` body is not NBA-only. -/
 def someBlocking (d : Design2) : Bool :=
