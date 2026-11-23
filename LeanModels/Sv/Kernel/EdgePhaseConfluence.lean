@@ -323,6 +323,45 @@ theorem CombCursor.resume_blocking_scalar
   simp [CombCursor.resume, CombWork.openNode, CoreMemDesign.execCombStmtFuel,
     hlocal, htarget, htest, hvalue]
 
+/-! Each scalar expression keeps its value when the other cursor's write is
+absent from its instantiated read windows.  The two directions are stated
+separately so a later scheduler diamond can use whichever expression it needs. -/
+theorem CoreMemDesign.evalScalarLocals_cross_write_frame
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st stN stM : CoreMemState} {ctxN ctxM : Option Nat} {locals : SvState}
+    {eN eM : PExpr} {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hstateN : stN = E.setScalarState st n vN)
+    (hstateM : stM = E.setScalarState st m vM)
+    (hsetN : E.scalar.view stN.scalar =
+      SvState.set (E.scalar.view st.scalar) n
+        (Val.ofLVec (st.scalar xN).ty vN).bits)
+    (hsetM : E.scalar.view stM.scalar =
+      SvState.set (E.scalar.view st.scalar) m
+        (Val.ofLVec (st.scalar xM).ty vM).bits)
+    (hreadM : ∀ r ∈ (instExpr2 env (if elems.isEmpty then E.elems else elems) ctxM eM).reads,
+      r.name ≠ n)
+    (hreadN : ∀ r ∈ (instExpr2 env (if elems.isEmpty then E.elems else elems) ctxN eN).reads,
+      r.name ≠ m) :
+    E.evalScalarLocals env elems stN ctxM locals eM =
+        E.evalScalarLocals env elems st ctxM locals eM ∧
+      E.evalScalarLocals env elems stM ctxN locals eN =
+        E.evalScalarLocals env elems st ctxN locals eN := by
+  have hsetN' : E.scalar.view (E.setScalarState st n vN).scalar =
+      SvState.set (E.scalar.view st.scalar) n
+        (Val.ofLVec (st.scalar xN).ty vN).bits := by
+    simpa [hstateN] using hsetN
+  have hsetM' : E.scalar.view (E.setScalarState st m vM).scalar =
+      SvState.set (E.scalar.view st.scalar) m
+        (Val.ofLVec (st.scalar xM).ty vM).bits := by
+    simpa [hstateM] using hsetM
+  constructor
+  · rw [hstateN]
+    exact (CoreMemDesign.evalScalarLocals_setScalarState_of_not_read hxN hsetN' hreadM).symm
+  · rw [hstateM]
+    exact (CoreMemDesign.evalScalarLocals_setScalarState_of_not_read hxM hsetM' hreadN).symm
+
 /-! The retained blocking scalar leaf is source-shaped at the resume boundary.
 This equation exposes its exact evaluator input and state/view update. -/
 theorem CombWork.openNode_blockingAssign_scalar
