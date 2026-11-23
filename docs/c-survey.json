@@ -2,10 +2,10 @@
  "by_corpus": {
   "c-testsuite/single-exec": {
    "not-parsed": 3,
-   "passed": 190,
+   "passed": 191,
    "refused-libc": 1,
    "refused-ub": 4,
-   "refused-unsupported": 21,
+   "refused-unsupported": 20,
    "runner-error": 1
   },
   "gcc.c-torture/execute": {
@@ -13,11 +13,11 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1144,
+   "passed": 1148,
    "refused-libc": 26,
    "refused-ub": 36,
-   "refused-unsupported": 212,
-   "runner-error": 10
+   "refused-unsupported": 207,
+   "runner-error": 11
   },
   "gcc.c23-run": {
    "not-parsed": 34,
@@ -34,11 +34,11 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1344,
+  "passed": 1349,
   "refused-libc": 28,
   "refused-ub": 41,
-  "refused-unsupported": 351,
-  "runner-error": 11
+  "refused-unsupported": 345,
+  "runner-error": 12
  },
  "dynamic_wall_ranking": [
   {
@@ -594,7 +594,6 @@
     "pr36343.c",
     "pr41317.c",
     "pr43987.c",
-    "pr44468.c",
     "pr60003.c",
     "pr79043.c",
     "pr90025.c",
@@ -603,8 +602,8 @@
     "struct-aliasing-1.c",
     "zero-struct-1.c"
    ],
-   "present": 26,
-   "sole": 26,
+   "present": 25,
+   "sole": 25,
    "wall": "unsupported:pointer bit-cast across incompatible effective types"
   },
   {
@@ -709,14 +708,13 @@
     "20090527-1.c",
     "20100430-1.c",
     "builtin-prefetch-2.c",
-    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
     "pr101188.c",
     "pr19687.c",
     "pr33870-1.c",
     "pr40493.c"
    ],
-   "present": 10,
-   "sole": 10,
+   "present": 9,
+   "sole": 9,
    "wall": "unsupported:indeterminate lvalue read requires a representation choice"
   },
   {
@@ -758,18 +756,6 @@
    "present": 6,
    "sole": 6,
    "wall": "unsupported:floating cast has incompatible source and destination"
-  },
-  {
-   "files": [
-    "20080424-1.c",
-    "memchr-1.c",
-    "pr124358.c",
-    "strlen-4.c",
-    "va-arg-21.c"
-   ],
-   "present": 5,
-   "sole": 5,
-   "wall": "unsupported:pointer operation on an array subobject"
   },
   {
    "files": [
@@ -831,6 +817,16 @@
    "present": 3,
    "sole": 3,
    "wall": "unsupported:integer-to-floating conversion lacks parser-native destination type"
+  },
+  {
+   "files": [
+    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
+    "pr30778.c",
+    "pr44468.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:offsetof"
   },
   {
    "files": [
@@ -993,15 +989,6 @@
    "present": 2,
    "sole": 2,
    "wall": "unsupported:no size for pointee of 'void *'"
-  },
-  {
-   "files": [
-    "00078.c",
-    "struct-cpy-1.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:non-object declaration in a block"
   },
   {
    "files": [
@@ -1450,8 +1437,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-23T18:23:12Z",
- "measured_commit": "9a9d639c4",
+ "measured_at_utc": "2026-11-23T19:20:00Z",
+ "measured_commit": "6ed71fce1",
  "pin": "C1-C3",
  "rows": [
   {
@@ -2288,15 +2275,15 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "non-object declaration in a block",
-   "dynamic_wall": "unsupported:non-object declaration in a block",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00078.c",
    "sha256": "3162a49b4037e51775cefc0b94eb005327573853b112fbb2b640d9b17b7797db",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -8583,15 +8570,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation on an array subobject",
-   "dynamic_wall": "unsupported:pointer operation on an array subobject",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20080424-1.c",
    "sha256": "4820e74c049e399d53fdf2a107335f78f6fd2df1bda0f25b11e2e25148c216e7",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -15778,8 +15765,8 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "indeterminate lvalue read requires a representation choice",
-   "dynamic_wall": "unsupported:indeterminate lvalue read requires a representation choice",
+   "detail": "offsetof: parser supplied no constant byte offset",
+   "dynamic_wall": "unsupported:offsetof",
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
    "sha256": "d9dd88de8b98e54c7503bf6f0711f6292841b52fd0a011181273f3f670022b54",
@@ -17989,8 +17976,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation on an array subobject",
-   "dynamic_wall": "unsupported:pointer operation on an array subobject",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "memchr-1.c",
    "sha256": "fd62059556391313f163e4cca4c1f02898fdc77d579dd9a0fc61c5347c0c0f3d",
@@ -18001,7 +17988,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19447,8 +19434,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation on an array subobject",
-   "dynamic_wall": "unsupported:pointer operation on an array subobject",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr124358.c",
    "sha256": "4bfac3671278712097cedc58d0c1524f1bec0b73bb30895d10b947b0103806b5",
@@ -19456,7 +19443,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20314,8 +20301,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "offsetof: parser supplied no constant byte offset",
+   "dynamic_wall": "unsupported:offsetof",
    "manifest_status": "parsed",
    "name": "pr30778.c",
    "sha256": "47b07838ad6663a5e5caa8beef3dd7bec90928db3e7a52bc8e6f1c30cc764e18",
@@ -20323,7 +20310,7 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "refused-unsupported"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21641,8 +21628,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer bit-cast across incompatible effective types",
-   "dynamic_wall": "unsupported:pointer bit-cast across incompatible effective types",
+   "detail": "offsetof: parser supplied no constant byte offset",
+   "dynamic_wall": "unsupported:offsetof",
    "manifest_status": "parsed",
    "name": "pr44468.c",
    "sha256": "454ced8916e33045ddb729461bde8e1ee9a62e4ae2cb4a35f30f9020430adc62",
@@ -26489,7 +26476,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strcpy-1.c",
@@ -26498,7 +26485,7 @@
     "libc-call: strcpy",
     "type-layout"
    ],
-   "verdict": "passed"
+   "verdict": "runner-error"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26695,8 +26682,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation on an array subobject",
-   "dynamic_wall": "unsupported:pointer operation on an array subobject",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strlen-4.c",
    "sha256": "44a8f219723f11de84643fd2c9dff8af0a28fa1a23121bf8879d86c41fc6a6b0",
@@ -26707,7 +26694,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26786,8 +26773,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "non-object declaration in a block",
-   "dynamic_wall": "unsupported:non-object declaration in a block",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "struct-cpy-1.c",
    "sha256": "ad4e5c5064447a67ceee351e34d4b5ce41d5eb632d53df6f0e6f413646e6a2e1",
@@ -26795,7 +26782,7 @@
     "type-layout",
     "unsupported:AlignedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27138,8 +27125,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer operation on an array subobject",
-   "dynamic_wall": "unsupported:pointer operation on an array subobject",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "va-arg-21.c",
    "sha256": "dedc44188f3fd1c561cd63e1d964c7f0beb5c077b4802c961b0eb7f4a6c7fbd9",
@@ -27151,7 +27138,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
