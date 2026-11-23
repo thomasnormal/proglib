@@ -869,6 +869,10 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
   | _, ctx, [] => pure ctx
   | fuel + 1, ctx, d :: ds =>
     match d with
+    | .functionProto .. =>
+        -- §6.7.6.3: a block-scope prototype declares a function and has no
+        -- object storage or initializer to execute.
+        declare fuel ctx ds
     | .var id name ty storage init _recordId vaList _ structuredType => do
         if storage == some "static" then
           match id with
@@ -1065,7 +1069,7 @@ def stmtCallFree (s : Stmt) : Bool :=
   s.substmts.all (fun sub => sub.ownExprs.all Expr.isPure)
 
 def Decl.identity? : Decl → Option DeclarationId
-  | .var id .. => id
+  | .var id .. | .functionProto id .. => id
   | .param id .. => id
   | _ => none
 

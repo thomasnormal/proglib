@@ -378,6 +378,11 @@ partial def parseDecl (j : Json) : Except String Decl := do
   withCtx kind do
     let span ← nodeSpan j
     match kind with
+    | "FunctionDecl" =>
+        let id ← getOptStr j "decl_id"
+        let params ← (← getArr j "params").mapM parseDecl
+        return .functionProto (id.map DeclarationId.mk) (← getStr j "name")
+          (← getStr j "type") params (← getBool j "variadic") span
     | "VarDecl" =>
         let id ← getOptStr j "decl_id"
         return .var (id.map DeclarationId.mk) (← getStr j "name") (← getStr j "type")

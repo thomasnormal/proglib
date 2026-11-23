@@ -302,6 +302,12 @@ def Expr.span : Expr → CSpan
 /-- C declarations that can appear at BLOCK scope as well as file scope —
 everything but a function definition. -/
 inductive Decl where
+  /-- A block-scope function prototype declaration.  §6.7.6.3 permits a
+  prototype in a block.  It has no object lifetime or runtime effect, while
+  its parser-native identity and parameter nodes remain available to lookup.
+  -/
+  | functionProto (id : Option DeclarationId) (name : String) (ty : String)
+      (params : List Decl) (variadic : Bool) (span : CSpan)
   | var (id : Option DeclarationId) (name : String) (ty : String)
       (storage : Option String) (init : Option Expr)
       (recordId : Option DeclarationId) (vaList : Bool) (span : CSpan)
