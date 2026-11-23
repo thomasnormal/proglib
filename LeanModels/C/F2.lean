@@ -727,6 +727,21 @@ theorem pairedAllocate_corresponds
   simp [pairedAllocate] at hresult
   split at hresult <;> simp_all
 
+def pairedAllocateFailure (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement) : Bool :=
+  (allocate store request placement).isNone &&
+    (allocate (renameStore resolve store) request
+      (renamedPlacement resolve store.nextId placement)).isNone
+
+theorem pairedAllocateFailure_preserves
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (hfailure : pairedAllocateFailure resolve store request placement = true) :
+    (allocate store request placement).isNone ∧
+      (allocate (renameStore resolve store) request
+        (renamedPlacement resolve store.nextId placement)).isNone := by
+  simpa [pairedAllocateFailure] using hfailure
+
 def footprintAgrees (left right : Footprint) : Prop :=
   left.accesses.length = right.accesses.length ∧
     List.zipWith (fun l r => l.1 == r.1 && l.2.width == r.2.width)
