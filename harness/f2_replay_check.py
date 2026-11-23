@@ -4,6 +4,7 @@
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -21,6 +22,8 @@ def check(fixture, source=None):
         digest = hashlib.sha256(Path(source).read_bytes()).hexdigest()
         if digest != fixture["source_hash"]:
             return "source hash mismatch"
+    if not re.fullmatch(r"[0-9a-f]{64}", fixture["source_hash"]):
+        return "source hash is not a SHA-256 digest"
     if not fixture["compiler_version"].startswith(PIN):
         return "compiler pin mismatch"
     placements = fixture["placements"]
@@ -44,12 +47,14 @@ def main():
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
-        good = {"source_hash": "x", "compiler_version": PIN,
+        good = {"source_hash": "0" * 64, "compiler_version": PIN,
                 "target_triple": "x86_64", "placements": [],
                 "events": [], "ending": {"kind": "exit", "status": 0}}
         bad = dict(good, compiler_version="clang version 20")
+        placeholder = dict(good, source_hash="placeholder")
         assert check(good) is None
         assert check(bad) == "compiler pin mismatch"
+        assert check(placeholder) == "source hash is not a SHA-256 digest"
         print("f2_replay_check --self-test: ok")
         return 0
     if args.fixture is None:
