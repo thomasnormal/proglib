@@ -239,6 +239,10 @@ def pointerStore : TestStore :=
 #guard pairedStaleStore resolve one 0 0 (.value 66 none (some 0))
 
 #guard decodePointer (encodePointer pointer) == some pointer
+#guard decodePointer ((encodePointer pointer).map (renameByte resolve)) ==
+  some (renamePointer resolve pointer)
+#guard encodePointer (renamePointer resolve pointer) ==
+  (encodePointer pointer).map (renameByte resolve)
 #guard copyEncoded (encodePointer pointer) == encodePointer pointer
 #guard pointerEqual pointer pointer .equal
 #guard !(pointerEqual pointer pointer .unequal)
