@@ -2901,7 +2901,7 @@ def CoreMemDesign.execInitialStmt (E : CoreMemDesign) (env : IEnv)
         | some stmt => E.execInitialStmt env elems st fuel stmt
   | fuel + 1, .block body => E.execInitialStmts env elems st fuel body
   | fuel + 1, .forLoop iterator init condition step body =>
-      match forValues2 env iterator init condition step with
+      match forValues2Int32 env iterator init condition step with
       | .timeout => .timeout
       | .unsupported e => .unsupported s!"ForLoopStatement: {e}"
       | .ok values => E.execInitialLoop env elems st fuel values body iterator
@@ -3219,7 +3219,7 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
       | none => .ok (st, view, locals)
   | fuel + 1, .block body => E.execCombStmtsFuel env elems st view locals fuel body
   | fuel + 1, .forLoop iterator init condition step body =>
-      match forValues2 env iterator init condition step with
+      match forValues2Int32 env iterator init condition step with
       | .timeout => .timeout
       | .unsupported e => .unsupported s!"ForLoopStatement: {e}"
       | .ok values => E.execCombLoopValuesFuel env elems st view locals fuel values body iterator
@@ -3524,10 +3524,13 @@ def CoreMemDesign.execBlockingIdentLocal (E : CoreMemDesign) (env : IEnv)
       let st' ← E.execBlockingTarget env elems st (.ident name) value
       .ok (st', locals)
 
-/-- The trip count of a procedural `for` header at an environment. -/
+/-! The trip count of a procedural `for` header at an environment.  Read the
+header's arithmetic fuel directly so static accounting never allocates its
+iterator list.  The checked list is built only when execution selects the
+loop. -/
 def loopTrips (env : IEnv) (iterator : String) (init condition step : PExpr) : Nat :=
-  match forValues2 env iterator init condition step with
-  | .ok values => values.length
+  match forFuel2 env iterator init condition step with
+  | .ok fuel => fuel - 2
   | _ => 0
 
 mutual
@@ -3652,7 +3655,7 @@ def CoreMemDesign.execStmtFuel (E : CoreMemDesign) (env : IEnv) (elems : List (S
         | some s => E.execStmtFuel env elems st locals fuel s
   | fuel + 1, .block body => E.execStmtsFuel env elems st locals fuel body
   | fuel + 1, .forLoop iterator init condition step body =>
-      match forValues2 env iterator init condition step with
+      match forValues2Int32 env iterator init condition step with
       | .timeout => .timeout
       | .unsupported e => .unsupported s!"ForLoopStatement: {e}"
       | .ok values => E.execLoopValuesFuel env elems st locals fuel values body iterator
@@ -4798,6 +4801,18 @@ private def auditEventMultipleWriteOppositeEdges : List PProcess :=
 #guard !(coreMemEdgeMultipleWrite auditEventMultipleWriteOppositeEdges)
 #guard !coreMemHasCommonEventSource
     auditEventMultipleWriteOppositeEdges[0]! auditEventMultipleWriteOppositeEdges[1]!
+/-! Loop fuel accounting must not build an iterator list while inspecting an
+untaken branch.  These guards exercise the five-million-trip shape from the
+loop-fuel audit without entering its branch. -/
+private def auditDeadHugeLoop : PStmt :=
+  .ifStmt (.lit (.ofNat 1 0))
+    (.forLoop "i" (.int 0)
+      (.binary (.m0 .lt) (.genvarRef "i") (.int 5000000))
+      (.unary .inc (.genvarRef "i"))
+      (.blockingAssign "c" (.int 1))) none
+
+#guard PStmt.need {} auditDeadHugeLoop > 5000000
+#guard PStmt.runtimeNeed {} auditDeadHugeLoop > 5000000
 
 end LeanModels.Sv.Kernel
 
