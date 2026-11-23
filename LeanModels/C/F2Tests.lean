@@ -64,6 +64,8 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (endLifetime one 0).isSome
 #guard (pairedEndLifetime resolve one 0).isSome
 #guard (loadByte ((endLifetime one 0).getD (one, { accesses := [] })).1 0 0).isNone
+#guard pairedStaleLoad resolve one 0 0
+#guard pairedStaleStore resolve one 0 0 (.value 66 none (some 0))
 #guard (offsetPointer pointer 1 0 pointer.address).isOk
 #guard match offsetPointer pointer 0 1 pointer.address with | .error _ => true | _ => false
 #guard match recoverAddress 100 [(3, 96, 104, ())] with | .recovered _ => true | _ => false
