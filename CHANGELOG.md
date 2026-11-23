@@ -16,6 +16,9 @@
 - Added the scalar-profile footprint theorem equating `readsV` with the
   instantiated identifier set for expressions outside the memory-read tier.
 
+- Added the corresponding scalar evaluator congruence over the parser-native
+  `readsV` footprint for pure expressions.
+
 - Added the kernel-checked pure scalar evaluator frame used by the retained
   level-sensitive scheduler.  The parser-native admission obligations are
   recorded separately, while the guard-to-resume semantic frame remains open.

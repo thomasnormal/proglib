@@ -452,6 +452,17 @@ theorem CoreMemDesign.readsV_eq_instExpr2_idents_of_pure
   cases e <;> simp_all [CoreMemDesign.readsV, CoreMemDesign.readsIdxV,
     LeanModels.Sv.PExpr.hasMemoryRead, instExpr2, Expr2.idents]
 
+theorem CoreMemDesign.evalScalarV_congr_readsV_of_pure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {v v' : SvState} {ctx : Option Nat} {e : PExpr}
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (h : ∀ x ∈ E.readsV env elems ctx e,
+      SvState.lookup v x = SvState.lookup v' x) :
+    E.evalScalarV env elems v ctx e = E.evalScalarV env elems v' ctx e := by
+  apply CoreMemDesign.evalScalarV_congr
+  rw [← CoreMemDesign.readsV_eq_instExpr2_idents_of_pure hmem]
+  exact h
+
 mutual
 
 theorem CoreMemDesign.evalIdxV_congr {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
