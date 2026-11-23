@@ -558,6 +558,15 @@ theorem PlacementAgreement.refl (left : AllocId → Option Nat)
   intro allocation _
   rfl
 
+def footprintAgrees (left right : Footprint) : Prop :=
+  left.accesses.length = right.accesses.length ∧
+    List.zipWith (fun l r => l.1 == r.1 && l.2.width == r.2.width)
+      left.accesses right.accesses |>.all id
+
+theorem footprintAgrees_refl (footprint : Footprint) :
+    footprintAgrees footprint footprint := by
+  simp [footprintAgrees]
+
 def allocateBounded (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment limit : Nat) :
     Except PlacementFault (Store Tag State × Footprint) :=
