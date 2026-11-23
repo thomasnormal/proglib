@@ -103,6 +103,58 @@ namespace LeanModels.Sv.Kernel
 
 open LeanModels.Sv
 
+/-! ## Level-sensitive commutation receipt
+
+The level-sensitive phase cannot inherit the NBA disjointness guard.  A
+blocking write changes the shared view immediately, so the scheduler proof
+must expose the two cross-resume executions that establish commutation for the
+particular pair of cursors. -/
+
+theorem CombPhaseStep.two_cursor_commute
+    {E : CoreMemDesign} {s : CombPhaseState}
+    {c₁ c₂ n₁ n₂ : CombCursor}
+    {x₁ x₂ y₁ y₂ : CoreMemState} {v₁ v₂ w₁ w₂ : SvState}
+    (ha : s.active = [c₁, c₂])
+    (h₁ : c₁.resume E s.state s.view = .ok (x₁, v₁, n₁))
+    (h₂ : c₂.resume E s.state s.view = .ok (x₂, v₂, n₂))
+    (h₂₁ : c₂.resume E x₁ v₁ = .ok (y₁, w₁, n₂))
+    (h₁₂ : c₁.resume E x₂ v₂ = .ok (y₂, w₂, n₁))
+    (hstate : y₁ = y₂) (hview : w₁ = w₂)
+    (hn₁ : n₁.work = []) (hn₂ : n₂.work = []) :
+    ∃ u₁ u₂ z,
+      CombPhaseStep E s u₁ ∧ CombPhaseStep E s u₂ ∧
+      CombPhaseStep E u₁ z ∧ CombPhaseStep E u₂ z := by
+  let u₁ := CombPhaseState.after s x₁ v₁ n₁ [] [c₂]
+  let u₂ := CombPhaseState.after s x₂ v₂ n₂ [c₁] []
+  let z := CombPhaseState.after u₁ y₁ w₁ n₂ [] []
+  have hz : CombPhaseState.after u₁ y₁ w₁ n₂ [] [] =
+      CombPhaseState.after u₂ y₂ w₂ n₁ [] [] := by
+    simp [u₁, u₂, CombPhaseState.after, hn₁, hn₂, hstate, hview]
+  have hs₁ : CombPhaseStep E s u₁ := .select (by simpa [u₁, ha]) h₁
+  have hs₂ : CombPhaseStep E s u₂ := .select (by simpa [u₂, ha]) h₂
+  have hu₁ : CombPhaseStep E u₁ z := by
+    change CombPhaseStep E u₁ (CombPhaseState.after u₁ y₁ w₁ n₂ [] [])
+    apply CombPhaseStep.select (cursor := c₂) (next := n₂) (state := y₁) (view := w₁)
+      (before := []) (after := [])
+    · simp [u₁, z, CombPhaseState.after, hn₁]
+    · simpa [u₁, CombPhaseState.after] using h₂₁
+  have hu₂ : CombPhaseStep E u₂ z := by
+    change CombPhaseStep E u₂ (CombPhaseState.after u₁ y₁ w₁ n₂ [] [])
+    rw [hz]
+    apply CombPhaseStep.select (cursor := c₁) (next := n₁) (state := y₂) (view := w₂)
+      (before := []) (after := [])
+    · simp [u₂, z, CombPhaseState.after, hn₂]
+    · simpa [z, u₂, CombPhaseState.after, hstate, hview] using h₁₂
+  exact ⟨u₁, u₂, z, hs₁, hs₂, hu₁, hu₂⟩
+
+#print axioms CombPhaseStep.two_cursor_commute
+
+end LeanModels.Sv.Kernel
+
+namespace LeanModels.Sv.Kernel
+
+open LeanModels.Sv
+
 /-- The real edge-phase commit is definitionally the executor's canonical
 `committedState`, including its memory NBA result. -/
 theorem EdgePhaseState.commit_eq_committedState
