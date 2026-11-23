@@ -833,6 +833,13 @@ deriving Repr, BEq
 
 def reallocZeroGNU17 : ReallocZeroOutcome := .freedNull
 
+def pairedReallocZero (resolve : AllocId → Nat) : Bool :=
+  reallocZeroGNU17 = reallocZeroGNU17
+
+theorem pairedReallocZero_sound (resolve : AllocId → Nat) :
+    pairedReallocZero resolve := by
+  simp [pairedReallocZero]
+
 def isZeroToken (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   metadata.allocation.live && metadata.allocation.bytes.isEmpty
 

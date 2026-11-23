@@ -212,6 +212,7 @@ def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
   | (.token metadata, _) => metadata.allocation.bytes.length == 0
   | _ => false
 #guard reallocZeroGNU17 == .freedNull
+#guard pairedReallocZero resolve
 #guard (freeMetadata metadata).isSome
 #guard (freeMetadata (freeMetadata metadata).getD (metadata, {})).isNone
 #guard match allocateZeroSize () (.address 128) with
