@@ -1361,6 +1361,18 @@ def allocateMetadata (request : AllocationRequest Tag State)
                 locations,
               footprint .metadata (Region.mk 0 0 request.bytes.length))
 
+theorem allocateMetadata_preserves_lengths
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : allocateMetadata request locations placement = some result) :
+    result.1.locations.length = result.1.allocation.bytes.length := by
+  cases placement <;> simp [allocateMetadata] at hresult
+  · rcases hresult with ⟨hEq, rfl⟩
+    exact hEq
+  · rcases hresult with ⟨hEq, rfl⟩
+    exact hEq
+
 def pairedAllocateMetadata (resolve : AllocId → Nat) (id : AllocId)
     (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) : Bool :=
