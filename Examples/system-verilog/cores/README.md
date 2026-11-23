@@ -1903,3 +1903,25 @@ undefined.  It loads in canonical E, while the default envelope remains the
 true-race refusal.  The define sets and envelope digests are recorded in
 `darkriscv/darkriscv_configs.txt`.  No whole-core E-RUN is claimed for the
 secondary configuration.
+## 2026-11-23 DarkRISCV upstream race fix
+
+The old DarkRISCV pin `bb6b483cc61a2886a0602c7e62b14f5995ddfbb9` remains the
+true-race fixture.  Its blocking `CSRCLK` and `CSRINS` writers were read through
+`CRDATA` by the main clocked sampler, so canonical E refused the design at
+`Event:edge-blocking-race`.  The report was accepted upstream in commit
+`db801bd10f35ef8feafce5506ece3223a0c369b2`, which changes those two writes to
+nonblocking assignments.  The new envelope is
+`darkriscv/darkriscv_db801bd.sv.json`, with source SHA-256
+`f3d370e910f016341fd90d0dc48aba2f4021643656b53a3d063171fbe0a136e9` and
+envelope SHA-256
+`0374c7f55e7254864874a48293566ae128ca7d7acdd75fc8384337fc34e51319`.
+
+Canonical E admits the new pin with 176 admitted, 0 refused and 0 not reached
+rows.  Its staged route completes both passes, clock preparation, edge execution
+and NBA commit construction.  No whole-core theorem is claimed.  The old pin's
+refusal remains pinned in `darkriscv/darkriscv.sv.json`.
+
+The CSR witness `darkriscv/csr_tb.sv` executes four NOPs, `rdcycle x1`,
+`rdinstret x2`, then stores both values.  Icarus Verilog 13.0 and Xcelium
+24.03-s004 agree on stores of `5` and `4`, respectively.  Xcelium 26.09 was
+not available on this host, so no 26.09 result is claimed.

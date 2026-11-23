@@ -12,3 +12,12 @@ Secondary envelope: darkriscv_no_essential.sv.json
   config source: the pinned upstream config.vh with its __CSR_ESSENTIAL__ define disabled for this configuration
   envelope SHA-256: c7fe232649f9cb4b610c6797e61c70e7c46257dae9b9b3b5a29f9e43374d3402
   canonical-E result: loads. No whole-core E-RUN is claimed.
+
+Upstream-fixed envelope: darkriscv_db801bd.sv.json
+  upstream commit: db801bd10f35ef8feafce5506ece3223a0c369b2
+  source: rtl_db801bd/darkriscv.v, with the same rtl/config.vh bytes
+  configuration: default __CSR__ and __CSR_ESSENTIAL__ from config.vh
+  source SHA-256: f3d370e910f016341fd90d0dc48aba2f4021643656b53a3d063171fbe0a136e9
+  envelope SHA-256: 0374c7f55e7254864874a48293566ae128ca7d7acdd75fc8384337fc34e51319
+  canonical-E result: 176 admitted, 0 refused, 0 not reached; staged route 4/4 stages.
+  simulator CSR row: Icarus Verilog 13.0 and Xcelium 24.03-s004 both store cycle=5 and instret=4 after the four-NOP prefix.
