@@ -440,6 +440,7 @@ structure Layout where
   fieldOffDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldBitsDecl : DeclarationId → String → Option (Nat × Nat) := fun _ _ => none
   flexibleFieldDecl : DeclarationId → String → Bool := fun _ _ => false
+  flexibleInitializerExtra : DeclarationId → Option Nat := fun _ => none
   terminalFieldDecl : DeclarationId → String → Bool := fun _ _ => false
   membersDecl : DeclarationId → Option (List (String × String)) := fun _ => none
   memberRecordDecl : DeclarationId → String → Option DeclarationId := fun _ _ => none
