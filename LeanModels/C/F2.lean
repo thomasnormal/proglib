@@ -157,6 +157,24 @@ theorem pointerEqual_choice (left right : Pointer Tag) :
     pointerEqual left right .equal = (left.address == right.address) := by
   rfl
 
+inductive OffsetFault where
+  | outOfBounds
+  | alignment
+deriving Repr, BEq
+
+def offsetPointer (pointer : Pointer Tag) (elementSize : Nat) (delta : Int)
+    (bound : Nat) : Except OffsetFault (Pointer Tag) :=
+  if elementSize == 0 then .error .alignment
+  else
+    let magnitude := Int.natAbs delta * elementSize
+    let address := if delta < 0 then pointer.address - magnitude else pointer.address + magnitude
+    if address > bound then .error .outOfBounds else .ok { pointer with address := address }
+
+theorem offsetPointer_zero (pointer : Pointer Tag) (elementSize bound : Nat)
+    (hsize : elementSize > 0) (hbound : pointer.address ≤ bound) :
+    offsetPointer pointer elementSize 0 bound = .ok pointer := by
+  simp [offsetPointer, Nat.not_eq_zero_of_lt hsize, hbound]
+
 def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) : Option (Store Tag State × Footprint) :=
   match placement with
