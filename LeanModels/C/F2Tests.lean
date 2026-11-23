@@ -32,6 +32,9 @@ def footprintWidth : Footprint → Nat
 #guard (loadByte one 0 0).map (fun result => footprintWidth result.2) == some 1
 #guard (endLifetime one 0).isSome
 #guard (endLifetime (endLifetime one 0).getD (one, {})).isNone
+def dead : TestStore := (endLifetime one 0).getD (one, {}) |>.1
+#guard (loadByte dead 0 0).isNone
+#guard (storeByte dead 0 0 oneByte).isNone
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 
