@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added single- and two-write lookup frame lemmas for coherent
+  `setScalarState` updates, exposing the unchanged-name boundary used by
+  parser-native evaluator frames.
+
 - Added the ordered two-write composition of the coherent full-expression
   evaluator frame, keeping both state updates explicit for retained resumes.
 

@@ -560,6 +560,35 @@ theorem CoreMemDesign.evalExprLocals_setScalarState_two_of_not_read_pure
       CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
         (CoreMemDesign.setScalarState_spec hc hxN vN).2 hxM hmem hcall hne hreadM
 
+/-! A coherent scalar write changes the materialized view only at its target
+ name. -/
+theorem CoreMemDesign.setScalarState_view_lookup_of_ne
+    {E : CoreMemDesign} {st : CoreMemState} {n y : String}
+    {x : VarId} {v : LVec}
+    (hc : E.Coherent st)
+    (hx : E.scalar.resolve n = some x)
+    (hne : n ≠ y) :
+    SvState.lookup (E.scalar.view (E.setScalarState st n v).scalar) y =
+      SvState.lookup (E.scalar.view st.scalar) y := by
+  rw [(CoreMemDesign.setScalarState_spec hc hx v).1]
+  exact SvState.lookup_set_ne _ _ hne
+
+/-! The lookup frame composes through two ordered coherent scalar writes. -/
+theorem CoreMemDesign.setScalarState_view_lookup_two_of_ne
+    {E : CoreMemDesign} {st : CoreMemState} {n m y : String}
+    {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hneN : n ≠ y)
+    (hneM : m ≠ y) :
+    SvState.lookup
+        (E.scalar.view (E.setScalarState (E.setScalarState st n vN) m vM).scalar) y =
+      SvState.lookup (E.scalar.view st.scalar) y := by
+  rw [CoreMemDesign.setScalarState_view_lookup_of_ne
+    (CoreMemDesign.setScalarState_spec hc hxN vN).2 hxM hneM]
+  exact CoreMemDesign.setScalarState_view_lookup_of_ne hc hxN hneN
+
 theorem CoreMemDesign.evalScalarV_congr_readsV_of_pure
     {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
     {v v' : SvState} {ctx : Option Nat} {e : PExpr}
