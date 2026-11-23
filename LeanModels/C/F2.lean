@@ -161,7 +161,7 @@ theorem copyEncoded_preserves (bytes : List (Byte Tag)) :
 
 theorem decodePointer_encodePointer [BEq Tag] [LawfulBEq Tag] (pointer : Pointer Tag) :
     decodePointer (encodePointer pointer) = some pointer := by
-  simp [decodePointer, encodePointer]
+  simp [decodePointer, encodePointer, provenanceEqual, pointerByte]
 
 theorem encodePointer_rename (resolve : AllocId → Nat) (pointer : Pointer Tag) :
     encodePointer (renamePointer resolve pointer) =
@@ -208,6 +208,29 @@ structure AllocationMetadata (Tag State TypeId : Type) where
   allocation : Allocation Tag State
   locations : List (LocationState TypeId)
 deriving Repr
+
+def listSet (values : List α) (offset : Nat) (value : α) : List α :=
+  match values, offset with
+  | [], _ => []
+  | _ :: rest, 0 => value :: rest
+  | head :: rest, n + 1 => head :: listSet rest n value
+
+structure Region where
+  allocation : AllocId
+  offset : Nat
+  width : Nat
+deriving Repr, BEq
+
+inductive AccessKind where
+  | read | write | metadata
+deriving Repr, BEq
+
+structure Footprint where
+  accesses : List (AccessKind × Region)
+deriving Repr
+
+def footprint (kind : AccessKind) (region : Region) : Footprint :=
+  { accesses := [(kind, region)] }
 
 def setLocation (locations : LocationStore TypeId) (allocation offset : Nat)
     (state : LocationState TypeId) : Option (LocationStore TypeId) :=
@@ -284,20 +307,6 @@ theorem renameStore_comp (first second : AllocId → Nat) (store : Store Tag Sta
 theorem storesCorrespond_refl (resolve : AllocId → Nat) (store : Store Tag State) :
     storesCorrespond resolve (renameStore resolve store) (renameStore resolve store) := by
   simp [storesCorrespond, renameStore_idempotent]
-
-structure Region where
-  allocation : AllocId
-  offset : Nat
-  width : Nat
-deriving Repr, BEq
-
-inductive AccessKind where
-  | read | write | metadata
-deriving Repr, BEq
-
-structure Footprint where
-  accesses : List (AccessKind × Region)
-deriving Repr
 
 def renameRegion (_resolve : AllocId → Nat) (region : Region) : Region := region
 
@@ -406,7 +415,7 @@ def storeMetadataByte (metadata : AllocationMetadata Tag State TypeId)
   if offset ≥ metadata.allocation.bytes.length then none
   else
     let allocation := { metadata.allocation with
-      bytes := metadata.allocation.bytes.set! offset byte }
+      bytes := listSet metadata.allocation.bytes offset byte }
     some ({ metadata with allocation := allocation },
       footprint .write { allocation := 0, offset := offset, width := 1 })
 
@@ -424,8 +433,8 @@ def typedStoreMetadataByte (metadata : AllocationMetadata Tag State TypeId)
   if offset ≥ metadata.allocation.bytes.length then none
   else
     let allocation := { metadata.allocation with
-      bytes := metadata.allocation.bytes.set! offset byte }
-    let locations := metadata.locations.set! offset
+      bytes := listSet metadata.allocation.bytes offset byte }
+    let locations := listSet metadata.locations offset
       { effectiveType := .typed typeId, initialized := true }
     some ({ allocation := allocation, locations := locations },
       footprint .write { allocation := 0, offset := offset, width := 1 })
@@ -1780,7 +1789,7 @@ def storeByte (store : Store Tag State) (id offset : Nat)
   if !allocation.live then none
   else if offset ≥ allocation.bytes.length then none
   else
-    let bytes := allocation.bytes.set! offset byte
+    let bytes := listSet allocation.bytes offset byte
     let updated := { allocation with bytes := bytes }
     let allocations := store.allocations.map (fun entry =>
       if entry.1 == id then (id, updated) else entry)
