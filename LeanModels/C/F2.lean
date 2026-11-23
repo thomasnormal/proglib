@@ -226,6 +226,11 @@ structure Footprint where
   accesses : List (AccessKind × Region)
 deriving Repr, BEq
 
+def footprintAgrees (left right : Footprint) : Prop :=
+  left.accesses.length = right.accesses.length ∧
+    List.zipWith (fun l r => l.1 == r.1 && l.2.width == r.2.width)
+      left.accesses right.accesses |>.all (fun value => value)
+
 def footprint (kind : AccessKind) (region : Region) : Footprint :=
   { accesses := [(kind, region)] }
 
@@ -635,11 +640,12 @@ def mergeByte (old : Byte Tag) (mask value choice : UInt8) : Byte Tag :=
   | .value _ provenance fragment => .value (UInt8.ofNat merged) provenance fragment
   | .uninitialized => .value (UInt8.ofNat merged) none none
 
-def mergeBytes (old values masks choices : List UInt8) : Option (List (Byte Tag)) :=
+def mergeBytes (old : List (Byte Tag)) (values masks choices : List UInt8) :
+    Option (List (Byte Tag)) :=
   if old.length != values.length || values.length != masks.length ||
       masks.length != choices.length then none
   else some (List.zipWith (fun oldByte entry =>
-    mergeByte oldByte entry.1.1 entry.1.2.1 entry.1.2.2)
+    mergeByte oldByte entry.1.1 entry.1.2 entry.2)
     old (List.zipWith (fun value mask => (value, mask)) values masks
       |>.zip choices))
 
@@ -649,19 +655,19 @@ def mergeFootprint (allocation offset width : Nat) : Footprint :=
 theorem mergeByte_preserves_pointer_fragment
     (pointer : Provenance Tag) (fragment : Nat)
     (bits mask value choice : UInt8) :
-    (mergeByte (.value bits (some pointer) (some fragment)) mask value choice).provenance =
+    byteProvenance (mergeByte (.value bits (some pointer) (some fragment)) mask value choice) =
       some pointer ∧
-    (mergeByte (.value bits (some pointer) (some fragment)) mask value choice).fragment =
+    byteFragment (mergeByte (.value bits (some pointer) (some fragment)) mask value choice) =
       some fragment := by
   simp [mergeByte]
 
-def pairedMergeByte (resolve : AllocId → Nat) (old : Byte Tag)
+def pairedMergeByte [BEq Tag] (resolve : AllocId → Nat) (old : Byte Tag)
     (mask value choice : UInt8) : Option (Byte Tag × Byte Tag) :=
   let source := mergeByte old mask value choice
   let target := mergeByte (renameByte resolve old) mask value choice
-  if target = renameByte resolve source then some (source, target) else none
+  if target == renameByte resolve source then some (source, target) else none
 
-theorem pairedMergeByte_sound (resolve : AllocId → Nat) (old : Byte Tag)
+theorem pairedMergeByte_sound [BEq Tag] (resolve : AllocId → Nat) (old : Byte Tag)
     (mask value choice : UInt8) (result : Byte Tag × Byte Tag)
     (hresult : pairedMergeByte resolve old mask value choice = some result) :
     result.2 = renameByte resolve result.1 := by
@@ -1637,11 +1643,6 @@ theorem pairedUnaddressableAllocation_sound
       target = renameStore resolve source := by
   simp [pairedUnaddressableAllocation] at h
   split at h <;> simp_all
-
-def footprintAgrees (left right : Footprint) : Prop :=
-  left.accesses.length = right.accesses.length ∧
-    List.zipWith (fun l r => l.1 == r.1 && l.2.width == r.2.width)
-      left.accesses right.accesses |>.all id
 
 theorem footprintAgrees_rename (resolve : AllocId → Nat) (footprint : Footprint) :
     footprintAgrees (renameFootprint resolve footprint) footprint := by
