@@ -612,6 +612,25 @@ theorem CoreMemDesign.setScalarState_commute_of_cross_values
   rw [Array.setIfInBounds_comm _ _ hdecl]
   rw [hvalM', hvalN']
 
+theorem CoreMemDesign.setScalarState_scalar_of_decl_ne
+    {E : CoreMemDesign} {st : CoreMemState}
+    {n m : String} {xN xM : VarId} {v : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hdecl : xN.decl ≠ xM.decl) :
+    (E.setScalarState st n v).scalar xM = st.scalar xM := by
+  obtain ⟨dcM, hdcM, -, -, -⟩ := Elab.resolve_some hxM
+  obtain ⟨hpathM, -⟩ := Elab.declOf_some hdcM
+  cases xM with
+  | mk path decl =>
+      have hpath0 : path = [] := by
+        simpa using congrArg VarId.path hpathM
+      subst path
+      unfold CoreMemDesign.setScalarState
+      rw [hxN, hc.store]
+      simp [CoreMemDesign.scalarStore, hdecl]
+
 theorem CoreMemDesign.evalScalarV_congr_readsV_of_pure
     {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
     {v v' : SvState} {ctx : Option Nat} {e : PExpr}

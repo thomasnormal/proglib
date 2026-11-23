@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added a typed scalar-slot frame showing that a coherent update to one
+  declaration leaves every distinct resolved slot unchanged.
+
 - Added an explicit cross-value cache frame showing when two distinct
   `setScalarState` writes commute on the concrete state representation.
 
