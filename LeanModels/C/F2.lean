@@ -1462,6 +1462,27 @@ theorem placementAgreementOfStores_refl (store : Store Tag State)
     (placementAgreementOfStores store store exposed).agrees := by
   apply PlacementAgreement.refl
 
+def exposedPlacementAgreement (resolve : AllocId → Nat)
+    (store : Store Tag State) (exposed : AllocId → Bool) : PlacementAgreement :=
+  { left := placementOf store
+    right := fun id => (placementOf store id).map (fun _ => resolve id)
+    exposed := exposed }
+
+theorem exposedPlacementAgreement_agrees
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (exposed : AllocId → Bool)
+    (hresolve : ∀ id, exposed id = true →
+      (placementOf store id).map (fun _ => resolve id) = placementOf store id) :
+    (exposedPlacementAgreement resolve store exposed).agrees := by
+  intro allocation hexposed
+  exact hresolve allocation hexposed
+
+theorem exposedPlacementAgreement_zeroToken
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id : AllocId) (hexposed : (fun _ => false) id = true) :
+    (placementOf store id).map (fun _ => resolve id) = placementOf store id := by
+  simp at hexposed
+
 theorem allocate_fresh_id {Tag State : Type} (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
     (result : Store Tag State × Footprint)
