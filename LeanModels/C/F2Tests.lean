@@ -164,6 +164,13 @@ def pointerStore : TestStore :=
       pair.targetLoad.1 = renameByte resolve pair.sourceLoad.1 &&
       pair.targetLoad.2 = pair.sourceLoad.2
   | none => false
+#guard (pairedEndLifetime resolve one 0).isSome
+#guard match pairedEndLifetime resolve one 0 with
+  | some (sourceResult, targetResult) =>
+      targetResult.1 = renameStore resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2 &&
+      targetResult.1.allocations.head!.2.live == false
+  | none => false
 
 #guard decodePointer (encodePointer pointer) == some pointer
 #guard copyEncoded (encodePointer pointer) == encodePointer pointer
