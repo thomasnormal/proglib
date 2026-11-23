@@ -157,6 +157,13 @@ def pointerStore : TestStore :=
       targetResult.1 = .value 100 (some { allocation := 0, tag := () }) (some 0) &&
       targetResult.2 = sourceResult.2
   | none => false
+#guard match pairedStoreLoadByte resolve pointerStore 0 0
+    (.value 9 (some { allocation := 0, tag := () }) (some 0)) with
+  | some pair =>
+      pair.targetStore.1 = renameStore resolve pair.sourceStore.1 &&
+      pair.targetLoad.1 = renameByte resolve pair.sourceLoad.1 &&
+      pair.targetLoad.2 = pair.sourceLoad.2
+  | none => false
 
 #guard decodePointer (encodePointer pointer) == some pointer
 #guard copyEncoded (encodePointer pointer) == encodePointer pointer
