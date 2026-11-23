@@ -1868,7 +1868,7 @@ fixtures.
 | --- | --- | --- | --- |
 | PicoRV32 RISCV_FORMAL | `17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc236` | 0 admitted / 1 refused / 0 not reached | `Schedule:preemptive: IEEE 1800-2023 §4.7 permits suspension between blocking writes; canonical E refuses a multi-write reactive process whose intermediate value another process can read` |
 | DarkRISCV | `ca7ba5a2e87ea6a1c2c0eb6b4975ac1a5c1787999241c4ba777adb25de82cd32` | 0 admitted / 1 refused / 0 not reached | `Event:edge-blocking-race` |
-| SERV | `16fda64594ee48e3e8bc3c14dd2072ef1e17b87f9261cea80cd4fdda4e9980ef` | 0 admitted / 1 refused / 0 not reached | `module 'serv_rf_ram': parameter 'depth' default: division by zero in a constant context (reads x)` |
+| SERV | `16fda64594ee48e3e8bc3c14dd2072ef1e17b87f9261cea80cd4fdda4e9980ef` | 0 admitted / 1 refused / 0 not reached | `E memory route does not yet admit module member 'VariableSymbol:type' (memory [0:depth-1])` |
 | FemtoRV32 Quark | `c713348d83761d2a9856c986eedde195782a72d9dbfaa6c29c8286598f0afc95` | 0 admitted / 1 refused / 0 not reached | `E memory route does not yet admit module member 'Shift:invalid-compilation' (frontend rejected source containing a shift)` |
 
 The earlier dated census sections remain historical telemetry.  These rows are

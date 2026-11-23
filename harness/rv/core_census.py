@@ -244,9 +244,9 @@ def self_test() -> None:
             + repr(serv_result["counts"])
         )
     serv_requirement = serv_result["rows"][0]["requirement"]
-    if "module 'serv_child_ram'" not in serv_requirement or "division by zero" not in serv_requirement:
+    if "VariableSymbol:type" not in serv_requirement or "memory [0:depth-1]" not in serv_requirement:
         raise AssertionError(
-            "loader self-test lost the exact SERV child-default diagnostic: "
+            "loader self-test lost the SERV canonical-memory diagnostic: "
             + repr(serv_requirement)
         )
     print(
