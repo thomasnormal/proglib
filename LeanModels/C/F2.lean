@@ -172,6 +172,24 @@ def AllocationMetadata.wellFormed (metadata : AllocationMetadata Tag State TypeI
   bytesWf id metadata.allocation.bytes ∧
     metadata.locations.length = metadata.allocation.bytes.length
 
+def storeMetadataByte (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) :
+    Option (AllocationMetadata Tag State TypeId × Footprint) :=
+  if offset ≥ metadata.allocation.bytes.length then none
+  else
+    let allocation := { metadata.allocation with
+      bytes := metadata.allocation.bytes.set! offset byte }
+    some ({ metadata with allocation := allocation },
+      footprint .write { allocation := 0, offset := offset, width := 1 })
+
+theorem storeMetadataByte_preserves_locations
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (byte : Byte Tag) (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : storeMetadataByte metadata offset byte = some result) :
+    result.1.locations = metadata.locations := by
+  simp [storeMetadataByte] at hresult
+  split at hresult <;> simp_all
+
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
   | (id, allocation) :: rest =>
