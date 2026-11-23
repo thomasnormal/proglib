@@ -111,6 +111,8 @@ def typedMetadata : AllocationMetadata Unit Unit String :=
   (typedStoreMetadataByte metadata 0 "long" oneByte).getD (metadata, {}).1
 #guard (typedLoadMetadataByte typedMetadata 0 "long").isSome
 #guard (typedLoadMetadataByte typedMetadata 0 "int").isNone
+#guard (pairedTypedLoadMetadataByte (fun id => if id == 0 then 100 else 200)
+  0 typedMetadata 0 "long").isSome
 #guard (unionLoadMetadataByte typedMetadata 0).isSome
 def paddingMetadata : AllocationMetadata Unit Unit String :=
   { metadata with locations := [{ effectiveType := .padding, initialized := false }] }
