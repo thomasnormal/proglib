@@ -2,7 +2,7 @@
 
 Generated from `docs/c-survey.json` and `harness/c_cases.json`.
 
-The pinned GNU17 target currently has 1275/2114 MATCH rows in the active survey denominator. Measurement commit `f25b23fcd`, date `2026-11-22`.
+The pinned GNU17 target currently has 1323/2114 MATCH rows in the active survey denominator. Measurement commit `dc3df24ac`, date `2026-11-23T01:05:00Z`.
 
 A focused row is an admitted example when its harness expectation is `match`. A `refuse` row documents the exact refusal boundary. Corpus failures are listed as known wrong answers and remain separate from refusals.
 
@@ -40,7 +40,7 @@ A focused row is an admitted example when its harness expectation is `match`. A 
 
 - admitted: `record-forward-size` (match): `typedef struct s S; struct s { int a; int b; }; int main(void) { return sizeof(S); }`
 - refused: `local-anonymous-record` (refuse) — no layout for field 'x': `int main(void) { struct { int x; int y; } s; s.x = 3; s.y = 5; return s.y - s.x - 2; }`
-- known wrong: `pr32244-1.c` (failed)
+- known wrong: `bitfld-3.c` (failed)
 
 ## unions
 
@@ -50,7 +50,7 @@ A focused row is an admitted example when its harness expectation is `match`. A 
 
 ## bit-fields
 
-- admitted: `oracle-clean-bf_sign_2` (match): `/* This test checks promotion of bitfields. Bitfields should be promoted very much like chars and shorts: Bitfields (signed or unsigned) should be promoted t...`
+- admitted: `bitfield-20031211-1-c` (match) — no layout for declared type 'struct a': `void abort (void); void exit (int); struct a { unsigned int bitfield : 1; }; unsigned int x; int main(void) { struct a a = {0}; x = 0xbeef; a.bitfield |= x; ...`
 - refused: `bitfield-assignment-expression-converts` (refuse) — no layout for declared type: `void abort(void); void exit(int); int main(void) { int j = 1081; struct { signed int m:11; } l; if ((l.m = j) == j) abort(); exit(0); }`
 - known wrong: no scored failure in the current survey
 
