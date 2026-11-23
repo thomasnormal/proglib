@@ -3118,7 +3118,8 @@ def evalUntypedLegacy (env : IEnv) (e : PExpr) : Except String Int := do
 
 /- The old and exact evaluators deliberately disagree on these boundary cases.
 These rows make the dropped conservativity claim explicit while retaining the
-old evaluator verbatim for audit comparison. -/
+old evaluator verbatim for audit comparison.  No unconditional theorem is
+claimed because the INT-class 32-bit boundary changes the defined value. -/
 #guard (match evalUntypedLegacy { vals := [("N", -2147483648)] }
     (.unary (.m0 .neg) (.paramRef "N" none)) with
   | .ok v => v == 2147483648
