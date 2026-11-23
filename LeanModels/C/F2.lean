@@ -380,6 +380,17 @@ theorem renameMetadata_preserves_locations (resolve : AllocId → Nat) (id : All
     (renameMetadata resolve id metadata).locations = metadata.locations := by
   rfl
 
+theorem renameMetadata_preserves_byte_length (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameMetadata resolve id metadata).allocation.bytes.length =
+      metadata.allocation.bytes.length := by
+  simp [renameMetadata]
+
+theorem renameMetadata_preserves_location_length (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameMetadata resolve id metadata).locations.length = metadata.locations.length := by
+  rfl
+
 def pairedTypedStoreMetadataByte (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
