@@ -4443,3 +4443,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: instantiate the retained blocking cursor's two-write local diamond from the parser-native evaluator frames and coherent write commutation.
 - sv: record the exact queue trace of every admitted NBA edge-scheduler terminal path as a permutation of process contributions.
 - sv: derive the canonical committed view for an admitted NBA path from pairwise-disjoint queue contributions.
+- sv: bridge an independent source-order `edgesV` queue receipt to the admitted scheduler's canonical terminal view.

@@ -306,6 +306,30 @@ theorem EdgeScheduleTerminalPath.canonical_view
 
 #print axioms EdgeScheduleTerminalPath.canonical_view
 
+/-! This is the narrow executor bridge.  The `edgesV` receipt is an
+independent source-order evaluator fact.  The scheduler equality is derived
+from the terminal trace and the disjointness guard. -/
+theorem EdgeScheduleTerminalPath.view_eq_edgesV_commit
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {ids : List Nat} {s t : EdgeScheduleState} {n : Nat}
+    (q : Nat → NbaQueue2)
+    (hq : ∀ i ∈ ids, edgeProcQ E before after v mv i = .ok (q i))
+    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ q i, ∀ u' ∈ q j, NbaDisj u u')
+    (hsub : ∀ i ∈ s.pending, i ∈ ids)
+    (hnodup : s.pending.Nodup)
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    (hp : EdgeScheduleTerminalPath E before after v mv n s t)
+    {v' : SvState} {mq : MemQV}
+    (hroute : E.edgesV before after s.view mv E.processes.toList =
+      .ok (v', s.pending.flatMap q, mq)) :
+    ∃ r, E.edgesV before after s.view mv E.processes.toList = .ok r ∧
+      t.view = commitNba2 s.view r.2.1 := by
+  obtain hview := EdgeScheduleTerminalPath.canonical_view q hq hdisj hsub hnodup hkeys hp
+  refine ⟨(v', s.pending.flatMap q, mq), hroute, ?_⟩
+  simpa using hview
+
+#print axioms EdgeScheduleTerminalPath.view_eq_edgesV_commit
+
 theorem EdgeScheduleTerminalPath.unique
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
     {ids : List Nat} (ad : EdgeScheduleAdmission E before after v mv ids)
