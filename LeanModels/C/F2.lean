@@ -236,6 +236,15 @@ inductive RepresentationChoice where
   | byte (bits : UInt8)
 deriving Repr, BEq
 
+def mergeByte (old : Byte Tag) (mask value choice : UInt8) : Byte Tag :=
+  let oldBits := match old with
+    | .value bits _ _ => bits.toNat
+    | .uninitialized => choice.toNat
+  let merged := (oldBits &&& Nat.xor mask.toNat 255) ||| (value.toNat &&& mask.toNat)
+  match old with
+  | .value _ provenance fragment => .value (UInt8.ofNat merged) provenance fragment
+  | .uninitialized => .value (UInt8.ofNat merged) none none
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
