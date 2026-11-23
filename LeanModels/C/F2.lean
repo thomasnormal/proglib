@@ -27,6 +27,7 @@ deriving Repr, BEq
 
 structure Allocation (Tag State : Type) where
   live : Bool
+  address : Option Nat
   bytes : List (Byte Tag)
   state : State
 deriving Repr
@@ -82,6 +83,46 @@ def WellFormed (store : Store Tag State) : Prop :=
 
 def footprint (kind : AccessKind) (region : Region) : Footprint :=
   { accesses := [(kind, region)] }
+
+structure AllocationRequest (Tag State : Type) where
+  bytes : List (Byte Tag)
+  state : State
+deriving Repr
+
+inductive Placement where
+  | address (base : Nat)
+  | unaddressable
+  | fail
+deriving Repr, BEq
+
+def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) : Option (Store Tag State × Footprint) :=
+  match placement with
+  | .fail => none
+  | .address base | .unaddressable =>
+      let id := store.nextId
+      let allocation : Allocation Tag State :=
+        { live := true
+          address := match placement with | .address _ => some base | .unaddressable => none
+          bytes := request.bytes
+          state := request.state }
+      some ({ allocations := store.allocations ++ [(id, allocation)],
+              nextId := id + 1 },
+            footprint .metadata { allocation := id, offset := 0,
+              width := request.bytes.length })
+
+theorem allocate_wf {Tag State : Type} (store : Store Tag State)
+    (hstore : WellFormed store) (request : AllocationRequest Tag State)
+    (placement : Placement) (result : Store Tag State × Footprint)
+    (hresult : allocate store request placement = some result) :
+    WellFormed result.1 := by
+  cases placement <;> simp [allocate] at hresult
+  · omega
+  · simp_all [WellFormed, allocationsWf, bytesWf]
+
+#guard (allocate (Tag := Unit) (State := Unit)
+  { allocations := [], nextId := 0 }
+  { bytes := [Byte.uninitialized], state := () } (Placement.address 16)).isSome
 
 def storeByte (store : Store Tag State) (id offset : Nat)
     (byte : Byte Tag) : Option (Store Tag State × Footprint) := do
