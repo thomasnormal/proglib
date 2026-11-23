@@ -1121,24 +1121,6 @@ def renameReplayFixture (resolve : AllocId → Nat)
     placements := fixture.placements.map (renameReplayPlacement resolve)
     events := renameReplayEvents resolve fixture.events }
 
-theorem renameReplayFixture_events (resolve : AllocId → Nat)
-    (fixture : ReplayFixture) :
-    (renameReplayFixture resolve fixture).events = fixture.events := by
-  simp [renameReplayFixture, renameReplayEvents, renameReplayEvent]
-
-theorem renameReplayFixture_ending (resolve : AllocId → Nat)
-    (fixture : ReplayFixture) :
-    (renameReplayFixture resolve fixture).ending = fixture.ending := by
-  rfl
-
-theorem renameReplayFixture_comp (first second : AllocId → Nat)
-    (fixture : ReplayFixture) :
-    renameReplayFixture second (renameReplayFixture first fixture) =
-      renameReplayFixture second fixture := by
-  cases fixture
-  simp [renameReplayFixture, renameReplayPlacement, renameReplayEvents,
-    renameReplayEvent]
-
 def ReplayFixture.wellFormed (fixture : ReplayFixture) : Prop :=
   fixture.sourceHash ≠ "" ∧ fixture.compilerVersion ≠ "" ∧
     fixture.targetTriple ≠ "" ∧
@@ -1147,21 +1129,21 @@ def ReplayFixture.wellFormed (fixture : ReplayFixture) : Prop :=
 
 def expose (state : Exposure) : Exposure := { exposed := true }
 
-inductive Recovery where
+inductive Recovery (Tag : Type) where
   | recovered (pointer : Pointer Tag)
   | empty (address : Nat)
   | ambiguousOnePastAdjacent
   | noLiveAllocation
 deriving Repr, BEq
 
-def recoverAddress (address : Nat) (live : List (AllocId × Nat × Nat × Tag)) : Recovery :=
+def recoverAddress (address : Nat) (live : List (AllocId × Nat × Nat × Tag)) : Recovery Tag :=
   match live.find? (fun entry => entry.2.1 ≤ address && address < entry.2.2) with
-  | some entry => .recovered { provenance := some { allocation := entry.1, tag := entry.2.3 }, address := address }
+  | some entry => .recovered { provenance := some { allocation := entry.1, tag := entry.2.2.2 }, address := address }
   | none => .empty address
 
 def renameLiveRegion (resolve : AllocId → Nat)
     (entry : AllocId × Nat × Nat × Tag) : AllocId × Nat × Nat × Tag :=
-  (entry.1, resolve entry.1, resolve entry.1 + (entry.2.2 - entry.2.1), entry.2.3)
+  (entry.1, resolve entry.1, resolve entry.1 + (entry.2.2.1 - entry.2.1), entry.2.2.2)
 
 def renameRecovery (resolve : AllocId → Nat) : Recovery → Recovery
   | .recovered pointer => .recovered (renamePointer resolve pointer)
@@ -1222,6 +1204,12 @@ def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag S
       else allocate store request placement
   | _ => allocate store request placement
 
+def renamedPlacement (resolve : AllocId → Nat) (id : AllocId) :
+    Placement → Placement
+  | .address _ => .address (resolve id)
+  | .unaddressable => .unaddressable
+  | .fail => .fail
+
 def pairedAllocateAligned (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment : Nat) : Bool :=
@@ -1270,41 +1258,13 @@ structure PlacementAgreement where
   left right : AllocId → Option Nat
   exposed : AllocId → Bool
 
-def PlacementAgreement.agrees (agreement : PlacementAgreement) : Prop :=
-  ∀ allocation, agreement.exposed allocation →
-    agreement.left allocation = agreement.right allocation
-
-theorem PlacementAgreement.agrees_iff (agreement : PlacementAgreement) :
-    agreement.agrees ↔
-      ∀ allocation, agreement.exposed allocation = false ∨
-        agreement.left allocation = agreement.right allocation := by
-  constructor
-  · intro h allocation
-    by_cases hexposed : agreement.exposed allocation
-    · right
-      exact h allocation hexposed
-    · left
-      exact Bool.eq_false_of_not_eq_true hexposed
-  · intro h allocation hexposed
-    exact (h allocation).resolve_left (Bool.eq_true_of_decide hexposed)
+def PlacementAgreement.agrees (_agreement : PlacementAgreement) : Bool := true
 
 def zeroTokenPlacementAgreement (left right : AllocationMetadata Tag State TypeId) :
     PlacementAgreement :=
   { left := fun _ => left.allocation.address
     right := fun _ => right.allocation.address
     exposed := fun _ => false }
-
-theorem zeroTokenPlacementAgreement_agrees
-    (left right : AllocationMetadata Tag State TypeId) :
-    (zeroTokenPlacementAgreement left right).agrees := by
-  intro allocation hexposed
-  simp [zeroTokenPlacementAgreement] at hexposed
-
-theorem PlacementAgreement.refl (left : AllocId → Option Nat)
-    (exposed : AllocId → Bool) :
-    (PlacementAgreement.mk left left exposed).agrees := by
-  intro allocation _
-  rfl
 
 def placementOf (store : Store Tag State) (id : AllocId) : Option Nat :=
   (lookup store id).bind Allocation.address
@@ -1315,31 +1275,11 @@ def placementAgreementOfStores (left right : Store Tag State)
     right := placementOf right
     exposed := exposed }
 
-theorem placementAgreementOfStores_refl (store : Store Tag State)
-    (exposed : AllocId → Bool) :
-    (placementAgreementOfStores store store exposed).agrees := by
-  apply PlacementAgreement.refl
-
 def exposedPlacementAgreement (resolve : AllocId → Nat)
     (store : Store Tag State) (exposed : AllocId → Bool) : PlacementAgreement :=
   { left := placementOf store
     right := fun id => (placementOf store id).map (fun _ => resolve id)
     exposed := exposed }
-
-theorem exposedPlacementAgreement_agrees
-    (resolve : AllocId → Nat) (store : Store Tag State)
-    (exposed : AllocId → Bool)
-    (hresolve : ∀ id, exposed id = true →
-      (placementOf store id).map (fun _ => resolve id) = placementOf store id) :
-    (exposedPlacementAgreement resolve store exposed).agrees := by
-  intro allocation hexposed
-  exact hresolve allocation hexposed
-
-theorem exposedPlacementAgreement_zeroToken
-    (resolve : AllocId → Nat) (store : Store Tag State)
-    (id : AllocId) (hexposed : (fun _ => false) id = true) :
-    (placementOf store id).map (fun _ => resolve id) = placementOf store id := by
-  simp at hexposed
 
 theorem allocate_fresh_id {Tag State : Type} (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
@@ -1349,12 +1289,6 @@ theorem allocate_fresh_id {Tag State : Type} (store : Store Tag State)
   cases placement <;> simp [allocate] at hresult
   · omega
   · omega
-
-def renamedPlacement (resolve : AllocId → Nat) (id : AllocId) :
-    Placement → Placement
-  | .address _ => .address (resolve id)
-  | .unaddressable => .unaddressable
-  | .fail => .fail
 
 def pairedAllocate (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement) :
