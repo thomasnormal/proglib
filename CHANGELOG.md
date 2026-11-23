@@ -4350,3 +4350,5 @@ change is listed here under **Changed** or **Removed**.
 - sv: bridge the real source-shaped `EdgePhaseStep` relation to an observable NBA confluence diamond for two stable, disjoint active cursors.
 
 - sv: connect the source-shaped edge-phase commit to `CoreMemDesign.committedState` and the one-pass `CoreMemDesign.step` refinement.
+
+- sv: add the admitted NBA-only edge-phase progress measure and nonempty-step theorem.

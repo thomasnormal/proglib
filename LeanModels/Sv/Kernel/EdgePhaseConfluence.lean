@@ -137,3 +137,50 @@ theorem CoreMemDesign.edge_phase_commit_refines_step
 #print axioms CoreMemDesign.edge_phase_commit_refines_step
 
 end LeanModels.Sv.Kernel
+
+namespace LeanModels.Sv.Kernel
+
+open LeanModels.Sv
+
+/-- Admission facts for the source-shaped edge phase when every active cursor is
+one stable scalar-NBA action.  The facts are stated on `EdgePhaseStep`'s own
+cursor and result types, so no source order is selected. -/
+structure EdgePhaseNbaAdmission (E : CoreMemDesign) (s : EdgePhaseState) where
+  resume_ok : ∀ cursor, cursor ∈ s.active →
+    ∃ result next, cursor.resume E s.state = .ok (result, next)
+  continuation_empty : ∀ cursor result next, cursor ∈ s.active →
+    cursor.resume E s.state = .ok (result, next) → next.work = []
+  stable_state : ∀ cursor result next, cursor ∈ s.active →
+    cursor.resume E s.state = .ok (result, next) → result.state = s.state
+  no_memory_nba : ∀ cursor result next, cursor ∈ s.active →
+    cursor.resume E s.state = .ok (result, next) → result.memoryQ = []
+
+/-- Every legal source-shaped edge step in the admitted NBA-only class reduces
+the active-cursor measure. -/
+theorem EdgePhaseStep.nba_measure_decreases
+    {E : CoreMemDesign} {s t : EdgePhaseState}
+    (ad : EdgePhaseNbaAdmission E s)
+    (h : EdgePhaseStep E s t) :
+    t.active.length < s.active.length := by
+  cases h with
+  | select hactive hresume =>
+      rename_i before after cursor next result
+      have hmem : cursor ∈ s.active := by
+        rw [hactive]
+        simp
+      have hempty := ad.continuation_empty cursor result next hmem hresume
+      rw [hactive]
+      simp [EdgePhaseState.after, hempty]
+
+/-- A nonempty admitted NBA-only edge phase always has a legal next step. -/
+theorem EdgePhaseStep.nba_progress
+    {E : CoreMemDesign} {s : EdgePhaseState}
+    (ad : EdgePhaseNbaAdmission E s) (hn : s.active ≠ []) :
+    ∃ t, EdgePhaseStep E s t := by
+  obtain ⟨t, h⟩ := EdgePhaseStep.progress hn (ad.resume_ok)
+  exact ⟨t, h⟩
+
+#print axioms EdgePhaseStep.nba_measure_decreases
+#print axioms EdgePhaseStep.nba_progress
+
+end LeanModels.Sv.Kernel
