@@ -40,8 +40,16 @@ def check(fixture, source=None):
         if not isinstance(placement.get("exposed"), bool):
             return "placement exposure flag is not boolean"
     ending = fixture["ending"]
-    if ending.get("kind") == "ub" and not ending.get("clause_operand"):
-        return "UB ending lacks cited clause and operand"
+    kind = ending.get("kind")
+    if kind not in {"exit", "signal", "exhausted", "diverges", "ub", "refused"}:
+        return "unknown ending kind"
+    if kind == "ub":
+        evidence = ending.get("clause_operand", {})
+        if (not isinstance(evidence, dict) or
+                not evidence.get("clause") or not evidence.get("operand")):
+            return "UB ending lacks cited clause and operand"
+    if kind == "exhausted" and ending.get("prefix_complete") is not True:
+        return "exhaustion ending lacks complete observable prefix"
     return None
 
 
@@ -60,10 +68,14 @@ def main():
         bad = dict(good, compiler_version="clang version 20")
         placeholder = dict(good, source_hash="placeholder")
         leaking = dict(good, events=[{"kind": "io", "address": 4}])
+        bad_ub = dict(good, ending={"kind": "ub", "clause_operand": {"clause": "6.5"}})
+        bad_exhaustion = dict(good, ending={"kind": "exhausted"})
         assert check(good) is None
         assert check(bad) == "compiler pin mismatch"
         assert check(placeholder) == "source hash is not a SHA-256 digest"
         assert check(leaking) == "observable event exposes placement identity"
+        assert check(bad_ub) == "UB ending lacks cited clause and operand"
+        assert check(bad_exhaustion) == "exhaustion ending lacks complete observable prefix"
         print("f2_replay_check --self-test: ok")
         return 0
     if args.fixture is None:
