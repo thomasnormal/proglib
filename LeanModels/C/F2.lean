@@ -919,6 +919,26 @@ structure ReplayFixture where
   ending : ReplayEnding
 deriving Repr
 
+def renameReplayPlacement (resolve : AllocId → Nat)
+    (placement : ReplayPlacement) : ReplayPlacement :=
+  { placement with base := resolve placement.allocation }
+
+def renameReplayFixture (resolve : AllocId → Nat)
+    (fixture : ReplayFixture) : ReplayFixture :=
+  { fixture with
+    placements := fixture.placements.map (renameReplayPlacement resolve)
+    events := renameReplayEvents resolve fixture.events }
+
+theorem renameReplayFixture_events (resolve : AllocId → Nat)
+    (fixture : ReplayFixture) :
+    (renameReplayFixture resolve fixture).events = fixture.events := by
+  simp [renameReplayFixture, renameReplayEvents, renameReplayEvent]
+
+theorem renameReplayFixture_ending (resolve : AllocId → Nat)
+    (fixture : ReplayFixture) :
+    (renameReplayFixture resolve fixture).ending = fixture.ending := by
+  rfl
+
 def ReplayFixture.wellFormed (fixture : ReplayFixture) : Prop :=
   fixture.sourceHash ≠ "" ∧ fixture.compilerVersion ≠ "" ∧
     fixture.targetTriple ≠ "" ∧
