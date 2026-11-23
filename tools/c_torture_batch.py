@@ -5,8 +5,9 @@ The Lean runner is deliberately deterministic but a CPU-bound reduction
 cannot be pre-empted by Lean's cooperative tasks.  This controller therefore
 keeps one already-built runner binary (no ``lake`` startup per row), invokes
 its ``--only`` mode for each manifest entry, and uses a subprocess wall around
-that child.  A killed child becomes a ``timeout`` row; malformed or missing
-output becomes ``runner-error``.  Rows are emitted in manifest order.
+that child.  A wall-clock kill becomes a ``runner-error`` row.  Fuel exhaustion
+reported by the child remains a ``timeout`` row.  Malformed or missing output
+also becomes ``runner-error``. Rows are emitted in manifest order.
 """
 
 from __future__ import annotations
@@ -138,7 +139,7 @@ def run(manifest: Path, runner: str, fuel: int, timeout: float) -> int:
                 check=False,
             )
         except subprocess.TimeoutExpired:
-            print(f"{name}\ttimeout\tper-file wall timeout ({timeout:g}s)", flush=True)
+            print(f"{name}\trunner-error\twall-clock kill after {timeout:g}s", flush=True)
             continue
         except OSError as exc:
             print(f"{name}\trunner-error\t{_compact(str(exc))}", flush=True)
@@ -182,7 +183,7 @@ def self_test() -> int:
         )
         expected = [
             "ok.c\tpassed\tok",
-            "slow.c\ttimeout\tper-file wall timeout (0.1s)",
+            "slow.c\trunner-error\twall-clock kill after 0.1s",
             "bad.c\trunner-error\trunner produced no row",
             "reject.c\tnot-parsed\tclang rejected",
         ]
