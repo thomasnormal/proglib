@@ -2,7 +2,7 @@
 
 Generated from `docs/c-survey.json` and `harness/c_cases.json`.
 
-The pinned GNU17 target currently has 1361/2114 MATCH rows in the active survey denominator. Measurement commit `b752d989d`, date `2026-11-23T23:05:08Z`.
+The pinned GNU17 target currently has 1361/2114 MATCH rows in the active survey denominator. Measurement commit `cd6ae3b6b`, date `2026-11-23T23:08:58Z`.
 
 A focused row is an admitted example when its harness expectation is `match`. A `refuse` row documents the exact refusal boundary. Corpus failures are listed as known wrong answers and remain separate from refusals.
 
@@ -69,7 +69,7 @@ A focused row is an admitted example when its harness expectation is `match`. A 
 ## malloc/free
 
 - admitted: `allocated-flexible-array-member-subscript` (match): `#include <stdlib.h> struct S { long head; int tail[]; }; int main(void) { struct S *s = malloc(sizeof(*s) + 2 * sizeof(int)); if (!s) return 2; s->tail[0] = ...`
-- refused: `20020406-1.c` (refused-unsupported) — unsequenced side effects in call arguments
+- refused: no refusal row in the current inputs
 - known wrong: no scored failure in the current survey
 
 ## variadics
