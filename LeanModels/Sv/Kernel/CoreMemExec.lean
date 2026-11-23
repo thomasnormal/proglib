@@ -1229,13 +1229,16 @@ def coreMemMemoryKeyConcrete (key : String × List PExpr) : Bool :=
   key.2.all (fun index => match index with | .int _ => true | _ => false)
 
 def coreMemPAssignMemoryKeysConcrete (p : PProcess) : Bool :=
-  let targets := match p with
-    | .assignL target _ => coreMemPAssignLhsKeys target
-    | _ => []
-  let values := match coreMemPAssignValue p with
-    | some value => coreMemPExprMemoryKeys value
-    | none => []
-  (targets ++ values).all coreMemMemoryKeyConcrete
+  match p with
+  | .assign _ _ => true
+  | _ =>
+      let targets := match p with
+        | .assignL target _ => coreMemPAssignLhsKeys target
+        | _ => []
+      let values := match coreMemPAssignValue p with
+        | some value => coreMemPExprMemoryKeys value
+        | none => []
+      (targets ++ values).all coreMemMemoryKeyConcrete
 
 def coreMemPAssignTargets : List PProcess → List (String × List PExpr)
   | [] => []
