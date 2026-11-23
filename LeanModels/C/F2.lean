@@ -550,6 +550,20 @@ theorem pairedReallocMetadata_footprint
   simp [pairedReallocMetadata] at hresult
   split at hresult <;> simp_all
 
+theorem pairedReallocMetadata_failure
+    (resolve : AllocId → Nat) (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old request locations .fail =
+      some result) :
+    result.1.1 = .failed old ∧
+      result.2.1 = .failed (renameMetadata resolve 0 old) ∧
+      result.2.2 = result.1.2 := by
+  simp [pairedReallocMetadata, reallocMetadata] at hresult
+  split at hresult <;> simp_all
+
 inductive ZeroSizeOutcome (Tag State TypeId : Type) where
   | null
   | token (metadata : AllocationMetadata Tag State TypeId)
