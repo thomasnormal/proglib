@@ -2,6 +2,7 @@ import LeanModels.Sv.Ingest2
 import LeanModels.Sv.SeqCycleObl
 import LeanModels.Sv.SeqCycleTactic
 import LeanModels.Sv.Kernel.EdgeConfluence
+import LeanModels.Sv.Kernel.EdgePhaseConfluence
 
 /-!
 # Concrete schedule bridges
@@ -17,6 +18,8 @@ at which the cycle equations for each design supply their concrete row proof.
 open LeanModels.Sv LeanModels.Sv.Kernel
 
 namespace Examples.«system-verilog».seq_cycle.confluence_proof
+
+#check EdgePhaseStep.two_nba_observable_diamond
 
 /-! The three concrete wrappers below retain the executor bridge for the
 parameterized shift register, counter and case-process examples.  The

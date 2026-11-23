@@ -4346,3 +4346,5 @@ change is listed here under **Changed** or **Removed**.
   3.9 envelopes before AST ingestion.
 - Python: add differential coverage for negative set hashes and creation-time
   generator-expression iteration.
+
+- sv: bridge the real source-shaped `EdgePhaseStep` relation to an observable NBA confluence diamond for two stable, disjoint active cursors.

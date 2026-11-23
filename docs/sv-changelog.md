@@ -7170,3 +7170,5 @@ generate branches may therefore contain the same source name without being
 flattened into one storage cell. The source-shaped
 `duplicate_active_scope_e` receipt covers known, x, and z rows against Icarus
 Verilog 13.0 and Xcelium 24.03-s004.
+
+- The source-shaped edge-phase scheduler now has a kernel-checked observable NBA diamond for two stable disjoint active cursors. Raw issue order remains explicit, and the theorem compares the committed four-state view.
