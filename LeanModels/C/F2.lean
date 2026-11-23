@@ -721,6 +721,17 @@ def pairedMemmoveSnapshot [BEq Tag] (resolve : AllocId → Nat)
   let targetResult ← memmoveSnapshot source destination (bytes.map (renameByte resolve))
   some (sourceResult, targetResult)
 
+theorem pairedMemmoveSnapshot_preserves_lengths [BEq Tag]
+    (resolve : AllocId → Nat) (source destination : Region)
+    (bytes : List (Byte Tag)) (result : List (Byte Tag) × List (Byte Tag))
+    (hresult : pairedMemmoveSnapshot resolve source destination bytes = some result) :
+    result.1.length = bytes.length ∧ result.2.length = bytes.length := by
+  simp [pairedMemmoveSnapshot, memmoveSnapshot] at hresult
+  rcases hresult with ⟨hResult, rfl⟩
+  constructor
+  · rfl
+  · simp [List.length_map]
+
 def pairedMemmoveFootprint (source destination : Region) (width : Nat) : Bool :=
   true
 
