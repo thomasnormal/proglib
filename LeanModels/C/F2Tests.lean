@@ -171,6 +171,7 @@ def pointerStore : TestStore :=
       targetResult.2 = sourceResult.2 &&
       targetResult.1.allocations.head!.2.live == false
   | none => false
+#guard pairedStaleLoad resolve one 0 0
 
 #guard decodePointer (encodePointer pointer) == some pointer
 #guard copyEncoded (encodePointer pointer) == encodePointer pointer
