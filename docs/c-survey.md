@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1345/2114 MATCH (passed 1345, failed 3, oracle 0)
+- verdicts: 1344/2114 MATCH (passed 1344, failed 3, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `703a28126`
-- measured at: `2026-11-23T03:45:00Z`
+- measured commit: `9a9d639c4`
+- measured at: `2026-11-23T18:23:12Z`
 
 ## Verdict counts
 
@@ -17,11 +17,11 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1345 |
+| `passed` | 1344 |
 | `refused-libc` | 28 |
 | `refused-ub` | 41 |
 | `refused-unsupported` | 351 |
-| `runner-error` | 10 |
+| `runner-error` | 11 |
 
 ## Counts by corpus
 
@@ -37,11 +37,11 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1145 |
+| `gcc.c-torture/execute` | `passed` | 1144 |
 | `gcc.c-torture/execute` | `refused-libc` | 26 |
 | `gcc.c-torture/execute` | `refused-ub` | 36 |
 | `gcc.c-torture/execute` | `refused-unsupported` | 212 |
-| `gcc.c-torture/execute` | `runner-error` | 9 |
+| `gcc.c-torture/execute` | `runner-error` | 10 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 10 |
 | `gcc.c23-run` | `refused-libc` | 1 |
