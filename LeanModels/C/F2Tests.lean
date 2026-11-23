@@ -45,6 +45,11 @@ def locations : LocationStore String := [(3, 0, location)]
 #guard (setLocation locations 3 0 { effectiveType := .padding, initialized := false }).isSome
 #guard (setLocation locations 4 0 location).isNone
 
+def metadata : AllocationMetadata Unit Unit String :=
+  { allocation := one.allocations.head!.2
+    locations := [location] }
+#guard metadata.locations.length == metadata.allocation.bytes.length
+
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 
 #guard decodePointer (encodePointer pointer) == some pointer

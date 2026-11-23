@@ -101,6 +101,11 @@ deriving Repr
 abbrev LocationStore (TypeId : Type) :=
   List (AllocId × Nat × LocationState TypeId)
 
+structure AllocationMetadata (Tag State TypeId : Type) where
+  allocation : Allocation Tag State
+  locations : List (LocationState TypeId)
+deriving Repr
+
 def setLocation (locations : LocationStore TypeId) (allocation offset : Nat)
     (state : LocationState TypeId) : Option (LocationStore TypeId) :=
   if locations.any (fun entry => entry.1 == allocation && entry.2 == offset) then
@@ -161,6 +166,11 @@ def bytesWf (id : AllocId) : List (Byte Tag) → Prop
   | .value _ none _ :: rest => bytesWf id rest
   | .value _ (some provenance) _ :: rest =>
       provenance.allocation == id ∧ bytesWf id rest
+
+def AllocationMetadata.wellFormed (metadata : AllocationMetadata Tag State TypeId)
+    (id : AllocId) : Prop :=
+  bytesWf id metadata.allocation.bytes ∧
+    metadata.locations.length = metadata.allocation.bytes.length
 
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
