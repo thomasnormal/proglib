@@ -880,6 +880,21 @@ theorem pairedPointerEqual_sound (resolve : AllocId → Nat)
       pointerEqual left right choice := by
   simpa [pairedPointerEqual] using h
 
+theorem renamePointer_empty_provenance (resolve : AllocId → Nat)
+    (address : Nat) :
+    renamePointer resolve { provenance := none, address := address } =
+      { provenance := none, address := address } := by
+  rfl
+
+theorem pointerEqual_empty_provenance_rename (resolve : AllocId → Nat)
+    (left right : Pointer Tag) (hleft : left.provenance = none)
+    (hright : right.provenance = none) (choice : EqualityChoice) :
+    pointerEqual (renamePointer resolve left) (renamePointer resolve right) choice =
+      pointerEqual left right choice := by
+  cases left
+  cases right
+  simp_all [renamePointer, pointerEqual]
+
 inductive OffsetFault where
   | outOfBounds
   | alignment
