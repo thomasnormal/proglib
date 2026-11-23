@@ -87,11 +87,11 @@ def main (argv : List String) : IO UInt32 := do
       let casesText ← IO.FS.readFile ⟨casesPath⟩
       let r : Except String (CoreMemDesign × List SvState × List String × Nat × String × String) := do
         let (pd, lib) ← loadHierString envText
-        unless lib.isEmpty do .error "canonical E backend does not admit hierarchy in this row"
         let cj ← Json.parse casesText
         let case ← findCase (← getArr cj "cases") caseName
         let (pd, args) ← resolvePoint pd (getOpt case "params")
-        let d ← match PDesign.instantiateE2 pd args with
+        let d ← match if lib.isEmpty then PDesign.instantiateE2 pd args
+            else PDesign.instantiateE2H pd lib args with
           | .ok d => pure d
           | .timeout => .error "instantiateE2: timeout"
           | .unsupported m => .error s!"instantiateE2: {m}"
