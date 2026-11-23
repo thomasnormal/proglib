@@ -152,6 +152,8 @@ def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
 #guard match reallocMetadata metadata { bytes := [oneByte], state := () } [location] (.address 64) with
   | some (.replaced _, _) => true
   | _ => false
+#guard (pairedReallocMetadata (fun id => if id == 0 then 100 else 200)
+  metadata { bytes := [oneByte], state := () } [location] (.address 64)).isSome
 #guard match allocateZeroSize () (.address 128) with
   | (.token metadata, _) => metadata.allocation.bytes.length == 0
   | _ => false
