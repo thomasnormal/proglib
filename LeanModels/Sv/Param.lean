@@ -3116,6 +3116,24 @@ def evalUntypedLegacy (env : IEnv) (e : PExpr) : Except String Int := do
     let v' ← evalAt env (w + 64, s) (e.shiftBarriers env)
     if v' == v then .ok v else .error (untypedWrapMsg w v v')
 
+/- The old and exact evaluators deliberately disagree on these boundary cases.
+These rows make the dropped conservativity claim explicit while retaining the
+old evaluator verbatim for audit comparison. -/
+#guard (match evalUntypedLegacy { vals := [("N", -2147483648)] }
+    (.unary (.m0 .neg) (.paramRef "N" none)) with
+  | .ok v => v == 2147483648
+  | _ => false)
+#guard (match evalUntyped { vals := [("N", -2147483648)] }
+    (.unary (.m0 .neg) (.paramRef "N" none)) with
+  | .ok v => v == -2147483648
+  | _ => false)
+#guard (match evalUntypedLegacy {} (.int 4294967296) with
+  | .ok v => v == 4294967296
+  | _ => false)
+#guard (match evalUntyped {} (.int 4294967296) with
+  | .ok v => v == 0
+  | _ => false)
+
 /- Negative and oversized shifts in the historical untyped constant tier stay
    loud: their self-determined width is not fixed by a declared `int` target.
    This is the deliberate untyped-localparam boundary, while the exact `int`
