@@ -18,6 +18,10 @@ def location : LocationState String := { effectiveType := .typed "int", initiali
 def metadata : AllocationMetadata Unit Unit String :=
   { allocation := { live := true, address := some 32, bytes := [oneByte], state := () }
     locations := [location] }
+def paddingMetadata : AllocationMetadata Unit Unit String :=
+  { metadata with locations := [{ effectiveType := .padding, initialized := false }] }
+def unionMetadata : AllocationMetadata Unit Unit String :=
+  { metadata with locations := [{ effectiveType := .untyped, initialized := true }] }
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 16 }
 
@@ -47,7 +51,10 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (storeMetadataByte metadata 0 (.value 66 none (some 0))).isSome
 #guard (typedStoreMetadataByte metadata 0 "long" oneByte).isSome
 #guard (typedLoadMetadataByte ((typedStoreMetadataByte metadata 0 "long" oneByte).getD (metadata, { accesses := [] })).1 0 "long").isSome
+#guard (typedLoadMetadataByte metadata 0 "short").isNone
 #guard (representationLoadMetadataByte metadata 0 (.byte 7)).isSome
+#guard (representationLoadMetadataByte paddingMetadata 0 (.byte 7)).isSome
+#guard (unionLoadMetadataByte unionMetadata 0).isSome
 #guard byteFragment (mergeByte fragmentByte 1 0 0) == some 4
 #guard (mergeBytes (Tag := Unit) [.uninitialized, .value 255 none none] [1, 2] [1, 1] [0, 0]).isSome
 #guard (copySnapshot [oneByte] [.uninitialized]) == some [oneByte]
