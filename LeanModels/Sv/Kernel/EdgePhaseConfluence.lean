@@ -149,6 +149,25 @@ theorem CombPhaseStep.two_cursor_commute
 
 #print axioms CombPhaseStep.two_cursor_commute
 
+/-! A level-sensitive progress receipt is separate from commutation.  It only
+requires that every active cursor has a successful source-shaped resume. -/
+structure CombPhaseAdmission (E : CoreMemDesign) (s : CombPhaseState) where
+  resume_ok : ∀ cursor, cursor ∈ s.active →
+    ∃ state view next, cursor.resume E s.state s.view = .ok (state, view, next)
+
+theorem CombPhaseStep.progress
+    {E : CoreMemDesign} {s : CombPhaseState}
+    (ad : CombPhaseAdmission E s) (hn : s.active ≠ []) :
+    ∃ t, CombPhaseStep E s t := by
+  cases hxs : s.active with
+  | nil => exact False.elim (hn hxs)
+  | cons cursor rest =>
+    have hmem : cursor ∈ s.active := by simp [hxs]
+    obtain ⟨state, view, next, hresume⟩ := ad.resume_ok cursor hmem
+    exact ⟨s.after state view next [] rest, .select hxs hresume⟩
+
+#print axioms CombPhaseStep.progress
+
 end LeanModels.Sv.Kernel
 
 namespace LeanModels.Sv.Kernel
