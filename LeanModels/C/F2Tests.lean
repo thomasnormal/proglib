@@ -353,4 +353,16 @@ def fixture : ReplayFixture :=
   (renameReplayFixture resolve fixture) =
   renameReplayFixture (fun id => id + 300) fixture
 
+def correspondenceBattery : Bool :=
+  (renameStore resolve one).allocations.head!.2.address == some 100 &&
+  (pairedStoreByte resolve one 0 0 (.value 66 none (some 0))).isSome &&
+  (pairedLoadByte resolve one 0 0).isSome &&
+  (pairedEndLifetime resolve one 0).isSome &&
+  (pairedAllocateBounded resolve empty { bytes := [oneByte], state := () }
+    (.address 8) 8 16) &&
+  pairedReallocZero resolve &&
+  (pairedFreePointer resolve none)
+
+#guard correspondenceBattery
+
 end LeanModels.C.F2Tests
