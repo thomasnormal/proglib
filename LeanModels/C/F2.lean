@@ -972,6 +972,25 @@ theorem offsetPointer_zero (pointer : Pointer Tag) (elementSize bound : Nat)
     offsetPointer pointer elementSize 0 bound = .ok pointer := by
   simp [offsetPointer, Nat.not_eq_zero_of_lt hsize, hbound]
 
+def renameOffsetResult (resolve : AllocId → Nat) :
+    Except OffsetFault (Pointer Tag) → Except OffsetFault (Pointer Tag)
+  | .error fault => .error fault
+  | .ok pointer => .ok (renamePointer resolve pointer)
+
+def pairedOffsetPointer (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat) :
+    Bool :=
+  let source := offsetPointer pointer elementSize delta bound
+  let target := offsetPointer (renamePointer resolve pointer) elementSize delta bound
+  target = renameOffsetResult resolve source
+
+theorem pairedOffsetPointer_sound (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat)
+    (h : pairedOffsetPointer resolve pointer elementSize delta bound) :
+    offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+      renameOffsetResult resolve (offsetPointer pointer elementSize delta bound) := by
+  simpa [pairedOffsetPointer] using h
+
 def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) : Option (Store Tag State × Footprint) :=
   match placement with
