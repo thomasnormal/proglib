@@ -221,6 +221,8 @@ def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
 #guard freePointer none == .nullSuccess
 #guard freePointer (some metadata) == .freed
 #guard freePointer (some ((freeMetadata metadata).getD (metadata, {})).1) == .stalePointer
+#guard pairedFreePointer resolve none
+#guard pairedFreePointer resolve (some metadata)
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 
