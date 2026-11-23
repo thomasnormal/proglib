@@ -68,6 +68,15 @@ def one : TestStore :=
 #guard renameHookRequest resolve { choice := .default,
   footprint := mergeFootprint 1 0 2 } = { choice := .default,
   footprint := mergeFootprint 1 0 2 }
+#guard renameResult resolve (.ok fragmentByte one (mergeFootprint 1 0 1)) =
+  .ok (renameByte resolve fragmentByte) (renameStore resolve one)
+    (mergeFootprint 1 0 1)
+#guard match renameResult resolve (.fault (Fault.mk "fault") one (mergeFootprint 1 0 1)) with
+  | .fault _ _ _ => true
+  | _ => false
+#guard match renameResult resolve (.refused "reason" one (mergeFootprint 1 0 1)) with
+  | .refused "reason" _ _ => true
+  | _ => false
 
 def footprintWidth : Footprint → Nat
   | { accesses := [(_, region)] } => region.width
