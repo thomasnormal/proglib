@@ -306,6 +306,46 @@ theorem ReadWin.agree_set_two
   · exact hq
   · exact hrM
 
+/-! Composing the single-write evaluator frame gives the exact two-write
+frame needed by a cross-resume proof.  The two view equations are explicit so
+this theorem does not hide any scheduler or coherence assumption. -/
+theorem CoreMemDesign.evalScalarLocals_setScalarState_two_of_not_read
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st st₁ st₂ : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hstateN : st₁ = E.setScalarState st n vN)
+    (hstateM : st₂ = E.setScalarState st₁ m vM)
+    (hsetN : E.scalar.view st₁.scalar =
+      SvState.set (E.scalar.view st.scalar) n
+        (Val.ofLVec (st.scalar xN).ty vN).bits)
+    (hsetM : E.scalar.view st₂.scalar =
+      SvState.set (E.scalar.view st₁.scalar) m
+        (Val.ofLVec (st₁.scalar xM).ty vM).bits)
+    (hreadN : ∀ r ∈ (instExpr2 env (if elems.isEmpty then E.elems else elems) ctx e).reads,
+      r.name ≠ n)
+    (hreadM : ∀ r ∈ (instExpr2 env (if elems.isEmpty then E.elems else elems) ctx e).reads,
+      r.name ≠ m) :
+    E.evalScalarLocals env elems st ctx locals e =
+      E.evalScalarLocals env elems st₂ ctx locals e := by
+  have hsetN' : E.scalar.view (E.setScalarState st n vN).scalar =
+      SvState.set (E.scalar.view st.scalar) n
+        (Val.ofLVec (st.scalar xN).ty vN).bits := by
+    simpa [hstateN] using hsetN
+  have hsetM' : E.scalar.view (E.setScalarState st₁ m vM).scalar =
+      SvState.set (E.scalar.view st₁.scalar) m
+        (Val.ofLVec (st₁.scalar xM).ty vM).bits := by
+    simpa [hstateM] using hsetM
+  calc
+    E.evalScalarLocals env elems st ctx locals e =
+        E.evalScalarLocals env elems (E.setScalarState st n vN) ctx locals e :=
+      CoreMemDesign.evalScalarLocals_setScalarState_of_not_read hxN hsetN' hreadN
+    _ = E.evalScalarLocals env elems st₁ ctx locals e := by rw [hstateN]
+    _ = E.evalScalarLocals env elems (E.setScalarState st₁ m vM) ctx locals e :=
+      CoreMemDesign.evalScalarLocals_setScalarState_of_not_read hxM hsetM' hreadM
+    _ = E.evalScalarLocals env elems st₂ ctx locals e := by rw [hstateM]
+
 /-! The four source-level obligations for a level-sensitive admission.  They
 are retained as a proposition over `PDesign`, where the access closure and
 reactive dependency walks still have their parser-native inputs.  The first

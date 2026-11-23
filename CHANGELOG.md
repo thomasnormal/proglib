@@ -4384,3 +4384,4 @@ change is listed here under **Changed** or **Removed**.
 
 - sv: prove active-cursor length balance for every admitted source-shaped NBA edge-phase terminal path.
 - sv: add a two-write `ReadWin` frame lemma for disjoint existing scalar bindings, preserving read-window agreement after sequential updates.
+- sv: compose scalar evaluator frame lemmas across two explicit sequential state updates, retaining the source read-footprint premises.
