@@ -188,6 +188,33 @@ inductive EdgeScheduleTerminalPath
       (htail : EdgeScheduleTerminalPath E before after v mv n u t) :
       EdgeScheduleTerminalPath E before after v mv (n + 1) s t
 
+private theorem perm_cons_removeProcessId {i : Nat} {xs : List Nat}
+    (hn : xs.Nodup) (hm : i ∈ xs) :
+    (i :: removeProcessId i xs).Perm xs := by
+  induction xs with
+  | nil => simp at hm
+  | cons x xs ih =>
+      simp only [List.nodup_cons, List.mem_cons] at hn hm
+      by_cases hxi : x = i
+      · subst x
+        have hfilter : List.filter (fun j => j != i) xs = xs :=
+          List.filter_eq_self.mpr (fun j hj => by
+            by_cases hji : j = i
+            · exact False.elim (hn.1 (hji ▸ hj))
+            · simp [hji])
+        simp [removeProcessId, hfilter]
+      · have htail : i ∈ xs := by
+          rcases hm with h | h
+          · exact False.elim (hxi h.symm)
+          · exact h
+        have hperm := ih hn.2 htail
+        have hs : (i :: x :: removeProcessId i xs).Perm
+            (x :: i :: removeProcessId i xs) :=
+          List.Perm.swap x i (removeProcessId i xs)
+        have hc : (x :: i :: removeProcessId i xs).Perm (x :: xs) :=
+          List.Perm.cons x hperm
+        simpa [removeProcessId, hxi] using hs.trans hc
+
 theorem EdgeScheduleTerminalPath.exists
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
     {ids : List Nat} (ad : EdgeScheduleAdmission E before after v mv ids)
@@ -220,6 +247,44 @@ theorem EdgeScheduleTerminalPath.exists
             obtain ⟨n, t, ht⟩ := ih u.pending.length hlt u rfl hu.2.1 hu.1 hu.2.2
             exact ⟨n + 1, t, .head hempty hstep ht⟩
   exact aux s.pending.length s rfl hsub hnodup hkeys
+
+/-! The terminal trace records the exact queue contributed by every selected
+process.  The process order remains a permutation, so this is the bridge used
+to compare a scheduler path with the canonical source-order edge pass. -/
+theorem EdgeScheduleTerminalPath.queue_trace
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {ids : List Nat} {s t : EdgeScheduleState} {n : Nat}
+    (q : Nat → NbaQueue2)
+    (hq : ∀ i ∈ ids, edgeProcQ E before after v mv i = .ok (q i))
+    (hsub : ∀ i ∈ s.pending, i ∈ ids)
+    (hnodup : s.pending.Nodup)
+    (hp : EdgeScheduleTerminalPath E before after v mv n s t) :
+    ∃ choices : List Nat, choices.Perm s.pending ∧
+      t.view = commitNba2 s.view (choices.flatMap q) := by
+  induction hp with
+  | @terminal s hterm =>
+      refine ⟨[], ?_, ?_⟩
+      · simpa [hterm]
+      · symm
+        exact commitNba2_nil s.view
+  | @head n s u t hn hstep htail ih =>
+      obtain ⟨i, qi, hi, hqi, rfl⟩ := hstep
+      have hiids : i ∈ ids := hsub i hi
+      have hqeq : qi = q i := by
+        exact Res.ok.inj (hqi.symm.trans (hq i hiids))
+      have hsub' : ∀ j ∈ (removeProcessId i s.pending), j ∈ ids := by
+        intro j hj
+        exact hsub j (removeProcessId_subset hj)
+      have hnodup' : (removeProcessId i s.pending).Nodup :=
+        removeProcessId_nodup hnodup
+      obtain ⟨choices, hchoices, htrace⟩ := ih hsub' hnodup'
+      refine ⟨i :: choices, ?_, ?_⟩
+      · exact (List.Perm.cons i hchoices).trans
+          (perm_cons_removeProcessId hnodup hi)
+      · rw [htrace, hqeq]
+        simp [EdgeScheduleState.view, commitNba2_append, List.flatMap_cons]
+
+#print axioms EdgeScheduleTerminalPath.queue_trace
 
 theorem EdgeScheduleTerminalPath.unique
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
