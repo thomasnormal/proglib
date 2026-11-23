@@ -1851,7 +1851,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let rv ← evalExpr ctx r
         let wideBitField :=
           (ctx.layout.bitFieldOf l).orElse (fun _ => ctx.layout.bitFieldOf r) |>.any
-            (fun (_, width) => width > 32)
+            (fun (_, width) => width > 32 && (op == "*" || op == "<<" || op == ">>"))
         if wideBitField then
           refuseUnsupported "arithmetic on bit-fields wider than int requires exact promotion semantics"
         else
