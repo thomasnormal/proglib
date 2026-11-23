@@ -336,6 +336,14 @@ deriving Repr, BEq
 
 def reallocZeroGNU17 : ReallocZeroOutcome := .freedNull
 
+def freeMetadata (metadata : AllocationMetadata Tag State TypeId) :
+    Option (AllocationMetadata Tag State TypeId × Footprint) :=
+  if metadata.allocation.live then
+    some ({ metadata with allocation := { metadata.allocation with live := false } },
+      footprint .metadata { allocation := 0, offset := 0,
+        width := metadata.allocation.bytes.length })
+  else none
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
