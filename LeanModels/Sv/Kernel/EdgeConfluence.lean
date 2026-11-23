@@ -509,13 +509,45 @@ theorem EdgeScheduleTerminalPath.queue_trace
 
 #print axioms EdgeScheduleTerminalPath.queue_trace
 
+theorem commitNba2_perm_subset {ids : List Nat} {B : Nat → NbaQueue2}
+    {l l' : List Nat} {st : SvState}
+    (hd : ∀ p ∈ ids, ∀ p' ∈ ids, p ≠ p' →
+      ∀ u ∈ B p, ∀ u' ∈ B p', NbaDisj u u')
+    (hl : ∀ i ∈ l, i ∈ ids) (hl' : ∀ i ∈ l', i ∈ ids)
+    (hperm : l.Perm l') (hnd : l.Nodup) (hkeys : (st.map Prod.fst).Nodup) :
+    commitNba2 st (l.flatMap B) = commitNba2 st (l'.flatMap B) := by
+  let B' : Nat → NbaQueue2 := fun i => if i ∈ ids then B i else []
+  have hB : ∀ p p', p ≠ p' →
+      ∀ u ∈ B' p, ∀ u' ∈ B' p', NbaDisj u u' := by
+    intro p p' hne u hu u' hu'
+    by_cases hp : p ∈ ids <;> by_cases hp' : p' ∈ ids
+    · have huB : u ∈ B p := by simpa [B', hp] using hu
+      have hu'B : u' ∈ B p' := by simpa [B', hp'] using hu'
+      exact hd p hp p' hp' hne u huB u' hu'B
+    · simp [B', hp'] at hu'
+    · simp [B', hp] at hu
+    · simp [B', hp, hp'] at hu hu'
+  have flat_eq : ∀ (xs : List Nat), (∀ i ∈ xs, i ∈ ids) →
+      xs.flatMap B' = xs.flatMap B := by
+    intro xs hs
+    induction xs with
+    | nil => rfl
+    | cons x xs ih =>
+        simp only [List.flatMap_cons]
+        rw [show B' x = B x by simp [B', hs x (by simp)]]
+        rw [ih (fun i hi => hs i (by simp [hi]))]
+  have h := commitNba2_perm hB hperm hnd hkeys
+  rw [flat_eq l hl, flat_eq l' hl'] at h
+  exact h
+
 /-! Pairwise-disjoint queue contributions erase the scheduler permutation. -/
 theorem EdgeScheduleTerminalPath.canonical_view
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
     {ids : List Nat} {s t : EdgeScheduleState} {n : Nat}
     (q : Nat → NbaQueue2)
     (hq : ∀ i ∈ ids, edgeProcQ E before after v mv i = .ok (q i))
-    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ q i, ∀ u' ∈ q j, NbaDisj u u')
+    (hdisj : ∀ i ∈ ids, ∀ j ∈ ids, i ≠ j →
+      ∀ u ∈ q i, ∀ u' ∈ q j, NbaDisj u u')
     (hsub : ∀ i ∈ s.pending, i ∈ ids)
     (hnodup : s.pending.Nodup)
     (hkeys : (s.view.map Prod.fst).Nodup)
@@ -525,7 +557,10 @@ theorem EdgeScheduleTerminalPath.canonical_view
     EdgeScheduleTerminalPath.queue_trace q hq hsub hnodup hp
   rw [htrace]
   have hchoices_nd : choices.Nodup := hchoices.nodup_iff.mpr hnodup
-  exact commitNba2_perm hdisj hchoices hchoices_nd hkeys
+  have hchoicesSub : ∀ i ∈ choices, i ∈ ids := by
+    intro i hi
+    exact hsub i (hchoices.mem_iff.mp hi)
+  exact commitNba2_perm_subset hdisj hchoicesSub hsub hchoices hchoices_nd hkeys
 
 #print axioms EdgeScheduleTerminalPath.canonical_view
 
@@ -537,7 +572,8 @@ theorem EdgeScheduleTerminalPath.view_eq_edgesV_commit
     {ids : List Nat} {s t : EdgeScheduleState} {n : Nat}
     (q : Nat → NbaQueue2)
     (hq : ∀ i ∈ ids, edgeProcQ E before after v mv i = .ok (q i))
-    (hdisj : ∀ i j, i ≠ j → ∀ u ∈ q i, ∀ u' ∈ q j, NbaDisj u u')
+    (hdisj : ∀ i ∈ ids, ∀ j ∈ ids, i ≠ j →
+      ∀ u ∈ q i, ∀ u' ∈ q j, NbaDisj u u')
     (hsub : ∀ i ∈ s.pending, i ∈ ids)
     (hnodup : s.pending.Nodup)
     (hkeys : (s.view.map Prod.fst).Nodup)
@@ -734,7 +770,7 @@ theorem EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed
           simpa [Nat.zero_add] using hqroute
         simpa [hqroute']
   have hview := EdgeScheduleTerminalPath.view_eq_edgesV_commit F hqEdge
-    (fun i j hij u hu u' hu' => Or.inl (hdisj i j hij u hu u' hu'))
+    (fun i _ j _ hij u hu u' hu' => Or.inl (hdisj i j hij u hu u' hu'))
     (by intro i hi; exact hi)
     (by simpa [hs] using (List.nodup_range : (List.range E.processes.size).Nodup))
     hkeys hp hroute'
