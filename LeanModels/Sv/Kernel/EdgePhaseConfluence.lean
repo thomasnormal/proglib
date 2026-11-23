@@ -186,6 +186,46 @@ theorem CoreMemDesign.evalScalarLocals_congr_view
 
 #print axioms CoreMemDesign.evalScalarLocals_congr_view
 
+/-! A source-shaped blocking write can be framed at the evaluator boundary
+when none of the instantiated read windows names the written signal.  This is
+the small semantic bridge needed before the parser-native guard can be used to
+derive the cross-resume equality. -/
+theorem CoreMemDesign.evalScalarLocals_setScalarState_of_not_read
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n : String} {x : VarId} {v : LVec}
+    (hx : E.scalar.resolve n = some x)
+    (hset : E.scalar.view (E.setScalarState st n v).scalar =
+      SvState.set (E.scalar.view st.scalar) n (Val.ofLVec (st.scalar x).ty v).bits)
+    (hread : ∀ r ∈ (instExpr2 env (if elems.isEmpty then E.elems else elems) ctx e).reads,
+      r.name ≠ n) :
+    E.evalScalarLocals env elems st ctx locals e =
+      E.evalScalarLocals env elems (E.setScalarState st n v) ctx locals e := by
+  unfold CoreMemDesign.evalScalarLocals
+  apply evalPure2_congr_reads
+  intro r hr
+  apply ReadWin.agree_of_lookup
+  rw [hset]
+  let lookupAppend : ∀ (a b : SvState) (q : String),
+      SvState.lookup (a ++ b) q = (SvState.lookup a q).or (SvState.lookup b q) := by
+    intro a
+    induction a with
+    | nil => intro b q; rfl
+    | cons kv rest ih =>
+        intro b q
+        obtain ⟨k, w⟩ := kv
+        simp only [List.cons_append, SvState.lookup]
+        split
+        · rfl
+        · simp only [ih]
+  rw [lookupAppend, lookupAppend]
+  by_cases hlocal : SvState.lookup locals r.name = none
+  · simp only [hlocal, Option.none_or]
+    rw [SvState.lookup_set_ne _ _ (Ne.symm (hread r hr))]
+  · cases hval : SvState.lookup locals r.name with
+    | none => exact False.elim (hlocal hval)
+    | some lv => simp [hval]
+
 /-! The four source-level obligations for a level-sensitive admission.  They
 are retained as a proposition over `PDesign`, where the access closure and
 reactive dependency walks still have their parser-native inputs.  The first

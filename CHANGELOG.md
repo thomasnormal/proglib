@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added a kernel-checked scalar evaluator frame for coherent scalar writes.
+  Instantiated read windows that exclude the written signal evaluate identically
+  before and after `setScalarState`, providing the next semantic bridge for the
+  retained level-sensitive scheduler.
+
 - Added the kernel-checked pure scalar evaluator frame used by the retained
   level-sensitive scheduler.  The parser-native admission obligations are
   recorded separately, while the guard-to-resume semantic frame remains open.
