@@ -36,6 +36,8 @@ def one : TestStore :=
 #guard (PlacementAgreement.mk (fun _ => some 8) (fun _ => some 8)
   (fun _ => true)).agrees
 #guard (placementAgreementOfStores one one (fun _ => true)).agrees
+#guard pairedPlacementAllowed resolve one 128 0
+#guard zeroSizePlacementAllowed one 128
 #guard match allocate one { bytes := [.uninitialized], state := () } (.unaddressable) with
   | some (store, _) => store.nextId == one.nextId + 1
   | none => false
