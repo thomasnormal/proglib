@@ -261,5 +261,8 @@ def fixture : ReplayFixture :=
     ending := .exit 0 }
 
 #guard fixture.wellFormed
+#guard renameReplayEvents resolve
+  [.io "write" "stdout" "ok", .volatileRead [1, 2]] =
+  [.io "write" "stdout" "ok", .volatileRead [1, 2]]
 
 end LeanModels.C.F2Tests
