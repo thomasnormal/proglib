@@ -299,6 +299,34 @@ def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
             footprint .metadata { allocation := id, offset := 0,
               width := request.bytes.length })
 
+def allocateMetadata (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement) :
+    Option (AllocationMetadata Tag State TypeId × Footprint) :=
+  match placement with
+  | .fail => none
+  | .address base | .unaddressable =>
+      if locations.length != request.bytes.length then none
+      else
+        some ({ allocation :=
+                 { live := true
+                   address := match placement with | .address _ => some base | .unaddressable => none
+                   bytes := request.bytes
+                   state := request.state }
+               locations := locations },
+              footprint .metadata { allocation := 0, offset := 0,
+                width := request.bytes.length })
+
+theorem allocateMetadata_wf {Tag State TypeId : Type}
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : allocateMetadata request locations placement = some result)
+    (hbytes : ∀ id, bytesWf id request.bytes) :
+    result.1.wellFormed 0 := by
+  cases placement <;> simp [allocateMetadata] at hresult
+  · simp_all [AllocationMetadata.wellFormed]
+  · simp_all [AllocationMetadata.wellFormed]
+
 theorem allocate_wf {Tag State : Type} (store : Store Tag State)
     (hstore : WellFormed store) (request : AllocationRequest Tag State)
     (placement : Placement) (result : Store Tag State × Footprint)
