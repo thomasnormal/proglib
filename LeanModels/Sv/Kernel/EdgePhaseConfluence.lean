@@ -224,3 +224,95 @@ theorem twoNbaWitness_outcomes :
 #print axioms twoNbaWitness_outcomes
 
 end LeanModels.Sv.Scheduler
+
+namespace LeanModels.Sv.Kernel
+
+open LeanModels.Sv
+
+inductive EdgePhaseTerminalPath (E : CoreMemDesign) :
+    Nat → EdgePhaseState → EdgePhaseState → Prop where
+  | terminal {s} (h : EdgePhaseQuiescent s) :
+      EdgePhaseTerminalPath E 0 s s
+  | head {n s u t} (hn : ¬ EdgePhaseQuiescent s)
+      (hstep : EdgePhaseStep E s u)
+      (htail : EdgePhaseTerminalPath E n u t) :
+      EdgePhaseTerminalPath E (n + 1) s t
+
+private theorem EdgePhaseNbaAdmission.restrict
+    {E : CoreMemDesign} {s s' : EdgePhaseState}
+    (ad : EdgePhaseNbaAdmission E s)
+    (hstate : s'.state = s.state)
+    (hsub : ∀ cursor, cursor ∈ s'.active → cursor ∈ s.active) :
+    EdgePhaseNbaAdmission E s' := by
+  constructor
+  · intro cursor hmem
+    obtain ⟨result, next, hresume⟩ := ad.resume_ok cursor (hsub cursor hmem)
+    exact ⟨result, next, by simpa [hstate] using hresume⟩
+  · intro cursor result next hmem hresume
+    apply ad.continuation_empty cursor result next (hsub cursor hmem)
+    simpa [hstate] using hresume
+  · intro cursor result next hmem hresume
+    have hs := ad.stable_state cursor result next (hsub cursor hmem) (by simpa [hstate] using hresume)
+    exact hs.trans hstate.symm
+  · intro cursor result next hmem hresume
+    apply ad.no_memory_nba cursor result next (hsub cursor hmem)
+    simpa [hstate] using hresume
+
+private theorem EdgePhaseStep.nba_length_succ
+    {E : CoreMemDesign} {s t : EdgePhaseState}
+    (ad : EdgePhaseNbaAdmission E s)
+    (h : EdgePhaseStep E s t) :
+    t.active.length + 1 = s.active.length := by
+  cases h with
+  | select hactive hresume =>
+      rename_i before after cursor next result
+      have hmem : cursor ∈ s.active := by
+        rw [hactive]
+        simp
+      have hempty := ad.continuation_empty cursor result next hmem hresume
+      rw [hactive]
+      simp [EdgePhaseState.after, hempty]
+      omega
+
+/-- Along any admitted NBA-only terminal path, the number of selected active
+cursors plus the remaining active length equals the initial active length. -/
+theorem EdgePhaseTerminalPath.nba_length_balance
+    {E : CoreMemDesign} {s t : EdgePhaseState} {n : Nat}
+    (ad : EdgePhaseNbaAdmission E s)
+    (hp : EdgePhaseTerminalPath E n s t) :
+    n + t.active.length = s.active.length := by
+  induction hp with
+  | terminal hterm => simp [EdgePhaseQuiescent] at hterm; simp [hterm]
+  | @head n s u t hn hstep htail ih =>
+      cases hstep with
+      | select hactive hresume =>
+          rename_i before after cursor next result
+          have hmem : cursor ∈ s.active := by
+            rw [hactive]
+            simp
+          have hempty := ad.continuation_empty cursor result next hmem hresume
+          have hstable := ad.stable_state cursor result next hmem hresume
+          let u' : EdgePhaseState := s.after result next before after
+          have hstate : u'.state = s.state := by
+            simp [u', EdgePhaseState.after, hstable]
+          have hsub : ∀ c, c ∈ u'.active → c ∈ s.active := by
+            intro c hc
+            have hc' : c ∈ before ++ after := by
+              simpa [u', EdgePhaseState.after, hempty] using hc
+            rw [hactive]
+            rcases List.mem_append.mp hc' with hb | ha
+            · exact List.mem_append_left _ hb
+            · exact List.mem_append_right before (List.mem_cons_of_mem cursor ha)
+          have huad : EdgePhaseNbaAdmission E u' :=
+            ad.restrict hstate hsub
+          have hbal : n + t.active.length = u'.active.length := by
+            simpa [u'] using ih huad
+          have hstep' : EdgePhaseStep E s u' := by
+            exact .select hactive hresume
+          have hlen := EdgePhaseStep.nba_length_succ ad hstep'
+          omega
+
+#print axioms EdgePhaseStep.nba_length_succ
+#print axioms EdgePhaseTerminalPath.nba_length_balance
+
+end LeanModels.Sv.Kernel

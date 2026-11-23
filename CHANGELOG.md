@@ -4356,3 +4356,5 @@ change is listed here under **Changed** or **Removed**.
 - sv: add a kernel-checked `Scheduler.oneStep` two-process NBA witness whose bounded legal-order outcomes all agree.
 
 - sv: pin the exact twelve legal-order outcomes of the concrete two-process NBA scheduler witness.
+
+- sv: prove active-cursor length balance for every admitted source-shaped NBA edge-phase terminal path.

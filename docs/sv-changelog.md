@@ -7180,3 +7180,5 @@ Verilog 13.0 and Xcelium 24.03-s004.
 - The scheduler bridge includes a concrete two-process `oneStep` NBA witness. Its bounded active-event exploration checks both legal orders and the common committed result in the kernel.
 
 - The concrete NBA scheduler receipt now pins its complete twelve-path bounded outcome list, with every path producing the same four-state store.
+
+- Every admitted NBA-only source-shaped edge-phase terminal path now has a kernel-checked length-balance invariant, quantifying the progress bound over all legal cursor choices.
