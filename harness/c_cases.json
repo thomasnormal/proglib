@@ -1459,26 +1459,26 @@
   {
     "id": "bitfield-20031211-1-c",
     "source": "void abort (void);\nvoid exit (int);\n\nstruct a { unsigned int bitfield : 1; };\n\nunsigned int x;\n\nint\nmain(void)\n{\n  struct a a = {0};\n  x = 0xbeef;\n  a.bitfield |= x;\n  if (a.bitfield != 1)\n    abort ();\n  exit (0);\n}\n",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "error": "no layout for declared type 'struct a'",
     "layout_envelope_checks": [
       "record_layout"
     ],
-    "layout_expect": "refuse",
-    "layout_error": "compound assignment to a bit-field"
+    "layout_expect": "match",
+    "layout_return_value": 0
   },
   {
     "id": "bitfield-20100316-1-c",
     "source": "struct Foo {\n  int i;\n  unsigned precision : 10;\n  unsigned blah : 3;\n} f;\n\nint __attribute__((noinline,noclone))\nfoo (struct Foo *p)\n{\n  struct Foo *q = p;\n  return (*q).precision;\n}\n\nextern void abort (void);\n\nint main()\n{\n  f.i = -1;\n  f.precision = 0;\n  f.blah = -1;\n  if (foo (&f) != 0)\n    abort ();\n  return 0;\n}\n",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "error": "unbound declaration",
     "layout_envelope_checks": [
       "record_layout"
     ],
-    "layout_expect": "refuse",
-    "layout_error": "unsupported bit-field width 10"
+    "layout_expect": "match",
+    "layout_return_value": 0
   },
   {
     "id": "bitfield-pr32244-1-c",

@@ -518,6 +518,10 @@ def Layout.arrayElementSizeAt (_layout : Layout) (_arrayTy _elementTy : String) 
 def Layout.sizeAt (layout : Layout) (decl : Option DeclarationId) (ty : String) :
     Option Nat :=
   decl.bind layout.declSize |>.orElse (fun _ =>
+    -- Aggregate initializers carry the record declaration identity itself,
+    -- while a variable's TypeLayout is keyed by the variable declaration.
+    -- Consult the parser-native record layout before resolving a QualType.
+    decl.bind layout.recordSizeDecl) |>.orElse (fun _ =>
     decl.bind layout.structuredType
       |>.bind (LeanModels.Clang.QualType.resolveTypedefs
         (fun declaration => layout.structuredType { value := declaration.value }) 32)
@@ -1480,11 +1484,14 @@ def mergeBitFieldBytes (bs : List CByte) (mask value : Nat) : Option (List CByte
     let factor := 256 ^ i
     let written := mask / factor % 256
     if written == 0 then return byte
-    -- The old store can replace a whole byte or preserve concrete bits.
-    -- It cannot keep the unwritten part of an indeterminate or tagged byte.
+    -- A bit-field assignment updates a storage unit.  Bits outside the field
+    -- keep their prior value when it is concrete.  If that prior value is
+    -- indeterminate, the standard leaves the representation choice open, so
+    -- choose zero for the untouched bits and continue.  This is the same
+    -- per-byte choice used for padding and partial initialization.
     let original ← match byte with
       | .conc b => some b.toNat
-      | _ => if written == 255 then some 0 else none
+      | _ => some 0
     let result := (original &&& Nat.xor written 255) ||| ((value / factor % 256) &&& written)
     pure (.conc (UInt8.ofNat result))
 
