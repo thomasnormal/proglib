@@ -700,6 +700,33 @@ theorem allocate_fresh_id {Tag State : Type} (store : Store Tag State)
   · omega
   · omega
 
+def renamedPlacement (resolve : AllocId → Nat) (id : AllocId) :
+    Placement → Placement
+  | .address _ => .address (resolve id)
+  | .unaddressable => .unaddressable
+  | .fail => .fail
+
+def pairedAllocate (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement) :
+    Option ((Store Tag State × Footprint) × (Store Tag State × Footprint)) := do
+  let sourceResult ← allocate store request placement
+  let targetResult ← allocate (renameStore resolve store) request
+    (renamedPlacement resolve store.nextId placement)
+  if targetResult.1 = renameStore resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2 then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedAllocate_corresponds
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (result : (Store Tag State × Footprint) × (Store Tag State × Footprint))
+    (hresult : pairedAllocate resolve store request placement = some result) :
+    result.2.1 = renameStore resolve result.1.1 ∧
+      result.2.2 = result.1.2 := by
+  simp [pairedAllocate] at hresult
+  split at hresult <;> simp_all
+
 def footprintAgrees (left right : Footprint) : Prop :=
   left.accesses.length = right.accesses.length ∧
     List.zipWith (fun l r => l.1 == r.1 && l.2.width == r.2.width)
