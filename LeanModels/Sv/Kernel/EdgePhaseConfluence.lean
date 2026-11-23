@@ -349,6 +349,39 @@ private theorem EdgePhaseTerminalPath.state_eq
 
 #print axioms EdgePhaseTerminalPath.state_eq
 
+/-- The canonical one-pass executor can consume an actual terminal edge-phase
+state.  The path invariant supplies the pre-edge state equality, while the
+run, commit, and settle receipts remain explicit obligations of the exact E
+semantics. -/
+theorem EdgePhaseTerminalPath.executor_result
+    {E : CoreMemDesign} {s t : EdgePhaseState} {n : Nat}
+    (ad : EdgePhaseNbaAdmission E s)
+    (hp : EdgePhaseTerminalPath E n s t)
+    (hcomb : E.hasComb = false) (himp : E.hasImplicit = false)
+    {st : CoreMemState} {entry : SvState}
+    {pre0 s3 next : CoreMemState} {m : MemState}
+    (h0 : E.settleCanonical E.env E.elems (E.inputState st entry) E.processes.toList = .ok pre0)
+    (h1 : E.settleCanonical E.env E.elems pre0 E.processes.toList = .ok s.state)
+    (he : E.runEdges E.env E.elems t.state
+      (E.scalar.view st.scalar) (E.scalar.view t.state.scalar) E.processes.toList =
+      .ok { state := t.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] })
+    (hm : t.state.memory.commitNba t.memoryQ = some m)
+    (h3 : E.settleCanonical E.env E.elems
+      (E.committedState
+        { state := t.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] } m) E.processes.toList =
+      .ok s3)
+    (h4 : E.settleCanonical E.env E.elems s3 E.processes.toList = .ok next)
+    (hq : E.firesAny (E.scalar.view s.state.scalar) (E.scalar.view next.scalar) = false) :
+    E.step st entry = .ok next := by
+  have hstate := EdgePhaseTerminalPath.state_eq ad hp
+  rw [hstate] at he hm h3
+  exact CoreMemDesign.edge_phase_commit_refines_step
+    (pre := s.state)
+    (edge := { state := s.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] })
+    hcomb himp h0 h1 he hm h3 h4 hq
+
+#print axioms EdgePhaseTerminalPath.executor_result
+
 private theorem perm_cons_append_insert {α : Type} (x : α) :
     ∀ (before after : List α),
       (x :: (before ++ after)).Perm (before ++ x :: after)
