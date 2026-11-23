@@ -677,6 +677,29 @@ theorem PlacementAgreement.refl (left : AllocId → Option Nat)
   intro allocation _
   rfl
 
+def placementOf (store : Store Tag State) (id : AllocId) : Option Nat :=
+  (lookup store id).bind Allocation.address
+
+def placementAgreementOfStores (left right : Store Tag State)
+    (exposed : AllocId → Bool) : PlacementAgreement :=
+  { left := placementOf left
+    right := placementOf right
+    exposed := exposed }
+
+theorem placementAgreementOfStores_refl (store : Store Tag State)
+    (exposed : AllocId → Bool) :
+    (placementAgreementOfStores store store exposed).agrees := by
+  apply PlacementAgreement.refl
+
+theorem allocate_fresh_id {Tag State : Type} (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (result : Store Tag State × Footprint)
+    (hresult : allocate store request placement = some result) :
+    result.1.nextId = store.nextId + 1 := by
+  cases placement <;> simp [allocate] at hresult
+  · omega
+  · omega
+
 def footprintAgrees (left right : Footprint) : Prop :=
   left.accesses.length = right.accesses.length ∧
     List.zipWith (fun l r => l.1 == r.1 && l.2.width == r.2.width)
