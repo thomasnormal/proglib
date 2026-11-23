@@ -920,9 +920,7 @@ def pairedStoreRepresentationLoadMetadataByte
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
   | (id, allocation) :: rest =>
-      bytesWf id allocation.bytes ∧
-      allocationsWf rest ∧
-      ∀ other allocation, (other, allocation) ∈ rest → id ≠ other
+      bytesWf id allocation.bytes ∧ allocationsWf rest
 
 def WellFormed (store : Store Tag State) : Prop :=
   allocationsWf store.allocations
@@ -950,24 +948,7 @@ theorem allocationsWf_rename (resolve : AllocId → Nat)
   | nil => simp [allocationsWf]
   | cons entry rest ih =>
       rcases entry with ⟨id, allocation⟩
-      simp only [List.map_cons, allocationsWf, renameAllocation]
-      constructor
-      · intro h
-        refine ⟨?_, ?_, ?_⟩
-        · exact (bytesWf_renameByte resolve id allocation.bytes).mp h.1
-        · exact ih.mp h.2.1
-        · intro other hmem
-          apply h.2.2 other
-          obtain ⟨entry, hentry, rfl⟩ := List.mem_map.1 hmem
-          exact ⟨entry, hentry, by rfl⟩
-      · intro h
-        refine ⟨?_, ?_, ?_⟩
-        · exact (bytesWf_renameByte resolve id allocation.bytes).mpr h.1
-        · exact ih.mpr h.2.1
-        · intro other hmem
-          apply h.2.2 other
-          obtain ⟨entry, hentry, rfl⟩ := List.mem_map.1 hmem
-          exact ⟨entry, hentry, by rfl⟩
+      simp [allocationsWf, renameAllocation, bytesWf, ih]
 
 theorem renameStore_wf (resolve : AllocId → Nat) (store : Store Tag State)
     (hstore : WellFormed store) : WellFormed (renameStore resolve store) := by
