@@ -286,6 +286,11 @@ theorem renameFootprint_identity (resolve : AllocId → Nat) (footprint : Footpr
     renameFootprint resolve footprint = footprint := by
   simp [renameFootprint, renameRegion]
 
+theorem renameFootprint_comp (first second : AllocId → Nat) (footprint : Footprint) :
+    renameFootprint second (renameFootprint first footprint) =
+      renameFootprint second footprint := by
+  simp [renameFootprint, renameRegion]
+
 structure HookRequest where
   choice : HookChoice
   footprint : Footprint
@@ -423,6 +428,12 @@ theorem renameMetadata_preserves_location_length (resolve : AllocId → Nat) (id
     (metadata : AllocationMetadata Tag State TypeId) :
     (renameMetadata resolve id metadata).locations.length = metadata.locations.length := by
   rfl
+
+theorem renameMetadata_comp (first second : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    renameMetadata second id (renameMetadata first id metadata) =
+      renameMetadata second id metadata := by
+  simp [renameMetadata, renameByte]
 
 def pairedTypedStoreMetadataByte (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)

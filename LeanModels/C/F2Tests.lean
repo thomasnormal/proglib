@@ -82,6 +82,9 @@ def one : TestStore :=
   | _ => false
 #guard footprintAgrees (mergeFootprint 1 0 2) (mergeFootprint 1 0 2)
 #guard renameFootprint resolve (mergeFootprint 1 0 2) == mergeFootprint 1 0 2
+#guard renameFootprint (fun id => id + 300)
+  (renameFootprint resolve (mergeFootprint 1 0 2)) =
+  mergeFootprint 1 0 2
 #guard renameHookRequest resolve { choice := .default,
   footprint := mergeFootprint 1 0 2 } = { choice := .default,
   footprint := mergeFootprint 1 0 2 }
@@ -145,6 +148,9 @@ def metadata : AllocationMetadata Unit Unit String :=
   metadata.allocation.bytes.length
 #guard (renameMetadata (fun id => if id == 0 then 100 else 200) 0 metadata).wellFormed 0 =
   metadata.wellFormed 0
+#guard renameMetadata (fun id => id + 300) 0
+  (renameMetadata resolve 0 metadata) =
+  renameMetadata (fun id => id + 300) 0 metadata
 def typedMetadata : AllocationMetadata Unit Unit String :=
   (typedStoreMetadataByte metadata 0 "long" oneByte).getD (metadata, {}).1
 #guard (typedLoadMetadataByte typedMetadata 0 "long").isSome
