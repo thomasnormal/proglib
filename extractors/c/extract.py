@@ -1393,6 +1393,17 @@ def selftest():
               "spellingLoc": {"offset": 301},
               "expansionLoc": {"offset": 383}}}}), 383)
 
+    # 10. OffsetOfExpr keeps the parser plugin's evaluated byte offset. The
+    # semantic layer must consume this fact instead of reconstructing a
+    # member path from a display spelling.
+    offset_row = {"kind": "StructuredExprType", "expr_id": "id-offset",
+                  "offset": 3, "end_offset": 3,
+                  "expr_kind": "OffsetOfExpr",
+                  "type": {"kind": "builtin", "name": "unsigned long"},
+                  "offset_bytes": 4}
+    check("offsetof parser fact retains byte offset",
+          structured_type_records([offset_row])[0].get("offset_bytes"), 4)
+
     print("extract --selftest:", "ok" if ok else "FAILED")
     return 0 if ok else 1
 
