@@ -69,6 +69,15 @@ refusals), 218 grammar witnesses (100 MATCH and 118 REFUSE), and a
 22,065-path corpus measurement of 5,719 clean files, 16,279 partial files,
 and 67 include skips.
 
+## Bugs found in public RTL
+
+Defects in open-source designs that turned up while loading or proving them with this library. Each row links
+the upstream report; "status" is upstream's.
+
+| Date | Design | What was wrong | How it was found | Status |
+| --- | --- | --- | --- | --- |
+| 2026-11-23 | [DarkRISCV](https://github.com/darklife/darkriscv), `rtl/darkriscv.v` | The cycle and instruction counters (`CSRCLK`, `CSRINS`) were updated with blocking assignments in one clocked block and read by another on the same edge, so the value returned by `rdcycle`/`rdinstret` depended on the order in which a simulator runs the two blocks (IEEE 1800 leaves it open; IEEE 1364.1-2002 5.2.2 and Annex B.1 describe the hazard). | The SystemVerilog semantics requires a result to hold for every process order the standard permits, and refused the core at exactly this pair of blocks. On a reduced copy of the pattern, Icarus Verilog, Verilator and a synthesized netlist give different values; on the full core the simulators we ran happen to agree. | Reported as [issue 120](https://github.com/darklife/darkriscv/issues/120); fixed upstream the same day in `db801bd` (nonblocking assignments). |
+
 ## Quickstart (Python tier)
 
 You need git, CPython 3.9 (`python3.9` on your PATH), and [elan](https://github.com/leanprover/elan)
