@@ -4448,3 +4448,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: expose the source-order `edgesV` queue as the flat map of its process-indexed `procQ` contributions.
 - sv: connect the driver-backed indexed admission to the canonical source-order NBA view.
 - sv: carry the driver-backed indexed NBA view through the real step refinement.
+- sv: expose driver-backed terminal-path uniqueness for the admitted NBA range.

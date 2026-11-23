@@ -1015,6 +1015,31 @@ theorem EdgeScheduleStep.executor_order_bridge
   CoreMemDesign.edgesV_order hO hσ hv hr
 
 #print axioms EdgeScheduleTerminalPath.unique
+
+/-! The direct driver-backed uniqueness wrapper turns the concrete obligations into
+    the admission record consumed by the terminal-path Newman argument. -/
+theorem EdgeScheduleTerminalPath.unique_processes_range_drivers
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s t₁ t₂ : EdgeScheduleState} {n₁ n₂ : Nat} (F : Nat → NbaQueue2)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after v mv p = .ok (F k))
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    (hp₁ : EdgeScheduleTerminalPath E before after v mv n₁ s t₁)
+    (hp₂ : EdgeScheduleTerminalPath E before after v mv n₂ s t₂) :
+    t₁ = t₂ := by
+  have ad := EdgeScheduleAdmission.of_processes_range_drivers
+    hdrivers hdistinct F hw hq
+  exact EdgeScheduleTerminalPath.unique ad
+    (by intro i hi; simpa [hs] using hi)
+    (by simpa [hs] using (List.nodup_range : (List.range E.processes.size).Nodup))
+    hkeys hp₁ hp₂
+
+#print axioms EdgeScheduleTerminalPath.unique_processes_range_drivers
 #print axioms EdgeScheduleStep.executor_cons_bridge
 
 end LeanModels.Sv.Kernel
