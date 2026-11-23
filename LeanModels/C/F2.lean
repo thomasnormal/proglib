@@ -274,6 +274,20 @@ theorem renameAllocation_value (resolve : AllocId → Nat)
       renameAllocationValue resolve entry.1 entry.2 := by
   rfl
 
+theorem renameByte_idempotent (resolve : AllocId → Nat) (byte : Byte Tag) :
+    renameByte resolve (renameByte resolve byte) = renameByte resolve byte := by
+  cases byte with
+  | uninitialized => rfl
+  | value bits provenance fragment =>
+      cases provenance <;> cases fragment <;> rfl
+
+theorem renameByte_comp (first second : AllocId → Nat) (byte : Byte Tag) :
+    renameByte second (renameByte first byte) = renameByte second byte := by
+  cases byte with
+  | uninitialized => rfl
+  | value bits provenance fragment =>
+      cases provenance <;> cases fragment <;> rfl
+
 def renameStore (resolve : AllocId → Nat) (store : Store Tag State) : Store Tag State :=
   { store with allocations := store.allocations.map (renameAllocation resolve) }
 
@@ -298,11 +312,15 @@ theorem renameAllocation_preserves_state (resolve : AllocId → Nat)
 
 theorem renameStore_idempotent (resolve : AllocId → Nat) (store : Store Tag State) :
     renameStore resolve (renameStore resolve store) = renameStore resolve store := by
-  simp [renameStore, renameAllocation, renameByte]
+  cases store with
+  | mk allocations nextId =>
+      simp [renameStore, renameAllocation, renameByte_idempotent]
 
 theorem renameStore_comp (first second : AllocId → Nat) (store : Store Tag State) :
     renameStore second (renameStore first store) = renameStore second store := by
-  simp [renameStore, renameAllocation, renameByte]
+  cases store with
+  | mk allocations nextId =>
+      simp [renameStore, renameAllocation, renameByte_comp]
 
 theorem storesCorrespond_refl (resolve : AllocId → Nat) (store : Store Tag State) :
     storesCorrespond resolve (renameStore resolve store) (renameStore resolve store) := by
