@@ -2,6 +2,7 @@ import LeanModels.C.Ast
 import LeanModels.C.Json
 import LeanModels.C.Load
 import LeanModels.C.F2
+import LeanModels.C.F2Tests
 import LeanModels.C.C23
 
 /-!
