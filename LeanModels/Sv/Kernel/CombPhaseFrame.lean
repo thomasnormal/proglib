@@ -1,5 +1,6 @@
 import LeanModels.Sv.SeqCycleObl
 import LeanModels.Sv.Kernel.EdgePhaseConfluence
+import LeanModels.Sv.Kernel.EdgeConfluence
 
 /-!
 # Concrete retained-resume frame
@@ -93,18 +94,18 @@ theorem CombCursor.two_blocking_scalar_cross_resume
   have hcrossM :
       E.evalExprLocals env E.elems (E.setScalarState st n vN)
           (some widthM) locals eM = .ok vM := by
-    have heq := CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
+    have heq := CoreMemDesign.edge_evalExprLocals_frame_of_readsV
       (v := vN) (locals := locals) hc hxN hmemM hcallM hne hreadM
     rw [← heq]
     exact hvalM
   have hcrossN :
       E.evalExprLocals env E.elems (E.setScalarState st m vM)
           (some widthN) locals eN = .ok vN := by
-    have heq := CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
+    have heq := CoreMemDesign.edge_evalExprLocals_frame_of_readsV
       (v := vM) (locals := locals) hc hxM hmemN hcallN hne hreadN
     rw [← heq]
     exact hvalN
-  have hstate := CoreMemDesign.setScalarState_commute_of_coherent_decl_ne
+  have hstate := CoreMemDesign.edge_setScalarState_commute_of_disjoint
     (vN := vN) (vM := vM) hc hxN hxM hdecl
   have hview := sv_set_commute_of_mem (v := vN) (w := vM) hn hm hneq hkeys
   have hresumeM :

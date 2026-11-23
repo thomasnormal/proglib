@@ -4451,3 +4451,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: expose driver-backed terminal-path uniqueness for the admitted NBA range.
 - sv: package admitted NBA progress, uniqueness, and canonical-view confluence.
 - sv: instantiate admitted NBA confluence on shift-register, counter, and case-process envelopes.
+- sv: route the retained blocking cursor diamond through the named parser-native evaluator frame lemmas and scalar-write commutation.
