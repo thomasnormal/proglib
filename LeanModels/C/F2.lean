@@ -253,6 +253,18 @@ def mergeBytes (old values masks choices : List UInt8) : Option (List (Byte Tag)
     old (List.zipWith (fun value mask => (value, mask)) values masks
       |>.zip choices))
 
+def mergeFootprint (allocation offset width : Nat) : Footprint :=
+  footprint .write { allocation := allocation, offset := offset, width := width }
+
+theorem mergeByte_preserves_pointer_fragment
+    (pointer : Provenance Tag) (fragment : Nat)
+    (bits mask value choice : UInt8) :
+    (mergeByte (.value bits (some pointer) (some fragment)) mask value choice).provenance =
+      some pointer ∧
+    (mergeByte (.value bits (some pointer) (some fragment)) mask value choice).fragment =
+      some fragment := by
+  simp [mergeByte]
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
