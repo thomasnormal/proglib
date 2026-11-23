@@ -886,6 +886,41 @@ theorem EdgeScheduleTerminalPath.refines_step
 
 #print axioms EdgeScheduleTerminalPath.refines_step
 
+/-! The driver-backed step bridge packages the same canonical-view result with the
+    real `CoreMemDesign.step_seqI` refinement.  It keeps indexed process identity
+    and the source-order evaluator receipt explicit. -/
+theorem EdgeScheduleTerminalPath.refines_step_drivers
+    {E : CoreMemDesign} (hP : E.SeqProfileI) (hO : E.seqOblI = true)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {before after : SvState} {mv : MemV}
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s t : EdgeScheduleState} {n : Nat} (F : Nat → NbaQueue2)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after s.view mv p = .ok (F k))
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    (hp : EdgeScheduleTerminalPath E before after s.view mv n s t)
+    {r : ExecV}
+    (hroute : E.edgesV before after s.view mv E.processes.toList = .ok r) :
+    ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧ t.view = commitNba2 s.view r.2.1 := by
+  obtain ⟨st', hstep, hvstep, hmstep, -, -⟩ :=
+    CoreMemDesign.step_seqI hP hO hc hmc hty hslot
+  obtain ⟨r', hr', hview⟩ :=
+    EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed_drivers
+      hdrivers hdistinct F hs hw hq hkeys hp hroute
+  have hreq : r' = r := Res.ok.inj (hr'.symm.trans hroute)
+  subst r'
+  exact ⟨st', hstep, hvstep, hmstep, hview⟩
+
+#print axioms EdgeScheduleTerminalPath.refines_step_drivers
+
 theorem EdgeScheduleTerminalPath.unique
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
     {ids : List Nat} (ad : EdgeScheduleAdmission E before after v mv ids)

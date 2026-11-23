@@ -4447,3 +4447,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: decompose a successful source-order `edgesV` pass into its parser-native `procQ` queue contributions.
 - sv: expose the source-order `edgesV` queue as the flat map of its process-indexed `procQ` contributions.
 - sv: connect the driver-backed indexed admission to the canonical source-order NBA view.
+- sv: carry the driver-backed indexed NBA view through the real step refinement.
