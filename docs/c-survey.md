@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1342/2114 MATCH (passed 1342, failed 3, oracle 0)
+- verdicts: 1345/2114 MATCH (passed 1345, failed 3, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `c4eec8fff`
-- measured at: `2026-11-23T02:50:00Z`
+- measured commit: `703a28126`
+- measured at: `2026-11-23T03:45:00Z`
 
 ## Verdict counts
 
@@ -17,10 +17,10 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1342 |
+| `passed` | 1345 |
 | `refused-libc` | 28 |
 | `refused-ub` | 41 |
-| `refused-unsupported` | 354 |
+| `refused-unsupported` | 351 |
 | `runner-error` | 10 |
 
 ## Counts by corpus
@@ -37,10 +37,10 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1142 |
+| `gcc.c-torture/execute` | `passed` | 1145 |
 | `gcc.c-torture/execute` | `refused-libc` | 26 |
 | `gcc.c-torture/execute` | `refused-ub` | 36 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 215 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 212 |
 | `gcc.c-torture/execute` | `runner-error` | 9 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 10 |
@@ -289,7 +289,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `libc-call: __builtin_setjmp` | 3 | 3 | built-in-setjmp.c, pr64242.c, pr84521.c |
 | `unsupported:ExprWithCleanups` | 3 | 3 | 950628-1.c, gcc/testsuite/gcc.dg/c23-stdarg-9.c, pr30185.c |
 | `unsupported:case label nested in a control statement` | 3 | 3 | 00051.c, 00143.c, medce-1.c |
-| `unsupported:character-pointer subscript with long index requires an exact parser path` | 3 | 3 | 960321-1.c, pr86528.c, pr88693.c |
 | `unsupported:floating value used as an integer` | 3 | 3 | 20000731-1.c, 20011217-1.c, pr92904.c |
 | `unsupported:integer-to-floating conversion lacks parser-native destination type` | 3 | 3 | 930622-2.c, 960215-1.c, regstack-1.c |
 | `libc-call: __builtin_classify_type` | 2 | 2 | 20040709-1.c, 20040709-2.c |

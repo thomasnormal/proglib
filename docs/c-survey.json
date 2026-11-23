@@ -13,10 +13,10 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1142,
+   "passed": 1145,
    "refused-libc": 26,
    "refused-ub": 36,
-   "refused-unsupported": 215,
+   "refused-unsupported": 212,
    "runner-error": 9
   },
   "gcc.c23-run": {
@@ -34,10 +34,10 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1342,
+  "passed": 1345,
   "refused-libc": 28,
   "refused-ub": 41,
-  "refused-unsupported": 354,
+  "refused-unsupported": 351,
   "runner-error": 10
  },
  "dynamic_wall_ranking": [
@@ -814,16 +814,6 @@
   },
   {
    "files": [
-    "960321-1.c",
-    "pr86528.c",
-    "pr88693.c"
-   ],
-   "present": 3,
-   "sole": 3,
-   "wall": "unsupported:character-pointer subscript with long index requires an exact parser path"
-  },
-  {
-   "files": [
     "20000731-1.c",
     "20011217-1.c",
     "pr92904.c"
@@ -1460,8 +1450,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-23T02:50:00Z",
- "measured_commit": "c4eec8fff",
+ "measured_at_utc": "2026-11-23T03:45:00Z",
+ "measured_commit": "703a28126",
  "pin": "C1-C3",
  "rows": [
   {
@@ -11599,8 +11589,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "character-pointer subscript with long index requires an exact parser path",
-   "dynamic_wall": "unsupported:character-pointer subscript with long index requires an exact parser path",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "960321-1.c",
    "sha256": "f8acc81e63ebec44a47de53fbfac869723d03484c83a2be69d19e3918148d347",
@@ -11608,7 +11598,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25151,8 +25141,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "character-pointer subscript with long index requires an exact parser path",
-   "dynamic_wall": "unsupported:character-pointer subscript with long index requires an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr86528.c",
    "sha256": "af206bddf203102d7dacd2a1eb95adfc187aa8b0ce304b607bd42686d68d2f4f",
@@ -25166,7 +25156,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25267,8 +25257,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "character-pointer subscript with long index requires an exact parser path",
-   "dynamic_wall": "unsupported:character-pointer subscript with long index requires an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr88693.c",
    "sha256": "ad4fd22a0cacfb3851fce1aa1d6356071daba3f42b95a81668bc4b6045d8bf46",
@@ -25280,7 +25270,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",

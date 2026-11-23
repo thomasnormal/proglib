@@ -2,7 +2,7 @@
 
 Generated from `docs/c-survey.json` and `harness/c_cases.json`.
 
-The pinned GNU17 target currently has 1342/2114 MATCH rows in the active survey denominator. Measurement commit `c4eec8fff`, date `2026-11-23T02:50:00Z`.
+The pinned GNU17 target currently has 1345/2114 MATCH rows in the active survey denominator. Measurement commit `703a28126`, date `2026-11-23T03:45:00Z`.
 
 A focused row is an admitted example when its harness expectation is `match`. A `refuse` row documents the exact refusal boundary. Corpus failures are listed as known wrong answers and remain separate from refusals.
 
@@ -56,7 +56,7 @@ A focused row is an admitted example when its harness expectation is `match`. A 
 
 ## casts between pointers and integers
 
-- admitted: no focused harness row
+- admitted: `char-pointer-long-index` (match): `void abort(void); int main(void) { static char a[10] = "deadbeef"; long i = 2000000000L; return a[i - 2000000000L] == 'd' ? 0 : 1; }`
 - refused: `pointer-integer-roundtrip` (refuse) — no layout for declared type 'int *': `#include <stdint.h> int main(void) { int x = 3; uintptr_t u = (uintptr_t)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }`
 - known wrong: no scored failure in the current survey
 
