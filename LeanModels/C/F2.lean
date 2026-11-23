@@ -882,6 +882,21 @@ theorem pairedEndLifetime_corresponds
   simp [pairedEndLifetime] at hresult
   split at hresult <;> simp_all
 
+def pairedStaleLoad (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) : Bool :=
+  match endLifetime store id, endLifetime (renameStore resolve store) id with
+  | some sourceResult, some targetResult =>
+      (loadByte sourceResult.1 id offset).isNone &&
+      (loadByte targetResult.1 id offset).isNone
+  | _, _ => false
+
+theorem pairedStaleLoad_sound (resolve : AllocId → Nat)
+    (store : Store Tag State) (id offset : Nat)
+    (h stale : pairedStaleLoad resolve store id offset = true) :
+    (loadByte (endLifetime store id).getD (store, {}).1 id offset).isNone := by
+  simp [pairedStaleLoad] at stale
+  split at stale <;> simp_all
+
 theorem endLifetime_wf {Tag State : Type} (store : Store Tag State)
     (hstore : WellFormed store) (id : AllocId)
     (result : Store Tag State × Footprint)
