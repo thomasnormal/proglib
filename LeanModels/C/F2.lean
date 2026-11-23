@@ -872,6 +872,16 @@ structure Exposure where
   exposed : Bool
 deriving Repr, BEq
 
+def renameExposure (resolve : AllocId → Nat) (state : Exposure) : Exposure := state
+
+theorem renameExposure_identity (resolve : AllocId → Nat) (state : Exposure) :
+    renameExposure resolve state = state := by
+  rfl
+
+theorem expose_renameExposure (resolve : AllocId → Nat) (state : Exposure) :
+    renameExposure resolve (expose state) = expose (renameExposure resolve state) := by
+  rfl
+
 structure ReplayPlacement where
   allocation : AllocId
   base : Nat
