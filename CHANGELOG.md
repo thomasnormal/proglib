@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added a parser-native read-footprint frame for the full `evalExprLocals`
+  evaluator in the pure, function-free fragment, reusing the stateful scalar
+  evaluator theorem without making a scheduler-confluence claim.
+
 - Added a stateful scalar evaluator frame over the parser-native `readsV`
   footprint, connecting source read closure to retained combinational
   evaluation without assuming scheduler confluence.

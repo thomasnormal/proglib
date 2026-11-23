@@ -475,6 +475,27 @@ theorem CoreMemDesign.evalScalarLocals_congr_readsV_of_pure
   rw [← hr] at hx
   exact h x hx
 
+/-! The same parser-native frame applies to the full expression evaluator on
+ pure, function-free expressions. -/
+theorem CoreMemDesign.evalExprLocals_congr_readsV_of_pure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st st' : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (h : ∀ x ∈ E.readsV env elems ctx e,
+      SvState.lookup (locals ++ E.scalar.view st.scalar) x =
+        SvState.lookup (locals ++ E.scalar.view st'.scalar) x) :
+    E.evalExprLocals env elems st ctx locals e =
+      E.evalExprLocals env elems st' ctx locals e := by
+  have hs := CoreMemDesign.evalScalarLocals_congr_readsV_of_pure
+    (E := E) (env := env) (elems := elems) (st := st) (st' := st')
+    (ctx := ctx) (locals := locals) (e := e) hmem hne h
+  cases e <;> simp_all [CoreMemDesign.evalExprLocals, CoreMemDesign.evalAggregateMember,
+    CoreMemDesign.evalAggPath, LeanModels.Sv.PExpr.hasMemoryRead,
+    LeanModels.Sv.PExpr.hasFunctionCall, CoreMemDesign.evalScalarLocals] <;>
+    exact hs
+
 theorem CoreMemDesign.evalScalarV_congr_readsV_of_pure
     {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
     {v v' : SvState} {ctx : Option Nat} {e : PExpr}
