@@ -35,6 +35,10 @@ def one : TestStore :=
   (.address 14) 1 16) == .error .exhausted
 #guard (PlacementAgreement.mk (fun _ => some 8) (fun _ => some 8)
   (fun _ => true)).agrees
+#guard (placementAgreementOfStores one one (fun _ => true)).agrees
+#guard match allocate one { bytes := [.uninitialized], state := () } (.unaddressable) with
+  | some (store, _) => store.nextId == one.nextId + 1
+  | none => false
 #guard footprintAgrees (mergeFootprint 1 0 2) (mergeFootprint 1 0 2)
 
 def footprintWidth : Footprint → Nat
