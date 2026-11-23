@@ -315,4 +315,130 @@ theorem EdgePhaseTerminalPath.nba_length_balance
 #print axioms EdgePhaseStep.nba_length_succ
 #print axioms EdgePhaseTerminalPath.nba_length_balance
 
+private theorem EdgePhaseTerminalPath.state_eq
+    {E : CoreMemDesign} {s t : EdgePhaseState} {n : Nat}
+    (ad : EdgePhaseNbaAdmission E s)
+    (hp : EdgePhaseTerminalPath E n s t) :
+    t.state = s.state := by
+  induction hp with
+  | terminal hterm => rfl
+  | @head n s u t hn hstep htail ih =>
+      cases hstep with
+      | select hactive hresume =>
+          rename_i before after cursor next result
+          have hmem : cursor ∈ s.active := by
+            rw [hactive]
+            simp
+          have hempty := ad.continuation_empty cursor result next hmem hresume
+          have hstable := ad.stable_state cursor result next hmem hresume
+          let u' : EdgePhaseState := s.after result next before after
+          have hstate : u'.state = s.state := by
+            simp [u', EdgePhaseState.after, hstable]
+          have hsub : ∀ c, c ∈ u'.active → c ∈ s.active := by
+            intro c hc
+            have hc' : c ∈ before ++ after := by
+              simpa [u', EdgePhaseState.after, hempty] using hc
+            rw [hactive]
+            rcases List.mem_append.mp hc' with hb | ha
+            · exact List.mem_append_left _ hb
+            · exact List.mem_append_right before (List.mem_cons_of_mem cursor ha)
+          have huad : EdgePhaseNbaAdmission E u' :=
+            ad.restrict hstate hsub
+          have htailstate : t.state = u'.state := ih huad
+          exact htailstate.trans hstate
+
+#print axioms EdgePhaseTerminalPath.state_eq
+
+end LeanModels.Sv.Kernel
+
+namespace LeanModels.Sv.Kernel
+
+open LeanModels.Sv
+
+private theorem nbaDisj_symm {u v : String × Nat × LVec} :
+    NbaDisj u v → NbaDisj v u := by
+  intro h
+  rcases h with h | h | h
+  · exact Or.inl h.symm
+  · exact Or.inr (Or.inr h)
+  · exact Or.inr (Or.inl h)
+
+private def queuePairwiseDisjoint (q : NbaQueue2) : Prop :=
+  q.Pairwise NbaDisj
+
+private theorem queuePairwiseDisjoint_perm {q q' : NbaQueue2}:
+    q.Perm q' → queuePairwiseDisjoint q → queuePairwiseDisjoint q'
+  | hp, h => (List.Perm.pairwise_iff nbaDisj_symm hp).mp h
+
+private theorem commitNba2_perm_disjoint
+    {st : SvState} {q q' : NbaQueue2}
+    (hkeys : (st.map Prod.fst).Nodup)
+    (hdisj : queuePairwiseDisjoint q)
+    (hperm : q.Perm q') :
+    commitNba2 st q = commitNba2 st q' := by
+  induction hperm generalizing st with
+  | nil => rfl
+  | cons x hperm ih =>
+      rw [commitNba2_cons, commitNba2_cons]
+      exact ih (by rw [keys_nbaStep]; exact hkeys)
+        (List.pairwise_cons.mp hdisj).2
+  | swap x y l =>
+      have hpref : commitNba2 st (y :: x :: []) =
+          commitNba2 st (x :: y :: []) := by
+        simpa using (commitNba2_swap (B₁ := [y]) (B₂ := [x]) hkeys (by
+          intro u hu v hv
+          simp at hu hv
+          subst u
+          subst v
+          simpa using (List.pairwise_cons.mp hdisj).1 x (by simp)))
+      rw [show y :: x :: l = (y :: x :: []) ++ l by rfl,
+        show x :: y :: l = (x :: y :: []) ++ l by rfl,
+        commitNba2_append, commitNba2_append, hpref]
+  | trans h₁ h₂ ih₁ ih₂ =>
+      exact (ih₁ hkeys hdisj).trans
+        (ih₂ hkeys (queuePairwiseDisjoint_perm h₁ hdisj))
+
+/-- Queue order is observationally irrelevant when all updates are pairwise
+disjoint and the base view is the same. -/
+theorem EdgePhaseState.observable_eq_of_perm
+    {E : CoreMemDesign} {s₁ s₂ : EdgePhaseState}
+    (hstate : E.scalar.view s₁.state.scalar = E.scalar.view s₂.state.scalar)
+    (hkeys : (E.scalar.view s₁.state.scalar).map Prod.fst |>.Nodup)
+    (hdisj : queuePairwiseDisjoint s₁.scalarQ)
+    (hperm : s₁.scalarQ.Perm s₂.scalarQ) :
+    EdgePhaseState.observable E s₁ = EdgePhaseState.observable E s₂ := by
+  unfold EdgePhaseState.observable
+  rw [hstate]
+  have hkeys2 : (E.scalar.view s₂.state.scalar).map Prod.fst |>.Nodup := by
+    rw [← hstate]
+    exact hkeys
+  exact commitNba2_perm_disjoint hkeys2 hdisj hperm
+
+#print axioms EdgePhaseState.observable_eq_of_perm
+
+/-- Terminal paths have the same observable committed state when their complete
+update queues are permutations and every pair of queued updates is disjoint.
+The path relation supplies the stable pre-edge state, while the permutation is
+the explicit schedule-order obligation. -/
+theorem EdgePhaseTerminalPath.observable_eq_of_perm
+    {E : CoreMemDesign} {s t₁ t₂ : EdgePhaseState}
+    {n₁ n₂ : Nat}
+    (ad : EdgePhaseNbaAdmission E s)
+    (hp₁ : EdgePhaseTerminalPath E n₁ s t₁)
+    (hp₂ : EdgePhaseTerminalPath E n₂ s t₂)
+    (hkeys : (E.scalar.view s.state.scalar).map Prod.fst |>.Nodup)
+    (hdisj : queuePairwiseDisjoint t₁.scalarQ)
+    (hperm : t₁.scalarQ.Perm t₂.scalarQ) :
+    EdgePhaseState.observable E t₁ = EdgePhaseState.observable E t₂ := by
+  have hs₁ := EdgePhaseTerminalPath.state_eq ad hp₁
+  have hs₂ := EdgePhaseTerminalPath.state_eq ad hp₂
+  have hstate : E.scalar.view t₁.state.scalar = E.scalar.view t₂.state.scalar := by
+    rw [hs₁, hs₂]
+  have hkeys₁ : (E.scalar.view t₁.state.scalar).map Prod.fst |>.Nodup := by
+    rw [hs₁]
+    exact hkeys
+  exact EdgePhaseState.observable_eq_of_perm hstate hkeys₁ hdisj hperm
+
+#print axioms EdgePhaseTerminalPath.observable_eq_of_perm
+
 end LeanModels.Sv.Kernel
