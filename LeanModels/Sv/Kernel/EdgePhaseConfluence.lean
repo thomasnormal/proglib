@@ -256,6 +256,39 @@ theorem CoreMemDesign.evalScalarLocals_setScalarState_of_not_read_coherent
   exact (CoreMemDesign.setScalarState_spec hc hx v).1
   exact hread
 
+theorem SvState.set_commute_of_mem
+    {st : SvState} {n m : String} {v w : LVec}
+    (hn : n ∈ st.map Prod.fst) (hm : m ∈ st.map Prod.fst)
+    (hneq : n ≠ m) (hnd : (st.map Prod.fst).Nodup) :
+    SvState.set (SvState.set st n v) m w =
+      SvState.set (SvState.set st m w) n v := by
+  apply SvState.ext
+  · have hm' : m ∈ (SvState.set st n v).map Prod.fst := by
+      rw [SvState.keys_set (v := v) (h := hn)]
+      exact hm
+    have hn' : n ∈ (SvState.set st m w).map Prod.fst := by
+      rw [SvState.keys_set (v := w) (h := hm)]
+      exact hn
+    rw [SvState.keys_set (v := w) (h := hm'),
+      SvState.keys_set (v := v) (h := hn),
+      SvState.keys_set (v := v) (h := hn'),
+      SvState.keys_set (v := w) (h := hm)]
+  · have hm' : m ∈ (SvState.set st n v).map Prod.fst := by
+      rw [SvState.keys_set (v := v) (h := hn)]
+      exact hm
+    have hleft : ((SvState.set st n v).set m w).map Prod.fst = st.map Prod.fst := by
+      rw [SvState.keys_set (v := w) (h := hm'), SvState.keys_set (v := v) (h := hn)]
+    rw [hleft]
+    exact hnd
+  · intro q
+    by_cases hqn : n = q
+    · subst q
+      simp [SvState.lookup_set, hneq, Ne.symm hneq]
+    · by_cases hqm : m = q
+      · subst q
+        simp [SvState.lookup_set, hneq, Ne.symm hneq]
+      · simp [SvState.lookup_set, hqn, hqm, Ne.symm hqn, Ne.symm hqm]
+
 /-! The four source-level obligations for a level-sensitive admission.  They
 are retained as a proposition over `PDesign`, where the access closure and
 reactive dependency walks still have their parser-native inputs.  The first

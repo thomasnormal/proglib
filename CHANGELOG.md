@@ -19,6 +19,10 @@
 - Added the corresponding scalar evaluator congruence over the parser-native
   `readsV` footprint for pure expressions.
 
+- Added a kernel-checked commutation theorem for two distinct existing scalar
+  bindings, the state-level write boundary needed by the level-sensitive local
+  diamond.
+
 - Added the kernel-checked pure scalar evaluator frame used by the retained
   level-sensitive scheduler.  The parser-native admission obligations are
   recorded separately, while the guard-to-resume semantic frame remains open.
