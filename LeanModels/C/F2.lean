@@ -211,6 +211,19 @@ theorem typedStoreMetadataByte_preserves_length
   simp [typedStoreMetadataByte] at hresult
   split at hresult <;> simp_all
 
+def typedLoadMetadataByte [BEq TypeId]
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) : Option (Byte Tag × Footprint) := do
+  let byte ← metadata.allocation.bytes[offset]?
+  let location ← metadata.locations[offset]?
+  match location.effectiveType with
+  | .typed storedType =>
+      if storedType == typeId then
+        some (byte, footprint .read { allocation := 0, offset := offset, width := 1 })
+      else none
+  | .untyped => none
+  | .padding | .indeterminate => none
+
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
   | (id, allocation) :: rest =>
