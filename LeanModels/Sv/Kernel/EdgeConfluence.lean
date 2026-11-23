@@ -330,6 +330,39 @@ theorem EdgeScheduleTerminalPath.view_eq_edgesV_commit
 
 #print axioms EdgeScheduleTerminalPath.view_eq_edgesV_commit
 
+/-! The source-order evaluator exposes the same queue decomposition that the
+indexed scheduler consumes.  This theorem deliberately keeps the process
+identity in the `procQ` premise instead of introducing a second evaluator. -/
+theorem CoreMemDesign.edgesV_queue_flatMap
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {ps : List CoreMemProc} {r : ExecV}
+    (hw : ∀ p ∈ ps, p.nbaWholeP = true)
+    (hroute : E.edgesV before after v mv ps = .ok r) :
+    ∃ qs : List NbaQueue2,
+      (∀ q ∈ qs, ∃ p ∈ ps, E.procQ before after v mv p = .ok q) ∧
+      r.2.1 = qs.flatMap id := by
+  induction ps generalizing r with
+  | nil =>
+      simp only [CoreMemDesign.edgesV, Res.ok.injEq] at hroute
+      subst r
+      exact ⟨[], by simp, by simp⟩
+  | cons p rest ih =>
+      obtain ⟨qp, rr, hqp, htargets, hrest, hr⟩ :=
+        CoreMemDesign.edgesV_cons_inv (hw p (by simp)) hroute
+      obtain ⟨qs, hqs, hflat⟩ := ih (fun q hq => hw q (by simp [hq])) hrest
+      refine ⟨qp :: qs, ?_, ?_⟩
+      · intro q hq
+        simp only [List.mem_cons] at hq
+        rcases hq with rfl | hq
+        · exact ⟨p, by simp, hqp⟩
+        · obtain ⟨p', hp', hq'⟩ := hqs q hq
+          exact ⟨p', by simp [hp'], hq'⟩
+      · rw [hr]
+        change qp ++ rr.2.1 = qp ++ qs.flatMap id
+        rw [hflat]
+
+#print axioms CoreMemDesign.edgesV_queue_flatMap
+
 theorem EdgeScheduleTerminalPath.unique
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
     {ids : List Nat} (ad : EdgeScheduleAdmission E before after v mv ids)
