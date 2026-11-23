@@ -863,6 +863,25 @@ def endLifetime (store : Store Tag State) (id : AllocId) :
       footprint .metadata { allocation := id, offset := 0,
         width := allocation.bytes.length })
 
+def pairedEndLifetime (resolve : AllocId → Nat) (store : Store Tag State)
+    (id : AllocId) :
+    Option ((Store Tag State × Footprint) × (Store Tag State × Footprint)) := do
+  let sourceResult ← endLifetime store id
+  let targetResult ← endLifetime (renameStore resolve store) id
+  if targetResult.1 = renameStore resolve sourceResult.1 &&
+      targetResult.2 = sourceResult.2 then
+    some (sourceResult, targetResult)
+  else none
+
+theorem pairedEndLifetime_corresponds
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (result : (Store Tag State × Footprint) × (Store Tag State × Footprint))
+    (hresult : pairedEndLifetime resolve store id = some result) :
+    result.2.1 = renameStore resolve result.1.1 ∧
+      result.2.2 = result.1.2 := by
+  simp [pairedEndLifetime] at hresult
+  split at hresult <;> simp_all
+
 theorem endLifetime_wf {Tag State : Type} (store : Store Tag State)
     (hstore : WellFormed store) (id : AllocId)
     (result : Store Tag State × Footprint)
