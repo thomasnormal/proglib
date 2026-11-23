@@ -97,6 +97,9 @@ def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
 #guard match allocateZeroSize () (.address 128) with
   | (.token token, _) => zeroTokenFreeable token && zeroTokenEqual token token
   | _ => false
+#guard freePointer none == .nullSuccess
+#guard freePointer (some metadata) == .freed
+#guard freePointer (some ((freeMetadata metadata).getD (metadata, {})).1) == .stalePointer
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 

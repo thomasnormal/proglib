@@ -353,6 +353,18 @@ def freeMetadata (metadata : AllocationMetadata Tag State TypeId) :
         width := metadata.allocation.bytes.length })
   else none
 
+inductive FreeOutcome where
+  | nullSuccess
+  | freed
+  | stalePointer
+  | unmatchedPointer
+deriving Repr, BEq
+
+def freePointer (metadata : Option (AllocationMetadata Tag State TypeId)) : FreeOutcome :=
+  match metadata with
+  | none => .nullSuccess
+  | some metadata => if metadata.allocation.live then .freed else .stalePointer
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
