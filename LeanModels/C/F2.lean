@@ -272,6 +272,19 @@ def copyFootprint (source destination : Region) (width : Nat) : Footprint :=
   { accesses := [(.read { source with width := width }),
                  (.write { destination with width := width })] }
 
+def regionsOverlap (source destination : Region) (width : Nat) : Bool :=
+  source.allocation == destination.allocation &&
+    source.offset < destination.offset + width &&
+    destination.offset < source.offset + width
+
+def memcpySnapshot (source destination : Region) (bytes : List (Byte Tag)) :
+    Option (List (Byte Tag)) :=
+  if regionsOverlap source destination bytes.length then none
+  else copySnapshot bytes bytes
+
+def memmoveSnapshot (_source _destination : Region) (bytes : List (Byte Tag)) :
+    Option (List (Byte Tag)) := some bytes
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
