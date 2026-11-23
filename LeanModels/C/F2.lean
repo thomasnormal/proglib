@@ -535,6 +535,33 @@ def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag S
       else allocate store request placement
   | _ => allocate store request placement
 
+inductive PlacementFault where
+  | exhausted
+  | overlap
+  | misaligned
+deriving Repr, BEq
+
+def placementWithin (base size limit : Nat) : Bool :=
+  base ≤ limit && size ≤ limit - base
+
+def allocateBounded (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (alignment limit : Nat) :
+    Except PlacementFault (Store Tag State × Footprint) :=
+  match placement with
+  | .fail => .error .exhausted
+  | .unaddressable =>
+      match allocate store request placement with
+      | some result => .ok result
+      | none => .error .overlap
+  | .address base =>
+      if !placementWithin base request.bytes.length limit then .error .exhausted
+      else if !alignmentAllowed base alignment then .error .misaligned
+      else if !placementAllowed store base request.bytes.length then .error .overlap
+      else
+        match allocate store request placement with
+        | some result => .ok result
+        | none => .error .overlap
+
 def allocateMetadata (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) :
     Option (AllocationMetadata Tag State TypeId × Footprint) :=
