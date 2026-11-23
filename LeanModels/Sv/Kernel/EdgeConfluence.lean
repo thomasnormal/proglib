@@ -125,6 +125,29 @@ theorem edgeProcQ_targets
 
 #print axioms edgeProcQ_targets
 
+private theorem flatMap_nodup_pairwise {α β : Type} {xs : List α} {f : α → List β}
+    (hnd : xs.flatMap f |>.Nodup) :
+    ∀ {a b}, a ∈ xs → b ∈ xs → a ≠ b →
+      ∀ x ∈ f a, ∀ y ∈ f b, x ≠ y := by
+  induction xs with
+  | nil => simp
+  | cons z xs ih =>
+      intro a b ha hb hab x hxa y hyb heq
+      have hsplit := List.nodup_append.mp (by
+        simpa only [List.flatMap_cons] using hnd)
+      simp only [List.mem_cons] at ha hb
+      rcases ha with rfl | ha
+      · rcases hb with rfl | hb
+        · exact hab rfl
+        · exact hsplit.2.2 x hxa
+            y (List.mem_flatMap_of_mem hb hyb) heq
+      · rcases hb with rfl | hb
+        · exact hsplit.2.2 y hyb
+            x (List.mem_flatMap_of_mem ha hxa) heq.symm
+        · exact ih (by exact hsplit.2.1) ha hb hab x hxa y hyb heq
+
+#print axioms flatMap_nodup_pairwise
+
 private theorem removeProcessId_mem_of_ne {i j : Nat} {xs : List Nat}
     (h : j ∈ xs) (hne : j ≠ i) : j ∈ removeProcessId i xs := by
   simp [removeProcessId, h, hne]
