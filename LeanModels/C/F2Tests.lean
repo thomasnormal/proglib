@@ -88,6 +88,10 @@ def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
 #guard match reallocMetadata metadata { bytes := [oneByte], state := () } [location] (.address 64) with
   | some (.replaced _, _) => true
   | _ => false
+#guard match allocateZeroSize () (.address 128) with
+  | (.token metadata, _) => metadata.allocation.bytes.length == 0
+  | _ => false
+#guard reallocZeroGNU17 == .freedNull
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 
