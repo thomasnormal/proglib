@@ -868,6 +868,10 @@ theorem renameStore_wf (resolve : AllocId → Nat) (store : Store Tag State)
     (hstore : WellFormed store) : WellFormed (renameStore resolve store) := by
   exact (allocationsWf_rename resolve store.allocations).mpr hstore
 
+theorem renameStore_wf_iff (resolve : AllocId → Nat) (store : Store Tag State) :
+    WellFormed (renameStore resolve store) ↔ WellFormed store := by
+  exact allocationsWf_rename resolve store.allocations
+
 def footprint (kind : AccessKind) (region : Region) : Footprint :=
   { accesses := [(kind, region)] }
 
