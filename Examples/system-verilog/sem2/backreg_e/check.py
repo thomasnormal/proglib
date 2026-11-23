@@ -58,7 +58,7 @@ def main():
             raise RuntimeError("stale envelope")
     run(["lake", "env", "lean", str(HERE / "agree.lean")])
     print("extractor: envelope regenerates byte-identically")
-    print("E: REFUSED 10.3 topological continuous-assignment boundary")
+    print("E: 8 settled continuous-assignment rows MATCH")
     simulators = ["iverilog"] + (["xrun"] if shutil.which("xrun") else [])
     for sim in simulators:
         with tempfile.TemporaryDirectory(prefix="sv-backreg-") as work:
