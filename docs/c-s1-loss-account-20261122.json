@@ -2,7 +2,7 @@
   "schema": "c-s1-loss-account-20261122-v2",
   "old_receipt": "3cf3da8cc",
   "current_receipt": "f25b23fcd",
-  "current_log": "/scratch/thomas-ahle/gate/ls-cpp/full-survey/20261122T-serial-deterministic-full-current-f25b23fcd.log",
+  "current_log": "gate/ls-cpp/full-survey/20261122T-serial-deterministic-full-current-f25b23fcd.log",
   "headline": {
     "raw": "1275/2214",
     "active": "1275/2114"

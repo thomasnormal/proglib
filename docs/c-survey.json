@@ -9,36 +9,36 @@
    "runner-error": 1
   },
   "gcc.c-torture/execute": {
-   "failed": 2,
+   "failed": 3,
    "not-ingested": 1,
    "not-parsed": 395,
-   "oracle-tests-compiler": 1,
-   "passed": 1077,
+   "oracle-tests-compiler": 3,
+   "passed": 1124,
    "refused-libc": 26,
    "refused-ub": 36,
-   "refused-unsupported": 283,
-   "runner-error": 9
+   "refused-unsupported": 232,
+   "runner-error": 10
   },
   "gcc.c23-run": {
    "not-parsed": 34,
-   "passed": 9,
+   "passed": 10,
    "refused-libc": 1,
    "refused-ub": 1,
-   "refused-unsupported": 19
+   "refused-unsupported": 18
   }
  },
  "corpus": "gcc.c-torture/execute",
  "counts": {
-  "failed": 2,
+  "failed": 3,
   "no-entry-point": 100,
   "not-ingested": 1,
   "not-parsed": 432,
-  "oracle-tests-compiler": 1,
-  "passed": 1275,
+  "oracle-tests-compiler": 3,
+  "passed": 1323,
   "refused-libc": 28,
   "refused-ub": 41,
-  "refused-unsupported": 424,
-  "runner-error": 10
+  "refused-unsupported": 372,
+  "runner-error": 11
  },
  "dynamic_wall_ranking": [
   {
@@ -640,36 +640,6 @@
   },
   {
    "files": [
-    "20000113-1.c",
-    "20190901-1.c",
-    "921016-1.c",
-    "bitfld-1.c",
-    "bitfld-10.c",
-    "bitfld-8.c",
-    "bitfld-9.c",
-    "gcc/testsuite/gcc.dg/c23-tag-alias-7.c",
-    "pr108498-2.c",
-    "pr110165-1.c",
-    "pr110166-1.c",
-    "pr111613.c",
-    "pr31169.c",
-    "pr40493.c",
-    "pr60017.c",
-    "pr66556.c",
-    "pr70127.c",
-    "pr70566.c",
-    "pr78170.c",
-    "pr86659-1.c",
-    "pr86659-2.c",
-    "pr88739.c",
-    "pr98366.c"
-   ],
-   "present": 23,
-   "sole": 23,
-   "wall": "unsupported:partly initialized bit-field byte"
-  },
-  {
-   "files": [
     "00112.c",
     "20000910-2.c",
     "20010915-1.c",
@@ -760,24 +730,6 @@
   },
   {
    "files": [
-    "20230630-1.c",
-    "20230630-2.c",
-    "20230630-3.c",
-    "20230630-4.c",
-    "pr52979-1.c",
-    "pr52979-2.c",
-    "pr58984.c",
-    "pr65215-3.c",
-    "pr79737-1.c",
-    "pr89195.c",
-    "pr97764.c"
-   ],
-   "present": 11,
-   "sole": 11,
-   "wall": "unsupported:no layout for bit-field record 'struct S'"
-  },
-  {
-   "files": [
     "20071120-1.c",
     "20090113-1.c",
     "20090527-1.c",
@@ -786,10 +738,11 @@
     "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
     "pr101188.c",
     "pr19687.c",
-    "pr33870-1.c"
+    "pr33870-1.c",
+    "pr40493.c"
    ],
-   "present": 9,
-   "sole": 9,
+   "present": 10,
+   "sole": 10,
    "wall": "unsupported:indeterminate lvalue read requires a representation choice"
   },
   {
@@ -913,16 +866,6 @@
    "present": 3,
    "sole": 3,
    "wall": "unsupported:integer-to-floating conversion lacks parser-native destination type"
-  },
-  {
-   "files": [
-    "20081117-1.c",
-    "bitfld-3.c",
-    "bitfld-4.c"
-   ],
-   "present": 3,
-   "sole": 3,
-   "wall": "unsupported:no layout for bit-field record 'struct s'"
   },
   {
    "files": [
@@ -1067,15 +1010,6 @@
    "present": 2,
    "sole": 2,
    "wall": "unsupported:goto skips a block declaration"
-  },
-  {
-   "files": [
-    "991118-1.c",
-    "bf64-1.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:no layout for bit-field record 'struct tmp'"
   },
   {
    "files": [
@@ -1395,118 +1329,6 @@
   },
   {
    "files": [
-    "20031201-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 's1'"
-  },
-  {
-   "files": [
-    "20040307-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/20040307-1.c"
-  },
-  {
-   "files": [
-    "20040331-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/20040331-1.c"
-  },
-  {
-   "files": [
-    "bf-sign-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/bf-sign-1.c"
-  },
-  {
-   "files": [
-    "bitfld-signed1-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/bitfld-signed1-1.c"
-  },
-  {
-   "files": [
-    "pr103417.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/pr103417.c"
-  },
-  {
-   "files": [
-    "pr49768.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/pr49768.c"
-  },
-  {
-   "files": [
-    "struct-ini-2.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/struct-ini-2.c"
-  },
-  {
-   "files": [
-    "struct-ini-3.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/struct-ini-3.c"
-  },
-  {
-   "files": [
-    "pr39339.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct D'"
-  },
-  {
-   "files": [
-    "pr70602.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct S[21]'"
-  },
-  {
-   "files": [
-    "pr71700.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct S[2]'"
-  },
-  {
-   "files": [
-    "20031211-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct a'"
-  },
-  {
-   "files": [
-    "990326-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "unsupported:no layout for bit-field record 'struct c'"
-  },
-  {
-   "files": [
     "ieee/copysign1.c"
    ],
    "present": 1,
@@ -1670,8 +1492,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-22",
- "measured_commit": "f25b23fcd",
+ "measured_at_utc": "2026-11-23T01:05:00Z",
+ "measured_commit": "dc3df24ac",
  "pin": "C1-C3",
  "rows": [
   {
@@ -4329,15 +4151,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000113-1.c",
    "sha256": "af68bc3df3e62ae153d40190366af58dbfe6bbdedf2058a217a279c37d3b9ca9",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -4407,7 +4229,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "Traceback (most recent call last):",
+   "detail": "Traceback (most recent call last): File extractors/c/extract.py\", line 1135, in <module> sys.exit(main()) ^^^^^^ File extractors/c/extract.py\", line 1121, in main env, unsup = extract(args.source, args.source_name, args.std) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ File extractors/c/extract.py\", line 920, in extract ex = Extractor(target, src.decode(), string_bytes, floating_bits, record_layouts) ^^^^^^^^^^^^ UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 98: invalid start byte",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "20000227-1.c",
@@ -7231,15 +7053,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 's1'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 's1'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20031201-1.c",
    "sha256": "f3e4a30dbe3bf5776e0b16f2e9b83e727d451dd33d159c5707152179c44eef6f",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7257,15 +7079,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct a'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct a'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20031211-1.c",
    "sha256": "d8b53a96f9fce461b3859c80be8ac5b02e0df3338a80e6c3a9cab62d425ead88",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7362,15 +7184,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct (unnamed struct at src/20040307-1.c:7:3)'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/20040307-1.c",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20040307-1.c",
    "sha256": "5f18eddd92b27b21968897d9418e4074443bfdd662f61f342fcadb65b1aba932",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7426,15 +7248,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct (unnamed struct at src/20040331-1.c:9:3)'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/20040331-1.c",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20040331-1.c",
    "sha256": "5d2bc65ff7c03437b73bdd479eb51aec0985f3367aa8c0d6e8d20fc4b39cd304",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8944,15 +8766,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct s'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct s'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20081117-1.c",
    "sha256": "bd616a43b25f5355a1ca83b87cdbc28eb25bba38121f122cc2bc64debcf14460",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9636,8 +9458,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20190901-1.c",
    "sha256": "1a26bfd6faf94ca757cbd11d36a5a35eb6acc4f8a08edda0086e10f3f451d650",
@@ -9645,7 +9467,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9713,8 +9535,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20230630-1.c",
    "sha256": "41f9aad43dadb0658bf7ba63e59587cd873656fc79936ff5fa08c5acab6bb4f9",
@@ -9722,12 +9544,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "GCC scalar_storage_order bit-field extension: pinned Clang 21.1.8 warns that this attribute is unknown, so the test abort is a compiler-feature check rather than C semantics.",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20230630-2.c",
    "sha256": "3fee99e4e5c5b5ba4cd56c80287630d2a3b6f9e3eea2751f37cf6880393dc43f",
@@ -9735,12 +9557,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "oracle-tests-compiler"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20230630-3.c",
    "sha256": "b738f362510553934b0e1dd18248a2ed1204f4b13f61781686f66a68a4d581e0",
@@ -9748,12 +9570,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "GCC scalar_storage_order bit-field extension: pinned Clang 21.1.8 warns that this attribute is unknown, so the test abort is a compiler-feature check rather than C semantics.",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20230630-4.c",
    "sha256": "75b86123dbfa571b0c34576552ccbccb0a9e3a1166f7e90ef8400f7961749868",
@@ -9761,7 +9583,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "oracle-tests-compiler"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10326,15 +10148,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "921016-1.c",
    "sha256": "fe4ed290bb1efb9a2b0e15ceec69bee88c254f9b0695a9c969bd99699b4cfc5e",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -12601,8 +12423,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct c'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct c'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "990326-1.c",
    "sha256": "2f7244e7ade4cda9b5db57f8a07d3ccd9669f647062c96ee954df30d3780c7a4",
@@ -12610,7 +12432,7 @@
     "type-layout",
     "unsupported:AlignedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -12870,15 +12692,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct tmp'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct tmp'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "991118-1.c",
    "sha256": "098e5c478b0e18053d843f15d42802f3631f84acde0b39660c1adb486b9434e8",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13237,15 +13059,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct (unnamed struct at src/bf-sign-1.c:7:3)'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/bf-sign-1.c",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bf-sign-1.c",
    "sha256": "92271ed63e419cbde8e15e93e0fb80554379d351026b7df5eec6e96e6017b423",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13261,32 +13083,32 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct tmp'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct tmp'",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bf64-1.c",
    "sha256": "d3035b700fbe0ba71cea78f1d69b7333698986ea945b0a9b904fdb1cc06e2c2e",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bitfld-1.c",
    "sha256": "8c1e292e2bd0177a25f13545a1c4b873f701d20be8b4de8a2cb205921f6e688e",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bitfld-10.c",
    "sha256": "51dddb1cf15cf1881c4f752d605bd1fae97adc006de6d1bd361249a186babafd",
@@ -13294,7 +13116,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13308,27 +13130,27 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct s'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct s'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bitfld-3.c",
    "sha256": "3bec021b8d98a23aa8a1154167df5c7c984f1c9390d8ccbb03f1b13572e24a7a",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "failed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct s'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct s'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bitfld-4.c",
    "sha256": "90d0140ffc198999600743dd31d8aef6dd7c3bba5d303e29d80f9fdefc8fa8b1",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -13366,8 +13188,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bitfld-8.c",
    "sha256": "d144ff4f91c3f67e261a5f718286656dde69f85afb589a9c63c610767fdc70c1",
@@ -13375,12 +13197,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bitfld-9.c",
    "sha256": "eed82318a87124605e1440087fb972ca315a8ba16496b66a322fcbfabb0599d1",
@@ -13388,12 +13210,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct (unnamed struct at src/bitfld-signed1-1.c:5:1)'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/bitfld-signed1-1.c",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bitfld-signed1-1.c",
    "sha256": "a589061a77d3f05727e69d900f54549419ab23ab93e487dadf3d03848abb786d",
@@ -13401,7 +13223,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -14140,7 +13962,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/memcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/memcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/memcpy-chk.c:11:10: fatal error: 'chk.h' file not found 11 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/memcpy-chk.c",
@@ -14186,7 +14008,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/memmove-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/memmove-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/memmove-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/memmove-chk.c",
@@ -14290,7 +14112,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/mempcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/mempcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/mempcpy-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/mempcpy-chk.c",
@@ -14337,7 +14159,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/memset-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/memset-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/memset-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/memset-chk.c",
@@ -14424,7 +14246,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/pr23484-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/pr23484-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/pr23484-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/pr23484-chk.c",
@@ -14444,7 +14266,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/pr93262-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/pr93262-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/pr93262-chk.c:8:10: fatal error: 'chk.h' file not found 8 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/pr93262-chk.c",
@@ -14484,7 +14306,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/snprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/snprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/snprintf-chk.c:15:10: fatal error: 'chk.h' file not found 15 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/snprintf-chk.c",
@@ -14504,7 +14326,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/sprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/sprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/sprintf-chk.c:14:10: fatal error: 'chk.h' file not found 14 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/sprintf-chk.c",
@@ -14550,7 +14372,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/stpcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/stpcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/stpcpy-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/stpcpy-chk.c",
@@ -14570,7 +14392,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/stpncpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/stpncpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/stpncpy-chk.c:15:10: fatal error: 'chk.h' file not found 15 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/stpncpy-chk.c",
@@ -14590,7 +14412,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/strcat-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/strcat-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/strcat-chk.c:17:10: fatal error: 'chk.h' file not found 17 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strcat-chk.c",
@@ -14714,7 +14536,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/strcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/strcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/strcpy-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strcpy-chk.c",
@@ -14861,7 +14683,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/strncat-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/strncat-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/strncat-chk.c:16:10: fatal error: 'chk.h' file not found 16 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strncat-chk.c",
@@ -14958,7 +14780,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/strncpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/strncpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/strncpy-chk.c:15:10: fatal error: 'chk.h' file not found 15 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strncpy-chk.c",
@@ -15286,7 +15108,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/vsnprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/vsnprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/vsnprintf-chk.c:16:10: fatal error: 'chk.h' file not found 16 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/vsnprintf-chk.c",
@@ -15306,7 +15128,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/vsprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/vsprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/vsprintf-chk.c:16:10: fatal error: 'chk.h' file not found 16 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/vsprintf-chk.c",
@@ -15795,7 +15617,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/fprintf-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/fprintf-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/fprintf-2.c:12:10: fatal error: 'gcc_tmpnam.h' file not found 12 | #include \"gcc_tmpnam.h\" | ^~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "fprintf-2.c",
@@ -16387,7 +16209,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:38:7: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 38 | if (nullptr || p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9 || p10 | ^~~~~~~ ~~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:42:14: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 42 | _Bool b1 = nullptr; | ~~ ^~~~~~~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:44:14: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 44 | _Bool b3 = nptr; | ~~ ^~~~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:46:32: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 46 | _Bool b5 = _Generic(0, int : nullptr); | ~~ ^~~~~~~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:60:7: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 60 | f3 (nullptr); | ~~ ^~~~~~~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:181:11: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 181 | int x = nullptr ? 1 : 2; | ^~~~~~~ ~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:209:28: warning: implicit conversion of nullptr constant to 'bool'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-nullptr-1.c",
@@ -16580,8 +16402,8 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-tag-alias-7.c",
    "sha256": "4d60df32f4ba3aa8352cdba680fc16845571b1203d50d88bc24f141ab19b2107",
@@ -16589,7 +16411,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c23-run",
@@ -18262,7 +18084,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/memcpy-a1.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/memcpy-a1.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/memcpy-a1.c:6:10: fatal error: 'memcpy-ax.h' file not found 6 | #include \"memcpy-ax.h\" | ^~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a1.c",
@@ -18272,7 +18094,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/memcpy-a2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/memcpy-a2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/memcpy-a2.c:6:10: fatal error: 'memcpy-ax.h' file not found 6 | #include \"memcpy-ax.h\" | ^~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a2.c",
@@ -18282,7 +18104,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/memcpy-a4.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/memcpy-a4.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/memcpy-a4.c:6:10: fatal error: 'memcpy-ax.h' file not found 6 | #include \"memcpy-ax.h\" | ^~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a4.c",
@@ -18292,7 +18114,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/memcpy-a8.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/memcpy-a8.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/memcpy-a8.c:6:10: fatal error: 'memcpy-ax.h' file not found 6 | #include \"memcpy-ax.h\" | ^~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a8.c",
@@ -18370,7 +18192,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "wall-clock kill after 90s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "minmaxcmp-1.c",
@@ -18378,7 +18200,7 @@
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "passed"
+   "verdict": "runner-error"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18721,8 +18543,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct (unnamed struct at src/pr103417.c:4:1)'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/pr103417.c",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr103417.c",
    "sha256": "f2bd608d4d70b6dde5f5c706f3461c86ddfc17f4ab3cc990ebbf242607a52c27",
@@ -18730,7 +18552,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18803,7 +18625,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/pr105777.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/pr105777.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/pr105777.c:3:10: fatal error: '../../gcc.dg/tree-ssa/pr105777.c' file not found 3 | #include \"../../gcc.dg/tree-ssa/pr105777.c\" | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr105777.c",
@@ -18919,8 +18741,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr108498-2.c",
    "sha256": "f31a0536be78d73f7060b3a52475629b312e9ecbb7336c6a3dde5ef16b098bf9",
@@ -18931,7 +18753,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18984,7 +18806,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/pr109938.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/pr109938.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/pr109938.c:4:10: fatal error: '../../gcc.dg/tree-ssa/pr109938.c' file not found 4 | #include \"../../gcc.dg/tree-ssa/pr109938.c\" | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr109938.c",
@@ -18994,7 +18816,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/pr109986.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/pr109986.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/pr109986.c:4:10: fatal error: '../../gcc.dg/tree-ssa/pr109986.c' file not found 4 | #include \"../../gcc.dg/tree-ssa/pr109986.c\" | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr109986.c",
@@ -19016,8 +18838,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr110165-1.c",
    "sha256": "37f7a9004a4003bfb6c30caf4024a0cec35bda612b135942170f7cc80ac25d15",
@@ -19025,12 +18847,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr110166-1.c",
    "sha256": "30bcfb7d37f2f641c25bde007f17671a1cd2b6db16610c55a0d638896d6cd67b",
@@ -19038,7 +18860,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19254,8 +19076,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr111613.c",
    "sha256": "5da58fe5094271eee5c47f32e3c5970f50d7544f5a97eb3e162b3c97d3eb05db",
@@ -19264,7 +19086,7 @@
     "libc-call: malloc",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20524,7 +20346,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/pr30314.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/pr30314.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/pr30314.c:3:10: fatal error: '../../gcc.dg/tree-ssa/pr30314.c' file not found 3 | #include \"../../gcc.dg/tree-ssa/pr30314.c\" | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr30314.c",
@@ -20571,15 +20393,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr31169.c",
    "sha256": "e14e8933d0d1e9a979e1db3b9920ffac486021efc46066927b1eae551ee3afb3",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21334,8 +21156,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct D'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct D'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr39339.c",
    "sha256": "e3d8a2d36db7d11986a8795f7eeebedde778466688b78518594ec24585bbae0f",
@@ -21345,7 +21167,7 @@
     "libc-call: __builtin_memset",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21403,8 +21225,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "indeterminate lvalue read requires a representation choice",
+   "dynamic_wall": "unsupported:indeterminate lvalue read requires a representation choice",
    "manifest_status": "parsed",
    "name": "pr40493.c",
    "sha256": "546c75933657d9c8a094368737c144440b1dabb5e9bd1b33489093949569760a",
@@ -22354,15 +22176,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct (unnamed struct at src/pr49768.c:8:10)'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/pr49768.c",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr49768.c",
    "sha256": "04b34346cd3a09c6ccfa687dba7e2ef21d25a99d57183a2ad6a720140d4ad1a4",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -22434,7 +22256,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/pr51581-1.c:11:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes]",
+   "detail": "src/pr51581-1.c:11:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 11 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-1.c:19:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 19 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-1.c:27:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 27 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-1.c:35:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 35 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-1.c:43:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 43 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-1.c:51:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 51 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline <path>",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr51581-1.c",
@@ -22444,7 +22266,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/pr51581-2.c:10:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes]",
+   "detail": "src/pr51581-2.c:10:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 10 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-2.c:18:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 18 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-2.c:26:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 26 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-2.c:34:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 34 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-2.c:42:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 42 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-2.c:50:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 50 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline <path>",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr51581-2.c",
@@ -22521,8 +22343,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr52979-1.c",
    "sha256": "1dadc165373ec8fe6f3ef9be1784dc6c9dca2139dd61e55d8662ab8940b06365",
@@ -22530,12 +22352,12 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr52979-2.c",
    "sha256": "aee0f1b8756e7cb3e67d75b17bf910cebe45632685535e06169176be03895bb1",
@@ -22543,7 +22365,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23186,8 +23008,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr58984.c",
    "sha256": "6a381d191ff13091896ce1c93245da2ab5efa82c7bf8dff15aa29d74903bf7a7",
@@ -23195,7 +23017,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23352,15 +23174,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr60017.c",
    "sha256": "e1b942636d59b8233e16cd1839ad1bda3c94915410201f464dbf5bc5d824b2d9",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23770,8 +23592,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr65215-3.c",
    "sha256": "aa51efc493256a8f652ffa64ce3a5460a45bbf6a14e7725788bdc0df63334c2a",
@@ -23779,7 +23601,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23932,15 +23754,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr66556.c",
    "sha256": "b7644c4a5f8cf141a6e6b3a4d10bca5dea9ac4449cc6312ed1f6f41f644fa617",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24332,8 +24154,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr70127.c",
    "sha256": "5d953d45464793f22890f1ab67863a08b782484471f773d0374d60b36c6b94db",
@@ -24341,7 +24163,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24396,8 +24218,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr70566.c",
    "sha256": "8ccd33487db82bd1646a431759856eadf07b5db6e451757a632a11eae3a09282",
@@ -24405,7 +24227,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24419,8 +24241,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S[21]'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S[21]'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr70602.c",
    "sha256": "21730ef8ae07a0249e611ff67597948c5b82f500e13605110d6b3045ad3dda94",
@@ -24428,7 +24250,7 @@
     "type-layout",
     "unsupported:PackedAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24536,8 +24358,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S[2]'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S[2]'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr71700.c",
    "sha256": "2c73560c6890d92f8b2e0715c7d0951859d1861c8d38660870fc163c635204cc",
@@ -24545,7 +24367,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24600,8 +24422,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr78170.c",
    "sha256": "d835b10ea07ed5c1b11febb521abf16e17adca6155adb6bf237b5b64fb56a597",
@@ -24609,7 +24431,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24860,8 +24682,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr79737-1.c",
    "sha256": "c3a27bdc31cf152a26e369151558e5e5afe7ff7267c4163d51249293dae31655",
@@ -24870,7 +24692,7 @@
     "type-layout",
     "unsupported:MaxFieldAlignmentAttr"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25380,8 +25202,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr86659-1.c",
    "sha256": "18f01430fad2ecf32cd90db2ad9e9a39d8410d04a36673ef387872987d804820",
@@ -25389,12 +25211,12 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr86659-2.c",
    "sha256": "b7c34b3c2b5c426680dd9737a3625dc0bfeca2e953e7bf8c7cabc09500988b8c",
@@ -25402,7 +25224,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25507,8 +25329,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr88739.c",
    "sha256": "2a61a6bbeb2cc166299055a3d95df24b5c38bb98b8174136499275ed0422b426",
@@ -25516,7 +25338,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25530,8 +25352,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr89195.c",
    "sha256": "1afb15d2c63e9b41489be21084b7c0a9590d51ab1a5ad664a5f414cad1603a4b",
@@ -25539,7 +25361,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26155,8 +25977,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct S'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct S'",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr97764.c",
    "sha256": "0b1d95b7ada4a96c08362ff8a73f547f85fbf8e25a8704fdd71e14f259917a8a",
@@ -26164,7 +25986,7 @@
     "libc-call: __builtin_abort",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26205,7 +26027,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/pr98304-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/pr98304-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/pr98304-2.c:3:10: fatal error: '../../gcc.dg/pr98304-1.c' file not found 3 | #include \"../../gcc.dg/pr98304-1.c\" | ^~~~~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr98304-2.c",
@@ -26215,8 +26037,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "partly initialized bit-field byte",
-   "dynamic_wall": "unsupported:partly initialized bit-field byte",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr98366.c",
    "sha256": "30a197d210739fec4f1057c9d52115cf3fb4e144ec935b4309927538a18ba023",
@@ -26225,7 +26047,7 @@
     "libc-call: __builtin_memcmp",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26341,7 +26163,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/printf-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/printf-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/printf-2.c:13:10: fatal error: 'gcc_tmpnam.h' file not found 13 | #include \"gcc_tmpnam.h\" | ^~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "printf-2.c",
@@ -27031,27 +26853,27 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct (unnamed struct at src/struct-ini-2.c:4:1)'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/struct-ini-2.c",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "struct-ini-2.c",
    "sha256": "ebfe970ec4c78b51a18ee2f945c294d1b857e431288d33b013368517cab00f1b",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "no layout for bit-field record 'struct (unnamed struct at src/struct-ini-3.c:4:1)'",
-   "dynamic_wall": "unsupported:no layout for bit-field record 'struct (unnamed struct at src/struct-ini-3.c",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "struct-ini-3.c",
    "sha256": "d8557c455129cdfad066850de06e40896c9c787b47ee6c8fe9d083b63853ccee",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27152,7 +26974,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/user-printf.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/user-printf.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/user-printf.c:14:10: fatal error: 'gcc_tmpnam.h' file not found 14 | #include \"gcc_tmpnam.h\" | ^~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "user-printf.c",
