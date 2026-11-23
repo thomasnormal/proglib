@@ -12,10 +12,10 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1155,
+   "passed": 1157,
    "refused-libc": 26,
    "refused-ub": 39,
-   "refused-unsupported": 201,
+   "refused-unsupported": 199,
    "runner-error": 10
   },
   "gcc.c23-run": {
@@ -32,10 +32,10 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1357,
+  "passed": 1359,
   "refused-libc": 28,
   "refused-ub": 45,
-  "refused-unsupported": 337,
+  "refused-unsupported": 335,
   "runner-error": 11
  },
  "dynamic_wall_ranking": [
@@ -705,13 +705,14 @@
     "20090527-1.c",
     "20100430-1.c",
     "builtin-prefetch-2.c",
+    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
     "pr101188.c",
     "pr19687.c",
     "pr33870-1.c",
     "pr40493.c"
    ],
-   "present": 9,
-   "sole": 9,
+   "present": 10,
+   "sole": 10,
    "wall": "unsupported:indeterminate lvalue read requires a representation choice"
   },
   {
@@ -824,16 +825,6 @@
    "present": 3,
    "sole": 3,
    "wall": "unsupported:integer-to-floating conversion lacks parser-native destination type"
-  },
-  {
-   "files": [
-    "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
-    "pr30778.c",
-    "pr44468.c"
-   ],
-   "present": 3,
-   "sole": 3,
-   "wall": "unsupported:offsetof"
   },
   {
    "files": [
@@ -1403,8 +1394,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T07:00:00Z",
- "measured_commit": "9179b3521",
+ "measured_at_utc": "2026-11-24T10:00:00Z",
+ "measured_commit": "591fc99f6",
  "pin": "C1-C3",
  "rows": [
   {
@@ -15731,8 +15722,8 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "offsetof: parser supplied no constant byte offset",
-   "dynamic_wall": "unsupported:offsetof",
+   "detail": "indeterminate lvalue read requires a representation choice",
+   "dynamic_wall": "unsupported:indeterminate lvalue read requires a representation choice",
    "manifest_status": "parsed",
    "name": "gcc/testsuite/gcc.dg/c23-empty-init-5.c",
    "sha256": "d9dd88de8b98e54c7503bf6f0711f6292841b52fd0a011181273f3f670022b54",
@@ -20267,8 +20258,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "offsetof: parser supplied no constant byte offset",
-   "dynamic_wall": "unsupported:offsetof",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr30778.c",
    "sha256": "47b07838ad6663a5e5caa8beef3dd7bec90928db3e7a52bc8e6f1c30cc764e18",
@@ -20276,7 +20267,7 @@
     "libc-call: memset",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21594,15 +21585,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "offsetof: parser supplied no constant byte offset",
-   "dynamic_wall": "unsupported:offsetof",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr44468.c",
    "sha256": "454ced8916e33045ddb729461bde8e1ee9a62e4ae2cb4a35f30f9020430adc62",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",

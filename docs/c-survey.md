@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1357/2114 MATCH (passed 1357, failed 0, oracle 0)
+- verdicts: 1359/2114 MATCH (passed 1359, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `9179b3521`
-- measured at: `2026-11-24T07:00:00Z`
+- measured commit: `591fc99f6`
+- measured at: `2026-11-24T10:00:00Z`
 
 ## Verdict counts
 
@@ -16,10 +16,10 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1357 |
+| `passed` | 1359 |
 | `refused-libc` | 28 |
 | `refused-ub` | 45 |
-| `refused-unsupported` | 337 |
+| `refused-unsupported` | 335 |
 | `runner-error` | 11 |
 
 ## Counts by corpus
@@ -35,10 +35,10 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1155 |
+| `gcc.c-torture/execute` | `passed` | 1157 |
 | `gcc.c-torture/execute` | `refused-libc` | 26 |
 | `gcc.c-torture/execute` | `refused-ub` | 39 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 201 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 199 |
 | `gcc.c-torture/execute` | `runner-error` | 10 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 10 |
@@ -278,7 +278,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:nonValueRepresentation` | 17 | 17 | 20011121-1.c, 20050215-1.c, 941014-1.c, 941014-2.c, 980526-2.c |
 | `unsupported:long double floating literal` | 14 | 14 | 20030914-1.c, 20040208-1.c, 20080502-1.c, 960405-1.c, gcc/testsuite/gcc.dg/c23-float-1.c |
 | `unsupported:integer-to-pointer conversion outside pointer type` | 12 | 12 | 00214.c, 20000622-1.c, 20010329-1.c, 20021010-2.c, 20041112-1.c |
-| `unsupported:indeterminate lvalue read requires a representation choice` | 9 | 9 | 20071120-1.c, 20090113-1.c, 20090527-1.c, 20100430-1.c, builtin-prefetch-2.c |
+| `unsupported:indeterminate lvalue read requires a representation choice` | 10 | 10 | 20071120-1.c, 20090113-1.c, 20090527-1.c, 20100430-1.c, builtin-prefetch-2.c |
 | `unsupported:AddrLabelExpr` | 7 | 7 | 20040302-1.c, 20041214-1.c, 20071210-1.c, 920501-4.c, 920501-5.c |
 | `unsupported:StmtExpr` | 6 | 6 | 20000703-1.c, 20000917-1.c, 20020206-1.c, 20020320-1.c, 930406-1.c |
 | `unsupported:floating cast has incompatible source and destination` | 6 | 6 | 00204.c, 20020413-1.c, 990413-2.c, align-2.c, ieee/20011123-1.c |
@@ -289,7 +289,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:case label nested in a control statement` | 3 | 3 | 00051.c, 00143.c, medce-1.c |
 | `unsupported:floating value used as an integer` | 3 | 3 | 20000731-1.c, 20011217-1.c, pr92904.c |
 | `unsupported:integer-to-floating conversion lacks parser-native destination type` | 3 | 3 | 930622-2.c, 960215-1.c, regstack-1.c |
-| `unsupported:offsetof` | 3 | 3 | gcc/testsuite/gcc.dg/c23-empty-init-5.c, pr30778.c, pr44468.c |
 | `libc-call: __builtin_classify_type` | 2 | 2 | 20040709-1.c, 20040709-2.c |
 | `libc-call: __builtin_constant_p` | 2 | 2 | bcp-1.c, builtin-constant.c |
 | `libc-call: __builtin_isless` | 2 | 2 | ieee/fp-cmp-5.c, ieee/fp-cmp-8.c |
