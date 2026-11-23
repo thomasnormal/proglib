@@ -13,11 +13,11 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1145,
+   "passed": 1144,
    "refused-libc": 26,
    "refused-ub": 36,
    "refused-unsupported": 212,
-   "runner-error": 9
+   "runner-error": 10
   },
   "gcc.c23-run": {
    "not-parsed": 34,
@@ -34,11 +34,11 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1345,
+  "passed": 1344,
   "refused-libc": 28,
   "refused-ub": 41,
   "refused-unsupported": 351,
-  "runner-error": 10
+  "runner-error": 11
  },
  "dynamic_wall_ranking": [
   {
@@ -1450,8 +1450,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-23T03:45:00Z",
- "measured_commit": "703a28126",
+ "measured_at_utc": "2026-11-23T18:23:12Z",
+ "measured_commit": "9a9d639c4",
  "pin": "C1-C3",
  "rows": [
   {
@@ -1869,7 +1869,7 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "wall-clock kill after 90s",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00040.c",
@@ -5473,7 +5473,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20011008-3.c",
@@ -11704,7 +11704,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "960521-1.c",
@@ -18015,7 +18015,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "memcpy-1.c",
@@ -18150,7 +18150,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "minmaxcmp-1.c",
@@ -18158,7 +18158,7 @@
    "static_walls": [
     "libc-call: __builtin_abort"
    ],
-   "verdict": "passed"
+   "verdict": "runner-error"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18653,7 +18653,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr107881-1.c",
@@ -20201,7 +20201,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr28982b.c",
@@ -25428,7 +25428,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr91137.c",
@@ -26476,7 +26476,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strcmp-1.c",
@@ -26761,7 +26761,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strncmp-1.c",
@@ -26877,7 +26877,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "wall-clock kill after 30s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "subcmp-1.c",
