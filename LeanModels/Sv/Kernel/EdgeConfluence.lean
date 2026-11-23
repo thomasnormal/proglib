@@ -363,6 +363,31 @@ theorem CoreMemDesign.edgesV_queue_flatMap
 
 #print axioms CoreMemDesign.edgesV_queue_flatMap
 
+theorem CoreMemDesign.edgesV_queue_map
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {ps : List CoreMemProc} {r : ExecV}
+    (q : CoreMemProc → NbaQueue2)
+    (hw : ∀ p ∈ ps, p.nbaWholeP = true)
+    (hq : ∀ p ∈ ps, E.procQ before after v mv p = .ok (q p))
+    (hroute : E.edgesV before after v mv ps = .ok r) :
+    r.2.1 = ps.flatMap q := by
+  induction ps generalizing r with
+  | nil =>
+      simp only [CoreMemDesign.edgesV, Res.ok.injEq] at hroute
+      subst r
+      rfl
+  | cons p rest ih =>
+      obtain ⟨qp, rr, hqp, htargets, hrest, hr⟩ :=
+        CoreMemDesign.edgesV_cons_inv (hw p (by simp)) hroute
+      have hqp' : qp = q p := by
+        exact Res.ok.inj (hqp.symm.trans (hq p (by simp)))
+      have hrestq := ih (fun q' hq' => hw q' (by simp [hq']))
+        (fun q' hq' => hq q' (by simp [hq'])) hrest
+      rw [hr, hqp', hrestq]
+      rfl
+
+#print axioms CoreMemDesign.edgesV_queue_map
+
 theorem EdgeScheduleTerminalPath.unique
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
     {ids : List Nat} (ad : EdgeScheduleAdmission E before after v mv ids)

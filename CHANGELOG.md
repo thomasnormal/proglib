@@ -4445,3 +4445,4 @@ change is listed here under **Changed** or **Removed**.
 - sv: derive the canonical committed view for an admitted NBA path from pairwise-disjoint queue contributions.
 - sv: bridge an independent source-order `edgesV` queue receipt to the admitted scheduler's canonical terminal view.
 - sv: decompose a successful source-order `edgesV` pass into its parser-native `procQ` queue contributions.
+- sv: expose the source-order `edgesV` queue as the flat map of its process-indexed `procQ` contributions.
