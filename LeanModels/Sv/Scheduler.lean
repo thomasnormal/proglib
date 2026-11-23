@@ -748,6 +748,99 @@ inductive TerminalPath (d : SchedulerDesign) : Nat → SlotState → SlotState �
       quietB s = false → s.refusal = none → oneStep d s u →
       TerminalPath d n u t → TerminalPath d (n + 1) s t
 
+/-! ## Confluence of an admitted schedule
+
+The race guards are an admission filter.  The semantic end state is a proof
+that every legal active-event schedule has the same terminal state.  A design
+supplies a natural-valued progress measure, a step from every nonterminal
+state, and a local diamond for two choices from one state.  The theorems below
+quantify over every terminal path and never select a simulator's event order.
+-/
+
+def SchedulerTerminal (s : SlotState) : Prop :=
+  quiet s ∨ s.refusal.isSome = true
+
+structure ScheduleConfluence (d : SchedulerDesign) where
+  measure : SlotState → Nat
+  decreases : ∀ {s t}, oneStep d s t → measure t < measure s
+  progress : ∀ s, ¬ SchedulerTerminal s → ∃ t, oneStep d s t
+  no_step_terminal : ∀ {s t}, SchedulerTerminal s → ¬ oneStep d s t
+  diamond : ∀ {s u v}, oneStep d s u → oneStep d s v →
+    u = v ∨ ∃ w, oneStep d u w ∧ oneStep d v w
+
+theorem ScheduleConfluence.terminal_exists
+    {d : SchedulerDesign} (h : ScheduleConfluence d) (s : SlotState) :
+    ∃ n t, TerminalPath d n s t := by
+  have aux : ∀ k, ∀ s : SlotState, h.measure s = k →
+      ∃ n t, TerminalPath d n s t := by
+    intro k
+    induction k using Nat.strongRecOn with
+    | ind k ih =>
+        intro s hs
+        by_cases ht : SchedulerTerminal s
+        · exact ⟨0, s, .terminal ht⟩
+        · obtain ⟨u, hu⟩ := h.progress s ht
+          obtain ⟨n, t, htail⟩ := ih (h.measure u) (by simpa [hs] using h.decreases hu) u rfl
+          have hquiet : quietB s = false :=
+            Bool.eq_false_iff.mpr fun hs' => ht (Or.inl hs')
+          have href : s.refusal = none := by
+            cases hr : s.refusal with
+            | none => simp [hr]
+            | some msg => exact False.elim (ht (Or.inr (by simp [hr])))
+          exact ⟨n + 1, t, .head hquiet href hu htail⟩
+  exact aux (h.measure s) s rfl
+
+theorem ScheduleConfluence.terminal_unique
+    {d : SchedulerDesign} (h : ScheduleConfluence d) {s t₁ t₂ : SlotState}
+    {n₁ n₂ : Nat} (hp₁ : TerminalPath d n₁ s t₁)
+    (hp₂ : TerminalPath d n₂ s t₂) : t₁ = t₂ := by
+  have aux : ∀ k, ∀ s t₁ t₂ : SlotState, ∀ n₁ n₂,
+      h.measure s = k → TerminalPath d n₁ s t₁ →
+      TerminalPath d n₂ s t₂ → t₁ = t₂ := by
+    intro k
+    induction k using Nat.strongRecOn with
+    | ind k ih =>
+        intro s t₁ t₂ n₁ n₂ hs hp₁ hp₂
+        cases hp₁ with
+        | @terminal n1 s1 ht1 =>
+            cases hp₂ with
+            | terminal => rfl
+            | @head n2 s2 u2 t2 hs2 hr2 hu2 tail2 =>
+                exact False.elim (h.no_step_terminal ht1 hu2)
+        | @head n1 s1 u1 t1 hs1 hr1 hu1 tail1 =>
+            cases hp₂ with
+            | @terminal n2 s2 ht2 =>
+                exact False.elim (h.no_step_terminal ht2 hu1)
+            | @head n2 s2 u2 t2 hs2 hr2 hu2 tail2 =>
+                have hmu1 : h.measure u1 < k := by simpa [hs] using h.decreases hu1
+                have hmu2 : h.measure u2 < k := by simpa [hs] using h.decreases hu2
+                rcases h.diamond hu1 hu2 with heq | ⟨w, huw1, huw2⟩
+                · subst u2
+                  exact ih (h.measure u1) hmu1 _ _ _ _ _ rfl tail1 tail2
+                · obtain ⟨nw, tw, htw⟩ := h.terminal_exists w
+                  have hnot₁ : ¬ SchedulerTerminal _ :=
+                    fun ht => h.no_step_terminal ht huw1
+                  have hnot₂ : ¬ SchedulerTerminal _ :=
+                    fun ht => h.no_step_terminal ht huw2
+                  have hquiet1 : quietB u1 = false :=
+                    Bool.eq_false_iff.mpr fun hq => hnot₁ (Or.inl hq)
+                  have href1 : u1.refusal = none := by
+                    cases href : u1.refusal with
+                    | none => simp [href]
+                    | some msg => exact False.elim (hnot₁ (Or.inr (by simp [href])))
+                  have hquiet2 : quietB u2 = false :=
+                    Bool.eq_false_iff.mpr fun hq => hnot₂ (Or.inl hq)
+                  have href2 : u2.refusal = none := by
+                    cases href : u2.refusal with
+                    | none => simp [href]
+                    | some msg => exact False.elim (hnot₂ (Or.inr (by simp [href])))
+                  have h1w := ih (h.measure u1) hmu1 _ _ _ _ _ rfl tail1
+                    (.head hquiet1 href1 huw1 htw)
+                  have h2w := ih (h.measure u2) hmu2 _ _ _ _ _ rfl tail2
+                    (.head hquiet2 href2 huw2 htw)
+                  exact h1w.trans h2w.symm
+  exact aux (h.measure s) s t₁ t₂ n₁ n₂ rfl hp₁ hp₂
+
 theorem allSlotOutcomes_complete : ∀ (n : Nat) (d : SchedulerDesign)
     (s t : SlotState),
     TerminalPath d n s t →
