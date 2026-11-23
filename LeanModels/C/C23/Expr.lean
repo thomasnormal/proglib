@@ -1239,7 +1239,12 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : String)
   -- whenever either operand is one. Measured: 8 `+`, 4 `-`.
   | .ptr p, .int _ i =>
       if op == "+" || op == "-" then
-        match ctx.layout.pointeeSizeAt base ty with
+        let stride := (ctx.layout.pointeeSizeAt base ty).orElse (fun _ =>
+          base.bind (fun expression => (ctx.layout.structuredTypeAt expression).bind fun q =>
+            match q.unqualified with
+            | .pointer pointee => if pointee.unqualified == .void then some 1 else none
+            | _ => none))
+        match stride with
         | some esz => do
             let d := if op == "+" then i else -i
             let q ← readMem (fun m => Mem.offsetPtr m p esz d)
@@ -1248,7 +1253,12 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : String)
       else refuseUnsupported s!"operator '{op}' on a pointer and an integer"
   | .int _ i, .ptr p =>
       if op == "+" then
-        match ctx.layout.pointeeSizeAt base ty with
+        let stride := (ctx.layout.pointeeSizeAt base ty).orElse (fun _ =>
+          base.bind (fun expression => (ctx.layout.structuredTypeAt expression).bind fun q =>
+            match q.unqualified with
+            | .pointer pointee => if pointee.unqualified == .void then some 1 else none
+            | _ => none))
+        match stride with
         | some esz => do
             let q ← readMem (fun m => Mem.offsetPtr m p esz i)
             pure (.ptr q)
