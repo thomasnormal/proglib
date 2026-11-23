@@ -264,5 +264,8 @@ def fixture : ReplayFixture :=
 #guard renameReplayEvents resolve
   [.io "write" "stdout" "ok", .volatileRead [1, 2]] =
   [.io "write" "stdout" "ok", .volatileRead [1, 2]]
+#guard (renameReplayFixture resolve fixture).events = fixture.events
+#guard (renameReplayFixture resolve fixture).ending = fixture.ending
+#guard (renameReplayFixture resolve fixture).placements.head!.base == resolve 3
 
 end LeanModels.C.F2Tests
