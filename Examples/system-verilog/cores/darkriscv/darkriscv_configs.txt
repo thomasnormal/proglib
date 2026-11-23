@@ -1,0 +1,14 @@
+DarkRISCV configuration envelopes
+
+Default envelope: darkriscv.sv.json
+  source: rtl/darkriscv.v, rtl/config.vh
+  defines from config.vh: __CSR__, __CSR_ESSENTIAL__
+  envelope SHA-256: ca7ba5a2e87ea6a1c2c0eb6b4975ac1a5c1787999241c4ba777adb25de82cd32
+  canonical-E result: refusal Event:edge-blocking-race
+
+Secondary envelope: darkriscv_no_essential.sv.json
+  source bytes: the same pinned rtl/darkriscv.v
+  configuration: __CSR__ defined, __CSR_ESSENTIAL__ undefined
+  config source: the pinned upstream config.vh with its __CSR_ESSENTIAL__ define disabled for this configuration
+  envelope SHA-256: c7fe232649f9cb4b610c6797e61c70e7c46257dae9b9b3b5a29f9e43374d3402
+  canonical-E result: loads. No whole-core E-RUN is claimed.

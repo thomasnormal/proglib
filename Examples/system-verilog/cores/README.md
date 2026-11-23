@@ -1884,3 +1884,22 @@ have schedule-dependent visibility; canonical E refuses the race`.  The
 checked-in `darkriscv/e_check.py` now checks this current result and records
 canonical-E E-RUN as `0/0`.  No simulator result is claimed by this loader
 re-check.
+
+The refusal is a true race in the pinned RTL.  With `__CSR__` and
+`__CSR_ESSENTIAL__` defined, the CSR process writes `CSRCLK` and `CSRINS` with
+blocking assignments at `rtl/darkriscv.v:476-487`.  The `CRDATA` wire reads
+those counters at lines 514-521, and the main posedge process reads `CRDATA` at
+lines 728-734 before its NBA update.  The guard therefore names exactly two
+writer/reader pairs, `CSRCLK` and `CSRINS` against the main block.  The
+performance-meter counters are not named because they are read only in their
+own process.  IEEE 1800-2023 §4.7 leaves same-edge process order open, so the
+CSR value can differ by one.  A clean-room counter/wire/sampler witness
+produces 2 and 3 with Icarus Verilog 13.0 when the textual process order is
+reversed.
+
+The secondary envelope `darkriscv_no_essential.sv.json` uses the same pinned
+RTL bytes with the upstream configuration's `__CSR_ESSENTIAL__` switch
+undefined.  It loads in canonical E, while the default envelope remains the
+true-race refusal.  The define sets and envelope digests are recorded in
+`darkriscv/darkriscv_configs.txt`.  No whole-core E-RUN is claimed for the
+secondary configuration.
