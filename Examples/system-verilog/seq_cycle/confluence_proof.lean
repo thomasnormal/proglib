@@ -3,6 +3,7 @@ import LeanModels.Sv.SeqCycleObl
 import LeanModels.Sv.SeqCycleTactic
 import LeanModels.Sv.Kernel.EdgeConfluence
 import LeanModels.Sv.Kernel.EdgePhaseConfluence
+import LeanModels.Sv.Kernel.CombPhaseFrame
 
 /-!
 # Concrete schedule bridges

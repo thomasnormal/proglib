@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added a concrete retained-resume frame for two blocking scalar leaves.  It
+  derives both cross-expression evaluator values from parser-native read
+  exclusion, then exposes the coherent state-write and materialized-view
+  commutations used by the level-sensitive scheduler diamond.
+
 - Added the pair evaluator frame for two retained expressions, exposing both
   cross-order `evalExprLocals` equalities needed by a level-sensitive diamond.
 
