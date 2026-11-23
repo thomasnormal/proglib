@@ -1,0 +1,200 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "edge_multiple_write_nba_refuse",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/edge_multiple_write_nba_refuse/edge_multiple_write_nba_refuse.sv",
+      "sha256": "85519ac8f3a3741e4966b9d8e4934feff3aa0cd4f6db232e6d5106ec1e016555"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 9,
+          "end_col": 10
+        },
+        "name": "edge_multiple_write_nba_refuse",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 15,
+              "end_line": 2,
+              "end_col": 18
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 15,
+              "end_line": 3,
+              "end_col": 16
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 15,
+              "end_line": 4,
+              "end_col": 16
+            },
+            "name": "e",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 16,
+              "end_line": 5,
+              "end_col": 17
+            },
+            "name": "a",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysEvent",
+            "span": {
+              "line": 7,
+              "col": 3,
+              "end_line": 7,
+              "end_col": 32
+            },
+            "events": [
+              {
+                "edge": "posedge",
+                "signal": "clk"
+              }
+            ],
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 7,
+                "col": 25,
+                "end_line": 7,
+                "end_col": 32
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 7,
+                  "col": 25,
+                  "end_line": 7,
+                  "end_col": 26
+                },
+                "width": 1,
+                "name": "a"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 7,
+                  "col": 30,
+                  "end_line": 7,
+                  "end_col": 31
+                },
+                "width": 1,
+                "name": "d"
+              }
+            }
+          },
+          {
+            "kind": "AlwaysEvent",
+            "span": {
+              "line": 8,
+              "col": 3,
+              "end_line": 8,
+              "end_col": 32
+            },
+            "events": [
+              {
+                "edge": "posedge",
+                "signal": "clk"
+              }
+            ],
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 8,
+                "col": 25,
+                "end_line": 8,
+                "end_col": 32
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 8,
+                  "col": 25,
+                  "end_line": 8,
+                  "end_col": 26
+                },
+                "width": 1,
+                "name": "a"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 8,
+                  "col": 30,
+                  "end_line": 8,
+                  "end_col": 31
+                },
+                "width": 1,
+                "name": "e"
+              }
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

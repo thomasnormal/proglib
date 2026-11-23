@@ -311,3 +311,5 @@ Examples/system-verilog/sem2/latch_self_read_refuse/agree.lean
 Examples/system-verilog/sem2/edge_assign_race_refuse/agree.lean
 Examples/system-verilog/sem2/event_self_write_list_refuse/agree.lean
 Examples/system-verilog/sem2/event_self_write_latch_refuse/agree.lean
+Examples/system-verilog/sem2/edge_multiple_write_blocking_refuse/agree.lean
+Examples/system-verilog/sem2/edge_multiple_write_nba_refuse/agree.lean

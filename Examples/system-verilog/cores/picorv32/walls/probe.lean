@@ -44,7 +44,7 @@ RISCV_FORMAL point. -/
   | _ => false
 
 /-! The loaded PicoRV32 canonical-E design reaches the source-shaped
-preemptive scheduling boundary before reset. The parser-native phase relation
+same-event writer boundary before reset. The parser-native phase relation
 keeps these choices explicit while the canonical executor remains refused. -/
 set_option maxRecDepth 100000 in
 load_design_sv2 picorv32_step_wall
@@ -63,7 +63,7 @@ def pairCount : List PProcess → Nat
 #guard picorv32_step_wall.pdesign.processes.length == 45
 #guard pairCount picorv32_step_wall.pdesign.processes == 14
 #guard match picorv32_step_wall.e 1 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 0 4294967295 0 16 4294967295 with
-  | .unsupported msg => msg.startsWith "Schedule:preemptive"
+  | .unsupported msg => msg.startsWith "Event:multiple-write"
   | _ => false
 
 set_option maxRecDepth 100000 in

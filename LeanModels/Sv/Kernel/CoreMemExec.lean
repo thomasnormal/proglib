@@ -523,6 +523,74 @@ def coreMemProcBlockingWrites : PProcess → List String
   | .alwaysFFR _ _ body _ | .initial body => coreMemStmtBlockingWrites body
   | .assign _ _ | .assignL _ _ | .unsupported _ _ => []
 
+mutual
+def coreMemStmtWriteLhss : PStmt → List PLhs
+  | .blockingAssign name _ | .nbaAssign name _ => [.ident name]
+  | .blockingAssignL target _ | .nbaAssignL target _ => [target]
+  | .localDecl name _ _ => [.ident name]
+  | .automaticDecl _ _ _ => []
+  | .ifStmt _ yes none => coreMemStmtWriteLhss yes
+  | .ifStmt _ yes (some no) => coreMemStmtWriteLhss yes ++ coreMemStmtWriteLhss no
+  | .block body => coreMemStmtWriteLhssList body
+  | .forLoop _ _ _ _ body => coreMemStmtWriteLhss body
+  | .caseStmt _ items none _ _ => coreMemCaseWriteLhss items
+  | .caseStmt _ items (some defaultBody) _ _ =>
+      coreMemCaseWriteLhss items ++ coreMemStmtWriteLhss defaultBody
+  | .unsupported _ _ => []
+
+def coreMemStmtWriteLhssList : List PStmt → List PLhs
+  | [] => []
+  | stmt :: rest => coreMemStmtWriteLhss stmt ++ coreMemStmtWriteLhssList rest
+
+def coreMemCaseWriteLhss : List (List PExpr × PStmt) → List PLhs
+  | [] => []
+  | item :: rest => coreMemStmtWriteLhss item.2 ++ coreMemCaseWriteLhss rest
+end
+
+def coreMemProcWriteLhss : PProcess → List PLhs
+  | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+  | .alwaysEvent _ body | .alwaysFFR _ _ body _ | .initial body =>
+      coreMemStmtWriteLhss body
+  | .assign target _ => [.ident target]
+  | .assignL target _ => [target]
+  | .unsupported _ _ => []
+
+def coreMemLhsRoot : PLhs → String
+  | .ident name | .bitSel name _ | .partSel name _ _ | .arrayElem name _
+  | .arrayPart name _ .. | .aggregateMember name _ => name
+  | .concat _ => ""
+
+def coreMemLhsMayOverlap (lhs rhs : PLhs) : Bool :=
+  match lhs, rhs with
+  | .ident left, .ident right => left == right
+  | .ident left, .bitSel right _ | .ident left, .partSel right _ _
+  | .ident left, .arrayElem right _ | .ident left, .arrayPart right _ ..
+  | .ident left, .aggregateMember right _ => left == right
+  | .bitSel left (.int index), .bitSel right (.int otherIndex) =>
+      left == right && index == otherIndex
+  | .bitSel left _, .bitSel right _ => left == right
+  | .bitSel left _, .ident right | .bitSel left _, .partSel right _ _
+  | .bitSel left _, .arrayElem right _ | .bitSel left _, .arrayPart right _ ..
+  | .bitSel left _, .aggregateMember right _ => left == right
+  | .partSel left _ _, .partSel right _ _ | .partSel left _ _, .ident right
+  | .partSel left _ _, .bitSel right _ | .partSel left _ _, .arrayElem right _
+  | .partSel left _ _, .arrayPart right _ .. | .partSel left _ _, .aggregateMember right _ =>
+      left == right
+  | .arrayElem left _, .ident right | .arrayElem left _, .bitSel right _
+  | .arrayElem left _, .partSel right _ _ | .arrayElem left _, .arrayElem right _
+  | .arrayElem left _, .arrayPart right _ .. | .arrayElem left _, .aggregateMember right _ =>
+      left == right
+  | .arrayPart left _ .., .ident right | .arrayPart left _ .., .bitSel right _
+  | .arrayPart left _ .., .partSel right _ _ | .arrayPart left _ .., .arrayElem right _
+  | .arrayPart left _ .., .arrayPart right _ .. | .arrayPart left _ .., .aggregateMember right _ =>
+      left == right
+  | .aggregateMember left _, .ident right | .aggregateMember left _, .bitSel right _
+  | .aggregateMember left _, .partSel right _ _ | .aggregateMember left _, .arrayElem right _
+  | .aggregateMember left _, .arrayPart right _ .. | .aggregateMember left _, .aggregateMember right _ =>
+      left == right
+  | .concat _, _ | _, .concat _ => true
+
 def coreMemEventSources : List PProcess → List String
   | [] => []
   | .alwaysFF clock _ :: rest => clock :: coreMemEventSources rest
@@ -1216,6 +1284,19 @@ def coreMemPProcessEdgeSources : PProcess → List String
   | .alwaysEvent events _ => events.map (·.signal)
   | _ => []
 
+def coreMemPProcessEdgeEvents : PProcess → List (String × PEventEdge)
+  | .alwaysFF clock _ | .alwaysPlain clock _ => [(clock, .posedge)]
+  | .alwaysFFNegedge clock _ => [(clock, .negedge)]
+  | .alwaysFFR clock reset _ resetHigh =>
+      [(clock, .posedge), (reset, if resetHigh then .posedge else .negedge)]
+  | .alwaysEvent events _ => events.map fun event => (event.signal, event.edge)
+  | _ => []
+
+def coreMemEventEdgesOverlap : PEventEdge → PEventEdge → Bool
+  | .any, _ | _, .any => true
+  | .posedge, .posedge | .negedge, .negedge => true
+  | .posedge, .negedge | .negedge, .posedge => false
+
 def coreMemPProcessReadNames : PProcess → List String
   | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
   | .alwaysFFR _ _ body _ | .alwaysEvent _ body => coreMemStmtReadNames body
@@ -1278,8 +1359,9 @@ def coreMemPreemptiveBlockingViolReport (d : PDesign) (generated : List PProcess
   else none
 
 def coreMemHasCommonEventSource (p q : PProcess) : Bool :=
-  (coreMemPProcessEdgeSources p).any (fun source =>
-    (coreMemPProcessEdgeSources q).contains source)
+  (coreMemPProcessEdgeEvents p).any (fun source =>
+    (coreMemPProcessEdgeEvents q).any (fun other =>
+      source.1 == other.1 && coreMemEventEdgesOverlap source.2 other.2))
 
 def coreMemEdgeBlockingReadRacePair (p q : PProcess) : Bool :=
   coreMemHasCommonEventSource p q &&
@@ -1287,6 +1369,29 @@ def coreMemEdgeBlockingReadRacePair (p q : PProcess) : Bool :=
       (coreMemPProcessReadNames q).contains name) ||
      (coreMemProcBlockingWrites q).any (fun name =>
       (coreMemPProcessReadNames p).contains name))
+
+def coreMemEdgeMultipleWritePair (p q : PProcess) : Bool :=
+  coreMemHasCommonEventSource p q &&
+    (coreMemProcWriteLhss p).any (fun lhs =>
+      (coreMemProcWriteLhss q).any (coreMemLhsMayOverlap lhs))
+
+def coreMemEdgeMultipleWriteAt (p : PProcess) : List PProcess → Bool
+  | [] => false
+  | q :: rest =>
+      coreMemEdgeMultipleWritePair p q || coreMemEdgeMultipleWriteAt p rest
+
+def coreMemEdgeMultipleWrite : List PProcess → Bool
+  | [] | [_] => false
+  | p :: rest =>
+      coreMemEdgeMultipleWriteAt p rest || coreMemEdgeMultipleWrite rest
+
+def coreMemEdgeMultipleWriteViol (d : PDesign) (generated : List PProcess) :
+    Option (String × String) :=
+  let processes := d.processes ++ generated
+  if coreMemEdgeMultipleWrite processes then
+    some ("Event:multiple-write",
+      "4.7/10.4.1: same-event processes write the same variable; the standard leaves the update order open and canonical E refuses the race")
+  else none
 
 def coreMemEdgeBlockingReadRacePairThroughAssign
     (processes : List PProcess) (p q : PProcess) : Bool :=
@@ -1622,7 +1727,9 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
       else match coreMemEventSourceMultiWriteViol d generated with
       | some (kind, msg) => .unsupported s!"{kind}: {msg}"
       | none =>
-          match coreMemEdgeBlockingReadRaceViol d generated with
+          match coreMemEdgeMultipleWriteViol d generated with
+          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+          | none => match coreMemEdgeBlockingReadRaceViol d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none => match coreMemPreemptiveBlockingViolReport d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
@@ -3910,6 +4017,23 @@ private def auditEventSelfWriteNbaProcesses : List PProcess :=
 
 #guard coreMemEventSelfReadViol auditEventSelfWriteProcesses == some "t"
 #guard coreMemEventSelfReadViol auditEventSelfWriteNbaProcesses == none
+
+private def auditEventMultipleWriteProcesses : List PProcess :=
+  [.alwaysFF "clk" (.blockingAssign "a" (.ident "d")),
+   .alwaysFF "clk" (.nbaAssign "a" (.ident "e"))]
+
+#guard coreMemEdgeMultipleWrite auditEventMultipleWriteProcesses
+#guard (coreMemEdgeMultipleWriteViol
+    { name := "auditEventMultipleWrite", params := [], localParams := [], enums := [], decls := [],
+      processes := auditEventMultipleWriteProcesses, generates := [] } []).isSome
+
+private def auditEventMultipleWriteOppositeEdges : List PProcess :=
+  [.alwaysFF "clk" (.blockingAssign "a" (.ident "d")),
+   .alwaysFFNegedge "clk" (.blockingAssign "a" (.ident "e"))]
+
+#guard !(coreMemEdgeMultipleWrite auditEventMultipleWriteOppositeEdges)
+#guard !coreMemHasCommonEventSource
+    auditEventMultipleWriteOppositeEdges[0]! auditEventMultipleWriteOppositeEdges[1]!
 
 end LeanModels.Sv.Kernel
 
