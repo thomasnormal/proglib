@@ -64,6 +64,10 @@ theorem renamePointer_idempotent (resolve : AllocId → Nat) (pointer : Pointer 
     renamePointer resolve (renamePointer resolve pointer) = renamePointer resolve pointer := by
   cases pointer.provenance <;> simp [renamePointer]
 
+theorem renamePointer_comp (first second : AllocId → Nat) (pointer : Pointer Tag) :
+    renamePointer second (renamePointer first pointer) = renamePointer second pointer := by
+  cases pointer.provenance <;> simp [renamePointer]
+
 theorem renameByte_preserves_fragment (resolve : AllocId → Nat) (byte : Byte Tag) :
     byteFragment (renameByte resolve byte) = byteFragment byte := by
   cases byte <;> simp [renameByte, byteFragment]
@@ -1265,6 +1269,14 @@ theorem renameReplayFixture_ending (resolve : AllocId → Nat)
     (fixture : ReplayFixture) :
     (renameReplayFixture resolve fixture).ending = fixture.ending := by
   rfl
+
+theorem renameReplayFixture_comp (first second : AllocId → Nat)
+    (fixture : ReplayFixture) :
+    renameReplayFixture second (renameReplayFixture first fixture) =
+      renameReplayFixture second fixture := by
+  cases fixture
+  simp [renameReplayFixture, renameReplayPlacement, renameReplayEvents,
+    renameReplayEvent]
 
 def ReplayFixture.wellFormed (fixture : ReplayFixture) : Prop :=
   fixture.sourceHash ≠ "" ∧ fixture.compilerVersion ≠ "" ∧

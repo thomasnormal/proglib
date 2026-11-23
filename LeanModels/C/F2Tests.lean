@@ -236,6 +236,8 @@ def renamedOne : TestStore := renameStore resolve one
 #guard (renameStore resolve renamedOne) == renamedOne
 #guard renameStore (fun id => id + 300) (renameStore resolve one) ==
   renameStore (fun id => id + 300) one
+#guard renamePointer (fun id => id + 300) (renamePointer resolve pointer) ==
+  renamePointer (fun id => id + 300) pointer
 #guard lookup (renameStore resolve one) 0 =
   (lookup one 0).map (renameAllocationValue resolve 0)
 #guard lookup (renameStore resolve one) 99 |>.isNone
@@ -331,5 +333,8 @@ def fixture : ReplayFixture :=
 #guard (renameReplayFixture resolve fixture).events = fixture.events
 #guard (renameReplayFixture resolve fixture).ending = fixture.ending
 #guard (renameReplayFixture resolve fixture).placements.head!.base == resolve 3
+#guard renameReplayFixture (fun id => id + 300)
+  (renameReplayFixture resolve fixture) =
+  renameReplayFixture (fun id => id + 300) fixture
 
 end LeanModels.C.F2Tests
