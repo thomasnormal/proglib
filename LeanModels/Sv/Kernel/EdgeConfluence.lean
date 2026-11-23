@@ -57,6 +57,27 @@ theorem CoreMemDesign.edge_evalExprLocals_frame_of_readsV
   exact CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
     hc hx hmem hcall hne hread
 
+/-! A guard receipt is parser-native, while the evaluator frame consumes the
+ instantiated `readsV` set.  Keep the translation obligation explicit at this
+ boundary.  This is the adapter used by admission proofs until a design's
+ source-shaped closure has been checked against its elaborated expressions. -/
+theorem CoreMemDesign.edge_evalExprLocals_frame_of_parser_closure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n : String} {x : VarId} {v : LVec} {closure : List String}
+    (hc : E.Coherent st)
+    (hx : E.scalar.resolve n = some x)
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (hclosure : ∀ y ∈ E.readsV env elems ctx e, y ∈ closure)
+    (hguard : ∀ y ∈ closure, y ≠ n) :
+    E.evalExprLocals env elems st ctx locals e =
+      E.evalExprLocals env elems (E.setScalarState st n v) ctx locals e := by
+  apply CoreMemDesign.edge_evalExprLocals_frame_of_readsV hc hx hmem hcall hne
+  intro y hy
+  exact hguard y (hclosure y hy)
+
 theorem CoreMemDesign.edge_setScalarState_commute_of_disjoint
     {E : CoreMemDesign} {st : CoreMemState}
     {n m : String} {xN xM : VarId} {vN vM : LVec}
@@ -87,6 +108,31 @@ theorem CoreMemDesign.edge_evalExprLocals_two_write_frame
         (E.setScalarState (E.setScalarState st m vM) n vN) ctx locals e := by
   exact CoreMemDesign.evalExprLocals_setScalarState_two_order_frame
     hc hxN hxM hmem hcall hne hreadN hreadM
+
+theorem CoreMemDesign.edge_evalExprLocals_two_write_frame_of_parser_closure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    {closureN closureM : List String}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (hclosureN : ∀ y ∈ E.readsV env elems ctx e, y ∈ closureN)
+    (hclosureM : ∀ y ∈ E.readsV env elems ctx e, y ∈ closureM)
+    (hguardN : ∀ y ∈ closureN, y ≠ m)
+    (hguardM : ∀ y ∈ closureM, y ≠ n) :
+    E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st n vN) m vM) ctx locals e =
+      E.evalExprLocals env elems
+        (E.setScalarState (E.setScalarState st m vM) n vN) ctx locals e := by
+  apply CoreMemDesign.edge_evalExprLocals_two_write_frame hc hxN hxM hmem hcall hne
+  · intro y hy
+    exact hguardM y (hclosureM y hy)
+  · intro y hy
+    exact hguardN y (hclosureN y hy)
 
 def EdgeScheduleStep (E : CoreMemDesign) (before after v : SvState) (mv : MemV)
     (s t : EdgeScheduleState) : Prop :=
