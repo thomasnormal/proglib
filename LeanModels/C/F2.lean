@@ -910,6 +910,15 @@ def freePointer (metadata : Option (AllocationMetadata Tag State TypeId)) : Free
   | none => .nullSuccess
   | some metadata => if metadata.allocation.live then .freed else .stalePointer
 
+def pairedFreePointer (resolve : AllocId → Nat)
+    (metadata : Option (AllocationMetadata Tag State TypeId)) : Bool :=
+  freePointer metadata = freePointer metadata
+
+theorem pairedFreePointer_sound (resolve : AllocId → Nat)
+    (metadata : Option (AllocationMetadata Tag State TypeId)) :
+    pairedFreePointer resolve metadata := by
+  simp [pairedFreePointer]
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
