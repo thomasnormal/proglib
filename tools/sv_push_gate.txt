@@ -317,3 +317,4 @@ Examples/system-verilog/sem2/edge_two_level_child_port_race_refuse/agree.lean
 Examples/system-verilog/sem2/edge_driver_closure_race_refuse/agree.lean
 Examples/system-verilog/sem2/bits_type_alias_e/agree.lean
 Examples/system-verilog/sem2/unpacked_bitselect_target/agree.lean
+Examples/system-verilog/sem2/comb_chain_unpacked/agree.lean
