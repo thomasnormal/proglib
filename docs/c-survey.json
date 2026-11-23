@@ -2,21 +2,21 @@
  "by_corpus": {
   "c-testsuite/single-exec": {
    "not-parsed": 3,
-   "passed": 191,
+   "passed": 192,
    "refused-libc": 1,
    "refused-ub": 4,
-   "refused-unsupported": 20,
+   "refused-unsupported": 19,
    "runner-error": 1
   },
   "gcc.c-torture/execute": {
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1149,
+   "passed": 1153,
    "refused-libc": 26,
-   "refused-ub": 36,
-   "refused-unsupported": 209,
-   "runner-error": 11
+   "refused-ub": 37,
+   "refused-unsupported": 205,
+   "runner-error": 10
   },
   "gcc.c23-run": {
    "not-parsed": 34,
@@ -32,11 +32,11 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1350,
+  "passed": 1355,
   "refused-libc": 28,
-  "refused-ub": 41,
-  "refused-unsupported": 347,
-  "runner-error": 12
+  "refused-ub": 42,
+  "refused-unsupported": 342,
+  "runner-error": 11
  },
  "dynamic_wall_ranking": [
   {
@@ -494,6 +494,7 @@
     "20040409-3w.c",
     "20060110-1.c",
     "20060110-2.c",
+    "20080222-1.c",
     "20121108-1.c",
     "20171008-1.c",
     "920726-1.c",
@@ -522,8 +523,8 @@
     "return-addr.c",
     "shiftdi-2.c"
    ],
-   "present": 41,
-   "sole": 41,
+   "present": 42,
+   "sole": 42,
    "wall": "undefined-behavior"
   },
   {
@@ -574,38 +575,6 @@
   },
   {
    "files": [
-    "00103.c",
-    "00170.c",
-    "00217.c",
-    "20060412-1.c",
-    "20080222-1.c",
-    "980223.c",
-    "991228-1.c",
-    "alias-1.c",
-    "enum-3.c",
-    "gcc/testsuite/gcc.dg/c23-tag-alias-4.c",
-    "mayalias-1.c",
-    "mayalias-2.c",
-    "mayalias-3.c",
-    "pr10352-1.c",
-    "pr28778.c",
-    "pr36343.c",
-    "pr41317.c",
-    "pr43987.c",
-    "pr60003.c",
-    "pr79043.c",
-    "pr90025.c",
-    "pta-field-1.c",
-    "pta-field-2.c",
-    "struct-aliasing-1.c",
-    "zero-struct-1.c"
-   ],
-   "present": 25,
-   "sole": 25,
-   "wall": "unsupported:pointer bit-cast across incompatible effective types"
-  },
-  {
-   "files": [
     "00207.c",
     "00213.c",
     "00215.c",
@@ -634,6 +603,33 @@
    "present": 24,
    "sole": 24,
    "wall": "unsupported:goto-controlled pointer increment lacks an exact parser path"
+  },
+  {
+   "files": [
+    "00103.c",
+    "00170.c",
+    "20060412-1.c",
+    "991228-1.c",
+    "alias-1.c",
+    "enum-3.c",
+    "gcc/testsuite/gcc.dg/c23-tag-alias-4.c",
+    "mayalias-1.c",
+    "mayalias-2.c",
+    "mayalias-3.c",
+    "pr10352-1.c",
+    "pr28778.c",
+    "pr36343.c",
+    "pr41317.c",
+    "pr43987.c",
+    "pr60003.c",
+    "pr79043.c",
+    "pta-field-1.c",
+    "pta-field-2.c",
+    "struct-aliasing-1.c"
+   ],
+   "present": 20,
+   "sole": 20,
+   "wall": "unsupported:pointer bit-cast across incompatible effective types"
   },
   {
    "files": [
@@ -1437,8 +1433,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T00:00:00Z",
- "measured_commit": "0707323ed",
+ "measured_at_utc": "2026-11-24T02:00:00Z",
+ "measured_commit": "08de1a330",
  "pin": "C1-C3",
  "rows": [
   {
@@ -4028,8 +4024,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "pointer bit-cast across incompatible effective types",
-   "dynamic_wall": "unsupported:pointer bit-cast across incompatible effective types",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00217.c",
    "sha256": "a4095fd4b3b5e44aebc438f1375d161831d6f7e60140f61dc39e40ff975848fc",
@@ -4038,7 +4034,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -8548,15 +8544,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer bit-cast across incompatible effective types",
-   "dynamic_wall": "unsupported:pointer bit-cast across incompatible effective types",
+   "detail": "LeanModels.C.C23.MemFault.outOfBounds 1 4 1 6",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "20080222-1.c",
    "sha256": "8681b53a8efb428973e0c795485c22db7c8b689280e6f50329caaf1ea1498b38",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11926,15 +11922,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer bit-cast across incompatible effective types",
-   "dynamic_wall": "unsupported:pointer bit-cast across incompatible effective types",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "980223.c",
    "sha256": "976fe57f96fd37a3cf9d4bb94bb3b1cde8a05b8a6892799c576c795e99eb915f",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25361,8 +25357,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer bit-cast across incompatible effective types",
-   "dynamic_wall": "unsupported:pointer bit-cast across incompatible effective types",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr90025.c",
    "sha256": "444126cb1994cbd436f7d00f7692773deab2d45530e9835445f3413fed46548e",
@@ -25372,7 +25368,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26476,7 +26472,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 30s",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "strcpy-1.c",
@@ -26485,7 +26481,7 @@
     "libc-call: strcpy",
     "type-layout"
    ],
-   "verdict": "runner-error"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27481,15 +27477,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "pointer bit-cast across incompatible effective types",
-   "dynamic_wall": "unsupported:pointer bit-cast across incompatible effective types",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "zero-struct-1.c",
    "sha256": "e38d1b85c810fb88a66bc6f8da190f83febf91f25ecf187dc36610b06c9d9748",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
