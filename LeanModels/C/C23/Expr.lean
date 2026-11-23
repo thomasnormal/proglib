@@ -1415,18 +1415,13 @@ def compoundAssignmentHasUnsequencedWrite (lhs rhs : Expr) : Bool :=
         | some b => (readKeys lhs).any (· == b)
         | none => false
 
-def hasTwoImpure (ctx : Ctx) : List Expr → Bool
-  | [] => false
-  | e :: es =>
-      if mayWrite ctx e then es.any (mayWrite ctx) || hasTwoImpure ctx es
-      else hasTwoImpure ctx es
-
-/-! For an unsequenced binary operator, a modification in one operand may
-conflict with a read in the other even when only one operand is impure.
-The check is deliberately conservative. An unknown write target conflicts
-with the other operand's reads, and a known target conflicts when its key is
-read or written there. This is the sufficient refusal condition from
-§6.5.1p2-3 and J.2 for the scalar cases represented by the envelope. -/
+/-! For an unsequenced operator or a pair of call arguments, a modification
+conflicts with a read in the other expression when the same scalar is
+involved. Calls do not interleave, so independent argument updates are
+defined. An unknown write target conflicts with the other expression's
+reads, and a known target conflicts when its key is read or written there.
+This is the sufficient refusal condition from §6.5.1p2-3 and J.2 for the
+scalar cases represented by the envelope. -/
 def writesKeyIn (writes : List (Option String)) (reads : List String) : Bool :=
   writes.any fun written =>
     match written with
@@ -1447,6 +1442,10 @@ def binaryHasUnsequencedWrite (lhs rhs : Expr) : Bool :=
   writesOverlap leftWrites rightWrites ||
     writesKeyIn leftWrites rightReads ||
     writesKeyIn rightWrites leftReads
+
+def hasArgConflict : List Expr → Bool
+  | [] => false
+  | e :: es => es.any (binaryHasUnsequencedWrite e) || hasArgConflict es
 
 /-! ### C23 §6.7.3.2 — bit-field object representation
 
@@ -2136,7 +2135,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   | .call callee args _ _ .. => do
       if functionPointerBitCast callee then
         refuseUnsupported "call through an incompatible function-pointer cast"
-      if hasTwoImpure ctx args then
+      if hasArgConflict args then
         refuseUnsupported "unsequenced side effects in call arguments"
       match calleeName callee with
       | some _ =>
