@@ -1746,8 +1746,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           match q.unqualified with
           | .pointer pointee => pointee.unqualified == .void
           | _ => false) |>.getD false
+        let sourceIsCharacter := sub.structuredType?.map (fun q =>
+          match q.unqualified with
+          | .pointer pointee => isCharacter pointee
+          | _ => false) |>.getD false
         if isVoidOrCharPtr structuredType || sourceIsVoid ||
-            compatiblePointerTypesNode structuredType sub.structuredType? then
+            sourceIsCharacter || compatiblePointerTypesNode structuredType sub.structuredType? then
           evalExpr ctx sub
         else
           refuseUnsupported "pointer bit-cast across incompatible effective types"
