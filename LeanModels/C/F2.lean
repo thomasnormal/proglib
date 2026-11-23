@@ -285,6 +285,30 @@ def memcpySnapshot (source destination : Region) (bytes : List (Byte Tag)) :
 def memmoveSnapshot (_source _destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag)) := some bytes
 
+inductive ReallocOutcome (Tag State TypeId : Type) where
+  | failed (old : AllocationMetadata Tag State TypeId)
+  | replaced (fresh : AllocationMetadata Tag State TypeId)
+deriving Repr
+
+def reallocMetadata (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement) :
+    Option (ReallocOutcome Tag State TypeId × Footprint) :=
+  match placement with
+  | .fail => some (.failed old, footprint .metadata
+      { allocation := 0, offset := 0, width := old.allocation.bytes.length })
+  | .address base | .unaddressable =>
+      if locations.length != request.bytes.length then none
+      else some (.replaced
+        { allocation :=
+            { live := true
+              address := match placement with | .address _ => some base | .unaddressable => none
+              bytes := request.bytes
+              state := request.state }
+          locations := locations },
+        footprint .metadata { allocation := 0, offset := 0,
+          width := request.bytes.length })
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
