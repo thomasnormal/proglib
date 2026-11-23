@@ -750,6 +750,134 @@ theorem forFuel2_slt_nval {env : IEnv} {it p : String} (h : nvalInt env p = true
       simp [forFuel2, procLoopIterator, Gen2.except_ok_bind, heval, hsB, ht, hval]
       rfl
 
+theorem forValuesFuel2_slt_nval_add {env : IEnv} {it p : String} (h : nvalInt env p = true)
+    (hne : p ≠ it) (s : Int) :
+    forValuesFuel2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
+        (.binary (.m0 .add) (.genvarRef it) (.int 1)) ((nvalOf env p - s).toNat + 2) =
+      .ok (intRange s (nvalOf env p - s).toNat) := by
+  have hlegacy := forValues2_slt_nval_add (env := env) (it := it) (p := p) h hne s
+  unfold forValues2 at hlegacy
+  simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at h
+  obtain ⟨hv, hn⟩ := h
+  cases hl : env.nvals.lookup p with
+  | none => simp [hl] at hn
+  | some t =>
+    obtain ⟨B, w, sg⟩ := t
+    have hval : nvalOf env p = B := by simp [nvalOf, hl]
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    have hfuel : forFuel2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
+        (.binary (.m0 .add) (.genvarRef it) (.int 1)) = .ok ((B - s).toNat + 2) := by
+      by_cases hsB : s < B
+      · have ht : 0 ≤ B - s := by omega
+        have ht0 : ¬ B - s < 0 := by omega
+        simp [forFuel2, procLoopIterator, Gen2.except_ok_bind, procStepDelta2_add_one, heval, hsB, ht, ht0]
+        rfl
+      · have ht : (B - s).toNat = 0 := by omega
+        simp [forFuel2, procLoopIterator, Gen2.except_ok_bind, procStepDelta2_add_one, heval, hsB, ht]
+        rfl
+    rw [hfuel] at hlegacy
+    simpa [hval] using hlegacy
+
+theorem forFuel2_slt_nval_add {env : IEnv} {it p : String} (h : nvalInt env p = true)
+    (hne : p ≠ it) (s : Int) :
+    forFuel2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
+        (.binary (.m0 .add) (.genvarRef it) (.int 1)) = .ok ((nvalOf env p - s).toNat + 2) := by
+  have hh := h
+  simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at hh
+  obtain ⟨hv, hn⟩ := hh
+  cases hl : env.nvals.lookup p with
+  | none => simp [hl] at hn
+  | some t =>
+    obtain ⟨B, w, sg⟩ := t
+    have hval : nvalOf env p = B := by simp [nvalOf, hl]
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    by_cases hsB : s < B
+    · have ht : 0 ≤ B - s := by omega
+      have ht0 : ¬ B - s < 0 := by omega
+      simp [forFuel2, procLoopIterator, Gen2.except_ok_bind, procStepDelta2_add_one, heval, hsB, ht, ht0, hval]
+      rfl
+    · have ht : (B - s).toNat = 0 := by omega
+      simp [forFuel2, procLoopIterator, Gen2.except_ok_bind, procStepDelta2_add_one, heval, hsB, ht, hval]
+      rfl
+
+theorem forValues2Int32_slt_nval_trace {env : IEnv} {it p : String} (h : nvalInt env p = true)
+    (hne : p ≠ it) (s : Int) :
+    forValues2Int32 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
+        (.unary .inc (.genvarRef it)) =
+      (if (s < -2147483648 || 2147483647 < s ||
+          s + ((nvalOf env p - s).toNat : Int) < -2147483648 ||
+          2147483647 < s + ((nvalOf env p - s).toNat : Int)) then
+        .unsupported "for iterator leaves signed 32-bit range"
+      else .ok (intRange s (nvalOf env p - s).toNat)) := by
+  unfold forValues2Int32
+  rw [forFuel2_slt_nval h hne s]
+  simp only [evalInt_int, procStepDelta2_inc]
+  have hh := h
+  simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at hh
+  obtain ⟨hv, hn⟩ := hh
+  cases hl : env.nvals.lookup p with
+  | none => simp [hl] at hn
+  | some t =>
+    obtain ⟨B, w, sg⟩ := t
+    have hval : nvalOf env p = B := by simp [nvalOf, hl]
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    simp only [heval, hval]
+    by_cases hs : 0 ≤ B - s
+    · have hnat : ((B - s).toNat : Int) = B - s := Int.toNat_of_nonneg hs
+      simp only [hnat, Int.mul_one]
+      have hx : max (B - s) 0 = B - s := Int.max_eq_left hs
+      congr 1
+      · simp only [decide_eq_true_eq, Bool.or_eq_true]
+        simp [Int.toNat_of_nonneg hs] <;> omega
+      · simpa [hval] using (forValuesFuel2_slt_nval h hne s)
+
+    · have hnat : ((B - s).toNat : Int) = 0 := by omega
+      simp only [hnat, Int.mul_one, Int.add_zero]
+      have hx : max (B - s) 0 = 0 := Int.max_eq_right (by omega)
+      congr 1
+      · simp only [decide_eq_true_eq, Bool.or_eq_true]
+        simp <;> omega
+      · simpa [hval] using (forValuesFuel2_slt_nval h hne s)
+
+theorem forValues2Int32_slt_nval_add_trace {env : IEnv} {it p : String} (h : nvalInt env p = true)
+    (hne : p ≠ it) (s : Int) :
+    forValues2Int32 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
+        (.binary (.m0 .add) (.genvarRef it) (.int 1)) =
+      (if (s < -2147483648 || 2147483647 < s ||
+          s + ((nvalOf env p - s).toNat : Int) < -2147483648 ||
+          2147483647 < s + ((nvalOf env p - s).toNat : Int)) then
+        .unsupported "for iterator leaves signed 32-bit range"
+      else .ok (intRange s (nvalOf env p - s).toNat)) := by
+  unfold forValues2Int32
+  rw [forFuel2_slt_nval_add h hne s]
+  simp only [evalInt_int, procStepDelta2_add_one]
+  have hh := h
+  simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at hh
+  obtain ⟨hv, hn⟩ := hh
+  cases hl : env.nvals.lookup p with
+  | none => simp [hl] at hn
+  | some t =>
+    obtain ⟨B, w, sg⟩ := t
+    have hval : nvalOf env p = B := by simp [nvalOf, hl]
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    simp only [heval, hval]
+    by_cases hs : 0 ≤ B - s
+    · have hnat : ((B - s).toNat : Int) = B - s := Int.toNat_of_nonneg hs
+      simp only [hnat, Int.mul_one]
+      have hx : max (B - s) 0 = B - s := Int.max_eq_left hs
+      congr 1
+      · simp only [decide_eq_true_eq, Bool.or_eq_true]
+        simp [Int.toNat_of_nonneg hs] <;> omega
+      · simpa [hval] using (forValuesFuel2_slt_nval_add h hne s)
+    · have hnat : ((B - s).toNat : Int) = 0 := by omega
+      simp only [hnat, Int.mul_one, Int.add_zero]
+      have hx : max (B - s) 0 = 0 := Int.max_eq_right (by omega)
+      congr 1
+      · simp only [decide_eq_true_eq, Bool.or_eq_true]
+        simp <;> omega
+      · simpa [hval] using (forValuesFuel2_slt_nval_add h hne s)
+
+
 end LeanModels.Sv.Loop2
 
 open LeanModels.Sv LeanModels.Sv.Kernel in
@@ -960,7 +1088,9 @@ macro "sv_seq_prof_procs" : tactic =>
       LeanModels.Sv.Loop2.forValuesFuel2_slt_nval, LeanModels.Sv.Loop2.forFuel2_slt_nval,
       LeanModels.Sv.Loop2.forValuesFuel2_slt_nval,
       LeanModels.Sv.Loop2.forFuel2_slt_nval,
-      LeanModels.Sv.forValues2Int32, LeanModels.Sv.forValues2, LeanModels.Sv.forFuel2, LeanModels.Sv.procLoopIterator,
+      LeanModels.Sv.forValues2Int32,
+      LeanModels.Sv.Loop2.forValuesFuel2_slt_nval, LeanModels.Sv.Loop2.forFuel2_slt_nval,
+      LeanModels.Sv.forValues2, LeanModels.Sv.forFuel2, LeanModels.Sv.procLoopIterator,
       LeanModels.Sv.Loop2.forValues2_slt_add, LeanModels.Sv.Loop2.forValues2_sle_add, LeanModels.Sv.Loop2.nvalOf, LeanModels.Sv.Loop2.nvalInt, LeanModels.Sv.Loop2.envVal, LeanModels.Sv.intRange_length, List.lookup]
     <;> omega))
 
@@ -1108,10 +1238,14 @@ macro "sv_seq_eval_pass_at " d:num " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : 
       LeanModels.Sv.instIndex2,
       LeanModels.Sv.PStmt.loopBodyB, LeanModels.Sv.PStmt.optLoopBodyB, LeanModels.Sv.PStmt.listLoopBodyB,
       LeanModels.Sv.PStmt.itemsLoopBodyB, LeanModels.Sv.Loop2.forValues2_slt, LeanModels.Sv.Loop2.forValues2_sle,
-      LeanModels.Sv.forValues2Int32, LeanModels.Sv.forValues2, LeanModels.Sv.forFuel2, LeanModels.Sv.procLoopIterator,
+      LeanModels.Sv.forValues2, LeanModels.Sv.forFuel2, LeanModels.Sv.procLoopIterator,
       LeanModels.Sv.Loop2.forValues2_slt_nval, LeanModels.Sv.Loop2.forValues2_sle_nval,
       LeanModels.Sv.Loop2.forValues2_slt_nval_add, LeanModels.Sv.Loop2.forValues2_sle_nval_add,
       LeanModels.Sv.Loop2.forValues2_slt_add, LeanModels.Sv.Loop2.forValues2_sle_add, LeanModels.Sv.Loop2.nvalOf, LeanModels.Sv.Loop2.nvalInt,
+      LeanModels.Sv.Loop2.forValuesFuel2_slt_nval, LeanModels.Sv.Loop2.forFuel2_slt_nval,
+      LeanModels.Sv.Loop2.forValues2Int32_slt_nval_trace,
+      LeanModels.Sv.Loop2.forValues2Int32_slt_nval_add_trace,
+      LeanModels.Sv.Loop2.forValues2Int32_slt_nval_trace,
       LeanModels.Sv.Loop2.forValuesFuel2_upto, LeanModels.Sv.Loop2.forFuel2_upto,
       LeanModels.Sv.Loop2.envVal, LeanModels.Sv.IEnv.bindVal, LeanModels.Sv.Kernel.execLoopV_ok,
       LeanModels.Sv.Kernel.seqE_flatMap_nil,
@@ -1145,7 +1279,9 @@ macro "sv_seq_eval_arith" : conv =>
       Int.max_eq_right, LeanModels.Sv.CombView.canonInt32_of_bounds,
       LeanModels.Sv.Kernel.seqE_canonU32_of_bounds, LeanModels.Sv.Kernel.seqE_convertU32_of_bounds,
       LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
-      LeanModels.Sv.Kernel.seqE_natAbs_add_sub_one_add_one, Nat.sub_add_cancel])
+      LeanModels.Sv.Kernel.seqE_natAbs_add_sub_one_add_one, Nat.sub_add_cancel,
+      LeanModels.Sv.Loop2.forValues2Int32_slt_nval_trace,
+      LeanModels.Sv.Loop2.forValues2Int32_slt_nval_add_trace])
 
 /-- **`sv_seq_cycle h : E.cycleV clk v d using hE [facts]`**: `h : E.cycleV clk v d = <the computed pre and post
 views>`, where `hE : <normal form> = E` comes from `sv_seq_inst`. -/
