@@ -62,19 +62,25 @@ theorem renamePointer_provenance (resolve : AllocId → Nat) (pointer : Pointer 
 
 theorem renamePointer_idempotent (resolve : AllocId → Nat) (pointer : Pointer Tag) :
     renamePointer resolve (renamePointer resolve pointer) = renamePointer resolve pointer := by
-  cases pointer.provenance <;> simp [renamePointer]
+  cases pointer with
+  | mk provenance address => cases provenance <;> rfl
 
 theorem renamePointer_comp (first second : AllocId → Nat) (pointer : Pointer Tag) :
     renamePointer second (renamePointer first pointer) = renamePointer second pointer := by
-  cases pointer.provenance <;> simp [renamePointer]
+  cases pointer with
+  | mk provenance address => cases provenance <;> rfl
 
 theorem renameByte_preserves_fragment (resolve : AllocId → Nat) (byte : Byte Tag) :
     byteFragment (renameByte resolve byte) = byteFragment byte := by
-  cases byte <;> simp [renameByte, byteFragment]
+  cases byte with
+  | uninitialized => rfl
+  | value bits provenance fragment => cases provenance <;> cases fragment <;> rfl
 
 theorem renameByte_preserves_provenance (resolve : AllocId → Nat) (byte : Byte Tag) :
     byteProvenance (renameByte resolve byte) = byteProvenance byte := by
-  cases byte <;> simp [renameByte, byteProvenance]
+  cases byte with
+  | uninitialized => rfl
+  | value bits provenance fragment => cases provenance <;> cases fragment <;> rfl
 
 inductive Value (Tag : Type) where
   | scalar (bytes : List UInt8)
