@@ -46,6 +46,11 @@ def one : TestStore :=
       targetResult.2 = sourceResult.2
   | none => false
 #guard pairedAllocateFailure resolve one { bytes := [.uninitialized], state := () } .fail
+#guard match allocate one { bytes := [.uninitialized], state := () } .unaddressable with
+  | some (store, _) => unaddressableToken store one.nextId
+  | none => false
+#guard pairedUnaddressableAllocation resolve one
+  { bytes := [.uninitialized], state := () }
 #guard footprintAgrees (mergeFootprint 1 0 2) (mergeFootprint 1 0 2)
 
 def footprintWidth : Footprint → Nat
