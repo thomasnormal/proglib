@@ -649,6 +649,11 @@ def mergeBytes (old : List (Byte Tag)) (values masks choices : List UInt8) :
 def mergeFootprint (allocation offset width : Nat) : Footprint :=
   footprint .write { allocation := allocation, offset := offset, width := width }
 
+theorem mergeFootprint_access_count
+    (allocation offset width : Nat) :
+    (mergeFootprint allocation offset width).accesses.length = 1 := by
+  rfl
+
 theorem mergeByte_preserves_pointer_fragment
     (pointer : Provenance Tag) (fragment : Nat)
     (bits mask value choice : UInt8) :
@@ -689,6 +694,11 @@ def copyFootprint (source destination : Region) (width : Nat) : Footprint :=
 
 def pairedCopyFootprint (source destination : Region) (width : Nat) : Bool :=
   true
+
+theorem copyFootprint_access_count
+    (source destination : Region) (width : Nat) :
+    (copyFootprint source destination width).accesses.length = 2 := by
+  rfl
 
 theorem pairedCopyFootprint_sound (source destination : Region) (width : Nat) :
     pairedCopyFootprint source destination width = true := by
