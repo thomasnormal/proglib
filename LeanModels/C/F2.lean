@@ -885,6 +885,22 @@ inductive ReplayEvent where
   | volatileWrite (data : List UInt8)
 deriving Repr, BEq
 
+def renameReplayEvent (resolve : AllocId → Nat) : ReplayEvent → ReplayEvent
+  | .io operation channel data => .io operation channel data
+  | .volatileRead data => .volatileRead data
+  | .volatileWrite data => .volatileWrite data
+
+theorem renameReplayEvent_identity (resolve : AllocId → Nat) (event : ReplayEvent) :
+    renameReplayEvent resolve event = event := by
+  cases event <;> rfl
+
+def renameReplayEvents (resolve : AllocId → Nat) (events : List ReplayEvent) :
+    List ReplayEvent := events.map (renameReplayEvent resolve)
+
+theorem renameReplayEvents_identity (resolve : AllocId → Nat)
+    (events : List ReplayEvent) : renameReplayEvents resolve events = events := by
+  simp [renameReplayEvents, renameReplayEvent_identity]
+
 inductive ReplayEnding where
   | exit (status : Int)
   | signal (number : Nat)
