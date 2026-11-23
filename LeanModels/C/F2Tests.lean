@@ -178,6 +178,8 @@ def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
 #guard (pairedCopySnapshot resolve [oneByte] [.uninitialized]).isSome
 #guard (copyFootprint { allocation := 1, offset := 0, width := 0 }
   { allocation := 2, offset := 4, width := 0 } 1).accesses.length == 2
+#guard pairedCopyFootprint { allocation := 1, offset := 0, width := 2 }
+  { allocation := 2, offset := 4, width := 2 } 2
 #guard regionsOverlap { allocation := 1, offset := 0, width := 2 }
   { allocation := 1, offset := 1, width := 2 } 2
 #guard (memcpySnapshot { allocation := 1, offset := 0, width := 2 }
