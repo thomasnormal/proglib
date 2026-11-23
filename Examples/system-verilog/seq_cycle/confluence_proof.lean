@@ -1,0 +1,114 @@
+import LeanModels.Sv.Ingest2
+import LeanModels.Sv.SeqCycleObl
+import LeanModels.Sv.SeqCycleTactic
+
+/-!
+# Concrete schedule bridges
+
+These are three source-shaped clocked designs already used by the E route.  The
+generic bridge in `SeqCycleObl` is instantiated at each envelope.  The
+`hslot` premise is the route's view-level slot, so each result compares an
+arbitrary process permutation with the canonical `CoreMemDesign.step` result.
+The examples deliberately keep the slot premise explicit: it is the boundary
+at which the cycle equations for each design supply their concrete row proof.
+-/
+
+open LeanModels.Sv LeanModels.Sv.Kernel
+
+namespace Examples.«system-verilog».seq_cycle.confluence_proof
+
+load_design_sv2 shreg from "Examples/system-verilog/sem2/clk_shreg/clk_shreg.sv.json"
+load_design_sv2 cnt from "Examples/system-verilog/sem2/clk_cnt/clk_cnt.sv.json"
+load_design_sv2 caseF from "Examples/system-verilog/sem2/case_always_ff_step11/case_always_ff_step11.sv.json"
+
+theorem shreg_bridge (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign}
+    (hE : shreg.e N = .ok E) {st : CoreMemState} (hc : E.Coherent st)
+    (hmc : E.MemCoherent st.memory) {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList) :
+    ∃ p r r' st',
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) E.processes.toList = .ok r ∧
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧ E.memOf st'.memory = mv' := by
+  have hD : SeqDesign (shreg.e N) "clk" := by
+    cases hX : shreg.e N with
+    | ok E' =>
+        sv_seq_inst [shreg.e, shreg.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [shreg.e, shreg.pdesign] at hX
+    | unsupported m => sv_seq_inst [shreg.e, shreg.pdesign] at hX
+  obtain ⟨E', hE', hPB, hOB⟩ := hD
+  have hP := hPB.toSeqProfileI
+  have hO := CoreMemDesign.seqOblB_I hOB
+  obtain ⟨hdrivers, htopo, hinputs, hsources, hreads, hedge, hconverted⟩ :=
+    CoreMemDesign.seqOblI_spec hO
+  rw [hE] at hE'
+  cases hE'
+  exact CoreMemDesign.edge_schedule_refines_step_guarded hP hdrivers htopo hinputs hsources hreads hedge hconverted
+    hc hmc hty hslot hσ
+
+theorem cnt_bridge (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign}
+    (hE : cnt.e N = .ok E) {st : CoreMemState} (hc : E.Coherent st)
+    (hmc : E.MemCoherent st.memory) {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList) :
+    ∃ p r r' st',
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) E.processes.toList = .ok r ∧
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧ E.memOf st'.memory = mv' := by
+  have hD : SeqDesign (cnt.e N) "clk" := by
+    cases hX : cnt.e N with
+    | ok E' =>
+        sv_seq_inst [cnt.e, cnt.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [cnt.e, cnt.pdesign] at hX
+    | unsupported m => sv_seq_inst [cnt.e, cnt.pdesign] at hX
+  obtain ⟨E', hE', hPB, hOB⟩ := hD
+  have hP := hPB.toSeqProfileI
+  have hO := CoreMemDesign.seqOblB_I hOB
+  obtain ⟨hdrivers, htopo, hinputs, hsources, hreads, hedge, hconverted⟩ :=
+    CoreMemDesign.seqOblI_spec hO
+  rw [hE] at hE'
+  cases hE'
+  exact CoreMemDesign.edge_schedule_refines_step_guarded hP hdrivers htopo hinputs hsources hreads hedge hconverted
+    hc hmc hty hslot hσ
+
+theorem case_bridge {E : CoreMemDesign} (hE : caseF.e = .ok E) {st : CoreMemState}
+    (hc : E.Coherent st) (hmc : E.MemCoherent st.memory) {entry : SvState}
+    (hty : EntryTyped E.scalar.toDesign2 entry) {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList) :
+    ∃ p r r' st',
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) E.processes.toList = .ok r ∧
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧ E.memOf st'.memory = mv' := by
+  have hD : SeqDesign caseF.e "clk" := by
+    cases hX : caseF.e with
+    | ok E' =>
+        sv_seq_inst [caseF.e, caseF.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [caseF.e, caseF.pdesign] at hX
+    | unsupported m => sv_seq_inst [caseF.e, caseF.pdesign] at hX
+  obtain ⟨E', hE', hPB, hOB⟩ := hD
+  have hP := hPB.toSeqProfileI
+  have hO := CoreMemDesign.seqOblB_I hOB
+  obtain ⟨hdrivers, htopo, hinputs, hsources, hreads, hedge, hconverted⟩ :=
+    CoreMemDesign.seqOblI_spec hO
+  rw [hE] at hE'
+  cases hE'
+  exact CoreMemDesign.edge_schedule_refines_step_guarded hP hdrivers htopo hinputs hsources hreads hedge hconverted
+    hc hmc hty hslot hσ
+
+#print axioms shreg_bridge
+#print axioms cnt_bridge
+#print axioms case_bridge
+
+end Examples.«system-verilog».seq_cycle.confluence_proof

@@ -2244,6 +2244,73 @@ theorem CoreMemDesign.step_seqI {E : CoreMemDesign} (hP : E.SeqProfileI)
 
 #print axioms CoreMemDesign.step_seqI
 
+/-! The concrete confluence bridge for the first honest clocked class.  The
+continuous-assignment region is settled before and after the edge, and the
+only schedule choice is the order of the edge processes' NBA evaluations.
+`edgesV_order` supplies the local commutation from `seqOblI`'s disjoint-driver
+and edge-order guards.  The theorem below carries that result through the
+actual `CoreMemDesign.step`, so it is not a statement about a detached
+relation or a source-order surrogate.  The synthesis reading is the same
+boundary as IEEE 1364.1-2002 §5.2.2 and Annex B.1: edge-sensitive storage uses
+nonblocking updates, while independent procedural interleavings remain open
+when blocking assignments create a dependency. -/
+theorem CoreMemDesign.edge_schedule_refines_step {E : CoreMemDesign}
+    (hP : E.SeqProfileI) (hO : E.seqOblI = true)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList) :
+    ∃ p r r' st',
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) E.processes.toList = .ok r ∧
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' := by
+  obtain ⟨st', hstep, hvstep, hmstep, -, -⟩ :=
+    CoreMemDesign.step_seqI hP hO hc hmc hty hslot
+  have hslot' := hslot
+  simp only [CoreMemDesign.slotV, Res.bind_eq_ok] at hslot'
+  obtain ⟨p0, hp0, p, hp, r, hr, s1, hs1, s2, hs2, hout⟩ := hslot'
+  have hmatp : E.matV p = p := CoreMemDesign.matV_settleV hP.names hP.four hp
+  have hviewp : E.scalar.view (E.storeFromView p) = p := by
+    rw [E.view_storeFromView, hmatp]
+  have hnames : (p.map Prod.fst).Nodup := by
+    rw [← hviewp, E.scalar.keys_view]
+    exact hP.names
+  obtain ⟨r', hr', hcommit, -⟩ :=
+    CoreMemDesign.edgesV_order (v := p) hO hσ hnames hr
+  exact ⟨p, r, r', st', hr, hr', hcommit, hstep, hvstep, hmstep⟩
+
+#print axioms CoreMemDesign.edge_schedule_refines_step
+
+/-! The same bridge with the individual admission guards exposed at the theorem
+boundary.  This keeps the concrete class auditable: unique drivers, acyclic
+continuous assignments, undriven event sources, source-read/self-read safety,
+edge-order independence, and converted source nodes are separate premises. -/
+theorem CoreMemDesign.edge_schedule_refines_step_guarded {E : CoreMemDesign}
+    (hP : E.SeqProfileI)
+    (hdrivers : E.oblDrivers = true) (htopo : E.topoC = true)
+    (hinputs : E.oblInputsUndriven = true) (hsources : E.oblSources = true)
+    (hreads : E.oblNoSourceRead = true) (hedge : E.oblEdgeOrder = true)
+    (hconverted : E.oblConverted = true)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList) :
+    ∃ p r r' st',
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) E.processes.toList = .ok r ∧
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' := by
+  have hO : E.seqOblI = true := by
+    simp [CoreMemDesign.seqOblI, hdrivers, htopo, hinputs, hsources, hreads, hedge, hconverted]
+  exact CoreMemDesign.edge_schedule_refines_step hP hO hc hmc hty hslot hσ
+
+#print axioms CoreMemDesign.edge_schedule_refines_step_guarded
+
 /-- **THE SLOT REFINEMENT, single clock**: `step_seqI` at the single-clock profile and obligations. -/
 theorem CoreMemDesign.step_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
     (hO : E.seqOblB clk = true) {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
