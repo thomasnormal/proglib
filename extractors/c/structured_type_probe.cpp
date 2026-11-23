@@ -289,13 +289,10 @@ public:
     if (decl->isImplicit() && !llvm::isa<clang::FieldDecl>(decl) &&
         !llvm::isa<clang::RecordDecl>(decl))
       return true;
-    // Clang materializes parameter declarations while walking a function
-    // prototype in a declarator. They have a source location but no AST
-    // declaration node in the JSON dump, so emitting them would make the
-    // approved node-identity join fail. The containing function type already
-    // carries the complete parameter tree, including an absent bound.
-    if (const auto *parameter = llvm::dyn_cast<clang::ParmVarDecl>(decl))
-      if (!parameter->getIdentifier()) return true;
+    // Unnamed parameters are real parser nodes in Clang's JSON AST. Their
+    // source declaration identity and QualType are needed by the envelope
+    // even though the source supplies no spelling for a name. Keep the node
+    // and join it by Clang's identity just like a named parameter.
     const auto occurrence = sourceOffset(decl, context->getSourceManager());
     if (!occurrence) return true;
     clang::QualType qualified;

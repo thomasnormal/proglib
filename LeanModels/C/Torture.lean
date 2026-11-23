@@ -774,7 +774,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
   | [], acc, ids => pure (acc, ids)
   | d :: ds, acc, ids =>
     match d with
-    | .var declaration nm ty storage init _recordId _vaList _ _ =>
+    | .var declaration nm ty storage init _recordId _vaList _ structuredType =>
         match acc.lookup? nm with
         | some o =>
             let ids' := match declaration with
@@ -791,7 +791,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
           if storage == some "extern" then
             refuseUnsupported s!"extern object '{nm}' has no definition in the translation unit"
           else
-            match lay.sizeAt declaration ty with
+            match lay.sizeAtStructured declaration ty structuredType with
             | none => setupGlobalsWithIds fuel lay ds acc ids
             | some sz =>
               let sz := sz + (declaration.bind lay.flexibleInitializerExtra).getD 0
@@ -838,8 +838,8 @@ def setupStaticsWithIds (fuel : Nat) (lay : Layout) :
   | [], acc, ids => pure (acc, ids)
   | d :: ds, acc, ids =>
     match d with
-    | .var (some declaration) nm ty _ init _ _ _ _ => do
-        match lay.sizeAt (some declaration) ty with
+    | .var (some declaration) nm ty _ init _ _ _ structuredType => do
+        match lay.sizeAtStructured (some declaration) ty structuredType with
         | none => refuseUnsupported s!"no layout for declared type '{ty}'"
         | some sz => do
             let m ← get
