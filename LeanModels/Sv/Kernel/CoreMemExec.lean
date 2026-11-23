@@ -3524,6 +3524,70 @@ def CoreMemDesign.execBlockingIdentLocal (E : CoreMemDesign) (env : IEnv)
       let st' ← E.execBlockingTarget env elems st (.ident name) value
       .ok (st', locals)
 
+/-- The trip count of a procedural `for` header at an environment. -/
+def loopTrips (env : IEnv) (iterator : String) (init condition step : PExpr) : Nat :=
+  match forValues2 env iterator init condition step with
+  | .ok values => values.length
+  | _ => 0
+
+mutual
+
+/-- Static fuel to enter a statement. Procedural loops allocate their iteration fuel at run time. -/
+def _root_.LeanModels.Sv.PStmt.need (env : IEnv) : PStmt → Nat
+  | .ifStmt _ y n => 1 + max (PStmt.need env y) (PStmt.optNeed env n)
+  | .block body => 1 + PStmt.listNeed env body
+  | .caseStmt _ items d _ _ => 1 + max (PStmt.itemsNeed env items) (PStmt.optNeed env d)
+  | .forLoop iterator init condition step body =>
+      2 + loopTrips env iterator init condition step + PStmt.need env body
+  | .automaticDecl .. => 1
+  | _ => 1
+termination_by structural s => s
+
+def _root_.LeanModels.Sv.PStmt.optNeed (env : IEnv) : Option PStmt → Nat
+  | none => 0
+  | some s => PStmt.need env s
+termination_by structural o => o
+
+def _root_.LeanModels.Sv.PStmt.listNeed (env : IEnv) : List PStmt → Nat
+  | [] => 1
+  | s :: ss => 1 + max (PStmt.need env s) (PStmt.listNeed env ss)
+termination_by structural xs => xs
+
+def _root_.LeanModels.Sv.PStmt.itemsNeed (env : IEnv) : List (List PExpr × PStmt) → Nat
+  | [] => 0
+  | (_, b) :: rest => max (PStmt.need env b) (PStmt.itemsNeed env rest)
+termination_by structural xs => xs
+
+end
+
+mutual
+
+def _root_.LeanModels.Sv.PStmt.runtimeNeed (env : IEnv) : PStmt → Nat
+  | .ifStmt _ y n => 1 + max (PStmt.runtimeNeed env y) (PStmt.optRuntimeNeed env n)
+  | .block body => PStmt.listRuntimeNeed env body
+  | .caseStmt _ items d _ _ => 1 + max (PStmt.itemsRuntimeNeed env items) (PStmt.optRuntimeNeed env d)
+  | .forLoop iterator init condition step body =>
+      1 + loopTrips env iterator init condition step + PStmt.runtimeNeed env body
+  | _ => 1
+termination_by structural s => s
+
+def _root_.LeanModels.Sv.PStmt.optRuntimeNeed (env : IEnv) : Option PStmt → Nat
+  | none => 0
+  | some s => PStmt.runtimeNeed env s
+termination_by structural o => o
+
+def _root_.LeanModels.Sv.PStmt.listRuntimeNeed (env : IEnv) : List PStmt → Nat
+  | [] => 1
+  | s :: ss => PStmt.runtimeNeed env s + PStmt.listRuntimeNeed env ss
+termination_by structural xs => xs
+
+def _root_.LeanModels.Sv.PStmt.itemsRuntimeNeed (env : IEnv) : List (List PExpr × PStmt) → Nat
+  | [] => 0
+  | (_, b) :: rest => max (PStmt.runtimeNeed env b) (PStmt.itemsRuntimeNeed env rest)
+termination_by structural xs => xs
+
+end
+
 mutual
 
 def CoreMemDesign.execStmtFuel (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
@@ -3633,15 +3697,15 @@ end
 
 def CoreMemDesign.execStmt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmt : PStmt) : CoreMemExec :=
-  E.execStmtFuel env elems st [] 4096 stmt
+  E.execStmtFuel env elems st [] (4096 + PStmt.runtimeNeed env stmt) stmt
 
 def CoreMemDesign.execStmts (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmts : List PStmt) : CoreMemExec :=
-  E.execStmtsFuel env elems st [] 4096 stmts
+  E.execStmtsFuel env elems st [] (4096 + PStmt.listRuntimeNeed env stmts) stmts
 
 def CoreMemDesign.execLoopValues (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (values : List Int) (body : PStmt) (iterator : String) : CoreMemExec :=
-  E.execLoopValuesFuel env elems st [] 4096 values body iterator
+  E.execLoopValuesFuel env elems st [] (4096 + values.length + 1) values body iterator
 
 /-! ## Slots, scalar E commit, and memory commit -/
 

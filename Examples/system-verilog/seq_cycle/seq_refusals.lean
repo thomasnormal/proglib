@@ -209,10 +209,10 @@ example (mv : MemV) (N : Nat) (x : Int → LVec) (i : Int) (hi : i ∈ intRange 
     | _ => false
   | _ => false)
 
--- The route runs out of its statement fuel on a loop of 4999 iterations: the bound on `N` is the route's.
+-- The route allocates loop fuel from the evaluated header and runs 4999 iterations.
 #guard (match sfr.e 1 5000 with
   | .ok E => match runCoreMemRows E E.initial (cycleRows "clk" [[("d", .ofNat 1 1)]]) with
-    | .timeout => true
+    | .ok _ => true
     | _ => false
   | _ => false)
 
