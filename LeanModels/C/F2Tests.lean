@@ -51,6 +51,9 @@ def one : TestStore :=
   | none => false
 #guard pairedUnaddressableAllocation resolve one
   { bytes := [.uninitialized], state := () }
+#guard pairedAllocateZeroSize resolve () (.address 128)
+#guard pairedAllocateZeroSize resolve () .unaddressable
+#guard pairedAllocateZeroSize resolve () .fail
 #guard footprintAgrees (mergeFootprint 1 0 2) (mergeFootprint 1 0 2)
 
 def footprintWidth : Footprint → Nat

@@ -409,6 +409,33 @@ def allocateZeroSize (state : State) (placement : Placement) :
           locations := [] },
        footprint .metadata { allocation := 0, offset := 0, width := 0 })
 
+def renameZeroSizeOutcome (resolve : AllocId → Nat) :
+    ZeroSizeOutcome Tag State TypeId → ZeroSizeOutcome Tag State TypeId
+  | .null => .null
+  | .token metadata =>
+      .token { metadata with
+        allocation := { metadata.allocation with
+          address := metadata.allocation.address.map (fun _ => resolve 0) } }
+
+def pairedAllocateZeroSize (resolve : AllocId → Nat) (state : State)
+    (placement : Placement) : Bool :=
+  let source := allocateZeroSize state placement
+  let target := allocateZeroSize state (match placement with
+    | .address _ => .address (resolve 0)
+    | .unaddressable => .unaddressable
+    | .fail => .fail)
+  target.1 = renameZeroSizeOutcome resolve source.1 && target.2 = source.2
+
+theorem pairedAllocateZeroSize_sound (resolve : AllocId → Nat) (state : State)
+    (placement : Placement)
+    (h : pairedAllocateZeroSize resolve state placement = true) :
+    (allocateZeroSize state (match placement with
+      | .address _ => .address (resolve 0)
+      | .unaddressable => .unaddressable
+      | .fail => .fail)).1 =
+      renameZeroSizeOutcome resolve (allocateZeroSize state placement).1 := by
+  simpa [pairedAllocateZeroSize] using congrArg And.left h
+
 inductive ReallocZeroOutcome where
   | freedNull
   | refusedUndefined
