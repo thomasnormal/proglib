@@ -752,6 +752,19 @@ theorem pairedReallocMetadata_footprint
   simp [pairedReallocMetadata] at hresult
   split at hresult <;> simp_all
 
+theorem pairedReallocMetadata_footprint_agrees
+    (resolve : AllocId → Nat) (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old request locations placement =
+      some result) :
+    footprintAgrees result.1.2 result.2.2 := by
+  have h := pairedReallocMetadata_footprint resolve old request locations placement result hresult
+  rw [h]
+  exact footprintAgrees_refl _
+
 theorem pairedReallocMetadata_failure
     (resolve : AllocId → Nat) (old : AllocationMetadata Tag State TypeId)
     (request : AllocationRequest Tag State)

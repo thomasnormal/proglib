@@ -200,6 +200,10 @@ def fragmentByte := Byte.value 7 (some { allocation := 3, tag := () }) (some 4)
 #guard (pairedReallocMetadata (fun id => if id == 0 then 100 else 200)
   metadata { bytes := [oneByte], state := () } [location] (.address 64)).isSome
 #guard match pairedReallocMetadata (fun id => if id == 0 then 100 else 200)
+  metadata { bytes := [oneByte], state := () } [location] (.address 64) with
+  | some (source, target) => footprintAgrees source.2 target.2
+  | none => false
+#guard match pairedReallocMetadata (fun id => if id == 0 then 100 else 200)
   metadata { bytes := [oneByte], state := () } [location] .fail with
   | some ((.failed _, sourceFootprint), (.failed _, targetFootprint)) =>
       sourceFootprint = targetFootprint
