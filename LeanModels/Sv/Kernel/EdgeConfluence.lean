@@ -769,14 +769,90 @@ theorem EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed
           rw [hs]
           simpa [Nat.zero_add] using hqroute
         simpa [hqroute']
+  have hdisj' : ∀ i ∈ List.range E.processes.size, ∀ j ∈ List.range E.processes.size,
+      i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, u.1 ≠ u'.1 := by
+    intro i hi j hj hij u hu u' hu'
+    exact hdisj i j hij u hu u' hu'
   have hview := EdgeScheduleTerminalPath.view_eq_edgesV_commit F hqEdge
-    (fun i _ j _ hij u hu u' hu' => Or.inl (hdisj i j hij u hu u' hu'))
+    (fun i hi j hj hij u hu u' hu' => Or.inl (hdisj' i (by simpa [hs] using hi)
+      j (by simpa [hs] using hj) hij u hu u' hu'))
     (by intro i hi; exact hi)
     (by simpa [hs] using (List.nodup_range : (List.range E.processes.size).Nodup))
     hkeys hp hroute'
   exact hview
 
 #print axioms EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed
+
+/-! The driver-backed form discharges the queue-separation premise directly from
+    the real flattened target obligation.  Indexed process identity remains an
+    explicit admission premise because duplicate process records can have empty
+    target sets. -/
+theorem EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed_drivers
+    {E : CoreMemDesign} {before after : SvState} {mv : MemV}
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s t : EdgeScheduleState} {n : Nat} (F : Nat → NbaQueue2)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after s.view mv p = .ok (F k))
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    (hp : EdgeScheduleTerminalPath E before after s.view mv n s t)
+    {r : ExecV}
+    (hroute : E.edgesV before after s.view mv E.processes.toList = .ok r) :
+    ∃ r', E.edgesV before after s.view mv E.processes.toList = .ok r' ∧
+      t.view = commitNba2 s.view r'.2.1 := by
+  have hdisj : ∀ i ∈ List.range E.processes.size, ∀ j ∈ List.range E.processes.size,
+      i ≠ j → ∀ u ∈ F i, ∀ u' ∈ F j, u.1 ≠ u'.1 := by
+    intro i hi j hj hij u hu u' hu'
+    have hi' : i < E.processes.size := List.mem_range.mp hi
+    have hj' : j < E.processes.size := List.mem_range.mp hj
+    let pi := E.processes[i]'hi'
+    let pj := E.processes[j]'hj'
+    exact CoreMemDesign.edge_queue_disjoint_of_drivers hdrivers
+      (Array.getElem?_eq_getElem hi') (Array.getElem?_eq_getElem hj') hij
+      (hdistinct i j hi' hj' hij)
+      (hw i pi (Array.getElem?_eq_getElem hi'))
+      (hw j pj (Array.getElem?_eq_getElem hj'))
+      (by simpa [edgeProcQ, Array.getElem?_eq_getElem hi'] using
+        (hq i pi (Array.getElem?_eq_getElem hi')))
+      (by simpa [edgeProcQ, Array.getElem?_eq_getElem hj'] using
+        (hq j pj (Array.getElem?_eq_getElem hj')))
+      u hu u' hu'
+  have hqEdge : ∀ i ∈ s.pending, edgeProcQ E before after s.view mv i = .ok (F i) := by
+    intro i hi
+    have hi' : i < E.processes.size := by
+      rw [hs] at hi
+      exact List.mem_range.mp hi
+    simp only [edgeProcQ, Array.getElem?_eq_getElem hi']
+    exact hq i E.processes[i] (Array.getElem?_eq_getElem hi')
+  have hqroute := CoreMemDesign.edgesV_queue_processes_indexed
+    (E := E) (before := before) (after := after) (v := s.view) (mv := mv)
+    0 F hw (by
+      intro k p hk
+      simpa [Nat.zero_add] using hq k p hk) hroute
+  have hroute' : E.edgesV before after s.view mv E.processes.toList =
+      .ok (r.1, s.pending.flatMap F, r.2.2) := by
+    rw [hroute]
+    cases r with
+    | mk rv rm =>
+      cases rm with
+      | mk rq mm =>
+        simp only at hqroute ⊢
+        have hqroute' : rq = List.flatMap F s.pending := by
+          rw [hs]
+          simpa [Nat.zero_add] using hqroute
+        simpa [hqroute']
+  have hview := EdgeScheduleTerminalPath.view_eq_edgesV_commit F hqEdge
+    (fun i hi j hj hij u hu u' hu' => Or.inl (hdisj i (by simpa [hs] using hi)
+      j (by simpa [hs] using hj) hij u hu u' hu'))
+    (by intro i hi; exact hi)
+    (by simpa [hs] using (List.nodup_range : (List.range E.processes.size).Nodup))
+    hkeys hp hroute'
+  exact hview
+
+#print axioms EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed_drivers
 
 /-! Carry the scheduler's canonical terminal view through the real step
     refinement.  The route receipt remains explicit, so this is a bridge for
