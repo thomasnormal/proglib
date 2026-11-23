@@ -115,6 +115,19 @@ theorem decodePointer_encodePointer (pointer : Pointer Tag) :
     decodePointer (encodePointer pointer) = some pointer := by
   simp [decodePointer, encodePointer]
 
+theorem encodePointer_rename (resolve : AllocId → Nat) (pointer : Pointer Tag) :
+    encodePointer (renamePointer resolve pointer) =
+      (encodePointer pointer).map (renameByte resolve) := by
+  cases pointer with
+  | mk provenance address =>
+      cases provenance <;> simp [encodePointer, renamePointer, renameByte, pointerByte]
+
+theorem decodePointer_rename_encode (resolve : AllocId → Nat) (pointer : Pointer Tag) :
+    decodePointer ((encodePointer pointer).map (renameByte resolve)) =
+      some (renamePointer resolve pointer) := by
+  rw [← encodePointer_rename]
+  exact decodePointer_encodePointer _
+
 structure Allocation (Tag State : Type) where
   live : Bool
   address : Option Nat
