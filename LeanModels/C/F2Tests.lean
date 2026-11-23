@@ -31,6 +31,8 @@ def one : TestStore :=
   (.address 18) 8).isNone
 #guard placementWithin 8 4 16
 #guard !placementWithin 14 4 16
+#guard pairedPlacementWithin resolve 0 4 16 8
+#guard placementWithin_zero 8 16
 #guard (allocateBounded empty { bytes := [oneByte], state := () }
   (.address 8) 8 16).isOk
 #guard (allocateBounded empty { bytes := [oneByte], state := () }
