@@ -66,6 +66,9 @@ def paddingMetadata : AllocationMetadata Unit Unit String :=
 #guard (representationLoadMetadataByte metadata 0 (.byte 7)).isSome
 #guard mergeByte .uninitialized 1 1 0 == .value 1 none none
 #guard mergeByte (.value 255 none none) 1 0 0 == .value 254 none none
+#guard (mergeBytes [.uninitialized, .value 255 none none]
+  [1, 2] [1, 1] [0, 0]).isSome
+#guard (mergeBytes [.uninitialized] [1, 2] [1, 1] [0, 0]).isNone
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 

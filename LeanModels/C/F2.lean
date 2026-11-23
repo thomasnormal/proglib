@@ -245,6 +245,14 @@ def mergeByte (old : Byte Tag) (mask value choice : UInt8) : Byte Tag :=
   | .value _ provenance fragment => .value (UInt8.ofNat merged) provenance fragment
   | .uninitialized => .value (UInt8.ofNat merged) none none
 
+def mergeBytes (old values masks choices : List UInt8) : Option (List (Byte Tag)) :=
+  if old.length != values.length || values.length != masks.length ||
+      masks.length != choices.length then none
+  else some (List.zipWith (fun oldByte entry =>
+    mergeByte oldByte entry.1.1 entry.1.2.1 entry.1.2.2)
+    old (List.zipWith (fun value mask => (value, mask)) values masks
+      |>.zip choices))
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
