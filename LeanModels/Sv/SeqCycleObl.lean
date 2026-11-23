@@ -620,6 +620,45 @@ theorem CoreMemDesign.setScalarState_view_lookup_two_of_ne
     (CoreMemDesign.setScalarState_spec hc hxN vN).2 hxM hneM]
   exact CoreMemDesign.setScalarState_view_lookup_of_ne hc hxN hneN
 
+/-! The two concrete write orders agree on every parser-native read after the
+same local bindings are prepended.  This is the lookup frame consumed by the
+stateful expression evaluator. -/
+theorem CoreMemDesign.setScalarState_two_order_read_lookup
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n m : String} {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hreadN : ∀ y ∈ E.readsV env elems ctx e, y ≠ n)
+    (hreadM : ∀ y ∈ E.readsV env elems ctx e, y ≠ m) :
+    ∀ y ∈ E.readsV env elems ctx e,
+      SvState.lookup
+          (locals ++ E.scalar.view (E.setScalarState (E.setScalarState st n vN) m vM).scalar) y =
+        SvState.lookup
+          (locals ++ E.scalar.view (E.setScalarState (E.setScalarState st m vM) n vN).scalar) y := by
+  intro y hy
+  have hleft := CoreMemDesign.setScalarState_view_lookup_two_of_ne
+    (vN := vN) (vM := vM) hc hxN hxM
+    (Ne.symm (hreadN y hy)) (Ne.symm (hreadM y hy))
+  have hright := CoreMemDesign.setScalarState_view_lookup_two_of_ne
+    (vN := vM) (vM := vN) hc hxM hxN
+    (Ne.symm (hreadM y hy)) (Ne.symm (hreadN y hy))
+  let lookupAppend : ∀ (a b : SvState) (q : String),
+      SvState.lookup (a ++ b) q =
+        (SvState.lookup a q).or (SvState.lookup b q) := by
+    intro a
+    induction a with
+    | nil => intro b q; rfl
+    | cons kv rest ih =>
+        intro b q
+        obtain ⟨k, w⟩ := kv
+        simp only [List.cons_append, SvState.lookup]
+        split
+        · rfl
+        · simp only [ih]
+  rw [lookupAppend, lookupAppend, hleft, hright]
+
 /-! Two distinct scalar writes commute once the cross-slot scalar values are
  explicitly equal.  This is the concrete cache-level frame used before any
  scheduler diamond is stated. -/

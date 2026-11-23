@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added a parser-native read lookup frame showing that local-plus-view
+  lookups agree after either order of two scalar writes when both targets are
+  excluded from the read closure.
+
 - Added a parser-native two-order frame for `evalExprLocals`: when both scalar
   write targets are outside the expression's read closure, the real evaluator
   returns the same result for either concrete write order.
