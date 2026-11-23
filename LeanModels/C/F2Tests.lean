@@ -60,6 +60,10 @@ def typedMetadata : AllocationMetadata Unit Unit String :=
 #guard (typedLoadMetadataByte typedMetadata 0 "long").isSome
 #guard (typedLoadMetadataByte typedMetadata 0 "int").isNone
 #guard (unionLoadMetadataByte typedMetadata 0).isSome
+def paddingMetadata : AllocationMetadata Unit Unit String :=
+  { metadata with locations := [{ effectiveType := .padding, initialized := false }] }
+#guard (representationLoadMetadataByte paddingMetadata 0 (.byte 7)).isSome
+#guard (representationLoadMetadataByte metadata 0 (.byte 7)).isSome
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 0x1020304050607080 }
 
