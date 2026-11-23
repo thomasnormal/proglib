@@ -969,6 +969,28 @@ def recoverAddress (address : Nat) (live : List (AllocId × Nat × Nat × Tag)) 
   | some entry => .recovered { provenance := some { allocation := entry.1, tag := entry.2.3 }, address := address }
   | none => .empty address
 
+def renameLiveRegion (resolve : AllocId → Nat)
+    (entry : AllocId × Nat × Nat × Tag) : AllocId × Nat × Nat × Tag :=
+  (entry.1, resolve entry.1, resolve entry.1 + (entry.2.2 - entry.2.1), entry.2.3)
+
+def renameRecovery (resolve : AllocId → Nat) : Recovery → Recovery
+  | .recovered pointer => .recovered (renamePointer resolve pointer)
+  | .empty address => .empty address
+  | .ambiguousOnePastAdjacent => .ambiguousOnePastAdjacent
+  | .noLiveAllocation => .noLiveAllocation
+
+def pairedRecoverAddress (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag)) : Bool :=
+  recoverAddress address live =
+    recoverAddress address (live.map (renameLiveRegion resolve))
+
+theorem pairedRecoverAddress_sound (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag))
+    (h : pairedRecoverAddress resolve address live) :
+    recoverAddress address live =
+      recoverAddress address (live.map (renameLiveRegion resolve)) := by
+  simpa [pairedRecoverAddress] using h
+
 def offsetPointer (pointer : Pointer Tag) (elementSize : Nat) (delta : Int)
     (bound : Nat) : Except OffsetFault (Pointer Tag) :=
   if elementSize == 0 then .error .alignment
