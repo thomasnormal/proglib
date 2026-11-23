@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added the kernel-checked pure scalar evaluator frame used by the retained
+  level-sensitive scheduler.  The parser-native admission obligations are
+  recorded separately, while the guard-to-resume semantic frame remains open.
+
 - Added the admitted NBA-only edge scheduler relation. Its progress, local
   diamond, terminal-path uniqueness, and one-step bridge to `edgesV` are
   kernel checked under the explicit no-overlap guard.

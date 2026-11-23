@@ -168,6 +168,44 @@ theorem CombPhaseStep.progress
 
 #print axioms CombPhaseStep.progress
 
+/-! Pure scalar expressions have the evaluator frame needed by the
+level-sensitive diamond.  The source access guard still has to establish the
+read agreement premise for the instantiated expression.  Keeping this lemma
+at the `evalScalarLocals` boundary means the eventual guard proof can use the
+parser-native read closure without changing the source-shaped evaluator. -/
+theorem CoreMemDesign.evalScalarLocals_congr_view
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st st' : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    (h : ∀ r ∈ (instExpr2 env (if elems.isEmpty then E.elems else elems) ctx e).reads,
+      r.agree (locals ++ E.scalar.view st.scalar)
+        (locals ++ E.scalar.view st'.scalar)) :
+    E.evalScalarLocals env elems st ctx locals e =
+      E.evalScalarLocals env elems st' ctx locals e := by
+  unfold CoreMemDesign.evalScalarLocals
+  exact evalPure2_congr_reads h
+
+#print axioms CoreMemDesign.evalScalarLocals_congr_view
+
+/-! The four source-level obligations for a level-sensitive admission.  They
+are retained as a proposition over `PDesign`, where the access closure and
+reactive dependency walks still have their parser-native inputs.  The first
+field is the IEEE 1800-2023 §4.7 blocking read/write check after continuous
+driver closure.  The synthesis reading is the corresponding IEEE 1364.1-2002
+§5.2.2 and Annex B.1 race boundary. -/
+structure CombPhaseGuard (d : PDesign) : Prop where
+  no_blocking_read_after_closure :
+    coreMemEdgeBlockingReadRaceThroughAssign d.processes = false
+  no_multiple_writers :
+    coreMemEdgeMultipleWriteThroughAssign d.processes = false
+  comb_acyclic :
+    coreMemReactiveDependencyViol d.processes = none ∧
+      coreMemAssignReactiveChainViol d.processes = none
+  no_self_read :
+    coreMemCombSelfReadViol d.processes = none ∧
+      coreMemLatchSelfReadViol d.processes = none
+
+#print axioms CombPhaseGuard
+
 end LeanModels.Sv.Kernel
 
 namespace LeanModels.Sv.Kernel
