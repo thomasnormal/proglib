@@ -413,6 +413,10 @@ def placementAllowed (store : Store Tag State) (base size : Nat) : Bool :=
         !intervalOverlap base size otherBase allocation.bytes.length
     | _, _ => true
 
+def alignmentAllowed (base alignment : Nat) : Bool :=
+  alignment > 0 && base % alignment == 0
+
+
 inductive EqualityChoice where
   | equal
   | unequal
@@ -522,6 +526,14 @@ def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
               nextId := id + 1 },
             footprint .metadata { allocation := id, offset := 0,
               width := request.bytes.length })
+
+def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (alignment : Nat) : Option (Store Tag State × Footprint) :=
+  match placement with
+  | .address base =>
+      if !alignmentAllowed base alignment then none
+      else allocate store request placement
+  | _ => allocate store request placement
 
 def allocateMetadata (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) :
