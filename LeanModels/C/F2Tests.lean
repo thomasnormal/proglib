@@ -243,6 +243,8 @@ def pointerStore : TestStore :=
   some (renamePointer resolve pointer)
 #guard encodePointer (renamePointer resolve pointer) ==
   (encodePointer pointer).map (renameByte resolve)
+#guard encodeValue (renameValue resolve (.aggregate [.pointer pointer])) ==
+  (encodeValue (.aggregate [.pointer pointer])).map (renameByte resolve)
 #guard copyEncoded (encodePointer pointer) == encodePointer pointer
 #guard pointerEqual pointer pointer .equal
 #guard !(pointerEqual pointer pointer .unequal)

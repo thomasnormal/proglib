@@ -88,6 +88,23 @@ def encodeValue : Value Tag → List (Byte Tag)
   | .pointer pointer => encodePointer pointer
   | .aggregate members => members.flatMap encodeValue
 
+def renameValue (resolve : AllocId → Nat) : Value Tag → Value Tag
+  | .scalar bytes => .scalar bytes
+  | .pointer pointer => .pointer (renamePointer resolve pointer)
+  | .aggregate members => .aggregate (members.map (renameValue resolve))
+
+theorem encodeValue_rename (resolve : AllocId → Nat) (value : Value Tag) :
+    encodeValue (renameValue resolve value) =
+      (encodeValue value).map (renameByte resolve) := by
+  induction value with
+  | scalar bytes => simp [encodeValue, renameValue, renameByte]
+  | pointer pointer =>
+      cases pointer.provenance <;>
+        simp [encodeValue, renameValue, encodePointer, renamePointer, renameByte,
+          pointerByte]
+  | aggregate members ih =>
+      simp [encodeValue, renameValue, List.flatMap_map, ih]
+
 def copyEncoded (bytes : List (Byte Tag)) : List (Byte Tag) := bytes.map id
 
 def decodePointer (bytes : List (Byte Tag)) : Option (Pointer Tag) := do
