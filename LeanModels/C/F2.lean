@@ -830,6 +830,13 @@ theorem bytesWf_renameByte (resolve : AllocId → Nat) (id : AllocId)
   | cons byte rest ih =>
       cases byte <;> simp [bytesWf, renameByte, ih]
 
+theorem renameMetadata_wellFormed (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameMetadata resolve id metadata).wellFormed id ↔
+      metadata.wellFormed id := by
+  simp [AllocationMetadata.wellFormed, renameMetadata,
+    bytesWf_renameByte]
+
 theorem allocationsWf_rename (resolve : AllocId → Nat)
     (allocations : List (AllocId × Allocation Tag State)) :
     allocationsWf (allocations.map (renameAllocation resolve)) ↔

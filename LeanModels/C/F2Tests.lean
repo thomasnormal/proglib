@@ -122,6 +122,8 @@ def metadata : AllocationMetadata Unit Unit String :=
   metadata.locations
 #guard (renameMetadata (fun id => if id == 0 then 100 else 200) 0 metadata).allocation.bytes.length ==
   metadata.allocation.bytes.length
+#guard (renameMetadata (fun id => if id == 0 then 100 else 200) 0 metadata).wellFormed 0 =
+  metadata.wellFormed 0
 def typedMetadata : AllocationMetadata Unit Unit String :=
   (typedStoreMetadataByte metadata 0 "long" oneByte).getD (metadata, {}).1
 #guard (typedLoadMetadataByte typedMetadata 0 "long").isSome
