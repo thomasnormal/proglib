@@ -162,6 +162,24 @@ inductive OffsetFault where
   | alignment
 deriving Repr, BEq
 
+structure Exposure where
+  exposed : Bool
+deriving Repr, BEq
+
+def expose (state : Exposure) : Exposure := { exposed := true }
+
+inductive Recovery where
+  | recovered (pointer : Pointer Tag)
+  | empty (address : Nat)
+  | ambiguousOnePastAdjacent
+  | noLiveAllocation
+deriving Repr, BEq
+
+def recoverAddress (address : Nat) (live : List (AllocId × Nat × Nat × Tag)) : Recovery :=
+  match live.find? (fun entry => entry.2.1 ≤ address && address < entry.2.2) with
+  | some entry => .recovered { provenance := some { allocation := entry.1, tag := entry.2.3 }, address := address }
+  | none => .empty address
+
 def offsetPointer (pointer : Pointer Tag) (elementSize : Nat) (delta : Int)
     (bound : Nat) : Except OffsetFault (Pointer Tag) :=
   if elementSize == 0 then .error .alignment
