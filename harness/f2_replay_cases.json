@@ -10,6 +10,10 @@
     "events": [
       {"kind": "io", "operation": "write", "channel": "stdout", "data": "ok"}
     ],
+    "allocation_removal": {
+      "null_folded": true,
+      "free_null": true
+    },
     "ending": {"kind": "exit", "status": 0}
   }
 ]

@@ -50,6 +50,10 @@ def check(fixture, source=None):
             return "UB ending lacks cited clause and operand"
     if kind == "exhausted" and ending.get("prefix_complete") is not True:
         return "exhaustion ending lacks complete observable prefix"
+    removal = fixture.get("allocation_removal")
+    if removal is not None:
+        if removal.get("null_folded") is True and removal.get("free_null") is not True:
+            return "removed allocation null branch lacks free(NULL) step"
     return None
 
 
@@ -70,12 +74,14 @@ def main():
         leaking = dict(good, events=[{"kind": "io", "address": 4}])
         bad_ub = dict(good, ending={"kind": "ub", "clause_operand": {"clause": "6.5"}})
         bad_exhaustion = dict(good, ending={"kind": "exhausted"})
+        bad_removal = dict(good, allocation_removal={"null_folded": True, "free_null": False})
         assert check(good) is None
         assert check(bad) == "compiler pin mismatch"
         assert check(placeholder) == "source hash is not a SHA-256 digest"
         assert check(leaking) == "observable event exposes placement identity"
         assert check(bad_ub) == "UB ending lacks cited clause and operand"
         assert check(bad_exhaustion) == "exhaustion ending lacks complete observable prefix"
+        assert check(bad_removal) == "removed allocation null branch lacks free(NULL) step"
         print("f2_replay_check --self-test: ok")
         return 0
     if args.fixture is None:
