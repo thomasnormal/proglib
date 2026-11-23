@@ -21371,7 +21371,19 @@ def _target_shape_ok(t):
         return True
     if k in ("BitSel", "PartSel"):
         base = t.get("value")
-        return base is not None and base.get("kind") == "Ident"
+        if base is not None and base.get("kind") == "Ident":
+            return True
+        # A packed bit/part select of a source-shaped unpacked element keeps
+        # both parser nodes. Canonical E owns the later memory-target
+        # admission under IEEE 1800-2023 §§7.4.6 and 11.5.1.
+        if (base is not None and base.get("kind") == "ArraySel"
+                and base.get("unpacked") is True
+                and bool(base.get("indices"))):
+            if k == "PartSel":
+                return all(_sym_tree_static(t.get(label))
+                           for label in ("msb", "lsb"))
+            return True
+        return False
     if k == "ArraySel":
         if t.get("unpacked"):
             # Unpacked selections, including a packed slice of a selected
