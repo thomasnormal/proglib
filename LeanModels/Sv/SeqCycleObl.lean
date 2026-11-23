@@ -2311,6 +2311,29 @@ theorem CoreMemDesign.edge_schedule_refines_step_guarded {E : CoreMemDesign}
 
 #print axioms CoreMemDesign.edge_schedule_refines_step_guarded
 
+/-! A two-process local diamond, extracted from the admitted edge class.  The
+source and swapped pair are both legal process orders, and `seqOblI` supplies
+the disjoint-driver/whole-NBA guard that makes their committed scalar and
+memory views equal.  This is the concrete commutation fact used when a
+scheduler chooses either enabled edge process first. -/
+theorem CoreMemDesign.edgesV_local_diamond {E : CoreMemDesign}
+    (hO : E.seqOblI = true) {p q : CoreMemProc} {rest : List CoreMemProc}
+    (hσ : (q :: p :: rest).Perm E.processes.toList)
+    {before after v : SvState} {mv : MemV} (hv : (v.map Prod.fst).Nodup) {r : ExecV}
+    (h : E.edgesV before after v mv E.processes.toList = .ok r) :
+    ∃ r₁ r₂,
+      E.edgesV before after v mv (p :: q :: rest) = .ok r₁ ∧
+      E.edgesV before after v mv (q :: p :: rest) = .ok r₂ ∧
+      commitNba2 r₁.1 r₁.2.1 = commitNba2 r₂.1 r₂.2.1 ∧
+      commitMemV mv r₁.2.2 = commitMemV mv r₂.2.2 := by
+  have hpσ : (p :: q :: rest).Perm E.processes.toList := by
+    exact (List.Perm.swap p q rest).symm.trans hσ
+  obtain ⟨r₁, h₁, hc₁, hm₁⟩ := CoreMemDesign.edgesV_order hO hpσ hv h
+  obtain ⟨r₂, h₂, hc₂, hm₂⟩ := CoreMemDesign.edgesV_order hO hσ hv h
+  exact ⟨r₁, r₂, h₁, h₂, hc₁.trans hc₂.symm, hm₁.trans hm₂.symm⟩
+
+#print axioms CoreMemDesign.edgesV_local_diamond
+
 /-- **THE SLOT REFINEMENT, single clock**: `step_seqI` at the single-clock profile and obligations. -/
 theorem CoreMemDesign.step_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
     (hO : E.seqOblB clk = true) {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
