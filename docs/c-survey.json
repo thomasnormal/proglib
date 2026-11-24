@@ -12,8 +12,8 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1181,
-   "refused-libc": 21,
+   "passed": 1182,
+   "refused-libc": 20,
    "refused-ub": 41,
    "refused-unsupported": 178,
    "runner-error": 10
@@ -32,8 +32,8 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1384,
-  "refused-libc": 23,
+  "passed": 1385,
+  "refused-libc": 22,
   "refused-ub": 47,
   "refused-unsupported": 313,
   "runner-error": 11
@@ -988,14 +988,6 @@
   },
   {
    "files": [
-    "pr78622.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "libc-call: __builtin_snprintf"
-  },
-  {
-   "files": [
     "gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c"
    ],
    "present": 1,
@@ -1327,8 +1319,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T01:45:00Z",
- "measured_commit": "f7c38c283862d5ee48bd9725b043a5ed11cfb11e",
+ "measured_at_utc": "2026-11-24T02:20:00Z",
+ "measured_commit": "8a186a0364b8a6474f53dafaa3fbdd82e157b8b0",
  "pin": "C1-C3",
  "rows": [
   {
@@ -23475,17 +23467,16 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_snprintf",
-   "dynamic_wall": "libc-call: __builtin_snprintf",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr78622.c",
    "sha256": "2fbf1d51ec9a52a97fc707ec770611ecc252006620260510f0ada6eb0f2ed1d7",
    "static_walls": [
-    "libc-call: __builtin_snprintf",
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28283,14 +28274,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: __builtin_rindex"
-  },
-  {
-   "files": [
-    "pr78622.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: __builtin_snprintf"
   },
   {
    "files": [

@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1384/2114 MATCH (passed 1384, failed 0, oracle 0)
+- verdicts: 1385/2114 MATCH (passed 1385, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `f7c38c283862d5ee48bd9725b043a5ed11cfb11e`
-- measured at: `2026-11-24T01:45:00Z`
+- measured commit: `8a186a0364b8a6474f53dafaa3fbdd82e157b8b0`
+- measured at: `2026-11-24T02:20:00Z`
 
 ## Verdict counts
 
@@ -16,8 +16,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1384 |
-| `refused-libc` | 23 |
+| `passed` | 1385 |
+| `refused-libc` | 22 |
 | `refused-ub` | 47 |
 | `refused-unsupported` | 313 |
 | `runner-error` | 11 |
@@ -35,8 +35,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1181 |
-| `gcc.c-torture/execute` | `refused-libc` | 21 |
+| `gcc.c-torture/execute` | `passed` | 1182 |
+| `gcc.c-torture/execute` | `refused-libc` | 20 |
 | `gcc.c-torture/execute` | `refused-ub` | 41 |
 | `gcc.c-torture/execute` | `refused-unsupported` | 178 |
 | `gcc.c-torture/execute` | `runner-error` | 10 |
@@ -111,7 +111,6 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `libc-call: __builtin_bzero` | 0 | 1 | builtins/memops-asm.c |
 | `libc-call: __builtin_index` | 0 | 1 | builtins/strchr.c |
 | `libc-call: __builtin_rindex` | 0 | 1 | builtins/strrchr.c |
-| `libc-call: __builtin_snprintf` | 0 | 1 | pr78622.c |
 | `libc-call: __builtin_strchr` | 0 | 1 | builtins/strchr.c |
 | `libc-call: __builtin_strcspn` | 0 | 1 | builtins/strcspn.c |
 | `libc-call: __builtin_strncat` | 0 | 1 | builtins/strncat.c |
@@ -201,7 +200,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:unknown enum declaration 'id65' (name 'B')` | 2 | 2 | gcc/testsuite/gcc.dg/c23-tag-alias-1.c, gcc/testsuite/gcc.dg/c23-tag-alias-2.c |
 | `ingestion` | 1 | 1 | 20040629-1.c |
 | `libc-call: __builtin_frame_address` | 1 | 1 | frame-address.c |
-| `libc-call: __builtin_snprintf` | 1 | 1 | pr78622.c |
 | `libc-call: f` | 1 | 1 | gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c |
 | `libc-call: fopen` | 1 | 1 | 00187.c |
 | `libc-call: main_test` | 1 | 1 | builtins/lib/main.c |

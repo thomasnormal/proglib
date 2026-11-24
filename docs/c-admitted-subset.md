@@ -2,7 +2,7 @@
 
 Generated from `docs/c-survey.json` and `harness/c_cases.json`.
 
-The pinned GNU17 target currently has 1384/2114 MATCH rows in the active survey denominator. Measurement commit `f7c38c283862d5ee48bd9725b043a5ed11cfb11e`, date `2026-11-24T01:45:00Z`.
+The pinned GNU17 target currently has 1385/2114 MATCH rows in the active survey denominator. Measurement commit `8a186a0364b8a6474f53dafaa3fbdd82e157b8b0`, date `2026-11-24T02:20:00Z`.
 
 A focused row is an admitted example when its harness expectation is `match`. A `refuse` row documents the exact refusal boundary. Corpus failures are listed as known wrong answers and remain separate from refusals.
 
@@ -62,7 +62,7 @@ A focused row is an admitted example when its harness expectation is `match`. A 
 
 ## string functions
 
-- admitted: `printf-width-uppercase-hex` (match) — 4F60 : `#include <stdio.h> int main(void) { printf("%04X ", 0x4f60); return 0; }`
+- admitted: `builtin-snprintf-hhd` (match): `int main(void) { char b[5]; int n = __builtin_snprintf(b, sizeof b, "%hhd", 105); return n == 3 && b[0] == '1' && b[1] == '0' && b[2] == '5' && b[3] == 0 ? 0...`
 - refused: `plain-string-index` (refuse) — no layout for declared type 'const char *': `int main(void) { const char *p = "hello"; return p[0] == 'h' ? 0 : 1; }`
 - known wrong: no scored failure in the current survey
 
