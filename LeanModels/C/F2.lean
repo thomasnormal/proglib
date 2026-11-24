@@ -4714,6 +4714,26 @@ def endLifetime (store : Store Tag State) (id : AllocId) :
     some ({ store with allocations := allocations },
       footprint .metadata (Region.mk id 0 allocation.bytes.length))
 
+theorem endLifetime_success_payload
+    (store : Store Tag State) (id : AllocId)
+    (result : Store Tag State × Footprint)
+    (hresult : endLifetime store id = some result) :
+    ∃ allocation,
+      lookup store id = some allocation ∧
+      result.1 = { store with allocations := store.allocations.map (fun entry =>
+        if entry.1 == id then
+          (id, { allocation with live := false })
+        else entry) } := by
+  cases hlookup : lookup store id with
+  | none => simp [endLifetime, hlookup] at hresult
+  | some allocation =>
+      cases hlive : allocation.live with
+      | false => simp [endLifetime, hlookup, hlive] at hresult
+      | true =>
+          simp [endLifetime, hlookup, hlive] at hresult
+          refine ⟨allocation, rfl, ?_⟩
+          simpa [hlive] using congrArg (fun pair => pair.1) hresult.symm
+
 def pairedEndLifetime (resolve : AllocId → Nat) (store : Store Tag State)
     (id : AllocId) :
     Option ((Store Tag State × Footprint) × (Store Tag State × Footprint)) := do

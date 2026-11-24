@@ -208,6 +208,11 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (loadByte one 0 0).any
   (fun result => result.2 == footprint .read { allocation := 0, offset := 0, width := 1 })
 #guard (endLifetime one 0).isSome
+#guard match endLifetime one 0 with
+  | some (s, _) => match s.allocations.head? with
+      | some (_, allocation) => allocation.live == false
+      | none => false
+  | none => false
 #guard (endLifetime empty 0).isNone
 #guard (endLifetime dead 0).isNone
 #guard (pairedEndLifetime resolve one 0).isSome
