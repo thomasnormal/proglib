@@ -1995,6 +1995,52 @@ def pairedReallocMetadata (resolve : AllocId → Nat)
     | .fail => .fail)
   some (sourceResult, targetResult)
 
+theorem pairedReallocMetadata_decompose
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old request locations placement = some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases placement with
+  | address base =>
+      cases hs : reallocMetadata old request locations (.address base) with
+      | none => simp [pairedReallocMetadata, hs] at hresult
+      | some sourceResult =>
+          cases ht : reallocMetadata (renameMetadata resolve 0 old) request locations
+              (.address (resolve 0)) with
+          | none => simp [pairedReallocMetadata, hs, ht] at hresult
+          | some targetResult =>
+              rw [pairedReallocMetadata, hs, ht] at hresult
+              have hpair : (sourceResult, targetResult) = result := by
+                simpa only [Option.bind_some] using Option.some.inj hresult
+              exact ⟨sourceResult, targetResult, hpair.symm⟩
+  | unaddressable =>
+      cases hs : reallocMetadata old request locations .unaddressable with
+      | none => simp [pairedReallocMetadata, hs] at hresult
+      | some sourceResult =>
+          cases ht : reallocMetadata (renameMetadata resolve 0 old) request locations
+              .unaddressable with
+          | none => simp [pairedReallocMetadata, hs, ht] at hresult
+          | some targetResult =>
+              rw [pairedReallocMetadata, hs, ht] at hresult
+              have hpair : (sourceResult, targetResult) = result := by
+                simpa only [Option.bind_some] using Option.some.inj hresult
+              exact ⟨sourceResult, targetResult, hpair.symm⟩
+  | fail =>
+      cases hs : reallocMetadata old request locations .fail with
+      | none => simp [pairedReallocMetadata, hs] at hresult
+      | some sourceResult =>
+          cases ht : reallocMetadata (renameMetadata resolve 0 old) request locations .fail with
+          | none => simp [pairedReallocMetadata, hs, ht] at hresult
+          | some targetResult =>
+              rw [pairedReallocMetadata, hs, ht] at hresult
+              have hpair : (sourceResult, targetResult) = result := by
+                simpa only [Option.bind_some] using Option.some.inj hresult
+              exact ⟨sourceResult, targetResult, hpair.symm⟩
+
 inductive ZeroSizeOutcome (Tag State TypeId : Type) where
   | null
   | token (metadata : AllocationMetadata Tag State TypeId)
