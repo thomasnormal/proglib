@@ -178,13 +178,42 @@ theorem CombCursor.two_blocking_scalar_cross_resume_of_driver_closure
         E.setScalarState (E.setScalarState st m vM) n vN ∧
       SvState.set (SvState.set view n vN) m vM =
         SvState.set (SvState.set view m vM) n vN := by
-  apply CombCursor.two_blocking_scalar_cross_resume
-    hc hxN hxM hdecl hn hm hneq hkeys hlocalN hlocalM htargetN htargetM
-    htestN htestM hmemN hcallN hmemM hcallM hne hvalN hvalM
-  · exact fun y hy => by
-      exact hguardM y (hclosureM y hy)
-  · exact fun y hy => by
-      exact hguardN y (hclosureN y hy)
+  dsimp
+  have hcross := CoreMemDesign.edge_evalExprLocals_two_expr_cross_write_frame_of_driver_closure
+    (processes := processes) (fuelN := fuelN) (fuelM := fuelM)
+    (namesN := namesN) (namesM := namesM) (locals := locals) (vN := vN) (vM := vM)
+    hc hxN hxM hmemN hcallN hmemM hcallM hne
+    hclosureN hclosureM hguardM hguardN
+  have hcrossM :
+      E.evalExprLocals env E.elems (E.setScalarState st n vN)
+          (some widthM) locals eM = .ok vM := by
+    rw [hcross.1]
+    exact hvalM
+  have hcrossN :
+      E.evalExprLocals env E.elems (E.setScalarState st m vM)
+          (some widthN) locals eN = .ok vN := by
+    rw [hcross.2]
+    exact hvalN
+  have hstate := CoreMemDesign.edge_setScalarState_commute_of_disjoint
+    (vN := vN) (vM := vM) hc hxN hxM hdecl
+  have hview := sv_set_commute_of_mem (v := vN) (w := vM) hn hm hneq hkeys
+  have hresumeM :
+      ({ work := [.stmt env (.blockingAssign m eM)], locals := locals } : CombCursor).resume
+          E (E.setScalarState st n vN) (SvState.set view n vN) =
+        .ok (E.setScalarState (E.setScalarState st n vN) m vM,
+          SvState.set (SvState.set view n vN) m vM,
+          { work := [], locals := locals }) := by
+    simp [CombCursor.resume, CombWork.openNode, CoreMemDesign.execCombStmtFuel,
+      hlocalM, htargetM, htestM, hcrossM]
+  have hresumeN :
+      ({ work := [.stmt env (.blockingAssign n eN)], locals := locals } : CombCursor).resume
+          E (E.setScalarState st m vM) (SvState.set view m vM) =
+        .ok (E.setScalarState (E.setScalarState st m vM) n vN,
+          SvState.set (SvState.set view m vM) n vN,
+          { work := [], locals := locals }) := by
+    simp [CombCursor.resume, CombWork.openNode, CoreMemDesign.execCombStmtFuel,
+      hlocalN, htargetN, htestN, hcrossN]
+  exact ⟨hresumeM, hresumeN, hstate, hview⟩
 
 /-! The concrete frame instantiates the retained scheduler's local diamond.
 The only scheduler fact used here is the existing `CombPhaseStep` relation.
