@@ -1877,6 +1877,53 @@ theorem CoreMemDesign.execV_memory_leaf {E : CoreMemDesign} {v : SvState} {mv : 
       · intro u hu; simp [hk] at hu
       · intro u hu; simp at hu; simpa [hu, hsource]
 
+/-! The leaf receipt in the parser's write-set shape.  This is the adapter used
+    by the edge diamond, while `execV_memory_leaf` above keeps the stronger
+    exact target-name fact. -/
+theorem CoreMemDesign.execV_memory_leaf_write_set {E : CoreMemDesign} {v : SvState} {mv : MemV}
+    {name : String} {index : PExpr} {e : PExpr} {v' : SvState} {q : NbaQueue2} {mq : MemQV}
+    (env : IEnv) (hmd : ∃ md, E.memDecl? name = some md)
+    (h : E.execV env v mv (PStmt.nbaAssignL (.arrayElem name [index]) e) = .ok (v', q, mq)) :
+    v' = v ∧ q = [] ∧
+      (∀ u ∈ mq, u.1 ∈ (PStmt.nbaAssignL (.arrayElem name [index]) e).writes) := by
+  obtain ⟨hv, hq, hm⟩ := CoreMemDesign.execV_memory_leaf env hmd h
+  refine ⟨hv, hq, ?_⟩
+  intro u hu
+  simpa [PStmt.writes, PLhs.baseNames] using hm u hu
+
+/-! A first recursive receipt rung for a source-shaped block of memory leaves.
+    The premise names the exact leaf constructors and resolves every target
+    through the design's memory declarations. -/
+theorem CoreMemDesign.execListV_memory_leaves {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV) :
+    ∀ (bs : List PStmt) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      (∀ s ∈ bs, ∃ name index e, s = .nbaAssignL (.arrayElem name [index]) e ∧
+        ∃ md, E.memDecl? name = some md) →
+      E.execListV env v mv bs = .ok (v', q, mq) →
+      v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ PStmt.listWrites bs)
+  | [], v', q, mq, hs, h => by
+      simp only [CoreMemDesign.execListV, Res.ok.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl, rfl⟩ := h
+      exact ⟨rfl, rfl, by simp⟩
+  | s :: ss, v', q, mq, hs, h => by
+      obtain ⟨name, index, e, rfl, hmd⟩ := hs s (by simp)
+      have hss : ∀ t ∈ ss, ∃ name index e, t = .nbaAssignL (.arrayElem name [index]) e ∧
+          ∃ md, E.memDecl? name = some md := by
+        intro t ht
+        exact hs t (by simp [ht])
+      simp only [CoreMemDesign.execListV, Res.bind_eq_ok, Res.ok.injEq] at h
+      obtain ⟨⟨v1, a, ma⟩, h1, ⟨v2, b, mb⟩, h2, hq⟩ := h
+      simp only [Prod.mk.injEq] at hq
+      obtain ⟨rfl, rfl, rfl⟩ := hq
+      obtain ⟨hv1, ha, hma⟩ := CoreMemDesign.execV_memory_leaf_write_set env hmd h1
+      rw [hv1] at h2
+      obtain ⟨hv2, hb, hmb⟩ := CoreMemDesign.execListV_memory_leaves env v mv ss v2 b mb hss h2
+      refine ⟨hv2, by simp [ha, hb], ?_⟩
+      intro u hu
+      simp only [PStmt.listWrites, List.mem_append] at hu ⊢
+      rcases hu with hu | hu
+      · exact Or.inl (hma u hu)
+      · exact Or.inr (hmb u hu)
+
 /-! A procedural loop receipt packages the per-iteration memory evaluator
     facts into the exact flat-map queue produced by `execV_forLoop_memory`. -/
 theorem CoreMemDesign.execV_forLoop_memory_records {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)

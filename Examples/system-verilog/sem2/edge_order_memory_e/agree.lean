@@ -55,6 +55,14 @@ example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
   exact CoreMemDesign.execV_forLoop_memory_records_of_loopNbaMemory
     env v mv hbodyP hvals hbody
 
+example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
+    (body : List PStmt) (v' : SvState) (q : NbaQueue2) (mq : MemQV)
+    (hbody : ∀ s ∈ body, ∃ name index e, s = PStmt.nbaAssignL (.arrayElem name [index]) e ∧
+      ∃ md, E.memDecl? name = some md)
+    (h : E.execListV env v mv body = .ok (v', q, mq)) :
+    v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ PStmt.listWrites body) := by
+  exact CoreMemDesign.execListV_memory_leaves env v mv body v' q mq hbody h
+
 /-! The memory-aware edge-order successor is exercised on the real `edgesV`
     boundary.  The frame receipt stays an explicit premise until the
     predicate-to-receipt proof is widened for every admitted body shape. -/
