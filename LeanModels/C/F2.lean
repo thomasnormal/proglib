@@ -4545,6 +4545,23 @@ def storeByte (store : Store Tag State) (id offset : Nat)
     some ({ store with allocations := allocations }, footprint .write
       { allocation := id, offset := offset, width := 1 })
 
+theorem storeByte_success_footprint
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (result : Store Tag State × Footprint)
+    (hresult : storeByte store id offset byte = some result) :
+    result.2 = footprint .write
+      { allocation := id, offset := offset, width := 1 } := by
+  cases hlookup : lookup store id with
+  | none => simp [storeByte, hlookup] at hresult
+  | some allocation =>
+      cases hlive : allocation.live with
+      | false => simp [storeByte, hlookup, hlive] at hresult
+      | true =>
+          by_cases hoffset : offset ≥ allocation.bytes.length
+          · simp [storeByte, hlookup, hlive, hoffset] at hresult
+          · simp [storeByte, hlookup, hlive, hoffset] at hresult
+            exact congrArg (fun pair => pair.2) hresult.symm
+
 def storeTransitionCorresponds (resolve : AllocId → Nat)
     (source target : Store Tag State)
     (sourceResult targetResult : Store Tag State × Footprint) : Prop :=

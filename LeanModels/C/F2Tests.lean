@@ -175,6 +175,9 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (loadByte dead 0 0).isNone
 #guard (loadByte one 0 1).isNone
 #guard (storeByte one 0 0 (.value 66 none (some 0))).isSome
+#guard match storeByte one 0 0 (.value 66 none (some 0)) with
+  | some (_, fp) => fp == footprint .write { allocation := 0, offset := 0, width := 1 }
+  | none => false
 #guard (storeByte empty 0 0 (.value 66 none (some 0))).isNone
 #guard (storeByte dead 0 0 (.value 66 none (some 0))).isNone
 #guard (storeByte one 0 1 (.value 66 none (some 0))).isNone
