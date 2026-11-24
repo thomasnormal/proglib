@@ -3560,11 +3560,35 @@ theorem alignmentAllowed_refusal_remainder
 
 def pairedAlignmentAllowed (resolve : AllocId → Nat)
     (id alignment : Nat) : Bool :=
-  alignmentAllowed (resolve id) alignment = alignmentAllowed (resolve id) alignment
+  alignmentAllowed id alignment == alignmentAllowed (resolve id) alignment
 
-theorem pairedAlignmentAllowed_sound (resolve : AllocId → Nat)
-    (id alignment : Nat) : pairedAlignmentAllowed resolve id alignment := by
-  simp [pairedAlignmentAllowed]
+theorem pairedAlignmentAllowed_both_allowed (resolve : AllocId → Nat)
+    (id alignment : Nat)
+    (hsource : alignmentAllowed id alignment = true)
+    (htarget : alignmentAllowed (resolve id) alignment = true) :
+    pairedAlignmentAllowed resolve id alignment = true := by
+  simp [pairedAlignmentAllowed, hsource, htarget]
+
+theorem pairedAlignmentAllowed_both_refused (resolve : AllocId → Nat)
+    (id alignment : Nat)
+    (hsource : alignmentAllowed id alignment = false)
+    (htarget : alignmentAllowed (resolve id) alignment = false) :
+    pairedAlignmentAllowed resolve id alignment = true := by
+  simp [pairedAlignmentAllowed, hsource, htarget]
+
+theorem pairedAlignmentAllowed_refusal_source (resolve : AllocId → Nat)
+    (id alignment : Nat)
+    (hsource : alignmentAllowed id alignment = false)
+    (htarget : alignmentAllowed (resolve id) alignment = true) :
+    pairedAlignmentAllowed resolve id alignment = false := by
+  simp [pairedAlignmentAllowed, hsource, htarget]
+
+theorem pairedAlignmentAllowed_refusal_target (resolve : AllocId → Nat)
+    (id alignment : Nat)
+    (hsource : alignmentAllowed id alignment = true)
+    (htarget : alignmentAllowed (resolve id) alignment = false) :
+    pairedAlignmentAllowed resolve id alignment = false := by
+  simp [pairedAlignmentAllowed, hsource, htarget]
 
 def alignmentComposition (first second : AllocId → Nat)
     (id alignment : Nat) : Bool :=

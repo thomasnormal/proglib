@@ -56,7 +56,7 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (allocate one { bytes := [Byte.uninitialized], state := () } (.address 32)).isNone
 #guard alignmentAllowed 16 8
 #guard !alignmentAllowed 18 8
-#guard pairedAlignmentAllowed resolve 0 8
+#guard pairedAlignmentAllowed resolve 0 4
 #guard pairedPlacementAllowed resolve one 128 0
 #guard (allocateAligned empty { bytes := [oneByte], state := () } (.address 16) 8).isSome
 #guard (allocateAligned empty { bytes := [oneByte], state := () } (.address 18) 8).isNone
