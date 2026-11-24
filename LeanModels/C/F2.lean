@@ -2017,6 +2017,28 @@ theorem pairedReallocMetadata_address_success
           footprint .metadata (Region.mk 0 0 request.bytes.length))) := by
   simp [pairedReallocMetadata, reallocMetadata, hsame]
 
+theorem pairedReallocMetadata_unaddressable_success
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (hsame : locations.length = request.bytes.length) :
+    pairedReallocMetadata resolve old request locations .unaddressable =
+      some (
+        (.replaced
+          { allocation :=
+              { live := true, address := none,
+                bytes := request.bytes, state := request.state },
+            locations := locations },
+          footprint .metadata (Region.mk 0 0 request.bytes.length)),
+        (.replaced
+          { allocation :=
+              { live := true, address := none,
+                bytes := request.bytes, state := request.state },
+            locations := locations },
+          footprint .metadata (Region.mk 0 0 request.bytes.length))) := by
+  simp [pairedReallocMetadata, reallocMetadata, hsame]
+
 theorem pairedReallocMetadata_failure_shape
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
