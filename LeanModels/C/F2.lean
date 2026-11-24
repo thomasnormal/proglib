@@ -3627,6 +3627,16 @@ theorem renameRecovery_comp
   | ambiguousOnePastAdjacent => rfl
   | noLiveAllocation => rfl
 
+theorem renameRecovery_kind_preserved
+    (resolve : AllocId → Nat) (recovery : Recovery Tag) :
+    match recovery, renameRecovery resolve recovery with
+    | .recovered _, .recovered _ => True
+    | .empty _, .empty _ => True
+    | .ambiguousOnePastAdjacent, .ambiguousOnePastAdjacent => True
+    | .noLiveAllocation, .noLiveAllocation => True
+    | _, _ => False := by
+  cases recovery <;> simp [renameRecovery]
+
 def pairedRecoverAddress (resolve : AllocId → Nat) (address : Nat)
     (live : List (AllocId × Nat × Nat × Tag)) : Bool :=
   true
