@@ -1747,6 +1747,54 @@ theorem CoreMemDesign.edgesV_swap_local {E : CoreMemDesign}
         symm
         rw [commitMemV_append]
 
+/-! The admission-side write sets provide the queue disjointness needed by the
+    local diamond.  The evaluator receipts remain explicit, so this adapter
+    does not treat the parser predicate as an executor result. -/
+theorem CoreMemDesign.edgesV_swap_of_write_disjoint {E : CoreMemDesign}
+    {before after v : SvState} {mv : MemV} {p q : CoreMemProc} {rest : List CoreMemProc}
+    {qp qq qr : NbaQueue2} {mp mq mr : MemQV} {rv : SvState}
+    (hp : ∃ f, p.edge? = some f ∧ f.fires before after = true ∧
+      E.execV E.env v mv f.body = .ok (v, qp, mp) ∧
+      (∀ u ∈ qp, u.1 ∈ f.body.writes) ∧ (∀ u ∈ mp, u.1 ∈ f.body.writes))
+    (hq : ∃ f, q.edge? = some f ∧ f.fires before after = true ∧
+      E.execV E.env v mv f.body = .ok (v, qq, mq) ∧
+      (∀ u ∈ qq, u.1 ∈ f.body.writes) ∧ (∀ u ∈ mq, u.1 ∈ f.body.writes))
+    (hr : E.edgesV before after v mv rest = .ok (rv, qr, mr))
+    (hwrite : ∀ x ∈ CoreMemProc.targets p, ∀ y ∈ CoreMemProc.targets q, x ≠ y)
+    (hnd : (v.map Prod.fst).Nodup) :
+    ∃ r₁ r₂,
+      E.edgesV before after v mv (p :: q :: rest) = .ok r₁ ∧
+      E.edgesV before after v mv (q :: p :: rest) = .ok r₂ ∧
+      r₁.1 = r₂.1 ∧ commitNba2 v r₁.2.1 = commitNba2 v r₂.2.1 ∧
+      commitMemV mv r₁.2.2 = commitMemV mv r₂.2.2 := by
+  obtain ⟨fp, hpe, hfp, hbp, hqp, hmp⟩ := hp
+  obtain ⟨fq, hqe, hfq, hbq, hqq, hmq⟩ := hq
+  apply CoreMemDesign.edgesV_swap_local
+  · exact ⟨fp, hpe, hfp, hbp⟩
+  · exact ⟨fq, hqe, hfq, hbq⟩
+  · exact hr
+  · intro u hu u' hu' he
+    have huP : u.1 ∈ p.targets := by
+      rw [CoreMemProc.targets_of_edge? hpe]
+      simp only [List.mem_eraseDups]
+      exact hqp u hu
+    have huQ : u'.1 ∈ q.targets := by
+      rw [CoreMemProc.targets_of_edge? hqe]
+      simp only [List.mem_eraseDups]
+      exact hqq u' hu'
+    exact hwrite u.1 huP u'.1 huQ he
+  · intro u hu u' hu' he
+    have huP : u.1 ∈ p.targets := by
+      rw [CoreMemProc.targets_of_edge? hpe]
+      simp only [List.mem_eraseDups]
+      exact hmp u hu
+    have huQ : u'.1 ∈ q.targets := by
+      rw [CoreMemProc.targets_of_edge? hqe]
+      simp only [List.mem_eraseDups]
+      exact hmq u' hu'
+    exact hwrite u.1 huP u'.1 huQ he
+  · exact hnd
+
 /-- A direct memory-element NBA leaves scalar state and scalar queue unchanged. -/
 theorem CoreMemDesign.execV_memory_leaf {E : CoreMemDesign} {v : SvState} {mv : MemV}
     {name : String} {index : PExpr} {e : PExpr} {v' : SvState} {q : NbaQueue2} {mq : MemQV}
