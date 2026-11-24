@@ -2417,37 +2417,29 @@ def CoreMemDesign.evalExpr (E : CoreMemDesign) (env : IEnv) (elems : List (Strin
   E.evalExprLocals env elems st ctx [] e
 
 mutual
-private def LeanModels.Sv.PExpr.hasTestPlusargsRaw : PExpr → Bool
+def LeanModels.Sv.PExpr.hasTestPlusargs : PExpr → Bool
   | .sysCall .testPlusargs _ => true
   | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
-  | .sysCall _ a | .reduce _ a | .cast _ a => LeanModels.Sv.PExpr.hasTestPlusargsRaw a
-  | .binary _ a b => LeanModels.Sv.PExpr.hasTestPlusargsRaw a || LeanModels.Sv.PExpr.hasTestPlusargsRaw b
-  | .ternary c a b => LeanModels.Sv.PExpr.hasTestPlusargsRaw c ||
-      LeanModels.Sv.PExpr.hasTestPlusargsRaw a || LeanModels.Sv.PExpr.hasTestPlusargsRaw b
-  | .concat xs => LeanModels.Sv.PExpr.hasTestPlusargsListRaw xs
-  | .bitSel a b | .repl a b => LeanModels.Sv.PExpr.hasTestPlusargsRaw a ||
-      LeanModels.Sv.PExpr.hasTestPlusargsRaw b
-  | .partSel a b c => LeanModels.Sv.PExpr.hasTestPlusargsRaw a ||
-      LeanModels.Sv.PExpr.hasTestPlusargsRaw b || LeanModels.Sv.PExpr.hasTestPlusargsRaw c
-  | .arrayElem _ xs => LeanModels.Sv.PExpr.hasTestPlusargsListRaw xs
-  | .arrayPart _ xs _ a b => LeanModels.Sv.PExpr.hasTestPlusargsListRaw xs ||
-      LeanModels.Sv.PExpr.hasTestPlusargsRaw a || LeanModels.Sv.PExpr.hasTestPlusargsRaw b
-  | .functionCall _ xs => LeanModels.Sv.PExpr.hasTestPlusargsListRaw xs
+  | .sysCall _ a | .reduce _ a | .cast _ a => LeanModels.Sv.PExpr.hasTestPlusargs a
+  | .binary _ a b => LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .ternary c a b => LeanModels.Sv.PExpr.hasTestPlusargs c ||
+      LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .concat xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
+  | .bitSel a b | .repl a b => LeanModels.Sv.PExpr.hasTestPlusargs a ||
+      LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .partSel a b c => LeanModels.Sv.PExpr.hasTestPlusargs a ||
+      LeanModels.Sv.PExpr.hasTestPlusargs b || LeanModels.Sv.PExpr.hasTestPlusargs c
+  | .arrayElem _ xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
+  | .arrayPart _ xs _ a b => LeanModels.Sv.PExpr.hasTestPlusargsList xs ||
+      LeanModels.Sv.PExpr.hasTestPlusargs a || LeanModels.Sv.PExpr.hasTestPlusargs b
+  | .functionCall _ xs => LeanModels.Sv.PExpr.hasTestPlusargsList xs
   | _ => false
 
-def LeanModels.Sv.PExpr.hasTestPlusargsListRaw : List PExpr → Bool
+def LeanModels.Sv.PExpr.hasTestPlusargsList : List PExpr → Bool
   | [] => false
-  | x :: xs => LeanModels.Sv.PExpr.hasTestPlusargsRaw x ||
-      LeanModels.Sv.PExpr.hasTestPlusargsListRaw xs
+  | x :: xs => LeanModels.Sv.PExpr.hasTestPlusargs x ||
+      LeanModels.Sv.PExpr.hasTestPlusargsList xs
 end
-
-def LeanModels.Sv.PExpr.hasTestPlusargs (e : PExpr) : Bool :=
-  if LeanModels.Sv.PExpr.hasFunctionCall e then
-    LeanModels.Sv.PExpr.hasTestPlusargsRaw e
-  else false
-
-def LeanModels.Sv.PExpr.hasTestPlusargsList (xs : List PExpr) : Bool :=
-  xs.any LeanModels.Sv.PExpr.hasTestPlusargs
 
 def CoreMemDesign.evalRuntimeExpr (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (ctx : Option Nat)
@@ -2472,8 +2464,7 @@ read must stay on `evalExpr`, whose source-shaped evaluator threads
 def CoreMemDesign.evalScalarAssignAtView (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState)
     (ctx : Option Nat) (index : Nat) (value : PExpr) : Res LVec :=
-  if LeanModels.Sv.PExpr.hasFunctionCall value &&
-      !LeanModels.Sv.PExpr.hasTestPlusargs value then
+  if LeanModels.Sv.PExpr.hasFunctionCall value then
     -- User functions retain their parser node and need the source-shaped
     -- evaluator's formal binding and return conversion (§§13.4–13.5).
     E.evalExpr env elems st ctx value
