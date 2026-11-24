@@ -8,7 +8,7 @@ instrument. No implementation of this relation starts until this design is
 accepted.
 
 The relation is built on the source-shaped nodes in `CoreMemDesign`,
-`PStmt`, `PExpr`, and `PLhs), and on the cursor and phase shape in
+`PStmt`, `PExpr`, and `PLhs`, and on the cursor and phase shape in
 `LeanModels/Sv/Kernel/CoreMemResume.lean`. It does not make
 `Scheduler.lean`'s older scalar `Design`, `Stmt2`, or a fuelled executor
 the meaning of the language.
@@ -335,6 +335,83 @@ relation or change the executor.
 
 A deterministic executor can satisfy soundness while failing independence or
 progress. Universal user claims require the obligations named by the claim.
+
+## Three user levels and the first executable bridge
+
+The reference level is the small-step relation over configurations containing
+the current parser node, continuation, region, pending scalar and memory
+updates, and the settled observation. It exposes every permitted event order
+and every per-read x resolution. `StmtRun` and `SlotRun` are reflexive-
+transitive closures of those steps. This is the level at which clause 4.7
+preemption and zero-time divergence are stated.
+
+The macrostep level is derived for a certified profile. It consumes one
+`InputBatch` and returns a settled state, with separate soundness, progress,
+and schedule-independence theorems. Its state equivalence must preserve the
+facts needed by later batches, including declaration identity, pending
+causes, and memory observations. Equal output bits alone are insufficient.
+
+The trace and contract level quantifies over input histories and initial
+states. Assumptions such as clock progress, reset release, fairness, and the
+absence of zero-time divergence are explicit hypotheses of liveness claims.
+Module contracts compose through the macrostep refinement theorem and never
+silently replace the reference relation.
+
+The cheap first bridge is an implementation relation, not the meaning:
+
+```lean
+def ExecStep (E : CoreMemDesign) (input : InputBatch)
+    (s s' : CoreMemState) : Prop :=
+  ∃ fuel, E.step fuel s input = .ok s'
+```
+
+The actual executor API currently supplies its own implementation limits, so
+the displayed signature is schematic until the de-fuelling work lands. The
+bridge is justified only by the proved fuel-monotonicity theorem and an
+executor soundness theorem. It must be replaced construct by construct by
+the rule-based `SlotRun` relation. A finite relational derivation is then
+reproduced by some schedule and a sufficiently large implementation limit,
+while a timeout remains an implementation result rather than a semantic
+outcome. No user theorem may mention `fuel`, `need`, or the implementation
+limit.
+
+## Footprints and constrained ordering
+
+Every write carries a footprint consisting of declaration identity, memory
+identity when applicable, resolved address, and written bit mask. Scalar
+variables are the one-cell case. The relation preserves ordering that IEEE
+1800 requires, including source order within one process and the issue-time
+capture of an NBA right-hand side and target under §10.4.2. Only updates with
+provably disjoint footprints may commute. A single commuting-update lemma is
+used for scalar and memory updates. Dynamic addresses require an invariant
+proving disjointness or aliasing, and are never treated as distinct merely
+because their syntax differs.
+
+## Relation construction and the existing successor function
+
+The rule presentation above is the readable specification. The eventual Lean
+implementation should define its small-step relation by membership in a
+source-shaped successor function where that function is already exact, using
+lemmas of the form `nextStates_iff`. This avoids maintaining two independent
+copies of the rules. `Scheduler.mem_nextStates_iff` is the existing model for
+this style, but its older scalar state is a migration reference only. The
+parser-native successor function must retain `PStmt`/`PExpr`/`PLhs`, memory
+identity, regions, and continuation frames, and it must expose refusal rather
+than silently return an empty successor set.
+
+## Relation design against the simulation-semantics literature
+
+Andreas Loow, *The Simulation Semantics of Synthesisable Verilog*, OOPSLA
+2025, arXiv:2502.19348, documents tensions between IEEE scheduling clauses
+and common synthesis-oriented executable models. This design follows the
+standard's clause 4.6 region transitions, clause 4.7 event ordering, clause
+4.9.4 wakeups, and §10.4.2 NBA capture as the normative relation. It keeps
+the implementation's narrower certified profiles as derived macrosteps and
+refuses or leaves unproved any construct outside those profiles. It does not
+resolve a standards-versus-practice discrepancy by changing the language
+meaning. Any concrete contradiction exposed by a differential or proof
+receipt must be recorded as a finding with a reproducer and escalated for an
+owner decision.
 
 ## Current bridge inventory
 
