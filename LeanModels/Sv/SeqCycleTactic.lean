@@ -691,6 +691,14 @@ theorem forValues2_sle_nval_add {env : IEnv} {it p : String} (h : nvalInt env p 
 
 end LeanModels.Sv.Loop2
 
+namespace LeanModels.Sv
+
+theorem Expr2.idents_ite {p : Prop} [Decidable p] (t e : Expr2) :
+    (if p then t else e).idents = if p then t.idents else e.idents := by
+  split <;> rfl
+
+end LeanModels.Sv
+
 open LeanModels.Sv LeanModels.Sv.Kernel in
 /-- The instantiation pass: the route's `do` block evaluated through its definitions' equation lemmas. -/
 macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
@@ -963,7 +971,9 @@ macro "sv_seq_obligations" : tactic =>
       LeanModels.Sv.PStmt.nbaWhole, LeanModels.Sv.PStmt.optNbaWhole, LeanModels.Sv.PStmt.listNbaWhole,
       LeanModels.Sv.PStmt.itemsNbaWhole, LeanModels.Sv.Kernel.CoreMemDesign.topoC,
       LeanModels.Sv.Kernel.CoreMemDesign.topoFrom, LeanModels.Sv.Kernel.assignTargets,
+      List.eraseDups, List.eraseDupsBy, List.eraseDupsBy.loop,
       LeanModels.Sv.Kernel.CoreMemDesign.compileAssigns, LeanModels.Sv.Expr2.idents, LeanModels.Sv.Expr2.listIdents,
+      LeanModels.Sv.Expr2.idents_ite, LeanModels.Sv.intLit2_eq,
       LeanModels.Sv.PExpr.sigNames, LeanModels.Sv.PExpr.sigNamesList, LeanModels.Sv.PLhs.baseNames,
       LeanModels.Sv.PLhs.baseNamesList, LeanModels.Sv.PLhs.indexNames, LeanModels.Sv.PLhs.indexNamesList,
       LeanModels.Sv.PStmt.writes, LeanModels.Sv.PStmt.optWrites, LeanModels.Sv.PStmt.listWrites,
