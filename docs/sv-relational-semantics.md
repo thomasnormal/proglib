@@ -222,6 +222,12 @@ def Run
     (init : SlotState) (inputs : List InputBatch)
     (trace : List ObsState) : Prop := ...
 
+def ObserveTrace (finish : SlotState) (inputs : List InputBatch)
+    (trace : List ObsState) : Prop := ...
+
+def RefusalTrace (finish : SlotState) (inputs : List InputBatch)
+    (reason : RelRefusal) : Prop := ...
+
 def SettledRun
     (E : CoreMemDesign) (g : Granularity) (x : XResolution)
     (init : SlotState) (inputs : List InputBatch)
@@ -232,7 +238,9 @@ def SettledRun
 def RefusedRun
     (E : CoreMemDesign) (g : Granularity) (x : XResolution)
     (init : SlotState) (inputs : List InputBatch)
-    (reason : RelRefusal) : Prop := ...
+    (reason : RelRefusal) : Prop :=
+  ∃ finish, RefusedSlotRun E g x init finish reason ∧
+    RefusalTrace finish inputs reason
 
 def Diverges
     (step : α → α → Prop) (start : α) : Prop :=
@@ -672,9 +680,6 @@ def AllRuns (E : CoreMemDesign) (g : Granularity)
   ∀ init, AdmissibleInit E init →
   ∀ x inputs trace, ValidInputs inputs →
     Run E g x (Initial E init) inputs trace → P trace
-
-def ObserveTrace (finish : SlotState) (inputs : List InputBatch)
-    (trace : List ObsState) : Prop := ...
 
 def Total (E : CoreMemDesign) (g : Granularity) : Prop :=
   ∀ init, AdmissibleInit E init →
