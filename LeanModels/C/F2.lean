@@ -2396,6 +2396,17 @@ theorem pairedRepresentationLoadMetadataByte_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedRepresentationLoadMetadataByte_refusal
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice)
+    (hrefusal : representationLoadMetadataByte metadata offset choice = none ∨
+      representationLoadMetadataByte (renameMetadata resolve id metadata) offset choice = none) :
+    pairedRepresentationLoadMetadataByte resolve id metadata offset choice = none := by
+  cases hrefusal with
+  | inl hsource => simp [pairedRepresentationLoadMetadataByte, hsource]
+  | inr htarget => simp [pairedRepresentationLoadMetadataByte, htarget]
+
 theorem pairedRepresentationLoadMetadataByte_footprints
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
