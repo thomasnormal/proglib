@@ -872,6 +872,82 @@ theorem allSlotOutcomes_complete : ∀ (n : Nat) (d : SchedulerDesign)
           simp only [hsRef, hq]
           exact List.mem_flatMap.mpr ⟨u, hu, allSlotOutcomes_complete n d u t htail⟩
 
+/-! The bounded executable enumerator and the fuel-free terminal-path relation
+    describe exactly the same completed outcomes.  This is the first bridge
+    between an implementation budget and the relational scheduler surface. -/
+theorem allSlotOutcomes_iff_terminalPath
+    (n : Nat) (d : SchedulerDesign) (s : SlotState) (o : SlotOutcome) :
+    o ∈ allSlotOutcomes n d s ↔
+      ∃ t, TerminalPath d n s t ∧ o.matches t := by
+  constructor
+  · induction n generalizing d s o with
+    | zero =>
+        intro ho
+        cases hs : s.refusal with
+        | some message =>
+            have ho' : o = .refusal message := by
+              simpa [allSlotOutcomes, hs] using ho
+            subst o
+            exact ⟨s, .terminal (Or.inr (by simp [hs])), by simp [SlotOutcome.matches, hs]⟩
+        | none =>
+            have hq : quietB s = true := by
+              generalize hq : quietB s = b at ho ⊢
+              cases b with
+              | false => simp [allSlotOutcomes, hs, hq] at ho
+              | true => rfl
+            have ho' : o = .value s.store := by
+              simpa [allSlotOutcomes, hs, hq] using ho
+            subst o
+            exact ⟨s, .terminal (Or.inl hq), by simp [SlotOutcome.matches, quiet, hq]⟩
+    | succ n ih =>
+        intro ho
+        cases hs : s.refusal with
+        | some message =>
+            have ho' : o = .refusal message := by
+              simpa [allSlotOutcomes, hs] using ho
+            subst o
+            exact ⟨s, .terminal (Or.inr (by simp [hs])), by simp [SlotOutcome.matches, hs]⟩
+        | none =>
+            by_cases hq : quietB s = true
+            · have ho' : o = .value s.store := by
+                simpa [allSlotOutcomes, hs, hq] using ho
+              subst o
+              exact ⟨s, .terminal (Or.inl hq), by simp [SlotOutcome.matches, quiet, hq]⟩
+            · rw [allSlotOutcomes] at ho
+              simp only [hs, hq] at ho
+              obtain ⟨u, hu, ho⟩ := List.mem_flatMap.mp ho
+              have hu' : oneStep d s u := (mem_nextStates_iff d s u).mp hu
+              obtain ⟨t, ht, hmatch⟩ := ih d u o ho
+              have hq' : quietB s = false := Bool.eq_false_iff.mpr hq
+              exact ⟨t, .head hq' hs hu' ht, hmatch⟩
+  · rintro ⟨t, ht, hmatch⟩
+    cases href : t.refusal with
+    | some message =>
+        cases o with
+        | value store => simp [SlotOutcome.matches, quiet, quietB, href] at hmatch
+        | refusal msg =>
+            have hmsg : msg = message := by simpa [SlotOutcome.matches, href] using hmatch.symm
+            subst msg
+            have hout : (if h : t.refusal.isSome then
+                SlotOutcome.refusal (t.refusal.get h)
+              else SlotOutcome.value t.store) = SlotOutcome.refusal message := by
+              simp [href]
+            rw [← hout]
+            exact allSlotOutcomes_complete n d s t ht
+    | none =>
+        cases o with
+        | refusal msg => simp [SlotOutcome.matches, href] at hmatch
+        | value store =>
+            have hstore : store = t.store := by
+              simpa [SlotOutcome.matches, href] using hmatch.2.symm
+            subst store
+            have hout : (if h : t.refusal.isSome then
+                SlotOutcome.refusal (t.refusal.get h)
+              else SlotOutcome.value t.store) = SlotOutcome.value t.store := by
+              simp [href]
+            rw [← hout]
+            exact allSlotOutcomes_complete n d s t ht
+
 /-! ## Executable audit rows -/
 
 /- A real source-shaped race receipt.  The two processes are the ordinary
