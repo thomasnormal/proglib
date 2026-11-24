@@ -2235,6 +2235,87 @@ theorem CoreMemDesign.execV_forLoop_memoryLeafBody
   refine ⟨values.flatMap m, hfold values (by intro i hi; exact hi), ?_⟩
   exact hnamesFlat values (by intro i hi; exact hi)
 
+/-! A successful loop run contains a successful body run at every produced
+    iterator value.  This inversion removes the last semantic premise from
+    the memory-leaf loop frame at an edge boundary. -/
+theorem CoreMemDesign.execV_forLoop_memoryLeafBody_of_success
+    {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
+    {it : String} {init condition step : PExpr} {body : PStmt}
+    (hshape : PStmt.memoryLeafB body = true)
+    (hdecl : ∀ n ∈ body.writes, ∃ md, E.memDecl? n = some md)
+    {v' : SvState} {q : NbaQueue2} {mq : MemQV}
+    (h : E.execV env v mv (.forLoop it init condition step body) = .ok (v', q, mq)) :
+    v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ body.writes) := by
+  have hloop : PStmt.loopBodyB body = true := PStmt.memoryLeafB_loopBodyB body hshape
+  have horig := h
+  simp only [CoreMemDesign.execV, hloop, ↓reduceIte] at h
+  cases hvals : forValues2 env it init condition step with
+  | timeout => simp [hvals] at h
+  | unsupported msg => simp [hvals] at h
+  | ok values =>
+      simp only [hvals, ↓reduceIte] at h
+      have hsteps : ∀ (xs : List Int) (r : ExecV),
+          execLoopV v (fun i => E.execV (env.bindVal it i) v mv body) xs = .ok r →
+          ∀ i, i ∈ xs → ∃ rr, E.execV (env.bindVal it i) v mv body = .ok rr := by
+        intro xs
+        induction xs with
+        | nil =>
+            intro r hr i hi
+            simp at hi
+        | cons x xs ih =>
+            intro r hr i hi
+            simp only [execLoopV, Res.bind_eq_ok, Res.ok.injEq] at hr
+            obtain ⟨a, ha, b, hb, rfl⟩ := hr
+            simp only [List.mem_cons] at hi
+            rcases hi with rfl | hi
+            · exact ⟨a, ha⟩
+            · exact ih b hb i hi
+      have hbody : ∀ i, i ∈ values → ∃ mqi,
+          E.execV (env.bindVal it i) v mv body = .ok (v, [], mqi) ∧
+            (∀ u ∈ mqi, u.1 ∈ body.writes) := by
+        intro i hi
+        obtain ⟨rr, hrr⟩ := hsteps values (v', q, mq) h i hi
+        rcases rr with ⟨rv, rq, rm⟩
+        obtain ⟨hvi, hqi, hmi⟩ := CoreMemDesign.execV_memoryLeafBody
+          (E := E) (env.bindVal it i) v mv body rv rq rm hshape hdecl hrr
+        rw [hvi, hqi] at hrr
+        exact ⟨rm, hrr, hmi⟩
+      obtain ⟨mq', hcanon, hnames⟩ := CoreMemDesign.execV_forLoop_memoryLeafBody
+        env v mv hshape hdecl hvals hbody
+      obtain ⟨rfl, rfl, rfl⟩ := Res.ok.inj (hcanon.symm.trans horig)
+      exact ⟨rfl, rfl, hnames⟩
+
+theorem CoreMemDesign.execV_if_forLoop_memoryLeafBody_of_success
+    {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
+    {guard : PExpr} {it : String} {init condition step : PExpr} {body : PStmt}
+    (hshape : PStmt.memoryLeafB body = true)
+    (hdecl : ∀ n ∈ (PStmt.ifStmt guard (.forLoop it init condition step body) none).writes,
+      ∃ md, E.memDecl? n = some md)
+    {v' : SvState} {q : NbaQueue2} {mq : MemQV}
+    (h : E.execV env v mv
+        (.ifStmt guard (.forLoop it init condition step body) none) = .ok (v', q, mq)) :
+    v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ body.writes) := by
+  have hloop : PStmt.loopBodyB body = true := PStmt.memoryLeafB_loopBodyB body hshape
+  simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
+  obtain ⟨cv, -, h⟩ := h
+  split at h
+  · cases hvals : forValues2 env it init condition step with
+    | timeout => simp [hvals] at h
+    | unsupported msg => simp [hvals] at h
+    | ok values =>
+        have hdeclBody : ∀ n ∈ body.writes, ∃ md, E.memDecl? n = some md := by
+          intro n hn
+          exact hdecl n (by
+            simp only [PStmt.writes, PStmt.optWrites, List.mem_append]
+            exact Or.inl hn)
+        apply CoreMemDesign.execV_forLoop_memoryLeafBody_of_success
+          (it := it) (init := init) (condition := condition) (step := step)
+          (body := body) env v mv hshape hdeclBody
+        simpa [CoreMemDesign.execV, hloop, hvals] using h
+  · simp only [CoreMemDesign.execOptV, Res.ok.injEq, Prod.mk.injEq] at h
+    obtain ⟨rfl, rfl, rfl⟩ := h
+    exact ⟨rfl, rfl, by simp⟩
+
 /-! A reset arm commonly wraps the memory loop in a one-sided conditional.
     This adapter follows the real `execV` branch and keeps the declaration
     premise source-shaped. -/

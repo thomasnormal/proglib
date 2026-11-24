@@ -100,6 +100,16 @@ example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
   exact CoreMemDesign.execV_forLoop_memoryLeafBody env v mv hshape hdecl hvals hbody
 
 example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
+    (body : PStmt) (it : String) (init condition step : PExpr)
+    (hshape : PStmt.memoryLeafB body = true)
+    (hdecl : ∀ n ∈ body.writes, ∃ md, E.memDecl? n = some md)
+    {v' : SvState} {q : NbaQueue2} {mq : MemQV}
+    (h : E.execV env v mv (.forLoop it init condition step body) = .ok (v', q, mq)) :
+    v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ body.writes) := by
+  exact CoreMemDesign.execV_forLoop_memoryLeafBody_of_success
+    env v mv hshape hdecl h
+
+example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
     (guard : PExpr) (it : String) (init condition step : PExpr) (body : PStmt)
     (hshape : PStmt.memoryLeafB body = true)
     (hdecl : ∀ n ∈ (PStmt.ifStmt guard (.forLoop it init condition step body) none).writes,
@@ -114,6 +124,18 @@ example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
         (.ifStmt guard (.forLoop it init condition step body) none) = .ok (v', q, mq)) :
     v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ body.writes) := by
   exact CoreMemDesign.execV_if_forLoop_memoryLeafBody env v mv hshape hdecl hvals hbody h
+
+example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
+    (guard : PExpr) (it : String) (init condition step : PExpr) (body : PStmt)
+    (hshape : PStmt.memoryLeafB body = true)
+    (hdecl : ∀ n ∈ (PStmt.ifStmt guard (.forLoop it init condition step body) none).writes,
+      ∃ md, E.memDecl? n = some md)
+    {v' : SvState} {q : NbaQueue2} {mq : MemQV}
+    (h : E.execV env v mv
+        (.ifStmt guard (.forLoop it init condition step body) none) = .ok (v', q, mq)) :
+    v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ body.writes) := by
+  exact CoreMemDesign.execV_if_forLoop_memoryLeafBody_of_success
+    env v mv hshape hdecl h
 
 /-! The memory-aware edge-order successor is exercised on the real `edgesV`
     boundary.  The frame receipt stays an explicit premise until the
