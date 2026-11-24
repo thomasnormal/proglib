@@ -4088,6 +4088,26 @@ theorem pairedOffsetPointer_matching_fault [BEq Tag]
     pairedOffsetPointer resolve pointer elementSize delta bound = true := by
   cases fault <;> simp [pairedOffsetPointer, hsource, htarget]
 
+theorem pairedOffsetPointer_refusal_source
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat)
+    (fault : OffsetFault) (target : Pointer Tag)
+    (hsource : offsetPointer pointer elementSize delta bound = .error fault)
+    (htarget : offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+      .ok target) :
+    pairedOffsetPointer resolve pointer elementSize delta bound = false := by
+  cases fault <;> simp [pairedOffsetPointer, hsource, htarget]
+
+theorem pairedOffsetPointer_refusal_target
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat)
+    (source : Pointer Tag) (fault : OffsetFault)
+    (hsource : offsetPointer pointer elementSize delta bound = .ok source)
+    (htarget : offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+      .error fault) :
+    pairedOffsetPointer resolve pointer elementSize delta bound = false := by
+  cases fault <;> simp [pairedOffsetPointer, hsource, htarget]
+
 def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) : Option (Store Tag State × Footprint) :=
   match placement with
