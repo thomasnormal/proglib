@@ -4604,6 +4604,48 @@ theorem storeByte_success_payload
             refine ⟨allocation, rfl, ?_⟩
             simpa [hlive] using congrArg (fun pair => pair.1) hresult.symm
 
+theorem storeByte_preserves_wellFormed
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (result : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hbytes : bytesWf id (listSet
+      ((lookup store id).map (fun allocation => allocation.bytes) |>.getD [])
+      offset byte))
+    (hresult : storeByte store id offset byte = some result) :
+    WellFormed result.1 := by
+  cases hlookup : lookup store id with
+  | none => simp [storeByte, hlookup] at hresult
+  | some allocation =>
+      cases hlive : allocation.live with
+      | false => simp [storeByte, hlookup, hlive] at hresult
+      | true =>
+          by_cases hoffset : offset ≥ allocation.bytes.length
+          · simp [storeByte, hlookup, hlive, hoffset] at hresult
+          · simp [storeByte, hlookup, hlive, hoffset] at hresult
+            simp [hlookup] at hbytes
+            rcases hresult with ⟨rfl, rfl⟩
+            unfold WellFormed at hstore ⊢
+            have map_wf : ∀ entries : List (AllocId × Allocation Tag State),
+                allocationsWf entries →
+                allocationsWf (entries.map (fun entry =>
+                  if entry.1 = id then
+                    (id, { allocation with bytes := listSet allocation.bytes offset byte })
+                  else entry)) := by
+              intro entries
+              induction entries with
+              | nil => intro _; simp [allocationsWf]
+              | cons entry rest ih =>
+                  cases entry with
+                  | mk entryId oldAllocation =>
+                      intro hentries
+                      by_cases hid : entryId = id
+                      · subst entryId
+                        simp only [List.map_cons, if_pos, allocationsWf]
+                        exact ⟨hbytes, ih hentries.2⟩
+                      · simp only [List.map_cons, if_neg hid, allocationsWf] at hentries ⊢
+                        exact ⟨hentries.1, ih hentries.2⟩
+            simpa [hlive] using map_wf store.allocations hstore
+
 def storeTransitionCorresponds (resolve : AllocId → Nat)
     (source target : Store Tag State)
     (sourceResult targetResult : Store Tag State × Footprint) : Prop :=
