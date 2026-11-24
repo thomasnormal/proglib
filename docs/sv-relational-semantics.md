@@ -363,6 +363,14 @@ The following results are real and intentionally narrow.
   `confluence_refines_step` are scalar or admitted-NBA path results. They do
   not establish the whole relation.
 
+The clean-room `edge_order_memory_e` envelope is a concrete memory-NBA
+receipt. Its `N = 4` load reports four processes and `seqOblIM = true`, and
+`agree.lean` exercises the memory-leaf and procedural-loop frame adapters plus
+`step_seqIM`. Its differential test reports three matching post-edge rows on
+Icarus Verilog 13.0 and Xcelium 24.03-s004. The receipt keeps the evaluator
+and declaration-identity premises explicit, so it does not turn this fixture
+into a whole-design confluence theorem.
+
 These are bridge-only results. They do not establish full canonical-E
 soundness, arbitrary aliasing, mixed macrostep trace inclusion, zero-time
 liveness, or an owner-selected default granularity.
