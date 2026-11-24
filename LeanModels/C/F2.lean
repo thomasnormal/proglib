@@ -685,6 +685,36 @@ def mergeBytes (old : List (Byte Tag)) (values masks choices : List UInt8) :
 def mergeFootprint (allocation offset width : Nat) : Footprint :=
   footprint .write { allocation := allocation, offset := offset, width := width }
 
+theorem mergeBytes_success
+    (old : List (Byte Tag)) (values masks choices : List UInt8)
+    (hold : old.length = values.length)
+    (hvalues : values.length = masks.length)
+    (hmasks : masks.length = choices.length) :
+    mergeBytes old values masks choices =
+      some (List.zipWith (fun oldByte entry =>
+        mergeByte oldByte entry.1.1 entry.1.2 entry.2)
+        old (List.zipWith (fun value mask => (value, mask)) values masks
+          |>.zip choices)) := by
+  simp [mergeBytes, hold, hvalues, hmasks]
+
+theorem mergeBytes_rejects_old_value_mismatch
+    (old : List (Byte Tag)) (values masks choices : List UInt8)
+    (hmismatch : old.length ≠ values.length) :
+    mergeBytes old values masks choices = none := by
+  simp [mergeBytes, hmismatch]
+
+theorem mergeBytes_rejects_value_mask_mismatch
+    (old : List (Byte Tag)) (values masks choices : List UInt8)
+    (hmismatch : values.length ≠ masks.length) :
+    mergeBytes old values masks choices = none := by
+  simp [mergeBytes, hmismatch]
+
+theorem mergeBytes_rejects_mask_choice_mismatch
+    (old : List (Byte Tag)) (values masks choices : List UInt8)
+    (hmismatch : masks.length ≠ choices.length) :
+    mergeBytes old values masks choices = none := by
+  simp [mergeBytes, hmismatch]
+
 theorem mergeFootprint_access_count
     (allocation offset width : Nat) :
     (mergeFootprint allocation offset width).accesses.length = 1 := by

@@ -83,7 +83,12 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
       value == oneByte && resultFootprint == footprint .read { allocation := 0, offset := 0, width := 1 }
   | none => false
 #guard byteFragment (mergeByte fragmentByte 1 0 0) == some 4
+#guard (mergeBytes (Tag := Unit) [.uninitialized] [255] [1] [0]) ==
+  some [mergeByte .uninitialized 1 255 0]
 #guard (mergeBytes (Tag := Unit) [.uninitialized, .value 255 none none] [1, 2] [1, 1] [0, 0]).isSome
+#guard (mergeBytes (Tag := Unit) [.uninitialized] [1, 2] [1] [0]).isNone
+#guard (mergeBytes (Tag := Unit) [.uninitialized] [1] [1, 2] [0, 0]).isNone
+#guard (mergeBytes (Tag := Unit) [.uninitialized] [1] [1, 2] [0]).isNone
 #guard (copySnapshot [oneByte] [.uninitialized]) == some [oneByte]
 #guard (copySnapshot [oneByte] []).isNone
 #guard memcpySnapshot { allocation := 1, offset := 0, width := 2 }
