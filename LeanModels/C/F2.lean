@@ -1976,6 +1976,26 @@ theorem pairedCopySnapshot_refusal
     pairedCopySnapshot resolve source destination = none := by
   simp [pairedCopySnapshot, copySnapshot, hmismatch]
 
+theorem pairedCopySnapshot_byte_correspondence [BEq Tag]
+    (resolve : AllocId → Nat)
+    (source destination : List (Byte Tag))
+    (result : List (Byte Tag) × List (Byte Tag))
+    (hresult : pairedCopySnapshot resolve source destination = some result) :
+    result.2 = result.1.map (renameByte resolve) := by
+  cases hs : copySnapshot source destination with
+  | none => simp [pairedCopySnapshot, hs] at hresult
+  | some sourceResult =>
+      cases ht : copySnapshot (source.map (renameByte resolve))
+          (destination.map (renameByte resolve)) with
+      | none => simp [pairedCopySnapshot, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedCopySnapshot, hs, ht] at hresult
+          rcases hresult with rfl
+          simp [copySnapshot] at hs ht
+          rcases hs with ⟨_, rfl⟩
+          rcases ht with ⟨_, rfl⟩
+          rfl
+
 theorem copySnapshot_preserves_length
     (source destination : List (Byte Tag)) (result : List (Byte Tag))
     (hresult : copySnapshot source destination = some result) :
