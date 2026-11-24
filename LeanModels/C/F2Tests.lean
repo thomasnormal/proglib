@@ -64,7 +64,7 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard placementWithin 8 4 16
 #guard !placementWithin 14 4 16
 #guard pairedPlacementWithin resolve 0 4 16 100
-#guard pairedAllocateBounded resolve empty { bytes := [oneByte], state := () } (.address 8) 8 16
+#guard pairedAllocateBounded resolve empty { bytes := [oneByte], state := () } (.address 8) 4 120
 #guard match allocateBounded empty { bytes := [oneByte], state := () } (.address 16) 1 16 with
   | .error .exhausted => true
   | _ => false

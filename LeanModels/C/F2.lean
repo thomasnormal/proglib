@@ -4767,17 +4767,32 @@ theorem renameBoundedResult_preserves_footprint
 def pairedAllocateBounded (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment limit : Nat) : Bool :=
-  let source := allocateBounded store request placement alignment limit
-  let target := allocateBounded (renameStore resolve store) request
-    (renamedPlacement resolve store.nextId placement) alignment limit
-  true
+  match allocateBounded store request placement alignment limit,
+    allocateBounded (renameStore resolve store) request
+      (renamedPlacement resolve store.nextId placement) alignment limit with
+  | .ok _, .ok _ => true
+  | .error sourceFault, .error targetFault => sourceFault == targetFault
+  | _, _ => false
 
-theorem pairedAllocateBounded_shape
+theorem pairedAllocateBounded_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
-    (alignment limit : Nat) :
+    (alignment limit : Nat)
+    (hsource : allocateBounded store request placement alignment limit = .ok source)
+    (htarget : allocateBounded (renameStore resolve store) request
+      (renamedPlacement resolve store.nextId placement) alignment limit = .ok target) :
     pairedAllocateBounded resolve store request placement alignment limit = true := by
-  rfl
+  simp [pairedAllocateBounded, hsource, htarget]
+
+theorem pairedAllocateBounded_matching_fault
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment limit : Nat) (fault : PlacementFault)
+    (hsource : allocateBounded store request placement alignment limit = .error fault)
+    (htarget : allocateBounded (renameStore resolve store) request
+      (renamedPlacement resolve store.nextId placement) alignment limit = .error fault) :
+    pairedAllocateBounded resolve store request placement alignment limit = true := by
+  cases fault <;> simp [pairedAllocateBounded, hsource, htarget] <;> rfl
 
 def allocateMetadata (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) :
