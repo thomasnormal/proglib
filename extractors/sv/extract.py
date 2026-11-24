@@ -23233,6 +23233,17 @@ def _sym_loop_condition_signed(statement, symbol):
     if not _sym_same_symbol(getattr(condition, "left", None), symbol):
         return False
     try:
+        # An explicit unsigned cast changes the comparison type even when its
+        # operand is a signed ``int`` or a signed literal.  Peeling
+        # ``ConversionExpression`` below must not erase that semantic fact.
+        # The symbolic unroller has no width-aware comparison evaluator yet,
+        # so keep both cast positions loud until it can model IEEE 1800-2023
+        # §11.8.1 exactly.
+        for operand in (condition.left, condition.right):
+            if (type(operand).__name__ == "ConversionExpression"
+                    and not getattr(operand, "isImplicit", True)
+                    and not bool(operand.type.isSigned)):
+                return False
         def source_signed(expression):
             node = expression
             while type(node).__name__ == "ConversionExpression":

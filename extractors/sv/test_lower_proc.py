@@ -547,6 +547,21 @@ class LoopHeaders(Base):
                 " end endmodule" % bound)
             self.assertIn("ForLoopStatement", sv_kinds(m), bound)
 
+    def test_explicit_unsigned_cast_condition_stays_loud(self):
+        # IEEE 1800-2023 §11.8.1 makes either explicit unsigned cast the
+        # comparison's unsigned context.  The literal unroller must not peel
+        # that parser conversion and turn the negative signed initializer into
+        # a terminating mathematical trace.  Both audit-3 wrong-answer rows
+        # therefore remain loud until width-aware loop comparison semantics
+        # are implemented.
+        for condition in ("unsigned'(i) < 10", "i < unsigned'(10)"):
+            m = self.module(
+                "module t (input logic d, output logic q);"
+                " always_comb begin q = 0;"
+                " for (int i = -3; %s; i++) q = 1;"
+                " end endmodule" % condition)
+            self.assertIn("ForLoopStatement", sv_kinds(m), condition)
+
     def test_mixed_signed_parameter_condition_stays_loud(self):
         m = self.module(
             "module t #(parameter int N = 4) (input logic [7:0] d,"
