@@ -1,0 +1,785 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "clocked_tick_assign",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/clocked_tick_assign_e/clocked_tick_assign.sv",
+      "sha256": "136ffbd3fea24ac470dff055940bc89e4ab824549da3d51ab3f2142893a8d9f9"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 4,
+          "col": 1,
+          "end_line": 31,
+          "end_col": 10
+        },
+        "name": "clocked_tick_assign",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 23,
+              "end_line": 5,
+              "end_col": 26
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 6,
+              "col": 23,
+              "end_line": 6,
+              "end_col": 28
+            },
+            "name": "rst_n",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 23,
+              "end_line": 7,
+              "end_col": 26
+            },
+            "name": "ena",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 8,
+              "col": 23,
+              "end_line": 8,
+              "end_col": 32
+            },
+            "name": "divider_q",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 17,
+                      "end_line": 8,
+                      "end_col": 19
+                    },
+                    "value": 23,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 20,
+                      "end_line": 8,
+                      "end_col": 21
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 24
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 9,
+              "col": 23,
+              "end_line": 9,
+              "end_col": 28
+            },
+            "name": "phase",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 9,
+                      "col": 17,
+                      "end_line": 9,
+                      "end_col": 19
+                    },
+                    "value": 23,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 9,
+                      "col": 20,
+                      "end_line": 9,
+                      "end_col": 21
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 24
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 10,
+              "col": 23,
+              "end_line": 10,
+              "end_col": 32
+            },
+            "name": "tick_seen",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 12,
+              "col": 9,
+              "end_line": 12,
+              "end_col": 16
+            },
+            "name": "do_tick",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "init": null
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 14,
+              "col": 10,
+              "end_line": 15,
+              "end_col": 66
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 14,
+                "col": 10,
+                "end_line": 14,
+                "end_col": 17
+              },
+              "width": 1,
+              "name": "do_tick"
+            },
+            "value": {
+              "kind": "Binary",
+              "span": {
+                "line": 14,
+                "col": 20,
+                "end_line": 15,
+                "end_col": 66
+              },
+              "width": 1,
+              "op": "||",
+              "left": {
+                "kind": "Binary",
+                "span": {
+                  "line": 14,
+                  "col": 21,
+                  "end_line": 14,
+                  "end_col": 39
+                },
+                "width": 1,
+                "op": "==",
+                "left": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 14,
+                    "col": 21,
+                    "end_line": 14,
+                    "end_col": 30
+                  },
+                  "width": 24,
+                  "name": "divider_q"
+                },
+                "right": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 14,
+                    "col": 34,
+                    "end_line": 14,
+                    "end_col": 39
+                  },
+                  "width": 24,
+                  "bits": "000000000000000000000000"
+                }
+              },
+              "right": {
+                "kind": "Binary",
+                "span": {
+                  "line": 15,
+                  "col": 21,
+                  "end_line": 15,
+                  "end_col": 65
+                },
+                "width": 1,
+                "op": ">=",
+                "left": {
+                  "kind": "Binary",
+                  "span": {
+                    "line": 15,
+                    "col": 21,
+                    "end_line": 15,
+                    "end_col": 44
+                  },
+                  "width": 25,
+                  "op": "+",
+                  "left": {
+                    "kind": "Concat",
+                    "span": {
+                      "line": 15,
+                      "col": 21,
+                      "end_line": 15,
+                      "end_col": 34
+                    },
+                    "width": 25,
+                    "parts": [
+                      {
+                        "kind": "Literal",
+                        "span": {
+                          "line": 15,
+                          "col": 22,
+                          "end_line": 15,
+                          "end_col": 26
+                        },
+                        "width": 1,
+                        "bits": "0"
+                      },
+                      {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 15,
+                          "col": 28,
+                          "end_line": 15,
+                          "end_col": 33
+                        },
+                        "width": 24,
+                        "name": "phase"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "Literal",
+                    "span": {
+                      "line": 15,
+                      "col": 37,
+                      "end_line": 15,
+                      "end_col": 44
+                    },
+                    "width": 25,
+                    "bits": "0000000000000000100000000"
+                  }
+                },
+                "right": {
+                  "kind": "Concat",
+                  "span": {
+                    "line": 15,
+                    "col": 48,
+                    "end_line": 15,
+                    "end_col": 65
+                  },
+                  "width": 25,
+                  "parts": [
+                    {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 15,
+                        "col": 49,
+                        "end_line": 15,
+                        "end_col": 53
+                      },
+                      "width": 1,
+                      "bits": "0"
+                    },
+                    {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 15,
+                        "col": 55,
+                        "end_line": 15,
+                        "end_col": 64
+                      },
+                      "width": 24,
+                      "name": "divider_q"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 17,
+              "col": 3,
+              "end_line": 30,
+              "end_col": 6
+            },
+            "style": "always_ff",
+            "clock": "clk",
+            "areset_n": "rst_n",
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 18,
+                "col": 5,
+                "end_line": 29,
+                "end_col": 8
+              },
+              "stmts": [
+                {
+                  "kind": "If",
+                  "span": {
+                    "line": 18,
+                    "col": 5,
+                    "end_line": 29,
+                    "end_col": 8
+                  },
+                  "cond": {
+                    "kind": "Unary",
+                    "span": {
+                      "line": 18,
+                      "col": 9,
+                      "end_line": 18,
+                      "end_col": 15
+                    },
+                    "width": 1,
+                    "op": "!",
+                    "operand": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 18,
+                        "col": 10,
+                        "end_line": 18,
+                        "end_col": 15
+                      },
+                      "width": 1,
+                      "name": "rst_n"
+                    }
+                  },
+                  "then": {
+                    "kind": "Block",
+                    "span": {
+                      "line": 18,
+                      "col": 17,
+                      "end_line": 21,
+                      "end_col": 8
+                    },
+                    "stmts": [
+                      {
+                        "kind": "NonblockingAssign",
+                        "span": {
+                          "line": 19,
+                          "col": 7,
+                          "end_line": 19,
+                          "end_col": 22
+                        },
+                        "target": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 19,
+                            "col": 7,
+                            "end_line": 19,
+                            "end_col": 12
+                          },
+                          "width": 24,
+                          "name": "phase"
+                        },
+                        "value": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 19,
+                            "col": 16,
+                            "end_line": 19,
+                            "end_col": 21
+                          },
+                          "width": 24,
+                          "bits": "000000000000000000000000"
+                        }
+                      },
+                      {
+                        "kind": "NonblockingAssign",
+                        "span": {
+                          "line": 20,
+                          "col": 7,
+                          "end_line": 20,
+                          "end_col": 25
+                        },
+                        "target": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 20,
+                            "col": 7,
+                            "end_line": 20,
+                            "end_col": 16
+                          },
+                          "width": 1,
+                          "name": "tick_seen"
+                        },
+                        "value": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 20,
+                            "col": 20,
+                            "end_line": 20,
+                            "end_col": 24
+                          },
+                          "width": 1,
+                          "bits": "0"
+                        }
+                      }
+                    ]
+                  },
+                  "else": {
+                    "kind": "Block",
+                    "span": {
+                      "line": 21,
+                      "col": 14,
+                      "end_line": 29,
+                      "end_col": 8
+                    },
+                    "stmts": [
+                      {
+                        "kind": "NonblockingAssign",
+                        "span": {
+                          "line": 22,
+                          "col": 7,
+                          "end_line": 22,
+                          "end_col": 25
+                        },
+                        "target": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 22,
+                            "col": 7,
+                            "end_line": 22,
+                            "end_col": 16
+                          },
+                          "width": 1,
+                          "name": "tick_seen"
+                        },
+                        "value": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 22,
+                            "col": 20,
+                            "end_line": 22,
+                            "end_col": 24
+                          },
+                          "width": 1,
+                          "bits": "0"
+                        }
+                      },
+                      {
+                        "kind": "If",
+                        "span": {
+                          "line": 23,
+                          "col": 7,
+                          "end_line": 28,
+                          "end_col": 10
+                        },
+                        "cond": {
+                          "kind": "Binary",
+                          "span": {
+                            "line": 23,
+                            "col": 11,
+                            "end_line": 23,
+                            "end_col": 25
+                          },
+                          "width": 1,
+                          "op": "&&",
+                          "left": {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 23,
+                              "col": 11,
+                              "end_line": 23,
+                              "end_col": 14
+                            },
+                            "width": 1,
+                            "name": "ena"
+                          },
+                          "right": {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 23,
+                              "col": 18,
+                              "end_line": 23,
+                              "end_col": 25
+                            },
+                            "width": 1,
+                            "name": "do_tick"
+                          }
+                        },
+                        "then": {
+                          "kind": "Block",
+                          "span": {
+                            "line": 23,
+                            "col": 27,
+                            "end_line": 26,
+                            "end_col": 10
+                          },
+                          "stmts": [
+                            {
+                              "kind": "NonblockingAssign",
+                              "span": {
+                                "line": 24,
+                                "col": 9,
+                                "end_line": 24,
+                                "end_col": 27
+                              },
+                              "target": {
+                                "kind": "Ident",
+                                "span": {
+                                  "line": 24,
+                                  "col": 9,
+                                  "end_line": 24,
+                                  "end_col": 18
+                                },
+                                "width": 1,
+                                "name": "tick_seen"
+                              },
+                              "value": {
+                                "kind": "Literal",
+                                "span": {
+                                  "line": 24,
+                                  "col": 22,
+                                  "end_line": 24,
+                                  "end_col": 26
+                                },
+                                "width": 1,
+                                "bits": "1"
+                              }
+                            },
+                            {
+                              "kind": "NonblockingAssign",
+                              "span": {
+                                "line": 25,
+                                "col": 9,
+                                "end_line": 25,
+                                "end_col": 46
+                              },
+                              "target": {
+                                "kind": "Ident",
+                                "span": {
+                                  "line": 25,
+                                  "col": 9,
+                                  "end_line": 25,
+                                  "end_col": 14
+                                },
+                                "width": 24,
+                                "name": "phase"
+                              },
+                              "value": {
+                                "kind": "Binary",
+                                "span": {
+                                  "line": 25,
+                                  "col": 18,
+                                  "end_line": 25,
+                                  "end_col": 45
+                                },
+                                "width": 24,
+                                "op": "-",
+                                "left": {
+                                  "kind": "Binary",
+                                  "span": {
+                                    "line": 25,
+                                    "col": 18,
+                                    "end_line": 25,
+                                    "end_col": 33
+                                  },
+                                  "width": 24,
+                                  "op": "+",
+                                  "left": {
+                                    "kind": "Ident",
+                                    "span": {
+                                      "line": 25,
+                                      "col": 18,
+                                      "end_line": 25,
+                                      "end_col": 23
+                                    },
+                                    "width": 24,
+                                    "name": "phase"
+                                  },
+                                  "right": {
+                                    "kind": "Literal",
+                                    "span": {
+                                      "line": 25,
+                                      "col": 26,
+                                      "end_line": 25,
+                                      "end_col": 33
+                                    },
+                                    "width": 24,
+                                    "bits": "000000000000000100000000"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "Ident",
+                                  "span": {
+                                    "line": 25,
+                                    "col": 36,
+                                    "end_line": 25,
+                                    "end_col": 45
+                                  },
+                                  "width": 24,
+                                  "name": "divider_q"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "else": {
+                          "kind": "If",
+                          "span": {
+                            "line": 26,
+                            "col": 16,
+                            "end_line": 28,
+                            "end_col": 10
+                          },
+                          "cond": {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 26,
+                              "col": 20,
+                              "end_line": 26,
+                              "end_col": 23
+                            },
+                            "width": 1,
+                            "name": "ena"
+                          },
+                          "then": {
+                            "kind": "Block",
+                            "span": {
+                              "line": 27,
+                              "col": 9,
+                              "end_line": 27,
+                              "end_col": 34
+                            },
+                            "stmts": [
+                              {
+                                "kind": "NonblockingAssign",
+                                "span": {
+                                  "line": 27,
+                                  "col": 9,
+                                  "end_line": 27,
+                                  "end_col": 34
+                                },
+                                "target": {
+                                  "kind": "Ident",
+                                  "span": {
+                                    "line": 27,
+                                    "col": 9,
+                                    "end_line": 27,
+                                    "end_col": 14
+                                  },
+                                  "width": 24,
+                                  "name": "phase"
+                                },
+                                "value": {
+                                  "kind": "Binary",
+                                  "span": {
+                                    "line": 27,
+                                    "col": 18,
+                                    "end_line": 27,
+                                    "end_col": 33
+                                  },
+                                  "width": 24,
+                                  "op": "+",
+                                  "left": {
+                                    "kind": "Ident",
+                                    "span": {
+                                      "line": 27,
+                                      "col": 18,
+                                      "end_line": 27,
+                                      "end_col": 23
+                                    },
+                                    "width": 24,
+                                    "name": "phase"
+                                  },
+                                  "right": {
+                                    "kind": "Literal",
+                                    "span": {
+                                      "line": 27,
+                                      "col": 26,
+                                      "end_line": 27,
+                                      "end_col": 33
+                                    },
+                                    "width": 24,
+                                    "bits": "000000000000000100000000"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "else": null
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
