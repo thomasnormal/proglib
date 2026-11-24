@@ -1370,6 +1370,23 @@ theorem freeMetadata_footprint_shape
         simpa [freeMetadata, hlive] using hresult)
       exact (congrArg (fun pair => pair.2) hpair).symm
 
+theorem freeMetadata_preserves_payload
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : freeMetadata metadata = some result) :
+    result.1.allocation.address = metadata.allocation.address ∧
+      result.1.allocation.bytes = metadata.allocation.bytes ∧
+      result.1.allocation.state = metadata.allocation.state := by
+  cases hlive : metadata.allocation.live with
+  | false => simp [freeMetadata, hlive] at hresult
+  | true =>
+      have hpair := Option.some.inj (by
+        simpa [freeMetadata, hlive] using hresult)
+      have haddress := congrArg (fun pair => pair.1.allocation.address) hpair
+      have hbytes := congrArg (fun pair => pair.1.allocation.bytes) hpair
+      have hstate := congrArg (fun pair => pair.1.allocation.state) hpair
+      exact ⟨haddress.symm, hbytes.symm, hstate.symm⟩
+
 def pairedFreeMetadata (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
     Option ((AllocationMetadata Tag State TypeId × Footprint) ×
