@@ -679,7 +679,7 @@ def AllRuns (E : CoreMemDesign) (g : Granularity)
     (P : List ObsState → Prop) : Prop :=
   ∀ init, AdmissibleInit E init →
   ∀ x inputs trace, ValidInputs inputs →
-    Run E g x (Initial E init) inputs trace → P trace
+    SettledRun E g x (Initial E init) inputs trace → P trace
 
 def Total (E : CoreMemDesign) (g : Granularity) : Prop :=
   ∀ init, AdmissibleInit E init →
@@ -696,10 +696,10 @@ def NoRefusal (E : CoreMemDesign) (g : Granularity) : Prop :=
 `Total` quantifies over `SettledSlotRun`, so a refusal cannot discharge a
 liveness or total-correctness theorem. `NoRefusal` is stated separately when
 the claim also requires that no reachable path reports an unsupported node.
-`AllRuns` remains the universal safety surface and therefore includes both
-settled and refused outcomes through `Run`; a safety theorem that excludes
-refusal states this exclusion explicitly rather than relying on the absence of
-a trace.
+`AllRuns` is the settled-trace projection of the run relation. A safety
+theorem pairs it with `NoRefusal` when refusal is forbidden, and with `Total`
+when divergence is forbidden. Neither condition is inferred from the absence
+of a trace.
 
 A two-flop synchronizer statement is conditional on the actual admission
 guards and quantifies over every schedule:
