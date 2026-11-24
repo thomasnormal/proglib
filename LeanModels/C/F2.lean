@@ -4042,6 +4042,25 @@ theorem allocateAligned_address_result_footprint
     rfl
   · simp [hallowed] at hresult
 
+theorem allocateAligned_address_result_payload
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base alignment : Nat) (result : Store Tag State × Footprint)
+    (haligned : alignmentAllowed base alignment = true)
+    (hresult : allocateAligned store request (.address base) alignment = some result) :
+    ∃ hallowed : placementAllowed store base request.bytes.length = true,
+      result.1 =
+        { allocations := store.allocations ++
+            [(store.nextId,
+              { live := true, address := some base,
+                bytes := request.bytes, state := request.state })]
+          nextId := store.nextId + 1 } := by
+  simp [allocateAligned, haligned, allocate] at hresult
+  by_cases hallowed : placementAllowed store base request.bytes.length = true
+  · simp [hallowed] at hresult
+    rcases hresult with ⟨rfl, rfl⟩
+    exact ⟨hallowed, rfl⟩
+  · simp [hallowed] at hresult
+
 theorem allocateAligned_unaddressable_result_counters
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (alignment : Nat) (result : Store Tag State × Footprint)
