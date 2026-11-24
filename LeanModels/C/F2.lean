@@ -4680,6 +4680,37 @@ theorem pairedStoreByte_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedStoreByte_preserves_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hsourceStore : WellFormed store)
+    (hsourceBytes : bytesWf id (listSet
+      ((lookup store id).map (fun allocation => allocation.bytes) |>.getD [])
+      offset byte))
+    (htargetBytes : bytesWf id (listSet
+      ((lookup (renameStore resolve store) id).map
+        (fun allocation => allocation.bytes) |>.getD [])
+      offset (renameByte resolve byte)))
+    (hresult : pairedStoreByte resolve store id offset byte = some result) :
+    WellFormed result.1.1 ∧ WellFormed result.2.1 := by
+  cases hs : storeByte store id offset byte with
+  | none => simp [pairedStoreByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : storeByte (renameStore resolve store) id offset
+          (renameByte resolve byte) with
+      | none => simp [pairedStoreByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedStoreByte, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨storeByte_preserves_wellFormed store id offset byte sourceResult
+              hsourceStore hsourceBytes hs,
+            storeByte_preserves_wellFormed (renameStore resolve store) id offset
+              (renameByte resolve byte) targetResult
+              (renameStore_preserves_wellFormed resolve store hsourceStore)
+              htargetBytes ht⟩
+
 def loadByte (store : Store Tag State) (id offset : Nat) :
     Option (Byte Tag × Footprint) := do
   let allocation ← lookup store id
