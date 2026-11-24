@@ -3249,6 +3249,33 @@ theorem CoreMemDesign.runCombInitialWithView_blocking_scalar
   simp [CoreMemDesign.runCombInitialWithView,
     CoreMemDesign.execCombStmtAtView_blocking_scalar hlocal rfl htarget htest hvalue]
 
+theorem CoreMemDesign.runCombInitialWithView_two_blocking_scalar
+    {E : CoreMemDesign} {st : CoreMemState} {view : SvState}
+    {n m : String} {eN eM : PExpr} {widthN widthM : Nat} {vN vM : LVec}
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs eN = false)
+    (htestM : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs eM = false)
+    (hvalueN : E.evalExprLocals E.env E.elems st (some widthN) [] eN = .ok vN)
+    (hcompactN : E.compactScalar (E.setScalarState st n vN)
+        (SvState.set view n vN) = E.setScalarState st n vN)
+    (hvalueM : E.evalExprLocals E.env E.elems (E.setScalarState st n vN)
+        (some widthM) [] eM = .ok vM) :
+    E.runCombInitialWithView st view
+        [.comb (.blockingAssign n eN), .comb (.blockingAssign m eM)] =
+      .ok (E.compactScalar
+        (E.setScalarState (E.setScalarState st n vN) m vM)
+        (SvState.set (SvState.set view n vN) m vM),
+        SvState.set (SvState.set view n vN) m vM) := by
+  simp [CoreMemDesign.runCombInitialWithView,
+    CoreMemDesign.execCombStmtAtView_blocking_scalar (locals := [])
+      (n := n) (value := eN) (v := vN) (hlocal := rfl)
+      (hlocals := rfl) htargetN htestN hvalueN,
+    hcompactN,
+    CoreMemDesign.execCombStmtAtView_blocking_scalar (locals := [])
+      (n := m) (value := eM) (v := vM) (hlocal := rfl)
+      (hlocals := rfl) htargetM htestM hvalueM]
+
 def CoreMemDesign.runCombInitial (E : CoreMemDesign) (current : CoreMemState) :
     List CoreMemProc → Res CoreMemState := fun procs => do
   let (after, _) ← E.runCombInitialWithView current (E.scalar.view current.scalar) procs
