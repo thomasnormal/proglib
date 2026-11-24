@@ -2128,6 +2128,99 @@ theorem CoreMemDesign.execV_case_memoryLeafBody {E : CoreMemDesign}
       exact ⟨hv, hq, by simpa [PStmt.writes] using hm⟩
     · simp at h
 
+mutual
+theorem PStmt.memoryLeafB_loopBodyB : ∀ (s : PStmt),
+    s.memoryLeafB = true → s.loopBodyB = true
+  | .nbaAssignL (.arrayElem _ [_]) _, h => by
+      simp [PStmt.memoryLeafB, PStmt.loopBodyB] at h ⊢
+  | .ifStmt _ y n, h => by
+      simp only [PStmt.memoryLeafB, Bool.and_eq_true] at h
+      simp only [PStmt.loopBodyB, Bool.and_eq_true]
+      exact ⟨PStmt.memoryLeafB_loopBodyB y h.1, PStmt.optMemoryLeafB_loopBodyB n h.2⟩
+  | .block body, h => by
+      simp only [PStmt.memoryLeafB] at h
+      simpa [PStmt.loopBodyB] using PStmt.listMemoryLeafB_loopBodyB body h
+  | .nbaAssign .., h => by simp [PStmt.memoryLeafB] at h
+  | .nbaAssignL (.ident _) _, h => by simp [PStmt.memoryLeafB] at h
+  | .nbaAssignL (.bitSel _ _) _, h => by simp [PStmt.memoryLeafB] at h
+  | .nbaAssignL (.partSel _ _ _) _, h => by simp [PStmt.memoryLeafB] at h
+  | .nbaAssignL (.arrayPart _ _ _ _ _) _, h => by simp [PStmt.memoryLeafB] at h
+  | .nbaAssignL (.aggregateMember _ _) _, h => by simp [PStmt.memoryLeafB] at h
+  | .nbaAssignL (.concat _) _, h => by simp [PStmt.memoryLeafB] at h
+  | .blockingAssign .., h => by simp [PStmt.memoryLeafB] at h
+  | .blockingAssignL .., h => by simp [PStmt.memoryLeafB] at h
+  | .caseStmt .., h => by simp [PStmt.memoryLeafB] at h
+  | .forLoop .., h => by simp [PStmt.memoryLeafB] at h
+  | .localDecl .., h => by simp [PStmt.memoryLeafB] at h
+  | .automaticDecl .., h => by simp [PStmt.memoryLeafB] at h
+  | .unsupported .., h => by simp [PStmt.memoryLeafB] at h
+
+theorem PStmt.optMemoryLeafB_loopBodyB : ∀ (o : Option PStmt),
+    PStmt.optMemoryLeafB o = true → PStmt.optLoopBodyB o = true
+  | none, _ => rfl
+  | some s, h => by
+      simpa [PStmt.optMemoryLeafB, PStmt.optLoopBodyB] using PStmt.memoryLeafB_loopBodyB s h
+
+theorem PStmt.listMemoryLeafB_loopBodyB : ∀ (xs : List PStmt),
+    PStmt.listMemoryLeafB xs = true → PStmt.listLoopBodyB xs = true
+  | [], _ => rfl
+  | s :: ss, h => by
+      simp only [PStmt.listMemoryLeafB, Bool.and_eq_true] at h
+      simp only [PStmt.listLoopBodyB, Bool.and_eq_true]
+      exact ⟨PStmt.memoryLeafB_loopBodyB s h.1, PStmt.listMemoryLeafB_loopBodyB ss h.2⟩
+end
+
+theorem CoreMemDesign.execV_forLoop_memoryLeafBody
+    {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
+    {it : String} {init condition step : PExpr} {body : PStmt} {values : List Int}
+    (hshape : PStmt.memoryLeafB body = true)
+    (hdecl : ∀ n ∈ body.writes, ∃ md, E.memDecl? n = some md)
+    (hvals : forValues2 env it init condition step = .ok values)
+    (hbody : ∀ i, i ∈ values → ∃ mq,
+      E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes)) :
+    ∃ mq, E.execV env v mv (.forLoop it init condition step body) = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes) := by
+  classical
+  let m : Int → MemQV := fun i => if hi : i ∈ values then (hbody i hi).choose else []
+  have hm : ∀ i, i ∈ values →
+      E.execV (env.bindVal it i) v mv body = .ok (v, [], m i) := by
+    intro i hi
+    simp only [m, dif_pos hi]
+    exact (hbody i hi).choose_spec.1
+  have hnames : ∀ i, i ∈ values → ∀ u ∈ m i, u.1 ∈ body.writes := by
+    intro i hi
+    simp only [m, dif_pos hi]
+    exact (hbody i hi).choose_spec.2
+  have hfold : ∀ (xs : List Int), xs ⊆ values →
+      execLoopV v (fun i => E.execV (env.bindVal it i) v mv body) xs =
+        .ok (v, [], xs.flatMap m) := by
+    intro xs
+    induction xs with
+    | nil => intro _; rfl
+    | cons i rest ih =>
+        intro hs
+        have hi : i ∈ values := hs (by simp)
+        have hrest : rest ⊆ values := by
+          intro j hj
+          exact hs (by simp [hj])
+        simp only [execLoopV, hm i hi, ih hrest, Res.ok_bind, List.nil_append, List.flatMap_cons]
+  have hnamesFlat : ∀ xs : List Int, xs ⊆ values →
+      ∀ u ∈ xs.flatMap m, u.1 ∈ body.writes := by
+    intro xs hs
+    induction xs with
+    | nil => simp
+    | cons i rest ih =>
+        intro u hu
+        simp only [List.flatMap_cons] at hu
+        rcases List.mem_append.mp hu with hu | hu
+        · exact hnames i (hs (by simp)) u hu
+        · exact ih (fun j hj => hs (by simp [hj])) u hu
+  have hloop := PStmt.memoryLeafB_loopBodyB body hshape
+  simp only [CoreMemDesign.execV, hloop, ↓reduceIte, hvals]
+  refine ⟨values.flatMap m, hfold values (by intro i hi; exact hi), ?_⟩
+  exact hnamesFlat values (by intro i hi; exact hi)
+
 /-! A procedural loop receipt packages the per-iteration memory evaluator
     facts into the exact flat-map queue produced by `execV_forLoop_memory`. -/
 theorem CoreMemDesign.execV_forLoop_memory_records {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
