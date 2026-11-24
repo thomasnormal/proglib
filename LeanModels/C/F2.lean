@@ -2357,6 +2357,21 @@ def pairedLifetimeLookup (resolve : AllocId → Nat)
   | some (source, _), some (target, _) => true
   | _, _ => false
 
+theorem pairedLifetimeLookup_sound
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (h : pairedLifetimeLookup resolve store id = true) :
+    ∃ source target,
+      endLifetime store id = some source ∧
+      endLifetime (renameStore resolve store) id = some target := by
+  cases hs : endLifetime store id with
+  | none => simp [pairedLifetimeLookup, hs] at h
+  | some sourceResult =>
+      cases ht : endLifetime (renameStore resolve store) id with
+      | none => simp [pairedLifetimeLookup, hs, ht] at h
+      | some targetResult =>
+          simp [pairedLifetimeLookup, hs, ht] at h
+          exact ⟨sourceResult, targetResult, rfl, rfl⟩
+
 def pairedStaleLoad (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) : Bool :=
   match endLifetime store id, endLifetime (renameStore resolve store) id with
