@@ -1387,6 +1387,13 @@ theorem freePointer_dead_shape
     freePointer (some metadata) = .stalePointer := by
   simp [freePointer, hdead]
 
+theorem freePointer_live_or_dead
+    (metadata : AllocationMetadata Tag State TypeId) :
+    freePointer (some metadata) = .freed ∨
+      freePointer (some metadata) = .stalePointer := by
+  cases h : metadata.allocation.live <;>
+    simp [freePointer, h]
+
 def pairedFreePointer (resolve : AllocId → Nat)
     (metadata : Option (AllocationMetadata Tag State TypeId)) : Bool :=
   true
