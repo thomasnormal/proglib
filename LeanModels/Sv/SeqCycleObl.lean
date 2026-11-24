@@ -1980,6 +1980,7 @@ theorem CoreMemDesign.edgesV_cons_receipt {E : CoreMemDesign} {before after v : 
     (h : E.edgesV before after v mv (p :: rest) = .ok r) :
     ∃ q mq rr, E.edgesV before after v mv rest = .ok rr ∧
       r = (rr.1, q ++ rr.2.1, mq ++ rr.2.2) ∧
+      (∀ u ∈ q, u.1 ∈ p.targets) ∧ (∀ u ∈ mq, u.1 ∈ p.targets) ∧
       (p.edge? = none ∧ q = [] ∧ mq = [] ∨
         (∃ f, p.edge? = some f ∧ f.fires before after = false ∧ q = [] ∧ mq = []) ∨
         (∃ f, p.edge? = some f ∧ f.fires before after = true ∧
@@ -1987,7 +1988,8 @@ theorem CoreMemDesign.edgesV_cons_receipt {E : CoreMemDesign} {before after v : 
   cases hpe : p.edge? with
   | none =>
       rw [CoreMemDesign.edgesV_cons_none hpe] at h
-      exact ⟨[], [], r, h, by simp, Or.inl ⟨by simpa [hpe], rfl, rfl⟩⟩
+      exact ⟨[], [], r, h, by simp, by simp, by simp,
+        Or.inl ⟨by simpa [hpe], rfl, rfl⟩⟩
   | some f =>
       rw [CoreMemDesign.edgesV_cons_some hpe] at h
       split at h
@@ -1997,12 +1999,142 @@ theorem CoreMemDesign.edgesV_cons_receipt {E : CoreMemDesign} {before after v : 
         obtain ⟨hv, -, -⟩ := hlocal f v1 q mq h1
         subst v1
         exact ⟨q, mq, rr, h2, by simp,
+          (fun u hu => by
+            rw [CoreMemProc.targets_of_edge? hpe]
+            simp only [List.mem_eraseDups]
+            exact (hlocal f v q mq h1).2.1 u hu),
+          (fun u hu => by
+            rw [CoreMemProc.targets_of_edge? hpe]
+            simp only [List.mem_eraseDups]
+            exact (hlocal f v q mq h1).2.2 u hu),
           Or.inr (Or.inr ⟨f, by simpa [hpe], hf, h1⟩)⟩
       · rename_i hf
         have hf' : f.fires before after = false := by
           cases hfire : f.fires before after <;> simp_all
-        exact ⟨[], [], r, h, by simp,
+        exact ⟨[], [], r, h, by simp, by simp, by simp,
           Or.inr (Or.inl ⟨f, by simpa [hpe], hf', rfl, rfl⟩)⟩
+
+theorem CoreMemDesign.edgesV_cons_mk_receipt {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {p : CoreMemProc} {rest : List CoreMemProc} {q : NbaQueue2} {mq : MemQV} {rr : ExecV}
+    (h1 : E.edgesV before after v mv rest = .ok rr)
+    (he : p.edge? = none ∧ q = [] ∧ mq = [] ∨
+      (∃ f, p.edge? = some f ∧ f.fires before after = false ∧ q = [] ∧ mq = []) ∨
+      (∃ f, p.edge? = some f ∧ f.fires before after = true ∧
+        E.execV E.env v mv f.body = .ok (v, q, mq))) :
+    E.edgesV before after v mv (p :: rest) = .ok (rr.1, q ++ rr.2.1, mq ++ rr.2.2) := by
+  rcases he with ⟨hnone, rfl, rfl⟩ | ⟨⟨f, hpe, hf, rfl, rfl⟩⟩ | ⟨f, hpe, hf, hb⟩
+  · rw [CoreMemDesign.edgesV_cons_none hnone]
+    simpa using h1
+  · rw [CoreMemDesign.edgesV_cons_some hpe]
+    simp [hf, h1]
+  · rw [CoreMemDesign.edgesV_cons_some hpe]
+    simp [hf, hb, h1]
+
+theorem CoreMemDesign.edgesV_view_memory {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    (hlocal : ∀ (f : CoreMemEdge) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      E.execV E.env v mv f.body = .ok (v', q, mq) →
+      v' = v ∧ (∀ u ∈ q, u.1 ∈ f.body.writes) ∧ (∀ u ∈ mq, u.1 ∈ f.body.writes)) :
+    ∀ {ps : List CoreMemProc}, (∀ p ∈ ps, p.nbaEdgeP = true) → ∀ {r : ExecV},
+      E.edgesV before after v mv ps = .ok r → r.1 = v
+  | [], _, r, h => by
+      simp only [CoreMemDesign.edgesV, Res.ok.injEq] at h
+      subst h
+      rfl
+  | p :: rest, hw, r, h => by
+      obtain ⟨_, _, rr, hrest, rfl, -, -, -⟩ :=
+        CoreMemDesign.edgesV_cons_receipt hlocal h
+      simpa using CoreMemDesign.edgesV_view_memory hlocal
+        (fun q hq => hw q (List.mem_cons_of_mem _ hq)) hrest
+
+/-! The permutation induction for the memory-aware NBA class.  Its only
+    evaluator premise is the frame receipt above, so the theorem remains
+    attached to the real `edgesV` executor and does not infer a run from the
+    admission predicate. -/
+theorem CoreMemDesign.edgesV_perm_memory {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    (hlocal : ∀ (f : CoreMemEdge) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      E.execV E.env v mv f.body = .ok (v', q, mq) →
+      v' = v ∧ (∀ u ∈ q, u.1 ∈ f.body.writes) ∧ (∀ u ∈ mq, u.1 ∈ f.body.writes) ) :
+    ∀ {ps ps' : List CoreMemProc}, ps.Perm ps' → (∀ p ∈ ps, p.nbaEdgeP = true) →
+      (ps.flatMap CoreMemProc.targets).Nodup → ∀ {r : ExecV},
+      E.edgesV before after v mv ps = .ok r →
+      r.1 = v ∧ ∃ r', E.edgesV before after v mv ps' = .ok r' ∧ r'.1 = v ∧
+        (∀ st : SvState, (st.map Prod.fst).Nodup →
+          commitNba2 st r'.2.1 = commitNba2 st r.2.1) ∧
+        (∀ mv0 : MemV, commitMemV mv0 r'.2.2 = commitMemV mv0 r.2.2) := by
+  intro ps ps' hperm
+  induction hperm with
+  | nil =>
+      intro _ _ r h
+      simp only [CoreMemDesign.edgesV, Res.ok.injEq] at h
+      subst h
+      exact ⟨rfl, _, rfl, rfl, fun _ _ => rfl, fun _ => rfl⟩
+  | cons x _ ih =>
+      intro hw hnd r h
+      have hnd' := (List.nodup_append.mp (by simpa [List.flatMap_cons] using hnd)).2.1
+      have hx := hw x (by simp)
+      obtain ⟨qx, mx, rr, hrest, rfl, hqx, hmx, hcase⟩ :=
+        CoreMemDesign.edgesV_cons_receipt hlocal h
+      obtain ⟨hv2, r', h', hv2', hc, hm⟩ :=
+        ih (fun p hp => hw p (List.mem_cons_of_mem _ hp)) hnd' hrest
+      refine ⟨hv2, (r'.1, qx ++ r'.2.1, mx ++ r'.2.2),
+        CoreMemDesign.edgesV_cons_mk_receipt h' hcase, hv2', ?_, ?_⟩
+      · intro st hst
+        calc
+          commitNba2 st (qx ++ r'.2.1) = commitNba2 (commitNba2 st qx) r'.2.1 := by
+            rw [commitNba2_append]
+          _ = commitNba2 (commitNba2 st qx) rr.2.1 :=
+            hc _ (by rw [keys_commitNba2]; exact hst)
+          _ = commitNba2 st (qx ++ rr.2.1) := by
+            rw [commitNba2_append]
+      · intro mv0
+        calc
+          commitMemV mv0 (mx ++ r'.2.2) = commitMemV (commitMemV mv0 mx) r'.2.2 := by
+            rw [commitMemV_append]
+          _ = commitMemV (commitMemV mv0 mx) rr.2.2 := hm (commitMemV mv0 mx)
+          _ = commitMemV mv0 (mx ++ rr.2.2) := by
+            rw [commitMemV_append]
+  | swap x y l =>
+      intro hw hnd r h
+      have hy := hw y (by simp)
+      have hx := hw x (by simp)
+      have hl : ∀ p ∈ l, p.nbaEdgeP = true := fun p hp => hw p (by simp [hp])
+      obtain ⟨qy, my, r1, h1, rfl, hqy, hmy, hcaseY⟩ :=
+        CoreMemDesign.edgesV_cons_receipt hlocal h
+      obtain ⟨qx, mx, r2, h2, rfl, hqx, hmx, hcaseX⟩ :=
+        CoreMemDesign.edgesV_cons_receipt hlocal h1
+      have hv2 := CoreMemDesign.edgesV_view_memory hlocal hl h2
+      refine ⟨hv2, (r2.1, qx ++ (qy ++ r2.2.1), mx ++ (my ++ r2.2.2)), ?_, hv2, ?_, ?_⟩
+      · exact CoreMemDesign.edgesV_cons_mk_receipt
+          (CoreMemDesign.edgesV_cons_mk_receipt h2 hcaseY) hcaseX
+      · intro st hst
+        simp only [Prod.fst, Prod.snd]
+        have hdisjS : ∀ u ∈ qx, ∀ u' ∈ qy, u.1 ≠ u'.1 := by
+          simp only [List.flatMap_cons] at hnd
+          have h3 := (List.nodup_append.mp hnd).2.2
+          intro u hu u' hu' he
+          exact h3 u'.1 (hqy u' hu') u.1 (List.mem_append_left _ (hqx u hu)) he.symm
+        rw [← List.append_assoc, ← List.append_assoc, commitNba2_append st (qx ++ qy),
+          commitNba2_append st (qy ++ qx), commitNba2_swap hst hdisjS]
+      · intro mv0
+        simp only [Prod.fst, Prod.snd]
+        have hdisjM : ∀ u ∈ mx, ∀ u' ∈ my, u.1 ≠ u'.1 := by
+          simp only [List.flatMap_cons] at hnd
+          have h3 := (List.nodup_append.mp hnd).2.2
+          intro u hu u' hu' he
+          exact h3 u'.1 (hmy u' hu') u.1 (List.mem_append_left _ (hmx u hu)) he.symm
+        rw [← List.append_assoc, ← List.append_assoc, commitMemV_append (mv := mv0) (mx ++ my),
+          commitMemV_append (mv := mv0) (my ++ mx), commitMemV_swap hdisjM]
+  | trans h₁₂ _ ih₁ ih₂ =>
+      intro hw hnd r h
+      obtain ⟨hv, r₁, h₁, hv₁, hc₁, hm₁⟩ := ih₁ hw hnd h
+      obtain ⟨-, r₂, h₂, hv₂, hc₂, hm₂⟩ :=
+        ih₂ (fun p hp => hw p (h₁₂.mem_iff.mpr hp))
+          ((List.Perm.flatMap_right _ h₁₂).nodup_iff.mp hnd) h₁
+      refine ⟨hv, r₂, h₂, hv₂, ?_, ?_⟩
+      · intro st hst
+        exact (hc₂ st hst).trans (hc₁ st hst)
+      · intro mv0
+        exact (hm₂ mv0).trans (hm₁ mv0)
 
 /-- Mixed scalar and memory NBA queues commute when their target names are disjoint.
 This is the commit-side diamond used by the memory-aware edge-order route. -/
@@ -2144,6 +2276,30 @@ theorem CoreMemDesign.edgesV_single {E : CoreMemDesign} {before after v : SvStat
   · obtain rfl := List.singleton_perm.mp hp'
     rfl
   · simp at h1
+
+/-! Obligation wrapper for the memory-aware successor.  The caller supplies the
+    evaluator frame receipt because the admission bit alone is a parser-side
+    classification and does not assert that an executor run succeeded. -/
+theorem CoreMemDesign.edgesV_order_memory {E : CoreMemDesign}
+    (hO : E.oblEdgeOrderMemory = true)
+    {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList)
+    {before after v : SvState} {mv : MemV}
+    (hv : (v.map Prod.fst).Nodup) {r : ExecV}
+    (hnd : (E.processes.toList.flatMap CoreMemProc.targets).Nodup)
+    (hlocal : ∀ (f : CoreMemEdge) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      E.execV E.env v mv f.body = .ok (v', q, mq) →
+      v' = v ∧ (∀ u ∈ q, u.1 ∈ f.body.writes) ∧ (∀ u ∈ mq, u.1 ∈ f.body.writes))
+    (h : E.edgesV before after v mv E.processes.toList = .ok r) :
+    ∃ r', E.edgesV before after v mv ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      commitMemV mv r'.2.2 = commitMemV mv r.2.2 := by
+  simp only [CoreMemDesign.oblEdgeOrderMemory, Bool.or_eq_true, decide_eq_true_eq,
+    List.all_eq_true] at hO
+  rcases hO with h1 | hw
+  · exact ⟨r, by rw [CoreMemDesign.edgesV_single hσ.symm h1]; exact h, rfl, rfl⟩
+  · obtain ⟨hv1, r', h', hv1', hc, hm⟩ :=
+      CoreMemDesign.edgesV_perm_memory hlocal hσ.symm hw hnd h
+    exact ⟨r', h', by rw [hv1', hv1]; exact hc v hv, hm mv⟩
 
 /-- **THE EDGE ORDER DOES NOT MATTER, under the obligations** (rule 4): for every permutation of the processes, the
 edge pass succeeds when the route's (source order) succeeds and commits to the same views. -/
