@@ -2045,6 +2045,89 @@ theorem CoreMemDesign.execListV_memoryLeafBody {E : CoreMemDesign} (env : IEnv) 
       · exact Or.inr (hmb u hu)
 end
 
+/-! Case-arm receipt for the established memory-leaf body profile. -/
+theorem CoreMemDesign.execItemsV_memoryLeafBody_receipt {E : CoreMemDesign}
+    (env : IEnv) (v : SvState) (mv : MemV) (sv : LVec) (mode : CaseMode) :
+    ∀ (items : List (List PExpr × PStmt)) (dflt : Res ExecV) (res : ExecV) {D : List String},
+      (∀ item ∈ items, item.2.memoryLeafB = true) →
+      (∀ n ∈ PStmt.itemsWrites items, ∃ md, E.memDecl? n = some md) →
+      (∀ r, dflt = .ok r → r.1 = v ∧ r.2.1 = [] ∧
+        (∀ u ∈ r.2.2, u.1 ∈ D)) →
+      E.execItemsV env v mv sv mode items dflt = .ok res →
+      res.1 = v ∧ res.2.1 = [] ∧
+        (∀ u ∈ res.2.2, u.1 ∈ PStmt.itemsWrites items ++ D)
+  | [], dflt, res, D, hbody, hdecl, hdflt, h => by
+      simp only [CoreMemDesign.execItemsV] at h
+      obtain ⟨hv, hq, hm⟩ := hdflt res h
+      exact ⟨hv, hq, by simpa [PStmt.itemsWrites] using hm⟩
+  | (patterns, body) :: rest, dflt, res, D, hbody, hdecl, hdflt, h => by
+      have hbody' : body.memoryLeafB = true := hbody (patterns, body) (by simp)
+      have hdecl' : ∀ n ∈ body.writes, ∃ md, E.memDecl? n = some md := by
+        intro n hn
+        exact hdecl n (by simp only [PStmt.itemsWrites, List.mem_append]; exact Or.inl hn)
+      have hrest : ∀ item ∈ rest, item.2.memoryLeafB = true := by
+        intro item hi
+        exact hbody item (by simp [hi])
+      have hdeclRest : ∀ n ∈ PStmt.itemsWrites rest, ∃ md, E.memDecl? n = some md := by
+        intro n hn
+        exact hdecl n (by simp only [PStmt.itemsWrites, List.mem_append]; exact Or.inr hn)
+      simp only [CoreMemDesign.execItemsV, Res.bind_eq_ok] at h
+      obtain ⟨vals, -, h⟩ := h
+      split at h
+      · obtain ⟨hv, hq, hm⟩ := CoreMemDesign.execV_memoryLeafBody env v mv body res.1 res.2.1 res.2.2
+          hbody' hdecl' h
+        exact ⟨hv, hq, by
+          intro u hu
+          exact List.mem_append_left _ (List.mem_append_left _ (hm u hu))⟩
+      · obtain ⟨hv, hq, hm⟩ := CoreMemDesign.execItemsV_memoryLeafBody_receipt env v mv sv mode rest dflt res
+          hrest hdeclRest hdflt h
+        exact ⟨hv, hq, by
+          intro u hu
+          simpa [PStmt.itemsWrites] using
+            (List.mem_append_right (PStmt.writes body) (hm u hu))⟩
+
+theorem CoreMemDesign.execV_case_memoryLeafBody {E : CoreMemDesign}
+    (env : IEnv) (v : SvState) (mv : MemV) {subject : PExpr}
+    {items : List (List PExpr × PStmt)} {d : Option PStmt} {mode : CaseMode} {check : CaseCheck}
+    {v' : SvState} {q : NbaQueue2} {mq : MemQV}
+    (hitems : ∀ item ∈ items, item.2.memoryLeafB = true)
+    (hdecl : ∀ n ∈ (PStmt.caseStmt subject items d mode check).writes,
+      ∃ md, E.memDecl? n = some md)
+    (hdflt : PStmt.optMemoryLeafB d = true)
+    (h : E.execV env v mv (.caseStmt subject items d mode check) = .ok (v', q, mq)) :
+    v' = v ∧ q = [] ∧
+      (∀ u ∈ mq, u.1 ∈ (PStmt.caseStmt subject items d mode check).writes) := by
+  have hdi : ∀ n ∈ PStmt.itemsWrites items, ∃ md, E.memDecl? n = some md := by
+    intro n hn
+    exact hdecl n (by simp only [PStmt.writes, PStmt.optWrites, List.mem_append]; exact Or.inl hn)
+  have hdd : ∀ n ∈ PStmt.optWrites d, ∃ md, E.memDecl? n = some md := by
+    intro n hn
+    exact hdecl n (by simp only [PStmt.writes, PStmt.optWrites, List.mem_append]; exact Or.inr hn)
+  have hdfltRun : ∀ r, E.execOptV env v mv d = .ok r →
+      r.1 = v ∧ r.2.1 = [] ∧ (∀ u ∈ r.2.2, u.1 ∈ PStmt.optWrites d) := by
+    intro r hr
+    exact CoreMemDesign.execOptV_memoryLeafBody env v mv d r.1 r.2.1 r.2.2 hdflt hdd hr
+  have hitemsRun : ∀ sv res,
+      E.execItemsV env v mv sv mode items (E.execOptV env v mv d) = .ok res →
+      res.1 = v ∧ res.2.1 = [] ∧
+        (∀ u ∈ res.2.2, u.1 ∈ PStmt.itemsWrites items ++ PStmt.optWrites d) := by
+    intro sv' res' hr
+    exact CoreMemDesign.execItemsV_memoryLeafBody_receipt env v mv sv' mode items
+      (E.execOptV env v mv d) res' hitems hdi hdfltRun hr
+  simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
+  obtain ⟨sv', -, h⟩ := h
+  cases check
+  case none =>
+    obtain ⟨hv, hq, hm⟩ := hitemsRun sv' (v', q, mq) h
+    exact ⟨hv, hq, by simpa [PStmt.writes] using hm⟩
+  all_goals
+    simp only [Res.bind_eq_ok] at h
+    obtain ⟨n, -, h⟩ := h
+    split at h
+    · obtain ⟨hv, hq, hm⟩ := hitemsRun sv' (v', q, mq) h
+      exact ⟨hv, hq, by simpa [PStmt.writes] using hm⟩
+    · simp at h
+
 /-! A procedural loop receipt packages the per-iteration memory evaluator
     facts into the exact flat-map queue produced by `execV_forLoop_memory`. -/
 theorem CoreMemDesign.execV_forLoop_memory_records {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)

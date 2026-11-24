@@ -71,6 +71,18 @@ example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
     v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ body.writes) := by
   exact CoreMemDesign.execV_memoryLeafBody env v mv body v' q mq hshape hdecl h
 
+example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
+    (subject : PExpr) (items : List (List PExpr × PStmt)) (d : Option PStmt)
+    (mode : CaseMode) (check : CaseCheck) (v' : SvState) (q : NbaQueue2) (mq : MemQV)
+    (hitems : ∀ item ∈ items, item.2.memoryLeafB = true)
+    (hdecl : ∀ n ∈ (PStmt.caseStmt subject items d mode check).writes,
+      ∃ md, E.memDecl? n = some md)
+    (hdflt : PStmt.optMemoryLeafB d = true)
+    (h : E.execV env v mv (.caseStmt subject items d mode check) = .ok (v', q, mq)) :
+    v' = v ∧ q = [] ∧
+      (∀ u ∈ mq, u.1 ∈ (PStmt.caseStmt subject items d mode check).writes) := by
+  exact CoreMemDesign.execV_case_memoryLeafBody env v mv hitems hdecl hdflt h
+
 /-! The memory-aware edge-order successor is exercised on the real `edgesV`
     boundary.  The frame receipt stays an explicit premise until the
     predicate-to-receipt proof is widened for every admitted body shape. -/
