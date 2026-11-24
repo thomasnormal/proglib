@@ -1465,6 +1465,31 @@ theorem pairedStoreUnionLoadMetadataByte_decompose
                   simp [pairedStoreUnionLoadMetadataByte, hs, ht, hsl, htl] at hresult
                   exact ⟨(sourceStore, sourceLoad), (targetStore, targetLoad), hresult.2.symm⟩
 
+theorem pairedStoreUnionLoadMetadataByte_refusal
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (hrefusal :
+      storeMetadataByte metadata offset byte = none ∨
+      storeMetadataByte (renameMetadata resolve id metadata) offset
+        (renameByte resolve byte) = none ∨
+      (∃ sourceStore,
+        storeMetadataByte metadata offset byte = some sourceStore ∧
+        unionLoadMetadataByte sourceStore.1 offset = none) ∨
+      (∃ targetStore,
+        storeMetadataByte (renameMetadata resolve id metadata) offset
+          (renameByte resolve byte) = some targetStore ∧
+        unionLoadMetadataByte targetStore.1 offset = none)) :
+    pairedStoreUnionLoadMetadataByte resolve id metadata offset byte = none := by
+  rcases hrefusal with hsource | htarget | hsourceLoad | htargetLoad
+  · simp [pairedStoreUnionLoadMetadataByte, hsource]
+  · simp [pairedStoreUnionLoadMetadataByte, htarget]
+  · rcases hsourceLoad with ⟨sourceStore, hstore, hload⟩
+    simp [pairedStoreUnionLoadMetadataByte, hstore, hload]
+  · rcases htargetLoad with ⟨targetStore, hstore, hload⟩
+    simp [pairedStoreUnionLoadMetadataByte, hstore, hload]
+
 theorem pairedStoreUnionLoadMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
