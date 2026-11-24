@@ -3501,6 +3501,11 @@ theorem pairedPointerEqual_self (resolve : AllocId → Nat)
     pairedPointerEqual resolve pointer pointer choice := by
   simp [pairedPointerEqual, pointerEqual]
 
+theorem pairedPointerEqual_unequal_choice
+    (resolve : AllocId → Nat) (left right : Pointer Tag) :
+    pairedPointerEqual resolve left right .unequal = true := by
+  simp [pairedPointerEqual, pointerEqual]
+
 inductive OffsetFault where
   | outOfBounds
   | alignment

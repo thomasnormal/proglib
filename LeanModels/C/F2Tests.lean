@@ -30,6 +30,7 @@ def unionMetadata : AllocationMetadata Unit Unit String :=
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 16 }
 
 #guard pointerEqual pointer pointer .unequal == false
+#guard pairedPointerEqual resolve pointer pointer .unequal
 #guard (renamePointer resolve pointer).address == 200
 #guard (renamePointer resolve ({ provenance := none, address := 16 } : Pointer Unit)).address == 16
 #guard renameByte resolve fragmentByte ==
