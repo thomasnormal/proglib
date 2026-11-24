@@ -3796,6 +3796,49 @@ theorem CoreMemDesign.edge_schedule_refines_step {E : CoreMemDesign}
 
 #print axioms CoreMemDesign.edge_schedule_refines_step
 
+/-! The memory-aware successor carries the same edge-order refinement while
+    retaining declaration identity and issue-time memory NBA records.  The
+    evaluator receipt is explicit because the parser-side admission bit alone
+    does not assert that a memory body ran successfully. -/
+theorem CoreMemDesign.edge_schedule_refines_step_memory {E : CoreMemDesign}
+    (hP : E.SeqProfileI) (hO : E.seqOblIM = true)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList)
+    (hlocal : ∀ (f : CoreMemEdge) (view result : SvState) (q : NbaQueue2) (mq : MemQV),
+      E.execV E.env view (E.memOf st.memory) f.body = .ok (result, q, mq) →
+      result = view ∧ (∀ u ∈ q, u.1 ∈ f.body.writes) ∧
+        (∀ u ∈ mq, u.1 ∈ f.body.writes)) :
+    ∃ p r r' st',
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) E.processes.toList = .ok r ∧
+      E.edgesV (E.scalar.view st.scalar) p p (E.memOf st.memory) ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      commitMemV (E.memOf st.memory) r'.2.2 = commitMemV (E.memOf st.memory) r.2.2 ∧
+      E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧ E.memOf st'.memory = mv' := by
+  obtain ⟨st', hstep, hvstep, hmstep, -, -⟩ :=
+    CoreMemDesign.step_seqIM hP hO hc hmc hty hslot
+  have hslot' := hslot
+  simp only [CoreMemDesign.slotV, Res.bind_eq_ok] at hslot'
+  obtain ⟨p0, hp0, p, hp, r, hr, s1, hs1, s2, hs2, hout⟩ := hslot'
+  have hmatp : E.matV p = p := CoreMemDesign.matV_settleV hP.names hP.four hp
+  have hviewp : E.scalar.view (E.storeFromView p) = p := by
+    rw [E.view_storeFromView, hmatp]
+  have hnames : (p.map Prod.fst).Nodup := by
+    rw [← hviewp, E.scalar.keys_view]
+    exact hP.names
+  have hnd : (E.processes.toList.flatMap CoreMemProc.targets).Nodup := by
+    have hd := (CoreMemDesign.seqOblIM_spec hO).1
+    have hdriven : E.driven.Nodup := of_decide_eq_true hd
+    simpa [CoreMemDesign.driven] using hdriven
+  obtain ⟨r', hr', hcs, hcm⟩ :=
+    CoreMemDesign.edgesV_order_memory_seqOblIM hO hσ hnames hnd
+      (fun f result q mq hrun => hlocal f p result q mq hrun) hr
+  exact ⟨p, r, r', st', hr, hr', hcs, hcm, hstep, hvstep, hmstep⟩
+
+#print axioms CoreMemDesign.edge_schedule_refines_step_memory
+
 /-! The same bridge with the individual admission guards exposed at the theorem
 boundary.  This keeps the concrete class auditable: unique drivers, acyclic
 continuous assignments, undriven event sources, source-read/self-read safety,

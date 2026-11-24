@@ -128,6 +128,10 @@ The current proof inventory has these levels.
   `executor_trace_inclusion_singleton` packages the same admitted step as a
   one-row trace carrying the input row and committed observation. A multi-row
   trace relation remains open.
+  `edge_schedule_refines_step_memory` is the corresponding source-order
+  permutation bridge for one-rank memory-element NBAs and procedural loops.
+  It preserves declaration identity and the committed memory view, while its
+  evaluator frame receipt remains an explicit premise.
 
 The intended canonical bridge has the following shape. The names below are
 proposed public relation names, not declarations that exist today.
