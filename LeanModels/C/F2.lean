@@ -2228,7 +2228,8 @@ def pairedReallocMetadata (resolve : AllocId → Nat)
     Option ((ReallocOutcome Tag State TypeId × Footprint) ×
       (ReallocOutcome Tag State TypeId × Footprint)) := do
   let sourceResult ← reallocMetadata old request locations placement
-  let targetResult ← reallocMetadata (renameMetadata resolve 0 old) request locations
+  let targetResult ← reallocMetadata (renameMetadata resolve 0 old)
+    (renameAllocationRequest resolve request) locations
     (match placement with
     | .address _ => .address (resolve 0)
     | .unaddressable => .unaddressable
@@ -2252,10 +2253,11 @@ theorem pairedReallocMetadata_address_success
         (.replaced
           { allocation :=
               { live := true, address := some (resolve 0),
-                bytes := request.bytes, state := request.state },
+                bytes := (renameAllocationRequest resolve request).bytes,
+                state := request.state },
             locations := locations },
           footprint .metadata (Region.mk 0 0 request.bytes.length))) := by
-  simp [pairedReallocMetadata, reallocMetadata, hsame]
+  simp [pairedReallocMetadata, reallocMetadata, hsame, renameAllocationRequest]
 
 theorem pairedReallocMetadata_unaddressable_success
     (resolve : AllocId → Nat)
@@ -2268,16 +2270,18 @@ theorem pairedReallocMetadata_unaddressable_success
         (.replaced
           { allocation :=
               { live := true, address := none,
-                bytes := request.bytes, state := request.state },
+                bytes := request.bytes,
+                state := request.state },
             locations := locations },
           footprint .metadata (Region.mk 0 0 request.bytes.length)),
         (.replaced
           { allocation :=
               { live := true, address := none,
-                bytes := request.bytes, state := request.state },
+                bytes := (renameAllocationRequest resolve request).bytes,
+                state := request.state },
             locations := locations },
           footprint .metadata (Region.mk 0 0 request.bytes.length))) := by
-  simp [pairedReallocMetadata, reallocMetadata, hsame]
+  simp [pairedReallocMetadata, reallocMetadata, hsame, renameAllocationRequest]
 
 theorem pairedReallocMetadata_address_rejects_length_mismatch
     (resolve : AllocId → Nat)
@@ -2286,7 +2290,7 @@ theorem pairedReallocMetadata_address_rejects_length_mismatch
     (locations : List (LocationState TypeId)) (base : Nat)
     (hmismatch : locations.length ≠ request.bytes.length) :
     pairedReallocMetadata resolve old request locations (.address base) = none := by
-  simp [pairedReallocMetadata, reallocMetadata, hmismatch]
+  simp [pairedReallocMetadata, reallocMetadata, hmismatch, renameAllocationRequest]
 
 theorem pairedReallocMetadata_unaddressable_rejects_length_mismatch
     (resolve : AllocId → Nat)
@@ -2295,7 +2299,7 @@ theorem pairedReallocMetadata_unaddressable_rejects_length_mismatch
     (locations : List (LocationState TypeId))
     (hmismatch : locations.length ≠ request.bytes.length) :
     pairedReallocMetadata resolve old request locations .unaddressable = none := by
-  simp [pairedReallocMetadata, reallocMetadata, hmismatch]
+  simp [pairedReallocMetadata, reallocMetadata, hmismatch, renameAllocationRequest]
 
 theorem pairedReallocMetadata_failure_shape
     (resolve : AllocId → Nat)
@@ -2328,7 +2332,8 @@ theorem pairedReallocMetadata_decompose
       cases hs : reallocMetadata old request locations (.address base) with
       | none => simp [pairedReallocMetadata, hs] at hresult
       | some sourceResult =>
-          cases ht : reallocMetadata (renameMetadata resolve 0 old) request locations
+          cases ht : reallocMetadata (renameMetadata resolve 0 old)
+              (renameAllocationRequest resolve request) locations
               (.address (resolve 0)) with
           | none => simp [pairedReallocMetadata, hs, ht] at hresult
           | some targetResult =>
@@ -2340,7 +2345,8 @@ theorem pairedReallocMetadata_decompose
       cases hs : reallocMetadata old request locations .unaddressable with
       | none => simp [pairedReallocMetadata, hs] at hresult
       | some sourceResult =>
-          cases ht : reallocMetadata (renameMetadata resolve 0 old) request locations
+          cases ht : reallocMetadata (renameMetadata resolve 0 old)
+              (renameAllocationRequest resolve request) locations
               .unaddressable with
           | none => simp [pairedReallocMetadata, hs, ht] at hresult
           | some targetResult =>
@@ -2352,7 +2358,8 @@ theorem pairedReallocMetadata_decompose
       cases hs : reallocMetadata old request locations .fail with
       | none => simp [pairedReallocMetadata, hs] at hresult
       | some sourceResult =>
-          cases ht : reallocMetadata (renameMetadata resolve 0 old) request locations .fail with
+          cases ht : reallocMetadata (renameMetadata resolve 0 old)
+              (renameAllocationRequest resolve request) locations .fail with
           | none => simp [pairedReallocMetadata, hs, ht] at hresult
           | some targetResult =>
               rw [pairedReallocMetadata, hs, ht] at hresult
