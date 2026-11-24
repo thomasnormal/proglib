@@ -21,6 +21,13 @@
     "sanitize": true
   },
   {
+    "id": "zero-preserving-transcendentals-ieee",
+    "source": "double sin(double); double tan(double); double atan(double); int main(void) { double p = 0.0, n = -0.0; return sin(p) != p || sin(n) != n || tan(p) != p || tan(n) != n || atan(p) != p || atan(n) != n ? 1 : 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
     "id": "isprint-c-locale-ascii",
     "source": "int isprint(int); int main(void) { return isprint('a') && !isprint('\\002') ? 0 : 1; }",
     "expect": "match",

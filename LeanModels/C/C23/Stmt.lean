@@ -2041,6 +2041,20 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
               else refuseUnsupported s!"{nm}: expected binary32 argument"
           | [_] => refuseUnsupported s!"{nm}: unsupported floating argument"
           | _ => refuseUnsupported s!"{nm}: wrong argument count"
+        let runFloatZeroPreserving : String → List CVal → ExecM CVal := fun nm vs =>
+          match vs with
+          | [.float32 f] =>
+              if f.toBits == 0 || f.toBits == UInt32.ofNat 0x80000000 then
+                pure (.float32 f)
+              else
+                refuseUnsupported s!"{nm}: nonzero binary32 argument"
+          | [.float64 f] =>
+              if f.toBits == 0 || f.toBits == UInt64.ofNat 0x8000000000000000 then
+                pure (.float64 f)
+              else
+                refuseUnsupported s!"{nm}: nonzero binary64 argument"
+          | [_] => refuseUnsupported s!"{nm}: unsupported floating argument"
+          | _ => refuseUnsupported s!"{nm}: wrong argument count"
         let runFloatNan : String → List CVal → ExecM CVal := fun nm vs =>
           match vs with
           | [_] =>
@@ -2200,6 +2214,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                     nm == "__builtin_isgreater" || nm == "__builtin_isgreaterequal" ||
                     nm == "__builtin_islessgreater" then runFloatRelation nm vs
                 else if nm == "sqrt" || nm == "sqrtf" then runFloatSqrt nm vs
+                else if nm == "sin" || nm == "sinf" || nm == "tan" || nm == "tanf" ||
+                    nm == "atan" || nm == "atanf" then runFloatZeroPreserving nm vs
                 else if nm == "__builtin_inf" || nm == "__builtin_inff" || nm == "__builtin_infl" || nm == "__builtin_huge_val" || nm == "__builtin_huge_valf" || nm == "__builtin_huge_vall" then
                   runInf nm vs
           else if nm == "__builtin_abs" || nm == "abs" then

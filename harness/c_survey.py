@@ -173,6 +173,7 @@ MODELED_EXTERNALS = {
     "__builtin_islessgreater",
     "__builtin_inf",
     "__builtin_inff", "__builtin_infl", "__builtin_huge_val", "sqrt", "sqrtf",
+    "sin", "sinf", "tan", "tanf", "atan", "atanf",
     "__builtin_huge_valf", "__builtin_huge_vall", "__builtin_abs", "abs",
     "isprint",
     "__sync_add_and_fetch_8", "__builtin_expect", "__builtin_prefetch",
