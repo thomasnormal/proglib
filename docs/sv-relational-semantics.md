@@ -120,6 +120,9 @@ The current proof inventory has these levels.
   guards. `finite_path_executor_replay` is the finite-path replay direction
   for the same source-shaped edge evaluator. Both retain the route receipt and
   do not claim the wider scheduler or a full macrostep trace theorem.
+  `edge_schedule_observation_independent` compares two arbitrary terminal
+  paths over one pre-edge state and input, proving their shared observation
+  agrees with the canonical commit.
 
 The intended canonical bridge has the following shape. The names below are
 proposed public relation names, not declarations that exist today.
