@@ -139,22 +139,37 @@ private def hParamLhs (vals : List (String × PExpr)) : PLhs → PLhs
       .aggregateMember n (path.map fun (field, ix) => (field, ix.map (hParamExpr vals)))
   | l => l
 
-private partial def hParamStmt (vals : List (String × PExpr)) : PStmt → PStmt
+mutual
+private def hParamStmt (vals : List (String × PExpr)) : PStmt → PStmt
   | .localDecl n w init => .localDecl n w (init.map (hParamExpr vals))
   | .automaticDecl n w init => .automaticDecl n w (init.map (hParamExpr vals))
   | .blockingAssign n e => .blockingAssign n (hParamExpr vals e)
   | .nbaAssign n e => .nbaAssign n (hParamExpr vals e)
-  | .ifStmt c a b => .ifStmt (hParamExpr vals c) (hParamStmt vals a) (b.map (hParamStmt vals))
-  | .block xs => .block (xs.map (hParamStmt vals))
+  | .ifStmt c a b => .ifStmt (hParamExpr vals c) (hParamStmt vals a) (hParamOptStmt vals b)
+  | .block xs => .block (hParamStmtList vals xs)
   | .forLoop i a c s b => .forLoop i (hParamExpr vals a) (hParamExpr vals c)
       (hParamExpr vals s) (hParamStmt vals b)
   | .blockingAssignL l e => .blockingAssignL (hParamLhs vals l) (hParamExpr vals e)
   | .nbaAssignL l e => .nbaAssignL (hParamLhs vals l) (hParamExpr vals e)
   | .caseStmt e xs d m c =>
-      .caseStmt (hParamExpr vals e)
-        (xs.map fun (ps, b) => (ps.map (hParamExpr vals), hParamStmt vals b))
-        (d.map (hParamStmt vals)) m c
+      .caseStmt (hParamExpr vals e) (hParamCaseList vals xs)
+        (hParamOptStmt vals d) m c
   | s@(.unsupported ..) => s
+
+private def hParamOptStmt (vals : List (String × PExpr)) : Option PStmt → Option PStmt
+  | none => none
+  | some s => some (hParamStmt vals s)
+
+private def hParamStmtList (vals : List (String × PExpr)) : List PStmt → List PStmt
+  | [] => []
+  | s :: rest => hParamStmt vals s :: hParamStmtList vals rest
+
+private def hParamCaseList (vals : List (String × PExpr)) :
+    List (List PExpr × PStmt) → List (List PExpr × PStmt)
+  | [] => []
+  | (ps, b) :: rest =>
+      (ps.map (hParamExpr vals), hParamStmt vals b) :: hParamCaseList vals rest
+end
 
 private def hParamProcess (vals : List (String × PExpr)) : PProcess → PProcess
   | .alwaysFF c b => .alwaysFF c (hParamStmt vals b)
@@ -179,17 +194,23 @@ private def hParamConn (vals : List (String × PExpr)) : PConn → PConn
 private def hParamInst (vals : List (String × PExpr)) (i : PInst) : PInst :=
   { i with params := i.params.map (fun (n, e) => (n, hParamExpr vals e)), conns := i.conns.map (hParamConn vals) }
 
-private partial def hParamGen (vals : List (String × PExpr)) : GenItem → GenItem
+mutual
+private def hParamGen (vals : List (String × PExpr)) : GenItem → GenItem
   | .process p => .process (hParamProcess vals p)
   | .decl d => .decl (hParamDecl vals d)
   | .localParam p => .localParam { p with expr := hParamExpr vals p.expr }
   | .genFor label g init bound step count body =>
       .genFor label g (hParamExpr vals init) (hParamExpr vals bound)
-        (hParamExpr vals step) count (body.map (hParamGen vals))
+        (hParamExpr vals step) count (hParamGenList vals body)
   | .genIf cond yes no => .genIf (hParamExpr vals cond)
-      (yes.map (hParamGen vals)) (no.map (hParamGen vals))
+      (hParamGenList vals yes) (hParamGenList vals no)
   | .unsupported k t => .unsupported k t
   | .inst i => .inst (hParamInst vals i)
+
+private def hParamGenList (vals : List (String × PExpr)) : List GenItem → List GenItem
+  | [] => []
+  | x :: xs => hParamGen vals x :: hParamGenList vals xs
+end
 
 private def hParamFunction (vals : List (String × PExpr)) (f : PFunction) : PFunction :=
   { f with formals := f.formals.map (hParamDecl vals), returnType := hParamType vals f.returnType, body := hParamExpr vals f.body }
@@ -236,20 +257,34 @@ private def hLhs (pfx : String) : PLhs → PLhs
       .aggregateMember (pfx ++ n) (path.map fun (field, ix) => (field, ix.map (hExpr pfx)))
   | .concat xs => .concat (xs.map (hLhs pfx))
 
-private partial def hStmt (pfx : String) : PStmt → PStmt
+mutual
+private def hStmt (pfx : String) : PStmt → PStmt
   | .localDecl n w init => .localDecl (pfx ++ n) w (init.map (hExpr pfx))
   | .automaticDecl n w init => .automaticDecl (pfx ++ n) w (init.map (hExpr pfx))
   | .blockingAssign n e => .blockingAssign (pfx ++ n) (hExpr pfx e)
   | .nbaAssign n e => .nbaAssign (pfx ++ n) (hExpr pfx e)
   | .blockingAssignL l e => .blockingAssignL (hLhs pfx l) (hExpr pfx e)
   | .nbaAssignL l e => .nbaAssignL (hLhs pfx l) (hExpr pfx e)
-  | .ifStmt c a b => .ifStmt (hExpr pfx c) (hStmt pfx a) (b.map (hStmt pfx))
-  | .block xs => .block (xs.map (hStmt pfx))
+  | .ifStmt c a b => .ifStmt (hExpr pfx c) (hStmt pfx a) (hOptStmt pfx b)
+  | .block xs => .block (hStmtList pfx xs)
   | .forLoop i a c s b => .forLoop i (hExpr pfx a) (hExpr pfx c) (hExpr pfx s) (hStmt pfx b)
   | .caseStmt e xs d m c => .caseStmt (hExpr pfx e)
-      (xs.map fun (ps, b) => (ps.map (hExpr pfx), hStmt pfx b))
-      (d.map (hStmt pfx)) m c
+      (hCaseList pfx xs) (hOptStmt pfx d) m c
   | e@(.unsupported ..) => e
+
+private def hOptStmt (pfx : String) : Option PStmt → Option PStmt
+  | none => none
+  | some s => some (hStmt pfx s)
+
+private def hStmtList (pfx : String) : List PStmt → List PStmt
+  | [] => []
+  | s :: rest => hStmt pfx s :: hStmtList pfx rest
+
+private def hCaseList (pfx : String) : List (List PExpr × PStmt) → List (List PExpr × PStmt)
+  | [] => []
+  | (ps, b) :: rest =>
+      (ps.map (hExpr pfx), hStmt pfx b) :: hCaseList pfx rest
+end
 
 
 private def hProcess (pfx : String) (clockMap : List (String × String)) : PProcess → PProcess
@@ -290,35 +325,35 @@ private def childDesign (top : PDesign) (lib : List PDesign) (args : List Int) :
   let pfx ← inst.prefix env
   pure (child', inst, pfx)
 
-private partial def generatedInstances (env : IEnv) (fuel : Nat) :
-    List GenItem → Res (List (PInst × IEnv))
-  | [] => .ok []
-  | .inst i :: rest => do
-      let tail ← generatedInstances env fuel rest
-      .ok ((i, env) :: tail)
-  | .process _ :: rest | .decl _ :: rest => generatedInstances env fuel rest
-  | .localParam p :: rest => do
-      let env' ← bindLocals env [p]
-      generatedInstances env' fuel rest
-  | .unsupported k t :: _ => .unsupported s!"{k}: {t}"
-  | .genIf cond yes no :: rest => do
-      let value ← match evalGenGuard env cond with
-        | .ok v => pure v
-        | .error e => .unsupported s!"generate if: {e}"
-      let chosen := if value != 0 then yes else no
-      let here ← generatedInstances env fuel chosen
-      let tail ← generatedInstances env fuel rest
-      .ok (here ++ tail)
-
-  | .genFor _ g init bound step _ body :: rest => do
-      let i ← match evalInt env init with | .ok x => .ok x | .error e => .unsupported e
-      let delta ← match stepDelta g step with | .ok x => .ok x | .error e => .unsupported e
-      let values ← genvarSeq env g bound delta fuel i
-      let here ← values.foldlM (init := []) fun acc v => do
-        let xs ← generatedInstances (env.bindVal g v) fuel body
-        .ok (acc ++ xs)
-      let tail ← generatedInstances env fuel rest
-      .ok (here ++ tail)
+private def generatedInstances (env : IEnv) : Nat → List GenItem → Res (List (PInst × IEnv))
+  | 0, _ => .timeout
+  | fuel + 1, items => match items with
+      | [] => .ok []
+      | .inst i :: rest => do
+          let tail ← generatedInstances env fuel rest
+          .ok ((i, env) :: tail)
+      | .process _ :: rest | .decl _ :: rest => generatedInstances env fuel rest
+      | .localParam p :: rest => do
+          let env' ← bindLocals env [p]
+          generatedInstances env' fuel rest
+      | .unsupported k t :: _ => .unsupported s!"{k}: {t}"
+      | .genIf cond yes no :: rest => do
+          let value ← match evalGenGuard env cond with
+            | .ok v => pure v
+            | .error e => .unsupported s!"generate if: {e}"
+          let chosen := if value != 0 then yes else no
+          let here ← generatedInstances env fuel chosen
+          let tail ← generatedInstances env fuel rest
+          .ok (here ++ tail)
+      | .genFor _ g init bound step _ body :: rest => do
+          let i ← match evalInt env init with | .ok x => .ok x | .error e => .unsupported e
+          let delta ← match stepDelta g step with | .ok x => .ok x | .error e => .unsupported e
+          let values ← genvarSeq env g bound delta fuel i
+          let here ← values.foldlM (init := []) fun acc v => do
+            let xs ← generatedInstances (env.bindVal g v) fuel body
+            .ok (acc ++ xs)
+          let tail ← generatedInstances env fuel rest
+          .ok (here ++ tail)
 
 /-! The hierarchy adapter has two source-shaped walks over the active generate
 tree. `generatedInstances` above finds child module instances; this companion

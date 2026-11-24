@@ -27,19 +27,28 @@ def PType.aggregateScalar? (env : IEnv) (pd : PDecl) : Except String AggType := 
     throw s!"decl '{pd.name}': zero-width aggregate element"
   return .scalar { width, signed := pd.isSigned, fourState := !pd.twoState }
 
-partial def PAggType.toAggType? (env : IEnv) : PAggType → Except String AggType
+mutual
+def PAggType.toAggType? (env : IEnv) : PAggType → Except String AggType
   | .scalar ty signed twoState => do
       let width ← ty.width env
       if width == 0 then throw "zero-width aggregate element"
       return .scalar { width, signed, fourState := !twoState }
   | .struct fields => do
-      let fields ← fields.mapM fun (name, ty) => do
-        return (name, ← PAggType.toAggType? env ty)
+      let fields ← PAggType.toAggFields? env fields
       return .struct fields
   | .array msb lsb elem => do
       let msb ← evalInt env msb
       let lsb ← evalInt env lsb
       return .array msb lsb (← PAggType.toAggType? env elem)
+
+def PAggType.toAggFields? (env : IEnv) : List (String × PAggType) → Except String (List (String × AggType))
+  | [] => .ok []
+  | (name, ty) :: rest => do
+      let field ← PAggType.toAggType? env ty
+      let fields ← PAggType.toAggFields? env rest
+      return (name, field) :: fields
+termination_by structural fields => fields
+end
 
 def PDecl.aggregateType? (env : IEnv) (pd : PDecl) : Except String AggType := do
   match pd.aggregate? with
