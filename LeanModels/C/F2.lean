@@ -1279,6 +1279,13 @@ theorem zeroTokenEqual_sound
 def zeroTokenFreeable (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   isZeroToken metadata
 
+theorem zeroTokenFreeable_sound
+    (metadata : AllocationMetadata Tag State TypeId)
+    (h : zeroTokenFreeable metadata = true) :
+    metadata.allocation.live = true ∧
+      metadata.allocation.bytes = [] := by
+  simpa [zeroTokenFreeable, isZeroToken] using h
+
 def renameZeroTokenMetadata (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
     AllocationMetadata Tag State TypeId :=
