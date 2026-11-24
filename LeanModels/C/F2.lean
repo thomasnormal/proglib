@@ -3911,6 +3911,57 @@ def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
               nextId := id + 1 },
             footprint .metadata (Region.mk id 0 request.bytes.length))
 
+theorem allocate_preserves_wellFormed
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (result : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hbytes : bytesWf store.nextId request.bytes)
+    (hresult : allocate store request placement = some result) :
+    WellFormed result.1 := by
+  cases placement with
+  | fail => simp [allocate] at hresult
+  | address base =>
+      cases hallowed : placementAllowed store base request.bytes.length with
+      | false => simp [allocate, hallowed] at hresult
+      | true =>
+          simp [allocate, hallowed] at hresult
+          rcases hresult with ⟨rfl, rfl⟩
+          change allocationsWf store.allocations at hstore
+          unfold WellFormed
+          have append_wf : ∀ entries : List (AllocId × Allocation Tag State),
+              allocationsWf entries →
+              allocationsWf (entries ++
+                [(store.nextId,
+                  { live := true, address := some base,
+                    bytes := request.bytes, state := request.state })]) := by
+            intro entries
+            induction entries with
+            | nil => intro _; simp [allocationsWf, hbytes]
+            | cons entry rest ih =>
+                intro hentries
+                simp [allocationsWf] at hentries ⊢
+                exact ⟨hentries.1, ih hentries.2⟩
+          exact append_wf store.allocations hstore
+  | unaddressable =>
+      simp [allocate] at hresult
+      rcases hresult with ⟨rfl, rfl⟩
+      change allocationsWf store.allocations at hstore
+      unfold WellFormed
+      have append_wf : ∀ entries : List (AllocId × Allocation Tag State),
+          allocationsWf entries →
+          allocationsWf (entries ++
+            [(store.nextId,
+              { live := true, address := none,
+                bytes := request.bytes, state := request.state })]) := by
+        intro entries
+        induction entries with
+        | nil => intro _; simp [allocationsWf, hbytes]
+        | cons entry rest ih =>
+            intro hentries
+            simp [allocationsWf] at hentries ⊢
+            exact ⟨hentries.1, ih hentries.2⟩
+      exact append_wf store.allocations hstore
+
 theorem allocate_failure_shape
     (store : Store Tag State) (request : AllocationRequest Tag State) :
     allocate store request .fail = none := by
