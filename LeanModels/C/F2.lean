@@ -486,6 +486,14 @@ def renameResult {Tag State F : Type} (resolve : AllocId → Nat) :
   | .refused reason store footprint =>
       .refused reason (renameStore resolve store) (renameFootprint resolve footprint)
 
+theorem renameResult_success_shape {Tag State F : Type}
+    (resolve : AllocId → Nat) (value : Byte Tag)
+    (store : Store Tag State) (footprint : Footprint) :
+    renameResult (F := F) resolve (.ok value store footprint) =
+      (.ok (renameByte resolve value) (renameStore resolve store)
+        (renameFootprint resolve footprint) : Result Tag State F (Byte Tag)) := by
+  rfl
+
 theorem renameResult_comp {Tag State F : Type} (first second : AllocId → Nat)
     (result : Result Tag State F (Byte Tag)) :
     renameResult (Tag := Tag) (State := State) (F := F) second
