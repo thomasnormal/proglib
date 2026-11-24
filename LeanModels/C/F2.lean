@@ -650,6 +650,20 @@ theorem typedStoreMetadataByte_preserves_payload
   rcases hEq with rfl
   exact ⟨rfl, rfl, rfl⟩
 
+theorem typedStoreMetadataByte_preserves_wellFormed
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : typedStoreMetadataByte metadata offset typeId byte = some result)
+    (hbytes : bytesWf 0 (listSet metadata.allocation.bytes offset byte))
+    (hlocations : metadata.locations.length = metadata.allocation.bytes.length) :
+    result.1.wellFormed 0 := by
+  simp [typedStoreMetadataByte] at hresult
+  rcases hresult with ⟨_, hEq⟩
+  rcases hEq with rfl
+  unfold AllocationMetadata.wellFormed
+  exact ⟨hbytes, by simpa [listSet_length] using hlocations⟩
+
 def renameMetadata (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) :
     AllocationMetadata Tag State TypeId :=
