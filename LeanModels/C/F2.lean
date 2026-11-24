@@ -578,6 +578,16 @@ theorem typedStoreMetadataByte_success_shape
   rcases hEq with rfl
   exact ⟨rfl, rfl, rfl⟩
 
+theorem typedStoreMetadataByte_footprint
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : typedStoreMetadataByte metadata offset typeId byte = some result) :
+    result.2 = footprint .write { allocation := 0, offset := offset, width := 1 } := by
+  simp [typedStoreMetadataByte] at hresult
+  rcases hresult with ⟨_, hEq⟩
+  exact congrArg (fun pair => pair.2) hEq.symm
+
 def renameMetadata (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) :
     AllocationMetadata Tag State TypeId :=
