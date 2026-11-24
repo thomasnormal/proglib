@@ -177,11 +177,23 @@ inductive RegionStep
     (E : CoreMemDesign) (g : Granularity) (x : XResolution) :
     SlotState → SlotState → Prop
 
+`RegionStep` includes ordinary region transitions and a refusal transition
+whose target stores the `RelRefusal` for the parser node and IEEE clause that
+caused it. Thus `SlotRefused` is positively reachable. It is not encoded by a
+missing successor, an empty active list, or a failed executor call.
+
+def SlotQuiet (s : SlotState) : Prop :=
+  s.refusal = none ∧ s.active = [] ∧ s.comb = [] ∧
+    s.scalarQ = [] ∧ s.memoryQ = []
+
+def SlotRefused (s : SlotState) (reason : RelRefusal) : Prop :=
+  s.refusal = some reason
+
 def SlotRun
     (E : CoreMemDesign) (g : Granularity) (x : XResolution)
     (start finish : SlotState) : Prop :=
   Relation.ReflTransGen (RegionStep E g x) start finish ∧
-    (SlotQuiet finish ∨ SlotRefused finish)
+    (SlotQuiet finish ∨ ∃ reason, SlotRefused finish reason)
 
 structure InputBatch where
   time : Nat
