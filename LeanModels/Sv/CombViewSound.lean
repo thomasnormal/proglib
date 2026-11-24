@@ -276,7 +276,7 @@ theorem summaryG_spec (so : List DeclT → Nat → PProcess → Except String TS
     (hso : ∀ ds pos p st, so ds pos p = .ok st → st.proc = p) {d : PDesign} {s : Summary}
     (h : d.summaryG so = .ok s) :
     s.lps.map Prod.fst = d.localParams.map (·.name) ∧ d.enums = [] ∧ d.others = [] ∧
-    s.params = d.params.map (·.name) ++ s.lps.map Prod.fst ∧
+    s.params = d.params.map (·.name) ++ (d.localParams.filter lpSummaryParamOk).map (·.name) ∧
     declsOf? d.decls = .ok s.decls ∧ sitesOfG so s.decls "plain" 0 d.processes = .ok s.statics ∧
     d.generates = s.fams.map TFam.toGen ∧ s.SpecOkG so := by
   unfold PDesign.summaryG at h
@@ -315,7 +315,7 @@ theorem summaryG_spec (so : List DeclT → Nat → PProcess → Except String TS
 
 theorem summary_spec {d : PDesign} {s : Summary} (h : d.summary = .ok s) :
     s.lps.map Prod.fst = d.localParams.map (·.name) ∧ d.enums = [] ∧ d.others = [] ∧
-    s.params = d.params.map (·.name) ++ s.lps.map Prod.fst ∧
+    s.params = d.params.map (·.name) ++ (d.localParams.filter lpSummaryParamOk).map (·.name) ∧
     declsOf? d.decls = .ok s.decls ∧ sitesOf? s.decls "plain" 0 d.processes = .ok s.statics ∧
     d.generates = s.fams.map TFam.toGen ∧ s.SpecOk :=
   summaryG_spec siteOf? siteOf?_proc' h

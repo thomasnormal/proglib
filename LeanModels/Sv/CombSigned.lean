@@ -519,7 +519,7 @@ theorem summaryG_unsign {d : PDesign} {s : Summary} (hs : d.unsign.summary = .ok
   subst hs
   obtain ⟨sts', h1, h2⟩ := sitesOfG_unsign hp
   obtain ⟨fs', k1, k2⟩ := famsOfG_unsign hg
-  refine ⟨Summary.mk (d.params.map (·.name) ++ lps.map Prod.fst) ds sts' (qualifyFams fs') lps,
+  refine ⟨Summary.mk (d.params.map (·.name) ++ (d.localParams.filter lpSummaryParamOk).map (·.name)) ds sts' (qualifyFams fs') lps,
     by simp only [h1, k1], ?_⟩
   rw [← k2, qualifyFams_mapProcs]
   simp [Summary.mapProcs, h2]

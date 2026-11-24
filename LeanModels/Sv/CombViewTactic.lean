@@ -1080,7 +1080,7 @@ unsafe def lpAtoms (s : LeanModels.Sv.CombView.Summary) (g : MVarId) : TacticM M
   let ty ← instantiateMVars (← g.getType)
   let some vE := ty.find? (fun e => e.isAppOfArity ``LeanModels.Sv.CombView.Summary.val 2) | return g
   let args ← listElemExprs vE.appArg!
-  let nParams := s.params.length - s.lps.length
+  let nParams := args.size
   let pairTy := mkApp2 (mkConst ``Prod [levelZero, levelZero]) (mkConst ``String) (mkConst ``Int)
   let mkPair (n : String) (v : Expr) : Expr :=
     mkApp4 (mkConst ``Prod.mk [levelZero, levelZero]) (mkConst ``String) (mkConst ``Int) (toExpr n) v

@@ -3811,8 +3811,8 @@ def famsOf? (ds : List DeclT) : List GenItem → Except String (List TFam) :=
 /-! ## Local parameters
 
 A `localparam L = <constant expression of the parameters>` enters the view as one more NAMED CONSTANT:
-`Summary.params` lists the module parameters and then the localparams (the names an `Aff` may
-mention), and `Summary.lps` keeps each localparam's definition as a `CE`, a tiny constant-expression
+`Summary.params` lists the module parameters and then the INT-class localparams (the names an `Aff` may
+mention through `IEnv.intVal?`), and `Summary.lps` keeps every recognized localparam's definition as a `CE`, a tiny constant-expression
 language (integer literals, references to parameters and EARLIER localparams, `+`, `-`, `*` by a
 literal, `/` and `%` by a positive literal, the shifts, `**`, `$clog2`, and `?:` whose condition is a comparison or an
 `int`). `Summary.val s args` is the valuation of all the constants: the parameters zipped with the arguments, then each
@@ -3936,6 +3936,15 @@ def CE.eval (σ : String → Int) : CE → Int
   | .cmp .eq a b => if a.eval σ = b.eval σ then 1 else 0
   | .cmp .ne a b => if a.eval σ = b.eval σ then 0 else 1
   | .cond c a b => if c.eval σ = 0 then b.eval σ else a.eval σ
+
+def literalNat? : LVec → Option Nat
+  | ⟨bits⟩ =>
+      bits.toList.foldr (fun b acc => do
+        let n ← acc
+        match b with
+        | .l0 => some (2 * n)
+        | .l1 => some (2 * n + 1)
+        | _ => none) (some 0)
 
 /-! The shifts at the values the clean-room rows and local Icarus Verilog 12.0 give (`localparam integer` of the
 expression, printed with `%0d`): `(1 << 33) >> 32` is 0, `(1 << 31) >>> 1` is -1073741824, `(1 << (7 + 24)) >> 30` is 2
@@ -4062,6 +4071,10 @@ def CE.cmpOk : CE → Bool
 /-- Recognize a localparam's initializer, in the scope of the names bound before it. -/
 def ceOf? (nm : String) (scope : List String) : PExpr → Except String CE
   | .int v => .ok (.lit v)
+  | .lit v =>
+      match literalNat? v with
+      | some n => .ok (.lit n)
+      | none => .error s!"localparam `{nm}`: a literal containing x/z is outside the v1 constant fragment"
   | .paramRef n none =>
       if scope.contains n then .ok (.ref n)
       else .error s!"localparam `{nm}`: `{n}` is neither a parameter nor an earlier localparam"
@@ -4111,18 +4124,29 @@ whose sign it does not know), and a loop count affine in the parameters closes a
 against the linear bound. -/
 def fuelSq (s : Nat) : Nat := s * s
 
-/-- The localparam's declared type: `int`/`integer` (packed `[31:0]`, signed or default) or none — the
-INT class, which `bindLocal` binds in `IEnv.vals`, where the parameters are. -/
+/-- The localparam's declared type: `int`/`integer` (packed `[31:0]`, signed or default), a fixed packed type,
+or none. The latter two are recognized only when their bounds are literal; fixed packed values live in `IEnv.nvals`. -/
 def lpTypeOk (lp : PLocalParam) : Bool :=
   lp.signed? != some false &&
     match lp.type? with
     | none => true
     | some (.packed [⟨.int 31, .int 0⟩] _) => true
+    | some (.packed ds _) => ds.length > 0 && (PType.packed ds none).boundsLiteral
     | _ => false
+
+/-- Whether a recognized localparam is represented by the signed-32 integer view used by `Summary.params`.
+Fixed-width packed localparams remain in `Summary.lps` so later constant expressions can read them, but their
+values live in `IEnv.nvals` and must not be reinterpreted as `IEnv.intVal?` entries (IEEE 1800-2023 §6.20.2, §6. datatype
+conversion). -/
+def lpSummaryParamOk (lp : PLocalParam) : Bool :=
+  match lp.type? with
+  | none => true
+  | some (.packed [⟨.int 31, .int 0⟩] _) => true
+  | _ => false
 
 def lpOf? (scope : List String) (lp : PLocalParam) : Except String CE :=
   if !lpTypeOk lp then
-    .error s!"localparam `{lp.name}`: only `int`/`integer` (32-bit signed) localparams are in the v1 fragment"
+    .error s!"localparam `{lp.name}`: only `int`/`integer` (32-bit signed) or fixed packed localparams with literal bounds are in the v1 fragment"
   else
     match ceOf? lp.name scope lp.expr with
     | .error e => .error e
@@ -4177,7 +4201,7 @@ def _root_.LeanModels.Sv.PDesign.summaryG (so : List DeclT → Nat → PProcess 
                 match famsOfG so ds d.generates with
                 | .error e => .error e
                 | .ok fs =>
-                    .ok { params := d.params.map (·.name) ++ lps.map Prod.fst, decls := ds,
+                    .ok { params := d.params.map (·.name) ++ (d.localParams.filter lpSummaryParamOk).map (·.name), decls := ds,
                           statics := sts, fams := qualifyFams fs, lps := lps }
 
 def _root_.LeanModels.Sv.PDesign.summary (d : PDesign) : Except String Summary :=

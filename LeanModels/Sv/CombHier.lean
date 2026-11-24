@@ -1439,10 +1439,12 @@ theorem connPP_ok {i : PInst} {pd : PDecl} {p : PProcess} (h : connPP i pd = .ok
 /-! ## The checks the tactics decide on the twin's summary -/
 
 /-- The parent's constants: its parameters, then its localparams. -/
-def parentNames (d : PDesign) : List String := d.params.map (·.name) ++ d.localParams.map (·.name)
+def parentNames (d : PDesign) : List String :=
+  d.params.map (·.name) ++ (d.localParams.filter lpSummaryParamOk).map (·.name)
 
 /-- A child's constants (`Summary.params` of its summary). -/
-def childNames (c : PDesign) : List String := c.params.map (·.name) ++ c.localParams.map (·.name)
+def childNames (c : PDesign) : List String :=
+  c.params.map (·.name) ++ (c.localParams.filter lpSummaryParamOk).map (·.name)
 
 /-- The parent alone, as a summary of its declarations: the context of its processes and of the port connections
 in the hierarchical instantiation, where only the parent's own declarations are in scope. -/
@@ -1850,7 +1852,7 @@ theorem inst_step {d : PDesign} {lib : List PDesign} {sF : Summary} {dsP : List 
   obtain ⟨given, hg, hat, h1C⟩ := childEnv_ok hce1
   simp only at hat h1C hce2 hce3
   obtain ⟨ps, rfl⟩ := atPoint_shape hat
-  have hscp : sc.params = childNames c := by rw [hparC, hloc]; rfl
+  have hscp : sc.params = childNames c := by simpa [childNames] using hparC
   have hagC : Agrees (fun n => σF (hpfx i ++ n)) envC sc.params := by rw [hscp]; exact Agrees_of_map hce3
   have hagdC : ∀ dt ∈ sc.decls, ∀ n ∈ dt.affNames, envC.intVal? n = some (σF (hpfx i ++ n)) :=
     fun dt hdt n hn => hagC n (hdeclC dt hdt n hn)

@@ -182,7 +182,7 @@ theorem famsOfP?_spec {ds : List DeclT} :
 
 theorem summaryP_spec {d : PDesign} {s : Summary} (h : d.summaryP = .ok s) :
     s.lps.map Prod.fst = d.localParams.map (·.name) ∧ d.enums = [] ∧ d.others = [] ∧
-    s.params = d.params.map (·.name) ++ s.lps.map Prod.fst ∧
+    s.params = d.params.map (·.name) ++ (d.localParams.filter lpSummaryParamOk).map (·.name) ∧
     declsOf? d.decls = .ok s.decls ∧ sitesOfP? s.decls "plain" 0 d.processes = .ok s.statics ∧
     d.generates = s.fams.map TFam.toGen ∧ s.SpecOkP :=
   summaryG_spec siteOfP? siteOfP?_proc' h
