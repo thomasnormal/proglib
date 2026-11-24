@@ -4416,6 +4416,34 @@ theorem pairedAllocate_preserves_counts
       rcases hresult with ⟨rfl, rfl⟩
       exact ⟨by simp, by simp, by simp, by simp⟩
 
+theorem pairedAllocate_preserves_footprints
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedAllocate resolve store request placement = some result) :
+    result.1.2 = footprint .metadata
+        (Region.mk store.nextId 0 request.bytes.length) ∧
+      result.2.2 = footprint .metadata
+        (Region.mk (renameStore resolve store).nextId 0 request.bytes.length) := by
+  cases placement with
+  | fail => simp [pairedAllocate, allocate] at hresult
+  | address base =>
+      cases hallowed : placementAllowed store base request.bytes.length with
+      | false => simp [pairedAllocate, allocate, hallowed] at hresult
+      | true =>
+          cases htarget : placementAllowed (renameStore resolve store)
+              (resolve store.nextId) request.bytes.length with
+          | false => simp [pairedAllocate, allocate, renamedPlacement, hallowed, htarget] at hresult
+          | true =>
+              simp [pairedAllocate, allocate, renamedPlacement, hallowed, htarget] at hresult
+              rcases hresult with ⟨rfl, rfl⟩
+              exact ⟨by rfl, by rfl⟩
+  | unaddressable =>
+      simp [pairedAllocate, allocate] at hresult
+      rcases hresult with ⟨rfl, rfl⟩
+      exact ⟨by rfl, by rfl⟩
+
 def pairedAllocateFailure (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement) : Bool :=
   (allocate store request placement).isNone &&
