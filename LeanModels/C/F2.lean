@@ -1832,6 +1832,13 @@ def pairedAllocateAligned (resolve : AllocId → Nat)
     (renamedPlacement resolve store.nextId placement) alignment
   true
 
+theorem pairedAllocateAligned_shape
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment : Nat) :
+    pairedAllocateAligned resolve store request placement alignment = true := by
+  rfl
+
 def placementWithin (base size limit : Nat) : Bool :=
   base ≤ limit && size ≤ limit - base
 
@@ -2040,6 +2047,13 @@ def pairedAllocateBounded (resolve : AllocId → Nat)
   let target := allocateBounded (renameStore resolve store) request
     (renamedPlacement resolve store.nextId placement) alignment limit
   true
+
+theorem pairedAllocateBounded_shape
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment limit : Nat) :
+    pairedAllocateBounded resolve store request placement alignment limit = true := by
+  rfl
 
 def allocateMetadata (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) :
