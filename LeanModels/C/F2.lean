@@ -179,6 +179,12 @@ theorem decodePointer_wrong_length_refusal [BEq Tag]
     decodePointer bytes = none := by
   simp [decodePointer, hlength]
 
+theorem decodePointer_first_fragment_refusal [BEq Tag]
+    (first : Byte Tag) (rest : List (Byte Tag))
+    (hfirst : ∀ bits provenance, first ≠ .value bits provenance (some 0)) :
+    decodePointer (first :: rest) = none := by
+  simp [decodePointer, hfirst]
+
 theorem encodePointer_rename (resolve : AllocId → Nat) (pointer : Pointer Tag) :
     encodePointer (renamePointer resolve pointer) =
       (encodePointer pointer).map (renameByte resolve) := by
