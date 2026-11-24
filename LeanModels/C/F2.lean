@@ -3592,11 +3592,35 @@ theorem pairedAlignmentAllowed_refusal_target (resolve : AllocId → Nat)
 
 def alignmentComposition (first second : AllocId → Nat)
     (id alignment : Nat) : Bool :=
-  alignmentAllowed (second id) alignment = alignmentAllowed (second id) alignment
+  alignmentAllowed (first id) alignment == alignmentAllowed (second id) alignment
 
-theorem alignmentComposition_sound (first second : AllocId → Nat)
-    (id alignment : Nat) : alignmentComposition first second id alignment := by
-  simp [alignmentComposition]
+theorem alignmentComposition_both_allowed (first second : AllocId → Nat)
+    (id alignment : Nat)
+    (hfirst : alignmentAllowed (first id) alignment = true)
+    (hsecond : alignmentAllowed (second id) alignment = true) :
+    alignmentComposition first second id alignment = true := by
+  simp [alignmentComposition, hfirst, hsecond]
+
+theorem alignmentComposition_both_refused (first second : AllocId → Nat)
+    (id alignment : Nat)
+    (hfirst : alignmentAllowed (first id) alignment = false)
+    (hsecond : alignmentAllowed (second id) alignment = false) :
+    alignmentComposition first second id alignment = true := by
+  simp [alignmentComposition, hfirst, hsecond]
+
+theorem alignmentComposition_refusal_first (first second : AllocId → Nat)
+    (id alignment : Nat)
+    (hfirst : alignmentAllowed (first id) alignment = false)
+    (hsecond : alignmentAllowed (second id) alignment = true) :
+    alignmentComposition first second id alignment = false := by
+  simp [alignmentComposition, hfirst, hsecond]
+
+theorem alignmentComposition_refusal_second (first second : AllocId → Nat)
+    (id alignment : Nat)
+    (hfirst : alignmentAllowed (first id) alignment = true)
+    (hsecond : alignmentAllowed (second id) alignment = false) :
+    alignmentComposition first second id alignment = false := by
+  simp [alignmentComposition, hfirst, hsecond]
 
 theorem zeroAlignmentRefused (base : Nat) :
     alignmentAllowed base 0 = false := by
