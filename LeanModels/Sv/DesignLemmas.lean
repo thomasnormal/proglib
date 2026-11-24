@@ -81,3 +81,62 @@ theorem generated_child_at_prefix
 
 end LeanModels.Sv
 
+
+namespace LeanModels.Sv
+
+/-- The two-level ascending-family equation used by nested generated gate
+arrays.  Both bounds remain symbolic; the inner family is expanded under
+an outer genvar binding and concatenated in source order. -/
+theorem generated_child_nested_family
+    {cb : ChildInst} {env : IEnv} {elems : List (String × Nat)} {F : Nat}
+    {outerLabel innerLabel : Option String} {outerG innerG : String}
+    {outerInit outerBound innerInit innerBound : PExpr}
+    {outerRc innerRc : Option Nat} {outerI0 outerN innerI0 innerN : Int}
+    {inst : PInst} {f : Int → Int → List Decl × List Process2}
+    (hOuterInit : evalInt env outerInit = .ok outerI0)
+    (hOuterBound : ∀ i : Int, outerBound.isInt (env.bindVal outerG i) = true)
+    (hOuterValue : ∀ i : Int, evalInt (env.bindVal outerG i) outerBound = .ok outerN)
+    (hOuterFuel : (outerN - outerI0).toNat < F)
+    (hInnerInit : ∀ outer : Int,
+      evalInt (env.bindVal outerG outer) innerInit = .ok innerI0)
+    (hInnerBound : ∀ outer i : Int,
+      innerBound.isInt ((env.bindVal outerG outer).bindVal innerG i) = true)
+    (hInnerValue : ∀ outer i : Int,
+      evalInt ((env.bindVal outerG outer).bindVal innerG i) innerBound = .ok innerN)
+    (hInnerFuel : (innerN - innerI0).toNat < F)
+    (hBody : ∀ outer inner : Int, outerI0 ≤ outer → outer < outerN →
+      innerI0 ≤ inner → inner < innerN →
+      expandListH cb ((env.bindVal outerG outer).bindVal innerG inner) elems F [.inst inst] =
+        .ok (f outer inner)) :
+    (GenItem.genFor outerLabel outerG outerInit
+      (.binary .slt (.genvarRef outerG) outerBound)
+      (.unary .inc (.genvarRef outerG)) outerRc
+      [GenItem.genFor innerLabel innerG innerInit
+        (.binary .slt (.genvarRef innerG) innerBound)
+        (.unary .inc (.genvarRef innerG)) innerRc [.inst inst]]).expandH cb env elems F =
+      .ok
+        ((intRange outerI0 (outerN - outerI0).toNat).flatMap fun outer =>
+          (intRange innerI0 (innerN - innerI0).toNat).flatMap fun inner => (f outer inner).1,
+         (intRange outerI0 (outerN - outerI0).toNat).flatMap fun outer =>
+          (intRange innerI0 (innerN - innerI0).toNat).flatMap fun inner => (f outer inner).2)  := by
+  let g : Int → List Decl × List Process2 := fun outer =>
+    ( (intRange innerI0 (innerN - innerI0).toNat).flatMap fun inner =>
+        (f outer inner).1,
+      (intRange innerI0 (innerN - innerI0).toNat).flatMap fun inner =>
+        (f outer inner).2 )
+  have houter : ∀ outer : Int, outerI0 ≤ outer → outer < outerN →
+      expandListH cb (env.bindVal outerG outer) elems F
+        [GenItem.genFor innerLabel innerG innerInit
+          (.binary .slt (.genvarRef innerG) innerBound)
+          (.unary .inc (.genvarRef innerG)) innerRc [.inst inst]] = .ok (g outer) := by
+    intro outer hOuter0 hOuterN
+    apply expandListH_singleton_ok (h := by simp [GenItem.listInstFree, GenItem.instFree])
+    rw [GenItem.expandH_genFor_ascending_flatMap
+      (hInnerInit outer) (hInnerBound outer) (hInnerValue outer) hInnerFuel]
+    · intro inner hInner0 hInnerN
+      exact hBody outer inner hOuter0 hOuterN hInner0 hInnerN
+  rw [GenItem.expandH_genFor_ascending_flatMap
+    (f := g) hOuterInit hOuterBound hOuterValue hOuterFuel houter]
+
+
+end LeanModels.Sv
