@@ -281,6 +281,17 @@ theorem setLocation_guard_refusal (locations : LocationStore TypeId)
     setLocation locations allocation offset state = none := by
   simp [setLocation, hguard]
 
+theorem setLocation_success_shape (locations : LocationStore TypeId)
+    (allocation offset : Nat) (state : LocationState TypeId)
+    (result : LocationStore TypeId)
+    (hresult : setLocation locations allocation offset state = some result) :
+    result = locations.map (fun entry =>
+      if entry.1 == allocation && entry.2.1 == offset then
+        (allocation, offset, state)
+      else entry) := by
+  simp [setLocation] at hresult
+  simpa using hresult.2.symm
+
 structure Store (Tag State : Type) where
   allocations : List (AllocId × Allocation Tag State)
   nextId : AllocId
