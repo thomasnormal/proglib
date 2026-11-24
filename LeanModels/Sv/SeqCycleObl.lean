@@ -1263,6 +1263,20 @@ def CoreMemDesign.seqOblI (E : CoreMemDesign) : Bool :=
   E.oblDrivers && E.topoC && E.oblInputsUndriven && E.oblSources && E.oblNoSourceRead && E.oblEdgeOrder &&
     E.oblConverted
 
+/-! Successor obligation for the source-shaped memory NBA rung.  It shares the
+    ordinary profile's scalar/source discipline and replaces only the edge
+    order bit with the memory-aware admission predicate. -/
+def CoreMemDesign.seqOblIM (E : CoreMemDesign) : Bool :=
+  E.oblDrivers && E.topoC && E.oblInputsUndriven && E.oblSources && E.oblNoSourceRead &&
+    E.oblEdgeOrderMemory && E.oblConverted
+
+theorem CoreMemDesign.seqOblIM_spec {E : CoreMemDesign} (h : E.seqOblIM = true) :
+    E.oblDrivers = true ∧ E.topoC = true ∧ E.oblInputsUndriven = true ∧ E.oblSources = true ∧
+      E.oblNoSourceRead = true ∧ E.oblEdgeOrderMemory = true ∧ E.oblConverted = true := by
+  simp only [CoreMemDesign.seqOblIM, Bool.and_eq_true] at h
+  obtain ⟨⟨⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩ := h
+  exact ⟨h1, h2, h3, h4, h5, h6, h7⟩
+
 /-- The obligations, one by one. -/
 theorem CoreMemDesign.seqOblI_spec {E : CoreMemDesign} (h : E.seqOblI = true) :
     E.oblDrivers = true ∧ E.topoC = true ∧ E.oblInputsUndriven = true ∧ E.oblSources = true ∧

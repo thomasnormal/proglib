@@ -15,6 +15,10 @@ load_design_sv2 edgeMemory
   | .ok E => E.oblEdgeOrderMemory == true
   | _ => false
 
+#guard match edgeMemory.e 4 with
+  | .ok E => E.seqOblIM == true
+  | _ => false
+
 end Examples.«system-verilog».sem2.edge_order_memory_e
 
 namespace Examples.«system-verilog».sem2.edge_order_memory_e
