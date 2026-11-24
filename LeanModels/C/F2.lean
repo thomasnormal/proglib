@@ -3617,6 +3617,16 @@ theorem renameRecovery_idempotent
   | ambiguousOnePastAdjacent => rfl
   | noLiveAllocation => rfl
 
+theorem renameRecovery_comp
+    (first second : AllocId → Nat) (recovery : Recovery Tag) :
+    renameRecovery second (renameRecovery first recovery) =
+      renameRecovery second recovery := by
+  cases recovery with
+  | recovered region => simp [renameRecovery, renamePointer_comp]
+  | empty address => rfl
+  | ambiguousOnePastAdjacent => rfl
+  | noLiveAllocation => rfl
+
 def pairedRecoverAddress (resolve : AllocId → Nat) (address : Nat)
     (live : List (AllocId × Nat × Nat × Tag)) : Bool :=
   true
