@@ -514,6 +514,14 @@ Icarus Verilog 13.0 and Xcelium 24.03-s004. The receipt keeps the evaluator
 and declaration-identity premises explicit, so it does not turn this fixture
 into a whole-design confluence theorem.
 
+The clean-room `fsm_logic_confluence_e` envelope is a third source-shaped
+NBA witness. It has one case-based state process and two continuous-assignment
+drivers. Its `fsm_nba_confluence` theorem instantiates the same guarded
+terminal-path-to-`CoreMemDesign.step` bridge, and its six startup/reset/state
+rows match Icarus Verilog 13.0 and Xcelium 24.03-s004. The logic-coded state
+avoids a separate enum elaboration rule so this receipt tests the scheduler
+class rather than enum ingestion.
+
 These are bridge-only results. They do not establish full canonical-E
 soundness, arbitrary aliasing, mixed macrostep trace inclusion, zero-time
 liveness, or an owner-selected default granularity.

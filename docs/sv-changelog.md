@@ -7266,3 +7266,10 @@ empty-continuation premises while allowing memory NBAs. It establishes only
 scheduler progress, with an exact selected-cursor length balance. Queue
 permutation, canonical commit success, observation independence, and executor
 refinement remain separate receipts.
+
+## Third admitted NBA confluence witness — 2026-11-24
+
+Added the clean-room `fsm_logic_confluence_e` finite-state machine. Its
+case-based edge process and two continuous-assignment drivers instantiate the
+guarded terminal-path-to-executor confluence theorem. Six startup, reset, and
+state-transition rows match Icarus Verilog 13.0 and Xcelium 24.03-s004.
