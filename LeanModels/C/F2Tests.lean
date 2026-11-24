@@ -233,7 +233,7 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (offsetPointer pointer 1 0 pointer.address).isOk
 #guard match offsetPointer pointer 0 1 pointer.address with | .error _ => true | _ => false
 #guard match offsetPointer pointer 1 (-1) pointer.address with | .ok _ => true | _ => false
-#guard pairedOffsetPointer resolve pointer 1 0 pointer.address
+#guard pairedOffsetPointer resolve pointer 1 0 (renamePointer resolve pointer).address
 #guard match recoverAddress 100 [(3, 96, 104, ())] with | .recovered _ => true | _ => false
 #guard match recoverAddress 104 [(3, 96, 104, ())] with | .empty _ => true | _ => false
 #guard pairedRecoverAddress resolve 100 ([] : List (AllocId × Nat × Nat × Unit))

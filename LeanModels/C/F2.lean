@@ -3961,7 +3961,33 @@ theorem renameOffsetResult_comp
 def pairedOffsetPointer (resolve : AllocId → Nat) (pointer : Pointer Tag)
     (elementSize : Nat) (delta : Int) (bound : Nat) :
     Bool :=
-  true
+  match offsetPointer pointer elementSize delta bound,
+    offsetPointer (renamePointer resolve pointer) elementSize delta bound with
+  | .ok source, .ok target => (renamePointer resolve source).address == target.address
+  | .error .outOfBounds, .error .outOfBounds => true
+  | .error .alignment, .error .alignment => true
+  | _, _ => false
+
+theorem pairedOffsetPointer_both_success [BEq Tag]
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat)
+    (source target : Pointer Tag)
+    (hsource : offsetPointer pointer elementSize delta bound = .ok source)
+    (htarget : offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+      .ok target)
+    (hcorrespond : target = renamePointer resolve source) :
+    pairedOffsetPointer resolve pointer elementSize delta bound = true := by
+  simp [pairedOffsetPointer, hsource, htarget, hcorrespond]
+
+theorem pairedOffsetPointer_matching_fault [BEq Tag]
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat)
+    (fault : OffsetFault)
+    (hsource : offsetPointer pointer elementSize delta bound = .error fault)
+    (htarget : offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+      .error fault) :
+    pairedOffsetPointer resolve pointer elementSize delta bound = true := by
+  cases fault <;> simp [pairedOffsetPointer, hsource, htarget]
 
 def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) : Option (Store Tag State × Footprint) :=
