@@ -3846,6 +3846,19 @@ theorem allocateBounded_unaddressable_success
     allocateBounded store request .unaddressable alignment limit = .ok result := by
   simp [allocateBounded, hresult]
 
+theorem allocateBounded_unaddressable_result_counters
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hresult : allocateBounded store request .unaddressable alignment limit = .ok result) :
+    result.1.nextId = store.nextId + 1 ∧
+      result.1.allocations.length = store.allocations.length + 1 := by
+  cases halloc : allocate store request .unaddressable with
+  | none => simp [allocateBounded, halloc] at hresult
+  | some allocationResult =>
+      simp [allocateBounded, halloc] at hresult
+      rcases hresult with rfl
+      exact allocate_unaddressable_result_counters store request allocationResult halloc
+
 def renameBoundedResult (resolve : AllocId → Nat) :
     Except PlacementFault (Store Tag State × Footprint) →
       Except PlacementFault (Store Tag State × Footprint)
