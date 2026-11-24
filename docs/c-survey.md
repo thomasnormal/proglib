@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1386/2114 MATCH (passed 1386, failed 0, oracle 0)
+- verdicts: 1388/2114 MATCH (passed 1388, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `7ba95a10396bf65e5538c93f2318b982dd11cff1`
-- measured at: `2026-11-24T02:50:00Z`
+- measured commit: `95b6660267212cbad9fff280778db056748cced2`
+- measured at: `2026-11-24T03:30:00Z`
 
 ## Verdict counts
 
@@ -16,11 +16,11 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1386 |
-| `refused-libc` | 21 |
+| `passed` | 1388 |
+| `refused-libc` | 20 |
 | `refused-ub` | 47 |
 | `refused-unsupported` | 313 |
-| `runner-error` | 11 |
+| `runner-error` | 10 |
 
 ## Counts by corpus
 
@@ -35,11 +35,11 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1183 |
-| `gcc.c-torture/execute` | `refused-libc` | 19 |
+| `gcc.c-torture/execute` | `passed` | 1185 |
+| `gcc.c-torture/execute` | `refused-libc` | 18 |
 | `gcc.c-torture/execute` | `refused-ub` | 41 |
 | `gcc.c-torture/execute` | `refused-unsupported` | 178 |
-| `gcc.c-torture/execute` | `runner-error` | 10 |
+| `gcc.c-torture/execute` | `runner-error` | 9 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 10 |
 | `gcc.c23-run` | `refused-libc` | 1 |
@@ -200,7 +200,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `libc-call: __builtin_frame_address` | 1 | 1 | frame-address.c |
 | `libc-call: f` | 1 | 1 | gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c |
 | `libc-call: fopen` | 1 | 1 | 00187.c |
-| `libc-call: func` | 1 | 1 | bcp-1.c |
 | `libc-call: main_test` | 1 | 1 | builtins/lib/main.c |
 | `libc-call: pow` | 1 | 1 | 980709-1.c |
 | `libc-call: qsort` | 1 | 1 | pr34456.c |

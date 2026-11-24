@@ -12,11 +12,11 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1183,
-   "refused-libc": 19,
+   "passed": 1185,
+   "refused-libc": 18,
    "refused-ub": 41,
    "refused-unsupported": 178,
-   "runner-error": 10
+   "runner-error": 9
   },
   "gcc.c23-run": {
    "not-parsed": 34,
@@ -32,11 +32,11 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1386,
-  "refused-libc": 21,
+  "passed": 1388,
+  "refused-libc": 20,
   "refused-ub": 47,
   "refused-unsupported": 313,
-  "runner-error": 11
+  "runner-error": 10
  },
  "dynamic_wall_ranking": [
   {
@@ -995,14 +995,6 @@
   },
   {
    "files": [
-    "bcp-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "libc-call: func"
-  },
-  {
-   "files": [
     "builtins/lib/main.c"
    ],
    "present": 1,
@@ -1318,8 +1310,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T02:50:00Z",
- "measured_commit": "7ba95a10396bf65e5538c93f2318b982dd11cff1",
+ "measured_at_utc": "2026-11-24T03:30:00Z",
+ "measured_commit": "95b6660267212cbad9fff280778db056748cced2",
  "pin": "C1-C3",
  "rows": [
   {
@@ -12581,8 +12573,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "func",
-   "dynamic_wall": "libc-call: func",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "bcp-1.c",
    "sha256": "51c01c565b099cfaf2867c9fa740d25991f51274a2c3e0380f0caa93fa10b0b8",
@@ -12592,7 +12584,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17491,13 +17483,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "wall-clock kill after 90s",
+   "detail": "",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "minmaxcmp-1.c",
    "sha256": "c8373ae57ea0dec72ae5329a74a82f467b092ce0c3f95a8a4ce9181a9bba503e",
    "static_walls": [],
-   "verdict": "runner-error"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
