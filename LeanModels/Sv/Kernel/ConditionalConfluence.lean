@@ -220,6 +220,71 @@ theorem CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_driver_c
 
 #print axioms CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_driver_closure
 
+/-! The complete parser guard can feed the hidden-observation diamond for a
+    two-process source slice.  The guard supplies only the directed race
+    exclusions.  Evaluator values, closure receipts, and hidden targets remain
+    explicit premises of this theorem. -/
+theorem CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_design_guard
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {xN xM : VarId} {vN vM : LVec}
+    {hidden : List String} {p q : PProcess} {d : PDesign}
+    (hg : CombPhaseGuard d)
+    (hprocesses : d.processes = [p, q])
+    (hcommon : coreMemHasCommonEventSourceThroughAssign [p, q] p q = true)
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : PExpr.hasTestPlusargs eN = false)
+    (htestM : PExpr.hasTestPlusargs eM = false)
+    (hmemN : PExpr.hasMemoryRead eN = false)
+    (hcallN : PExpr.hasFunctionCall eN = false)
+    (hmemM : PExpr.hasMemoryRead eM = false)
+    (hcallM : PExpr.hasFunctionCall eM = false)
+    (hne : E.elems ≠ [])
+    (hvalueN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalueM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
+    (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames q))
+    (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames p))
+    (hnwrites : n ∈ coreMemProcBlockingWrites p)
+    (hmwrites : m ∈ coreMemProcBlockingWrites q)
+    (hnHidden : n ∈ hidden) (hmHidden : m ∈ hidden) :
+    let cN : CombCursor :=
+      { work := [.stmt env (.blockingAssign n eN)], locals := locals }
+    let cM : CombCursor :=
+      { work := [.stmt env (.blockingAssign m eM)], locals := locals }
+    let s : CombPhaseState := { state := st, view := view, active := [cN, cM] }
+    ∃ uN uM zN zM,
+      CombPhaseStep E s uN ∧ CombPhaseStep E s uM ∧
+      CombPhaseStep E uN zN ∧ CombPhaseStep E uM zM ∧
+      zN.active = [] ∧ zM.active = [] ∧
+      SvState.agreesOutside hidden zN.view zM.view := by
+  have hpair := CombPhaseGuard.two_process_read_write_exclusions
+    (d := d) hg hprocesses hcommon
+  apply CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_driver_closure
+    (processes := [p, q]) (fuelN := 32) (fuelM := 32)
+    (namesN := coreMemPProcessReadNames p)
+    (namesM := coreMemPProcessReadNames q)
+    hc hxN hxM hlocalN hlocalM htargetN htargetM htestN htestM
+    hmemN hcallN hmemM hcallM hne hvalueN hvalueM hclosureM hclosureN
+  · intro y hy hyn
+    exact (hpair.1 n hnwrites) (by simpa [hyn] using hy)
+  · intro y hy hym
+    exact (hpair.2 m hmwrites) (by simpa [hym] using hy)
+  · exact hnHidden
+  · exact hmHidden
+
+#print axioms CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_design_guard
+
+
 /-! For the two-process class the local diamond can be folded into the actual
 terminal-path relation.  The two paths have the same settled observation
 outside the hidden names, while their hidden state may differ. -/
