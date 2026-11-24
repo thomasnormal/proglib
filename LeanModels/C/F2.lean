@@ -547,6 +547,18 @@ theorem storeMetadataByte_preserves_byte_length
   rw [← hEq]
   exact listSet_length metadata.allocation.bytes offset _
 
+theorem storeMetadataByte_preserves_payload
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (byte : Byte Tag) (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : storeMetadataByte metadata offset byte = some result) :
+    result.1.allocation.live = metadata.allocation.live ∧
+      result.1.allocation.address = metadata.allocation.address ∧
+      result.1.allocation.state = metadata.allocation.state := by
+  simp [storeMetadataByte] at hresult
+  rcases hresult with ⟨_, hEq⟩
+  rcases hEq with rfl
+  exact ⟨rfl, rfl, rfl⟩
+
 def typedStoreMetadataByte (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
     Option (AllocationMetadata Tag State TypeId × Footprint) :=
