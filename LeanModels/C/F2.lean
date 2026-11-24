@@ -1561,6 +1561,21 @@ theorem loadByte_success
       some (byte, footprint .read { allocation := id, offset := offset, width := 1 }) := by
   simp [loadByte, hlookup, hindex, hlive]
 
+theorem storeByte_success
+    (store : Store Tag State) (id offset : Nat)
+    (allocation : Allocation Tag State) (oldByte newByte : Byte Tag)
+    (hlive : allocation.live = true)
+    (hlookup : lookup store id = some allocation)
+    (hindex : allocation.bytes[offset]? = some oldByte) :
+    ∃ newStore, storeByte store id offset newByte = some
+      (newStore, footprint .write { allocation := id, offset := offset, width := 1 }) := by
+  have hoffset : offset < allocation.bytes.length := by
+    apply Nat.lt_of_not_ge
+    intro h
+    simp [List.getElem?_eq_none h] at hindex
+  have hnot : ¬ allocation.bytes.length ≤ offset := by omega
+  simp [storeByte, hlookup, hlive, hnot]
+
 theorem endLifetime_preserves_nextId
     (store : Store Tag State) (id : AllocId)
     (result : Store Tag State × Footprint)
