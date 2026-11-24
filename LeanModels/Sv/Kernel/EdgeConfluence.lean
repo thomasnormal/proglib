@@ -1398,8 +1398,6 @@ theorem CoreMemDesign.edge_nba_confluence_refines_step_guarded_of_defined
       i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
     (hs : s.pending = List.range E.processes.size)
     (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
-    (hdefined : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
-      ∃ q, E.procQ before after s.view (E.memOf st.memory) p = .ok q)
     (hkeys : (s.view.map Prod.fst).Nodup)
     {r : ExecV}
     (hroute : E.edgesV before after s.view (E.memOf st.memory) E.processes.toList = .ok r) :
@@ -1416,6 +1414,7 @@ theorem CoreMemDesign.edge_nba_confluence_refines_step_guarded_of_defined
       | .ok q => q
       | _ => []
     | none => []
+  have hdefined := CoreMemDesign.edgesV_procQ_defined_processes hw hroute
   have hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
       E.procQ before after s.view (E.memOf st.memory) p = .ok (F k) := by
     intro k p hk

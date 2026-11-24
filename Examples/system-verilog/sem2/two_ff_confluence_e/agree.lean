@@ -131,7 +131,7 @@ theorem two_ff_nba_confluence_of_defined
   have hdefined := CoreMemDesign.edgesV_procQ_defined_processes hw hroute
   exact CoreMemDesign.edge_nba_confluence_refines_step_guarded_of_defined
     hPB.toSeqProfileI (CoreMemDesign.seqOblB_I hOB) hc hmc hty hslot
-    hdrivers hdistinct hs hw hdefined hkeys hroute
+    hdrivers hdistinct hs hw hkeys hroute
 
 #print axioms two_ff_nba_confluence_of_defined
 
