@@ -3991,6 +3991,17 @@ def pairedAllocate (resolve : AllocId → Nat) (store : Store Tag State)
     request (renamedPlacement resolve store.nextId placement)
   some (sourceResult, targetResult)
 
+theorem pairedAllocate_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (hrefusal : allocate store request placement = none ∨
+      allocate (renameStore resolve store) request
+        (renamedPlacement resolve store.nextId placement) = none) :
+    pairedAllocate resolve store request placement = none := by
+  cases hrefusal with
+  | inl hsource => simp [pairedAllocate, hsource]
+  | inr htarget => simp [pairedAllocate, htarget]
+
 theorem pairedAllocate_decompose
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
