@@ -2289,6 +2289,32 @@ def pairedStoreLoadByte (resolve : AllocId → Nat) (store : Store Tag State)
   some { sourceStore := stores.1, targetStore := stores.2
          sourceLoad := sourceLoad, targetLoad := targetLoad }
 
+theorem pairedStoreLoadByte_decompose
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : StoreLoadPair Tag State)
+    (hresult : pairedStoreLoadByte resolve store id offset byte = some result) :
+    ∃ (stores : (Store Tag State × Footprint) ×
+        (Store Tag State × Footprint))
+      (sourceLoad : Byte Tag × Footprint)
+      (targetLoad : Byte Tag × Footprint),
+      result.sourceStore = stores.1 ∧
+      result.targetStore = stores.2 ∧
+      result.sourceLoad = sourceLoad ∧
+      result.targetLoad = targetLoad := by
+  cases hs : pairedStoreByte resolve store id offset byte with
+  | none => simp [pairedStoreLoadByte, hs] at hresult
+  | some stores =>
+      cases hsource : loadByte stores.1.1 id offset with
+      | none => simp [pairedStoreLoadByte, hs, hsource] at hresult
+      | some sourceLoad =>
+          cases htarget : loadByte stores.2.1 id offset with
+          | none => simp [pairedStoreLoadByte, hs, hsource, htarget] at hresult
+          | some targetLoad =>
+              simp [pairedStoreLoadByte, hs, hsource, htarget] at hresult
+              rcases hresult with rfl
+              exact ⟨stores, sourceLoad, targetLoad, rfl, rfl, rfl, rfl⟩
+
 def endLifetime (store : Store Tag State) (id : AllocId) :
     Option (Store Tag State × Footprint) := do
   let allocation ← lookup store id
