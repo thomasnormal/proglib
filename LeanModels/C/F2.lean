@@ -4477,6 +4477,15 @@ theorem pairedEndLifetime_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedEndLifetime_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (hrefusal : endLifetime store id = none ∨
+      endLifetime (renameStore resolve store) id = none) :
+    pairedEndLifetime resolve store id = none := by
+  cases hrefusal with
+  | inl hsource => simp [pairedEndLifetime, hsource]
+  | inr htarget => simp [pairedEndLifetime, htarget]
+
 def pairedLifetimeLookup (resolve : AllocId → Nat)
     (store : Store Tag State) (id : AllocId) : Bool :=
   match endLifetime store id, endLifetime (renameStore resolve store) id with
