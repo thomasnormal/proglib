@@ -169,6 +169,137 @@ theorem CombPhaseStep.progress
 
 #print axioms CombPhaseStep.progress
 
+/-! A blocking combinational phase needs an explicit termination receipt.  A
+successful resume may requeue its cursor when a reactive process wakes itself,
+so source-shaped admission must provide both the empty-continuation fact and
+the local scheduler diamond.  The following relation is the concrete
+terminal-path form of that receipt. -/
+structure CombPhaseConfluenceAdmission (E : CoreMemDesign) where
+  resume_ok : ∀ (s : CombPhaseState) (cursor : CombCursor), cursor ∈ s.active →
+    ∃ state view next, cursor.resume E s.state s.view = .ok (state, view, next)
+  continuation_empty : ∀ (s : CombPhaseState) (cursor : CombCursor)
+    (state : CoreMemState) (view : SvState) (next : CombCursor),
+    cursor ∈ s.active →
+    cursor.resume E s.state s.view = .ok (state, view, next) → next.work = []
+  diamond : ∀ {s u v : CombPhaseState},
+    CombPhaseStep E s u → CombPhaseStep E s v →
+      u = v ∨ ∃ w, CombPhaseStep E u w ∧ CombPhaseStep E v w
+
+inductive CombPhaseTerminalPath (E : CoreMemDesign) :
+    Nat → CombPhaseState → CombPhaseState → Prop where
+  | terminal {s} (h : CombPhaseQuiescent s) :
+      CombPhaseTerminalPath E 0 s s
+  | head {n s u t} (hn : ¬ CombPhaseQuiescent s)
+      (hstep : CombPhaseStep E s u)
+      (htail : CombPhaseTerminalPath E n u t) :
+      CombPhaseTerminalPath E (n + 1) s t
+
+private theorem CombPhaseStep.active_length_decreases
+    {E : CoreMemDesign} {s t : CombPhaseState}
+    (ad : CombPhaseConfluenceAdmission E)
+    (h : CombPhaseStep E s t) :
+    t.active.length < s.active.length := by
+  cases h with
+  | select hactive hresume =>
+      rename_i before after cursor next state view
+      have hmem : cursor ∈ s.active := by
+        rw [hactive]
+        simp
+      have hempty := ad.continuation_empty s cursor state view next hmem hresume
+      rw [hactive]
+      simp [CombPhaseState.after, hempty]
+
+theorem CombPhaseTerminalPath.exists
+    {E : CoreMemDesign} (ad : CombPhaseConfluenceAdmission E)
+    (s : CombPhaseState) :
+    ∃ n t, CombPhaseTerminalPath E n s t := by
+  have aux : ∀ k, ∀ s : CombPhaseState, s.active.length = k →
+      ∃ n t, CombPhaseTerminalPath E n s t := by
+    intro k
+    induction k using Nat.strongRecOn with
+    | ind k ih =>
+        intro s hlen
+        by_cases hempty : CombPhaseQuiescent s
+        · exact ⟨0, s, .terminal hempty⟩
+        · have hnonempty : s.active ≠ [] := by
+            simpa [CombPhaseQuiescent] using hempty
+          obtain ⟨cursor, rest, hsplit⟩ := List.exists_cons_of_ne_nil hnonempty
+          have hmem : cursor ∈ s.active := by simp [hsplit]
+          obtain ⟨state, view, next, hresume⟩ := ad.resume_ok s cursor hmem
+          let u := s.after state view next [] rest
+          have hstep : CombPhaseStep E s u := by
+            exact .select (by simpa [hsplit, u]) hresume
+          have hlt : u.active.length < k := by
+            have hdec := CombPhaseStep.active_length_decreases ad hstep
+            simpa [hlen] using hdec
+          obtain ⟨n, t, htail⟩ := ih u.active.length hlt u rfl
+          exact ⟨n + 1, t, .head hempty hstep htail⟩
+  exact aux s.active.length s rfl
+
+theorem CombPhaseTerminalPath.unique
+    {E : CoreMemDesign} (ad : CombPhaseConfluenceAdmission E)
+    {s t₁ t₂ : CombPhaseState} {n₁ n₂ : Nat}
+    (hp₁ : CombPhaseTerminalPath E n₁ s t₁)
+    (hp₂ : CombPhaseTerminalPath E n₂ s t₂) : t₁ = t₂ := by
+  have aux : ∀ k, ∀ s t₁ t₂ : CombPhaseState, ∀ n₁ n₂,
+      s.active.length = k →
+      CombPhaseTerminalPath E n₁ s t₁ →
+      CombPhaseTerminalPath E n₂ s t₂ → t₁ = t₂ := by
+    intro k
+    induction k using Nat.strongRecOn with
+    | ind k ih =>
+        intro s t₁ t₂ n₁ n₂ hlen hpath₁ hpath₂
+        cases hpath₁ with
+        | terminal hterm₁ =>
+            cases hpath₂ with
+            | terminal => rfl
+            | head _ hstep₂ _ =>
+                have hnil : s.active = [] := hterm₁
+                cases hstep₂ with
+                | select hactive _ =>
+                    rw [hnil] at hactive
+                    simp at hactive
+        | @head _ _ u₁ _ hn₁ hstep₁ tail₁ =>
+            cases hpath₂ with
+            | terminal hterm₂ =>
+                have hnil : s.active = [] := hterm₂
+                cases hstep₁ with
+                | select hactive _ =>
+                    rw [hnil] at hactive
+                    simp at hactive
+            | @head _ _ u₂ _ _ hstep₂ tail₂ =>
+                have hlt₁ : u₁.active.length < k := by
+                  simpa [hlen] using CombPhaseStep.active_length_decreases ad hstep₁
+                have hlt₂ : u₂.active.length < k := by
+                  simpa [hlen] using CombPhaseStep.active_length_decreases ad hstep₂
+                rcases ad.diamond hstep₁ hstep₂ with heq | ⟨w, huw₁, huw₂⟩
+                · subst u₂
+                  exact ih u₁.active.length hlt₁ u₁ t₁ t₂ _ _ rfl tail₁ tail₂
+                · obtain ⟨nw, tw, htw⟩ := CombPhaseTerminalPath.exists ad w
+                  have hnot₁ : ¬ CombPhaseQuiescent u₁ := by
+                    intro hq
+                    have hnil : u₁.active = [] := hq
+                    cases huw₁ with
+                    | select hactive _ =>
+                        rw [hnil] at hactive
+                        simp at hactive
+                  have hnot₂ : ¬ CombPhaseQuiescent u₂ := by
+                    intro hq
+                    have hnil : u₂.active = [] := hq
+                    cases huw₂ with
+                    | select hactive _ =>
+                        rw [hnil] at hactive
+                        simp at hactive
+                  have hjoin₁ := ih u₁.active.length hlt₁ u₁ t₁ tw _ _ rfl tail₁
+                    (.head hnot₁ huw₁ htw)
+                  have hjoin₂ := ih u₂.active.length hlt₂ u₂ t₂ tw _ _ rfl tail₂
+                    (.head hnot₂ huw₂ htw)
+                  exact hjoin₁.trans hjoin₂.symm
+  exact aux s.active.length s t₁ t₂ n₁ n₂ rfl hp₁ hp₂
+
+#print axioms CombPhaseTerminalPath.exists
+#print axioms CombPhaseTerminalPath.unique
+
 /-! Pure scalar expressions have the evaluator frame needed by the
 level-sensitive diamond.  The source access guard still has to establish the
 read agreement premise for the instantiated expression.  Keeping this lemma
