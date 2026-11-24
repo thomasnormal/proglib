@@ -1829,6 +1829,51 @@ theorem seq_noAggregate_of_noCallList : ∀ (es : List PExpr), LeanModels.Sv.PEx
       exact ⟨he h.1, hes h.2⟩
 end
 
+/-! A function-free expression also cannot contain the runtime `$test$plusargs`
+    system call.  `evalScalarAssignAtView` uses this fact to select the same
+    source-shaped evaluator branch as `settleRaw`. -/
+mutual
+theorem seq_noTestPlusargs_of_noCall : ∀ (e : PExpr), LeanModels.Sv.PExpr.hasFunctionCall e = false →
+    LeanModels.Sv.PExpr.hasTestPlusargs e = false
+  | .lit _, _ | .ident _, _ | .paramRef _ _, _ | .genvarRef _, _ | .enumRef _ _ _, _ | .int _, _ | .fill _, _
+  | .typeBits _ _, _ | .unsupported _ _, _ => rfl
+  | .functionCall _ _, h => by simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
+  | .aggregateMember _ _, h => by simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
+  | .sysCall _ _, h => by simp [LeanModels.Sv.PExpr.hasFunctionCall] at h
+  | .unary _ a, h | .resize _ a, h | .signedResize _ a, h | .squash2 _ a, h | .reduce _ a, h
+  | .cast _ a, h => by
+      exact seq_noTestPlusargs_of_noCall a (by simpa [LeanModels.Sv.PExpr.hasFunctionCall] using h)
+  | .binary _ a b, h | .bitSel a b, h | .repl a b, h => by
+      simp only [LeanModels.Sv.PExpr.hasFunctionCall, Bool.or_eq_false_iff] at h
+      simp only [LeanModels.Sv.PExpr.hasTestPlusargs, Bool.or_eq_false_iff]
+      exact ⟨seq_noTestPlusargs_of_noCall a h.1, seq_noTestPlusargs_of_noCall b h.2⟩
+  | .ternary a b c, h | .partSel a b c, h => by
+      simp only [LeanModels.Sv.PExpr.hasFunctionCall, Bool.or_eq_false_iff] at h
+      simp only [LeanModels.Sv.PExpr.hasTestPlusargs, Bool.or_eq_false_iff]
+      exact ⟨⟨seq_noTestPlusargs_of_noCall a h.1.1,
+        seq_noTestPlusargs_of_noCall b h.1.2⟩,
+        seq_noTestPlusargs_of_noCall c h.2⟩
+  | .concat xs, h | .arrayElem _ xs, h => by
+      exact seq_noTestPlusargs_of_noCallList xs
+        (by simpa [LeanModels.Sv.PExpr.hasFunctionCall] using h)
+  | .arrayPart _ xs _ a b, h => by
+      simp only [LeanModels.Sv.PExpr.hasFunctionCall, Bool.or_eq_false_iff] at h
+      simp only [LeanModels.Sv.PExpr.hasTestPlusargs, Bool.or_eq_false_iff]
+      exact ⟨⟨seq_noTestPlusargs_of_noCallList xs h.1.1,
+        seq_noTestPlusargs_of_noCall a h.1.2⟩,
+        seq_noTestPlusargs_of_noCall b h.2⟩
+
+theorem seq_noTestPlusargs_of_noCallList : ∀ (es : List PExpr),
+    LeanModels.Sv.PExpr.hasFunctionCallList es = false →
+    LeanModels.Sv.PExpr.hasTestPlusargsList es = false
+  | [], _ => rfl
+  | e :: es, h => by
+      simp only [LeanModels.Sv.PExpr.hasFunctionCallList, Bool.or_eq_false_iff] at h
+      simp only [LeanModels.Sv.PExpr.hasTestPlusargsList, Bool.or_eq_false_iff]
+      exact ⟨seq_noTestPlusargs_of_noCall e h.1,
+        seq_noTestPlusargs_of_noCallList es h.2⟩
+end
+
 /-- **`settleAssignAt` on the clocked profile is `settleRaw`**, keeping coherence, the memory and the materialized
 view. -/
 theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI) :
@@ -1878,7 +1923,7 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
                 obtain ⟨x, hx, hs⟩ := hs
                 refine hstep x hs ?_
                 simp only [CoreMemDesign.evalScalarAssignAtView, hmr, hfc, Bool.and_false,
-                  Bool.true_or, ↓reduceIte]
+                  Bool.true_or, ↓reduceIte, seq_noTestPlusargs_of_noCall value hfc]
                 rw [CoreMemDesign.evalExpr_eq hmc E.env (some dc.width) value hfc, hv]
                 exact hx
               · rw [Bool.not_eq_true] at hmr
@@ -1888,7 +1933,8 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
                 obtain ⟨x, hx, hs⟩ := hs
                 refine hstep x hs ?_
                 simp only [CoreMemDesign.evalScalarAssignAtView, hmr, hfc, seq_noAggregate_of_noCall value hfc,
-                  Bool.or_false, Bool.and_false, Bool.false_eq_true, ↓reduceIte, hc']
+                  Bool.or_false, Bool.and_false, Bool.false_eq_true, ↓reduceIte,
+                  seq_noTestPlusargs_of_noCall value hfc, hc']
                 exact hx
           | _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | edge f =>
