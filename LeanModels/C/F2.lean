@@ -1736,6 +1736,14 @@ theorem pairedCopySnapshot_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedCopySnapshot_success
+    [BEq Tag] (resolve : AllocId → Nat)
+    (source destination : List (Byte Tag))
+    (hsame : source.length = destination.length) :
+    pairedCopySnapshot resolve source destination =
+      some (source, source.map (renameByte resolve)) := by
+  simp [pairedCopySnapshot, copySnapshot, hsame, List.length_map]
+
 theorem copySnapshot_preserves_length
     (source destination : List (Byte Tag)) (result : List (Byte Tag))
     (hresult : copySnapshot source destination = some result) :
