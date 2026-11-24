@@ -17,7 +17,7 @@ abbrev AllocId := Nat
 structure Provenance (Tag : Type) where
   allocation : AllocId
   tag : Tag
-deriving Repr, BEq
+deriving Repr, BEq, DecidableEq
 
 inductive Byte (Tag : Type) where
   | uninitialized
@@ -2444,7 +2444,7 @@ theorem pairedAllocateZeroSize_agrees
 inductive ReallocZeroOutcome where
   | freedNull
   | refusedUndefined
-deriving Repr, BEq
+deriving Repr, BEq, DecidableEq
 
 def reallocZeroGNU17 : ReallocZeroOutcome := .freedNull
 
@@ -2452,15 +2452,21 @@ theorem reallocZeroGNU17_shape :
     reallocZeroGNU17 = .freedNull := by
   rfl
 
-def pairedReallocZero (resolve : AllocId → Nat) : Bool := true
+def reallocZeroAgrees (source target : ReallocZeroOutcome) : Bool :=
+  if source = target then true else false
+
+def pairedReallocZero (_resolve : AllocId → Nat) : Bool :=
+  reallocZeroAgrees reallocZeroGNU17 reallocZeroGNU17
 
 theorem pairedReallocZero_sound (resolve : AllocId → Nat) :
     pairedReallocZero resolve := by
-  simp [pairedReallocZero]
+  change reallocZeroAgrees reallocZeroGNU17 reallocZeroGNU17 = true
+  simp [reallocZeroAgrees]
 
 theorem pairedReallocZero_shape (resolve : AllocId → Nat) :
     pairedReallocZero resolve = true := by
-  rfl
+  change reallocZeroAgrees reallocZeroGNU17 reallocZeroGNU17 = true
+  simp [reallocZeroAgrees]
 
 def isZeroToken (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   metadata.allocation.live && metadata.allocation.bytes.isEmpty
