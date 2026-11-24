@@ -732,6 +732,19 @@ theorem pairedTypedStoreMetadataByte_decompose
           simp [pairedTypedStoreMetadataByte, hs, ht] at hresult
           exact ⟨sourceResult, targetResult, hresult.2.symm⟩
 
+theorem pairedTypedStoreMetadataByte_refusal
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (hrefusal : typedStoreMetadataByte metadata offset typeId byte = none ∨
+      typedStoreMetadataByte (renameMetadata resolve id metadata) offset typeId
+        (renameByte resolve byte) = none) :
+    pairedTypedStoreMetadataByte resolve id metadata offset typeId byte = none := by
+  cases hrefusal with
+  | inl hsource => simp [pairedTypedStoreMetadataByte, hsource]
+  | inr htarget => simp [pairedTypedStoreMetadataByte, htarget]
+
 theorem pairedTypedStoreMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
