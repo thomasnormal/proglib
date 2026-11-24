@@ -4977,7 +4977,32 @@ theorem allocateMetadata_rejects_failure
 def pairedAllocateMetadata (resolve : AllocId → Nat) (id : AllocId)
     (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) : Bool :=
-  true
+  match allocateMetadata request locations placement,
+    allocateMetadata (renameAllocationRequest resolve request) locations
+      (renamedPlacement resolve id placement) with
+  | some _, some _ => true
+  | none, none => true
+  | _, _ => false
+
+theorem pairedAllocateMetadata_both_success
+    (resolve : AllocId → Nat) (id : AllocId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (hsource : allocateMetadata request locations placement = some source)
+    (htarget : allocateMetadata (renameAllocationRequest resolve request) locations
+      (renamedPlacement resolve id placement) = some target) :
+    pairedAllocateMetadata resolve id request locations placement = true := by
+  simp [pairedAllocateMetadata, hsource, htarget]
+
+theorem pairedAllocateMetadata_both_refused
+    (resolve : AllocId → Nat) (id : AllocId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (hsource : allocateMetadata request locations placement = none)
+    (htarget : allocateMetadata (renameAllocationRequest resolve request) locations
+      (renamedPlacement resolve id placement) = none) :
+    pairedAllocateMetadata resolve id request locations placement = true := by
+  simp [pairedAllocateMetadata, hsource, htarget]
 
 #guard (allocate (Tag := Unit) (State := Unit)
   { allocations := [], nextId := 0 }
