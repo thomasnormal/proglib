@@ -2546,7 +2546,7 @@ theorem renameZeroTokenMetadata_preserves_wellFormed
 def pairedZeroTokenEqual (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId) : Bool :=
   zeroTokenEqual (renameZeroTokenMetadata resolve left)
-    (renameZeroTokenMetadata resolve right) =
+    (renameZeroTokenMetadata resolve right) ==
     zeroTokenEqual left right
 
 theorem pairedZeroTokenEqual_sound (resolve : AllocId → Nat)
