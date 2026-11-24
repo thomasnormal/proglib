@@ -2541,6 +2541,14 @@ theorem freePointer_dead_shape
     freePointer (some metadata) = .stalePointer := by
   simp [freePointer, hdead]
 
+theorem freeMetadata_result_stale_pointer
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : freeMetadata metadata = some result) :
+    freePointer (some result.1) = .stalePointer := by
+  have hdead := freeMetadata_marks_dead metadata result hresult
+  simp [freePointer, hdead]
+
 theorem freePointer_live_or_dead
     (metadata : AllocationMetadata Tag State TypeId) :
     freePointer (some metadata) = .freed ∨
