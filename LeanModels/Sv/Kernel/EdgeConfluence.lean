@@ -176,10 +176,11 @@ theorem CoreMemDesign.edge_evalExprLocals_two_write_frame_of_driver_closure
   exact CoreMemDesign.edge_evalExprLocals_two_write_frame_of_parser_closure
     hc hxN hxM hmem hcall hne hclosureN hclosureM hguardN hguardM
 
-/-! The paired form keeps the two actual evaluator expressions separate.  It
-uses the same driver-closure receipts for each expression in both write
-orders, which is the frame needed by a two-process diamond. -/
-theorem CoreMemDesign.edge_evalExprLocals_two_expr_write_frame_of_driver_closure
+/-! The paired cross-write form keeps the two actual evaluator expressions
+separate.  Each expression is framed only against the other process's write,
+which permits a process to read its own target while still discharging the
+cross-resume obligations of a two-process diamond. -/
+theorem CoreMemDesign.edge_evalExprLocals_two_expr_cross_write_frame_of_driver_closure
     {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
     {st : CoreMemState} {ctxN ctxM : Option Nat} {locals : SvState}
     {eN eM : PExpr} {n m : String} {xN xM : VarId} {vN vM : LVec}
@@ -196,30 +197,19 @@ theorem CoreMemDesign.edge_evalExprLocals_two_expr_write_frame_of_driver_closure
       y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN)
     (hclosureM : ∀ y ∈ E.readsV env elems ctxM eM,
       y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM)
-    (hguardNN : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN, y ≠ n)
-    (hguardNM : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN, y ≠ m)
     (hguardMN : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM, y ≠ n)
-    (hguardMM : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM, y ≠ m) :
-    E.evalExprLocals env elems
-        (E.setScalarState (E.setScalarState st n vN) m vM) ctxM locals eM =
-      E.evalExprLocals env elems
-        (E.setScalarState (E.setScalarState st m vM) n vN) ctxM locals eM ∧
-    E.evalExprLocals env elems
-        (E.setScalarState (E.setScalarState st n vN) m vM) ctxN locals eN =
-      E.evalExprLocals env elems
-        (E.setScalarState (E.setScalarState st m vM) n vN) ctxN locals eN := by
-  apply CoreMemDesign.evalExprLocals_two_expr_setScalarState_order_frame
-    hc hxN hxM hmemN hcallN hmemM hcallM hne
-  · intro y hy
-    exact hguardMN y (hclosureM y hy)
-  · intro y hy
-    exact hguardMM y (hclosureM y hy)
-  · intro y hy
-    exact hguardNN y (hclosureN y hy)
-  · intro y hy
-    exact hguardNM y (hclosureN y hy)
+    (hguardNM : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN, y ≠ m) :
+    E.evalExprLocals env elems (E.setScalarState st n vN) ctxM locals eM =
+        E.evalExprLocals env elems st ctxM locals eM ∧
+      E.evalExprLocals env elems (E.setScalarState st m vM) ctxN locals eN =
+        E.evalExprLocals env elems st ctxN locals eN := by
+  constructor
+  · exact CoreMemDesign.edge_evalExprLocals_frame_of_driver_closure
+      (v := vN) hc hxN hmemM hcallM hne hclosureM hguardMN |>.symm
+  · exact CoreMemDesign.edge_evalExprLocals_frame_of_driver_closure
+      (v := vM) hc hxM hmemN hcallN hne hclosureN hguardNM |>.symm
 
-#print axioms CoreMemDesign.edge_evalExprLocals_two_expr_write_frame_of_driver_closure
+#print axioms CoreMemDesign.edge_evalExprLocals_two_expr_cross_write_frame_of_driver_closure
 
 def EdgeScheduleStep (E : CoreMemDesign) (before after v : SvState) (mv : MemV)
     (s t : EdgeScheduleState) : Prop :=
