@@ -4490,11 +4490,32 @@ structure PlacementAgreement where
 
 def PlacementAgreement.agrees (_agreement : PlacementAgreement) : Bool := true
 
+def PlacementAgreement.agreesAt (agreement : PlacementAgreement) (id : AllocId) : Bool :=
+  agreement.left id == agreement.right id
+
+theorem PlacementAgreement.agreesAt_sound
+    (agreement : PlacementAgreement) (id : AllocId)
+    (h : agreement.agreesAt id = true) :
+    agreement.left id = agreement.right id := by
+  simpa [PlacementAgreement.agreesAt] using h
+
+theorem PlacementAgreement.agreesAt_refusal
+    (agreement : PlacementAgreement) (id : AllocId)
+    (h : agreement.left id ≠ agreement.right id) :
+    agreement.agreesAt id = false := by
+  simp [PlacementAgreement.agreesAt, h]
+
 def zeroTokenPlacementAgreement (left right : AllocationMetadata Tag State TypeId) :
     PlacementAgreement :=
   { left := fun _ => left.allocation.address
     right := fun _ => right.allocation.address
     exposed := fun _ => false }
+
+theorem zeroTokenPlacementAgreement_agreesAt
+    (left right : AllocationMetadata Tag State TypeId)
+    (id : AllocId) (haddress : left.allocation.address = right.allocation.address) :
+    (zeroTokenPlacementAgreement left right).agreesAt id = true := by
+  simp [zeroTokenPlacementAgreement, PlacementAgreement.agreesAt, haddress]
 
 def placementOf (store : Store Tag State) (id : AllocId) : Option Nat :=
   (lookup store id).bind Allocation.address
