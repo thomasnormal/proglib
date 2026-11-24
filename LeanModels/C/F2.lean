@@ -2405,6 +2405,15 @@ theorem renameZeroTokenMetadata_idempotent
       | mk live address bytes state =>
           cases address <;> rfl
 
+theorem renameZeroTokenMetadata_preserves_wellFormed
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (h : metadata.wellFormed 0) :
+    (renameZeroTokenMetadata resolve metadata).wellFormed 0 := by
+  unfold AllocationMetadata.wellFormed at h ⊢
+  exact ⟨by simpa [renameZeroTokenMetadata] using h.1,
+    by simpa [renameZeroTokenMetadata] using h.2⟩
+
 def pairedZeroTokenEqual (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId) : Bool :=
   zeroTokenEqual (renameZeroTokenMetadata resolve left)
