@@ -2139,9 +2139,15 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         refuseUnsupported "unsequenced side effects in call arguments"
       match calleeName callee with
       | some _ =>
-          let vs ← evalArgs ctx args
-          ctx.call callee none (args.zipWith (fun e v =>
-            { value := v, promotedType := e.structuredType?, sourceExpr := some e }) vs)
+          match calleeName callee with
+          | some "__builtin_constant_p" =>
+              let placeholders := args.map (fun e =>
+                { value := .undef, promotedType := e.structuredType?, sourceExpr := some e })
+              ctx.call callee none placeholders
+          | _ =>
+              let vs ← evalArgs ctx args
+              ctx.call callee none (args.zipWith (fun e v =>
+                { value := v, promotedType := e.structuredType?, sourceExpr := some e }) vs)
       | none =>
           let target ← evalArgs ctx [callee]
           let vs ← evalArgs ctx args
