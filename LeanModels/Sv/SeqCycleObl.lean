@@ -1086,6 +1086,65 @@ def CoreMemProc.nbaMemoryP : CoreMemProc → Bool
 
 def CoreMemProc.nbaEdgeP (p : CoreMemProc) : Bool := p.nbaWholeP || p.nbaMemoryP
 
+/-! A procedural memory loop's body is in the evaluator's loop-body profile.
+    The statement is about `loopNbaMemory`, which excludes nested loops. -/
+mutual
+theorem PStmt.loopNbaMemory_loopBodyB : ∀ (s : PStmt), s.loopNbaMemory = true → s.loopBodyB = true
+  | .nbaAssignL (.arrayElem _ indices) _, h => by
+      cases indices with
+      | nil => simp [PStmt.loopNbaMemory] at h
+      | cons _ rest =>
+          cases rest with
+          | nil => simp [PStmt.loopNbaMemory, PStmt.loopBodyB]
+          | cons _ _ => simp [PStmt.loopNbaMemory] at h
+  | .ifStmt _ y n, h => by
+      simp only [PStmt.loopNbaMemory, Bool.and_eq_true] at h
+      simp only [PStmt.loopBodyB, Bool.and_eq_true]
+      exact ⟨PStmt.loopNbaMemory_loopBodyB y h.1, PStmt.optLoopNbaMemory_loopBodyB n h.2⟩
+  | .block body, h => by
+      simp only [PStmt.loopNbaMemory] at h
+      simpa [PStmt.loopBodyB] using PStmt.listLoopNbaMemory_loopBodyB body h
+  | .caseStmt _ items d _ _, h => by
+      simp only [PStmt.loopNbaMemory, Bool.and_eq_true] at h
+      simp only [PStmt.loopBodyB, Bool.and_eq_true]
+      exact ⟨PStmt.itemsLoopNbaMemory_loopBodyB items h.1, PStmt.optLoopNbaMemory_loopBodyB d h.2⟩
+  | .nbaAssign .., h => by simp [PStmt.loopNbaMemory] at h
+  | .nbaAssignL (.ident _) _, h => by simp [PStmt.loopNbaMemory] at h
+  | .nbaAssignL (.bitSel _ _) _, h => by simp [PStmt.loopNbaMemory] at h
+  | .nbaAssignL (.partSel _ _ _) _, h => by simp [PStmt.loopNbaMemory] at h
+  | .nbaAssignL (.arrayPart _ _ _ _ _) _, h => by simp [PStmt.loopNbaMemory] at h
+  | .nbaAssignL (.aggregateMember _ _) _, h => by simp [PStmt.loopNbaMemory] at h
+  | .nbaAssignL (.concat _) _, h => by simp [PStmt.loopNbaMemory] at h
+  | .blockingAssign .., h => by simp [PStmt.loopNbaMemory] at h
+  | .blockingAssignL .., h => by simp [PStmt.loopNbaMemory] at h
+  | .forLoop .., h => by simp [PStmt.loopNbaMemory] at h
+  | .localDecl .., h => by simp [PStmt.loopNbaMemory] at h
+  | .automaticDecl .., h => by simp [PStmt.loopNbaMemory] at h
+  | .unsupported .., h => by simp [PStmt.loopNbaMemory] at h
+
+theorem PStmt.optLoopNbaMemory_loopBodyB : ∀ (o : Option PStmt),
+    PStmt.optLoopNbaMemory o = true → PStmt.optLoopBodyB o = true
+  | none, _ => rfl
+  | some s, h => by
+      simpa [PStmt.optLoopNbaMemory, PStmt.optLoopBodyB] using PStmt.loopNbaMemory_loopBodyB s h
+
+theorem PStmt.listLoopNbaMemory_loopBodyB : ∀ (xs : List PStmt),
+    PStmt.listLoopNbaMemory xs = true → PStmt.listLoopBodyB xs = true
+  | [], _ => rfl
+  | s :: ss, h => by
+      simp only [PStmt.listLoopNbaMemory, Bool.and_eq_true] at h
+      simp only [PStmt.listLoopBodyB, Bool.and_eq_true]
+      exact ⟨PStmt.loopNbaMemory_loopBodyB s h.1, PStmt.listLoopNbaMemory_loopBodyB ss h.2⟩
+
+theorem PStmt.itemsLoopNbaMemory_loopBodyB : ∀ (xs : List (List PExpr × PStmt)),
+    PStmt.itemsLoopNbaMemory xs = true → PStmt.itemsLoopBodyB xs = true
+  | [], _ => rfl
+  | (_, s) :: ss, h => by
+      simp only [PStmt.itemsLoopNbaMemory, Bool.and_eq_true] at h
+      simp only [PStmt.itemsLoopBodyB, Bool.and_eq_true]
+      exact ⟨PStmt.loopNbaMemory_loopBodyB s h.1, PStmt.itemsLoopNbaMemory_loopBodyB ss h.2⟩
+end
+
 def CoreMemDesign.oblEdgeOrderMemory (E : CoreMemDesign) : Bool :=
   let edges := E.processes.toList.filter CoreMemProc.isEdge
   decide (edges.length ≤ 1) || E.processes.toList.all CoreMemProc.nbaEdgeP

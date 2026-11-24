@@ -40,6 +40,10 @@ example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
       (∀ u ∈ mq, u.1 ∈ body.writes) := by
   exact CoreMemDesign.execV_forLoop_memory_records env v mv hloop hvals hbody
 
+example (body : PStmt) (h : PStmt.loopNbaMemory body = true) :
+    PStmt.loopBodyB body = true := by
+  exact PStmt.loopNbaMemory_loopBodyB body h
+
 /-! The memory-aware edge-order successor is exercised on the real `edgesV`
     boundary.  The frame receipt stays an explicit premise until the
     predicate-to-receipt proof is widened for every admitted body shape. -/
