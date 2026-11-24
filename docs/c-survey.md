@@ -5,7 +5,7 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 - verdicts: 1385/2114 MATCH (passed 1385, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `65ed9007ac5005542246773a4998f613103e8fdb`
+- measured commit: `8a186a0364b8a6474f53dafaa3fbdd82e157b8b0`
 - measured at: `2026-11-24T02:14:07Z`
 
 ## Verdict counts
