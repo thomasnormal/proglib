@@ -3914,6 +3914,13 @@ def renamedPlacement (resolve : AllocId → Nat) (id : AllocId) :
   | .unaddressable => .unaddressable
   | .fail => .fail
 
+theorem renamedPlacement_comp
+    (first second : AllocId → Nat) (id : AllocId)
+    (placement : Placement) :
+    renamedPlacement second id (renamedPlacement first id placement) =
+      renamedPlacement second id placement := by
+  cases placement <;> rfl
+
 def pairedAllocateAligned (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment : Nat) : Bool :=
