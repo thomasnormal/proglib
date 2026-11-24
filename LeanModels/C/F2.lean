@@ -1474,6 +1474,33 @@ theorem pairedFreeMetadata_preserves_locations
           exact ⟨freeMetadata_preserves_locations _ _ hs,
             freeMetadata_preserves_locations _ _ ht⟩
 
+theorem pairedFreeMetadata_preserves_payload
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.allocation.address = metadata.allocation.address ∧
+      result.1.1.allocation.bytes = metadata.allocation.bytes ∧
+      result.1.1.allocation.state = metadata.allocation.state ∧
+      result.2.1.allocation.address =
+        (renameZeroTokenMetadata resolve metadata).allocation.address ∧
+      result.2.1.allocation.bytes =
+        (renameZeroTokenMetadata resolve metadata).allocation.bytes ∧
+      result.2.1.allocation.state =
+        (renameZeroTokenMetadata resolve metadata).allocation.state := by
+  cases hs : freeMetadata metadata with
+  | none => simp [pairedFreeMetadata, hs] at hresult
+  | some sourceResult =>
+      cases ht : freeMetadata (renameZeroTokenMetadata resolve metadata) with
+      | none => simp [pairedFreeMetadata, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedFreeMetadata, hs, ht] at hresult
+          rcases hresult with rfl
+          obtain ⟨hsa, hsb, hsc⟩ := freeMetadata_preserves_payload _ _ hs
+          obtain ⟨hta, htb, htc⟩ := freeMetadata_preserves_payload _ _ ht
+          exact ⟨hsa, hsb, hsc, hta, htb, htc⟩
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
