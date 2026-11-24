@@ -4813,6 +4813,68 @@ theorem dimTable_summary {σ : String → Int} :
         have h2 : (dt.name == n) = false := by rw [hn]; exact beq_eq_false_iff_ne.2 (Ne.symm hnm)
         simp [h1, h2, hrest]
 
+/-- Fast geometry-table summary: the optimized table has the same declaration
+scope and summary-facing values as the ordinary table, without rebuilding the
+already-computed geometry field at each declaration. -/
+theorem dimTableFast_summary {σ : String → Int} :
+    ∀ (ds : List PDecl) (sd : List DeclT), declsOf? ds = .ok sd →
+      ∀ (env : IEnv), (∀ dt ∈ sd, ∀ n ∈ dt.affNames, env.intVal? n = some (σ n)) →
+        ∀ n, (dimTableFast env ds).lookup n = (sd.find? (fun dt => dt.name == n)).map (DeclT.vals σ)
+  | [], sd, h, env, _, n => by
+      simp [declsOf?] at h; subst h; simp [dimTableFast]
+  | pd :: rest, sd, h, env, hag, n => by
+      obtain ⟨dt, sd', hd, hr, rfl⟩ := declsOf?_cons h
+      obtain ⟨hn, -, -, -, -, ⟨r, hr'⟩, -, hdim, -, -⟩ := declOf?_spec hd
+      let env0 : IEnv := { env with dims := [] }
+      let step : IEnv → IEnv := fun e =>
+        match pd.type.width e with
+        | .ok w => { e with widths := (pd.name, w) :: e.widths, dims := [] }
+        | .error _ => { e with dims := [] }
+      have hrest := dimTableFast_summary rest sd' hr (step env0)
+        (fun dt' hdt' n' hn' => by
+          have hv := hag dt' (by simp [hdt']) n' hn'
+          have hstep : (step env0).intVal? n' = env.intVal? n' := by
+            dsimp [step, env0]
+            cases hwidth : pd.type.width { env with dims := [] } with
+            | ok w => simp [hwidth, IEnv.intVal?]
+            | error e => simp [hwidth, IEnv.intVal?]
+          rw [hstep]
+          exact hv) n
+      have hev : evalDims env0 dt.pdims = .ok (dt.vals σ) :=
+        evalDims_dims dt.dims hdim (dt_agree (fun n hn => by
+          have hv := hag dt (by simp) n hn
+          change env0.intVal? n = some (σ n)
+          rw [show env0.intVal? n = env.intVal? n by simp [env0, IEnv.intVal?]]
+          exact hv))
+      dsimp [env0] at hev
+      cases hwidth : (PType.packed dt.pdims r).width ({ env with dims := [] }) with
+      | ok w =>
+          simp only [dimTableFast, hr', hwidth, hev, List.lookup, List.find?_cons]
+          have hs : step env0 = { env with dims := [], widths := (pd.name, w) :: env.widths } := by
+            simp [step, env0, hr', hwidth]
+          by_cases hnm : n = pd.name
+          · subst hnm
+            have h1 : (pd.name == pd.name) = true := beq_self_eq_true _
+            have h2 : (dt.name == pd.name) = true := by simp [hn]
+            simp [h2, hrest]
+          · have h1 : (n == pd.name) = false := beq_eq_false_iff_ne.2 hnm
+            have h2 : (dt.name == n) = false := by rw [hn]; exact beq_eq_false_iff_ne.2 (Ne.symm hnm)
+            rw [← hs]
+            simpa [h1, h2] using hrest
+      | error e =>
+          simp only [dimTableFast, hr', hwidth, hev, List.lookup, List.find?_cons]
+          have hs : step env0 = { env with dims := [] } := by
+            simp [step, env0, hr', hwidth]
+          by_cases hnm : n = pd.name
+          · subst hnm
+            have h1 : (pd.name == pd.name) = true := beq_self_eq_true _
+            have h2 : (dt.name == pd.name) = true := by simp [hn]
+            simp [h2, hrest]
+          · have h1 : (n == pd.name) = false := beq_eq_false_iff_ne.2 hnm
+            have h2 : (dt.name == n) = false := by rw [hn]; exact beq_eq_false_iff_ne.2 (Ne.symm hnm)
+            rw [← hs]
+            simpa [h1, h2] using hrest
+
 /-! `$clog2` has the same symbolic constant-expression class in a 32-bit
 signed `int` localparam as in `integer`. -/
 private def guardInt32Ty : PType := .packed [⟨.int 31, .int 0⟩] (some 32)

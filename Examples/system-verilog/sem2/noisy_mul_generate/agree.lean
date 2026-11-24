@@ -133,15 +133,27 @@ theorem noisy_pp_expand_flatten
                 ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
                 andInst child).2)
             (intRange 0 N.toNat)) (intRange 0 N.toNat)) := by
-  apply noisy_pp_expand_family cb env elems F N hFuel
-    (fun i j => flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
-      ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
-      andInst child)
-    hOuterBound hOuterValue hInnerBound hInnerValue
-  intro i j hi hNi hj hNj
-  apply expandListH_singleton_ok rfl
-  rw [generated_child_at_prefix (andInst_prefix env i j) (hChild i j)]
-  rfl
+  simpa [ppGen] using
+    (generated_child_nested_flatten
+      (cb := cb) (env := env) (elems := elems) (F := F)
+      (outerLabel := some "g_pp") (innerLabel := some "g_pp_j")
+      (outerG := "i") (innerG := "j")
+      (outerInit := .int 0)
+      (outerBound := .paramRef "N" none)
+      (outerRc := some 4)
+      (outerI0 := 0) (outerN := N)
+      (innerInit := .int 0)
+      (innerBound := .paramRef "N" none)
+      (innerRc := some 4)
+      (innerI0 := 0) (innerN := N)
+      (inst := andInst) (child := child)
+      (pref := fun i j =>
+        "g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+      (by simp) hOuterBound hOuterValue (by simpa using hFuel)
+      (by intro i; simp)
+      hInnerBound hInnerValue (by simpa using hFuel)
+      (by intro i j; exact andInst_prefix env i j)
+      hChild)
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
 

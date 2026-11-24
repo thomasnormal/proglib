@@ -141,6 +141,58 @@ theorem generated_child_nested_family
     (f := g) hOuterInit hOuterBound hOuterValue hOuterFuel houter]
 
 
+/-- A nested generated child family whose leaf is already a decided child
+design.  This is the hand-proof bridge from the source-shaped two-level loop
+to the ordinary flattened declarations and processes; `prefix` is allowed to
+depend on both genvar values, so lexical names remain valuation-dependent. -/
+theorem generated_child_nested_flatten
+    {cb : ChildInst} {env : IEnv} {elems : List (String × Nat)} {F : Nat}
+    {outerLabel innerLabel : Option String} {outerG innerG : String}
+    {outerInit outerBound innerInit innerBound : PExpr}
+    {outerRc innerRc : Option Nat} {outerI0 outerN innerI0 innerN : Int}
+    {inst : PInst} {child : Design2} {pref : Int → Int → String}
+    (hOuterInit : evalInt env outerInit = .ok outerI0)
+    (hOuterBound : ∀ i : Int, outerBound.isInt (env.bindVal outerG i) = true)
+    (hOuterValue : ∀ i : Int, evalInt (env.bindVal outerG i) outerBound = .ok outerN)
+    (hOuterFuel : (outerN - outerI0).toNat < F)
+    (hInnerInit : ∀ outer : Int,
+      evalInt (env.bindVal outerG outer) innerInit = .ok innerI0)
+    (hInnerBound : ∀ outer i : Int,
+      innerBound.isInt ((env.bindVal outerG outer).bindVal innerG i) = true)
+    (hInnerValue : ∀ outer i : Int,
+      evalInt ((env.bindVal outerG outer).bindVal innerG i) innerBound = .ok innerN)
+    (hInnerFuel : (innerN - innerI0).toNat < F)
+    (hPrefix : ∀ outer inner : Int,
+      inst.prefix ((env.bindVal outerG outer).bindVal innerG inner) =
+        .ok (pref outer inner))
+    (hChild : ∀ outer inner : Int,
+      cb ((env.bindVal outerG outer).bindVal innerG inner) inst = .ok child) :
+    (GenItem.genFor outerLabel outerG outerInit
+      (.binary .slt (.genvarRef outerG) outerBound)
+      (.unary .inc (.genvarRef outerG)) outerRc
+      [GenItem.genFor innerLabel innerG innerInit
+        (.binary .slt (.genvarRef innerG) innerBound)
+        (.unary .inc (.genvarRef innerG)) innerRc [.inst inst]]).expandH cb env elems F =
+      .ok
+        ((intRange outerI0 (outerN - outerI0).toNat).flatMap fun outer =>
+          (intRange innerI0 (innerN - innerI0).toNat).flatMap fun inner =>
+            (flattenInst ((env.bindVal outerG outer).bindVal innerG inner) elems
+              (pref outer inner) inst child).1,
+         (intRange outerI0 (outerN - outerI0).toNat).flatMap fun outer =>
+          (intRange innerI0 (innerN - innerI0).toNat).flatMap fun inner =>
+            (flattenInst ((env.bindVal outerG outer).bindVal innerG inner) elems
+              (pref outer inner) inst child).2) := by
+  apply generated_child_nested_family
+    (f := fun outer inner =>
+      flattenInst ((env.bindVal outerG outer).bindVal innerG inner) elems
+        (pref outer inner) inst child)
+    hOuterInit hOuterBound hOuterValue hOuterFuel hInnerInit hInnerBound hInnerValue hInnerFuel
+  intro outer inner hOuter0 hOuterN hInner0 hInnerN
+  apply expandListH_singleton_ok (h := by simp [GenItem.listInstFree, GenItem.instFree])
+  rw [generated_child_at_prefix (hPrefix outer inner) (hChild outer inner)]
+  rfl
+
+
 end LeanModels.Sv
 
 namespace LeanModels.Sv

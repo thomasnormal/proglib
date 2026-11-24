@@ -335,7 +335,7 @@ theorem surfaceFuel_gt (args : List Int) (x : Nat)
 function declarations (`functions`, which no comb theorem reads). -/
 theorem paramEnv2_dims {d : PDesign} {args : List Int} {env : IEnv}
     (h : d.paramEnv2 args = .ok env) :
-    ∃ (env2 : IEnv) (fs : List PFunction), env = { env2 with dims := dimTable env2 d.decls, functions := fs } := by
+    ∃ (env2 : IEnv) (fs : List PFunction), env = { env2 with dims := dimTableFast env2 d.decls, functions := fs } := by
   unfold PDesign.paramEnv2 at h
   simp only [Res.bind_eq_ok] at h
   obtain ⟨_, -, _, -, e0, -, e1, -, e2, -, pws, -, hfin⟩ := h
@@ -681,7 +681,7 @@ theorem mem_declNames_of_find {s : Summary} {n : String} (h : (s.find n).isSome 
 /-- The environment facts of the instantiation, from the declaration stage. -/
 theorem ctx_of_env {s : Summary} {d : PDesign} (hsd : declsOf? d.decls = .ok s.decls)
     {σ : String → Int} {env : IEnv}
-    (hdim : ∃ (env2 : IEnv) (fs : List PFunction), env = { env2 with dims := dimTable env2 d.decls, functions := fs })
+    (hdim : ∃ (env2 : IEnv) (fs : List PFunction), env = { env2 with dims := dimTableFast env2 d.decls, functions := fs })
     (hag : Agrees σ env s.params)
     (hdecl : ∀ dt ∈ s.decls, ∀ n ∈ dt.affNames, n ∈ s.params) :
     Ctx σ (env.withDecls (s.decls.map (DeclT.toDecl σ))) (s.decls.map fun dt => (dt.name, dt.elemW σ))
@@ -709,8 +709,8 @@ theorem ctx_of_env {s : Summary} {d : PDesign} (hsd : declsOf? d.decls = .ok s.d
     rw [lookup_elemW σ s.decls n]
     exact hn
   · intro n ds hn
-    have h1 := dimTable_summary d.decls s.decls hsd env2 hagd n
-    have h2 : env.dims = dimTable env2 d.decls := by rw [henv]
+    have h1 := dimTableFast_summary d.decls s.decls hsd env2 hagd n
+    have h2 : env.dims = dimTableFast env2 d.decls := by rw [henv]
     show env.dims.lookup n = _
     rw [h2, h1]
     exact hn
