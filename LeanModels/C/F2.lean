@@ -809,6 +809,40 @@ theorem pairedTypedStoreMetadataByte_preserves_lengths
             typedStoreMetadataByte_preserves_byte_length _ _ _ _ _ ht,
             typedStoreMetadataByte_preserves_length _ _ _ _ _ ht⟩
 
+theorem pairedTypedStoreMetadataByte_preserves_payload
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedTypedStoreMetadataByte resolve id metadata offset typeId byte =
+      some result) :
+    result.1.1.allocation.live = metadata.allocation.live ∧
+      result.1.1.allocation.address = metadata.allocation.address ∧
+      result.1.1.allocation.state = metadata.allocation.state ∧
+      result.2.1.allocation.live =
+        (renameMetadata resolve id metadata).allocation.live ∧
+      result.2.1.allocation.address =
+        (renameMetadata resolve id metadata).allocation.address ∧
+      result.2.1.allocation.state =
+        (renameMetadata resolve id metadata).allocation.state := by
+  cases hs : typedStoreMetadataByte metadata offset typeId byte with
+  | none => simp [pairedTypedStoreMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : typedStoreMetadataByte (renameMetadata resolve id metadata)
+          offset typeId (renameByte resolve byte) with
+      | none => simp [pairedTypedStoreMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedTypedStoreMetadataByte, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := hresult.2
+          rcases hpair with rfl
+          obtain ⟨hslive, hsaddress, hsstate⟩ :=
+            typedStoreMetadataByte_preserves_payload _ _ _ _ _ hs
+          obtain ⟨htlive, htaddress, htstate⟩ :=
+            typedStoreMetadataByte_preserves_payload _ _ _ _ _ ht
+          exact ⟨hslive, hsaddress, hsstate, htlive, htaddress, htstate⟩
+
 def typedLoadMetadataByte [BEq TypeId]
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) : Option (Byte Tag × Footprint) := do
