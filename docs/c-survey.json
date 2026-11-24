@@ -12,11 +12,11 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1185,
+   "passed": 1184,
    "refused-libc": 18,
    "refused-ub": 41,
    "refused-unsupported": 178,
-   "runner-error": 9
+   "runner-error": 10
   },
   "gcc.c23-run": {
    "not-parsed": 34,
@@ -32,11 +32,11 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1388,
+  "passed": 1387,
   "refused-libc": 20,
   "refused-ub": 47,
   "refused-unsupported": 313,
-  "runner-error": 10
+  "runner-error": 11
  },
  "dynamic_wall_ranking": [
   {
@@ -1310,8 +1310,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T03:30:00Z",
- "measured_commit": "95b6660267212cbad9fff280778db056748cced2",
+ "measured_at_utc": "2026-11-24T22:54:08Z",
+ "measured_commit": "db6f3e238",
  "pin": "C1-C3",
  "rows": [
   {
@@ -3960,7 +3960,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "Traceback (most recent call last):",
+   "detail": "Traceback (most recent call last): File extractors/c/extract.py\", line 1135, in <module> sys.exit(main()) ^^^^^^ File extractors/c/extract.py\", line 1121, in main env, unsup = extract(args.source, args.source_name, args.std) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ File extractors/c/extract.py\", line 920, in extract ex = Extractor(target, src.decode(), string_bytes, floating_bits, record_layouts) ^^^^^^^^^^^^ UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 98: invalid start byte",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "20000227-1.c",
@@ -13460,7 +13460,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/memcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/memcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/memcpy-chk.c:11:10: fatal error: 'chk.h' file not found 11 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/memcpy-chk.c",
@@ -13504,7 +13504,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/memmove-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/memmove-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/memmove-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/memmove-chk.c",
@@ -13597,7 +13597,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/mempcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/mempcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/mempcpy-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/mempcpy-chk.c",
@@ -13640,7 +13640,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/memset-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/memset-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/memset-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/memset-chk.c",
@@ -13726,7 +13726,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/pr23484-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/pr23484-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/pr23484-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/pr23484-chk.c",
@@ -13746,7 +13746,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/pr93262-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/pr93262-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/pr93262-chk.c:8:10: fatal error: 'chk.h' file not found 8 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/pr93262-chk.c",
@@ -13786,7 +13786,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/snprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/snprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/snprintf-chk.c:15:10: fatal error: 'chk.h' file not found 15 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/snprintf-chk.c",
@@ -13806,7 +13806,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/sprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/sprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/sprintf-chk.c:14:10: fatal error: 'chk.h' file not found 14 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/sprintf-chk.c",
@@ -13849,7 +13849,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/stpcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/stpcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/stpcpy-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/stpcpy-chk.c",
@@ -13869,7 +13869,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/stpncpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/stpncpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/stpncpy-chk.c:15:10: fatal error: 'chk.h' file not found 15 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/stpncpy-chk.c",
@@ -13889,7 +13889,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/strcat-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/strcat-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/strcat-chk.c:17:10: fatal error: 'chk.h' file not found 17 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strcat-chk.c",
@@ -14004,7 +14004,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/strcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/strcpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/strcpy-chk.c:12:10: fatal error: 'chk.h' file not found 12 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strcpy-chk.c",
@@ -14141,7 +14141,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/strncat-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/strncat-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/strncat-chk.c:16:10: fatal error: 'chk.h' file not found 16 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strncat-chk.c",
@@ -14232,7 +14232,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/strncpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/strncpy-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/strncpy-chk.c:15:10: fatal error: 'chk.h' file not found 15 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/strncpy-chk.c",
@@ -14544,7 +14544,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/vsnprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/vsnprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/vsnprintf-chk.c:16:10: fatal error: 'chk.h' file not found 16 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/vsnprintf-chk.c",
@@ -14564,7 +14564,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/builtins/vsprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/builtins/vsprintf-chk.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/builtins/vsprintf-chk.c:16:10: fatal error: 'chk.h' file not found 16 | #include \"chk.h\" | ^~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "builtins/vsprintf-chk.c",
@@ -15048,7 +15048,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/fprintf-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/fprintf-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/fprintf-2.c:12:10: fatal error: 'gcc_tmpnam.h' file not found 12 | #include \"gcc_tmpnam.h\" | ^~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "fprintf-2.c",
@@ -15627,7 +15627,7 @@
   },
   {
    "corpus": "gcc.c23-run",
-   "detail": "",
+   "detail": "src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:38:7: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 38 | if (nullptr || p1 || p2 || p3 || p4 || p5 || p6 || p7 || p8 || p9 || p10 | ^~~~~~~ ~~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:42:14: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 42 | _Bool b1 = nullptr; | ~~ ^~~~~~~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:44:14: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 44 | _Bool b3 = nptr; | ~~ ^~~~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:46:32: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 46 | _Bool b5 = _Generic(0, int : nullptr); | ~~ ^~~~~~~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:60:7: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 60 | f3 (nullptr); | ~~ ^~~~~~~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:181:11: warning: implicit conversion of nullptr constant to 'bool' [-Wnull-conversion] 181 | int x = nullptr ? 1 : 2; | ^~~~~~~ ~ | 0 src/gcc/testsuite/gcc.dg/c23-nullptr-1.c:209:28: warning: implicit conversion of nullptr constant to 'bool'",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "gcc/testsuite/gcc.dg/c23-nullptr-1.c",
@@ -17383,7 +17383,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/memcpy-a1.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/memcpy-a1.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/memcpy-a1.c:6:10: fatal error: 'memcpy-ax.h' file not found 6 | #include \"memcpy-ax.h\" | ^~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a1.c",
@@ -17393,7 +17393,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/memcpy-a2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/memcpy-a2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/memcpy-a2.c:6:10: fatal error: 'memcpy-ax.h' file not found 6 | #include \"memcpy-ax.h\" | ^~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a2.c",
@@ -17403,7 +17403,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/memcpy-a4.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/memcpy-a4.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/memcpy-a4.c:6:10: fatal error: 'memcpy-ax.h' file not found 6 | #include \"memcpy-ax.h\" | ^~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a4.c",
@@ -17413,7 +17413,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/memcpy-a8.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/memcpy-a8.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/memcpy-a8.c:6:10: fatal error: 'memcpy-ax.h' file not found 6 | #include \"memcpy-ax.h\" | ^~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "memcpy-a8.c",
@@ -17483,13 +17483,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
+   "detail": "wall-clock kill after 90s",
    "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "minmaxcmp-1.c",
    "sha256": "c8373ae57ea0dec72ae5329a74a82f467b092ce0c3f95a8a4ce9181a9bba503e",
    "static_walls": [],
-   "verdict": "passed"
+   "verdict": "runner-error"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17894,7 +17894,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/pr105777.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/pr105777.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/pr105777.c:3:10: fatal error: '../../gcc.dg/tree-ssa/pr105777.c' file not found 3 | #include \"../../gcc.dg/tree-ssa/pr105777.c\" | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr105777.c",
@@ -18055,7 +18055,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/pr109938.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/pr109938.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/pr109938.c:4:10: fatal error: '../../gcc.dg/tree-ssa/pr109938.c' file not found 4 | #include \"../../gcc.dg/tree-ssa/pr109938.c\" | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr109938.c",
@@ -18065,7 +18065,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/pr109986.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/pr109986.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/pr109986.c:4:10: fatal error: '../../gcc.dg/tree-ssa/pr109986.c' file not found 4 | #include \"../../gcc.dg/tree-ssa/pr109986.c\" | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr109986.c",
@@ -19514,7 +19514,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/pr30314.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/pr30314.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/pr30314.c:3:10: fatal error: '../../gcc.dg/tree-ssa/pr30314.c' file not found 3 | #include \"../../gcc.dg/tree-ssa/pr30314.c\" | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr30314.c",
@@ -21363,7 +21363,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/pr51581-1.c:11:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes]",
+   "detail": "src/pr51581-1.c:11:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 11 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-1.c:19:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 19 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-1.c:27:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 27 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-1.c:35:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 35 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-1.c:43:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 43 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-1.c:51:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 51 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline <path>",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr51581-1.c",
@@ -21373,7 +21373,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/pr51581-2.c:10:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes]",
+   "detail": "src/pr51581-2.c:10:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 10 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-2.c:18:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 18 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-2.c:26:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 26 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-2.c:34:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 34 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-2.c:42:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 42 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline src/pr51581-2.c:50:26: warning: unknown attribute 'noclone' ignored; did you mean 'noinline'? [-Wunknown-attributes] 50 | __attribute__((noinline, noclone)) void | ^~~~~~~ | noinline <path>",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr51581-2.c",
@@ -24779,7 +24779,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/pr98304-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/pr98304-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/pr98304-2.c:3:10: fatal error: '../../gcc.dg/pr98304-1.c' file not found 3 | #include \"../../gcc.dg/pr98304-1.c\" | ^~~~~~~~~~~~~~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "pr98304-2.c",
@@ -24896,7 +24896,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/printf-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/printf-2.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/printf-2.c:13:10: fatal error: 'gcc_tmpnam.h' file not found 13 | #include \"gcc_tmpnam.h\" | ^~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "printf-2.c",
@@ -25636,7 +25636,7 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: clang rejected src/user-printf.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one:",
+   "detail": "extract.py: clang rejected src/user-printf.c (exit 1). A partial AST is a DIFFERENT program, not a smaller one: src/user-printf.c:14:10: fatal error: 'gcc_tmpnam.h' file not found 14 | #include \"gcc_tmpnam.h\" | ^~~~~~~~~~~~~~ 1 error generated.",
    "dynamic_wall": "frontend",
    "manifest_status": "rejected",
    "name": "user-printf.c",

@@ -2,7 +2,7 @@
 
 Generated from `docs/c-survey.json` and `harness/c_cases.json`.
 
-The pinned GNU17 target currently has 1388/2114 MATCH rows in the active survey denominator. Measurement commit `95b6660267212cbad9fff280778db056748cced2`, date `2026-11-24T03:30:00Z`.
+The pinned GNU17 target currently has 1387/2114 MATCH rows in the active survey denominator. Measurement commit `db6f3e238`, date `2026-11-24T22:54:08Z`.
 
 A focused row is an admitted example when its harness expectation is `match`. A `refuse` row documents the exact refusal boundary. Corpus failures are listed as known wrong answers and remain separate from refusals.
 
@@ -21,7 +21,7 @@ A focused row is an admitted example when its harness expectation is `match`. A 
 ## control flow
 
 - admitted: `choose-expr` (match): `int main(void) { return __builtin_choose_expr(1, 7, 9); }`
-- refused: `pointer-goto-increment-refusal` (refuse) — goto-controlled pointer increment: `int main(void) { char a[2] = {0, 0}; char *p = a; goto out; out: p++; return p == a + 1 ? 0 : 1; }`
+- refused: `defined-goto-pointer-increment-boundary` (refuse) — goto-controlled pointer increment lacks an exact parser path: `int main(void) { int a[2] = { 0, 7 }; int *p = a; goto next; next: ++p; return *p == 7 ? 0 : 1; }`
 - known wrong: no scored failure in the current survey
 
 ## arrays
