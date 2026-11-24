@@ -588,6 +588,19 @@ theorem typedStoreMetadataByte_footprint
   rcases hresult with ⟨_, hEq⟩
   exact congrArg (fun pair => pair.2) hEq.symm
 
+theorem typedStoreMetadataByte_preserves_payload
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : typedStoreMetadataByte metadata offset typeId byte = some result) :
+    result.1.allocation.live = metadata.allocation.live ∧
+      result.1.allocation.address = metadata.allocation.address ∧
+      result.1.allocation.state = metadata.allocation.state := by
+  simp [typedStoreMetadataByte] at hresult
+  rcases hresult with ⟨_, hEq⟩
+  rcases hEq with rfl
+  exact ⟨rfl, rfl, rfl⟩
+
 def renameMetadata (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) :
     AllocationMetadata Tag State TypeId :=
