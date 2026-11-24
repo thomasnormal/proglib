@@ -4780,6 +4780,32 @@ theorem pairedAllocateFailure_sound
         (renamedPlacement resolve store.nextId placement) = none := by
   simpa [pairedAllocateFailure] using h
 
+theorem pairedAllocateFailure_both_refused
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (hsource : allocate store request placement = none)
+    (htarget : allocate (renameStore resolve store)
+      (renameAllocationRequest resolve request)
+      (renamedPlacement resolve store.nextId placement) = none) :
+    pairedAllocateFailure resolve store request placement = true := by
+  simp [pairedAllocateFailure, hsource, htarget]
+
+theorem pairedAllocateFailure_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (hsource : allocate store request placement = some source) :
+    pairedAllocateFailure resolve store request placement = false := by
+  simp [pairedAllocateFailure, hsource]
+
+theorem pairedAllocateFailure_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (htarget : allocate (renameStore resolve store)
+      (renameAllocationRequest resolve request)
+      (renamedPlacement resolve store.nextId placement) = some target) :
+    pairedAllocateFailure resolve store request placement = false := by
+  simp [pairedAllocateFailure, htarget]
+
 def unaddressableToken (store : Store Tag State) (id : AllocId) : Bool :=
   match lookup store id with
   | some allocation => allocation.live && allocation.address.isNone
