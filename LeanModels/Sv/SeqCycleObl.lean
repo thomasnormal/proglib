@@ -2805,6 +2805,21 @@ theorem CoreMemDesign.edgesV_order {E : CoreMemDesign} (hO : E.seqOblI = true)
 
 #print axioms CoreMemDesign.edgesV_order
 
+/-- Source and driver facts for the memory-aware obligation. -/
+theorem CoreMemDesign.source_port_seqOblIM {E : CoreMemDesign} (hO : E.seqOblIM = true)
+    {s : String} (hs : s ∈ E.sources) : (s, 1) ∈ E.inputPorts := by
+  have h := (CoreMemDesign.seqOblIM_spec hO).2.2.2.1
+  simp only [CoreMemDesign.oblSources, List.all_eq_true, List.contains_iff_mem] at h
+  exact h s hs
+
+theorem CoreMemDesign.source_undriven_seqOblIM {E : CoreMemDesign} (hO : E.seqOblIM = true)
+    {s : String} (hs : s ∈ E.sources) : s ∉ E.driven := by
+  intro hd
+  have h := (CoreMemDesign.seqOblIM_spec hO).2.2.1
+  simp only [CoreMemDesign.oblInputsUndriven, List.all_eq_true, Bool.not_eq_true', List.contains_eq_any_beq,
+    List.any_eq_false, beq_iff_eq] at h
+  exact h s hd s (CoreMemDesign.inputNamesL_of_ports (CoreMemDesign.source_port_seqOblIM hO hs)) rfl
+
 /-! ## What the obligations buy: the slot's loops stop after their first round (§4.4, §4.5)
 
 The route's slot repeats the continuous-assign pass until its view stops changing (`settleCanonical`) and the edge
@@ -3458,6 +3473,44 @@ theorem CoreMemDesign.slot_noFollowup {E : CoreMemDesign} (hP : E.SeqProfileI)
 
 #print axioms CoreMemDesign.slot_noFollowup
 
+theorem CoreMemDesign.slot_noFollowup_seqOblIM {E : CoreMemDesign} (hP : E.SeqProfileI)
+    (hO : E.seqOblIM = true) {v p s1 s2 : SvState} {mv mv' : MemV} {r : ExecV} (hp : E.matV p = p)
+    (hr : E.edgesV v p p mv E.processes.toList = .ok r)
+    (h1 : E.settleV mv' (commitNba2 r.1 r.2.1) = .ok s1) (h2 : E.settleV mv' s1 = .ok s2) :
+    E.firesAny p s2 = false := by
+  -- the slot changes only driven names
+  have hfix := CoreMemDesign.round_frame hP hp hr h1 h2
+  simp only [CoreMemDesign.firesAny, List.any_eq_false]
+  intro q hq
+  cases q with
+  | edge f =>
+      have hclk : f.clock ∉ E.driven := CoreMemDesign.source_undriven_seqOblIM hO (CoreMemDesign.clock_mem_sources (CoreMemDesign.edge_mem_edgeProcs hq))
+      have hres : ∀ r, f.reset = some r → r ∉ E.driven := fun r hr' =>
+        CoreMemDesign.source_undriven_seqOblIM hO (CoreMemDesign.reset_mem_sources (CoreMemDesign.edge_mem_edgeProcs hq) hr')
+      simp only [CoreMemProc.firesIn, Bool.not_eq_true]
+      exact CoreMemEdge.fires_of_agree (hfix _ hclk).symm fun r hr' => (hfix r (hres r hr')).symm
+  | event events body =>
+      obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hq
+      rw [Array.getElem?_toList] at hi
+      have hproc := hP.procs i (.event events body) hi
+      cases hfe : coreMemEventEdge? events body with
+      | none =>
+          rw [CoreMemDesign.ProcOkI, hfe] at hproc
+          exact False.elim hproc
+      | some f =>
+          have hf : f ∈ E.edgeProcs := CoreMemDesign.mem_edgeProcs.mpr
+            ⟨.event events body, hq, hfe⟩
+          have hclk : f.clock ∉ E.driven := CoreMemDesign.source_undriven_seqOblIM hO
+            (CoreMemDesign.clock_mem_sources hf)
+          have hres : ∀ r, f.reset = some r → r ∉ E.driven := fun r hr' =>
+            CoreMemDesign.source_undriven_seqOblIM hO (CoreMemDesign.reset_mem_sources hf hr')
+          have heq := coreMemEventEdge?_spec hfe p s2
+          simp only [CoreMemProc.firesIn, Bool.not_eq_true] at heq ⊢
+          rw [heq.1]
+          exact CoreMemEdge.fires_of_agree (hfix _ hclk).symm fun r hr' =>
+            (hfix r (hres r hr')).symm
+  | _ => simp [CoreMemProc.firesIn]
+
 /-! ## The refinement: the route's slot and cycle on views (under the obligations) -/
 
 /-- **THE SLOT REFINEMENT, any number of events**: for a design of the clocked profile (any clocks, either edge) with
@@ -3525,6 +3578,69 @@ theorem CoreMemDesign.step_seqI {E : CoreMemDesign} (hP : E.SeqProfileI)
   refine ⟨st4, ?_, hv4, by rw [hm4, hm3, hvm], hc4, by rw [hm4, hm3]; exact hmc'⟩
   -- no follow-up event: the step is its first round
   have hnf := CoreMemDesign.slot_noFollowup hP hO (CoreMemDesign.matV_settleV hP.names hP.four h1) hq h2 h3
+  exact CoreMemDesign.step_of_onePass hP.hasComb hP.hasImplicit hs0 hs1 hedge hcm hs3 hs4
+    (by rw [hv1, hv4]; exact hnf)
+
+theorem CoreMemDesign.step_seqIM {E : CoreMemDesign} (hP : E.SeqProfileI)
+    (hO : E.seqOblIM = true) {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry) {v' : SvState} {mv' : MemV}
+    (hv : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv')) :
+    ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧ E.memOf st'.memory = mv' ∧
+      E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  have ht : E.topoC = true := (CoreMemDesign.seqOblIM_spec hO).2.1
+  simp only [CoreMemDesign.slotV, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
+  obtain ⟨p0, h0, p, h1, ⟨pe, q, mq⟩, hq, s1, h2, s2, h3, rfl, rfl⟩ := hv
+  dsimp only at h2 h3
+  -- the inputs (no memory is an input port)
+  have hmi : E.applyMemoryInputs entry st.memory = st.memory := E.applyMemoryInputs_id hP.mems entry st.memory
+  have hTin : E.scalar.Typed (E.scalar.applyInputs st.scalar entry) := hc.typed.applyInputs entry
+  have hvin : E.scalar.view (E.scalar.applyInputs st.scalar entry) =
+      applyInputs2 E.scalar.toDesign2 entry (E.scalar.view st.scalar) :=
+    Elab.view_applyInputs hP.names hP.four hc.typed hty
+  have hci : E.Coherent (E.inputState st entry) := E.normalizeScalar_coherent _ hTin
+  have hvi : E.scalar.view (E.inputState st entry).scalar =
+      applyInputs2 E.scalar.toDesign2 entry (E.scalar.view st.scalar) := by
+    rw [CoreMemDesign.inputState, E.normalizeScalar_view, hvin]
+  have hmemi : (E.inputState st entry).memory = st.memory := hmi
+  -- the region before the edge
+  obtain ⟨st0, hs0, hv0, hc0, hm0⟩ := CoreMemDesign.settleCanonical_seq hP ht hci (by rw [hmemi]; exact hmc)
+    (by rw [hvi, hmemi]; exact h0)
+  rw [hmemi] at hm0
+  obtain ⟨st1, hs1, hv1, hc1, hm1⟩ := CoreMemDesign.settleCanonical_seq hP ht hc0 (by rw [hm0]; exact hmc)
+    (by rw [hv0, hm0]; exact h1)
+  rw [hm0] at hm1
+  -- the edge round
+  obtain ⟨st2, hedge, hv2, hc2, hm2, hrec⟩ := CoreMemDesign.runEdges_V hP.names hP.four
+    (E.scalar.view st.scalar) (E.scalar.view st1.scalar) E.processes.toList hP.shapes st1 pe q mq hc1
+    (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact hq)
+  rw [hm1] at hm2
+  -- the commit: scalar updates
+  have hT2 : E.scalarEdge.base.Typed st2.scalar := by rw [hP.base]; exact hc2.typed
+  have hTc : E.scalar.Typed (E.scalarEdge.commit st2.scalar q) := by
+    have := Elab1.typed_commit (E := E.scalarEdge) q hT2
+    rwa [hP.base] at this
+  have hvc : E.scalar.view (E.scalarEdge.commit st2.scalar q) = commitNba2 pe q := by
+    have := Elab1.view_commit (E := E.scalarEdge) (by rw [hP.base]; exact hP.four) q hT2
+    rw [hP.base] at this
+    rw [this, hv2]
+  have hcc := E.normalizeScalar_coherent st2 hTc
+  -- the commit: memory records
+  obtain ⟨m', hcm, hmc', hvm⟩ := CoreMemDesign.commitNba_V hP.mems mq st2.memory (by rw [hm2]; exact hmc) hrec
+  rw [hm2] at hvm
+  have hcs : E.Coherent (E.committedState ⟨st2, q, mq.map E.memRec, []⟩ m') := hcc.with_memory m'
+  have hvs : E.scalar.view (E.committedState ⟨st2, q, mq.map E.memRec, []⟩ m').scalar = commitNba2 pe q := by
+    show E.scalar.view (E.normalizeScalar st2 (E.scalarEdge.commit st2.scalar q)).scalar = _
+    rw [E.normalizeScalar_view, hvc]
+  have hms : (E.committedState ⟨st2, q, mq.map E.memRec, []⟩ m').memory = m' := rfl
+  -- the region after the edge
+  obtain ⟨st3, hs3, hv3, hc3, hm3⟩ := CoreMemDesign.settleCanonical_seq hP ht hcs (by rw [hms]; exact hmc')
+    (by rw [hvs, hms, hvm]; exact h2)
+  rw [hms] at hm3
+  obtain ⟨st4, hs4, hv4, hc4, hm4⟩ := CoreMemDesign.settleCanonical_seq hP ht hc3 (by rw [hm3]; exact hmc')
+    (by rw [hv3, hm3, hvm]; exact h3)
+  refine ⟨st4, ?_, hv4, by rw [hm4, hm3, hvm], hc4, by rw [hm4, hm3]; exact hmc'⟩
+  -- no follow-up event: the step is its first round
+  have hnf := CoreMemDesign.slot_noFollowup_seqOblIM hP hO (CoreMemDesign.matV_settleV hP.names hP.four h1) hq h2 h3
   exact CoreMemDesign.step_of_onePass hP.hasComb hP.hasImplicit hs0 hs1 hedge hcm hs3 hs4
     (by rw [hv1, hv4]; exact hnf)
 

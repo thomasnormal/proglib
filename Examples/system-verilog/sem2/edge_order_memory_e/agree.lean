@@ -146,4 +146,13 @@ example (E : CoreMemDesign) (before after : SvState) (v : SvState) (mv : MemV)
       commitMemV mv r'.2.2 = commitMemV mv r.2.2 := by
   exact CoreMemDesign.edgesV_order_memory_seqOblIM hO hσ hv hnd hlocal h
 
+example (E : CoreMemDesign) (hP : E.SeqProfileI) (hO : E.seqOblIM = true)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hv : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv')) :
+    ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧ E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  exact CoreMemDesign.step_seqIM hP hO hc hmc hty hv
+
 end Examples.«system-verilog».sem2.edge_order_memory_e
