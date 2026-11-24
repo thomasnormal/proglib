@@ -1010,11 +1010,12 @@ def coreMemGeneratedDeclsItem (env : IEnv) (iterFuel : Nat)
       match evalInt env' initE, stepDelta g step with
       | .ok i0, .ok δ => do
           let vs ← genvarSeq env' g bound δ iterFuel i0
-          coreMemGeneratedDeclsIters env iterFuel scope g vs body
+          vs.foldlM (init := []) fun acc v => do
+            let scope' := { scope with genvars := (g, v) :: scope.genvars }
+            let (ds, _) ← coreMemGeneratedDeclsList env iterFuel scope' body
+            .ok (acc ++ ds)
       | .error e, _ => .unsupported s!"generate for: {e}"
       | _, .error e => .unsupported s!"generate for: {e}"
-  termination_by it => (sizeOf it, 0)
-  decreasing_by all_goals (simp_wf; omega)
 
 def coreMemGeneratedDeclsList (env : IEnv) (iterFuel : Nat)
     (scope : CoreMemScope) : List GenItem → Res (List PDecl × CoreMemScope)
@@ -1026,19 +1027,6 @@ def coreMemGeneratedDeclsList (env : IEnv) (iterFuel : Nat)
       let ds ← coreMemGeneratedDeclsItem env iterFuel scope it
       let (tail, scope') ← coreMemGeneratedDeclsList env iterFuel scope rest
       .ok (ds ++ tail, scope')
-  termination_by xs => (sizeOf xs, 0)
-  decreasing_by all_goals (simp_wf; omega)
-
-def coreMemGeneratedDeclsIters (env : IEnv) (iterFuel : Nat)
-    (scope : CoreMemScope) (g : String) : List Int → List GenItem → Res (List PDecl)
-  | [], _ => .ok []
-  | v :: vs, body => do
-      let scope' := { scope with genvars := (g, v) :: scope.genvars }
-      let (ds, _) ← coreMemGeneratedDeclsList env iterFuel scope' body
-      let tail ← coreMemGeneratedDeclsIters env iterFuel scope g vs body
-      .ok (ds ++ tail)
-  termination_by vs body => (sizeOf body, vs.length + 1)
-  decreasing_by all_goals (simp_wf; omega)
 end
 
 def coreMemDeclNamesUnique (decls : List PDecl) : Bool :=
@@ -1071,11 +1059,12 @@ def coreMemExpandItem (env : IEnv) (iterFuel : Nat) (scope : CoreMemScope) :
       match evalInt env' initE, stepDelta g step with
       | .ok i0, .ok δ => do
           let vs ← genvarSeq env' g bound δ iterFuel i0
-          coreMemExpandIters env iterFuel scope g vs body
+          vs.foldlM (init := []) fun acc v => do
+            let scope' := { scope with genvars := (g, v) :: scope.genvars }
+            let (ps, _) ← coreMemExpandList env iterFuel scope' body
+            .ok (acc ++ ps)
       | .error e, _ => .unsupported s!"generate for: {e}"
       | _, .error e => .unsupported s!"generate for: {e}"
-  termination_by it => (sizeOf it, 0)
-  decreasing_by all_goals (simp_wf; omega)
 
 def coreMemExpandList (env : IEnv) (iterFuel : Nat) (scope : CoreMemScope) :
     List GenItem → Res (List PProcess × CoreMemScope)
@@ -1087,8 +1076,6 @@ def coreMemExpandList (env : IEnv) (iterFuel : Nat) (scope : CoreMemScope) :
       let ps ← coreMemExpandItem env iterFuel scope it
       let (qs, scope') ← coreMemExpandList env iterFuel scope rest
       .ok (ps ++ qs, scope')
-  termination_by xs => (sizeOf xs, 0)
-  decreasing_by all_goals (simp_wf; omega)
 
 def coreMemExpandIters (env : IEnv) (iterFuel : Nat) (scope : CoreMemScope)
     (g : String) : List Int → List GenItem → Res (List PProcess)
@@ -1098,8 +1085,7 @@ def coreMemExpandIters (env : IEnv) (iterFuel : Nat) (scope : CoreMemScope)
       let (ps, _) ← coreMemExpandList env iterFuel scope' body
       let qs ← coreMemExpandIters env iterFuel scope g vs body
       .ok (ps ++ qs)
-  termination_by vs body => (sizeOf body, vs.length + 1)
-  decreasing_by all_goals (simp_wf; omega)
+  termination_by structural vs => vs
 end
 
 /-! A continuous-assignment pass is source ordered.  IEEE 1800-2023

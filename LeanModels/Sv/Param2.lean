@@ -1726,10 +1726,6 @@ private def initialCheckTask : PStmt → Option String
       else none
   | _ => none
 
-private inductive InitialCheckWork where
-  | stmt (body : PStmt)
-  | list (bodies : List PStmt)
-
 private def initialDiagnosticOnly : PStmt → Except String Unit
   | .block body => body.foldlM (fun _ stmt => initialDiagnosticOnly stmt) ()
   | .ifStmt _ yes no => do
@@ -1744,35 +1740,36 @@ private def initialDiagnosticOnly : PStmt → Except String Unit
       | _ => throw "initial process is not an elaboration check"
   | _ => throw "initial process is not an elaboration check"
 
-private def initialCheckWork (env : IEnv) : InitialCheckWork → Except String Unit
-  | .stmt (.block body) => initialCheckWork env (.list body)
-  | .stmt (.ifStmt cond yes no) => do
+mutual
+private def initialCheckStmt (env : IEnv) : PStmt → Except String Unit
+  | .block body => initialCheckList env body
+  | .ifStmt cond yes no => do
       match evalInt env cond with
       | .ok v =>
           if v != 0 then
-            initialCheckWork env (.stmt yes)
+            initialCheckStmt env yes
           else
             match no with
             | none => pure ()
-            | some branch => initialCheckWork env (.stmt branch)
+            | some branch => initialCheckStmt env branch
       | .error _ => initialDiagnosticOnly (.ifStmt cond yes no)
-  | .stmt (.unsupported k text) =>
+  | .unsupported k text =>
       match initialCheckTask (.unsupported k text) with
       | some "$error" => pure ()
       | some "$fatal" => throw "elaboration check executes $fatal"
       | some "delay" => pure ()
       | _ => throw "initial process is not an elaboration check"
-  | .stmt _ => throw "initial process is not an elaboration check"
-  | .list [] => pure ()
-  | .list (s :: rest) => do
-      initialCheckWork env (.stmt s)
-      initialCheckWork env (.list rest)
-termination_by work => sizeOf work
-decreasing_by
-  all_goals (simp_wf <;> (try simp [InitialCheckWork]) <;> omega)
+  | _ => throw "initial process is not an elaboration check"
+
+private def initialCheckList (env : IEnv) : List PStmt → Except String Unit
+  | [] => pure ()
+  | stmt :: rest => do
+      initialCheckStmt env stmt
+      initialCheckList env rest
+end
 
 def initialCheckAdmits (env : IEnv) (body : PStmt) : Except String Unit :=
-  initialCheckWork env (.stmt body)
+  initialCheckStmt env body
 
 /-! Diagnostic-only initial checks may use a literal delay before `$error`.
 The delay and any signal-dependent condition affect only diagnostic output,

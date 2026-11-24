@@ -378,11 +378,11 @@ private def generatedParentItem (env : IEnv) (fuel : Nat) (vals : List (String �
       match evalInt env' initE, stepDelta g step with
       | .ok i0, .ok δ => do
           let vs ← genvarSeq env' g bound δ fuel i0
-          generatedParentIters env fuel vals g vs body
+          vs.foldlM (init := []) fun acc v => do
+            let xs ← generatedParentList env fuel ((g, v) :: vals) body
+            .ok (acc ++ xs)
       | .error e, _ => .unsupported s!"generate for: {e}"
       | _, .error e => .unsupported s!"generate for: {e}"
-  termination_by it => (sizeOf it, 0)
-  decreasing_by all_goals (simp_wf; omega)
 
 private def generatedParentList (env : IEnv) (fuel : Nat) (vals : List (String × Int)) :
     List GenItem → Res (List PProcess)
@@ -391,18 +391,6 @@ private def generatedParentList (env : IEnv) (fuel : Nat) (vals : List (String �
       let ps ← generatedParentItem env fuel vals it
       let qs ← generatedParentList env fuel vals rest
       .ok (ps ++ qs)
-  termination_by xs => (sizeOf xs, 0)
-  decreasing_by all_goals (simp_wf; omega)
-
-private def generatedParentIters (env : IEnv) (fuel : Nat) (vals : List (String × Int))
-    (g : String) : List Int → List GenItem → Res (List PProcess)
-  | [], _ => .ok []
-  | v :: vs, body => do
-      let ps ← generatedParentList env fuel ((g, v) :: vals) body
-      let qs ← generatedParentIters env fuel vals g vs body
-      .ok (ps ++ qs)
-  termination_by vs body => (sizeOf body, vs.length + 1)
-  decreasing_by all_goals (simp_wf; omega)
 end
 
 private structure HChild where
