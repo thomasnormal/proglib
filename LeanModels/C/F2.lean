@@ -553,6 +553,17 @@ theorem typedStoreMetadataByte_preserves_length
   rw [← hEq]
   exact listSet_length metadata.locations offset _
 
+theorem typedStoreMetadataByte_preserves_byte_length
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : typedStoreMetadataByte metadata offset typeId byte = some result) :
+    result.1.allocation.bytes.length = metadata.allocation.bytes.length := by
+  simp [typedStoreMetadataByte] at hresult
+  rcases hresult with ⟨_, hEq⟩
+  rw [← hEq]
+  exact listSet_length metadata.allocation.bytes offset _
+
 theorem typedStoreMetadataByte_success_shape
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (typeId : TypeId) (byte : Byte Tag)
