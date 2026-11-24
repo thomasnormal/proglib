@@ -978,6 +978,22 @@ def representationLoadMetadataByte
   | _, _ => some (byte,
       footprint .read { allocation := 0, offset := offset, width := 1 })
 
+theorem representationLoadMetadataByte_success
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (choice : RepresentationChoice) (byte : Byte Tag)
+    (location : LocationState TypeId)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hlocation : metadata.locations[offset]? = some location) :
+    representationLoadMetadataByte metadata offset choice =
+      some (match location.effectiveType, choice with
+        | .padding, .byte bits | .indeterminate, .byte bits =>
+            (.value bits none none,
+              footprint .read { allocation := 0, offset := offset, width := 1 })
+        | _, _ => (byte,
+            footprint .read { allocation := 0, offset := offset, width := 1 })) := by
+  cases htype : location.effectiveType <;> cases choice <;>
+    simp [representationLoadMetadataByte, hbyte, hlocation, htype]
+
 def pairedRepresentationLoadMetadataByte (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :

@@ -72,6 +72,11 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (typedLoadMetadataByte metadata 0 "short").isNone
 #guard (representationLoadMetadataByte metadata 0 (.byte 7)).isSome
 #guard (representationLoadMetadataByte paddingMetadata 0 (.byte 7)).isSome
+#guard match representationLoadMetadataByte paddingMetadata 0 (.byte 7) with
+  | some (value, resultFootprint) =>
+      value == (.value 7 none none) &&
+        resultFootprint == footprint .read { allocation := 0, offset := 0, width := 1 }
+  | none => false
 #guard (unionLoadMetadataByte unionMetadata 0).isSome
 #guard match unionLoadMetadataByte unionMetadata 0 with
   | some (value, resultFootprint) =>
