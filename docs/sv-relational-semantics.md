@@ -482,8 +482,9 @@ The following results are real and intentionally narrow.
   when those cursors also issue memory NBAs.
   `EdgePhaseStep.memory_measure_decreases`, `memory_progress`, and
   `EdgePhaseTerminalPath.memory_exists` provide the corresponding finite
-  scheduler-progress bridge. They do not establish commit success or an
-  observation result.
+  scheduler-progress bridge, and `memory_length_balance` gives its exact
+  cursor bound. They do not establish commit success or an observation
+  result.
   `memory_state_eq`, `memory_view_eq_of_trace`, and
   `memory_commit_success_of_decode` expose state, view, and canonical commit
   facts per path.

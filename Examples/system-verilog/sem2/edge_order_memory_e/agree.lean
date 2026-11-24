@@ -44,6 +44,12 @@ example {E : CoreMemDesign} {s : EdgePhaseState}
     ∃ n t, EdgePhaseTerminalPath E n s t := by
   exact EdgePhaseTerminalPath.memory_exists ad
 
+example {E : CoreMemDesign} {s t : EdgePhaseState} {n : Nat}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (hp : EdgePhaseTerminalPath E n s t) :
+    n + t.active.length = s.active.length := by
+  exact EdgePhaseTerminalPath.memory_length_balance ad hp
+
 example :
     commitNba2 [] (([] : NbaQueue2) ++ []) = commitNba2 [] ([] ++ []) ∧
       commitMemV memNone (([] : MemQV) ++ []) = commitMemV memNone ([] ++ []) := by

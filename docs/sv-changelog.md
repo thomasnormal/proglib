@@ -7263,5 +7263,6 @@ The source-shaped edge-phase bridge now proves active-cursor measure decrease,
 next-step progress, and finite terminal-path existence for
 `EdgePhaseMemoryAdmission`. The proof retains stable-state and
 empty-continuation premises while allowing memory NBAs. It establishes only
-scheduler progress. Queue permutation, canonical commit success, observation
-independence, and executor refinement remain separate receipts.
+scheduler progress, with an exact selected-cursor length balance. Queue
+permutation, canonical commit success, observation independence, and executor
+refinement remain separate receipts.

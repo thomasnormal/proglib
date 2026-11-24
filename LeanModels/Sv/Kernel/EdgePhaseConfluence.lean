@@ -1104,6 +1104,49 @@ theorem EdgePhaseTerminalPath.memory_exists
 #print axioms EdgePhaseStep.memory_progress
 #print axioms EdgePhaseTerminalPath.memory_exists
 
+/-- The memory-aware terminal path selects each initial cursor exactly once.
+This is the quantitative progress bound paired with `memory_exists`; it does
+not inspect or compare either NBA queue. -/
+theorem EdgePhaseTerminalPath.memory_length_balance
+    {E : CoreMemDesign} {s t : EdgePhaseState} {n : Nat}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (hp : EdgePhaseTerminalPath E n s t) :
+    n + t.active.length = s.active.length := by
+  induction hp with
+  | terminal hterm => simp [EdgePhaseQuiescent] at hterm; simp [hterm]
+  | @head n s u t hn hstep htail ih =>
+      cases hstep with
+      | select hactive hresume =>
+          rename_i before after cursor next result
+          have hmem : cursor ∈ s.active := by
+            rw [hactive]
+            simp
+          have hempty := ad.continuation_empty cursor result next hmem hresume
+          have hstable := ad.stable_state cursor result next hmem hresume
+          let u' : EdgePhaseState := s.after result next before after
+          have hstate : u'.state = s.state := by
+            simp [u', EdgePhaseState.after, hstable]
+          have hsub : ∀ c, c ∈ u'.active → c ∈ s.active := by
+            intro c hc
+            have hc' : c ∈ before ++ after := by
+              simpa [u', EdgePhaseState.after, hempty] using hc
+            rw [hactive]
+            rcases List.mem_append.mp hc' with hb | ha
+            · exact List.mem_append_left _ hb
+            · exact List.mem_append_right before (List.mem_cons_of_mem cursor ha)
+          have huad : EdgePhaseMemoryAdmission E u' :=
+            EdgePhaseMemoryAdmission.restrict ad hstate hsub
+          have hbal : n + t.active.length = u'.active.length := by
+            simpa [u'] using ih huad
+          have hstep' : EdgePhaseStep E s u' := by
+            exact .select hactive hresume
+          have hlen : u'.active.length + 1 = s.active.length := by
+            rw [hactive]
+            simp [u', EdgePhaseState.after, hempty]
+          omega
+
+#print axioms EdgePhaseTerminalPath.memory_length_balance
+
 private theorem EdgePhaseStep.nba_length_succ
     {E : CoreMemDesign} {s t : EdgePhaseState}
     (ad : EdgePhaseNbaAdmission E s)
