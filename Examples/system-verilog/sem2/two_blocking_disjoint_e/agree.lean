@@ -171,10 +171,30 @@ theorem initial_runner_two_process_bridge_receipt
   exact CoreMemDesign.runCombInitialWithView_two_blocking_scalar
     htargetN htargetM htestN htestM hvalueN hcompactN hvalueM
 
+theorem terminal_pair_receipt
+    {E : CoreMemDesign} {s : CombPhaseState}
+    {c₁ c₂ n₁ n₂ : CombCursor}
+    {x₁ x₂ y₁ y₂ : CoreMemState} {v₁ v₂ w₁ w₂ : SvState}
+    (ha : s.active = [c₁, c₂])
+    (h₁ : c₁.resume E s.state s.view = .ok (x₁, v₁, n₁))
+    (h₂ : c₂.resume E s.state s.view = .ok (x₂, v₂, n₂))
+    (h₂₁ : c₂.resume E x₁ v₁ = .ok (y₁, w₁, n₂))
+    (h₁₂ : c₁.resume E x₂ v₂ = .ok (y₂, w₂, n₁))
+    (hstate : y₁ = y₂) (hview : w₁ = w₂)
+    (hn₁ : n₁.work = []) (hn₂ : n₂.work = []) :
+    ∃ na ta nb tb,
+      CombPhaseTerminalPath E na s ta ∧
+      CombPhaseTerminalPath E nb s tb ∧
+      ta = { state := y₁, view := w₁, active := [] } ∧
+      tb = { state := y₁, view := w₁, active := [] } := by
+  exact CombPhaseTerminalPath.two_cursor_terminal
+    ha h₁ h₂ h₂₁ h₁₂ hstate hview hn₁ hn₂
+
 #print axioms guardReceipt
 #print axioms guarded_pair_receipt
 #print axioms executor_bridge_receipt
 #print axioms initial_runner_bridge_receipt
 #print axioms executor_two_statement_bridge_receipt
 #print axioms initial_runner_two_process_bridge_receipt
+#print axioms terminal_pair_receipt
 end Examples.«system-verilog».sem2.two_blocking_disjoint_e

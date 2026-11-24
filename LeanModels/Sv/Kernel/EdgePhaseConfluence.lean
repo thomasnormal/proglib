@@ -300,6 +300,61 @@ theorem CombPhaseTerminalPath.unique
 #print axioms CombPhaseTerminalPath.exists
 #print axioms CombPhaseTerminalPath.unique
 
+/-! The retained two-process diamond also supplies an explicit terminal path.
+This is the scheduler-side bridge used before a global admission structure is
+constructed. -/
+theorem CombPhaseTerminalPath.two_cursor_terminal
+    {E : CoreMemDesign} {s : CombPhaseState}
+    {c₁ c₂ n₁ n₂ : CombCursor}
+    {x₁ x₂ y₁ y₂ : CoreMemState} {v₁ v₂ w₁ w₂ : SvState}
+    (ha : s.active = [c₁, c₂])
+    (h₁ : c₁.resume E s.state s.view = .ok (x₁, v₁, n₁))
+    (h₂ : c₂.resume E s.state s.view = .ok (x₂, v₂, n₂))
+    (h₂₁ : c₂.resume E x₁ v₁ = .ok (y₁, w₁, n₂))
+    (h₁₂ : c₁.resume E x₂ v₂ = .ok (y₂, w₂, n₁))
+    (hstate : y₁ = y₂) (hview : w₁ = w₂)
+    (hn₁ : n₁.work = []) (hn₂ : n₂.work = []) :
+    ∃ na ta nb tb,
+      CombPhaseTerminalPath E na s ta ∧
+      CombPhaseTerminalPath E nb s tb ∧
+      ta = { state := y₁, view := w₁, active := [] } ∧
+      tb = { state := y₁, view := w₁, active := [] } := by
+  let u₁ := CombPhaseState.after s x₁ v₁ n₁ [] [c₂]
+  let u₂ := CombPhaseState.after s x₂ v₂ n₂ [c₁] []
+  let z := CombPhaseState.after u₁ y₁ w₁ n₂ [] []
+  let z₂ := CombPhaseState.after u₂ y₂ w₂ n₁ [] []
+  have hs₁ : CombPhaseStep E s u₁ := .select (by simpa [u₁, ha]) h₁
+  have hs₂ : CombPhaseStep E s u₂ := .select (by simpa [u₂, ha]) h₂
+  have hu₁ : CombPhaseStep E u₁ z := by
+    apply CombPhaseStep.select (cursor := c₂) (next := n₂) (state := y₁) (view := w₁)
+      (before := []) (after := [])
+    · simp [u₁, z, CombPhaseState.after, hn₁]
+    · simpa [u₁, CombPhaseState.after] using h₂₁
+  have hu₂ : CombPhaseStep E u₂ z₂ := by
+    apply CombPhaseStep.select (cursor := c₁) (next := n₁) (state := y₂) (view := w₂)
+      (before := []) (after := [])
+    · simp [u₂, z₂, CombPhaseState.after, hn₂]
+    · simpa [u₂, CombPhaseState.after] using h₁₂
+  have hz : z = { state := y₁, view := w₁, active := [] } := by
+    simp [z, u₁, CombPhaseState.after, hn₁, hn₂]
+  have hz₂ : z₂ = { state := y₁, view := w₁, active := [] } := by
+    simp [z₂, u₂, CombPhaseState.after, hn₁, hn₂, hstate, hview]
+  have hnonempty : ¬ CombPhaseQuiescent s := by
+    simp [CombPhaseQuiescent, ha]
+  have hu₁_empty : ¬ CombPhaseQuiescent u₁ := by
+    simp [u₁, CombPhaseQuiescent, CombPhaseState.after, hn₁]
+  have hu₂_empty : ¬ CombPhaseQuiescent u₂ := by
+    simp [u₂, CombPhaseQuiescent, CombPhaseState.after, hn₂]
+  have hterm : CombPhaseQuiescent ({ state := y₁, view := w₁, active := [] } : CombPhaseState) := by
+    rfl
+  have hterm₂ : CombPhaseQuiescent ({ state := y₁, view := w₁, active := [] } : CombPhaseState) := by
+    rfl
+  refine ⟨2, z, 2, z₂, ?_, ?_, hz, hz₂⟩
+  · exact .head hnonempty hs₁
+      (.head hu₁_empty hu₁ (.terminal (by rw [hz]; exact hterm)))
+  · exact .head hnonempty hs₂
+      (.head hu₂_empty hu₂ (.terminal (by rw [hz₂]; exact hterm₂)))
+
 /-! Pure scalar expressions have the evaluator frame needed by the
 level-sensitive diamond.  The source access guard still has to establish the
 read agreement premise for the instantiated expression.  Keeping this lemma
