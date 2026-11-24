@@ -2061,6 +2061,35 @@ theorem pairedFreeMetadata_preserves_locations
           exact ⟨freeMetadata_preserves_locations _ _ hs,
             freeMetadata_preserves_locations _ _ ht⟩
 
+theorem pairedFreeMetadata_preserves_lengths
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.allocation.bytes.length = metadata.allocation.bytes.length ∧
+      result.1.1.locations.length = metadata.locations.length ∧
+      result.2.1.allocation.bytes.length =
+        (renameZeroTokenMetadata resolve metadata).allocation.bytes.length ∧
+      result.2.1.locations.length =
+        (renameZeroTokenMetadata resolve metadata).locations.length := by
+  cases hs : freeMetadata metadata with
+  | none => simp [pairedFreeMetadata, hs] at hresult
+  | some sourceResult =>
+      cases ht : freeMetadata (renameZeroTokenMetadata resolve metadata) with
+      | none => simp [pairedFreeMetadata, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedFreeMetadata, hs, ht] at hresult
+          rcases hresult with rfl
+          have hslocations := freeMetadata_preserves_locations _ _ hs
+          have htlocations := freeMetadata_preserves_locations _ _ ht
+          have hspayload := freeMetadata_preserves_payload _ _ hs
+          have htpayload := freeMetadata_preserves_payload _ _ ht
+          exact ⟨congrArg List.length hspayload.2.1,
+            congrArg List.length hslocations,
+            congrArg List.length htpayload.2.1,
+            congrArg List.length htlocations⟩
+
 theorem pairedFreeMetadata_preserves_payload
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
