@@ -1726,6 +1726,15 @@ theorem bytesWf_rename (resolve : AllocId → Nat) (id : AllocId)
                   simp [bytesWf, renameByte] at h ⊢
                   exact And.intro h.1 (ih h.2)
 
+theorem renameMetadata_preserves_wellFormed
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (h : metadata.wellFormed id) :
+    (renameMetadata resolve id metadata).wellFormed id := by
+  unfold AllocationMetadata.wellFormed at h ⊢
+  exact ⟨bytesWf_rename resolve id metadata.allocation.bytes h.1,
+    by simpa [renameMetadata] using h.2⟩
+
 theorem renameStore_preserves_wellFormed
     (resolve : AllocId → Nat) (store : Store Tag State)
     (h : WellFormed store) : WellFormed (renameStore resolve store) := by
