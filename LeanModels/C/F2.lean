@@ -2378,6 +2378,58 @@ theorem pairedStoreRepresentationLoadMetadataByte_preserves_lengths
                     storeMetadataByte_preserves_byte_length _ _ _ _ ht,
                     congrArg List.length (storeMetadataByte_preserves_locations _ _ _ _ ht)⟩
 
+theorem pairedStoreRepresentationLoadMetadataByte_preserves_payload
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice)
+    (result : (((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint))))
+    (hresult : pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice =
+      some result) :
+    result.1.1.1.allocation.live = metadata.allocation.live ∧
+      result.1.1.1.allocation.address = metadata.allocation.address ∧
+      result.1.1.1.allocation.state = metadata.allocation.state ∧
+      result.2.1.1.allocation.live =
+        (renameMetadata resolve id metadata).allocation.live ∧
+      result.2.1.1.allocation.address =
+        (renameMetadata resolve id metadata).allocation.address ∧
+      result.2.1.1.allocation.state =
+        (renameMetadata resolve id metadata).allocation.state := by
+  cases hs : storeMetadataByte metadata offset byte with
+  | none => simp [pairedStoreRepresentationLoadMetadataByte, hs] at hresult
+  | some sourceStore =>
+      cases ht : storeMetadataByte (renameMetadata resolve id metadata)
+          offset (renameByte resolve byte) with
+      | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht] at hresult
+      | some targetStore =>
+          cases hsl : representationLoadMetadataByte sourceStore.1 offset choice with
+          | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl] at hresult
+          | some sourceLoad =>
+              cases htl : representationLoadMetadataByte targetStore.1 offset choice with
+              | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl, htl] at hresult
+              | some targetLoad =>
+                  simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl, htl] at hresult
+                  have hpair : ((sourceStore, sourceLoad), (targetStore, targetLoad)) = result :=
+                    hresult
+                  rcases hpair with rfl
+                  have hsource := hs
+                  have htarget := ht
+                  simp [storeMetadataByte] at hsource htarget
+                  rcases hsource with ⟨_, hsourceEq⟩
+                  rcases htarget with ⟨_, htargetEq⟩
+                  have hslive := congrArg (fun pair => pair.1.allocation.live) hsourceEq
+                  have hsaddr := congrArg (fun pair => pair.1.allocation.address) hsourceEq
+                  have hsstate := congrArg (fun pair => pair.1.allocation.state) hsourceEq
+                  have htlive := congrArg (fun pair => pair.1.allocation.live) htargetEq
+                  have htaddr := congrArg (fun pair => pair.1.allocation.address) htargetEq
+                  have htstate := congrArg (fun pair => pair.1.allocation.state) htargetEq
+                  simpa [storeMetadataByte] using
+                    ⟨hslive.symm, hsaddr.symm, hsstate.symm,
+                      htlive.symm, htaddr.symm, htstate.symm⟩
+
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
   | (id, allocation) :: rest =>
