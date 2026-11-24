@@ -439,6 +439,30 @@ owner decision.
 
 ## Current bridge inventory
 
+### Frame-lemma audit
+
+The first diamond ingredients are present on the real evaluator. The
+parser-native closure theorem
+`CoreMemDesign.edge_readsV_eq_instantiated_idents_of_pure` identifies
+`readsV` with the instantiated evaluator identifier set for pure expressions.
+`edge_evalExprLocals_frame_of_parser_closure` and
+`edge_evalExprLocals_frame_of_driver_closure` then transport a closure guard
+to `evalExprLocals`, including the actual `setScalarState` write used by the
+executor. The corresponding two-expression theorem
+`edge_evalExprLocals_two_expr_cross_write_frame_of_driver_closure` frames each
+reader against the other process's write.
+
+The write-side theorem
+`edge_setScalarState_commute_of_disjoint` proves commutation of two concrete
+scalar writes from `Coherent` state and distinct declaration identities.
+`edge_evalExprLocals_two_write_frame_of_driver_closure` combines that write
+footprint with the evaluator frame. These are kernel-checked frame facts, not
+the scheduler diamond itself. They still require the pure-expression and
+function-free premises, explicit closure coverage, coherent state, and
+declaration disjointness. Memory footprints, dynamic aliasing, process
+progress, and the bridge from every fine-grained slot path to `step` remain
+separate obligations.
+
 The following results are real and intentionally narrow.
 
 * `readsV_eq_instExpr2_idents_of_pure`,

@@ -7244,3 +7244,15 @@ nontermination outcomes, five independent executor obligations, simultaneous
 input batches, and transport surfaces for SeqRuns and combinational claims.
 The first migration stage is executor de-fuelling owned by the executor lane.
 No trusted relation implementation is authorized by this design packet.
+
+## Frame-lemma audit — 2026-11-24
+
+The evaluator-frame seam was audited before any relational implementation.
+The parser-native `readsV` closure agrees with instantiated evaluator
+identifiers for pure expressions, closure receipts frame `evalExprLocals`
+against the real `setScalarState` writes, and coherent writes to distinct
+declaration identities commute. The current theorems remain deliberately
+narrow. They require pure, function-free expressions, explicit closure
+coverage, coherent state, and disjoint declarations. Memory footprints,
+dynamic aliasing, scheduler progress, and the full fine-grained slot bridge
+remain open obligations.
