@@ -86,12 +86,18 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (mergeBytes (Tag := Unit) [.uninitialized, .value 255 none none] [1, 2] [1, 1] [0, 0]).isSome
 #guard (copySnapshot [oneByte] [.uninitialized]) == some [oneByte]
 #guard (copySnapshot [oneByte] []).isNone
+#guard memcpySnapshot { allocation := 1, offset := 0, width := 2 }
+  { allocation := 2, offset := 0, width := 2 } [oneByte, oneByte] ==
+    some [oneByte, oneByte]
 #guard (pairedCopySnapshot resolve [oneByte] [.uninitialized]).isSome
 #guard pairedCopyFootprint { allocation := 1, offset := 0, width := 2 }
   { allocation := 2, offset := 4, width := 2 } 2
 #guard (memcpySnapshot { allocation := 1, offset := 0, width := 2 }
   { allocation := 1, offset := 1, width := 2 } [oneByte, oneByte]).isNone
 #guard (memmoveSnapshot { allocation := 1, offset := 0, width := 2 } { allocation := 1, offset := 1, width := 2 } [oneByte, oneByte]).isSome
+#guard memmoveSnapshot { allocation := 1, offset := 0, width := 2 }
+  { allocation := 1, offset := 1, width := 2 } [oneByte, oneByte] ==
+    some [oneByte, oneByte]
 #guard (pairedMemmoveSnapshot resolve
   { allocation := 1, offset := 0, width := 2 }
   { allocation := 1, offset := 1, width := 2 } [fragmentByte]).isSome

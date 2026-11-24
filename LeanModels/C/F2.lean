@@ -724,6 +724,18 @@ theorem copySnapshot_preserves_length
   rcases hresult with ⟨_, rfl⟩
   rfl
 
+theorem copySnapshot_success
+    (source destination : List (Byte Tag))
+    (hsame : source.length = destination.length) :
+    copySnapshot source destination = some source := by
+  simp [copySnapshot, hsame]
+
+theorem copySnapshot_rejects_length_mismatch
+    (source destination : List (Byte Tag))
+    (hdifferent : source.length ≠ destination.length) :
+    copySnapshot source destination = none := by
+  simp [copySnapshot, hdifferent]
+
 def copyFootprint (source destination : Region) (width : Nat) : Footprint :=
   { accesses := [(AccessKind.read, { source with width := width }),
                  (AccessKind.write, { destination with width := width })] }
@@ -750,8 +762,25 @@ def memcpySnapshot (source destination : Region) (bytes : List (Byte Tag)) :
   if regionsOverlap source destination bytes.length then none
   else copySnapshot bytes bytes
 
+theorem memcpySnapshot_rejects_overlap
+    (source destination : Region) (bytes : List (Byte Tag))
+    (hoverlap : regionsOverlap source destination bytes.length = true) :
+    memcpySnapshot source destination bytes = none := by
+  simp [memcpySnapshot, hoverlap]
+
+theorem memcpySnapshot_success_nonoverlap
+    (source destination : Region) (bytes : List (Byte Tag))
+    (hnonoverlap : regionsOverlap source destination bytes.length = false) :
+    memcpySnapshot source destination bytes = some bytes := by
+  simp [memcpySnapshot, hnonoverlap, copySnapshot]
+
 def memmoveSnapshot (_source _destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag)) := some bytes
+
+theorem memmoveSnapshot_success
+    (source destination : Region) (bytes : List (Byte Tag)) :
+    memmoveSnapshot source destination bytes = some bytes := by
+  rfl
 
 theorem memmoveSnapshot_preserves_length
     (source destination : Region) (bytes result : List (Byte Tag))
