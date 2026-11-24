@@ -195,6 +195,17 @@ def SlotRun
   Relation.ReflTransGen (RegionStep E g x) start finish ∧
     (SlotQuiet finish ∨ ∃ reason, SlotRefused finish reason)
 
+def SettledSlotRun
+    (E : CoreMemDesign) (g : Granularity) (x : XResolution)
+    (start finish : SlotState) : Prop :=
+  Relation.ReflTransGen (RegionStep E g x) start finish ∧ SlotQuiet finish
+
+def RefusedSlotRun
+    (E : CoreMemDesign) (g : Granularity) (x : XResolution)
+    (start finish : SlotState) (reason : RelRefusal) : Prop :=
+  Relation.ReflTransGen (RegionStep E g x) start finish ∧
+    SlotRefused finish reason
+
 structure InputBatch where
   time : Nat
   changes : List (String × LVec)
@@ -210,6 +221,18 @@ def Run
     (E : CoreMemDesign) (g : Granularity) (x : XResolution)
     (init : SlotState) (inputs : List InputBatch)
     (trace : List ObsState) : Prop := ...
+
+def SettledRun
+    (E : CoreMemDesign) (g : Granularity) (x : XResolution)
+    (init : SlotState) (inputs : List InputBatch)
+    (trace : List ObsState) : Prop :=
+  ∃ finish, SettledSlotRun E g x init finish ∧
+    ObserveTrace finish inputs trace
+
+def RefusedRun
+    (E : CoreMemDesign) (g : Granularity) (x : XResolution)
+    (init : SlotState) (inputs : List InputBatch)
+    (reason : RelRefusal) : Prop := ...
 
 def Diverges
     (step : α → α → Prop) (start : α) : Prop :=
@@ -650,11 +673,28 @@ def AllRuns (E : CoreMemDesign) (g : Granularity)
   ∀ x inputs trace, ValidInputs inputs →
     Run E g x (Initial E init) inputs trace → P trace
 
+def ObserveTrace (finish : SlotState) (inputs : List InputBatch)
+    (trace : List ObsState) : Prop := ...
+
 def Total (E : CoreMemDesign) (g : Granularity) : Prop :=
   ∀ init, AdmissibleInit E init →
   ∀ x inputs, ValidInputs inputs →
-    ∃ trace, Run E g x (Initial E init) inputs trace
+    ∃ trace, SettledRun E g x (Initial E init) inputs trace
+
+def NoRefusal (E : CoreMemDesign) (g : Granularity) : Prop :=
+  ∀ init, AdmissibleInit E init →
+  ∀ x inputs reason,
+    ValidInputs inputs →
+    ¬ RefusedRun E g x (Initial E init) inputs reason
 ```
+
+`Total` quantifies over `SettledSlotRun`, so a refusal cannot discharge a
+liveness or total-correctness theorem. `NoRefusal` is stated separately when
+the claim also requires that no reachable path reports an unsupported node.
+`AllRuns` remains the universal safety surface and therefore includes both
+settled and refused outcomes through `Run`; a safety theorem that excludes
+refusal states this exclusion explicitly rather than relying on the absence of
+a trace.
 
 A two-flop synchronizer statement is conditional on the actual admission
 guards and quantifies over every schedule:
