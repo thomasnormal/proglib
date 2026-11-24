@@ -4478,6 +4478,36 @@ theorem allocateBounded_address_result_payload
   rcases hresult with rfl
   rfl
 
+theorem allocateBounded_address_preserves_wellFormed
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hbytes : bytesWf store.nextId request.bytes)
+    (hwithin : placementWithin base request.bytes.length limit = true)
+    (haligned : alignmentAllowed base alignment = true)
+    (hallowed : placementAllowed store base request.bytes.length = true)
+    (hresult : allocateBounded store request (.address base) alignment limit = .ok result) :
+    WellFormed result.1 := by
+  have hpayload := allocateBounded_address_result_payload store request
+    base alignment limit result hwithin haligned hallowed hresult
+  rw [hpayload]
+  change allocationsWf store.allocations at hstore
+  unfold WellFormed
+  have append_wf : ∀ entries : List (AllocId × Allocation Tag State),
+      allocationsWf entries →
+      allocationsWf (entries ++
+        [(store.nextId,
+          { live := true, address := some base,
+            bytes := request.bytes, state := request.state })]) := by
+    intro entries
+    induction entries with
+    | nil => intro _; simp [allocationsWf, hbytes]
+    | cons entry rest ih =>
+        intro hentries
+        simp [allocationsWf] at hentries ⊢
+        exact ⟨hentries.1, ih hentries.2⟩
+  exact append_wf store.allocations hstore
+
 def renameBoundedResult (resolve : AllocId → Nat) :
     Except PlacementFault (Store Tag State × Footprint) →
       Except PlacementFault (Store Tag State × Footprint)
