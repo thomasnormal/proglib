@@ -1071,7 +1071,8 @@ deriving Repr, BEq, DecidableEq, Inhabited
 
 /-- `ConstOpClass` of an envelope operator. -/
 def SymBinOp.constClass : SymBinOp → ConstOpClass
-  | .m0 .add | .m0 .sub | .m0 .mul | .m0 .and | .m0 .or | .m0 .xor
+  | .m0 .add | .m0 .sub | .m0 .mul | .m0 .div | .m0 .sdiv | .m0 .rem | .m0 .srem
+  | .m0 .and | .m0 .or | .m0 .xor
   | .mul | .div | .mod => .arith
   | .pow | .shl | .shr | .ashl | .ashr => .shift
   | .m0 .eq | .m0 .ne | .m0 .caseEq | .m0 .caseNe | .m0 .wildEq | .m0 .wildNe
@@ -1897,6 +1898,11 @@ def evalAssign (env : IEnv) (w : Nat) (e : PExpr) : Except String Int :=
       -- width; sending it through `evalAt` would hit the generic call refusal.
       let v ← evalConstFunctionCall env n args
       .ok (canonInt (if targetWidth == 0 then w else targetWidth) false v)
+  | e@(.resize targetWidth (.functionCall n args))
+  | e@(.signedResize targetWidth (.functionCall n args)) => do
+      let v ← evalConstFunctionCall env n args
+      .ok (canonInt (if targetWidth == 0 then w else targetWidth)
+        (match e with | .signedResize _ _ => true | _ => false) v)
   | _ => do
       let (we, se) ← ctype env e
       evalAt env (max w we, se) e
@@ -4397,7 +4403,7 @@ private def oneShlN : PExpr := .binary .shl (.int 1) (.paramRef "N" none)
 #guard isLoud (evalUntyped (nEnv 8) (.binary (.m0 (.shl false)) (.int 1) (.paramRef "N" none)))
 #guard okIs (evalUntyped (nEnv 8) (.binary (.m0 .or) oneShlN (.int 1))) 257
 #guard okIs (evalUntyped (nEnv 8) (.binary .div oneShlN (.int 2))) 128
-#guard isLoud (evalUntyped (nEnv 8) (.binary (.m0 .div) oneShlN (.int 2)))
+#guard okIs (evalUntyped (nEnv 8) (.binary (.m0 .div) oneShlN (.int 2))) 128
 #guard isLoud (evalUntyped (nEnv 8) (.binary (.m0 (.pow false false)) (.int 2) (.paramRef "N" none)))
 #guard okIs (evalUntyped (nEnv 8) (.binary .shr (.int 256) (.paramRef "N" none))) 1
 private def sqDiv : PExpr := .binary .div (.resize 32 (.lit (.ofNat 4 8))) uPlus1
