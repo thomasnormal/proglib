@@ -14,6 +14,13 @@
     "sanitize": true
   },
   {
+    "id": "sqrt-binary64-ieee",
+    "source": "double sqrt(double); int main(void) { double x = sqrt(4.0); return x == 2.0 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
     "id": "isprint-c-locale-ascii",
     "source": "int isprint(int); int main(void) { return isprint('a') && !isprint('\\002') ? 0 : 1; }",
     "expect": "match",

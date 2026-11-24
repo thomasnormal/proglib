@@ -2031,6 +2031,16 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                 | none => refuseUnsupported s!"{nm}: non-finite argument"
               else refuseUnsupported s!"{nm}: expected binary32 argument"
           | _ => refuseUnsupported s!"{nm}: unsupported argument types"
+        let runFloatSqrt : String → List CVal → ExecM CVal := fun nm vs =>
+          match vs with
+          | [.float32 f] =>
+              if nm == "sqrtf" then pure (.float32 f.sqrt)
+              else refuseUnsupported s!"{nm}: expected binary64 argument"
+          | [.float64 f] =>
+              if nm == "sqrt" then pure (.float64 f.sqrt)
+              else refuseUnsupported s!"{nm}: expected binary32 argument"
+          | [_] => refuseUnsupported s!"{nm}: unsupported floating argument"
+          | _ => refuseUnsupported s!"{nm}: wrong argument count"
         let runFloatNan : String → List CVal → ExecM CVal := fun nm vs =>
           match vs with
           | [_] =>
@@ -2189,6 +2199,7 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                 else if nm == "__builtin_isless" || nm == "__builtin_islessequal" ||
                     nm == "__builtin_isgreater" || nm == "__builtin_isgreaterequal" ||
                     nm == "__builtin_islessgreater" then runFloatRelation nm vs
+                else if nm == "sqrt" || nm == "sqrtf" then runFloatSqrt nm vs
                 else if nm == "__builtin_inf" || nm == "__builtin_inff" || nm == "__builtin_infl" || nm == "__builtin_huge_val" || nm == "__builtin_huge_valf" || nm == "__builtin_huge_vall" then
                   runInf nm vs
           else if nm == "__builtin_abs" || nm == "abs" then
