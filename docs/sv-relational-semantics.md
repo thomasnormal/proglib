@@ -717,13 +717,13 @@ class before widening.
 
 Add `RelSeqRunsOn`, `RelSeqRunsM`, `RelSeqRunsI`, combinational transport,
 totality, and invariant/refinement surfaces. Migrate the seq_cycle examples
-and the `Models2) records through generic adapters. Keep differential
+and the `Models2` records through generic adapters. Keep differential
 `#guard` rows.
 
 ### S5 — one semantics and retirement
 
 Once transport is proved, retire duplicate meanings. Delete or reduce
-`Scheduler.lean`, `MemE), and lowered E-core semantic shells according to
+`Scheduler.lean`, `MemE`, and lowered E-core semantic shells according to
 their transport results. Keep only compatibility wrappers and executor/test
 tools. No new semantic island is added.
 
