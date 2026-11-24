@@ -3991,6 +3991,21 @@ theorem allocateMetadata_result_footprint
   · rcases hresult with ⟨_, rfl⟩
     rfl
 
+theorem allocateMetadata_result_payload
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : allocateMetadata request locations placement = some result) :
+    result.1.allocation.live = true ∧
+      result.1.locations = locations ∧
+      result.1.allocation.bytes = request.bytes ∧
+      result.1.allocation.state = request.state := by
+  cases placement <;> simp [allocateMetadata] at hresult
+  · rcases hresult with ⟨_, rfl⟩
+    exact ⟨rfl, rfl, rfl, rfl⟩
+  · rcases hresult with ⟨_, rfl⟩
+    exact ⟨rfl, rfl, rfl, rfl⟩
+
 theorem allocateMetadata_address_success
     (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (base : Nat)
