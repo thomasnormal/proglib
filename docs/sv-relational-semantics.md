@@ -251,8 +251,14 @@ def RefusedRun
 
 def Diverges
     (step : α → α → Prop) (start : α) : Prop :=
-  ∀ n, ∃ s, Relation.ReflTransGen step start s ∧ ¬Terminal s
+  ∃ path : Nat → α,
+    path 0 = start ∧ ∀ n, step (path n) (path (n + 1))
 ```
+
+runs. `Diverges` is an actual infinite path, rather than arbitrarily chosen
+finite prefixes. A state with no successor is therefore not silently classified
+as divergence and must be reported as a terminal refusal or an ill-formed
+configuration by the relation.
 
 The actual relation will use the existing cursor fields and memory identities
 rather than introduce a second lowered statement language. The `...` in
