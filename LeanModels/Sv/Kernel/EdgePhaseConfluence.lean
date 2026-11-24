@@ -1440,6 +1440,30 @@ theorem EdgePhaseTerminalPath.memory_view_eq_of_trace
 
 #print axioms EdgePhaseTerminalPath.memory_view_eq_of_trace
 
+/-! The canonical commit success receipt is obtained per terminal path from
+the existing memory route theorem.  Queue permutation is deliberately absent
+here, so this adapter does not smuggle schedule independence into commit
+success. -/
+theorem EdgePhaseTerminalPath.memory_commit_success_of_decode
+    {E : CoreMemDesign} {s t : EdgePhaseState} {n : Nat}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (hp : EdgePhaseTerminalPath E n s t)
+    (hmo : E.memOkB = true)
+    (hmc : E.MemCoherent s.state.memory)
+    (decode : MemNbaRecord → String × Int × LVec)
+    (hcanon : (t.memoryQ.map decode).map E.memRec = t.memoryQ)
+    (hrec : ∀ r ∈ t.memoryQ.map decode, E.RecOk r) :
+    ∃ m', t.state.memory.commitNba t.memoryQ = some m' ∧
+      E.MemCoherent m' ∧
+      E.memOf m' = commitMemV (E.memOf s.state.memory) (t.memoryQ.map decode) := by
+  obtain ⟨m', hcommit, hcoh, hview⟩ :=
+    CoreMemDesign.commitNba_V hmo (t.memoryQ.map decode) s.state.memory hmc hrec
+  have hstate := EdgePhaseTerminalPath.memory_state_eq ad hp
+  refine ⟨m', ?_, hcoh, hview⟩
+  simpa [hstate, hcanon] using hcommit
+
+#print axioms EdgePhaseTerminalPath.memory_commit_success_of_decode
+
 /-! Two successful canonical memory commits have the same observed memory
 view when their identity-preserving queues are permutations and the queue
 footprint is pairwise disjoint.  The theorem consumes `commitNba_V` rather

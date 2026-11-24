@@ -126,6 +126,8 @@ The current proof inventory has these levels.
   pre-edge memory state, and
   `memory_view_eq_of_trace` gives the corresponding arbitrary-view
   observation equality, while
+  `memory_commit_success_of_decode` exposes per-path canonical commit success,
+  coherence, and view equality from `commitNba_V`, and
   `memory_commit_observation_eq_of_perm` carries the queue permutation through
   successful identity-preserving `MemState.commitNba` commits using the
   existing `commitNba_V` view theorem. Its decode, coherence, footprint, and
