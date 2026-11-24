@@ -2499,6 +2499,21 @@ theorem freeMetadata_preserves_payload
       have hstate := congrArg (fun pair => pair.1.allocation.state) hpair
       exact ⟨haddress.symm, hbytes.symm, hstate.symm⟩
 
+theorem freeMetadata_preserves_wellFormed
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hmetadata : metadata.wellFormed 0)
+    (hresult : freeMetadata metadata = some result) :
+    result.1.wellFormed 0 := by
+  have hlocations := freeMetadata_preserves_locations metadata result hresult
+  have hpayload := freeMetadata_preserves_payload metadata result hresult
+  unfold AllocationMetadata.wellFormed at hmetadata ⊢
+  constructor
+  · rw [hpayload.2.1]
+    exact hmetadata.1
+  · rw [hlocations, hpayload.2.1]
+    exact hmetadata.2
+
 def pairedFreeMetadata (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
     Option ((AllocationMetadata Tag State TypeId × Footprint) ×
