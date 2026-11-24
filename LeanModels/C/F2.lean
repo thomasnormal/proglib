@@ -2679,6 +2679,30 @@ theorem pairedFreeMetadata_preserves_payload
           obtain ⟨hta, htb, htc⟩ := freeMetadata_preserves_payload _ _ ht
           exact ⟨hsa, hsb, hsc, hta, htb, htc⟩
 
+theorem pairedFreeMetadata_preserves_wellFormed
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hmetadata : metadata.wellFormed 0)
+    (hmetadataTarget : (renameZeroTokenMetadata resolve metadata).wellFormed 0)
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.wellFormed 0 ∧ result.2.1.wellFormed 0 := by
+  cases hs : freeMetadata metadata with
+  | none => simp [pairedFreeMetadata, hs] at hresult
+  | some sourceResult =>
+      cases ht : freeMetadata (renameZeroTokenMetadata resolve metadata) with
+      | none => simp [pairedFreeMetadata, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedFreeMetadata, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := hresult
+          rcases hpair with rfl
+          exact ⟨freeMetadata_preserves_wellFormed metadata sourceResult
+              hmetadata hs,
+            freeMetadata_preserves_wellFormed
+              (renameZeroTokenMetadata resolve metadata) targetResult
+              hmetadataTarget ht⟩
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
