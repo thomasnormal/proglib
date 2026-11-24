@@ -1924,6 +1924,127 @@ theorem CoreMemDesign.execListV_memory_leaves {E : CoreMemDesign} (env : IEnv) (
       · exact Or.inl (hma u hu)
       · exact Or.inr (hmb u hu)
 
+/-! A deliberately small parser-native body profile for the next receipt rung.
+    It admits memory leaves under conditionals and blocks, while leaving case
+    arms and loops to their own receipts. -/
+mutual
+def _root_.LeanModels.Sv.PStmt.memoryLeafB : PStmt → Bool
+  | .nbaAssignL (.arrayElem _ [_]) _ => true
+  | .ifStmt _ y n => PStmt.memoryLeafB y && PStmt.optMemoryLeafB n
+  | .block body => PStmt.listMemoryLeafB body
+  | _ => false
+termination_by structural s => s
+
+def _root_.LeanModels.Sv.PStmt.optMemoryLeafB : Option PStmt → Bool
+  | none => true
+  | some s => PStmt.memoryLeafB s
+termination_by structural o => o
+
+def _root_.LeanModels.Sv.PStmt.listMemoryLeafB : List PStmt → Bool
+  | [] => true
+  | s :: ss => PStmt.memoryLeafB s && PStmt.listMemoryLeafB ss
+termination_by structural xs => xs
+end
+
+mutual
+theorem CoreMemDesign.execV_memoryLeafBody {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV) :
+    ∀ (b : PStmt) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      b.memoryLeafB = true →
+      (∀ n ∈ b.writes, ∃ md, E.memDecl? n = some md) →
+      E.execV env v mv b = .ok (v', q, mq) →
+      v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ b.writes)
+  | .nbaAssignL (.arrayElem name [index]) e, v', q, mq, hb, hd, h => by
+      have hmd : ∃ md, E.memDecl? name = some md := by
+        apply hd name
+        simp [PStmt.writes, PLhs.baseNames]
+      exact CoreMemDesign.execV_memory_leaf_write_set env hmd h
+  | .ifStmt c y n, v', q, mq, hb, hd, h => by
+      simp only [PStmt.memoryLeafB, Bool.and_eq_true] at hb
+      have hdy : ∀ x ∈ y.writes, ∃ md, E.memDecl? x = some md := by
+        intro x hx
+        exact hd x (by simp only [PStmt.writes, PStmt.optWrites, List.mem_append]; exact Or.inl hx)
+      have hdn : ∀ x ∈ PStmt.optWrites n, ∃ md, E.memDecl? x = some md := by
+        intro x hx
+        exact hd x (by simp only [PStmt.writes, PStmt.optWrites, List.mem_append]; exact Or.inr hx)
+      simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
+      obtain ⟨cv, -, h⟩ := h
+      split at h
+      · obtain ⟨hv, hq, hm⟩ := CoreMemDesign.execV_memoryLeafBody env v mv y v' q mq hb.1 hdy h
+        refine ⟨hv, hq, ?_⟩
+        intro u hu
+        exact List.mem_append_left _ (hm u hu)
+      · obtain ⟨hv, hq, hm⟩ := CoreMemDesign.execOptV_memoryLeafBody env v mv n v' q mq hb.2 hdn h
+        refine ⟨hv, hq, ?_⟩
+        intro u hu
+        exact List.mem_append_right _ (hm u hu)
+  | .block body, v', q, mq, hb, hd, h => by
+      simp only [PStmt.memoryLeafB] at hb
+      have hdb : ∀ x ∈ PStmt.listWrites body, ∃ md, E.memDecl? x = some md := by
+        intro x hx
+        exact hd x (by simpa [PStmt.writes] using hx)
+      exact CoreMemDesign.execListV_memoryLeafBody env v mv body v' q mq hb hdb h
+  | .nbaAssign .., v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .nbaAssignL (.ident _) _, v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .nbaAssignL (.bitSel _ _) _, v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .nbaAssignL (.partSel _ _ _) _, v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .nbaAssignL (.arrayPart _ _ _ _ _) _, v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .nbaAssignL (.aggregateMember _ _) _, v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .nbaAssignL (.concat _) _, v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .blockingAssign .., v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .blockingAssignL .., v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .caseStmt .., v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .forLoop .., v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .localDecl .., v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .automaticDecl .., v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+  | .unsupported .., v', q, mq, hb, hd, h => by simp [PStmt.memoryLeafB] at hb
+
+theorem CoreMemDesign.execOptV_memoryLeafBody {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV) :
+    ∀ (o : Option PStmt) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      PStmt.optMemoryLeafB o = true →
+      (∀ n ∈ PStmt.optWrites o, ∃ md, E.memDecl? n = some md) →
+      E.execOptV env v mv o = .ok (v', q, mq) →
+      v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ PStmt.optWrites o)
+  | none, v', q, mq, _, _, h => by
+      simp only [CoreMemDesign.execOptV, Res.ok.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl, rfl⟩ := h
+      exact ⟨rfl, rfl, by simp⟩
+  | some s, v', q, mq, hb, hd, h => by
+      simp only [CoreMemDesign.execOptV] at h
+      exact CoreMemDesign.execV_memoryLeafBody env v mv s v' q mq hb hd h
+
+theorem CoreMemDesign.execListV_memoryLeafBody {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV) :
+    ∀ (bs : List PStmt) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      PStmt.listMemoryLeafB bs = true →
+      (∀ n ∈ PStmt.listWrites bs, ∃ md, E.memDecl? n = some md) →
+      E.execListV env v mv bs = .ok (v', q, mq) →
+      v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ PStmt.listWrites bs)
+  | [], v', q, mq, _, _, h => by
+      simp only [CoreMemDesign.execListV, Res.ok.injEq, Prod.mk.injEq] at h
+      obtain ⟨rfl, rfl, rfl⟩ := h
+      exact ⟨rfl, rfl, by simp⟩
+  | s :: ss, v', q, mq, hb, hd, h => by
+      simp only [PStmt.listMemoryLeafB, Bool.and_eq_true] at hb
+      have hds : ∀ x ∈ s.writes, ∃ md, E.memDecl? x = some md := by
+        intro x hx
+        exact hd x (by simp only [PStmt.listWrites, List.mem_append]; exact Or.inl hx)
+      have hdss : ∀ x ∈ PStmt.listWrites ss, ∃ md, E.memDecl? x = some md := by
+        intro x hx
+        exact hd x (by simp only [PStmt.listWrites, List.mem_append]; exact Or.inr hx)
+      simp only [CoreMemDesign.execListV, Res.bind_eq_ok, Res.ok.injEq] at h
+      obtain ⟨⟨v1, a, ma⟩, h1, ⟨v2, b, mb⟩, h2, hq⟩ := h
+      simp only [Prod.mk.injEq] at hq
+      obtain ⟨rfl, rfl, rfl⟩ := hq
+      obtain ⟨hv1, ha, hma⟩ := CoreMemDesign.execV_memoryLeafBody env v mv s v1 a ma hb.1 hds h1
+      rw [hv1] at h2
+      obtain ⟨hv2, hb', hmb⟩ := CoreMemDesign.execListV_memoryLeafBody env v mv ss v2 b mb hb.2 hdss h2
+      refine ⟨hv2, by simp [ha, hb'], ?_⟩
+      intro u hu
+      simp only [PStmt.listWrites, List.mem_append] at hu ⊢
+      rcases hu with hu | hu
+      · exact Or.inl (hma u hu)
+      · exact Or.inr (hmb u hu)
+end
+
 /-! A procedural loop receipt packages the per-iteration memory evaluator
     facts into the exact flat-map queue produced by `execV_forLoop_memory`. -/
 theorem CoreMemDesign.execV_forLoop_memory_records {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
