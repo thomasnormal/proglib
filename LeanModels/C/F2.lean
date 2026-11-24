@@ -2549,6 +2549,18 @@ theorem freeMetadata_result_stale_pointer
   have hdead := freeMetadata_marks_dead metadata result hresult
   simp [freePointer, hdead]
 
+theorem pairedFreeMetadata_result_stale_pointers
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    freePointer (some result.1.1) = .stalePointer ∧
+      freePointer (some result.2.1) = .stalePointer := by
+  have hdead := pairedFreeMetadata_marks_dead resolve metadata result hresult
+  exact ⟨freePointer_dead_shape _ hdead.1,
+    freePointer_dead_shape _ hdead.2⟩
+
 theorem freePointer_live_or_dead
     (metadata : AllocationMetadata Tag State TypeId) :
     freePointer (some metadata) = .freed ∨
