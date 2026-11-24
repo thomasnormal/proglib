@@ -34,6 +34,10 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (renamePointer resolve ({ provenance := none, address := 16 } : Pointer Unit)).address == 16
 #guard renameByte resolve fragmentByte ==
   .value (pointerByte 200 4) (some { allocation := 3, tag := () }) (some 4)
+#guard renameAllocation resolve
+    (0, { live := true, address := some 16, bytes := [fragmentByte], state := () }) ==
+    (0, { live := true, address := some 100,
+          bytes := [renameByte resolve fragmentByte], state := () })
 
 #guard placementAllowed one 8 1
 #guard !placementAllowed one 32 1

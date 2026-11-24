@@ -288,6 +288,14 @@ theorem renameAllocation_value (resolve : AllocId → Nat)
       renameAllocationValue resolve entry.1 entry.2 := by
   rfl
 
+theorem renameAllocation_fields (resolve : AllocId → Nat)
+    (entry : AllocId × Allocation Tag State) :
+    (renameAllocation resolve entry).2.address =
+        entry.2.address.map (fun _ => resolve entry.1) ∧
+      (renameAllocation resolve entry).2.bytes =
+        entry.2.bytes.map (renameByte resolve) := by
+  exact ⟨rfl, rfl⟩
+
 theorem renameByte_idempotent (resolve : AllocId → Nat) (byte : Byte Tag) :
     renameByte resolve (renameByte resolve byte) = renameByte resolve byte := by
   cases byte with
