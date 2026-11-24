@@ -4124,6 +4124,33 @@ theorem allocateAligned_unaddressable_result_payload
   rcases hresult with ⟨rfl, rfl⟩
   rfl
 
+theorem allocateAligned_unaddressable_preserves_wellFormed
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (alignment : Nat) (result : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hbytes : bytesWf store.nextId request.bytes)
+    (hresult : allocateAligned store request .unaddressable alignment = some result) :
+    WellFormed result.1 := by
+  have hpayload := allocateAligned_unaddressable_result_payload store request
+    alignment result hresult
+  rw [hpayload]
+  change allocationsWf store.allocations at hstore
+  unfold WellFormed
+  have append_wf : ∀ entries : List (AllocId × Allocation Tag State),
+      allocationsWf entries →
+      allocationsWf (entries ++
+        [(store.nextId,
+          { live := true, address := none,
+            bytes := request.bytes, state := request.state })]) := by
+    intro entries
+    induction entries with
+    | nil => intro _; simp [allocationsWf, hbytes]
+    | cons entry rest ih =>
+        intro hentries
+        simp [allocationsWf] at hentries ⊢
+        exact ⟨hentries.1, ih hentries.2⟩
+  exact append_wf store.allocations hstore
+
 def renamedPlacement (resolve : AllocId → Nat) (id : AllocId) :
     Placement → Placement
   | .address _ => .address (resolve id)
