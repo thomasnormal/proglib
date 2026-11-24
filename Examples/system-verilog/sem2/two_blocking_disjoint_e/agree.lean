@@ -190,6 +190,23 @@ theorem terminal_pair_receipt
   exact CombPhaseTerminalPath.two_cursor_terminal
     ha h₁ h₂ h₂₁ h₁₂ hstate hview hn₁ hn₂
 
+theorem executor_endpoint_receipt
+    {E : CoreMemDesign} {s u₁ u₂ z : CombPhaseState}
+    {procs : List CoreMemProc}
+    (h₁ : CombPhaseStep E s u₁)
+    (h₂ : CombPhaseStep E s u₂)
+    (h₁z : CombPhaseStep E u₁ z)
+    (h₂z : CombPhaseStep E u₂ z)
+    (hz : z.active = [])
+    (hcanonical : E.runCombInitialWithView s.state s.view procs =
+      .ok (E.compactScalar z.state z.view, z.view)) :
+    ∃ n₁ n₂,
+      CombPhaseTerminalPath E n₁ s z ∧
+      CombPhaseTerminalPath E n₂ s z ∧
+      E.runCombInitialWithView s.state s.view procs =
+        .ok (E.compactScalar z.state z.view, z.view) := by
+  exact CombPhaseTerminalPath.executor_endpoint h₁ h₂ h₁z h₂z hz hcanonical
+
 #print axioms guardReceipt
 #print axioms guarded_pair_receipt
 #print axioms executor_bridge_receipt
@@ -197,4 +214,5 @@ theorem terminal_pair_receipt
 #print axioms executor_two_statement_bridge_receipt
 #print axioms initial_runner_two_process_bridge_receipt
 #print axioms terminal_pair_receipt
+#print axioms executor_endpoint_receipt
 end Examples.«system-verilog».sem2.two_blocking_disjoint_e
