@@ -288,6 +288,45 @@ theorem shreg_nba_confluence_step (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30)
     hPB.toSeqProfileI (CoreMemDesign.seqOblB_I hOB) hc hmc hty hslot
     hdrivers hdistinct F hs hw hq hkeys hroute
 
+/-! The route-derived form avoids repeating the queue evaluator receipt.  It is
+    the same concrete shift-register theorem, with totality obtained from the
+    successful source-order `edgesV` route. -/
+theorem shreg_nba_confluence_step_of_defined (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30)
+    {E : CoreMemDesign} (hE : shreg.e N = .ok E)
+    {st : CoreMemState} (hc : E.Coherent st)
+    (hmc : E.MemCoherent st.memory) {entry : SvState}
+    (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s : EdgeScheduleState} (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV} (hroute : E.edgesV s.view s.view s.view (E.memOf st.memory)
+      E.processes.toList = .ok r) :
+    ∃ n t st',
+      EdgeScheduleTerminalPath E s.view s.view s.view (E.memOf st.memory) n s t ∧
+      (∀ n' t', EdgeScheduleTerminalPath E s.view s.view s.view (E.memOf st.memory)
+        n' s t' → t' = t) ∧
+      E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧ t.view = commitNba2 s.view r.2.1 := by
+  have hD : SeqDesign (shreg.e N) "clk" := by
+    cases hX : shreg.e N with
+    | ok E' =>
+        sv_seq_inst [shreg.e, shreg.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [shreg.e, shreg.pdesign] at hX
+    | unsupported m => sv_seq_inst [shreg.e, shreg.pdesign] at hX
+  obtain ⟨E', hE', hPB, hOB⟩ := hD
+  rw [hE] at hE'
+  cases hE'
+  exact CoreMemDesign.edge_nba_confluence_refines_step_guarded_of_defined
+    hPB.toSeqProfileI (CoreMemDesign.seqOblB_I hOB) hc hmc hty hslot
+    hdrivers hdistinct hs hw hkeys hroute
+
 theorem cnt_confluent_drivers (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30)
     {E : CoreMemDesign} (hE : cnt.e N = .ok E)
     (hdrivers : E.oblDrivers = true)
@@ -356,6 +395,42 @@ theorem cnt_nba_confluence_step (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30)
     hPB.toSeqProfileI (CoreMemDesign.seqOblB_I hOB) hc hmc hty hslot
     hdrivers hdistinct F hs hw hq hkeys hroute
 
+theorem cnt_nba_confluence_step_of_defined (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30)
+    {E : CoreMemDesign} (hE : cnt.e N = .ok E)
+    {st : CoreMemState} (hc : E.Coherent st)
+    (hmc : E.MemCoherent st.memory) {entry : SvState}
+    (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s : EdgeScheduleState} (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV} (hroute : E.edgesV s.view s.view s.view (E.memOf st.memory)
+      E.processes.toList = .ok r) :
+    ∃ n t st',
+      EdgeScheduleTerminalPath E s.view s.view s.view (E.memOf st.memory) n s t ∧
+      (∀ n' t', EdgeScheduleTerminalPath E s.view s.view s.view (E.memOf st.memory)
+        n' s t' → t' = t) ∧
+      E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧ t.view = commitNba2 s.view r.2.1 := by
+  have hD : SeqDesign (cnt.e N) "clk" := by
+    cases hX : cnt.e N with
+    | ok E' =>
+        sv_seq_inst [cnt.e, cnt.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [cnt.e, cnt.pdesign] at hX
+    | unsupported m => sv_seq_inst [cnt.e, cnt.pdesign] at hX
+  obtain ⟨E', hE', hPB, hOB⟩ := hD
+  rw [hE] at hE'
+  cases hE'
+  exact CoreMemDesign.edge_nba_confluence_refines_step_guarded_of_defined
+    hPB.toSeqProfileI (CoreMemDesign.seqOblB_I hOB) hc hmc hty hslot
+    hdrivers hdistinct hs hw hkeys hroute
+
 theorem case_confluent_drivers
     {E : CoreMemDesign} (hE : caseF.e = .ok E)
     (hdrivers : E.oblDrivers = true)
@@ -423,6 +498,42 @@ theorem case_nba_confluence_step
   exact CoreMemDesign.edge_nba_confluence_refines_step_guarded
     hPB.toSeqProfileI (CoreMemDesign.seqOblB_I hOB) hc hmc hty hslot
     hdrivers hdistinct F hs hw hq hkeys hroute
+
+theorem case_nba_confluence_step_of_defined
+    {E : CoreMemDesign} (hE : caseF.e = .ok E)
+    {st : CoreMemState} (hc : E.Coherent st)
+    (hmc : E.MemCoherent st.memory) {entry : SvState}
+    (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s : EdgeScheduleState} (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV} (hroute : E.edgesV s.view s.view s.view (E.memOf st.memory)
+      E.processes.toList = .ok r) :
+    ∃ n t st',
+      EdgeScheduleTerminalPath E s.view s.view s.view (E.memOf st.memory) n s t ∧
+      (∀ n' t', EdgeScheduleTerminalPath E s.view s.view s.view (E.memOf st.memory)
+        n' s t' → t' = t) ∧
+      E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧ t.view = commitNba2 s.view r.2.1 := by
+  have hD : SeqDesign caseF.e "clk" := by
+    cases hX : caseF.e with
+    | ok E' =>
+        sv_seq_inst [caseF.e, caseF.pdesign] at hX
+        subst hX
+        exact ⟨_, rfl, by sv_seq_profile, by sv_seq_obligations⟩
+    | timeout => sv_seq_inst [caseF.e, caseF.pdesign] at hX
+    | unsupported m => sv_seq_inst [caseF.e, caseF.pdesign] at hX
+  obtain ⟨E', hE', hPB, hOB⟩ := hD
+  rw [hE] at hE'
+  cases hE'
+  exact CoreMemDesign.edge_nba_confluence_refines_step_guarded_of_defined
+    hPB.toSeqProfileI (CoreMemDesign.seqOblB_I hOB) hc hmc hty hslot
+    hdrivers hdistinct hs hw hkeys hroute
 
 #print axioms shreg_confluent_drivers
 #print axioms cnt_confluent_drivers
