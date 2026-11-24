@@ -2056,6 +2056,18 @@ def unaddressableToken (store : Store Tag State) (id : AllocId) : Bool :=
   | some allocation => allocation.live && allocation.address.isNone
   | none => false
 
+theorem unaddressableToken_sound
+    (store : Store Tag State) (id : AllocId)
+    (h : unaddressableToken store id = true) :
+    ∃ allocation,
+      lookup store id = some allocation ∧
+      allocation.live = true ∧ allocation.address = none := by
+  cases hlookup : lookup store id with
+  | none => simp [unaddressableToken, hlookup] at h
+  | some allocation =>
+      simp [unaddressableToken, hlookup] at h
+      exact ⟨allocation, rfl, h.1, by simpa using h.2⟩
+
 def pairedUnaddressableAllocation (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State) :
     Bool := true
