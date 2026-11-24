@@ -2240,6 +2240,20 @@ theorem renameZeroTokenMetadata_preserves_payload
       (renameZeroTokenMetadata resolve metadata).locations = metadata.locations := by
   exact ⟨rfl, rfl, rfl, rfl⟩
 
+theorem renameZeroTokenMetadata_unaddressable
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (haddress : metadata.allocation.address = none) :
+    (renameZeroTokenMetadata resolve metadata).allocation.address = none := by
+  simp [renameZeroTokenMetadata, haddress]
+
+theorem renameZeroTokenMetadata_address
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId) (base : Nat)
+    (haddress : metadata.allocation.address = some base) :
+    (renameZeroTokenMetadata resolve metadata).allocation.address = some (resolve 0) := by
+  simp [renameZeroTokenMetadata, haddress]
+
 def pairedZeroTokenEqual (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId) : Bool :=
   zeroTokenEqual (renameZeroTokenMetadata resolve left)
