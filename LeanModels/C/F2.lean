@@ -1419,6 +1419,25 @@ theorem pairedFreeMetadata_footprints
           exact ⟨freeMetadata_footprint_shape _ _ hs,
             by simpa [renameZeroTokenMetadata] using htarget⟩
 
+theorem pairedFreeMetadata_marks_dead
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.allocation.live = false ∧
+      result.2.1.allocation.live = false := by
+  cases hs : freeMetadata metadata with
+  | none => simp [pairedFreeMetadata, hs] at hresult
+  | some sourceResult =>
+      cases ht : freeMetadata (renameZeroTokenMetadata resolve metadata) with
+      | none => simp [pairedFreeMetadata, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedFreeMetadata, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨freeMetadata_marks_dead _ _ hs,
+            freeMetadata_marks_dead _ _ ht⟩
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
