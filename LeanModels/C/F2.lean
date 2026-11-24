@@ -2322,6 +2322,26 @@ theorem pairedRepresentationLoadMetadataByte_untyped_byte
   simp [pairedRepresentationLoadMetadataByte,
     representationLoadMetadataByte, hbyte, hbyteTarget, hlocation, htargetLocation]
 
+theorem pairedRepresentationLoadMetadataByte_padding_choice
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (bits : UInt8) (byte : Byte Tag)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hbyteTarget : (renameMetadata resolve id metadata).allocation.bytes[offset]? =
+      some (renameByte resolve byte))
+    (hlocation : metadata.locations[offset]? = some
+      { effectiveType := .padding, initialized := true }) :
+    pairedRepresentationLoadMetadataByte resolve id metadata offset (.byte bits) =
+      some ((.value bits none none,
+          footprint .read { allocation := 0, offset := offset, width := 1 }),
+        (.value bits none none,
+          footprint .read { allocation := 0, offset := offset, width := 1 })) := by
+  have htargetLocation : (renameMetadata resolve id metadata).locations[offset]? = some
+      { effectiveType := .padding, initialized := true } := by
+    simpa [renameMetadata] using hlocation
+  simp [pairedRepresentationLoadMetadataByte,
+    representationLoadMetadataByte, hbyte, hbyteTarget, hlocation, htargetLocation]
+
 def pairedStoreRepresentationLoadMetadataByte
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
