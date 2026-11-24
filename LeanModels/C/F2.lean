@@ -1460,6 +1460,43 @@ def allocationsWf : List (AllocId × Allocation Tag State) → Prop
 def WellFormed (store : Store Tag State) : Prop :=
   allocationsWf store.allocations
 
+theorem bytesWf_rename (resolve : AllocId → Nat) (id : AllocId)
+    (bytes : List (Byte Tag)) (h : bytesWf id bytes) :
+    bytesWf id (bytes.map (renameByte resolve)) := by
+  induction bytes with
+  | nil => simp [bytesWf]
+  | cons byte rest ih =>
+      cases byte with
+      | uninitialized =>
+          simp [bytesWf] at h ⊢
+          exact ih h
+      | value bits provenance fragment =>
+          cases provenance with
+          | none =>
+              simp [bytesWf, renameByte] at h ⊢
+              exact ih h
+          | some provenance =>
+              cases fragment with
+              | none =>
+                  simp [bytesWf, renameByte] at h ⊢
+                  exact And.intro h.1 (ih h.2)
+              | some fragment =>
+                  simp [bytesWf, renameByte] at h ⊢
+                  exact And.intro h.1 (ih h.2)
+
+theorem renameStore_preserves_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (h : WellFormed store) : WellFormed (renameStore resolve store) := by
+  cases store with
+  | mk allocations nextId =>
+      induction allocations with
+      | nil => simp [WellFormed, renameStore, allocationsWf]
+      | cons entry rest ih =>
+          cases entry with
+          | mk id allocation =>
+              simp [WellFormed, renameStore, allocationsWf] at h ⊢
+              exact ⟨bytesWf_rename resolve id allocation.bytes h.1, ih h.2⟩
+
 def intervalOverlap (leftBase leftSize rightBase rightSize : Nat) : Bool :=
   leftBase < rightBase + rightSize && rightBase < leftBase + leftSize
 
