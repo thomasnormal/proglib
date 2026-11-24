@@ -3368,6 +3368,13 @@ theorem pairedPlacementAllowed_sound (resolve : AllocId → Nat)
 def alignmentAllowed (base alignment : Nat) : Bool :=
   alignment > 0 && base % alignment == 0
 
+theorem alignmentAllowed_success
+    (base alignment : Nat)
+    (hpositive : 0 < alignment)
+    (hmod : base % alignment = 0) :
+    alignmentAllowed base alignment = true := by
+  simp [alignmentAllowed, hpositive, hmod]
+
 def pairedAlignmentAllowed (resolve : AllocId → Nat)
     (id alignment : Nat) : Bool :=
   alignmentAllowed (resolve id) alignment = alignmentAllowed (resolve id) alignment
