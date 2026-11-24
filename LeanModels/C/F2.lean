@@ -3960,6 +3960,12 @@ theorem placementWithin_success
     placementWithin base size limit = true := by
   simp [placementWithin, hbase, hsize]
 
+theorem placementWithin_refusal_base
+    (base size limit : Nat)
+    (hrejected : limit < base) :
+    placementWithin base size limit = false := by
+  simp [placementWithin, Nat.not_le.mpr hrejected]
+
 def pairedPlacementWithin (resolve : AllocId → Nat)
     (id size limit : Nat) (base : Nat) : Bool :=
   placementWithin base size limit == placementWithin (resolve id) size limit
