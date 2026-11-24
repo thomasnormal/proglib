@@ -280,4 +280,82 @@ theorem CombPhaseTerminalPath.two_blocking_scalar_hidden_observation
 
 #print axioms CombPhaseTerminalPath.two_blocking_scalar_hidden_observation
 
+/-! A global conditional observation admission separates the two obligations
+that are often accidentally conflated.  `resume_ok` and
+`continuation_empty` establish progress for every active cursor.  The
+per-step `preserves` field is a semantic observation invariant, so it does not
+state terminal schedule independence as its own premise. -/
+structure CombPhaseHiddenObservationAdmission
+    (E : CoreMemDesign) (hidden : List String) where
+  resume_ok : ∀ (s : CombPhaseState) (cursor : CombCursor), cursor ∈ s.active →
+    ∃ state view next, cursor.resume E s.state s.view = .ok (state, view, next)
+  continuation_empty : ∀ (s : CombPhaseState) (cursor : CombCursor)
+    (state : CoreMemState) (view : SvState) (next : CombCursor),
+    cursor ∈ s.active →
+    cursor.resume E s.state s.view = .ok (state, view, next) → next.work = []
+  preserves : ∀ {s t : CombPhaseState}, CombPhaseStep E s t →
+    SvState.agreesOutside hidden s.view t.view
+
+theorem CombPhaseHiddenObservationAdmission.progress
+    {E : CoreMemDesign} {hidden : List String}
+    (ad : CombPhaseHiddenObservationAdmission E hidden)
+    {s : CombPhaseState} (hn : s.active ≠ []) :
+    ∃ t, CombPhaseStep E s t := by
+  cases hxs : s.active with
+  | nil => exact False.elim (hn hxs)
+  | cons cursor rest =>
+      have hmem : cursor ∈ s.active := by simp [hxs]
+      obtain ⟨state, view, next, hresume⟩ := ad.resume_ok s cursor hmem
+      exact ⟨s.after state view next [] rest, .select hxs hresume⟩
+
+theorem CombPhaseHiddenObservationAdmission.terminal_agreesOutside
+    {E : CoreMemDesign} {hidden : List String}
+    (ad : CombPhaseHiddenObservationAdmission E hidden)
+    {s t : CombPhaseState} {n : Nat}
+    (hp : CombPhaseTerminalPath E n s t) :
+    SvState.agreesOutside hidden s.view t.view := by
+  induction hp with
+  | terminal hterm =>
+      intro name hname
+      rfl
+  | @head n s u t hn hstep htail ih =>
+      intro name hname
+      have hfirst := ad.preserves hstep name hname
+      have hrest := ih name hname
+      exact hfirst.trans hrest
+
+theorem CombPhaseHiddenObservationAdmission.exists_terminal
+    {E : CoreMemDesign} {hidden : List String}
+    (ad : CombPhaseHiddenObservationAdmission E hidden)
+    (s : CombPhaseState) :
+    ∃ n t, CombPhaseTerminalPath E n s t := by
+  have aux : ∀ k, ∀ s : CombPhaseState, s.active.length = k →
+      ∃ n t, CombPhaseTerminalPath E n s t := by
+    intro k
+    induction k using Nat.strongRecOn with
+    | ind k ih =>
+        intro s hlen
+        by_cases hempty : CombPhaseQuiescent s
+        · exact ⟨0, s, .terminal hempty⟩
+        · have hnonempty : s.active ≠ [] := by
+            simpa [CombPhaseQuiescent] using hempty
+          obtain ⟨cursor, rest, hsplit⟩ := List.exists_cons_of_ne_nil hnonempty
+          have hmem : cursor ∈ s.active := by simp [hsplit]
+          obtain ⟨state, view, next, hresume⟩ := ad.resume_ok s cursor hmem
+          have hemptyNext := ad.continuation_empty s cursor state view next hmem hresume
+          let u := s.after state view next [] rest
+          have hstep : CombPhaseStep E s u := by
+            exact .select (by simpa [hsplit, u]) hresume
+          have hlt : u.active.length < k := by
+            have hlen' : s.active.length = rest.length + 1 := by simp [hsplit]
+            simp [u, CombPhaseState.after, hemptyNext]
+            omega
+          obtain ⟨n, t, htail⟩ := ih u.active.length hlt u rfl
+          exact ⟨n + 1, t, .head hempty hstep htail⟩
+  exact aux s.active.length s rfl
+
+#print axioms CombPhaseHiddenObservationAdmission.progress
+#print axioms CombPhaseHiddenObservationAdmission.terminal_agreesOutside
+#print axioms CombPhaseHiddenObservationAdmission.exists_terminal
+
 end LeanModels.Sv.Kernel

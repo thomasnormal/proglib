@@ -493,6 +493,17 @@ paths rather than only a one-step diamond. It remains a two-process theorem,
 so it does not yet construct a global admitted scheduler structure or tie a
 hidden-race path to a canonical full-state executor result.
 
+The generic `CombPhaseHiddenObservationAdmission` is the next semantic layer.
+It requires a successful resume and empty continuation for every active cursor,
+plus a per-step `agreesOutside` invariant. From these independent premises,
+`exists_terminal` proves progress for arbitrary active-cursor lists, while
+`terminal_agreesOutside` proves that every terminal path preserves the same
+outside observation from its common start. This is conditional schedule
+independence at the chosen observation boundary. It does not assume a local
+diamond, full-state equality, or the conclusion that all terminal states are
+equal. A future global race theorem must derive this admission from the
+parser-native read predicate and the scheduler's actual process set.
+
 The following results are real and intentionally narrow.
 
 * `readsV_eq_instExpr2_idents_of_pure`,
