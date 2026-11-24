@@ -1984,6 +1984,26 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                   pure (.int IntTy.int_ (if nan a || nan b then 1 else 0))
               | _, _ => refuseUnsupported "__builtin_isunordered: incompatible floating types"
           | _ => refuseUnsupported "__builtin_isunordered: wrong argument count"
+        let runFloatRelation : String → List CVal → ExecM CVal := fun nm vs =>
+          match vs with
+          | [.float32 a, .float32 b] =>
+              let result :=
+                if nm == "__builtin_isless" then Float32.Model.lt a b
+                else if nm == "__builtin_islessequal" then Float32.Model.le a b
+                else if nm == "__builtin_isgreater" then Float32.Model.lt b a
+                else if nm == "__builtin_isgreaterequal" then Float32.Model.le b a
+                else Float32.Model.lt a b || Float32.Model.lt b a
+              pure (.int IntTy.int_ (if result then 1 else 0))
+          | [.float64 a, .float64 b] =>
+              let result :=
+                if nm == "__builtin_isless" then Float.Model.lt a b
+                else if nm == "__builtin_islessequal" then Float.Model.le a b
+                else if nm == "__builtin_isgreater" then Float.Model.lt b a
+                else if nm == "__builtin_isgreaterequal" then Float.Model.le b a
+                else Float.Model.lt a b || Float.Model.lt b a
+              pure (.int IntTy.int_ (if result then 1 else 0))
+          | [_, _] => refuseUnsupported s!"{nm}: incompatible floating types"
+          | _ => refuseUnsupported s!"{nm}: wrong argument count"
         let runFloatAbs : String → List CVal → ExecM CVal := fun nm vs =>
           match vs with
           | [.float32 f] =>
@@ -2166,6 +2186,9 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                 else if nm == "__builtin_copysign" || nm == "__builtin_copysignf" then runCopySign nm vs
                 else if nm == "__builtin_isfinite" || nm == "__builtin_isnan" || nm == "__builtin_isinf" || nm == "__builtin_signbit" then runFloatClass nm vs
                 else if nm == "__builtin_isunordered" then runFloatUnordered vs
+                else if nm == "__builtin_isless" || nm == "__builtin_islessequal" ||
+                    nm == "__builtin_isgreater" || nm == "__builtin_isgreaterequal" ||
+                    nm == "__builtin_islessgreater" then runFloatRelation nm vs
                 else if nm == "__builtin_inf" || nm == "__builtin_inff" || nm == "__builtin_infl" || nm == "__builtin_huge_val" || nm == "__builtin_huge_valf" || nm == "__builtin_huge_vall" then
                   runInf nm vs
           else if nm == "__builtin_abs" || nm == "abs" then

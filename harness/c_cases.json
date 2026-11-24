@@ -1,5 +1,19 @@
 [
   {
+    "id": "builtin-islessgreater-ieee",
+    "source": "double __builtin_nan(const char *); int main(void) { double n = __builtin_nan(\"\"); return __builtin_islessgreater(1.0, 2.0) != 1 || __builtin_islessgreater(n, 2.0) != 0 ? 1 : 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "builtin-fp-predicates-ieee",
+    "source": "double __builtin_nan(const char *); int main(void) { double n = __builtin_nan(\"\"); return __builtin_isless(1.0, 2.0) != 1 || __builtin_islessequal(1.0, 1.0) != 1 || __builtin_isgreater(2.0, 1.0) != 1 || __builtin_isgreaterequal(2.0, 2.0) != 1 || __builtin_islessgreater(1.0, 2.0) != 1 || __builtin_isless(n, 2.0) != 0 || __builtin_islessequal(n, 2.0) != 0 || __builtin_isgreater(n, 2.0) != 0 || __builtin_isgreaterequal(n, 2.0) != 0 || __builtin_islessgreater(n, 2.0) != 0 ? 1 : 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
     "id": "isprint-c-locale-ascii",
     "source": "int isprint(int); int main(void) { return isprint('a') && !isprint('\\002') ? 0 : 1; }",
     "expect": "match",
