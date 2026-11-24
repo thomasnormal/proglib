@@ -1908,6 +1908,19 @@ theorem CoreMemDesign.execV_forLoop_memory_records {E : CoreMemDesign} (env : IE
   refine ⟨values.flatMap m, CoreMemDesign.execV_forLoop_memory env v mv m hm hloop hvals, ?_⟩
   exact hflat values
 
+/-! The parser-native loop predicate supplies the evaluator's body gate. -/
+theorem CoreMemDesign.execV_forLoop_memory_records_of_loopNbaMemory
+    {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
+    {it : String} {init condition step : PExpr} {body : PStmt} {values : List Int}
+    (hbodyP : PStmt.loopNbaMemory body = true)
+    (hvals : forValues2 env it init condition step = .ok values)
+    (hbody : ∀ i, ∃ mq, E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes)) :
+    ∃ mq, E.execV env v mv (.forLoop it init condition step body) = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes) := by
+  exact CoreMemDesign.execV_forLoop_memory_records env v mv
+    (PStmt.loopNbaMemory_loopBodyB body hbodyP) hvals hbody
+
 /-- Two queues writing disjoint signals commit in either order. -/
 theorem commitNba2_swap {st : SvState} (hnd : (st.map Prod.fst).Nodup) {q₁ q₂ : NbaQueue2}
     (h : ∀ u ∈ q₁, ∀ u' ∈ q₂, u.1 ≠ u'.1) : commitNba2 st (q₂ ++ q₁) = commitNba2 st (q₁ ++ q₂) := by

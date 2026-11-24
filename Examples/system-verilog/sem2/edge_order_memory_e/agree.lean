@@ -44,6 +44,17 @@ example (body : PStmt) (h : PStmt.loopNbaMemory body = true) :
     PStmt.loopBodyB body = true := by
   exact PStmt.loopNbaMemory_loopBodyB body h
 
+example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
+    (body : PStmt) (it : String) (init condition step : PExpr) (values : List Int)
+    (hbodyP : PStmt.loopNbaMemory body = true)
+    (hvals : forValues2 env it init condition step = .ok values)
+    (hbody : ∀ i, ∃ mq, E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes)) :
+    ∃ mq, E.execV env v mv (.forLoop it init condition step body) = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes) := by
+  exact CoreMemDesign.execV_forLoop_memory_records_of_loopNbaMemory
+    env v mv hbodyP hvals hbody
+
 /-! The memory-aware edge-order successor is exercised on the real `edgesV`
     boundary.  The frame receipt stays an explicit premise until the
     predicate-to-receipt proof is widened for every admitted body shape. -/
