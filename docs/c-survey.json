@@ -1368,8 +1368,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-23T23:30:00Z",
- "measured_commit": "d8a03e68ce19020b583976ed42b34be8e9c44776",
+ "measured_at_utc": "2026-11-24T00:15:00Z",
+ "measured_commit": "7abf0b091be01d8a4be9001379144a62d61eac3f",
  "pin": "C1-C3",
  "rows": [
   {
@@ -9205,9 +9205,7 @@
    "manifest_status": "parsed",
    "name": "20230509-1.c",
    "sha256": "b6325b71e87aa8fd3e523d18823fe3da2c076ec3b5e18d7a479364f6029c6d65",
-   "static_walls": [
-    "libc-call: __builtin_unreachable"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -15937,7 +15935,6 @@
    "name": "gcc/testsuite/gcc.dg/c23-unreachable-1.c",
    "sha256": "962c81039e6a9aa19a34479e18ce33bc6d765941d26e954d2f036a59f567d780",
    "static_walls": [
-    "libc-call: __builtin_unreachable",
     "libc-call: not_defined"
    ],
    "verdict": "refused-unsupported"
@@ -23755,9 +23752,7 @@
    "manifest_status": "parsed",
    "name": "pr81281.c",
    "sha256": "5a85435a2c68ebff5942b0986e709efb9cbde8be77775df3dd8368995a818c29",
-   "static_walls": [
-    "libc-call: __builtin_unreachable"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -24853,9 +24848,7 @@
    "manifest_status": "parsed",
    "name": "pr97888-1.c",
    "sha256": "77b428e5d6455abd88ed092974bb80d6225a0655d383befb3a0d9f7f92cf3fad",
-   "static_walls": [
-    "libc-call: __builtin_unreachable"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -27380,17 +27373,6 @@
   },
   {
    "files": [
-    "20230509-1.c",
-    "gcc/testsuite/gcc.dg/c23-unreachable-1.c",
-    "pr81281.c",
-    "pr97888-1.c"
-   ],
-   "present": 4,
-   "sole": 3,
-   "wall": "libc-call: __builtin_unreachable"
-  },
-  {
-   "files": [
     "00144.c",
     "20000622-1.c",
     "20011121-1.c",
@@ -27539,6 +27521,14 @@
    "present": 1,
    "sole": 1,
    "wall": "libc-call: main_test"
+  },
+  {
+   "files": [
+    "gcc/testsuite/gcc.dg/c23-unreachable-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "libc-call: not_defined"
   },
   {
    "files": [
@@ -28673,14 +28663,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: llabs"
-  },
-  {
-   "files": [
-    "gcc/testsuite/gcc.dg/c23-unreachable-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: not_defined"
   },
   {
    "files": [
