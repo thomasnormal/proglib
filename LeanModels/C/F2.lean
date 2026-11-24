@@ -1333,6 +1333,18 @@ theorem freeMetadata_dead_refusal
     freeMetadata metadata = none := by
   simp [freeMetadata, hdead]
 
+theorem freeMetadata_preserves_locations
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : freeMetadata metadata = some result) :
+    result.1.locations = metadata.locations := by
+  cases hlive : metadata.allocation.live with
+  | false => simp [freeMetadata, hlive] at hresult
+  | true =>
+      have hpair := Option.some.inj (by
+        simpa [freeMetadata, hlive] using hresult)
+      exact (congrArg (fun pair => pair.1.locations) hpair).symm
+
 def pairedFreeMetadata (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
     Option ((AllocationMetadata Tag State TypeId × Footprint) ×
