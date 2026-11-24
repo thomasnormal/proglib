@@ -409,6 +409,11 @@ theorem renameHookRequest_access_count
   rw [renameHookRequest_footprint]
   exact renameFootprint_access_count resolve request.footprint
 
+theorem renameHookRequest_choice
+    (resolve : AllocId → Nat) (request : HookRequest) :
+    (renameHookRequest resolve request).choice = request.choice := by
+  rfl
+
 structure Fault (F : Type) where
   value : F
 deriving Repr
