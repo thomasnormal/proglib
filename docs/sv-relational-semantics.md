@@ -359,6 +359,10 @@ The following results are real and intentionally narrow.
 * `EdgePhaseTerminalPath.executor_result_memory` connects one memory-aware
   terminal path to `CoreMemDesign.step`, retaining every settle, edge-run,
   commit, post-settle, and quiescence receipt.
+* `EdgePhaseTerminalPath.memory_confluence_refines_step` combines the
+  memory-queue permutation observation with that executor bridge. It proves
+  decoded, pairwise-disjoint memory views agree across terminal paths while
+  retaining the selected path's exact E receipts.
 * `EdgePhaseTerminalPath.observable_confluent` and
   `confluence_refines_step` are scalar or admitted-NBA path results. They do
   not establish the whole relation.
