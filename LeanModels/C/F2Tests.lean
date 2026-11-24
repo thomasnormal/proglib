@@ -58,12 +58,25 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard pairedAllocateMetadata resolve 0 { bytes := [oneByte], state := () } [location] (.address 8)
 #guard (storeMetadataByte metadata 0 (.value 66 none (some 0))).isSome
 #guard (typedStoreMetadataByte metadata 0 "long" oneByte).isSome
+#guard match typedStoreMetadataByte metadata 0 "long" oneByte with
+  | some (stored, resultFootprint) =>
+      stored.locations[0]? == some { effectiveType := .typed "long", initialized := true } &&
+        resultFootprint == footprint .write { allocation := 0, offset := 0, width := 1 }
+  | none => false
 #guard (pairedTypedStoreMetadataByte resolve 0 metadata 0 "long" fragmentByte).isSome
 #guard (typedLoadMetadataByte ((typedStoreMetadataByte metadata 0 "long" oneByte).getD (metadata, { accesses := [] })).1 0 "long").isSome
+#guard match typedLoadMetadataByte metadata 0 "int" with
+  | some (value, resultFootprint) =>
+      value == oneByte && resultFootprint == footprint .read { allocation := 0, offset := 0, width := 1 }
+  | none => false
 #guard (typedLoadMetadataByte metadata 0 "short").isNone
 #guard (representationLoadMetadataByte metadata 0 (.byte 7)).isSome
 #guard (representationLoadMetadataByte paddingMetadata 0 (.byte 7)).isSome
 #guard (unionLoadMetadataByte unionMetadata 0).isSome
+#guard match unionLoadMetadataByte unionMetadata 0 with
+  | some (value, resultFootprint) =>
+      value == oneByte && resultFootprint == footprint .read { allocation := 0, offset := 0, width := 1 }
+  | none => false
 #guard byteFragment (mergeByte fragmentByte 1 0 0) == some 4
 #guard (mergeBytes (Tag := Unit) [.uninitialized, .value 255 none none] [1, 2] [1, 1] [0, 0]).isSome
 #guard (copySnapshot [oneByte] [.uninitialized]) == some [oneByte]

@@ -486,6 +486,20 @@ theorem typedStoreMetadataByte_preserves_length
   rw [← hEq]
   exact listSet_length metadata.locations offset _
 
+theorem typedStoreMetadataByte_success_shape
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : typedStoreMetadataByte metadata offset typeId byte = some result) :
+    result.1.allocation.bytes = listSet metadata.allocation.bytes offset byte ∧
+      result.1.locations = listSet metadata.locations offset
+        { effectiveType := .typed typeId, initialized := true } ∧
+      result.2 = footprint .write { allocation := 0, offset := offset, width := 1 } := by
+  simp [typedStoreMetadataByte] at hresult
+  rcases hresult with ⟨_, hEq⟩
+  rcases hEq with rfl
+  exact ⟨rfl, rfl, rfl⟩
+
 def renameMetadata (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) :
     AllocationMetadata Tag State TypeId :=
@@ -565,6 +579,18 @@ def pairedTypedLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     some (sourceResult, targetResult)
   else none
 
+theorem typedLoadMetadataByte_success
+    [BEq TypeId]
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag) (location : LocationState TypeId)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hlocation : metadata.locations[offset]? = some location)
+    (htype : location.effectiveType = .typed typeId)
+    (hsame : (typeId == typeId) = true) :
+    typedLoadMetadataByte metadata offset typeId =
+      some (byte, footprint .read { allocation := 0, offset := offset, width := 1 }) := by
+  simp [typedLoadMetadataByte, hbyte, hlocation, htype, hsame]
+
 def pairedTypedStoreLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
@@ -603,6 +629,16 @@ def pairedUnionLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
       targetResult.2 == sourceResult.2 then
     some (sourceResult, targetResult)
   else none
+
+theorem unionLoadMetadataByte_success
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (byte : Byte Tag) (location : LocationState TypeId)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hlocation : metadata.locations[offset]? = some location)
+    (hinitialized : location.initialized = true) :
+    unionLoadMetadataByte metadata offset =
+      some (byte, footprint .read { allocation := 0, offset := offset, width := 1 }) := by
+  simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized]
 
 def pairedStoreUnionLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
