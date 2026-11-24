@@ -1068,6 +1068,20 @@ def freeMetadata (metadata : AllocationMetadata Tag State TypeId) :
       footprint AccessKind.metadata (Region.mk 0 0 metadata.allocation.bytes.length))
   else none
 
+theorem freeMetadata_live_shape
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hlive : metadata.allocation.live = true) :
+    freeMetadata metadata =
+      some ({ metadata with allocation := { metadata.allocation with live := false } },
+        footprint .metadata (Region.mk 0 0 metadata.allocation.bytes.length)) := by
+  simp [freeMetadata, hlive]
+
+theorem freeMetadata_dead_refusal
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hdead : metadata.allocation.live = false) :
+    freeMetadata metadata = none := by
+  simp [freeMetadata, hdead]
+
 def pairedFreeMetadata (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
     Option ((AllocationMetadata Tag State TypeId × Footprint) ×
@@ -1087,6 +1101,22 @@ def freePointer (metadata : Option (AllocationMetadata Tag State TypeId)) : Free
   match metadata with
   | none => .nullSuccess
   | some metadata => if metadata.allocation.live then .freed else .stalePointer
+
+theorem freePointer_null_shape :
+    freePointer (Tag := Tag) (State := State) (TypeId := TypeId) none = .nullSuccess := by
+  rfl
+
+theorem freePointer_live_shape
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hlive : metadata.allocation.live = true) :
+    freePointer (some metadata) = .freed := by
+  simp [freePointer, hlive]
+
+theorem freePointer_dead_shape
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hdead : metadata.allocation.live = false) :
+    freePointer (some metadata) = .stalePointer := by
+  simp [freePointer, hdead]
 
 def pairedFreePointer (resolve : AllocId → Nat)
     (metadata : Option (AllocationMetadata Tag State TypeId)) : Bool :=

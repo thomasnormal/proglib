@@ -136,6 +136,11 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard ((allocateZeroSize (Tag := Unit) (TypeId := String) () (.address 128)).2.accesses.length == 1)
 #guard reallocZeroGNU17 == .freedNull
 #guard (freeMetadata metadata).isSome
+#guard match freeMetadata metadata with
+  | some (freed, resultFootprint) =>
+      !freed.allocation.live &&
+        resultFootprint == footprint .metadata { allocation := 0, offset := 0, width := 1 }
+  | none => false
 #guard (pairedFreeMetadata resolve metadata).isSome
 #guard (freeMetadata ((freeMetadata metadata).getD (metadata, { accesses := [] })).1).isNone
 #guard freePointer (Tag := Unit) (State := Unit) (TypeId := String) none == .nullSuccess
