@@ -724,6 +724,16 @@ theorem typedLoadMetadataByte_outOfBounds
     typedLoadMetadataByte metadata offset typeId = none := by
   simp [typedLoadMetadataByte, hbyte]
 
+theorem typedLoadMetadataByte_untyped_refusal
+    [BEq TypeId]
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hlocation : metadata.locations[offset]? = some
+      { effectiveType := .untyped, initialized := true }) :
+    typedLoadMetadataByte metadata offset typeId = none := by
+  simp [typedLoadMetadataByte, hbyte, hlocation]
+
 def pairedTypedLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
