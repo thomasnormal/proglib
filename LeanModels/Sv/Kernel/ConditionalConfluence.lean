@@ -68,6 +68,34 @@ theorem MemV.agreesOutside_memWrite_of_mem
 
 #print axioms MemV.agreesOutside_memWrite_of_mem
 
+theorem MemV.agreesOutside_trans
+    {hidden : List (String × Int)} {left middle right : MemV}
+    (hleft : MemV.agreesOutside hidden left middle)
+    (hright : MemV.agreesOutside hidden middle right) :
+    MemV.agreesOutside hidden left right := by
+  intro name index hhidden
+  exact (hleft name index hhidden).trans (hright name index hhidden)
+
+theorem MemV.agreesOutside_commitMemV_of_mem
+    {hidden : List (String × Int)} {mv : MemV} {queue : MemQV}
+    (hqueue : ∀ record ∈ queue, (record.1, record.2.1) ∈ hidden) :
+    MemV.agreesOutside hidden mv (commitMemV mv queue) := by
+  induction queue generalizing mv with
+  | nil =>
+      intro name index _
+      rfl
+  | cons record rest ih =>
+      have hrecord : (record.1, record.2.1) ∈ hidden := hqueue record (by simp)
+      have hrest : ∀ item ∈ rest, (item.1, item.2.1) ∈ hidden := by
+        intro item hitem
+        exact hqueue item (by simp [hitem])
+      rw [commitMemV_cons]
+      exact MemV.agreesOutside_trans
+        (MemV.agreesOutside_memWrite_of_mem hrecord)
+        (ih (mv := memWrite mv record.1 (some record.2.1) record.2.2) hrest)
+
+#print axioms MemV.agreesOutside_commitMemV_of_mem
+
 /-! The real retained resume and the observation frame can be packaged at one
     blocking scalar leaf. This is the smallest concrete bridge into the
     generic admission's per-step premise. -/
