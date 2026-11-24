@@ -487,6 +487,29 @@ structure CombPhaseGuard (d : PDesign) : Prop where
 
 #print axioms CombPhaseGuard
 
+/-! The parser guard is defined over the complete process list, while a local
+    resume diamond consumes a pair of source processes.  For the two-process
+    source-shaped boundary, unfold the guard once and expose both directed
+    exclusions.  The closure remains the parser's transitive
+    `coreMemReadNamesThroughDrivers` set, so this theorem does not replace the
+    real evaluator frame with a syntactic approximation. -/
+theorem coreMemEdgeBlockingReadRacePairThroughAssign_false_of_two
+    {p q : PProcess}
+    (hguard : coreMemEdgeBlockingReadRaceThroughAssign [p, q] = false)
+    (hcommon : coreMemHasCommonEventSourceThroughAssign [p, q] p q = true) :
+    (∀ x, x ∈ coreMemProcBlockingWrites p →
+      x ∉ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames q)) ∧
+    (∀ x, x ∈ coreMemProcBlockingWrites q →
+      x ∉ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames p)) := by
+  simpa [coreMemEdgeBlockingReadRaceThroughAssign,
+    coreMemEdgeBlockingReadRaceThroughAssignFrom,
+    coreMemEdgeBlockingReadRaceAtThroughAssign,
+    coreMemEdgeBlockingReadRacePairThroughAssign, hcommon] using hguard
+
+#print axioms coreMemEdgeBlockingReadRacePairThroughAssign_false_of_two
+
 end LeanModels.Sv.Kernel
 
 namespace LeanModels.Sv.Kernel

@@ -323,4 +323,62 @@ theorem CombPhaseStep.two_blocking_scalar_diamond_of_driver_closure
     (fun y hy => hguardM y (hclosureM y hy))
     (fun y hy => hguardN y (hclosureN y hy))
 
+/-! The two-process parser guard can now feed the retained-resume diamond
+    directly.  The write-membership premises identify the source targets, and
+    the pair guard supplies the opposite-process exclusions for the evaluator
+    closures. -/
+theorem CombPhaseStep.two_blocking_scalar_diamond_of_two_process_guard
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {xN xM : VarId} {vN vM : LVec}
+    {p q : PProcess}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hdecl : xN.decl ≠ xM.decl)
+    (hn : n ∈ view.map Prod.fst)
+    (hm : m ∈ view.map Prod.fst)
+    (hneq : n ≠ m)
+    (hkeys : (view.map Prod.fst).Nodup)
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : PExpr.hasTestPlusargs eN = false)
+    (htestM : PExpr.hasTestPlusargs eM = false)
+    (hmemN : PExpr.hasMemoryRead eN = false)
+    (hcallN : PExpr.hasFunctionCall eN = false)
+    (hmemM : PExpr.hasMemoryRead eM = false)
+    (hcallM : PExpr.hasFunctionCall eM = false)
+    (hne : E.elems ≠ [])
+    (hvalN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
+    (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 32 (coreMemPProcessReadNames q))
+    (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 32 (coreMemPProcessReadNames p))
+    (hnwrites : n ∈ coreMemProcBlockingWrites p)
+    (hmwrites : m ∈ coreMemProcBlockingWrites q)
+    (hguard : coreMemEdgeBlockingReadRaceThroughAssign [p, q] = false)
+    (hcommon : coreMemHasCommonEventSourceThroughAssign [p, q] p q = true) :
+    let cN : CombCursor :=
+      { work := [.stmt env (.blockingAssign n eN)], locals := locals }
+    let cM : CombCursor :=
+      { work := [.stmt env (.blockingAssign m eM)], locals := locals }
+    ∃ u₁ u₂ z,
+      CombPhaseStep E { state := st, view := view, active := [cN, cM] } u₁ ∧
+      CombPhaseStep E { state := st, view := view, active := [cN, cM] } u₂ ∧
+      CombPhaseStep E u₁ z ∧ CombPhaseStep E u₂ z := by
+  have hpair := coreMemEdgeBlockingReadRacePairThroughAssign_false_of_two hguard hcommon
+  apply CombPhaseStep.two_blocking_scalar_diamond_of_driver_closure
+    (processes := [p, q]) (fuelN := 32) (fuelM := 32)
+    (namesN := coreMemPProcessReadNames p)
+    (namesM := coreMemPProcessReadNames q)
+    hc hxN hxM hdecl hn hm hneq hkeys hlocalN hlocalM htargetN htargetM
+    htestN htestM hmemN hcallN hmemM hcallM hne hvalN hvalM hclosureM hclosureN
+  · intro y hy hyn
+    exact (hpair.1 n hnwrites) (by simpa [hyn] using hy)
+  · intro y hy hym
+    exact (hpair.2 m hmwrites) (by simpa [hym] using hy)
+
 end LeanModels.Sv.Kernel
