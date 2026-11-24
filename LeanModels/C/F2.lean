@@ -5108,6 +5108,51 @@ theorem pairedLoadByte_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedLoadByte_value_correspondence
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedLoadByte resolve store id offset = some result) :
+    result.2.1 = renameByte resolve result.1.1 := by
+  have map_getElem : ∀ (bytes : List (Byte Tag)) (index : Nat) (byte : Byte Tag),
+      bytes[index]? = some byte →
+      (bytes.map (renameByte resolve))[index]? = some (renameByte resolve byte) := by
+    intro bytes
+    induction bytes with
+    | nil => intro index byte h; simp at h
+    | cons head rest ih =>
+        intro index byte h
+        cases index with
+        | zero =>
+            have h' : head = byte := by simpa using h
+            simpa [h']
+        | succ index =>
+            apply ih index byte
+            simpa using h
+  cases hs : loadByte store id offset with
+  | none => simp [pairedLoadByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : loadByte (renameStore resolve store) id offset with
+      | none => simp [pairedLoadByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedLoadByte, hs, ht] at hresult
+          rcases hresult with rfl
+          obtain ⟨sourceAllocation, hsourceLookup, _, hsourceIndex⟩ :=
+            loadByte_success_value store id offset sourceResult hs
+          obtain ⟨targetAllocation, htargetLookup, _, htargetIndex⟩ :=
+            loadByte_success_value (renameStore resolve store) id offset targetResult ht
+          have htargetLookup' :
+              lookup (renameStore resolve store) id =
+                some (renameAllocationValue resolve id sourceAllocation) := by
+            rw [lookup_renameStore, hsourceLookup]
+            rfl
+          have hallocEq : targetAllocation = renameAllocationValue resolve id sourceAllocation := by
+            exact (Option.some.inj (htargetLookup'.symm.trans htargetLookup)).symm
+          rw [hallocEq, renameAllocationValue] at htargetIndex
+          have hmapped := map_getElem sourceAllocation.bytes offset sourceResult.1 hsourceIndex
+          change targetResult.1 = renameByte resolve sourceResult.1
+          exact Option.some.inj (htargetIndex.symm.trans hmapped)
+
 structure StoreLoadPair (Tag State : Type) where
   sourceStore : Store Tag State × Footprint
   targetStore : Store Tag State × Footprint
