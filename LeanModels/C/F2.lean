@@ -3607,6 +3607,16 @@ theorem renameRecovery_no_live_shape
       .noLiveAllocation := by
   rfl
 
+theorem renameRecovery_idempotent
+    (resolve : AllocId → Nat) (recovery : Recovery Tag) :
+    renameRecovery resolve (renameRecovery resolve recovery) =
+      renameRecovery resolve recovery := by
+  cases recovery with
+  | recovered region => simp [renameRecovery, renamePointer_idempotent]
+  | empty address => rfl
+  | ambiguousOnePastAdjacent => rfl
+  | noLiveAllocation => rfl
+
 def pairedRecoverAddress (resolve : AllocId → Nat) (address : Nat)
     (live : List (AllocId × Nat × Nat × Tag)) : Bool :=
   true
