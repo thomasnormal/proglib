@@ -3879,7 +3879,30 @@ theorem renameRecovery_kind_preserved
 
 def pairedRecoverAddress (resolve : AllocId → Nat) (address : Nat)
     (live : List (AllocId × Nat × Nat × Tag)) : Bool :=
-  true
+  match recoverAddress address live,
+    recoverAddress address (live.map (renameLiveRegion resolve)) with
+  | .recovered _, .recovered _ => true
+  | .empty _, .empty _ => true
+  | _, _ => false
+
+theorem pairedRecoverAddress_both_recovered
+    (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag))
+    (source target : Pointer Tag)
+    (hsource : recoverAddress address live = .recovered source)
+    (htarget : recoverAddress address (live.map (renameLiveRegion resolve)) =
+      .recovered target) :
+    pairedRecoverAddress resolve address live = true := by
+  simp [pairedRecoverAddress, hsource, htarget]
+
+theorem pairedRecoverAddress_both_empty
+    (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag))
+    (hsource : recoverAddress address live = .empty source)
+    (htarget : recoverAddress address (live.map (renameLiveRegion resolve)) =
+      .empty target) :
+    pairedRecoverAddress resolve address live = true := by
+  simp [pairedRecoverAddress, hsource, htarget]
 
 def offsetPointer (pointer : Pointer Tag) (elementSize : Nat) (delta : Int)
     (bound : Nat) : Except OffsetFault (Pointer Tag) :=
