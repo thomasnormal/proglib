@@ -3207,6 +3207,26 @@ def CoreMemDesign.runCombInitialWithView (E : CoreMemDesign) (current : CoreMemS
       E.runCombInitialWithView (E.compactScalar after view') view' rest
   | _ :: rest => E.runCombInitialWithView current view rest
 
+/-! The canonical initial combinational runner preserves the scalar leaf
+equation supplied by the exact executor bridge. -/
+theorem CoreMemDesign.runCombInitialWithView_blocking_scalar
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n : String} {value : PExpr} {width : Nat} {v : LVec}
+    (hlocal : SvState.lookup locals n = none)
+    (hlocals : locals = [])
+    (htarget : E.scalarTarget n = some width)
+    (htest : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs value = false)
+    (hvalue : E.evalExprLocals env E.elems st (some width) locals value = .ok v)
+    (hproc : env = E.env) :
+    E.runCombInitialWithView st view
+        [.comb (.blockingAssign n value)] =
+      .ok (E.compactScalar (E.setScalarState st n v) (SvState.set view n v),
+        SvState.set view n v) := by
+  subst env
+  subst locals
+  simp [CoreMemDesign.runCombInitialWithView,
+    CoreMemDesign.execCombStmtAtView_blocking_scalar hlocal rfl htarget htest hvalue]
+
 def CoreMemDesign.runCombInitial (E : CoreMemDesign) (current : CoreMemState) :
     List CoreMemProc → Res CoreMemState := fun procs => do
   let (after, _) ← E.runCombInitialWithView current (E.scalar.view current.scalar) procs

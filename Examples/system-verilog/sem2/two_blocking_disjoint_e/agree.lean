@@ -113,7 +113,24 @@ theorem executor_bridge_receipt
   exact CombCursor.resume_blocking_scalar_of_exec
     hlocal hlocals htarget htest hvalue
 
+theorem initial_runner_bridge_receipt
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n : String} {value : PExpr} {width : Nat} {v : LVec}
+    (hlocal : SvState.lookup locals n = none)
+    (hlocals : locals = [])
+    (htarget : E.scalarTarget n = some width)
+    (htest : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs value = false)
+    (hvalue : E.evalExprLocals env E.elems st (some width) locals value = .ok v)
+    (hproc : env = E.env) :
+    E.runCombInitialWithView st view
+        [.comb (.blockingAssign n value)] =
+      .ok (E.compactScalar (E.setScalarState st n v) (SvState.set view n v),
+        SvState.set view n v) := by
+  exact CoreMemDesign.runCombInitialWithView_blocking_scalar
+    hlocal hlocals htarget htest hvalue hproc
+
 #print axioms guardReceipt
 #print axioms guarded_pair_receipt
 #print axioms executor_bridge_receipt
+#print axioms initial_runner_bridge_receipt
 end Examples.«system-verilog».sem2.two_blocking_disjoint_e
