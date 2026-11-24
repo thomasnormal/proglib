@@ -5349,6 +5349,50 @@ theorem pairedAllocateMetadata_both_refused
     pairedAllocateMetadata resolve id request locations placement = true := by
   simp [pairedAllocateMetadata, hsource, htarget]
 
+theorem pairedAllocateMetadata_sound
+    (resolve : AllocId → Nat) (id : AllocId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (h : pairedAllocateMetadata resolve id request locations placement = true) :
+    (∃ source target,
+      allocateMetadata request locations placement = some source ∧
+      allocateMetadata (renameAllocationRequest resolve request) locations
+        (renamedPlacement resolve id placement) = some target) ∨
+    (allocateMetadata request locations placement = none ∧
+      allocateMetadata (renameAllocationRequest resolve request) locations
+        (renamedPlacement resolve id placement) = none) := by
+  cases hs : allocateMetadata request locations placement with
+  | none =>
+      cases ht : allocateMetadata (renameAllocationRequest resolve request) locations
+          (renamedPlacement resolve id placement) with
+      | none => exact Or.inr ⟨rfl, rfl⟩
+      | some target => simp [pairedAllocateMetadata, hs, ht] at h
+  | some source =>
+      cases ht : allocateMetadata (renameAllocationRequest resolve request) locations
+          (renamedPlacement resolve id placement) with
+      | none => simp [pairedAllocateMetadata, hs, ht] at h
+      | some target => exact Or.inl ⟨source, target, rfl, rfl⟩
+
+theorem pairedAllocateMetadata_refusal_source
+    (resolve : AllocId → Nat) (id : AllocId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (hsource : allocateMetadata request locations placement = some source)
+    (htarget : allocateMetadata (renameAllocationRequest resolve request) locations
+      (renamedPlacement resolve id placement) = none) :
+    pairedAllocateMetadata resolve id request locations placement = false := by
+  simp [pairedAllocateMetadata, hsource, htarget]
+
+theorem pairedAllocateMetadata_refusal_target
+    (resolve : AllocId → Nat) (id : AllocId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (hsource : allocateMetadata request locations placement = none)
+    (htarget : allocateMetadata (renameAllocationRequest resolve request) locations
+      (renamedPlacement resolve id placement) = some target) :
+    pairedAllocateMetadata resolve id request locations placement = false := by
+  simp [pairedAllocateMetadata, hsource, htarget]
+
 #guard (allocate (Tag := Unit) (State := Unit)
   { allocations := [], nextId := 0 }
   { bytes := [Byte.uninitialized], state := () } (Placement.address 16)).isSome
