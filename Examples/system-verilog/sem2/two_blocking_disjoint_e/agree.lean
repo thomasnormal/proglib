@@ -102,6 +102,54 @@ theorem guarded_pair_receipt
     hkeys hlocalN hlocalM htargetN htargetM htestN htestM hmemN hcallN hmemM
     hcallM hne hvalN hvalM hclosureM hclosureN hnwrites hmwrites
 
+theorem guarded_hidden_terminal_receipt
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {xN xM : VarId} {vN vM : LVec}
+    {p q : PProcess}
+    (hprocesses : twoBlocking.pdesign.processes = [p, q])
+    (hcommon : coreMemHasCommonEventSourceThroughAssign [p, q] p q = true)
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs eN = false)
+    (htestM : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs eM = false)
+    (hmemN : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead eN = false)
+    (hcallN : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall eN = false)
+    (hmemM : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead eM = false)
+    (hcallM : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall eM = false)
+    (hne : E.elems ≠ [])
+    (hvalN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
+    (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames q))
+    (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames p))
+    (hnwrites : n ∈ coreMemProcBlockingWrites p)
+    (hmwrites : m ∈ coreMemProcBlockingWrites q) :
+    ∃ kN tN kM tM,
+      CombPhaseTerminalPath E kN
+        { state := st, view := view,
+          active := [ { work := [.stmt env (.blockingAssign n eN)], locals := locals },
+                      { work := [.stmt env (.blockingAssign m eM)], locals := locals } ] } tN ∧
+      CombPhaseTerminalPath E kM
+        { state := st, view := view,
+          active := [ { work := [.stmt env (.blockingAssign n eN)], locals := locals },
+                      { work := [.stmt env (.blockingAssign m eM)], locals := locals } ] } tM ∧
+      SvState.agreesOutside [n, m] tN.view tM.view := by
+  have hg : CombPhaseGuard twoBlocking.pdesign := by
+    constructor <;> decide
+  exact CombPhaseTerminalPath.two_blocking_scalar_hidden_observation_of_design_guard
+    (hidden := [n, m]) (d := twoBlocking.pdesign) hg hprocesses hcommon hc hxN hxM
+    hlocalN hlocalM htargetN htargetM htestN htestM hmemN hcallN hmemM hcallM
+    hne hvalN hvalM hclosureM hclosureN hnwrites hmwrites (by simp) (by simp)
+
 theorem executor_bridge_receipt
     {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
     {env : IEnv} {n : String} {value : PExpr} {width : Nat} {v : LVec}
@@ -199,6 +247,7 @@ theorem terminal_pair_receipt
 
 #print axioms guardReceipt
 #print axioms guarded_pair_receipt
+#print axioms guarded_hidden_terminal_receipt
 #print axioms executor_bridge_receipt
 #print axioms initial_runner_bridge_receipt
 #print axioms executor_two_statement_bridge_receipt

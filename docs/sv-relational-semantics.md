@@ -577,6 +577,14 @@ Icarus Verilog 13.0 and Xcelium 24.03-s004. The receipt keeps the evaluator
 and declaration-identity premises explicit, so it does not turn this fixture
 into a whole-design confluence theorem.
 
+The clean-room `two_blocking_disjoint_e` agreement file now instantiates the
+guarded hidden-observation terminal-path adapter. It supplies the concrete
+two-process parser guard, source-process write membership, and driver-closure
+receipts while leaving evaluator values and scalar elaboration premises
+explicit. Its three differential rows still match Icarus Verilog 13.0 and
+Xcelium 24.03-s004. This is a fixture-level receipt for the two-process
+adapter, not evidence of global guard completeness.
+
 The clean-room `fsm_logic_confluence_e` envelope is a third source-shaped
 NBA witness. It has one case-based state process and two continuous-assignment
 drivers. Its `fsm_nba_confluence` theorem instantiates the same guarded
