@@ -1866,6 +1866,23 @@ def pairedAllocate (resolve : AllocId → Nat) (store : Store Tag State)
     request (renamedPlacement resolve store.nextId placement)
   some (sourceResult, targetResult)
 
+theorem pairedAllocate_decompose
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedAllocate resolve store request placement = some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases hs : allocate store request placement with
+  | none => simp [pairedAllocate, hs] at hresult
+  | some sourceResult =>
+      cases ht : allocate (renameStore resolve store) request
+          (renamedPlacement resolve store.nextId placement) with
+      | none => simp [pairedAllocate, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedAllocate, hs, ht] at hresult
+          exact ⟨sourceResult, targetResult, hresult.symm⟩
+
 def pairedAllocateFailure (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement) : Bool :=
   (allocate store request placement).isNone &&
