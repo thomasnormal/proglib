@@ -1361,6 +1361,23 @@ def recoverAddress (address : Nat) (live : List (AllocId × Nat × Nat × Tag)) 
   | some entry => .recovered { provenance := some { allocation := entry.1, tag := entry.2.2.2 }, address := address }
   | none => .empty address
 
+theorem recoverAddress_found
+    (address : Nat) (live : List (AllocId × Nat × Nat × Tag))
+    (entry : AllocId × Nat × Nat × Tag)
+    (hfound : live.find? (fun candidate =>
+      candidate.2.1 ≤ address && address < candidate.2.2.1) = some entry) :
+    recoverAddress address live =
+      .recovered { provenance := some { allocation := entry.1, tag := entry.2.2.2 },
+                   address := address } := by
+  simp [recoverAddress, hfound]
+
+theorem recoverAddress_no_live_allocation
+    (address : Nat) (live : List (AllocId × Nat × Nat × Tag))
+    (hnone : live.find? (fun candidate =>
+      candidate.2.1 ≤ address && address < candidate.2.2.1) = none) :
+    recoverAddress address live = .empty address := by
+  simp [recoverAddress, hnone]
+
 def renameLiveRegion (resolve : AllocId → Nat)
     (entry : AllocId × Nat × Nat × Tag) : AllocId × Nat × Nat × Tag :=
   (entry.1, resolve entry.1, resolve entry.1 + (entry.2.2.1 - entry.2.1), entry.2.2.2)
@@ -1382,6 +1399,28 @@ def offsetPointer (pointer : Pointer Tag) (elementSize : Nat) (delta : Int)
     let magnitude := Int.natAbs delta * elementSize
     let address := if delta < 0 then pointer.address - magnitude else pointer.address + magnitude
     if address > bound then .error .outOfBounds else .ok { pointer with address := address }
+
+theorem offsetPointer_zero_element_size
+    (pointer : Pointer Tag) (delta : Int) (bound : Nat) :
+    offsetPointer pointer 0 delta bound = .error .alignment := by
+  simp [offsetPointer]
+
+theorem offsetPointer_success_nonnegative
+    (pointer : Pointer Tag) (elementSize : Nat) (delta : Int) (bound : Nat)
+    (hsize : elementSize ≠ 0) (hdelta : 0 ≤ delta)
+    (hbound : pointer.address + Int.natAbs delta * elementSize ≤ bound) :
+    offsetPointer pointer elementSize delta bound =
+      .ok { pointer with address := pointer.address + Int.natAbs delta * elementSize } := by
+  have hneg : ¬ delta < 0 := by omega
+  simp [offsetPointer, hsize, hneg, hbound]
+
+theorem offsetPointer_outOfBounds_nonnegative
+    (pointer : Pointer Tag) (elementSize : Nat) (delta : Int) (bound : Nat)
+    (hsize : elementSize ≠ 0) (hdelta : 0 ≤ delta)
+    (hbound : bound < pointer.address + Int.natAbs delta * elementSize) :
+    offsetPointer pointer elementSize delta bound = .error .outOfBounds := by
+  have hneg : ¬ delta < 0 := by omega
+  simp [offsetPointer, hsize, hneg, hbound]
 
 def renameOffsetResult (resolve : AllocId → Nat) :
     Except OffsetFault (Pointer Tag) → Except OffsetFault (Pointer Tag)
