@@ -1497,6 +1497,50 @@ theorem allocateMetadata_preserves_lengths
   · rcases hresult with ⟨hEq, rfl⟩
     exact hEq
 
+theorem allocateMetadata_address_success
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (base : Nat)
+    (hsame : locations.length = request.bytes.length) :
+    allocateMetadata request locations (.address base) =
+      some ({ allocation :=
+                { live := true, address := some base,
+                  bytes := request.bytes, state := request.state },
+              locations },
+            footprint .metadata (Region.mk 0 0 request.bytes.length)) := by
+  simp [allocateMetadata, hsame]
+
+theorem allocateMetadata_unaddressable_success
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (hsame : locations.length = request.bytes.length) :
+    allocateMetadata request locations .unaddressable =
+      some ({ allocation :=
+                { live := true, address := none,
+                  bytes := request.bytes, state := request.state },
+              locations },
+            footprint .metadata (Region.mk 0 0 request.bytes.length)) := by
+  simp [allocateMetadata, hsame]
+
+theorem allocateMetadata_address_rejects_length_mismatch
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (base : Nat)
+    (hmismatch : locations.length ≠ request.bytes.length) :
+    allocateMetadata request locations (.address base) = none := by
+  simp [allocateMetadata, hmismatch]
+
+theorem allocateMetadata_unaddressable_rejects_length_mismatch
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (hmismatch : locations.length ≠ request.bytes.length) :
+    allocateMetadata request locations .unaddressable = none := by
+  simp [allocateMetadata, hmismatch]
+
+theorem allocateMetadata_rejects_failure
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) :
+    allocateMetadata request locations .fail = none := by
+  rfl
+
 def pairedAllocateMetadata (resolve : AllocId → Nat) (id : AllocId)
     (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) : Bool :=

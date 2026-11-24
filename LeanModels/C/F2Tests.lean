@@ -55,6 +55,12 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard pairedAllocateFailure resolve one { bytes := [.uninitialized], state := () } .fail
 #guard pairedUnaddressableAllocation resolve empty { bytes := [.uninitialized], state := () }
 #guard (allocateMetadata { bytes := [oneByte], state := () } [location] (.address 8)).isSome
+#guard (allocateMetadata { bytes := [oneByte], state := () } [location] (.address 8)) ==
+  some ({ allocation := { live := true, address := some 8, bytes := [oneByte], state := () },
+          locations := [location] },
+        footprint .metadata { allocation := 0, offset := 0, width := 1 })
+#guard (allocateMetadata { bytes := [oneByte], state := () } ([] : List (LocationState String)) (.address 8)).isNone
+#guard (allocateMetadata { bytes := [oneByte], state := () } [location] .fail).isNone
 #guard pairedAllocateMetadata resolve 0 { bytes := [oneByte], state := () } [location] (.address 8)
 #guard (storeMetadataByte metadata 0 (.value 66 none (some 0))).isSome
 #guard (typedStoreMetadataByte metadata 0 "long" oneByte).isSome
