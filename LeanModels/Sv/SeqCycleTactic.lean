@@ -174,6 +174,66 @@ theorem seqE_evalAt_mul (env : IEnv) (ty : Nat × Bool) (l r : PExpr) :
   simp only [evalAt, SymBinOp.constClass]
   rfl
 
+/-! `$clog2` is evaluated at the argument's propagated type and then converted to the
+result type (IEEE 1800-2023 §20.8.1).  The residue is explicit because `evalAt`
+reads an unsigned argument through its width before applying the ceiling logarithm. -/
+
+/-- `evalAt` on `$clog2 (e)`. -/
+theorem seqE_evalAt_clog2 (env : IEnv) (ty : Nat × Bool) (e : PExpr) :
+    evalAt env ty (.sysCall .clog2 e) = (do
+      let ety ← ctype env e
+      let v ← evalAt env ety e
+      .ok (convertConst 32 ty.1 ty.2 (clog2 (v.emod ((2 : Int) ^ ety.1)).toNat : Int))) := by
+  simp only [evalAt]
+
+/-- A nonnegative integer below `2^32` is its own 32-bit residue. -/
+theorem seqE_emod_32 {v : Int} (h1 : 0 ≤ v) (h2 : v < 4294967296) :
+    v.emod ((2 : Int) ^ 32) = v := by
+  have h : (2 : Int) ^ 32 = 4294967296 := by decide
+  rw [h]
+  exact Int.emod_eq_of_lt h1 h2
+
+/-- `$clog2 n ≥ 1` for `n ≥ 2`. -/
+theorem seqE_clog2_pos {n : Nat} (h : 2 ≤ n) : 1 ≤ clog2 n := by
+  unfold clog2
+  split <;> omega
+
+/-- `$clog2 (2^k) = k`. -/
+theorem seqE_clog2_two_pow (k : Nat) : clog2 (2 ^ k) = k := by
+  unfold clog2
+  split
+  · rename_i h
+    cases k with
+    | zero => rfl
+    | succ k =>
+        have hpow : 2 ≤ 2 ^ (k + 1) := by
+          have := Nat.pow_le_pow_right (show 0 < 2 by omega) (show 1 ≤ k + 1 by omega)
+          simpa using this
+        omega
+  · rename_i h
+    cases k with
+    | zero => simp at h
+    | succ k =>
+        rw [Nat.pow_succ]
+        have hpos : 0 < 2 ^ k := Nat.two_pow_pos k
+        have hlog : (2 ^ k * 2 - 1).log2 = k := by
+          rw [Nat.log2_eq_iff (by omega)]
+          constructor
+          · omega
+          · rw [Nat.pow_succ]
+            omega
+        omega
+
+/-- `$clog2 (2^k + 1) = k + 1`. -/
+theorem seqE_clog2_two_pow_succ (k : Nat) : clog2 (2 ^ k + 1) = k + 1 := by
+  unfold clog2
+  have hpos : 0 < 2 ^ k := Nat.two_pow_pos k
+  split
+  · omega
+  · have hlog : (2 ^ k + 1 - 1).log2 = k := by
+      rw [Nat.add_sub_cancel, Nat.log2_two_pow]
+    omega
+
 /-! ## The condition of a conditional generate construct
 
 The route selects the arm of `if (c) … else …` by `evalGenGuard` (the condition typed by `ctype` and evaluated at its
@@ -822,6 +882,7 @@ macro "sv_seq_inst_pass2" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:id
       LeanModels.Sv.PExpr.pushedTarget, LeanModels.Sv.SymBinOp.constClass, LeanModels.Sv.Kernel.seqE_evalAt_int,
       LeanModels.Sv.Kernel.seqE_evalAt_param, LeanModels.Sv.Kernel.seqE_evalAt_sub,
       LeanModels.Sv.Kernel.seqE_evalAt_add, LeanModels.Sv.Kernel.seqE_evalAt_mul,
+      LeanModels.Sv.Kernel.seqE_evalAt_clog2,
       LeanModels.Sv.Kernel.seqE_evalAt_eq, LeanModels.Sv.Kernel.seqE_evalAt_ne, LeanModels.Sv.Kernel.seqE_evalAt_slt,
       LeanModels.Sv.Kernel.seqE_evalAt_sle, LeanModels.Sv.Kernel.seqE_evalAt_sgt, LeanModels.Sv.Kernel.seqE_evalAt_sge,
       LeanModels.Sv.Kernel.seqE_evalAt_lt, LeanModels.Sv.Kernel.seqE_evalAt_le, LeanModels.Sv.Kernel.seqE_evalAt_gt,
@@ -841,6 +902,8 @@ macro "sv_seq_arith_pass2" " at " h:ident : tactic =>
       LeanModels.Sv.CombView.convertConst32, LeanModels.Sv.CombView.convertConst1_ite,
       LeanModels.Sv.Kernel.seqE_ite_ne_zero, decide_eq_true_eq, beq_iff_eq, bne_iff_ne, ne_eq, if_pos, if_neg,
       LeanModels.Sv.Kernel.seqE_canonU32_of_bounds, LeanModels.Sv.Kernel.seqE_convertU32_of_bounds,
+      LeanModels.Sv.Kernel.seqE_emod_32,
+      LeanModels.Sv.Kernel.seqE_clog2_pos, LeanModels.Sv.CombView.clog2_le,
       LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
       LeanModels.Sv.Kernel.seqE_natAbs_add_sub_one_add_one, Nat.sub_add_cancel] at $h:ident)
 
