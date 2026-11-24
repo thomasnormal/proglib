@@ -3365,6 +3365,24 @@ theorem pairedPlacementAllowed_sound (resolve : AllocId → Nat)
       placementAllowed (renameStore resolve store) (resolve store.nextId) size := by
   simpa [pairedPlacementAllowed] using h
 
+theorem pairedPlacementAllowed_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (base size : Nat)
+    (hsource : placementAllowed store base size = false)
+    (htarget : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) size = true) :
+    pairedPlacementAllowed resolve store base size = false := by
+  simp [pairedPlacementAllowed, hsource, htarget]
+
+theorem pairedPlacementAllowed_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (base size : Nat)
+    (hsource : placementAllowed store base size = true)
+    (htarget : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) size = false) :
+    pairedPlacementAllowed resolve store base size = false := by
+  simp [pairedPlacementAllowed, hsource, htarget]
+
 def alignmentAllowed (base alignment : Nat) : Bool :=
   alignment > 0 && base % alignment == 0
 
