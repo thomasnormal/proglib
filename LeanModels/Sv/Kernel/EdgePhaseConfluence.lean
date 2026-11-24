@@ -1415,6 +1415,31 @@ private theorem commitMemV_perm_disjoint
 
 #print axioms commitMemV_perm_disjoint
 
+/-! The view-level consequence is useful independently of canonical commit
+success.  It compares the memory observation for any initial `MemV` and keeps
+the fine-grained terminal-path relation as the source of the permutation. -/
+theorem EdgePhaseTerminalPath.memory_view_eq_of_trace
+    {E : CoreMemDesign} {s t₁ t₂ : EdgePhaseState}
+    {n₁ n₂ : Nat} (ad : EdgePhaseMemoryAdmission E s)
+    (q : EdgeCursor → MemNbaQueue)
+    (hqueue : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.memoryQ = q cursor)
+    (hp₁ : EdgePhaseTerminalPath E n₁ s t₁)
+    (hp₂ : EdgePhaseTerminalPath E n₂ s t₂)
+    (decode : MemNbaRecord → String × Int × LVec)
+    (mv : MemV)
+    (hdisj : memQueuePairwiseDisjoint (t₁.memoryQ.map decode)) :
+    commitMemV mv (t₁.memoryQ.map decode) =
+      commitMemV mv (t₂.memoryQ.map decode) := by
+  have hpermM : t₁.memoryQ.Perm t₂.memoryQ :=
+    EdgePhaseTerminalPath.memory_queue_perm
+      (s := s) ad q hqueue hp₁ hp₂
+  have hperm : (t₁.memoryQ.map decode).Perm (t₂.memoryQ.map decode) :=
+    List.Perm.map decode hpermM
+  exact commitMemV_perm_disjoint hdisj hperm
+
+#print axioms EdgePhaseTerminalPath.memory_view_eq_of_trace
+
 /-! Two successful canonical memory commits have the same observed memory
 view when their identity-preserving queues are permutations and the queue
 footprint is pairwise disjoint.  The theorem consumes `commitNba_V` rather

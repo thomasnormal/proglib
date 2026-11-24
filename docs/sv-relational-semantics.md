@@ -124,6 +124,8 @@ The current proof inventory has these levels.
   `memory_queue_perm` now carry path-independent canonical memory queues for
   a memory-aware admission receipt. `memory_state_eq` preserves the shared
   pre-edge memory state, and
+  `memory_view_eq_of_trace` gives the corresponding arbitrary-view
+  observation equality, while
   `memory_commit_observation_eq_of_perm` carries the queue permutation through
   successful identity-preserving `MemState.commitNba` commits using the
   existing `commitNba_V` view theorem. Its decode, coherence, footprint, and
