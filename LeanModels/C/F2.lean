@@ -565,6 +565,13 @@ theorem lookup_renameStore (resolve : AllocId → Nat)
               · simpa [lookup, renameStore, renameAllocation, renameAllocationValue,
                   Function.comp_def, h] using ih
 
+theorem lookup_renameStore_none (resolve : AllocId → Nat)
+    (store : Store Tag State) (id : AllocId)
+    (hlookup : lookup store id = none) :
+    lookup (renameStore resolve store) id = none := by
+  rw [lookup_renameStore]
+  simp [hlookup]
+
 def bytesWf (id : AllocId) : List (Byte Tag) → Prop
   | [] => True
   | .uninitialized :: rest => bytesWf id rest
