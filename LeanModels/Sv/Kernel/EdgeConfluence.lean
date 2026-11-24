@@ -57,6 +57,39 @@ theorem CoreMemDesign.edge_evalExprLocals_frame_of_readsV
   exact CoreMemDesign.evalExprLocals_setScalarState_of_not_read_pure
     hc hx hmem hcall hne hread
 
+/-! The parser-native read walker and the identifier set consumed by the
+instantiated evaluator are the same set in the pure expression fragment.
+Keep the nonempty elaboration environment explicit because `evalExprLocals`
+uses the design environment only for an empty element list. -/
+theorem CoreMemDesign.edge_readsV_eq_instantiated_idents_of_pure
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {ctx : Option Nat} {e : PExpr}
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hne : elems ≠ []) :
+    E.readsV env elems ctx e =
+      (instExpr2 env (if elems.isEmpty then E.elems else elems) ctx e).idents := by
+  simpa [CoreMemDesign.widthsOf, hne] using
+    (CoreMemDesign.readsV_eq_instExpr2_idents_of_pure
+      (E := E) (env := env) (elems := elems) (ctx := ctx) (e := e) hmem)
+
+theorem CoreMemDesign.edge_evalExprLocals_frame_of_instantiated_reads
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {ctx : Option Nat} {locals : SvState} {e : PExpr}
+    {n : String} {x : VarId} {v : LVec}
+    (hc : E.Coherent st)
+    (hx : E.scalar.resolve n = some x)
+    (hmem : LeanModels.Sv.PExpr.hasMemoryRead e = false)
+    (hcall : LeanModels.Sv.PExpr.hasFunctionCall e = false)
+    (hne : elems ≠ [])
+    (hread : ∀ y ∈
+      (instExpr2 env (if elems.isEmpty then E.elems else elems) ctx e).idents,
+      y ≠ n) :
+    E.evalExprLocals env elems st ctx locals e =
+      E.evalExprLocals env elems (E.setScalarState st n v) ctx locals e := by
+  apply CoreMemDesign.edge_evalExprLocals_frame_of_readsV hc hx hmem hcall hne
+  rw [CoreMemDesign.edge_readsV_eq_instantiated_idents_of_pure hmem hne]
+  exact hread
+
 /-! A guard receipt is parser-native, while the evaluator frame consumes the
  instantiated `readsV` set.  Keep the translation obligation explicit at this
  boundary.  This is the adapter used by admission proofs until a design's
