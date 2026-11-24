@@ -380,24 +380,6 @@ theorem CombPhaseTerminalPath.of_two_step_diamond
   exact ⟨.head hs h₁ (.head hu₁ h₁z (.terminal hterminal)),
     .head hs h₂ (.head hu₂ h₂z (.terminal hterminal))⟩
 
-theorem CombPhaseTerminalPath.executor_endpoint
-    {E : CoreMemDesign} {s u₁ u₂ z : CombPhaseState}
-    {procs : List CoreMemProc}
-    (h₁ : CombPhaseStep E s u₁)
-    (h₂ : CombPhaseStep E s u₂)
-    (h₁z : CombPhaseStep E u₁ z)
-    (h₂z : CombPhaseStep E u₂ z)
-    (hz : z.active = [])
-    (hcanonical : E.runCombInitialWithView s.state s.view procs =
-      .ok (E.compactScalar z.state z.view, z.view)) :
-    ∃ n₁ n₂,
-      CombPhaseTerminalPath E n₁ s z ∧
-      CombPhaseTerminalPath E n₂ s z ∧
-      E.runCombInitialWithView s.state s.view procs =
-        .ok (E.compactScalar z.state z.view, z.view) := by
-  have hpaths := CombPhaseTerminalPath.of_two_step_diamond h₁ h₂ h₁z h₂z hz
-  exact ⟨2, 2, hpaths.1, hpaths.2, hcanonical⟩
-
 /-! Pure scalar expressions have the evaluator frame needed by the
 level-sensitive diamond.  The source access guard still has to establish the
 read agreement premise for the instantiated expression.  Keeping this lemma
