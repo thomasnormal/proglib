@@ -3702,15 +3702,6 @@ def CoreMemDesign.execStmt (E : CoreMemDesign) (env : IEnv) (elems : List (Strin
     (st : CoreMemState) (stmt : PStmt) : CoreMemExec :=
   E.execStmtFuel env elems st [] (4096 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
 
-def CoreMemDesign.execStmts (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
-    (st : CoreMemState) (stmts : List PStmt) : CoreMemExec :=
-  E.execStmtsFuel env elems st []
-    (4096 + PStmt.listNeed env stmts + PStmt.listRuntimeNeed env stmts) stmts
-
-def CoreMemDesign.execLoopValues (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
-    (st : CoreMemState) (values : List Int) (body : PStmt) (iterator : String) : CoreMemExec :=
-  E.execLoopValuesFuel env elems st [] (4096 + values.length + 1) values body iterator
-
 /-! ## Slots, scalar E commit, and memory commit -/
 
 def CoreMemEdge.fires (p : CoreMemEdge) (before after : SvState) : Bool :=
