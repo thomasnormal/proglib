@@ -584,6 +584,30 @@ inductive EdgeScheduleTerminalPath
       (htail : EdgeScheduleTerminalPath E before after v mv n u t) :
       EdgeScheduleTerminalPath E before after v mv (n + 1) s t
 
+/-! The pending-process length is a well-founded progress measure for every
+    admitted edge path.  This bound is independent of the order chosen by the
+    relation, so no internal schedule can diverge before reaching a terminal
+    boundary. -/
+theorem EdgeScheduleTerminalPath.length_le_pending
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {s t : EdgeScheduleState} {n : Nat}
+    (hnodup : s.pending.Nodup)
+    (hp : EdgeScheduleTerminalPath E before after v mv n s t) :
+    n ≤ s.pending.length := by
+  induction n generalizing s t with
+  | zero =>
+      cases hp with
+      | terminal => exact Nat.zero_le _
+  | succ n ih =>
+      cases hp with
+      | head hn hstep htail =>
+          obtain ⟨i, q, hi, hq, rfl⟩ := hstep
+          have hnd : (removeProcessId i s.pending).Nodup :=
+            removeProcessId_nodup hnodup
+          have htail' := ih hnd htail
+          have hlt := removeProcessId_length_lt hnodup hi
+          exact Nat.le_trans (Nat.succ_le_succ htail') (Nat.succ_le_of_lt hlt)
+
 private theorem perm_cons_removeProcessId {i : Nat} {xs : List Nat}
     (hn : xs.Nodup) (hm : i ∈ xs) :
     (i :: removeProcessId i xs).Perm xs := by
@@ -643,6 +667,16 @@ theorem EdgeScheduleTerminalPath.exists
             obtain ⟨n, t, ht⟩ := ih u.pending.length hlt u rfl hu.2.1 hu.1 hu.2.2
             exact ⟨n + 1, t, .head hempty hstep ht⟩
   exact aux s.pending.length s rfl hsub hnodup hkeys
+
+theorem EdgeScheduleTerminalPath.exists_bounded
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {ids : List Nat} (ad : EdgeScheduleAdmission E before after v mv ids)
+    {s : EdgeScheduleState} (hsub : ∀ i ∈ s.pending, i ∈ ids)
+    (hnodup : s.pending.Nodup) (hkeys : (s.view.map Prod.fst).Nodup) :
+    ∃ n t, EdgeScheduleTerminalPath E before after v mv n s t ∧
+      n ≤ s.pending.length := by
+  obtain ⟨n, t, hp⟩ := EdgeScheduleTerminalPath.exists ad hsub hnodup hkeys
+  exact ⟨n, t, hp, EdgeScheduleTerminalPath.length_le_pending hnodup hp⟩
 
 theorem EdgeScheduleTerminalPath.exists_processes_range
     {E : CoreMemDesign} {before after v : SvState} {mv : MemV}

@@ -123,6 +123,8 @@ The current proof inventory has these levels.
   `edge_schedule_observation_independent` compares two arbitrary terminal
   paths over one pre-edge state and input, proving their shared observation
   agrees with the canonical commit.
+  `EdgeScheduleTerminalPath.length_le_pending` and `exists_bounded` provide
+  the progress measure and a finite terminal path for this admitted class.
 
 The intended canonical bridge has the following shape. The names below are
 proposed public relation names, not declarations that exist today.
