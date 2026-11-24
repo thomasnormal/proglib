@@ -3133,6 +3133,28 @@ theorem CoreMemDesign.execCombStmtAtView_blocking_scalar
   simp [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel,
     htarget, htest, hvalue]
 
+theorem CoreMemDesign.execCombStmtAtView_two_blocking_scalar
+    {E : CoreMemDesign} {env : IEnv} {st : CoreMemState} {view locals : SvState}
+    {n m : String} {eN eM : PExpr} {widthN widthM : Nat} {vN vM : LVec}
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (hlocals : locals = [])
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs eN = false)
+    (htestM : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs eM = false)
+    (hvalueN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalueM : E.evalExprLocals env E.elems (E.setScalarState st n vN)
+      (some widthM) locals eM = .ok vM) :
+    E.execCombStmtAtView env E.elems st view
+        (.block [.blockingAssign n eN, .blockingAssign m eM]) =
+      .ok (E.setScalarState (E.setScalarState st n vN) m vM,
+        SvState.set (SvState.set view n vN) m vM) := by
+  subst locals
+  simp [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel,
+    CoreMemDesign.execCombStmtsFuel, htargetN, htargetM, htestN, htestM,
+    hvalueN, hvalueM]
+
 def CoreMemDesign.execCombStmt (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (stmt : PStmt) : Res CoreMemState :=
   do

@@ -129,8 +129,30 @@ theorem initial_runner_bridge_receipt
   exact CoreMemDesign.runCombInitialWithView_blocking_scalar
     hlocal hlocals htarget htest hvalue hproc
 
+theorem executor_two_statement_bridge_receipt
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {vN vM : LVec}
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (hlocals : locals = [])
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs eN = false)
+    (htestM : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs eM = false)
+    (hvalueN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalueM : E.evalExprLocals env E.elems (E.setScalarState st n vN)
+      (some widthM) locals eM = .ok vM) :
+    E.execCombStmtAtView env E.elems st view
+        (.block [.blockingAssign n eN, .blockingAssign m eM]) =
+      .ok (E.setScalarState (E.setScalarState st n vN) m vM,
+        SvState.set (SvState.set view n vN) m vM) := by
+  exact CoreMemDesign.execCombStmtAtView_two_blocking_scalar
+    hlocalN hlocalM hlocals htargetN htargetM htestN htestM hvalueN hvalueM
+
 #print axioms guardReceipt
 #print axioms guarded_pair_receipt
 #print axioms executor_bridge_receipt
 #print axioms initial_runner_bridge_receipt
+#print axioms executor_two_statement_bridge_receipt
 end Examples.«system-verilog».sem2.two_blocking_disjoint_e
