@@ -1078,7 +1078,10 @@ def hasGotoControlledPointerIncrement (body : Stmt) : Bool :=
     | _ => false
   let hasPointerIncrement := (body.substmts.flatMap Stmt.ownExprs).any fun expression =>
     match expression with
-    | .unop op .. => op == "++" || op == "--"
+    | .unop op sub .. =>
+        (op == "++" || op == "--") &&
+          ((sub.structuredType?).map
+            (fun type => type.unqualified.pointerObject)).getD false
     | _ => false
   hasGoto && hasPointerIncrement
 

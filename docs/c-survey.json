@@ -2,20 +2,20 @@
  "by_corpus": {
   "c-testsuite/single-exec": {
    "not-parsed": 3,
-   "passed": 192,
+   "passed": 193,
    "refused-libc": 1,
    "refused-ub": 5,
-   "refused-unsupported": 18,
+   "refused-unsupported": 17,
    "runner-error": 1
   },
   "gcc.c-torture/execute": {
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1162,
-   "refused-libc": 26,
-   "refused-ub": 39,
-   "refused-unsupported": 194,
+   "passed": 1175,
+   "refused-libc": 27,
+   "refused-ub": 41,
+   "refused-unsupported": 178,
    "runner-error": 10
   },
   "gcc.c23-run": {
@@ -32,10 +32,10 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1364,
-  "refused-libc": 28,
-  "refused-ub": 45,
-  "refused-unsupported": 330,
+  "passed": 1378,
+  "refused-libc": 29,
+  "refused-ub": 47,
+  "refused-unsupported": 313,
   "runner-error": 11
  },
  "dynamic_wall_ranking": [
@@ -503,6 +503,8 @@
     "930529-1.c",
     "950704-1.c",
     "960317-1.c",
+    "arith-rand-ll.c",
+    "arith-rand.c",
     "bswap-2.c",
     "gcc/testsuite/gcc.dg/c23-complit-1.c",
     "loop-15.c",
@@ -526,8 +528,8 @@
     "return-addr.c",
     "shiftdi-2.c"
    ],
-   "present": 45,
-   "sole": 45,
+   "present": 47,
+   "sole": 47,
    "wall": "undefined-behavior"
   },
   {
@@ -575,37 +577,6 @@
    "present": 39,
    "sole": 39,
    "wall": "unsupported:extern object 'inside_main' has no definition in the translation unit"
-  },
-  {
-   "files": [
-    "00207.c",
-    "00213.c",
-    "00215.c",
-    "20000605-3.c",
-    "20020418-1.c",
-    "20040811-1.c",
-    "20051110-2.c",
-    "20071029-1.c",
-    "20191023-1.c",
-    "950714-1.c",
-    "990524-1.c",
-    "arith-rand-ll.c",
-    "arith-rand.c",
-    "loop-8.c",
-    "pr112581-1.c",
-    "pr43220.c",
-    "pr43269.c",
-    "pr47337.c",
-    "pr68911.c",
-    "pr77766.c",
-    "pr78559.c",
-    "pr85529-1.c",
-    "pr85582-1.c",
-    "vla-dealloc-1.c"
-   ],
-   "present": 24,
-   "sole": 24,
-   "wall": "unsupported:goto-controlled pointer increment lacks an exact parser path"
   },
   {
    "files": [
@@ -798,6 +769,16 @@
   },
   {
    "files": [
+    "00199.c",
+    "00213.c",
+    "20040704-1.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:break, continue or goto escaped a function body"
+  },
+  {
+   "files": [
     "gcc/testsuite/gcc.dg/c23-float-3.c",
     "ieee/copysign1.c",
     "ieee/copysign2.c"
@@ -825,6 +806,16 @@
    "present": 3,
    "sole": 3,
    "wall": "unsupported:integer-to-floating conversion lacks parser-native destination type"
+  },
+  {
+   "files": [
+    "20040811-1.c",
+    "pr43220.c",
+    "vla-dealloc-1.c"
+   ],
+   "present": 3,
+   "sole": 3,
+   "wall": "unsupported:variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression"
   },
   {
    "files": [
@@ -873,6 +864,15 @@
   },
   {
    "files": [
+    "970217-1.c",
+    "loop-8.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "libc-call: exit (an argument is not a literal 0 \u2014 which exit was reached is unknown)"
+  },
+  {
+   "files": [
     "loop-2f.c",
     "loop-2g.c"
    ],
@@ -897,15 +897,6 @@
    "present": 2,
    "sole": 2,
    "wall": "unsupported:GenericSelectionExpr"
-  },
-  {
-   "files": [
-    "00199.c",
-    "20040704-1.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "unsupported:break, continue or goto escaped a function body"
   },
   {
    "files": [
@@ -963,6 +954,15 @@
   },
   {
    "files": [
+    "950714-1.c",
+    "990524-1.c"
+   ],
+   "present": 2,
+   "sole": 2,
+   "wall": "unsupported:goto-controlled pointer increment lacks an exact parser path"
+  },
+  {
+   "files": [
     "980701-1.c",
     "pr36321.c"
    ],
@@ -1010,14 +1010,6 @@
    "present": 1,
    "sole": 1,
    "wall": "libc-call: __builtin_snprintf"
-  },
-  {
-   "files": [
-    "970217-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "libc-call: exit (an argument is not a literal 0 \u2014 which exit was reached is unknown)"
   },
   {
    "files": [
@@ -1341,6 +1333,14 @@
   },
   {
    "files": [
+    "00207.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "unsupported:variable-length array 'char[argc]' lacks parser-native bound expression"
+  },
+  {
+   "files": [
     "920929-1.c"
    ],
    "present": 1,
@@ -1368,8 +1368,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T00:15:00Z",
- "measured_commit": "7abf0b091be01d8a4be9001379144a62d61eac3f",
+ "measured_at_utc": "2026-11-24T00:20:00Z",
+ "measured_commit": "168c58e6ee6fca1ed8553c4d8ec1ce628704d177",
  "pin": "C1-C3",
  "rows": [
   {
@@ -3747,8 +3747,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "variable-length array 'char[argc]' lacks parser-native bound expression",
+   "dynamic_wall": "unsupported:variable-length array 'char[argc]' lacks parser-native bound expression",
    "manifest_status": "parsed",
    "name": "00207.c",
    "sha256": "261a273f53ae59fdfe39d2aca7eb69bb12bff03869d8d0a391cf7fcb19bf6523",
@@ -3819,8 +3819,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "break, continue or goto escaped a function body",
+   "dynamic_wall": "unsupported:break, continue or goto escaped a function body",
    "manifest_status": "parsed",
    "name": "00213.c",
    "sha256": "5ed538b99fd0718984ef80e4cad7f442f51128688f531ae3b2d6f5e5a3ab28a5",
@@ -3848,8 +3848,8 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "00215.c",
    "sha256": "e4a5fb421df978c45734fcda23c74233a72bcecc9df977e6556f55d9a2f4583c",
@@ -3857,7 +3857,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -4284,15 +4284,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20000605-3.c",
    "sha256": "1ede71dad5930713f32fc5b5d9d002037247a0e462d60df89c54608054164d1d",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -5810,8 +5810,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20020418-1.c",
    "sha256": "89bb69824e93c2c64631ee83dc0ff752059f2d395a2938381f40595a651e215a",
@@ -5819,7 +5819,7 @@
     "libc-call: __builtin_trap",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -7250,8 +7250,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression",
+   "dynamic_wall": "unsupported:variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression",
    "manifest_status": "parsed",
    "name": "20040811-1.c",
    "sha256": "55a955c3a85bad3a49f0d9146976faf011784debea817d2b3a584c02fa00a0e0",
@@ -7816,15 +7816,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20051110-2.c",
    "sha256": "8155bc06546fe61bef975b89c11daa0798218e12202133124fa347a20fbc105b",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8155,15 +8155,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20071029-1.c",
    "sha256": "6df42c05c4f4dfb53a0d5601f798a9924743f08eb5c4083e1d56a3be01a75ab7",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9163,13 +9163,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "20191023-1.c",
    "sha256": "2aece4edc922ee236840668c7b7ae7b2c0fe4e18bffcbce23b55f8a09dd1b71e",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -12590,23 +12590,23 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "arith-rand-ll.c",
    "sha256": "8e4da7b080eee46dd5d37a9b588ee64a439ef009a8fa3458573475278bbd9cf0",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "LeanModels.C.C23.UB.signedOverflow \"-\" { signed := true, bits := 32 } 2147483648",
+   "dynamic_wall": "undefined-behavior",
    "manifest_status": "parsed",
    "name": "arith-rand.c",
    "sha256": "2a7bade42fd22c970f880cb2fe78665cb71755c8557d224dd1fa97f176bc6764",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-ub"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17298,15 +17298,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "exit (an argument is not a literal 0 \u2014 which exit was reached is unknown)",
+   "dynamic_wall": "libc-call: exit (an argument is not a literal 0 \u2014 which exit was reached is unknown)",
    "manifest_status": "parsed",
    "name": "loop-8.c",
    "sha256": "e17724fa2e13e071cb75e798fff87d846fd36734fd40fbd5d3c58131318f1650",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "refused-libc"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18404,13 +18404,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr112581-1.c",
    "sha256": "db5e90fccdab610f90aca74504197121d502921f4870316afd4464fdedb9c6d1",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20756,8 +20756,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression",
+   "dynamic_wall": "unsupported:variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression",
    "manifest_status": "parsed",
    "name": "pr43220.c",
    "sha256": "e50c382fe365be74d8911fccf52172676bf987256c54e9ba21cf49850e4c44d5",
@@ -20780,13 +20780,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr43269.c",
    "sha256": "c40f2d3ead121217203da7798cb9f89c5ae52f87f1b8ec9274b3897645b69f3d",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -21114,8 +21114,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr47337.c",
    "sha256": "e35d8c36b3f0766784cbf87955951da4ad5d04912220fa78933b08c232bb91ce",
@@ -21123,7 +21123,7 @@
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23088,13 +23088,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr68911.c",
    "sha256": "6f2e549dc1708cbc106c255778cc04ff1a8e75944e0ef005b2ec654e494f79f0",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23425,15 +23425,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr77766.c",
    "sha256": "87aa8f99e3933490a55d3e579027483953bbf5000d1edf002a4e14ecb6753819",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -23503,13 +23503,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr78559.c",
    "sha256": "ec8289c0a22cf11ad76d35d713e13074107a384e9b9b18d4b1cf886346afd225",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24046,15 +24046,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr85529-1.c",
    "sha256": "287913ffd62ba4f9e37b99416c48607e984ace84463eb28e534cc87b77716912",
    "static_walls": [
     "type-layout"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -24068,13 +24068,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr85582-1.c",
    "sha256": "cd50c6c19fe72e63d61711e9c05a226d32f5fa9f69aba1706b12e4d6f01f284a",
    "static_walls": [],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -26076,8 +26076,8 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "goto-controlled pointer increment lacks an exact parser path",
-   "dynamic_wall": "unsupported:goto-controlled pointer increment lacks an exact parser path",
+   "detail": "variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression",
+   "dynamic_wall": "unsupported:variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression",
    "manifest_status": "parsed",
    "name": "vla-dealloc-1.c",
    "sha256": "9efc981809576c0b9284ebbe5425aa3eb958bbcf432a411733f730a0b38d767c",
