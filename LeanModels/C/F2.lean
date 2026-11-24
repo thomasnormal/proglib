@@ -2202,6 +2202,17 @@ theorem representationLoadMetadataByte_indeterminate_choice
         footprint .read { allocation := 0, offset := offset, width := 1 }) := by
   simp [representationLoadMetadataByte, hbyte, hlocation]
 
+theorem representationLoadMetadataByte_padding_choice
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (bits : UInt8) (byte : Byte Tag)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hlocation : metadata.locations[offset]? = some
+      { effectiveType := .padding, initialized := true }) :
+    representationLoadMetadataByte metadata offset (.byte bits) =
+      some (.value bits none none,
+        footprint .read { allocation := 0, offset := offset, width := 1 }) := by
+  simp [representationLoadMetadataByte, hbyte, hlocation]
+
 def pairedRepresentationLoadMetadataByte (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
