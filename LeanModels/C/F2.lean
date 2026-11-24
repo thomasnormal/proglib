@@ -1995,12 +1995,33 @@ theorem allocateBounded_address_overlap
       .error .overlap := by
   simp [allocateBounded, hwithin, haligned, hrejected]
 
+theorem allocateBounded_unaddressable_success
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (alignment limit : Nat)
+    (hresult : allocate store request .unaddressable = some result) :
+    allocateBounded store request .unaddressable alignment limit = .ok result := by
+  simp [allocateBounded, hresult]
+
 def renameBoundedResult (resolve : AllocId → Nat) :
     Except PlacementFault (Store Tag State × Footprint) →
       Except PlacementFault (Store Tag State × Footprint)
   | .error fault => .error fault
   | .ok (store, footprint) =>
       .ok (renameStore resolve store, footprint)
+
+theorem renameBoundedResult_error_shape
+    {Tag State : Type} (resolve : AllocId → Nat) (fault : PlacementFault) :
+    renameBoundedResult (Tag := Tag) (State := State) resolve
+        (.error fault : Except PlacementFault (Store Tag State × Footprint)) =
+      (.error fault : Except PlacementFault (Store Tag State × Footprint)) := by
+  rfl
+
+theorem renameBoundedResult_success_shape
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (footprint : Footprint) :
+    renameBoundedResult resolve (.ok (store, footprint)) =
+      .ok (renameStore resolve store, footprint) := by
+  rfl
 
 def pairedAllocateBounded (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
