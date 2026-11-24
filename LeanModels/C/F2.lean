@@ -402,6 +402,13 @@ theorem renameHookRequest_footprint
       renameFootprint resolve request.footprint := by
   rfl
 
+theorem renameHookRequest_access_count
+    (resolve : AllocId → Nat) (request : HookRequest) :
+    (renameHookRequest resolve request).footprint.accesses.length =
+      request.footprint.accesses.length := by
+  rw [renameHookRequest_footprint]
+  exact renameFootprint_access_count resolve request.footprint
+
 structure Fault (F : Type) where
   value : F
 deriving Repr
