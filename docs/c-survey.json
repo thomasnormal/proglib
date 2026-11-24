@@ -12,8 +12,8 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1182,
-   "refused-libc": 20,
+   "passed": 1183,
+   "refused-libc": 19,
    "refused-ub": 41,
    "refused-unsupported": 178,
    "runner-error": 10
@@ -32,8 +32,8 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1385,
-  "refused-libc": 22,
+  "passed": 1386,
+  "refused-libc": 21,
   "refused-ub": 47,
   "refused-unsupported": 313,
   "runner-error": 11
@@ -828,15 +828,6 @@
   },
   {
    "files": [
-    "bcp-1.c",
-    "builtin-constant.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "libc-call: __builtin_constant_p"
-  },
-  {
-   "files": [
     "20010122-1.c",
     "pr17377.c"
    ],
@@ -1001,6 +992,14 @@
    "present": 1,
    "sole": 1,
    "wall": "libc-call: fopen"
+  },
+  {
+   "files": [
+    "bcp-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "libc-call: func"
   },
   {
    "files": [
@@ -1319,8 +1318,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T02:14:07Z",
- "measured_commit": "8a186a0364b8a6474f53dafaa3fbdd82e157b8b0",
+ "measured_at_utc": "2026-11-24T02:50:00Z",
+ "measured_commit": "7ba95a10396bf65e5538c93f2318b982dd11cff1",
  "pin": "C1-C3",
  "rows": [
   {
@@ -6401,7 +6400,6 @@
    "name": "20030330-1.c",
    "sha256": "c2da8b2342bac0c87fb743f0628ac95572d8a1a28bca51c30d7266f684a2d522",
    "static_walls": [
-    "libc-call: __builtin_constant_p",
     "libc-call: link_error"
    ],
    "verdict": "passed"
@@ -12583,14 +12581,13 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_constant_p",
-   "dynamic_wall": "libc-call: __builtin_constant_p",
+   "detail": "func",
+   "dynamic_wall": "libc-call: func",
    "manifest_status": "parsed",
    "name": "bcp-1.c",
    "sha256": "51c01c565b099cfaf2867c9fa740d25991f51274a2c3e0380f0caa93fa10b0b8",
    "static_walls": [
     "libc-call",
-    "libc-call: __builtin_constant_p",
     "libc-call: func",
     "string-literal",
     "type-layout"
@@ -12866,17 +12863,16 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_constant_p",
-   "dynamic_wall": "libc-call: __builtin_constant_p",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "builtin-constant.c",
    "sha256": "e6b43c1d60a64a99c4e2f96400e385230af772d749c1e84624ceace1fb6bd325",
    "static_walls": [
-    "libc-call: __builtin_constant_p",
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -18856,9 +18852,7 @@
    "manifest_status": "parsed",
    "name": "pr19449.c",
    "sha256": "7aa9b10d8a3b245025e25950b03927a21e94ee7e5c5fea98e76e17ecf2c659a2",
-   "static_walls": [
-    "libc-call: __builtin_constant_p"
-   ],
+   "static_walls": [],
    "verdict": "passed"
   },
   {
@@ -27335,6 +27329,19 @@
   },
   {
    "files": [
+    "20030330-1.c",
+    "builtins/abs-2.c",
+    "builtins/memcmp.c",
+    "builtins/uabs-2.c",
+    "ieee/fp-cmp-7.c",
+    "medce-1.c"
+   ],
+   "present": 6,
+   "sole": 2,
+   "wall": "libc-call: link_error"
+  },
+  {
+   "files": [
     "20010122-1.c",
     "20030323-1.c",
     "20030811-1.c",
@@ -27374,30 +27381,6 @@
    "present": 8,
    "sole": 1,
    "wall": "unsupported:AddrLabelExpr"
-  },
-  {
-   "files": [
-    "20030330-1.c",
-    "builtins/abs-2.c",
-    "builtins/memcmp.c",
-    "builtins/uabs-2.c",
-    "ieee/fp-cmp-7.c",
-    "medce-1.c"
-   ],
-   "present": 6,
-   "sole": 1,
-   "wall": "libc-call: link_error"
-  },
-  {
-   "files": [
-    "20030330-1.c",
-    "bcp-1.c",
-    "builtin-constant.c",
-    "pr19449.c"
-   ],
-   "present": 4,
-   "sole": 1,
-   "wall": "libc-call: __builtin_constant_p"
   },
   {
    "files": [

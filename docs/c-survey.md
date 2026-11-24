@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1385/2114 MATCH (passed 1385, failed 0, oracle 0)
+- verdicts: 1386/2114 MATCH (passed 1386, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `8a186a0364b8a6474f53dafaa3fbdd82e157b8b0`
-- measured at: `2026-11-24T02:14:07Z`
+- measured commit: `7ba95a10396bf65e5538c93f2318b982dd11cff1`
+- measured at: `2026-11-24T02:50:00Z`
 
 ## Verdict counts
 
@@ -16,8 +16,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1385 |
-| `refused-libc` | 22 |
+| `passed` | 1386 |
+| `refused-libc` | 21 |
 | `refused-ub` | 47 |
 | `refused-unsupported` | 313 |
 | `runner-error` | 11 |
@@ -35,8 +35,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1182 |
-| `gcc.c-torture/execute` | `refused-libc` | 20 |
+| `gcc.c-torture/execute` | `passed` | 1183 |
+| `gcc.c-torture/execute` | `refused-libc` | 19 |
 | `gcc.c-torture/execute` | `refused-ub` | 41 |
 | `gcc.c-torture/execute` | `refused-unsupported` | 178 |
 | `gcc.c-torture/execute` | `runner-error` | 10 |
@@ -57,11 +57,10 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `libc-call` | 4 | 17 | 00087.c, 00089.c, 00124.c, 00159.c, 00189.c |
 | `cast:IntegralToPointer` | 3 | 26 | 00214.c, 20000314-1.c, 20000622-1.c, 20010329-1.c, 20021010-2.c |
 | `cast:PointerToIntegral` | 2 | 25 | 00144.c, 20000622-1.c, 20011121-1.c, 20030811-1.c, 20050215-1.c |
+| `libc-call: link_error` | 2 | 6 | 20030330-1.c, builtins/abs-2.c, builtins/memcmp.c, builtins/uabs-2.c, ieee/fp-cmp-7.c |
 | `libc-call: __builtin_return_address` | 2 | 4 | 20010122-1.c, 20030323-1.c, 20030811-1.c, pr17377.c |
 | `unsupported:StmtExpr` | 1 | 9 | 00213.c, 00214.c, 20000703-1.c, 20000917-1.c, 20001203-2.c |
 | `unsupported:AddrLabelExpr` | 1 | 8 | 20040302-1.c, 20041214-1.c, 20071210-1.c, 920501-4.c, 920501-5.c |
-| `libc-call: link_error` | 1 | 6 | 20030330-1.c, builtins/abs-2.c, builtins/memcmp.c, builtins/uabs-2.c, ieee/fp-cmp-7.c |
-| `libc-call: __builtin_constant_p` | 1 | 4 | 20030330-1.c, bcp-1.c, builtin-constant.c, pr19449.c |
 | `unsupported:GCCAsmStmt` | 1 | 4 | 20071211-1.c, 990413-2.c, pr56982.c, pr81588.c |
 | `libc-call: fwrite` | 1 | 2 | 00187.c, builtins/fputs-lib.c |
 | `libc-call: labs` | 1 | 2 | builtins/abs-1.c, builtins/abs-2.c |
@@ -182,7 +181,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:integer-to-floating conversion lacks parser-native destination type` | 3 | 3 | 930622-2.c, 960215-1.c, regstack-1.c |
 | `unsupported:variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression` | 3 | 3 | 20040811-1.c, pr43220.c, vla-dealloc-1.c |
 | `libc-call: __builtin_classify_type` | 2 | 2 | 20040709-1.c, 20040709-2.c |
-| `libc-call: __builtin_constant_p` | 2 | 2 | bcp-1.c, builtin-constant.c |
 | `libc-call: __builtin_return_address` | 2 | 2 | 20010122-1.c, pr17377.c |
 | `libc-call: _setjmp` | 2 | 2 | 20210505-1.c, pr56982.c |
 | `libc-call: exit (an argument is not a literal 0 — which exit was reached is unknown)` | 2 | 2 | 970217-1.c, loop-8.c |
@@ -202,6 +200,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `libc-call: __builtin_frame_address` | 1 | 1 | frame-address.c |
 | `libc-call: f` | 1 | 1 | gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c |
 | `libc-call: fopen` | 1 | 1 | 00187.c |
+| `libc-call: func` | 1 | 1 | bcp-1.c |
 | `libc-call: main_test` | 1 | 1 | builtins/lib/main.c |
 | `libc-call: pow` | 1 | 1 | 980709-1.c |
 | `libc-call: qsort` | 1 | 1 | pr34456.c |

@@ -2,13 +2,13 @@
 
 Generated from `docs/c-survey.json` and `harness/c_cases.json`.
 
-The pinned GNU17 target currently has 1385/2114 MATCH rows in the active survey denominator. Measurement commit `8a186a0364b8a6474f53dafaa3fbdd82e157b8b0`, date `2026-11-24T02:14:07Z`.
+The pinned GNU17 target currently has 1386/2114 MATCH rows in the active survey denominator. Measurement commit `7ba95a10396bf65e5538c93f2318b982dd11cff1`, date `2026-11-24T02:50:00Z`.
 
 A focused row is an admitted example when its harness expectation is `match`. A `refuse` row documents the exact refusal boundary. Corpus failures are listed as known wrong answers and remain separate from refusals.
 
 ## integers and conversions
 
-- admitted: `isprint-c-locale-ascii` (match): `int isprint(int); int main(void) { return isprint('a') && !isprint('\002') ? 0 : 1; }`
+- admitted: `builtin-constant-p-literal` (match): `int main(void) { return __builtin_constant_p(1) && !__builtin_constant_p(1 + 2) == 0 ? 0 : 1; }`
 - refused: `signed-overflow` (refuse): `int main(void) { int x = 2147483647; x += 1; return x; }`
 - known wrong: no scored failure in the current survey
 
