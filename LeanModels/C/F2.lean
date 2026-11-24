@@ -3583,6 +3583,19 @@ theorem renameLiveRegion_end_shape
       resolve entry.1 + (entry.2.2.1 - entry.2.1) := by
   rfl
 
+theorem renameLiveRegion_comp
+    (first second : AllocId → Nat)
+    (entry : AllocId × Nat × Nat × Tag) :
+    renameLiveRegion second (renameLiveRegion first entry) =
+      renameLiveRegion second entry := by
+  cases entry with
+  | mk id rest =>
+      cases rest with
+      | mk base rest =>
+          cases rest with
+          | mk ending tag =>
+              simp [renameLiveRegion]
+
 def renameRecovery (resolve : AllocId → Nat) : Recovery Tag → Recovery Tag
   | .recovered pointer => .recovered (renamePointer resolve pointer)
   | .empty address => .empty address
