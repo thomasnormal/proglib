@@ -47,3 +47,100 @@ theorem andInst_prefix (env : IEnv) (i j : Int) :
       (by decide) rfl)
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
+
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
+/-- The source-shaped nested `g_pp`/`g_pp_j` expansion is the row-major family
+of the per-leaf expansion.  The theorem keeps both symbolic bounds and does
+not choose a child implementation; callers supply the ordinary leaf equation.
+This is the hand-proof entry point for the generated-child multiplier. -/
+theorem noisy_pp_expand_family
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (hFuel : N.toNat < F)
+    (f : Int → Int → List Decl × List Process2)
+    (hOuterBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hOuterValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hInnerBound : ∀ i j : Int,
+      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
+    (hInnerValue : ∀ i j : Int,
+      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N)
+    (hBody : ∀ i j : Int, 0 ≤ i → i < N → 0 ≤ j → j < N →
+      expandListH cb ((env.bindVal "i" i).bindVal "j" j) elems F [.inst andInst] =
+        .ok (f i j)) :
+    ppGen.expandH cb env elems F =
+      .ok
+        (List.flatMap
+          (fun i => List.flatMap (fun j => (f i j).1)
+            (intRange 0 N.toNat)) (intRange 0 N.toNat),
+         List.flatMap
+          (fun i => List.flatMap (fun j => (f i j).2)
+            (intRange 0 N.toNat)) (intRange 0 N.toNat)) := by
+  simpa [ppGen] using
+    (generated_child_nested_family
+      (cb := cb) (env := env) (elems := elems) (F := F)
+      (outerLabel := some "g_pp") (innerLabel := some "g_pp_j")
+      (outerG := "i") (innerG := "j")
+      (outerInit := .int 0)
+      (outerBound := .paramRef "N" none)
+      (outerRc := some 4)
+      (outerI0 := 0) (outerN := N)
+      (innerInit := .int 0)
+      (innerBound := .paramRef "N" none)
+      (innerRc := some 4)
+      (innerI0 := 0) (innerN := N)
+      (inst := andInst) (f := f)
+      (by simp) hOuterBound hOuterValue (by simpa using hFuel)
+      (by intro i; simp)
+      hInnerBound hInnerValue (by simpa using hFuel)
+      (by simpa using hBody))
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
+/-- The nested `u_and` family expands to the ordinary flattened child at the
+valuation-dependent lexical name `g_pp[i].g_pp_j[j].u_and.`. -/
+theorem noisy_pp_expand_flatten
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (hFuel : N.toNat < F)
+    (child : Design2)
+    (hOuterBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hOuterValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hInnerBound : ∀ i j : Int,
+      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
+    (hInnerValue : ∀ i j : Int,
+      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N)
+    (hChild : ∀ i j : Int,
+      cb ((env.bindVal "i" i).bindVal "j" j) andInst = .ok child) :
+    ppGen.expandH cb env elems F =
+      .ok
+        (List.flatMap
+          (fun i => List.flatMap
+            (fun j =>
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+                andInst child).1)
+            (intRange 0 N.toNat)) (intRange 0 N.toNat),
+         List.flatMap
+          (fun i => List.flatMap
+            (fun j =>
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+                andInst child).2)
+            (intRange 0 N.toNat)) (intRange 0 N.toNat)) := by
+  apply noisy_pp_expand_family cb env elems F N hFuel
+    (fun i j => flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+      ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+      andInst child)
+    hOuterBound hOuterValue hInnerBound hInnerValue
+  intro i j hi hNi hj hNj
+  apply expandListH_singleton_ok rfl
+  rw [generated_child_at_prefix (andInst_prefix env i j) (hChild i j)]
+  rfl
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
