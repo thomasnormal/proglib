@@ -3503,6 +3503,17 @@ theorem allocate_address_result_counters
   rcases hresult with ⟨rfl, rfl⟩
   simp
 
+theorem allocate_address_result_footprint
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base : Nat) (result : Store Tag State × Footprint)
+    (hallowed : placementAllowed store base request.bytes.length = true)
+    (hresult : allocate store request (.address base) = some result) :
+    result.2 = footprint .metadata
+      (Region.mk store.nextId 0 request.bytes.length) := by
+  simp [allocate, hallowed] at hresult
+  rcases hresult with ⟨rfl, rfl⟩
+  rfl
+
 theorem allocate_address_rejects_placement
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base : Nat)
