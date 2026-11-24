@@ -601,6 +601,26 @@ def pairedTypedStoreMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     some (sourceResult, targetResult)
   else none
 
+theorem pairedTypedStoreMetadataByte_decompose
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedTypedStoreMetadataByte resolve id metadata offset typeId byte =
+      some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases hs : typedStoreMetadataByte metadata offset typeId byte with
+  | none => simp [pairedTypedStoreMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : typedStoreMetadataByte (renameMetadata resolve id metadata)
+          offset typeId (renameByte resolve byte) with
+      | none => simp [pairedTypedStoreMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedTypedStoreMetadataByte, hs, ht] at hresult
+          exact ⟨sourceResult, targetResult, hresult.2.symm⟩
+
 def typedLoadMetadataByte [BEq TypeId]
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) : Option (Byte Tag × Footprint) := do
@@ -626,6 +646,25 @@ def pairedTypedLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
       targetResult.2 == sourceResult.2 then
     some (sourceResult, targetResult)
   else none
+
+theorem pairedTypedLoadMetadataByte_decompose
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedTypedLoadMetadataByte resolve id metadata offset typeId =
+      some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases hs : typedLoadMetadataByte metadata offset typeId with
+  | none => simp [pairedTypedLoadMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : typedLoadMetadataByte (renameMetadata resolve id metadata)
+          offset typeId with
+      | none => simp [pairedTypedLoadMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedTypedLoadMetadataByte, hs, ht] at hresult
+          exact ⟨sourceResult, targetResult, hresult.2.symm⟩
 
 theorem typedLoadMetadataByte_success
     [BEq TypeId]
@@ -658,6 +697,34 @@ def pairedTypedStoreLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
       targetLoad.2 == sourceLoad.2 then
     some ((sourceStore, sourceLoad), (targetStore, targetLoad))
   else none
+
+theorem pairedTypedStoreLoadMetadataByte_decompose
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (result : ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)))
+    (hresult : pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte =
+      some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases hs : typedStoreMetadataByte metadata offset typeId byte with
+  | none => simp [pairedTypedStoreLoadMetadataByte, hs] at hresult
+  | some sourceStore =>
+      cases ht : typedStoreMetadataByte (renameMetadata resolve id metadata)
+          offset typeId (renameByte resolve byte) with
+      | none => simp [pairedTypedStoreLoadMetadataByte, hs, ht] at hresult
+      | some targetStore =>
+          cases hsl : typedLoadMetadataByte sourceStore.1 offset typeId with
+          | none => simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl] at hresult
+          | some sourceLoad =>
+              cases htl : typedLoadMetadataByte targetStore.1 offset typeId with
+              | none => simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl, htl] at hresult
+              | some targetLoad =>
+                  simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl, htl] at hresult
+                  exact ⟨(sourceStore, sourceLoad), (targetStore, targetLoad), hresult.2.symm⟩
 
 def unionLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
