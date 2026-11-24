@@ -1575,6 +1575,19 @@ theorem endLifetime_preserves_allocation_count
       rcases hresult with ⟨_, hEq⟩
       simpa using congrArg (fun pair => pair.1.allocations.length) hEq.symm
 
+theorem endLifetime_footprint
+    (store : Store Tag State) (id : AllocId)
+    (result : Store Tag State × Footprint)
+    (hresult : endLifetime store id = some result) :
+    result.2 = footprint .metadata (Region.mk id 0
+      ((lookup store id).map (fun allocation => allocation.bytes.length) |>.getD 0)) := by
+  cases hlookup : lookup store id with
+  | none => simp [endLifetime, hlookup] at hresult
+  | some allocation =>
+      simp [endLifetime, hlookup] at hresult
+      rcases hresult with ⟨_, hEq⟩
+      exact congrArg (fun pair => pair.2) hEq.symm
+
 #guard true
 #guard (footprint .read { allocation := 1, offset := 0, width := 1 }).accesses.length == 1
 
