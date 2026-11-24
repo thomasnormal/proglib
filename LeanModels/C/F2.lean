@@ -467,6 +467,14 @@ theorem renameResult_refusal_reason {Tag State F : Type} (resolve : AllocId → 
         Result Tag State F (Byte Tag)) := by
   rfl
 
+theorem renameResult_fault_error {Tag State F : Type} (resolve : AllocId → Nat)
+    (error : Fault F) (store : Store Tag State) (footprint : Footprint) :
+    renameResult (Tag := Tag) (State := State) (F := F) resolve
+        (.fault error store footprint) =
+      (.fault error (renameStore resolve store) (renameFootprint resolve footprint) :
+        Result Tag State F (Byte Tag)) := by
+  rfl
+
 theorem renameResult_footprint_access_count {Tag State F : Type}
     (resolve : AllocId → Nat) (result : Result Tag State F (Byte Tag)) :
     match result, renameResult resolve result with
