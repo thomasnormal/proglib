@@ -347,6 +347,38 @@ class LoopHeaders(Base):
                         " for (i = 0; i < 4; i = i + 1) y[i] = a[i]; for (i = 3; i >= 0; i--) z[i] = a[3-i]; end endmodule")
         self.assertEqual(sv_kinds(m), [])
 
+    def test_nested_loops_share_one_external_iterator_stay_loud(self):
+        # The inner initializer writes the same module-scope variable as the
+        # outer loop.  SV therefore has one shared iterator and may not be
+        # replaced by two independently bound symbolic traces.  Pin all five
+        # audit-3 variants, including parameter and finite-bound forms.
+        bodies = (
+            "for (i = 0; i < 4; i = i + 1) for (i = 0; i < 2; i = i + 1) c = c + 1;",
+            "for (i = 0; i < N; i = i + 1) for (i = 0; i < 2; i = i + 1) c = c + 1;",
+            "for (i = 0; i < N; i = i + 1) for (i = 0; i < M; i = i + 1) c = c + 1;",
+            "for (i = 0; i < 3; i = i + 1) for (i = 0; i < 2; i = i + 1) c = c + 1;",
+            "for (i = 0; i < 6; i = i + 1) for (i = 0; i < 7; i = i + 1) c = c + 1;",
+        )
+        for body in bodies:
+            m = self.module(
+                "module t #(parameter int N = 3, parameter int M = 2) "
+                "(input logic clk, output logic [31:0] q); "
+                "logic [31:0] c; integer i; always_ff @(posedge clk) begin "
+                "c = 0; %s q <= c; end endmodule" % body)
+            loops = []
+            def collect(node):
+                if isinstance(node, dict):
+                    if node.get("kind") == "For" or node.get("sv_kind") == "ForLoopStatement":
+                        loops.append(node)
+                    for value in node.values():
+                        collect(value)
+                elif isinstance(node, list):
+                    for value in node:
+                        collect(value)
+            collect(m)
+            self.assertEqual(len(loops), 1, body)
+            self.assertNotIn("symbolic_for_unrolled", loops[0], body)
+
     def test_iterator_read_after_the_loop_stays_loud(self):
         # a read after the loop sees the loop's final value, which the unroll does not compute
         m = self.module("module t (input logic [7:0] a, output logic [7:0] y, output logic [3:0] w); integer i;"

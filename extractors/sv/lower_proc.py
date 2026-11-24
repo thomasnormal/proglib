@@ -174,7 +174,20 @@ def _iterator_census(ex, symbol):
                     if getattr(node, "symbol", None) is symbol:
                         refs.append(node.sourceRange.start.offset)
             scope.visit(visit)
-            ok = bool(extents) and all(any(a <= o < b for a, b in extents) for o in refs)
+            # An external iterator is substituted by a fresh binding for each
+            # symbolic loop.  That is sound for sequential loops, but a nested
+            # loop on the same module variable has one shared storage in SV.
+            # Its initializer can reset the outer iterator, so the mathematical
+            # per-loop bindings would manufacture a terminating trace for a
+            # source loop that does not terminate.  Interval nesting identifies
+            # this shape while leaving sequential loops on the same iterator
+            # admissible.
+            nested = any(
+                a < inner_a and inner_b <= b
+                for a, b in extents
+                for inner_a, inner_b in extents
+                if (a, b) != (inner_a, inner_b))
+            ok = bool(extents) and not nested and all(any(a <= o < b for a, b in extents) for o in refs)
     except Exception:
         ok = False
     _CENSUS[key] = (symbol, ok)
