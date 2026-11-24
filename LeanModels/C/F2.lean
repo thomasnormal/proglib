@@ -1267,6 +1267,15 @@ def isZeroToken (metadata : AllocationMetadata Tag State TypeId) : Bool :=
 def zeroTokenEqual (left right : AllocationMetadata Tag State TypeId) : Bool :=
   isZeroToken left && isZeroToken right && left.allocation.address == right.allocation.address
 
+theorem zeroTokenEqual_sound
+    (left right : AllocationMetadata Tag State TypeId)
+    (h : zeroTokenEqual left right = true) :
+    isZeroToken left = true ∧
+      isZeroToken right = true ∧
+      left.allocation.address = right.allocation.address := by
+  simp [zeroTokenEqual, isZeroToken] at h ⊢
+  exact ⟨h.1.1, h.1.2, by simpa using h.2⟩
+
 def zeroTokenFreeable (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   isZeroToken metadata
 
