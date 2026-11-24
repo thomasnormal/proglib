@@ -930,33 +930,33 @@ theorem runs (h : SingleComb d body I f) {σ : ScheduleOracle} {stim tr : List S
 
 end SingleComb
 
-/-! ## The legacy instantiation (`forValuesFuel2`, fuel) unrolls the schema -/
+/-! ## The tail-recursive iterator and its arithmetic schema -/
 
-/-- The legacy iteration `forValuesFuel2.go` (unbounded `Int`, one fuel unit per trip and one for the
-exit test) over a guard that holds at `s + k δ` for `k < n` and fails at `s + n δ` lists the
-arithmetic schema, given fuel beyond `n`. -/
-theorem forValuesFuel2_go_arith {env : IEnv} {it : String} {cond : PExpr} {δ : Int} :
-    ∀ (n : Nat) (s : Int) (F : Nat), n < F →
+theorem forValuesFuel2Go_arith {env : IEnv} {it : String} {cond : PExpr} {δ : Int} :
+    ∀ (n : Nat) (s : Int) (F : Nat) (acc : List Int), n < F →
       (∀ k, k < n → ∃ c, TripSchema.guard env it cond (s + k * δ) = .ok c ∧ c ≠ 0) →
       TripSchema.guard env it cond (s + n * δ) = .ok 0 →
-      forValuesFuel2.go env it cond δ F s = .ok (TripSchema.arith s δ n).toList
-  | n, s, 0, hF, _, _ => absurd hF (Nat.not_lt_zero n)
-  | 0, s, F + 1, _, _, hexit => by
+      forValuesFuel2Go env it cond δ F s acc =
+        .ok (acc.reverse ++ (TripSchema.arith s δ n).toList)
+  | n, s, 0, acc, hF, _, _ => absurd hF (Nat.not_lt_zero n)
+  | 0, s, F + 1, acc, _, _, hexit => by
       simp only [Int.natCast_zero, Int.zero_mul, Int.add_zero] at hexit
       simp only [TripSchema.guard] at hexit
-      simp [forValuesFuel2.go, hexit, TripSchema.toList, TripSchema.arith]
-  | n + 1, s, F + 1, hF, hrun, hexit => by
+      simp [forValuesFuel2Go, hexit, TripSchema.toList, TripSchema.arith]
+  | n + 1, s, F + 1, acc, hF, hrun, hexit => by
       obtain ⟨c, hc, hne⟩ := hrun 0 (by omega)
       simp only [Int.natCast_zero, Int.zero_mul, Int.add_zero, TripSchema.guard] at hc
       have hshift : ∀ k : Nat, s + δ + k * δ = s + ((k + 1 : Nat) : Int) * δ := by
         intro k; rw [Int.natCast_add, Int.add_mul, Int.natCast_one, Int.one_mul]; omega
-      have ih := forValuesFuel2_go_arith n (s + δ) F (by omega)
+      have ih := forValuesFuel2Go_arith n (s + δ) F (s :: acc) (by omega)
         (fun k hk => by rw [hshift]; exact hrun (k + 1) (by omega))
         (by rw [hshift]; exact hexit)
       have hne' : (c == 0) = false := by simpa using hne
-      simp only [forValuesFuel2.go, hc, hne', ih, Bool.false_eq_true, if_false, Res.ok_bind]
+      simp only [forValuesFuel2Go, hc, hne', Bool.false_eq_true, if_false, ih]
       simp only [TripSchema.toList, TripSchema.arith, List.ofFn_succ, Fin.val_zero,
-        Int.natCast_zero, Int.zero_mul, Int.add_zero, Fin.val_succ, hshift]
+        Int.natCast_zero, Int.zero_mul, Int.add_zero, Fin.val_succ, hshift,
+        List.reverse_cons, List.append_assoc]
+      simp
 
 /-- **The legacy instantiation unrolls the trip schema.** If `S` agrees with the header and the
 32-bit reading does not wrap (the iterator values up to the exit are the unbounded ones), then
@@ -974,7 +974,7 @@ theorem forValuesFuel2_of_agrees {env : IEnv} {it : String} {init cond step : PE
   obtain ⟨F', rfl⟩ : ∃ F', F = F' + 1 := ⟨F - 1, by omega⟩
   simp only [forValuesFuel2, hinit, hstep]
   rw [hS']
-  apply forValuesFuel2_go_arith S.count i0 F' (by omega)
+  apply forValuesFuel2Go_arith S.count i0 F' [] (by omega)
   · intro k hk
     have := hS.run ⟨k, hk⟩
     rwa [hS.value, hnowrap k (Nat.le_of_lt hk)] at this
@@ -1025,7 +1025,7 @@ theorem forValuesFuel2_upto {env : IEnv} {it : String} {rhs : PExpr} {N F : Nat}
   have hg := guard_canon .lt hri hrv
   simp only [forValuesFuel2, evalInt_int, procStepDelta2_inc]
   rw [← TripSchema.toList_arith_one]
-  apply forValuesFuel2_go_arith N 0 F' (by omega)
+  apply forValuesFuel2Go_arith N 0 F' [] (by omega)
   · intro k hk
     obtain ⟨r, hr, hiff⟩ := hg (0 + k * 1)
     exact ⟨r, hr, hiff.mpr (by simp [Cmp.holds]; omega)⟩
@@ -1070,7 +1070,7 @@ end Loop2
   Loop2.canonCount_none Loop2.ascCount_one Loop2.ascCount_one_add Loop2.canonCount_lt_one
   Loop2.canonCount_le_one Loop2.canonCount_ge_dec vals_lookup_bindVal_self
   vals_lookup_bindVal_ne Loop2.Cmp.ofOp?_eq Loop2.boundAt?_sound Loop2.headerSchema_agrees
-  Loop2.TripSchema2.HeaderAgrees.unique Loop2.forValuesFuel2_go_arith Loop2.forValuesFuel2_of_agrees
+  Loop2.TripSchema2.HeaderAgrees.unique Loop2.forValuesFuel2Go_arith Loop2.forValuesFuel2_of_agrees
   Loop2.Denotes.weaken Loop2.DenotesL.nil Loop2.DenotesL.cons Loop2.Denotes.block Loop2.Denotes.assignSlice
   Loop2.subAll_pos Loop2.readsViol_covered Loop2.mem_listMayW Loop2.GuardIn.assign Loop2.GuardIn.list Loop2.GuardIn.block
   Loop2.GuardIn.admits Loop2.set_set Loop2.set_self Loop2.width_vrows

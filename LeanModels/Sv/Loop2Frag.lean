@@ -507,7 +507,7 @@ theorem forValues2_up {env : IEnv} {it p : String} {c : Cmp} (hc : c = .lt ∨ c
   simp only [forValuesFuel2, evalInt_int, procStepDelta2_inc]
   rw [← TripSchema.toList_arith_one]
   have hg := guard_canon c (fun u => isInt_paramRef_of (hl u)) (fun u => evalInt_paramRef_of (hl u))
-  apply forValuesFuel2_go_arith _ s _ (by omega)
+  apply forValuesFuel2Go_arith _ s _ [] (by omega)
   · intro k hk
     obtain ⟨r, hr, hiff⟩ := hg (s + k * 1)
     exact ⟨r, hr, hiff.mpr (by rw [Cmp.holds_iff]; rcases hc with rfl | rfl <;> simp [Cmp.sign, Cmp.bound] at * <;> omega)⟩

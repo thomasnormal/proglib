@@ -1490,24 +1490,35 @@ The old fixed fuel (`128`) was an implementation cap that made a valid loop
 with 127 or more trips silently become `.unsupported`.  For the admitted
 linear comparison headers, derive the exact finite trace length from the
 bound and step, then use that length only as structural recursion fuel. -/
+def forValuesFuel2Go (env : IEnv) (iterator : String) (condition : PExpr) (delta : Int) :
+    Nat → Int → List Int → Res (List Int)
+  | 0, _, _ => .timeout
+  | fuel + 1, i, acc =>
+      match evalInt (env.bindVal iterator i) condition with
+      | .error e => .unsupported s!"for condition: {e}"
+      | .ok guard =>
+          if guard == 0 then .ok acc.reverse
+          else forValuesFuel2Go env iterator condition delta fuel (i + delta) (i :: acc)
+
+def forValuesFuel2.go (env : IEnv) (iterator : String) (condition : PExpr) (delta : Int) :
+    Nat → Int → Res (List Int)
+  | 0, _ => .timeout
+  | fuel + 1, i =>
+      match evalInt (env.bindVal iterator i) condition with
+      | .error e => .unsupported s!"for condition: {e}"
+      | .ok guard =>
+          if guard == 0 then .ok []
+          else do
+            let rest ← forValuesFuel2.go env iterator condition delta fuel (i + delta)
+            .ok (i :: rest)
+
 def forValuesFuel2 (env : IEnv) (iterator : String) (init condition step : PExpr) :
     Nat → Res (List Int)
   | 0 => .timeout
   | fuel + 1 =>
       match evalInt env init, procStepDelta2 env iterator step with
       | .ok i0, .ok delta =>
-          let rec go (fuel : Nat) (i : Int) : Res (List Int) :=
-            match fuel with
-            | 0 => .timeout
-            | fuel + 1 =>
-                match evalInt (env.bindVal iterator i) condition with
-                | .error e => .unsupported s!"for condition: {e}"
-                | .ok guard =>
-                    if guard == 0 then .ok []
-                    else do
-                      let rest ← go fuel (i + delta)
-                      .ok (i :: rest)
-          go fuel i0
+          forValuesFuel2Go env iterator condition delta fuel i0 []
       | .error e, _ => .unsupported s!"for initializer: {e}"
       | _, .error e => .unsupported s!"for step: {e}"
 
@@ -1593,29 +1604,29 @@ def forValues2Int32 (env : IEnv) (iterator : String) (init condition step : PExp
       | _, _, _ => forValuesFuel2 env iterator init condition step fuel
   | .error e => .unsupported s!"for fuel: {e}"
 
-theorem forValuesFuel2_go_length_add_one_le
+theorem forValuesFuel2Go_length_add_one_le
     (env : IEnv) (iterator : String) (condition : PExpr) (delta : Int) :
-    ∀ {fuel : Nat} {i : Int} {values : List Int},
-      forValuesFuel2.go env iterator condition delta fuel i = .ok values →
-        values.length + 1 ≤ fuel := by
+    ∀ {fuel : Nat} {i : Int} {acc values : List Int},
+      forValuesFuel2Go env iterator condition delta fuel i acc = .ok values →
+        values.length + 1 ≤ fuel + acc.length := by
   intro fuel
   induction fuel with
   | zero =>
-      intro i values h
-      simp [forValuesFuel2.go] at h
+      intro i acc values h
+      simp [forValuesFuel2Go] at h
   | succ fuel ih =>
-      intro i values h
-      simp only [forValuesFuel2.go] at h
+      intro i acc values h
+      simp only [forValuesFuel2Go] at h
       split at h <;> try simp_all
       next x guard heq =>
         by_cases hz : guard = 0
         · simp [hz] at h
           subst values
-          exact Nat.zero_le fuel
-        · simp [hz, Res.bind_eq_ok, Res.ok.injEq] at h
-          obtain ⟨rest, hr, rfl⟩ := h
-          have hh := ih hr
-          simp only [List.length_cons] at *
+          simp
+          omega
+        · simp [hz] at h
+          have hh := ih h
+          simp only [List.length_cons] at hh ⊢
           omega
 
 theorem forValuesFuel2_length_add_two_le
@@ -1631,7 +1642,7 @@ theorem forValuesFuel2_length_add_two_le
       simp only [forValuesFuel2] at h
       split at h <;> try simp_all
       next i0 delta hi hd =>
-        have hg := forValuesFuel2_go_length_add_one_le env iterator condition delta h
+        have hg := forValuesFuel2Go_length_add_one_le env iterator condition delta h
         omega
 
 
