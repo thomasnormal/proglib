@@ -379,6 +379,11 @@ theorem renameFootprint_comp (first second : AllocId → Nat) (footprint : Footp
       renameFootprint second footprint := by
   simp [renameFootprint, renameRegion]
 
+theorem renameFootprint_access_count (resolve : AllocId → Nat)
+    (footprint : Footprint) :
+    (renameFootprint resolve footprint).accesses.length = footprint.accesses.length := by
+  simp [renameFootprint]
+
 structure HookRequest where
   choice : HookChoice
   footprint : Footprint
@@ -390,6 +395,12 @@ def renameHookRequest (resolve : AllocId → Nat) (request : HookRequest) : Hook
 theorem renameHookRequest_identity (resolve : AllocId → Nat) (request : HookRequest) :
     renameHookRequest resolve request = request := by
   simp [renameHookRequest, renameFootprint_identity]
+
+theorem renameHookRequest_footprint
+    (resolve : AllocId → Nat) (request : HookRequest) :
+    (renameHookRequest resolve request).footprint =
+      renameFootprint resolve request.footprint := by
+  rfl
 
 structure Fault (F : Type) where
   value : F
