@@ -1,6 +1,7 @@
 import LeanModels.Sv.Ingest2
 import LeanModels.Sv.SeqCycleStages
 import LeanModels.Sv.SeqCycleObl
+import LeanModels.Sv.Kernel.EdgePhaseConfluence
 
 namespace Examples.«system-verilog».sem2.edge_order_memory_e
 open LeanModels.Sv LeanModels.Sv.Kernel
@@ -23,6 +24,20 @@ end Examples.«system-verilog».sem2.edge_order_memory_e
 
 namespace Examples.«system-verilog».sem2.edge_order_memory_e
 open LeanModels.Sv LeanModels.Sv.Kernel
+
+/-! The memory-aware terminal relation also preserves scalar queue order up to
+permutation. This receipt keeps the source fixture in the same module as the
+generic theorem use, while all memory commit and decode obligations remain
+explicit in the kernel theorem. -/
+example {E : CoreMemDesign} {s t₁ t₂ : EdgePhaseState} {n₁ n₂ : Nat}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (q : EdgeCursor → NbaQueue2)
+    (hqueue : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.scalarQ = q cursor)
+    (hp₁ : EdgePhaseTerminalPath E n₁ s t₁)
+    (hp₂ : EdgePhaseTerminalPath E n₂ s t₂) :
+    t₁.scalarQ.Perm t₂.scalarQ := by
+  exact EdgePhaseTerminalPath.scalar_queue_perm_memory ad q hqueue hp₁ hp₂
 
 example :
     commitNba2 [] (([] : NbaQueue2) ++ []) = commitNba2 [] ([] ++ []) ∧

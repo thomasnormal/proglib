@@ -7223,3 +7223,13 @@ three user levels, footprint-based commuting, and the abstract first
 executor bridge. The factual map and narrow memory/confluence receipts remain
 explicitly bridge-only. Commits `c4f22a031` and `2d36d1215` contain the
 design-review completion and the executor-signature correction.
+
+## Memory-admission scalar queue permutation — 2026-11-24
+
+The source-shaped edge-phase bridge now proves scalar NBA queue permutation
+under `EdgePhaseMemoryAdmission`, where each active cursor may also issue
+memory NBAs. The theorem retains the explicit cursor queue receipt and uses
+only the memory admission's stable-state and empty-continuation fields. The
+clean-room memory edge-order agreement module imports and exercises this
+bridge. It does not claim canonical memory commit success or mixed scalar and
+memory observational equality.

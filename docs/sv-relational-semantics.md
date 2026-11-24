@@ -429,6 +429,8 @@ The following results are real and intentionally narrow.
   memory diamond with a view-level decode receipt.
 * `EdgePhaseTerminalPath.memory_queue_trace` and `memory_queue_perm` give
   terminal queue permutation under explicit memory admission.
+  `scalar_queue_perm_memory` gives the corresponding scalar queue permutation
+  when those cursors also issue memory NBAs.
   `memory_state_eq`, `memory_view_eq_of_trace`, and
   `memory_commit_success_of_decode` expose state, view, and canonical commit
   facts per path.

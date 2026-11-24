@@ -1241,6 +1241,82 @@ theorem EdgePhaseTerminalPath.scalar_queue_perm
 
 #print axioms EdgePhaseTerminalPath.scalar_queue_perm
 
+/-! Memory-aware admission permits the same scalar NBA queue trace.  The
+memory queue is independent of this argument, so the path permutation proof
+only needs the shared stable-state and empty-continuation fields. -/
+theorem EdgePhaseTerminalPath.scalar_queue_perm_memory
+    {E : CoreMemDesign} {s t₁ t₂ : EdgePhaseState}
+    {n₁ n₂ : Nat}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (q : EdgeCursor → NbaQueue2)
+    (hqueue : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.scalarQ = q cursor)
+    (hp₁ : EdgePhaseTerminalPath E n₁ s t₁)
+    (hp₂ : EdgePhaseTerminalPath E n₂ s t₂) :
+    t₁.scalarQ.Perm t₂.scalarQ := by
+  have trace : ∀ {s0 : EdgePhaseState} {n : Nat} {t : EdgePhaseState},
+      EdgePhaseMemoryAdmission E s0 →
+      (∀ cursor result next, cursor ∈ s0.active →
+        cursor.resume E s0.state = .ok (result, next) → result.scalarQ = q cursor) →
+      EdgePhaseTerminalPath E n s0 t →
+      ∃ choices : List EdgeCursor, choices.Perm s0.active ∧
+        t.scalarQ = s0.scalarQ ++ List.flatMap q choices := by
+    intro s0 n t ad0 hqueue0 hp
+    induction hp with
+    | @terminal s0 hterm =>
+        have hactive : s0.active = [] := by
+          simpa [EdgePhaseQuiescent] using hterm
+        refine ⟨[], ?_, ?_⟩
+        · rw [hactive]
+        · simp [List.flatMap]
+    | @head n s0 u t hn hstep htail ih =>
+        cases hstep with
+        | select hactive hresume =>
+            rename_i before after cursor next result
+            have hmem : cursor ∈ s0.active := by
+              rw [hactive]
+              simp
+            have hempty := ad0.continuation_empty cursor result next hmem hresume
+            have hstable := ad0.stable_state cursor result next hmem hresume
+            have hqcur := hqueue0 cursor result next hmem hresume
+            let u' : EdgePhaseState := s0.after result next before after
+            have hstate : u'.state = s0.state := by
+              simp [u', EdgePhaseState.after, hstable]
+            have hsub : ∀ c, c ∈ u'.active → c ∈ s0.active := by
+              intro c hc
+              have hc' : c ∈ before ++ after := by
+                simpa [u', EdgePhaseState.after, hempty] using hc
+              rw [hactive]
+              rcases List.mem_append.mp hc' with hb | ha
+              · exact List.mem_append_left _ hb
+              · exact List.mem_append_right before (List.mem_cons_of_mem cursor ha)
+            have huad : EdgePhaseMemoryAdmission E u' :=
+              ad0.restrict hstate hsub
+            have hqueue' : ∀ c result' next', c ∈ u'.active →
+                c.resume E u'.state = .ok (result', next') →
+                result'.scalarQ = q c := by
+              intro c result' next' hc hresume'
+              apply hqueue0 c result' next' (hsub c hc)
+              simpa [hstate] using hresume'
+            obtain ⟨choices, hchoices, htrace⟩ :=
+              ih huad hqueue'
+            refine ⟨cursor :: choices, ?_, ?_⟩
+            · have hperm := List.Perm.cons cursor hchoices
+              exact hperm.trans (by
+                simpa [u', EdgePhaseState.after, hempty, hactive] using
+                  (perm_cons_append_insert cursor before after))
+            · simpa [u', EdgePhaseState.after, hempty, hqcur,
+                List.flatMap, List.append_assoc] using htrace
+  obtain ⟨choices₁, hchoices₁, htrace₁⟩ := trace ad hqueue hp₁
+  obtain ⟨choices₂, hchoices₂, htrace₂⟩ := trace ad hqueue hp₂
+  have hchoices : choices₁.Perm choices₂ := hchoices₁.trans hchoices₂.symm
+  have hflat : (List.flatMap q choices₁).Perm (List.flatMap q choices₂) :=
+    List.Perm.flatMap_right q hchoices
+  rw [htrace₁, htrace₂]
+  exact hflat.append_left _
+
+#print axioms EdgePhaseTerminalPath.scalar_queue_perm_memory
+
 /-! The memory queue has the same path-trace shape, but its records retain
 canonical declaration identity.  This theorem is the terminal-observation
 adapter's structural half.  It does not yet identify two canonical queues
