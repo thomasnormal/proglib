@@ -11,3 +11,9 @@ The combinational hierarchy summary still refuses this design because its
 flat-twin bridge only admits module-level instances; `agree.lean` keeps that
 refusal as an executable receipt.  No correctness theorem is claimed for the
 structural multiplier until that bridge is extended.
+
+The fault connection `f[i*N+j]` is therefore not admitted by `sv_structure`
+independently of the hierarchy wall: the current affine obligation language
+does not prove a product of two symbolic variables.  This is a genuine tactic
+wall, not a reason to rewrite the design or to replace the index with a
+constant-width encoding.
