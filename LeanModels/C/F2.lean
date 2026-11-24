@@ -455,6 +455,15 @@ theorem renameResult_refusal_reason {Tag State F : Type} (resolve : AllocId → 
         Result Tag State F (Byte Tag)) := by
   rfl
 
+theorem renameResult_footprint_access_count {Tag State F : Type}
+    (resolve : AllocId → Nat) (result : Result Tag State F (Byte Tag)) :
+    match result, renameResult resolve result with
+    | .ok _ _ source, .ok _ _ target => target.accesses.length = source.accesses.length
+    | .fault _ _ source, .fault _ _ target => target.accesses.length = source.accesses.length
+    | .refused _ _ source, .refused _ _ target => target.accesses.length = source.accesses.length
+    | _, _ => True := by
+  cases result <;> simp [renameResult, renameFootprint]
+
 def lookup (store : Store Tag State) (id : AllocId) : Option (Allocation Tag State) :=
   store.allocations.find? (fun entry => entry.1 == id) |>.map (·.2)
 
