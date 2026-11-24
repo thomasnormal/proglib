@@ -381,4 +381,61 @@ theorem CombPhaseStep.two_blocking_scalar_diamond_of_two_process_guard
   · intro y hy hym
     exact (hpair.2 m hmwrites) (by simpa [hym] using hy)
 
+/-! The design-level wrapper consumes the complete parser guard.  It keeps the
+same exact evaluator and cursor premises as the source-slice theorem while
+obtaining the two directed read exclusions from `CombPhaseGuard` itself. -/
+theorem CombPhaseStep.two_blocking_scalar_diamond_of_design_guard
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {xN xM : VarId} {vN vM : LVec}
+    {d : PDesign} {p q : PProcess}
+    (hg : CombPhaseGuard d)
+    (hprocesses : d.processes = [p, q])
+    (hcommon : coreMemHasCommonEventSourceThroughAssign [p, q] p q = true)
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hdecl : xN.decl ≠ xM.decl)
+    (hn : n ∈ view.map Prod.fst)
+    (hm : m ∈ view.map Prod.fst)
+    (hneq : n ≠ m)
+    (hkeys : (view.map Prod.fst).Nodup)
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : PExpr.hasTestPlusargs eN = false)
+    (htestM : PExpr.hasTestPlusargs eM = false)
+    (hmemN : PExpr.hasMemoryRead eN = false)
+    (hcallN : PExpr.hasFunctionCall eN = false)
+    (hmemM : PExpr.hasMemoryRead eM = false)
+    (hcallM : PExpr.hasFunctionCall eM = false)
+    (hne : E.elems ≠ [])
+    (hvalN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
+    (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames q))
+    (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames p))
+    (hnwrites : n ∈ coreMemProcBlockingWrites p)
+    (hmwrites : m ∈ coreMemProcBlockingWrites q) :
+    let cN : CombCursor :=
+      { work := [.stmt env (.blockingAssign n eN)], locals := locals }
+    let cM : CombCursor :=
+      { work := [.stmt env (.blockingAssign m eM)], locals := locals }
+    ∃ u₁ u₂ z,
+      CombPhaseStep E { state := st, view := view, active := [cN, cM] } u₁ ∧
+      CombPhaseStep E { state := st, view := view, active := [cN, cM] } u₂ ∧
+      CombPhaseStep E u₁ z ∧ CombPhaseStep E u₂ z := by
+  apply CombPhaseStep.two_blocking_scalar_diamond_of_two_process_guard
+    hc hxN hxM hdecl hn hm hneq hkeys hlocalN hlocalM htargetN htargetM
+    htestN htestM hmemN hcallN hmemM hcallM hne hvalN hvalM
+    hclosureM hclosureN hnwrites hmwrites
+    (by simpa [hprocesses] using hg.no_blocking_read_after_closure)
+    hcommon
+
+#print axioms CombPhaseStep.two_blocking_scalar_diamond_of_design_guard
+
 end LeanModels.Sv.Kernel
