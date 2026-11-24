@@ -300,6 +300,17 @@ memory views. A theorem may additionally expose edge-sampled values. Equality
 of final output bits alone is not enough for a refinement equivalence. The
 equivalence must preserve state facts needed by future slots.
 
+The acceptance witness in
+`Examples/system-verilog/sem2/simultaneous_nba/` runs the source and its
+clean-room testbench from `(a,b) = (0,1)`. The four measured rows are the
+initial state `(0,1)`, an A-only edge `(1,1)`, a B-only edge `(0,0)` from a
+fresh `(0,1)` state, and a simultaneous A+B batch `(1,0)`. Icarus Verilog
+13.0 and Xcelium 24.03-s004 both report all four rows as MATCH. The
+simultaneous result is therefore neither serial result, and a relation whose
+step accepts only one edge would omit a legal behavior. The fixture is an
+oracle receipt only. It does not choose an event order for the normative
+relation or change the executor.
+
 ## Five independent bridge obligations
 
 1. **Soundness.** If the executor returns `.ok s'`, some relation execution
