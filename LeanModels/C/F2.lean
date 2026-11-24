@@ -2103,6 +2103,21 @@ structure AllocationRequest (Tag State : Type) where
   state : State
 deriving Repr
 
+def renameAllocationRequest (resolve : AllocId → Nat)
+    (request : AllocationRequest Tag State) : AllocationRequest Tag State :=
+  { request with bytes := request.bytes.map (renameByte resolve) }
+
+theorem renameAllocationRequest_bytes
+    (resolve : AllocId → Nat) (request : AllocationRequest Tag State) :
+    (renameAllocationRequest resolve request).bytes =
+      request.bytes.map (renameByte resolve) := by
+  rfl
+
+theorem renameAllocationRequest_length
+    (resolve : AllocId → Nat) (request : AllocationRequest Tag State) :
+    (renameAllocationRequest resolve request).bytes.length = request.bytes.length := by
+  simp [renameAllocationRequest]
+
 inductive Placement where
   | address (base : Nat)
   | unaddressable
@@ -4345,14 +4360,15 @@ def pairedAllocate (resolve : AllocId → Nat) (store : Store Tag State)
     Option ((Store Tag State × Footprint) × (Store Tag State × Footprint)) := do
   let sourceResult ← allocate store request placement
   let targetResult ← allocate (renameStore resolve store)
-    request (renamedPlacement resolve store.nextId placement)
+    (renameAllocationRequest resolve request)
+    (renamedPlacement resolve store.nextId placement)
   some (sourceResult, targetResult)
 
 theorem pairedAllocate_refusal
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
     (hrefusal : allocate store request placement = none ∨
-      allocate (renameStore resolve store) request
+      allocate (renameStore resolve store) (renameAllocationRequest resolve request)
         (renamedPlacement resolve store.nextId placement) = none) :
     pairedAllocate resolve store request placement = none := by
   cases hrefusal with
@@ -4369,7 +4385,7 @@ theorem pairedAllocate_decompose
   cases hs : allocate store request placement with
   | none => simp [pairedAllocate, hs] at hresult
   | some sourceResult =>
-      cases ht : allocate (renameStore resolve store) request
+      cases ht : allocate (renameStore resolve store) (renameAllocationRequest resolve request)
           (renamedPlacement resolve store.nextId placement) with
       | none => simp [pairedAllocate, hs, ht] at hresult
       | some targetResult =>
@@ -4384,13 +4400,15 @@ theorem pairedAllocate_preserves_wellFormed
     (hsourceStore : WellFormed store)
     (hsourceBytes : bytesWf store.nextId request.bytes)
     (htargetBytes : bytesWf
-      (renameStore resolve store).nextId request.bytes)
+      (renameStore resolve store).nextId
+        (renameAllocationRequest resolve request).bytes)
     (hresult : pairedAllocate resolve store request placement = some result) :
     WellFormed result.1.1 ∧ WellFormed result.2.1 := by
   cases hs : allocate store request placement with
   | none => simp [pairedAllocate, hs] at hresult
   | some sourceResult =>
-      cases ht : allocate (renameStore resolve store) request
+      cases ht : allocate (renameStore resolve store)
+          (renameAllocationRequest resolve request)
           (renamedPlacement resolve store.nextId placement) with
       | none => simp [pairedAllocate, hs, ht] at hresult
       | some targetResult =>
@@ -4398,7 +4416,8 @@ theorem pairedAllocate_preserves_wellFormed
           rcases hresult with rfl
           exact ⟨allocate_preserves_wellFormed store request placement sourceResult
               hsourceStore hsourceBytes hs,
-            allocate_preserves_wellFormed (renameStore resolve store) request
+            allocate_preserves_wellFormed (renameStore resolve store)
+              (renameAllocationRequest resolve request)
               (renamedPlacement resolve store.nextId placement) targetResult
               (renameStore_preserves_wellFormed resolve store hsourceStore)
               htargetBytes ht⟩
@@ -4420,7 +4439,7 @@ theorem pairedAllocate_preserves_counts
       | false => simp [pairedAllocate, allocate, hallowed] at hresult
       | true =>
           cases htarget : placementAllowed (renameStore resolve store)
-              (resolve store.nextId) request.bytes.length with
+              (resolve store.nextId) (renameAllocationRequest resolve request).bytes.length with
           | false => simp [pairedAllocate, allocate, renamedPlacement, hallowed, htarget] at hresult
           | true =>
               simp [pairedAllocate, allocate, renamedPlacement, hallowed, htarget] at hresult
@@ -4448,21 +4467,21 @@ theorem pairedAllocate_preserves_footprints
       | false => simp [pairedAllocate, allocate, hallowed] at hresult
       | true =>
           cases htarget : placementAllowed (renameStore resolve store)
-              (resolve store.nextId) request.bytes.length with
+              (resolve store.nextId) (renameAllocationRequest resolve request).bytes.length with
           | false => simp [pairedAllocate, allocate, renamedPlacement, hallowed, htarget] at hresult
           | true =>
               simp [pairedAllocate, allocate, renamedPlacement, hallowed, htarget] at hresult
               rcases hresult with ⟨rfl, rfl⟩
-              exact ⟨by rfl, by rfl⟩
+              exact ⟨by rfl, by simp [renameAllocationRequest]⟩
   | unaddressable =>
       simp [pairedAllocate, allocate] at hresult
       rcases hresult with ⟨rfl, rfl⟩
-      exact ⟨by rfl, by rfl⟩
+      exact ⟨by rfl, by simp [renameAllocationRequest]⟩
 
 def pairedAllocateFailure (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement) : Bool :=
   (allocate store request placement).isNone &&
-    (allocate (renameStore resolve store) request
+    (allocate (renameStore resolve store) (renameAllocationRequest resolve request)
       (renamedPlacement resolve store.nextId placement)).isNone
 
 theorem pairedAllocateFailure_sound
@@ -4470,7 +4489,7 @@ theorem pairedAllocateFailure_sound
     (request : AllocationRequest Tag State) (placement : Placement)
     (h : pairedAllocateFailure resolve store request placement = true) :
     allocate store request placement = none ∧
-      allocate (renameStore resolve store) request
+      allocate (renameStore resolve store) (renameAllocationRequest resolve request)
         (renamedPlacement resolve store.nextId placement) = none := by
   simpa [pairedAllocateFailure] using h
 
@@ -4495,7 +4514,8 @@ def pairedUnaddressableAllocation (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State) :
     Bool :=
   match allocate store request .unaddressable,
-    allocate (renameStore resolve store) request .unaddressable with
+    allocate (renameStore resolve store) (renameAllocationRequest resolve request)
+      .unaddressable with
   | some _, some _ => true
   | none, none => true
   | _, _ => false
@@ -4504,7 +4524,8 @@ theorem pairedUnaddressableAllocation_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State)
     (hsource : allocate store request .unaddressable = some source)
-    (htarget : allocate (renameStore resolve store) request .unaddressable = some target) :
+    (htarget : allocate (renameStore resolve store)
+      (renameAllocationRequest resolve request) .unaddressable = some target) :
     pairedUnaddressableAllocation resolve store request = true := by
   simp [pairedUnaddressableAllocation, hsource, htarget]
 
@@ -4512,7 +4533,8 @@ theorem pairedUnaddressableAllocation_both_refused
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State)
     (hsource : allocate store request .unaddressable = none)
-    (htarget : allocate (renameStore resolve store) request .unaddressable = none) :
+    (htarget : allocate (renameStore resolve store)
+      (renameAllocationRequest resolve request) .unaddressable = none) :
     pairedUnaddressableAllocation resolve store request = true := by
   simp [pairedUnaddressableAllocation, hsource, htarget]
 
@@ -4798,7 +4820,7 @@ def pairedAllocateBounded (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment limit : Nat) : Bool :=
   match allocateBounded store request placement alignment limit,
-    allocateBounded (renameStore resolve store) request
+    allocateBounded (renameStore resolve store) (renameAllocationRequest resolve request)
       (renamedPlacement resolve store.nextId placement) alignment limit with
   | .ok _, .ok _ => true
   | .error sourceFault, .error targetFault => sourceFault == targetFault
@@ -4809,7 +4831,8 @@ theorem pairedAllocateBounded_both_success
     (request : AllocationRequest Tag State) (placement : Placement)
     (alignment limit : Nat)
     (hsource : allocateBounded store request placement alignment limit = .ok source)
-    (htarget : allocateBounded (renameStore resolve store) request
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve request)
       (renamedPlacement resolve store.nextId placement) alignment limit = .ok target) :
     pairedAllocateBounded resolve store request placement alignment limit = true := by
   simp [pairedAllocateBounded, hsource, htarget]
@@ -4819,7 +4842,8 @@ theorem pairedAllocateBounded_matching_fault
     (request : AllocationRequest Tag State) (placement : Placement)
     (alignment limit : Nat) (fault : PlacementFault)
     (hsource : allocateBounded store request placement alignment limit = .error fault)
-    (htarget : allocateBounded (renameStore resolve store) request
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve request)
       (renamedPlacement resolve store.nextId placement) alignment limit = .error fault) :
     pairedAllocateBounded resolve store request placement alignment limit = true := by
   cases fault <;> simp [pairedAllocateBounded, hsource, htarget] <;> rfl
