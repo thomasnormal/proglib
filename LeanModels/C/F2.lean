@@ -1686,11 +1686,35 @@ def renameLiveRegion (resolve : AllocId → Nat)
     (entry : AllocId × Nat × Nat × Tag) : AllocId × Nat × Nat × Tag :=
   (entry.1, resolve entry.1, resolve entry.1 + (entry.2.2.1 - entry.2.1), entry.2.2.2)
 
+theorem renameLiveRegion_shape
+    (resolve : AllocId → Nat) (entry : AllocId × Nat × Nat × Tag) :
+    (renameLiveRegion resolve entry).1 = entry.1 ∧
+      (renameLiveRegion resolve entry).2.2.2 = entry.2.2.2 := by
+  exact ⟨rfl, rfl⟩
+
 def renameRecovery (resolve : AllocId → Nat) : Recovery Tag → Recovery Tag
   | .recovered pointer => .recovered (renamePointer resolve pointer)
   | .empty address => .empty address
   | .ambiguousOnePastAdjacent => .ambiguousOnePastAdjacent
   | .noLiveAllocation => .noLiveAllocation
+
+theorem renameRecovery_empty_shape
+    {Tag : Type} (resolve : AllocId → Nat) (address : Nat) :
+    renameRecovery (Tag := Tag) resolve (.empty address) =
+      (.empty address : Recovery Tag) := by
+  rfl
+
+theorem renameRecovery_ambiguous_shape
+    (resolve : AllocId → Nat) :
+    renameRecovery (Tag := Tag) resolve .ambiguousOnePastAdjacent =
+      .ambiguousOnePastAdjacent := by
+  rfl
+
+theorem renameRecovery_no_live_shape
+    (resolve : AllocId → Nat) :
+    renameRecovery (Tag := Tag) resolve .noLiveAllocation =
+      .noLiveAllocation := by
+  rfl
 
 def pairedRecoverAddress (resolve : AllocId → Nat) (address : Nat)
     (live : List (AllocId × Nat × Nat × Tag)) : Bool :=
