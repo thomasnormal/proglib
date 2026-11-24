@@ -1499,6 +1499,21 @@ def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag S
       else allocate store request placement
   | _ => allocate store request placement
 
+theorem allocateAligned_rejects_misaligned
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base alignment : Nat)
+    (hrejected : alignmentAllowed base alignment = false) :
+    allocateAligned store request (.address base) alignment = none := by
+  simp [allocateAligned, hrejected]
+
+theorem allocateAligned_address_success
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base alignment : Nat)
+    (haligned : alignmentAllowed base alignment = true)
+    (hresult : allocate store request (.address base) = some result) :
+    allocateAligned store request (.address base) alignment = some result := by
+  simp [allocateAligned, haligned, hresult]
+
 def renamedPlacement (resolve : AllocId → Nat) (id : AllocId) :
     Placement → Placement
   | .address _ => .address (resolve id)
@@ -1629,6 +1644,39 @@ def allocateBounded (store : Store Tag State) (request : AllocationRequest Tag S
         match allocate store request placement with
         | some result => .ok result
         | none => .error .overlap
+
+theorem allocateBounded_failure_shape
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (alignment limit : Nat) :
+    allocateBounded store request .fail alignment limit = .error .exhausted := by
+  rfl
+
+theorem allocateBounded_address_exhausted
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base alignment limit : Nat)
+    (hrejected : placementWithin base request.bytes.length limit = false) :
+    allocateBounded store request (.address base) alignment limit =
+      .error .exhausted := by
+  simp [allocateBounded, hrejected]
+
+theorem allocateBounded_address_misaligned
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base alignment limit : Nat)
+    (hwithin : placementWithin base request.bytes.length limit = true)
+    (hrejected : alignmentAllowed base alignment = false) :
+    allocateBounded store request (.address base) alignment limit =
+      .error .misaligned := by
+  simp [allocateBounded, hwithin, hrejected]
+
+theorem allocateBounded_address_overlap
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base alignment limit : Nat)
+    (hwithin : placementWithin base request.bytes.length limit = true)
+    (haligned : alignmentAllowed base alignment = true)
+    (hrejected : placementAllowed store base request.bytes.length = false) :
+    allocateBounded store request (.address base) alignment limit =
+      .error .overlap := by
+  simp [allocateBounded, hwithin, haligned, hrejected]
 
 def renameBoundedResult (resolve : AllocId → Nat) :
     Except PlacementFault (Store Tag State × Footprint) →
