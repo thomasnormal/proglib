@@ -12,8 +12,8 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1179,
-   "refused-libc": 23,
+   "passed": 1180,
+   "refused-libc": 22,
    "refused-ub": 41,
    "refused-unsupported": 178,
    "runner-error": 10
@@ -32,8 +32,8 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1382,
-  "refused-libc": 25,
+  "passed": 1383,
+  "refused-libc": 24,
   "refused-ub": 47,
   "refused-unsupported": 313,
   "runner-error": 11
@@ -1052,14 +1052,6 @@
   },
   {
    "files": [
-    "ieee/mzero4.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "libc-call: sin"
-  },
-  {
-   "files": [
     "pr108064.c"
    ],
    "present": 1,
@@ -1343,8 +1335,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T01:10:00Z",
- "measured_commit": "b2ed152af323fb93b3209a9c7555d5db582993d6",
+ "measured_at_utc": "2026-11-24T01:15:00Z",
+ "measured_commit": "120ddbc6670608d564a2d0c157b411657f982fc6",
  "pin": "C1-C3",
  "rows": [
   {
@@ -3284,7 +3276,6 @@
    "static_walls": [
     "cast:FloatingCast",
     "cast:IntegralToFloating",
-    "libc-call: sin",
     "string-literal",
     "type-layout"
    ],
@@ -16660,21 +16651,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "sin",
-   "dynamic_wall": "libc-call: sin",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ieee/mzero4.c",
    "sha256": "958e396fe53dfb62bc287fa22e8a48134321a00c4ec0915dc5ef28e5c6597dc4",
    "static_walls": [
-    "libc-call: atan",
-    "libc-call: atanf",
-    "libc-call: sin",
-    "libc-call: sinf",
-    "libc-call: tan",
-    "libc-call: tanf",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27249,7 +27234,7 @@
     "zerolen-2.c"
    ],
    "present": 1004,
-   "sole": 547,
+   "sole": 548,
    "wall": "type-layout"
   },
   {
@@ -28206,15 +28191,6 @@
   },
   {
    "files": [
-    "00174.c",
-    "ieee/mzero4.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: sin"
-  },
-  {
-   "files": [
     "builtins/strpcpy-2.c",
     "builtins/strpcpy.c"
    ],
@@ -28379,22 +28355,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: alloca"
-  },
-  {
-   "files": [
-    "ieee/mzero4.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: atan"
-  },
-  {
-   "files": [
-    "ieee/mzero4.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: atanf"
   },
   {
    "files": [
@@ -28614,14 +28574,6 @@
   },
   {
    "files": [
-    "ieee/mzero4.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: sinf"
-  },
-  {
-   "files": [
     "builtins/strcspn.c"
    ],
    "present": 1,
@@ -28651,22 +28603,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: strspn"
-  },
-  {
-   "files": [
-    "ieee/mzero4.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: tan"
-  },
-  {
-   "files": [
-    "ieee/mzero4.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: tanf"
   },
   {
    "files": [
