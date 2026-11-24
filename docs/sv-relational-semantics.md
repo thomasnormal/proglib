@@ -225,6 +225,13 @@ def Run
 def ObserveTrace (finish : SlotState) (inputs : List InputBatch)
     (trace : List ObsState) : Prop := ...
 
+def SettledTrace
+    (E : CoreMemDesign) (g : Granularity) (x : XResolution)
+    (init : SlotState) (inputs : List InputBatch)
+    (trace : List ObsState) : Prop :=
+  ∃ finish, SettledSlotRun E g x init finish ∧
+    ObserveTrace finish inputs trace
+
 def RefusalTrace (finish : SlotState) (inputs : List InputBatch)
     (reason : RelRefusal) : Prop := ...
 
@@ -232,8 +239,8 @@ def SettledRun
     (E : CoreMemDesign) (g : Granularity) (x : XResolution)
     (init : SlotState) (inputs : List InputBatch)
     (trace : List ObsState) : Prop :=
-  ∃ finish, SettledSlotRun E g x init finish ∧
-    ObserveTrace finish inputs trace
+  Run E g x init inputs trace ∧
+    SettledTrace E g x init inputs trace
 
 def RefusedRun
     (E : CoreMemDesign) (g : Granularity) (x : XResolution)
