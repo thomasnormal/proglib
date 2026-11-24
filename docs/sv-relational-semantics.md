@@ -360,20 +360,22 @@ silently replace the reference relation.
 The cheap first bridge is an implementation relation, not the meaning:
 
 ```lean
-def ExecStep (E : CoreMemDesign) (input : InputBatch)
-    (s s' : CoreMemState) : Prop :=
-  ∃ fuel, E.step fuel s input = .ok s'
+def ExecStep
+    (exec : Nat → CoreMemState → InputBatch → Res CoreMemState)
+    (input : InputBatch) (s s' : CoreMemState) : Prop :=
+  ∃ fuel, exec fuel s input = .ok s'
 ```
 
-The actual executor API currently supplies its own implementation limits, so
-the displayed signature is schematic until the de-fuelling work lands. The
-bridge is justified only by the proved fuel-monotonicity theorem and an
-executor soundness theorem. It must be replaced construct by construct by
-the rule-based `SlotRun` relation. A finite relational derivation is then
-reproduced by some schedule and a sufficiently large implementation limit,
-while a timeout remains an implementation result rather than a semantic
-outcome. No user theorem may mention `fuel`, `need`, or the implementation
-limit.
+The actual executor API currently exposes `CoreMemDesign.step` without this
+explicit argument, while its internal workers carry implementation limits.
+The displayed signature is therefore the abstract adapter to introduce when
+those limits are made explicit. The bridge is justified only by the proved
+fuel-monotonicity theorem and an executor soundness theorem. It must be
+replaced construct by construct by the rule-based `SlotRun` relation. A finite
+relational derivation is then reproduced by some schedule and a sufficiently
+large implementation limit, while a timeout remains an implementation result
+rather than a semantic outcome. No user theorem may mention `fuel`, `need`, or
+the implementation limit.
 
 ## Footprints and constrained ordering
 
