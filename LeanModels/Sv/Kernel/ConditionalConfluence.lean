@@ -210,4 +210,74 @@ theorem CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_driver_c
 
 #print axioms CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_driver_closure
 
+/-! For the two-process class the local diamond can be folded into the actual
+terminal-path relation.  The two paths have the same settled observation
+outside the hidden names, while their hidden state may differ. -/
+theorem CombPhaseTerminalPath.two_blocking_scalar_hidden_observation
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {xN xM : VarId} {vN vM : LVec}
+    {hidden : List String} {processes : List PProcess}
+    {fuelN fuelM : Nat} {namesN namesM : List String}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : PExpr.hasTestPlusargs eN = false)
+    (htestM : PExpr.hasTestPlusargs eM = false)
+    (hmemN : PExpr.hasMemoryRead eN = false)
+    (hcallN : PExpr.hasFunctionCall eN = false)
+    (hmemM : PExpr.hasMemoryRead eM = false)
+    (hcallM : PExpr.hasFunctionCall eM = false)
+    (hne : E.elems ≠ [])
+    (hvalueN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalueM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
+    (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
+      y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM)
+    (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
+      y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN)
+    (hguardM : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelM namesM,
+      y ≠ n)
+    (hguardN : ∀ y ∈ coreMemReadNamesThroughDrivers processes fuelN namesN,
+      y ≠ m)
+    (hnHidden : n ∈ hidden) (hmHidden : m ∈ hidden) :
+    let cN : CombCursor :=
+      { work := [.stmt env (.blockingAssign n eN)], locals := locals }
+    let cM : CombCursor :=
+      { work := [.stmt env (.blockingAssign m eM)], locals := locals }
+    let s : CombPhaseState := { state := st, view := view, active := [cN, cM] }
+    ∃ kN tN kM tM,
+      CombPhaseTerminalPath E kN s tN ∧
+      CombPhaseTerminalPath E kM s tM ∧
+      SvState.agreesOutside hidden tN.view tM.view := by
+  dsimp
+  let cN : CombCursor :=
+    { work := [.stmt env (.blockingAssign n eN)], locals := locals }
+  let cM : CombCursor :=
+    { work := [.stmt env (.blockingAssign m eM)], locals := locals }
+  let s : CombPhaseState := { state := st, view := view, active := [cN, cM] }
+  obtain ⟨uN, uM, zN, zM, hsN, hsM, huN, huM, hzN, hzM, hobs⟩ :=
+    CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_driver_closure
+      hc hxN hxM hlocalN hlocalM htargetN htargetM htestN htestM
+      hmemN hcallN hmemM hcallM hne hvalueN hvalueM hclosureM hclosureN
+      hguardM hguardN hnHidden hmHidden
+  have hstart : ¬ CombPhaseQuiescent s := by
+    simp [CombPhaseQuiescent, s, cN, cM]
+  have hmidN : ¬ CombPhaseQuiescent uN := by
+    cases huN with
+    | select hactive _ => simp [CombPhaseQuiescent, hactive]
+  have hmidM : ¬ CombPhaseQuiescent uM := by
+    cases huM with
+    | select hactive _ => simp [CombPhaseQuiescent, hactive]
+  have htermN : CombPhaseQuiescent zN := by simpa [CombPhaseQuiescent] using hzN
+  have htermM : CombPhaseQuiescent zM := by simpa [CombPhaseQuiescent] using hzM
+  refine ⟨2, zN, 2, zM, ?_, ?_, hobs⟩
+  · exact .head hstart hsN (.head hmidN huN (.terminal htermN))
+  · exact .head hstart hsM (.head hmidM huM (.terminal htermM))
+
+#print axioms CombPhaseTerminalPath.two_blocking_scalar_hidden_observation
+
 end LeanModels.Sv.Kernel

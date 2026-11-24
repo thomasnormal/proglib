@@ -485,6 +485,13 @@ now takes that closure explicitly as
 evaluator exclusions before invoking the local diamond. The process list and
 closure fuel remain admission receipts, so this adapter does not claim that
 hierarchy or transitive closure is complete for every design.
+`CombPhaseTerminalPath.two_blocking_scalar_hidden_observation` folds the same
+receipt into two concrete terminal paths of the retained scheduler. Both paths
+have length two and reach an empty active list, and their views agree outside
+the hidden targets. This is the first conditional result stated over terminal
+paths rather than only a one-step diamond. It remains a two-process theorem,
+so it does not yet construct a global admitted scheduler structure or tie a
+hidden-race path to a canonical full-state executor result.
 
 The following results are real and intentionally narrow.
 
