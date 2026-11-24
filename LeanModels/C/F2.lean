@@ -4382,6 +4382,23 @@ theorem allocateBounded_address_result_footprint
   rcases hresult with ⟨rfl, rfl⟩
   rfl
 
+theorem allocateBounded_address_result_payload
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hwithin : placementWithin base request.bytes.length limit = true)
+    (haligned : alignmentAllowed base alignment = true)
+    (hallowed : placementAllowed store base request.bytes.length = true)
+    (hresult : allocateBounded store request (.address base) alignment limit = .ok result) :
+    result.1 =
+      { allocations := store.allocations ++
+          [(store.nextId,
+            { live := true, address := some base,
+              bytes := request.bytes, state := request.state })]
+        nextId := store.nextId + 1 } := by
+  simp [allocateBounded, hwithin, haligned, hallowed, allocate] at hresult
+  rcases hresult with rfl
+  rfl
+
 def renameBoundedResult (resolve : AllocId → Nat) :
     Except PlacementFault (Store Tag State × Footprint) →
       Except PlacementFault (Store Tag State × Footprint)
