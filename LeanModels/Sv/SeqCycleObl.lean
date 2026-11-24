@@ -1969,6 +1969,41 @@ theorem CoreMemDesign.edgesV_cons_local {E : CoreMemDesign} {before after v : Sv
       · rename_i hf
         exact ⟨[], [], r, h, by simp, by simp, by simp⟩
 
+/-! The same head decomposition retains the source-shaped evaluator receipt.
+    This is the boundary needed by a permutation induction over mixed scalar
+    and memory NBA bodies. -/
+theorem CoreMemDesign.edgesV_cons_receipt {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {p : CoreMemProc} {rest : List CoreMemProc} {r : ExecV}
+    (hlocal : ∀ (f : CoreMemEdge) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      E.execV E.env v mv f.body = .ok (v', q, mq) →
+      v' = v ∧ (∀ u ∈ q, u.1 ∈ f.body.writes) ∧ (∀ u ∈ mq, u.1 ∈ f.body.writes))
+    (h : E.edgesV before after v mv (p :: rest) = .ok r) :
+    ∃ q mq rr, E.edgesV before after v mv rest = .ok rr ∧
+      r = (rr.1, q ++ rr.2.1, mq ++ rr.2.2) ∧
+      (p.edge? = none ∧ q = [] ∧ mq = [] ∨
+        (∃ f, p.edge? = some f ∧ f.fires before after = false ∧ q = [] ∧ mq = []) ∨
+        (∃ f, p.edge? = some f ∧ f.fires before after = true ∧
+          E.execV E.env v mv f.body = .ok (v, q, mq))) := by
+  cases hpe : p.edge? with
+  | none =>
+      rw [CoreMemDesign.edgesV_cons_none hpe] at h
+      exact ⟨[], [], r, h, by simp, Or.inl ⟨by simpa [hpe], rfl, rfl⟩⟩
+  | some f =>
+      rw [CoreMemDesign.edgesV_cons_some hpe] at h
+      split at h
+      · rename_i hf
+        simp only [Res.bind_eq_ok, Res.ok.injEq] at h
+        obtain ⟨⟨v1, q, mq⟩, h1, rr, h2, rfl⟩ := h
+        obtain ⟨hv, -, -⟩ := hlocal f v1 q mq h1
+        subst v1
+        exact ⟨q, mq, rr, h2, by simp,
+          Or.inr (Or.inr ⟨f, by simpa [hpe], hf, h1⟩)⟩
+      · rename_i hf
+        have hf' : f.fires before after = false := by
+          cases hfire : f.fires before after <;> simp_all
+        exact ⟨[], [], r, h, by simp,
+          Or.inr (Or.inl ⟨f, by simpa [hpe], hf', rfl, rfl⟩)⟩
+
 /-- Mixed scalar and memory NBA queues commute when their target names are disjoint.
 This is the commit-side diamond used by the memory-aware edge-order route. -/
 theorem commitMixed_swap {st : SvState} (hnd : (st.map Prod.fst).Nodup)
