@@ -1213,6 +1213,12 @@ private def constArith (op : SymBinOp) (w : Nat) (s : Bool) (a b : Int) : Except
   | .m0 .add => .ok (canonInt w s (a + b))
   | .m0 .sub => .ok (canonInt w s (a - b))
   | .m0 .mul | .mul => .ok (canonInt w s (a * b))
+  | .m0 .div | .m0 .sdiv =>
+      if b == 0 then .error "division by zero in a constant context (reads x)"
+      else .ok (canonInt w s (a.tdiv b))
+  | .m0 .rem | .m0 .srem =>
+      if b == 0 then .error "modulo by zero in a constant context (reads x)"
+      else .ok (canonInt w s (a.tmod b))
   | .div => if b == 0 then .error "division by zero in a constant context (reads x)"
             else .ok (canonInt w s (a.tdiv b))
   | .mod => if b == 0 then .error "modulo by zero in a constant context (reads x)"
