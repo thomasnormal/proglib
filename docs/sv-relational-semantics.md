@@ -122,9 +122,12 @@ The current proof inventory has these levels.
   footprints are disjoint, while retaining the explicit record-projection
   receipt. `EdgePhaseTerminalPath.memory_queue_trace` and
   `memory_queue_perm` now carry path-independent canonical memory queues for
-  a memory-aware admission receipt. The remaining bridge is the observation
-  theorem from those queue permutations through successful identity-preserving
-  `MemState.commitNba` commits.
+  a memory-aware admission receipt. `memory_state_eq` preserves the shared
+  pre-edge memory state, and
+  `memory_commit_observation_eq_of_perm` carries the queue permutation through
+  successful identity-preserving `MemState.commitNba` commits using the
+  existing `commitNba_V` view theorem. Its decode, coherence, footprint, and
+  commit-success receipts remain explicit.
 * **Concrete NBA bridges.** `executor_result_allowed_by_edge_schedule` is the
   soundness direction for a canonical `step` result under the admitted NBA
   guards. `finite_path_executor_replay` is the finite-path replay direction

@@ -1321,6 +1321,43 @@ theorem EdgePhaseTerminalPath.memory_queue_perm
 #print axioms EdgePhaseTerminalPath.memory_queue_trace
 #print axioms EdgePhaseTerminalPath.memory_queue_perm
 
+/-! The memory-aware admission also preserves the pre-edge state along a
+terminal path.  This is separate from queue observation because the canonical
+commit still needs its own identity and success receipts. -/
+theorem EdgePhaseTerminalPath.memory_state_eq
+    {E : CoreMemDesign} {s t : EdgePhaseState} {n : Nat}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (hp : EdgePhaseTerminalPath E n s t) :
+    t.state = s.state := by
+  induction hp with
+  | terminal hterm => rfl
+  | @head n s u t hn hstep htail ih =>
+      cases hstep with
+      | select hactive hresume =>
+          rename_i before after cursor next result
+          have hmem : cursor ∈ s.active := by
+            rw [hactive]
+            simp
+          have hempty := ad.continuation_empty cursor result next hmem hresume
+          have hstable := ad.stable_state cursor result next hmem hresume
+          let u' : EdgePhaseState := s.after result next before after
+          have hstate : u'.state = s.state := by
+            simp [u', EdgePhaseState.after, hstable]
+          have hsub : ∀ c, c ∈ u'.active → c ∈ s.active := by
+            intro c hc
+            have hc' : c ∈ before ++ after := by
+              simpa [u', EdgePhaseState.after, hempty] using hc
+            rw [hactive]
+            rcases List.mem_append.mp hc' with hb | ha
+            · exact List.mem_append_left _ hb
+            · exact List.mem_append_right before (List.mem_cons_of_mem cursor ha)
+          have huad : EdgePhaseMemoryAdmission E u' :=
+            ad.restrict hstate hsub
+          have htailstate : t.state = u'.state := ih huad
+          exact htailstate.trans hstate
+
+#print axioms EdgePhaseTerminalPath.memory_state_eq
+
 end LeanModels.Sv.Kernel
 
 namespace LeanModels.Sv.Kernel
@@ -1337,6 +1374,108 @@ private theorem nbaDisj_symm {u v : String × Nat × LVec} :
 
 private def queuePairwiseDisjoint (q : NbaQueue2) : Prop :=
   q.Pairwise NbaDisj
+
+private theorem memNbaNameDisj_symm {u v : String × Int × LVec} :
+    u.1 ≠ v.1 → v.1 ≠ u.1 := by
+  exact Ne.symm
+
+private def memQueuePairwiseDisjoint (q : MemQV) : Prop :=
+  q.Pairwise (fun u v => u.1 ≠ v.1)
+
+private theorem memQueuePairwiseDisjoint_perm {q q' : MemQV} :
+    q.Perm q' → memQueuePairwiseDisjoint q → memQueuePairwiseDisjoint q'
+  | hp, h =>
+      (List.Perm.pairwise_iff memNbaNameDisj_symm hp).mp h
+
+private theorem commitMemV_perm_disjoint
+    {mv : MemV} {q q' : MemQV}
+    (hdisj : memQueuePairwiseDisjoint q)
+    (hperm : q.Perm q') :
+    commitMemV mv q = commitMemV mv q' := by
+  induction hperm generalizing mv with
+  | nil => rfl
+  | cons x hperm ih =>
+      rw [commitMemV_cons, commitMemV_cons]
+      exact ih (List.pairwise_cons.mp hdisj).2
+  | swap x y l =>
+      have hpref : commitMemV mv (y :: x :: []) =
+          commitMemV mv (x :: y :: []) := by
+        simpa using (commitMemV_swap (mv := mv) (q₁ := [y]) (q₂ := [x]) (by
+          intro u hu v hv
+          simp at hu hv
+          subst u
+          subst v
+          exact (List.pairwise_cons.mp hdisj).1 x (by simp)))
+      rw [show y :: x :: l = (y :: x :: []) ++ l by rfl,
+        show x :: y :: l = (x :: y :: []) ++ l by rfl,
+        commitMemV_append, commitMemV_append, hpref]
+  | trans h₁ h₂ ih₁ ih₂ =>
+      exact (ih₁ hdisj).trans
+        (ih₂ (memQueuePairwiseDisjoint_perm h₁ hdisj))
+
+#print axioms commitMemV_perm_disjoint
+
+/-! Two successful canonical memory commits have the same observed memory
+view when their identity-preserving queues are permutations and the queue
+footprint is pairwise disjoint.  The theorem consumes `commitNba_V` rather
+than replacing `MemState.commitNba`; commit success and the decode receipts
+remain explicit premises of the adapter. -/
+theorem EdgePhaseTerminalPath.memory_commit_observation_eq_of_perm
+    {E : CoreMemDesign} {s t₁ t₂ : EdgePhaseState}
+    {n₁ n₂ : Nat} {m₁ m₂ : MemState}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (q : EdgeCursor → MemNbaQueue)
+    (hqueue : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.memoryQ = q cursor)
+    (hp₁ : EdgePhaseTerminalPath E n₁ s t₁)
+    (hp₂ : EdgePhaseTerminalPath E n₂ s t₂)
+    (hmo : E.memOkB = true)
+    (hmc : E.MemCoherent s.state.memory)
+    (decode : MemNbaRecord → String × Int × LVec)
+    (hcanon₁ : (t₁.memoryQ.map decode).map E.memRec = t₁.memoryQ)
+    (hcanon₂ : (t₂.memoryQ.map decode).map E.memRec = t₂.memoryQ)
+    (hrec₁ : ∀ r ∈ t₁.memoryQ.map decode, E.RecOk r)
+    (hrec₂ : ∀ r ∈ t₂.memoryQ.map decode, E.RecOk r)
+    (hdisj : memQueuePairwiseDisjoint (t₁.memoryQ.map decode))
+    (hm₁ : t₁.state.memory.commitNba t₁.memoryQ = some m₁)
+    (hm₂ : t₂.state.memory.commitNba t₂.memoryQ = some m₂) :
+    E.memOf m₁ = E.memOf m₂ := by
+  let q₁ : MemQV := t₁.memoryQ.map decode
+  let q₂ : MemQV := t₂.memoryQ.map decode
+  have hpermM : t₁.memoryQ.Perm t₂.memoryQ :=
+    EdgePhaseTerminalPath.memory_queue_perm
+      (s := s) ad q hqueue hp₁ hp₂
+  have hperm : q₁.Perm q₂ := by
+    exact List.Perm.map decode hpermM
+  have hdisj₂ : memQueuePairwiseDisjoint q₂ :=
+    memQueuePairwiseDisjoint_perm hperm hdisj
+  obtain ⟨m₁', hcommit₁, hcoh₁, hview₁⟩ :=
+    CoreMemDesign.commitNba_V hmo q₁ s.state.memory hmc hrec₁
+  obtain ⟨m₂', hcommit₂, hcoh₂, hview₂⟩ :=
+    CoreMemDesign.commitNba_V hmo q₂ s.state.memory hmc hrec₂
+  have hcommit₁' : s.state.memory.commitNba t₁.memoryQ = some m₁' := by
+    simpa [q₁, hcanon₁] using hcommit₁
+  have hcommit₂' : s.state.memory.commitNba t₂.memoryQ = some m₂' := by
+    simpa [q₂, hcanon₂] using hcommit₂
+  have hstate₁ := EdgePhaseTerminalPath.memory_state_eq ad hp₁
+  have hstate₂ := EdgePhaseTerminalPath.memory_state_eq ad hp₂
+  have hm₁' : s.state.memory.commitNba t₁.memoryQ = some m₁ := by
+    simpa [hstate₁] using hm₁
+  have hm₂' : s.state.memory.commitNba t₂.memoryQ = some m₂ := by
+    simpa [hstate₂] using hm₂
+  have heq₁ : m₁ = m₁' := by
+    exact Option.some.inj (hm₁'.symm.trans hcommit₁')
+  have heq₂ : m₂ = m₂' := by
+    exact Option.some.inj (hm₂'.symm.trans hcommit₂')
+  have hview₁' : E.memOf m₁ = commitMemV (E.memOf s.state.memory) q₁ := by
+    rw [heq₁]
+    exact hview₁
+  have hview₂' : E.memOf m₂ = commitMemV (E.memOf s.state.memory) q₂ := by
+    rw [heq₂]
+    exact hview₂
+  exact hview₁'.trans ((commitMemV_perm_disjoint hdisj hperm).trans hview₂'.symm)
+
+#print axioms EdgePhaseTerminalPath.memory_commit_observation_eq_of_perm
 
 private theorem queuePairwiseDisjoint_perm {q q' : NbaQueue2}:
     q.Perm q' → queuePairwiseDisjoint q → queuePairwiseDisjoint q'
