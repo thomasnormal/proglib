@@ -234,6 +234,24 @@ theorem seqE_clog2_two_pow_succ (k : Nat) : clog2 (2 ^ k + 1) = k + 1 := by
       rw [Nat.add_sub_cancel, Nat.log2_two_pow]
     omega
 
+/-- The packed width `[clog2 N - 1:0]` after the route's unsigned read. -/
+theorem seqE_wclog (N : Nat) (h : 1 ≤ clog2 N) :
+    (((clog2 (if (N : Int) < 0 then (N : Int).emod 4294967296 else (N : Int)).toNat : Nat) : Int) - 1).natAbs + 1 =
+      clog2 N := by
+  have hn : ¬ ((N : Int) < 0) := by omega
+  simp only [hn, if_false, Int.toNat_natCast]
+  omega
+
+/-- The packed width `[clog2 (N + 1) - 1:0]` after the route's unsigned read. -/
+theorem seqE_wclog1 (N : Nat) (h : 1 ≤ clog2 (N + 1)) :
+    (((clog2 (if (N : Int) + 1 < 0 then ((N : Int) + 1).emod 4294967296 else (N : Int) + 1).toNat : Nat) : Int) - 1).natAbs + 1 =
+      clog2 (N + 1) := by
+  have hn : ¬ ((N : Int) + 1 < 0) := by omega
+  simp only [hn, if_false]
+  have ht : ((N : Int) + 1).toNat = N + 1 := by omega
+  rw [ht]
+  omega
+
 /-! ## The condition of a conditional generate construct
 
 The route selects the arm of `if (c) … else …` by `evalGenGuard` (the condition typed by `ctype` and evaluated at its
@@ -1162,6 +1180,7 @@ macro "sv_seq_eval_arith" : conv =>
       Int.min_eq_right, Int.max_eq_left,
       Int.max_eq_right, LeanModels.Sv.CombView.canonInt32_of_bounds,
       LeanModels.Sv.Kernel.seqE_canonU32_of_bounds, LeanModels.Sv.Kernel.seqE_convertU32_of_bounds,
+      LeanModels.Sv.Kernel.seqE_wclog, LeanModels.Sv.Kernel.seqE_wclog1,
       LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
       LeanModels.Sv.Kernel.seqE_natAbs_add_sub_one_add_one, Nat.sub_add_cancel])
 
