@@ -997,6 +997,15 @@ theorem unionLoadMetadataByte_footprint
               simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized] at hresult
               exact congrArg (fun pair => pair.2) hresult.symm
 
+theorem unionLoadMetadataByte_uninitialized_refusal
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (byte : Byte Tag)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hlocation : metadata.locations[offset]? = some
+      { effectiveType := .untyped, initialized := false }) :
+    unionLoadMetadataByte metadata offset = none := by
+  simp [unionLoadMetadataByte, hbyte, hlocation]
+
 theorem pairedUnionLoadMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
