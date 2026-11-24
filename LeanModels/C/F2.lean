@@ -1995,6 +1995,23 @@ def pairedReallocMetadata (resolve : AllocId → Nat)
     | .fail => .fail)
   some (sourceResult, targetResult)
 
+theorem pairedReallocMetadata_failure_shape
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old request locations .fail = some result) :
+    result.1.1 = .failed old ∧
+      result.2.1 = .failed (renameMetadata resolve 0 old) ∧
+      result.1.2 = footprint .metadata (Region.mk 0 0 old.allocation.bytes.length) ∧
+      result.2.2 = footprint .metadata
+        (Region.mk 0 0 (renameMetadata resolve 0 old).allocation.bytes.length) := by
+  simp [pairedReallocMetadata, reallocMetadata] at hresult
+  rcases hresult with ⟨rfl, rfl⟩
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
 theorem pairedReallocMetadata_decompose
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
