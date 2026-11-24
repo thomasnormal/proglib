@@ -95,6 +95,25 @@ theorem guarded_pair_receipt
     hkeys hlocalN hlocalM htargetN htargetM htestN htestM hmemN hcallN hmemM
     hcallM hne hvalN hvalM hclosureM hclosureN hnwrites hmwrites
 
+theorem executor_bridge_receipt
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n : String} {value : PExpr} {width : Nat} {v : LVec}
+    {tail : List CombWork}
+    (hlocal : SvState.lookup locals n = none)
+    (hlocals : locals = [])
+    (htarget : E.scalarTarget n = some width)
+    (htest : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs value = false)
+    (hvalue : E.evalExprLocals env E.elems st (some width) locals value = .ok v) :
+    E.execCombStmtAtView env E.elems st view (.blockingAssign n value) =
+        .ok (E.setScalarState st n v, SvState.set view n v) ∧
+      CombCursor.resume E st view
+          { work := .stmt env (.blockingAssign n value) :: tail, locals := locals } =
+        .ok (E.setScalarState st n v, SvState.set view n v,
+          { work := tail, locals := locals }) := by
+  exact CombCursor.resume_blocking_scalar_of_exec
+    hlocal hlocals htarget htest hvalue
+
 #print axioms guardReceipt
 #print axioms guarded_pair_receipt
+#print axioms executor_bridge_receipt
 end Examples.«system-verilog».sem2.two_blocking_disjoint_e

@@ -94,6 +94,31 @@ def CombCursor.resume (E : CoreMemDesign) (st : CoreMemState) (view : SvState)
       let ((next, nextView, locals), work) ← head.openNode E st view cursor.locals
       return (next, nextView, ⟨work ++ tail, locals⟩)
 
+/-! The retained cursor exposes the same executor result, with its waiting
+tail preserved.  This is the one-leaf bridge used when a scheduler cuts a
+blocking process at the statement boundary. -/
+theorem CombCursor.resume_blocking_scalar_of_exec
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n : String} {value : PExpr} {width : Nat} {v : LVec}
+    {tail : List CombWork}
+    (hlocal : SvState.lookup locals n = none)
+    (hlocals : locals = [])
+    (htarget : E.scalarTarget n = some width)
+    (htest : PExpr.hasTestPlusargs value = false)
+    (hvalue : E.evalExprLocals env E.elems st (some width) locals value = .ok v) :
+    E.execCombStmtAtView env E.elems st view (.blockingAssign n value) =
+        .ok (E.setScalarState st n v, SvState.set view n v) ∧
+      CombCursor.resume E st view
+          { work := .stmt env (.blockingAssign n value) :: tail, locals := locals } =
+        .ok (E.setScalarState st n v, SvState.set view n v,
+          { work := tail, locals := locals }) := by
+  constructor
+  · subst locals
+    simp [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel,
+      htarget, htest, hvalue]
+  · simp [CombCursor.resume, CombWork.openNode, CoreMemDesign.execCombStmtFuel,
+      hlocal, htarget, htest, hvalue]
+
 /-- Interpret pending work uninterrupted using the existing block executor. -/
 def CombWork.run (E : CoreMemDesign) (st : CoreMemState) (view locals : SvState)
     (fuel : Nat) : CombWork → Res (CoreMemState × SvState × SvState)

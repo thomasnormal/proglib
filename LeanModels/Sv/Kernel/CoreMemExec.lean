@@ -3115,6 +3115,24 @@ def CoreMemDesign.execCombStmtAtView (E : CoreMemDesign) (env : IEnv)
     let (st', view', _) ← E.execCombStmtFuel env elems st view [] 4096 stmt
     .ok (st', view')
 
+/-! A scalar blocking leaf through the public executor has the same exact
+result as the retained cursor's leaf.  The evaluator value is supplied by
+the caller, while the target and local-frame premises select the scalar arm
+of the parser-native statement executor. -/
+theorem CoreMemDesign.execCombStmtAtView_blocking_scalar
+    {E : CoreMemDesign} {env : IEnv} {st : CoreMemState} {view locals : SvState}
+    {n : String} {value : PExpr} {width : Nat} {v : LVec}
+    (hlocal : SvState.lookup locals n = none)
+    (hlocals : locals = [])
+    (htarget : E.scalarTarget n = some width)
+    (htest : LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasTestPlusargs value = false)
+    (hvalue : E.evalExprLocals env E.elems st (some width) locals value = .ok v) :
+    E.execCombStmtAtView env E.elems st view (.blockingAssign n value) =
+      .ok (E.setScalarState st n v, SvState.set view n v) := by
+  subst locals
+  simp [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel,
+    htarget, htest, hvalue]
+
 def CoreMemDesign.execCombStmt (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (stmt : PStmt) : Res CoreMemState :=
   do
