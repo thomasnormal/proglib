@@ -39,6 +39,19 @@ def ppGen : GenItem :=
 theorem noisy_pp_generate : noisyMul.pdesign.generates.head? = some ppGen := by
   rfl
 
+/-! The hierarchy tactic refuses this source-shaped design at the exact first
+generated child site.  Keep the refusal as a named hand-proof receipt: the
+compositional equations below are usable, but no static flat twin is claimed.
+-/
+theorem noisy_hierarchy_refusal :
+    CombHier.hierInsts noisyMul.pdesign noisyMul.plib =
+      .error (CombHier.itemRefusal ppGen) := by
+  rfl
+
+theorem noisy_fault_row_index_affine_refusal :
+    CombView.affOf? (.binary .mul (.genvarRef "i") (.paramRef "N" none)) = none := by
+  rfl
+
 theorem andInst_prefix (env : IEnv) (i j : Int) :
     andInst.prefix ((env.bindVal "i" i).bindVal "j" j) =
       .ok ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.") := by
