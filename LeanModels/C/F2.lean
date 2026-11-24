@@ -3990,6 +3990,20 @@ theorem pairedPlacementWithin_success
     pairedPlacementWithin resolve id size limit base = true := by
   simp [pairedPlacementWithin, hbase, htarget]
 
+theorem pairedPlacementWithin_refusal_source
+    (resolve : AllocId → Nat) (id size limit base : Nat)
+    (hsource : placementWithin base size limit = false)
+    (htarget : placementWithin (resolve id) size limit = true) :
+    pairedPlacementWithin resolve id size limit base = false := by
+  simp [pairedPlacementWithin, hsource, htarget]
+
+theorem pairedPlacementWithin_refusal_target
+    (resolve : AllocId → Nat) (id size limit base : Nat)
+    (hsource : placementWithin base size limit = true)
+    (htarget : placementWithin (resolve id) size limit = false) :
+    pairedPlacementWithin resolve id size limit base = false := by
+  simp [pairedPlacementWithin, hsource, htarget]
+
 def placementWithinComposition (first second : AllocId → Nat)
     (id size limit base : Nat) : Bool :=
   placementWithin (second id) size limit == placementWithin (second id) size limit
