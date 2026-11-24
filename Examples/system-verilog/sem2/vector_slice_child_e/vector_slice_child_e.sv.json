@@ -1,0 +1,865 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "vector_slice_child_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/vector_slice_child_e/vector_slice_child_e.sv",
+      "sha256": "9312aeef21b1cc85658ebc2a2330eb9dca5daadf6493e2c62865b13faa0f112b"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 6,
+          "col": 1,
+          "end_line": 12,
+          "end_col": 10
+        },
+        "name": "vector_slice_child_e",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 6,
+              "col": 45,
+              "end_line": 6,
+              "end_col": 54
+            },
+            "name": "WIDTH",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 45,
+                      "end_line": 6,
+                      "end_col": 54
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 45,
+                      "end_line": 6,
+                      "end_col": 54
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 6,
+                "col": 53,
+                "end_line": 6,
+                "end_col": 54
+              },
+              "value": 8,
+              "resolved_width": 32
+            },
+            "resolved": 8
+          },
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 6,
+              "col": 70,
+              "end_line": 6,
+              "end_col": 79
+            },
+            "name": "LANES",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 70,
+                      "end_line": 6,
+                      "end_col": 79
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 70,
+                      "end_line": 6,
+                      "end_col": 79
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 6,
+                "col": 78,
+                "end_line": 6,
+                "end_col": 79
+              },
+              "value": 2,
+              "resolved_width": 32
+            },
+            "resolved": 2
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 38,
+              "end_line": 7,
+              "end_col": 39
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 7,
+                      "col": 16,
+                      "end_line": 7,
+                      "end_col": 23
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 7,
+                        "col": 16,
+                        "end_line": 7,
+                        "end_col": 21
+                      },
+                      "name": "LANES"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 7,
+                        "col": 22,
+                        "end_line": 7,
+                        "end_col": 23
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 24,
+                      "end_line": 7,
+                      "end_col": 25
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                },
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 7,
+                      "col": 27,
+                      "end_line": 7,
+                      "end_col": 34
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 7,
+                        "col": 27,
+                        "end_line": 7,
+                        "end_col": 32
+                      },
+                      "name": "WIDTH"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 7,
+                        "col": 33,
+                        "end_line": 7,
+                        "end_col": 34
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 35,
+                      "end_line": 7,
+                      "end_col": 36
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 16
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 8,
+              "col": 41,
+              "end_line": 8,
+              "end_col": 42
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 8,
+                      "col": 17,
+                      "end_line": 8,
+                      "end_col": 24
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 8,
+                        "col": 17,
+                        "end_line": 8,
+                        "end_col": 22
+                      },
+                      "name": "LANES"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 8,
+                        "col": 23,
+                        "end_line": 8,
+                        "end_col": 24
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 25,
+                      "end_line": 8,
+                      "end_col": 26
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                },
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 8,
+                      "col": 28,
+                      "end_line": 8,
+                      "end_col": 37
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 8,
+                        "col": 28,
+                        "end_line": 8,
+                        "end_col": 35
+                      },
+                      "width": null,
+                      "op": "*",
+                      "left": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 8,
+                          "col": 28,
+                          "end_line": 8,
+                          "end_col": 29
+                        },
+                        "value": 2,
+                        "resolved_width": null
+                      },
+                      "right": {
+                        "kind": "ParamRef",
+                        "span": {
+                          "line": 8,
+                          "col": 30,
+                          "end_line": 8,
+                          "end_col": 35
+                        },
+                        "name": "WIDTH"
+                      }
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 8,
+                        "col": 36,
+                        "end_line": 8,
+                        "end_col": 37
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 38,
+                      "end_line": 8,
+                      "end_col": 39
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [],
+        "generates": [
+          {
+            "kind": "GenerateFor",
+            "span": {
+              "line": 9,
+              "col": 11,
+              "end_line": 11,
+              "end_col": 5
+            },
+            "label": "lanes",
+            "genvar": "k",
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 9,
+                "col": 27,
+                "end_line": 9,
+                "end_col": 28
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "bound": {
+              "kind": "Binary",
+              "span": {
+                "line": 9,
+                "col": 30,
+                "end_line": 9,
+                "end_col": 39
+              },
+              "width": 1,
+              "op": "s<",
+              "left": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 9,
+                  "col": 30,
+                  "end_line": 9,
+                  "end_col": 31
+                },
+                "name": "k"
+              },
+              "right": {
+                "kind": "ParamRef",
+                "span": {
+                  "line": 9,
+                  "col": 34,
+                  "end_line": 9,
+                  "end_col": 39
+                },
+                "name": "LANES"
+              }
+            },
+            "step": {
+              "kind": "Unary",
+              "span": {
+                "line": 9,
+                "col": 41,
+                "end_line": 9,
+                "end_col": 44
+              },
+              "width": null,
+              "op": "++",
+              "operand": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 9,
+                  "col": 41,
+                  "end_line": 9,
+                  "end_col": 42
+                },
+                "name": "k"
+              }
+            },
+            "resolved_count": 2,
+            "body": [
+              {
+                "kind": "Instance",
+                "span": {
+                  "line": 10,
+                  "col": 47,
+                  "end_line": 10,
+                  "end_col": 69
+                },
+                "name": "u",
+                "module": "vector_slice_child_e_lane",
+                "path": [
+                  {
+                    "label": "lanes",
+                    "genvar": "k"
+                  }
+                ],
+                "params": [
+                  {
+                    "name": "WIDTH",
+                    "expr": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 10,
+                        "col": 39,
+                        "end_line": 10,
+                        "end_col": 44
+                      },
+                      "name": "WIDTH"
+                    }
+                  }
+                ],
+                "ports": [
+                  {
+                    "kind": "PortConn",
+                    "span": {
+                      "line": 10,
+                      "col": 53,
+                      "end_line": 10,
+                      "end_col": 57
+                    },
+                    "port": "a",
+                    "dir": "in",
+                    "expr": {
+                      "kind": "BitSel",
+                      "span": {
+                        "line": 10,
+                        "col": 53,
+                        "end_line": 10,
+                        "end_col": 57
+                      },
+                      "width": 8,
+                      "value": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 10,
+                          "col": 53,
+                          "end_line": 10,
+                          "end_col": 54
+                        },
+                        "width": 16,
+                        "name": "a"
+                      },
+                      "index": {
+                        "kind": "GenvarRef",
+                        "span": {
+                          "line": 10,
+                          "col": 55,
+                          "end_line": 10,
+                          "end_col": 56
+                        },
+                        "name": "k"
+                      }
+                    },
+                    "net": true
+                  },
+                  {
+                    "kind": "PortConn",
+                    "span": {
+                      "line": 10,
+                      "col": 63,
+                      "end_line": 10,
+                      "end_col": 67
+                    },
+                    "port": "y",
+                    "dir": "out",
+                    "target": {
+                      "kind": "BitSel",
+                      "span": {
+                        "line": 10,
+                        "col": 63,
+                        "end_line": 10,
+                        "end_col": 67
+                      },
+                      "width": 16,
+                      "value": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 10,
+                          "col": 63,
+                          "end_line": 10,
+                          "end_col": 64
+                        },
+                        "width": 32,
+                        "name": "y"
+                      },
+                      "index": {
+                        "kind": "GenvarRef",
+                        "span": {
+                          "line": 10,
+                          "col": 65,
+                          "end_line": 10,
+                          "end_col": 66
+                        },
+                        "name": "k"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "others": []
+      },
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 4,
+          "end_col": 10
+        },
+        "name": "vector_slice_child_e_lane",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 1,
+              "col": 50,
+              "end_line": 1,
+              "end_col": 59
+            },
+            "name": "WIDTH",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 50,
+                      "end_line": 1,
+                      "end_col": 59
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 1,
+                      "col": 50,
+                      "end_line": 1,
+                      "end_col": 59
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 1,
+                "col": 58,
+                "end_line": 1,
+                "end_col": 59
+              },
+              "value": 8,
+              "resolved_width": 32
+            },
+            "resolved": 8
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 27,
+              "end_line": 2,
+              "end_col": 28
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 2,
+                      "col": 16,
+                      "end_line": 2,
+                      "end_col": 23
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 2,
+                        "col": 16,
+                        "end_line": 2,
+                        "end_col": 21
+                      },
+                      "name": "WIDTH"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 2,
+                        "col": 22,
+                        "end_line": 2,
+                        "end_col": 23
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 24,
+                      "end_line": 2,
+                      "end_col": 25
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 57,
+              "end_line": 2,
+              "end_col": 58
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 2,
+                      "col": 44,
+                      "end_line": 2,
+                      "end_col": 53
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 2,
+                        "col": 44,
+                        "end_line": 2,
+                        "end_col": 51
+                      },
+                      "width": null,
+                      "op": "*",
+                      "left": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 2,
+                          "col": 44,
+                          "end_line": 2,
+                          "end_col": 45
+                        },
+                        "value": 2,
+                        "resolved_width": null
+                      },
+                      "right": {
+                        "kind": "ParamRef",
+                        "span": {
+                          "line": 2,
+                          "col": 46,
+                          "end_line": 2,
+                          "end_col": 51
+                        },
+                        "name": "WIDTH"
+                      }
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 2,
+                        "col": 52,
+                        "end_line": 2,
+                        "end_col": 53
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 54,
+                      "end_line": 2,
+                      "end_col": 55
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 16
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 3,
+              "col": 9,
+              "end_line": 3,
+              "end_col": 27
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 9,
+                "end_line": 3,
+                "end_col": 10
+              },
+              "width": 16,
+              "name": "y"
+            },
+            "value": {
+              "kind": "Concat",
+              "span": {
+                "line": 3,
+                "col": 13,
+                "end_line": 3,
+                "end_col": 27
+              },
+              "width": 16,
+              "parts": [
+                {
+                  "kind": "SignedResize",
+                  "span": {
+                    "line": 3,
+                    "col": 14,
+                    "end_line": 3,
+                    "end_col": 23
+                  },
+                  "width": 8,
+                  "operand": {
+                    "kind": "Literal",
+                    "span": {
+                      "line": 3,
+                      "col": 21,
+                      "end_line": 3,
+                      "end_col": 22
+                    },
+                    "width": 32,
+                    "bits": "00000000000000000000000000000000",
+                    "signed": true
+                  }
+                },
+                {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 3,
+                    "col": 25,
+                    "end_line": 3,
+                    "end_col": 26
+                  },
+                  "width": 8,
+                  "name": "a"
+                }
+              ]
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
