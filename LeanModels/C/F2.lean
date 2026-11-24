@@ -1551,6 +1551,16 @@ theorem loadByte_footprint
         rcases hpair with rfl
         rfl
 
+theorem loadByte_success
+    (store : Store Tag State) (id offset : Nat)
+    (allocation : Allocation Tag State) (byte : Byte Tag)
+    (hlive : allocation.live = true)
+    (hlookup : lookup store id = some allocation)
+    (hindex : allocation.bytes[offset]? = some byte) :
+    loadByte store id offset =
+      some (byte, footprint .read { allocation := id, offset := offset, width := 1 }) := by
+  simp [loadByte, hlookup, hindex, hlive]
+
 theorem endLifetime_preserves_nextId
     (store : Store Tag State) (id : AllocId)
     (result : Store Tag State × Footprint)
