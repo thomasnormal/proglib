@@ -2221,6 +2221,43 @@ theorem CoreMemDesign.execV_forLoop_memoryLeafBody
   refine ⟨values.flatMap m, hfold values (by intro i hi; exact hi), ?_⟩
   exact hnamesFlat values (by intro i hi; exact hi)
 
+/-! A reset arm commonly wraps the memory loop in a one-sided conditional.
+    This adapter follows the real `execV` branch and keeps the declaration
+    premise source-shaped. -/
+theorem CoreMemDesign.execV_if_forLoop_memoryLeafBody
+    {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
+    {guard : PExpr} {it : String} {init condition step : PExpr} {body : PStmt}
+    {v' : SvState} {q : NbaQueue2} {mq : MemQV}
+    (hshape : PStmt.memoryLeafB body = true)
+    (hdecl : ∀ n ∈ (PStmt.ifStmt guard (.forLoop it init condition step body) none).writes,
+      ∃ md, E.memDecl? n = some md)
+    {values : List Int}
+    (hvals : forValues2 env it init condition step = .ok values)
+    (hbody : ∀ i, i ∈ values → ∃ mq,
+      E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes))
+    (h : E.execV env v mv
+        (.ifStmt guard (.forLoop it init condition step body) none) = .ok (v', q, mq)) :
+    v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 ∈ body.writes) := by
+  have hloop : PStmt.loopBodyB body = true := PStmt.memoryLeafB_loopBodyB body hshape
+  simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
+  obtain ⟨cv, -, h⟩ := h
+  split at h
+  · obtain ⟨mq', hq', hm'⟩ := CoreMemDesign.execV_forLoop_memoryLeafBody
+      env v mv hshape
+      (by
+        intro n hn
+        exact hdecl n (by
+          simp only [PStmt.writes, PStmt.optWrites, List.mem_append]
+          exact Or.inl hn)) hvals hbody
+    rw [hvals] at h
+    simp [CoreMemDesign.execV, hloop, hvals] at hq'
+    obtain ⟨rfl, rfl, rfl⟩ := Res.ok.inj (hq'.symm.trans h)
+    exact ⟨rfl, rfl, hm'⟩
+  · simp only [CoreMemDesign.execOptV, Res.ok.injEq, Prod.mk.injEq] at h
+    obtain ⟨rfl, rfl, rfl⟩ := h
+    exact ⟨rfl, rfl, by simp⟩
+
 /-! A procedural loop receipt packages the per-iteration memory evaluator
     facts into the exact flat-map queue produced by `execV_forLoop_memory`. -/
 theorem CoreMemDesign.execV_forLoop_memory_records {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
