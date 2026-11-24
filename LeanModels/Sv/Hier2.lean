@@ -976,21 +976,15 @@ def PDesign.paramEnvH (envI : IEnv) (d : PDesign) (args : List Int) : Res IEnv :
   let env0 ← bindParamsRes envP d.params args
   let env1 ← bindLocals env0 d.localParams
   let env2 ← bindEnums env1 d.enums
-  let pws ← (d.params.map (fun p => (p.name, p.type?))
-              ++ d.localParams.map (fun lp => (lp.name, lp.type?))).filterMapM
-    fun (n, ty?) =>
-      match ty? with
-      | none => pure none
-      | some ty =>
-          match ty.width env2 with
-          | .ok w => pure (some (n, w))
-          | .error e => Res.unsupported s!"parameter '{n}' type: {e}"
+  let pws ← typedParamWidthsE env2
+    (d.params.map (fun p => (p.name, p.type?))
+      ++ d.localParams.map (fun lp => (lp.name, lp.type?)))
   let env2 := { env2 with pwidths := pws }
   -- Keep the source-shaped automatic-function table in the hierarchical
   -- environment, exactly as the flat `instantiate2From` path does.  Without
   -- this field the conservative-extension theorem cannot identify the two
   -- elaborations once a function is present in the module.
-  .ok { env2 with dims := dimTable env2 d.decls, functions := d.functions }
+  .ok { env2 with dims := dimTableFast env2 d.decls, functions := d.functions }
 
 /-- The child instantiator of `instantiateRec`: the definition from the
 library, the instance's parameter point (`PInst.given`, `PDesign.atPoint`),

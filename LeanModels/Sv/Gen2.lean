@@ -479,17 +479,11 @@ def PDesign.paramEnv2 (d : PDesign) (args : List Int) : Res IEnv := do
   let env0 ← bindParamsRes envP d.params args
   let env1 ← bindLocals env0 d.localParams
   let env2 ← bindEnums env1 d.enums
-  let pws ← (d.params.map (fun p => (p.name, p.type?))
-              ++ d.localParams.map (fun lp => (lp.name, lp.type?))).filterMapM
-    fun (n, ty?) =>
-      match ty? with
-      | none => pure none
-      | some ty =>
-          match ty.width env2 with
-          | .ok w => pure (some (n, w))
-          | .error e => Res.unsupported s!"parameter '{n}' type: {e}"
+  let pws ← typedParamWidthsE env2
+    (d.params.map (fun p => (p.name, p.type?))
+      ++ d.localParams.map (fun lp => (lp.name, lp.type?)))
   let env2 := { env2 with pwidths := pws }
-  .ok { env2 with dims := dimTable env2 d.decls, functions := d.functions }
+  .ok { env2 with dims := dimTableFast env2 d.decls, functions := d.functions }
 
 /-- The process-and-declaration environment: `env` with the declared widths
 of `decls` (what `instantiate2` instantiates processes and generates in). -/

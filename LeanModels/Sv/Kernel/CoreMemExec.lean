@@ -1968,7 +1968,7 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
       (d.params.map (fun p => (p.name, p.type?))
         ++ d.localParams.map (fun lp => (lp.name, lp.type?)))
     let env2 := { env2 with pwidths := pws }
-    let env2 := { env2 with dims := dimTable env2 d.decls }
+    let env2 := { env2 with dims := dimTableFast env2 d.decls }
     let env2 := { env2 with functions := d.functions }
     let (generatedDecls, _) ← coreMemGeneratedDeclsList env2 iterFuel {} d.generates
     let localDecls := d.processes.flatMap coreMemLocalDeclsProc
@@ -1978,7 +1978,7 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
     if !coreMemDeclNamesUnique sourceDecls then
       .unsupported "UnpackedDecl:generate-scope: active generate declarations contain duplicate names"
     else
-      let env2 := { env2 with dims := dimTable env2 (d.decls ++ generatedDecls) }
+      let env2 := { env2 with dims := dimTableFast env2 (d.decls ++ generatedDecls) }
       let (generatedRaw, _) ← coreMemExpandList env2 iterFuel {} d.generates
       let allForNet := d.processes ++ generatedRaw
       let generated := coreMemDropGeneratedNetMarkers d generatedRaw

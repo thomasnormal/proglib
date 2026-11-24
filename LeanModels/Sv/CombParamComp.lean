@@ -283,17 +283,11 @@ theorem bindLocals_nil (env : IEnv) : bindLocals env [] = .ok env := rfl
 /-- The part of `paramEnv2` after the localparams (verbatim the rest of its `do` block). -/
 def paramTail (d : PDesign) (env1 : IEnv) : Res IEnv := do
   let env2 ← bindEnums env1 d.enums
-  let pws ← (d.params.map (fun p => (p.name, p.type?))
-              ++ d.localParams.map (fun lp => (lp.name, lp.type?))).filterMapM
-    fun (n, ty?) =>
-      match ty? with
-      | none => pure none
-      | some ty =>
-          match ty.width env2 with
-          | .ok w => pure (some (n, w))
-          | .error e => Res.unsupported s!"parameter '{n}' type: {e}"
+  let pws ← typedParamWidthsE env2
+    (d.params.map (fun p => (p.name, p.type?))
+      ++ d.localParams.map (fun lp => (lp.name, lp.type?)))
   let env2 := { env2 with pwidths := pws }
-  .ok { env2 with dims := dimTable env2 d.decls, functions := d.functions }
+  .ok { env2 with dims := dimTableFast env2 d.decls, functions := d.functions }
 
 /-- **`paramEnv2` with the localparams' environment given**: the packages, enums and parameters bound as the stage binds
 them, then the localparams (`hL`, shown node by node), then the rest of the stage. -/
@@ -305,7 +299,6 @@ theorem paramEnv2_of_locals {d : PDesign} {args : List Int} {envP envE env0 env1
     d.paramEnv2 args = paramTail d env1 := by
   unfold PDesign.paramEnv2 paramTail
   simp only [hE, hP, hB, hL, Res.ok_bind]
-  rfl
 
 /-! ## Bounds: interval arithmetic on the values -/
 

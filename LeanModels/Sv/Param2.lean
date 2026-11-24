@@ -235,6 +235,24 @@ def dimTable (env : IEnv) : List PDecl → List (String × List (Int × Int))
           | .error _ => dimTable (dimTableStep env pd) rest
       | _ => dimTable (dimTableStep env pd) rest
 
+/-- Geometry-table evaluation with a declaration-local environment.  The ordinary `dimTable` equation is retained for
+the proof-facing API; this variant clears the already-built geometry field while threading declaration widths, so a
+later width lookup cannot re-normalize the entire table through nested record updates. -/
+def dimTableFast (env : IEnv) : List PDecl → List (String × List (Int × Int))
+  | [] => []
+  | pd :: rest =>
+      let env0 := { env with dims := [] }
+      let step := fun (e : IEnv) =>
+        match pd.type.width e with
+        | .ok w => { e with widths := (pd.name, w) :: e.widths, dims := [] }
+        | .error _ => { e with dims := [] }
+      match pd.type with
+      | .packed ds _ =>
+          match evalDims env0 ds with
+          | .ok es => (pd.name, es) :: dimTableFast (step env0) rest
+          | .error _ => dimTableFast (step env0) rest
+      | _ => dimTableFast (step env0) rest
+
 /-- The evaluated packed dimensions of the declared signal `n` (a lookup in
 the declaration-scope table — the select site's genvars never reach it). -/
 def arrayDims (env : IEnv) (n : String) : Except String (List (Int × Int)) :=
@@ -1886,7 +1904,7 @@ def PDesign.instantiateE2From (envI : IEnv) (d : PDesign) (args : List Int)
       (d.params.map (fun p => (p.name, p.type?))
         ++ d.localParams.map (fun lp => (lp.name, lp.type?)))
     let env2 := { env2 with pwidths := pws }
-    let env2 := { env2 with dims := dimTable env2 d.decls, functions := d.functions }
+    let env2 := { env2 with dims := dimTableFast env2 d.decls, functions := d.functions }
     let decls ← buildDecls env2 d.decls
     let elems ← buildElems env2 d.decls
     let envP := { env2 with widths := decls.map fun dc => (dc.name, dc.width) }
@@ -2043,19 +2061,13 @@ def PDesign.instantiate2From (envI : IEnv) (d : PDesign) (args : List Int)
     let env2 ← bindEnums env1 d.enums
     -- Declared widths of typed parameters/localparams (self-determined
     -- widths of ParamRefs in value positions; untyped = 32-bit int).
-    let pws ← (d.params.map (fun p => (p.name, p.type?))
-                ++ d.localParams.map (fun lp => (lp.name, lp.type?))).filterMapM
-      fun (n, ty?) =>
-        match ty? with
-        | none => pure none
-        | some ty =>
-            match ty.width env2 with
-            | .ok w => pure (some (n, w))
-            | .error e => Res.unsupported s!"parameter '{n}' type: {e}"
+    let pws ← typedParamWidthsE env2
+      (d.params.map (fun p => (p.name, p.type?))
+        ++ d.localParams.map (fun lp => (lp.name, lp.type?)))
     let env2 := { env2 with pwidths := pws }
     -- The packed-array geometry, evaluated ONCE in the declaration scope:
     -- no genvar bound during generate expansion reaches a declared range.
-    let env2 := { env2 with dims := dimTable env2 d.decls, functions := d.functions }
+    let env2 := { env2 with dims := dimTableFast env2 d.decls, functions := d.functions }
     let decls ← buildDecls env2 d.decls
     let elems ← buildElems env2 d.decls
     let envP := { env2 with widths := decls.map fun dc => (dc.name, dc.width) }
@@ -2080,17 +2092,11 @@ def PDesign.instantiateFunctions2 (d : PDesign) (args : List Int)
     let env0 ← bindParamsRes envP d.params args
     let env1 ← bindLocals env0 d.localParams
     let env2 ← bindEnums env1 d.enums
-    let pws ← (d.params.map (fun p => (p.name, p.type?))
-                ++ d.localParams.map (fun lp => (lp.name, lp.type?))).filterMapM
-      fun (n, ty?) =>
-        match ty? with
-        | none => pure none
-        | some ty =>
-            match ty.width env2 with
-            | .ok w => pure (some (n, w))
-            | .error e => Res.unsupported s!"parameter '{n}' type: {e}"
+    let pws ← typedParamWidthsE env2
+      (d.params.map (fun p => (p.name, p.type?))
+        ++ d.localParams.map (fun lp => (lp.name, lp.type?)))
     let env2 := { env2 with pwidths := pws }
-    let env2 := { env2 with dims := dimTable env2 d.decls, functions := d.functions }
+    let env2 := { env2 with dims := dimTableFast env2 d.decls, functions := d.functions }
     let decls ← buildDecls env2 d.decls
     let elems ← buildElems env2 d.decls
     let envP := { env2 with widths := decls.map fun dc => (dc.name, dc.width) }

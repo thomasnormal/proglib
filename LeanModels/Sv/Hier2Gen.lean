@@ -233,7 +233,6 @@ theorem PDesign.instantiateRec_flat (depth : Nat) (lib : List PDesign) (envI : I
   · rfl
   · simp only [PDesign.paramEnvH, Gen2.res_bind_assoc, Res.ok_bind, expandListH_of_instFree h,
       List.append_nil]
-    rfl
 
 /-- `instantiateH` on an instance-free design is `instantiate2` (the top's
 one-driver rule, `PDesign.topGuard`, is the identity there). -/
