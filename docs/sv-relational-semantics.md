@@ -96,7 +96,12 @@ The implementation keeps its current result distinction
 migrated. `timeout` means implementation budget exhaustion. A quiescence
 loop returning `unsupported` for a budget exhaustion is an executor bug to
 repair, not a semantic refusal. A true unsupported parser node maps to
-`RelRefusal.unsupported`.
+`RelRefusal.unsupported`. An invalid schedule supplied by an external
+enumerator is a separate validation result. It is not a legal relation path,
+and it must not be reported as either a language refusal or budget exhaustion.
+The typed relation constructs only legal transitions. A schedule adapter that
+accepts an untrusted list must expose an `invalidSchedule` result before
+invoking the relation.
 
 ## Judgment forms over PStmt and CoreMemDesign
 
@@ -234,6 +239,11 @@ policy.
 * **Unsupported constructs.** A construct without a rule has a refusal
   outcome. It is never approximated by a neighboring construct or a default
   value.
+
+The semantic outcome set is therefore completed, refused, or diverged. An
+executor-facing adapter additionally distinguishes budget exhaustion and an
+invalid supplied schedule. These implementation and validation outcomes never
+become semantic derivations.
 
 ## Granularity parameter
 
@@ -472,8 +482,8 @@ against this checkout.
   `SeqCycleRuns.lean` whose rows ultimately call `runCoreMemRows`.
   Their theorem heads hide implementation limits.
 * `forValues2` computes the parameterized header value list structurally in
-  `Param2.lean`. The visible `N ≤ 4000) condition comes from
-  `PStmt.need ≤ 4096) in `SeqCycle.lean`, not from a language bound.
+  `Param2.lean`. The visible `N ≤ 4000` condition comes from
+  `PStmt.need ≤ 4096` in `SeqCycle.lean`, not from a language bound.
 * The quiescence route in `CoreMemExec.lean` has executor paths that return
   `.unsupported` on exhaustion. That message must be separated from a
   semantic refusal.
