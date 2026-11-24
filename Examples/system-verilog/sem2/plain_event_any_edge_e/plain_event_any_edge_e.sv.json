@@ -1,0 +1,138 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "plain_event_any_edge_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/plain_event_any_edge_e/plain_event_any_edge_e.sv",
+      "sha256": "a0e71fca869537a942c98e6e9b947f8cb8b3a335a7717bcb8553ee3f8bf1db9d"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 3,
+          "end_col": 10
+        },
+        "name": "plain_event_any_edge_e",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 44,
+              "end_line": 1,
+              "end_col": 47
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 61,
+              "end_line": 1,
+              "end_col": 62
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 77,
+              "end_line": 1,
+              "end_col": 78
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysEvent",
+            "span": {
+              "line": 2,
+              "col": 3,
+              "end_line": 2,
+              "end_col": 27
+            },
+            "events": [
+              {
+                "signal": "clk",
+                "edge": "any"
+              }
+            ],
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 2,
+                "col": 20,
+                "end_line": 2,
+                "end_col": 27
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 2,
+                  "col": 20,
+                  "end_line": 2,
+                  "end_col": 21
+                },
+                "width": 1,
+                "name": "q"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 2,
+                  "col": 25,
+                  "end_line": 2,
+                  "end_col": 26
+                },
+                "width": 1,
+                "name": "d"
+              }
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
