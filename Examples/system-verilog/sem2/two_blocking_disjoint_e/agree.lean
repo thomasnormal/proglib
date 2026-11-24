@@ -2,6 +2,7 @@ import LeanModels.Sv.Ingest2
 import LeanModels.Sv.Kernel.CoreMemExec
 import LeanModels.Sv.Kernel.CombPhaseFrame
 import LeanModels.Sv.Kernel.EdgePhaseConfluence
+import LeanModels.Sv.Kernel.ConditionalConfluence
 namespace Examples.«system-verilog».sem2.two_blocking_disjoint_e
 open LeanModels.Sv LeanModels.Sv.Kernel
 load_design_sv2 twoBlocking from "Examples/system-verilog/sem2/two_blocking_disjoint_e/two_blocking_disjoint_e.sv.json"
@@ -17,6 +18,12 @@ def guardReceipt : Bool :=
   | _ => false
 
 #guard guardReceipt
+
+example {state : SvState} {a b a' b' : LVec} :
+    SvState.agreesOutside ["a", "b"]
+      (SvState.set (SvState.set state "a" a) "b" b)
+      (SvState.set (SvState.set state "b" b') "a" a') := by
+  exact SvState.agreesOutside_two_set_of_mem (by simp) (by simp)
 
 example : CombPhaseGuard twoBlocking.pdesign := by
   constructor <;> decide
