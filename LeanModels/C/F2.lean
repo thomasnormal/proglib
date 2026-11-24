@@ -1731,6 +1731,18 @@ def renameOffsetResult (resolve : AllocId → Nat) :
   | .error fault => .error fault
   | .ok pointer => .ok (renamePointer resolve pointer)
 
+theorem renameOffsetResult_error_shape
+    {Tag : Type} (resolve : AllocId → Nat) (fault : OffsetFault) :
+    renameOffsetResult (Tag := Tag) resolve
+        (.error fault : Except OffsetFault (Pointer Tag)) =
+      (.error fault : Except OffsetFault (Pointer Tag)) := by
+  rfl
+
+theorem renameOffsetResult_success_shape
+    (resolve : AllocId → Nat) (pointer : Pointer Tag) :
+    renameOffsetResult resolve (.ok pointer) = .ok (renamePointer resolve pointer) := by
+  rfl
+
 def pairedOffsetPointer (resolve : AllocId → Nat) (pointer : Pointer Tag)
     (elementSize : Nat) (delta : Int) (bound : Nat) :
     Bool :=
