@@ -2001,7 +2001,7 @@ def copyFootprint (source destination : Region) (width : Nat) : Footprint :=
                  (AccessKind.write, { destination with width := width })] }
 
 def pairedCopyFootprint (source destination : Region) (width : Nat) : Bool :=
-  true
+  (copyFootprint source destination width).accesses.length == 2
 
 theorem copyFootprint_access_count
     (source destination : Region) (width : Nat) :
@@ -2010,7 +2010,7 @@ theorem copyFootprint_access_count
 
 theorem pairedCopyFootprint_sound (source destination : Region) (width : Nat) :
     pairedCopyFootprint source destination width = true := by
-  rfl
+  simp [pairedCopyFootprint, copyFootprint]
 
 def regionsOverlap (source destination : Region) (width : Nat) : Bool :=
   source.allocation == destination.allocation &&
@@ -2092,11 +2092,11 @@ theorem pairedMemmoveSnapshot_preserves_lengths [BEq Tag]
   · simp [List.length_map]
 
 def pairedMemmoveFootprint (source destination : Region) (width : Nat) : Bool :=
-  true
+  (copyFootprint source destination width).accesses.length == 2
 
 theorem pairedMemmoveFootprint_sound (source destination : Region) (width : Nat) :
     pairedMemmoveFootprint source destination width = true := by
-  rfl
+  simp [pairedMemmoveFootprint, copyFootprint]
 
 structure AllocationRequest (Tag State : Type) where
   bytes : List (Byte Tag)
