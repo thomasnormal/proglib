@@ -2373,6 +2373,41 @@ def pairedStaleStore (resolve : AllocId → Nat) (store : Store Tag State)
       (storeByte targetResult.1 id offset (renameByte resolve byte)).isNone
   | _, _ => false
 
+theorem pairedStaleLoad_sound
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (h : pairedStaleLoad resolve store id offset = true) :
+    ∃ sourceResult targetResult,
+      endLifetime store id = some sourceResult ∧
+      endLifetime (renameStore resolve store) id = some targetResult ∧
+      loadByte sourceResult.1 id offset = none ∧
+      loadByte targetResult.1 id offset = none := by
+  cases hs : endLifetime store id with
+  | none => simp [pairedStaleLoad, hs] at h
+  | some sourceResult =>
+      cases ht : endLifetime (renameStore resolve store) id with
+      | none => simp [pairedStaleLoad, hs, ht] at h
+      | some targetResult =>
+          simp [pairedStaleLoad, hs, ht] at h
+          exact ⟨sourceResult, targetResult, rfl, rfl, h.1, h.2⟩
+
+theorem pairedStaleStore_sound
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (h : pairedStaleStore resolve store id offset byte = true) :
+    ∃ sourceResult targetResult,
+      endLifetime store id = some sourceResult ∧
+      endLifetime (renameStore resolve store) id = some targetResult ∧
+      storeByte sourceResult.1 id offset byte = none ∧
+      storeByte targetResult.1 id offset (renameByte resolve byte) = none := by
+  cases hs : endLifetime store id with
+  | none => simp [pairedStaleStore, hs] at h
+  | some sourceResult =>
+      cases ht : endLifetime (renameStore resolve store) id with
+      | none => simp [pairedStaleStore, hs, ht] at h
+      | some targetResult =>
+          simp [pairedStaleStore, hs, ht] at h
+          exact ⟨sourceResult, targetResult, rfl, rfl, h.1, h.2⟩
+
 theorem storeByte_preserves_nextId
     (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
     (result : Store Tag State × Footprint)
