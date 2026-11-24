@@ -5365,6 +5365,32 @@ theorem pairedStoreLoadByte_decompose
               rcases hresult with rfl
               exact ⟨stores, sourceLoad, targetLoad, rfl, rfl, rfl, rfl⟩
 
+theorem pairedStoreLoadByte_refusal_store
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (hstore : pairedStoreByte resolve store id offset byte = none) :
+    pairedStoreLoadByte resolve store id offset byte = none := by
+  simp [pairedStoreLoadByte, hstore]
+
+theorem pairedStoreLoadByte_refusal_source_load
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (stores : (Store Tag State × Footprint) × (Store Tag State × Footprint))
+    (hstore : pairedStoreByte resolve store id offset byte = some stores)
+    (hload : loadByte stores.1.1 id offset = none) :
+    pairedStoreLoadByte resolve store id offset byte = none := by
+  simp [pairedStoreLoadByte, hstore, hload]
+
+theorem pairedStoreLoadByte_refusal_target_load
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (stores : (Store Tag State × Footprint) × (Store Tag State × Footprint))
+    (hstore : pairedStoreByte resolve store id offset byte = some stores)
+    (hload : loadByte stores.1.1 id offset = some sourceLoad)
+    (htarget : loadByte stores.2.1 id offset = none) :
+    pairedStoreLoadByte resolve store id offset byte = none := by
+  simp [pairedStoreLoadByte, hstore, hload, htarget]
+
 def endLifetime (store : Store Tag State) (id : AllocId) :
     Option (Store Tag State × Footprint) := do
   let allocation ← lookup store id
