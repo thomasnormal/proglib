@@ -3953,6 +3953,13 @@ theorem pairedAllocateAligned_shape
 def placementWithin (base size limit : Nat) : Bool :=
   base ≤ limit && size ≤ limit - base
 
+theorem placementWithin_success
+    (base size limit : Nat)
+    (hbase : base ≤ limit)
+    (hsize : size ≤ limit - base) :
+    placementWithin base size limit = true := by
+  simp [placementWithin, hbase, hsize]
+
 def pairedPlacementWithin (resolve : AllocId → Nat)
     (id size limit : Nat) (base : Nat) : Bool :=
   placementWithin base size limit == placementWithin (resolve id) size limit
