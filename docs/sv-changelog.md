@@ -1,5 +1,29 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Relational memory confluence bridge — 2026-11-24
+
+The source-shaped fine-grained NBA phase now combines memory-queue permutation
+with the canonical E executor bridge. For an admitted phase, decoded
+pairwise-disjoint memory footprints give the same committed memory view for
+every terminal path, while the selected path retains its settle, edge-run,
+canonical commit, post-settle, and quiescence receipts. The theorem leaves
+decode and footprint premises explicit and does not claim whole-design
+confluence.
+
+## Memory edge-order receipt — 2026-11-24
+
+The clean-room `edge_order_memory_e` fixture records a procedural memory reset
+loop with disjoint scalar NBA writers. Its concrete `N = 4` envelope reports
+`seqOblIM = true`, and Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on all
+three post-edge rows.
+
+## Simultaneous NBA acceptance — 2026-11-24
+
+The two-clock NBA acceptance fixture records the distinct simultaneous input
+batch result `(1,0)` alongside the serial `(1,1)` and `(0,0)` outcomes from
+`(a,b) = (0,1)`. Icarus Verilog 13.0 and Xcelium 24.03-s004 match all four
+rows.
+
 ## NBA edge scheduler confluence rung — 2026-11-23
 
 The first admitted scheduler class now has a source-shaped NBA observable
