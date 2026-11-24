@@ -19,8 +19,9 @@ module reset_for #(parameter int W = 8, parameter int N = 4)
 endmodule
 ```
 
-The reset loop is never unrolled: the route runs it as the header's value list (`intRange 0 N`, a function of the
-parameter) and the clocked views mirror that; the cycle equations carry it as ONE write equation over the list
+This is the in-tree FIFO-style reset-loop consumer for the loop-fuel change. The reset loop is never unrolled: the
+route runs it as the header's value list (`intRange 0 N`, a function of the parameter) and the clocked views mirror
+that; the cycle equations carry it as ONE write equation over the list
 (`memWriteL`), whose closed form is `clearM`: every element `0 ≤ k < N` is 0, every other label is unchanged. A `rst`
 that does not read 1 (0, x, z) takes the write branch; a `we` that does not read 1 writes nothing; an address with an
 x/z bit, or one at or beyond `N`, selects nothing (IEEE 1800-2017 §11.5.1).
