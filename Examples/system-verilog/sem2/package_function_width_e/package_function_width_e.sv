@@ -1,6 +1,14 @@
 package package_function_width_e_pkg;
   function automatic integer vbits(input integer value);
-    return (value == 1) ? 1 : $clog2(value);
+    integer result;
+    begin
+      result = 0;
+      case (value)
+        1: result = 1;
+        default: result = $clog2(value);
+      endcase
+      vbits = result;
+    end
   endfunction
 endpackage
 
