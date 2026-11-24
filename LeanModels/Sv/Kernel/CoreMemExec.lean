@@ -1538,9 +1538,9 @@ def coreMemHasCommonEventSource (p q : PProcess) : Bool :=
 
 def coreMemHasCommonEventSourceThroughAssign
     (processes : List PProcess) (p q : PProcess) : Bool :=
-  (coreMemEventSourcesThroughAssign processes 32 (coreMemPProcessEdgeEvents p)).any
+  (coreMemEventSourcesThroughAssign processes (processes.length + 1) (coreMemPProcessEdgeEvents p)).any
     (fun source =>
-      (coreMemEventSourcesThroughAssign processes 32 (coreMemPProcessEdgeEvents q)).any
+      (coreMemEventSourcesThroughAssign processes (processes.length + 1) (coreMemPProcessEdgeEvents q)).any
         (fun other => source.1 == other.1 && coreMemEventEdgesOverlap source.2 other.2))
 
 def coreMemEdgeBlockingReadRacePair (p q : PProcess) : Bool :=
@@ -1600,9 +1600,9 @@ def coreMemEdgeBlockingReadRacePairThroughAssign
     (processes : List PProcess) (p q : PProcess) : Bool :=
   coreMemHasCommonEventSourceThroughAssign processes p q &&
     ((coreMemProcBlockingWrites p).any (fun name =>
-      (coreMemReadNamesThroughDrivers processes 32 (coreMemPProcessReadNames q)).contains name) ||
+      (coreMemReadNamesThroughDrivers processes (processes.length + 1) (coreMemPProcessReadNames q)).contains name) ||
      (coreMemProcBlockingWrites q).any (fun name =>
-       (coreMemReadNamesThroughDrivers processes 32 (coreMemPProcessReadNames p)).contains name))
+       (coreMemReadNamesThroughDrivers processes (processes.length + 1) (coreMemPProcessReadNames p)).contains name))
 
 def coreMemEdgeBlockingReadRaceAt (p : PProcess) : List PProcess → Bool
   | [] => false
@@ -4764,6 +4764,23 @@ private def auditEdgeCombDriverProcesses : List PProcess :=
 
 #guard coreMemReadNamesThroughDrivers auditEdgeCombDriverProcesses 32 ["w"] |>.contains "a"
 #guard coreMemEdgeBlockingReadRaceThroughAssign auditEdgeCombDriverProcesses
+
+/-! The driver/source closure is structural in the process list.  A fixed
+32-hop closure would silently miss a race after a longer continuous-driver
+chain.  These clean-room chains place the blocking writer behind thirty and
+forty assignments.  Both must be refused by the edge race guard. -/
+private def auditEdgeAssignChain (n : Nat) : List PProcess :=
+  let names := (List.range n).map (fun i => "c" ++ toString (i + 1))
+  let assigns :=
+    names.zip ("x" :: names.dropLast) |>.map (fun p => .assign p.1 (.ident p.2))
+  assigns ++ [.assign "w" (.ident names.getLast!),
+    .alwaysFF "clk" (.blockingAssign "x" (.ident "d")),
+    .alwaysFF "clk" (.nbaAssign "b" (.ident "w"))]
+
+#guard coreMemReadNamesThroughAssign (auditEdgeAssignChain 30) (31 + 1) ["w"] |>.contains "x"
+#guard coreMemReadNamesThroughAssign (auditEdgeAssignChain 40) (41 + 1) ["w"] |>.contains "x"
+#guard coreMemEdgeBlockingReadRaceThroughAssign (auditEdgeAssignChain 30)
+#guard coreMemEdgeBlockingReadRaceThroughAssign (auditEdgeAssignChain 40)
 
 private def auditEventSelfWriteProcesses : List PProcess :=
   [.alwaysEvent [{ signal := "a", edge := .any }, { signal := "t", edge := .any }]
