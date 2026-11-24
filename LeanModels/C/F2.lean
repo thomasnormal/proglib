@@ -2254,6 +2254,17 @@ theorem renameZeroTokenMetadata_address
     (renameZeroTokenMetadata resolve metadata).allocation.address = some (resolve 0) := by
   simp [renameZeroTokenMetadata, haddress]
 
+theorem renameZeroTokenMetadata_idempotent
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    renameZeroTokenMetadata resolve (renameZeroTokenMetadata resolve metadata) =
+      renameZeroTokenMetadata resolve metadata := by
+  cases metadata with
+  | mk allocation locations =>
+      cases allocation with
+      | mk live address bytes state =>
+          cases address <;> rfl
+
 def pairedZeroTokenEqual (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId) : Bool :=
   zeroTokenEqual (renameZeroTokenMetadata resolve left)
