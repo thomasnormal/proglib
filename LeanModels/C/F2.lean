@@ -1402,6 +1402,16 @@ theorem renameReplayFixture_events
       fixture.events.map (renameReplayEvent resolve) := by
   rfl
 
+theorem renameReplayFixture_placement_count
+    (resolve : AllocId → Nat) (fixture : ReplayFixture) :
+    (renameReplayFixture resolve fixture).placements.length = fixture.placements.length := by
+  simp [renameReplayFixture]
+
+theorem renameReplayFixture_event_count
+    (resolve : AllocId → Nat) (fixture : ReplayFixture) :
+    (renameReplayFixture resolve fixture).events.length = fixture.events.length := by
+  simp [renameReplayFixture, renameReplayEvents]
+
 def ReplayFixture.wellFormed (fixture : ReplayFixture) : Prop :=
   fixture.sourceHash ≠ "" ∧ fixture.compilerVersion ≠ "" ∧
     fixture.targetTriple ≠ "" ∧
@@ -1965,6 +1975,7 @@ theorem storeByte_preserves_allocation_count
       rcases hresult with ⟨_, _, hEq⟩
       simpa using congrArg (fun pair => pair.1.allocations.length) hEq.symm
 
+
 theorem storeByte_footprint
     (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
     (result : Store Tag State × Footprint)
@@ -2112,6 +2123,7 @@ theorem endLifetime_preserves_allocation_count
       simp [endLifetime, hlookup] at hresult
       rcases hresult with ⟨_, hEq⟩
       simpa using congrArg (fun pair => pair.1.allocations.length) hEq.symm
+
 
 theorem endLifetime_footprint
     (store : Store Tag State) (id : AllocId)
