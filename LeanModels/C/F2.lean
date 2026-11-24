@@ -1396,6 +1396,29 @@ theorem pairedFreeMetadata_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedFreeMetadata_footprints
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.2 = footprint .metadata
+        (Region.mk 0 0 metadata.allocation.bytes.length) ∧
+      result.2.2 = footprint .metadata
+        (Region.mk 0 0 metadata.allocation.bytes.length) := by
+  cases hs : freeMetadata metadata with
+  | none => simp [pairedFreeMetadata, hs] at hresult
+  | some sourceResult =>
+      cases ht : freeMetadata (renameZeroTokenMetadata resolve metadata) with
+      | none => simp [pairedFreeMetadata, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedFreeMetadata, hs, ht] at hresult
+          rcases hresult with rfl
+          have htarget := freeMetadata_footprint_shape
+            (renameZeroTokenMetadata resolve metadata) _ ht
+          exact ⟨freeMetadata_footprint_shape _ _ hs,
+            by simpa [renameZeroTokenMetadata] using htarget⟩
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
