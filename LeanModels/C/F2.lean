@@ -1995,6 +1995,28 @@ def pairedReallocMetadata (resolve : AllocId → Nat)
     | .fail => .fail)
   some (sourceResult, targetResult)
 
+theorem pairedReallocMetadata_address_success
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (base : Nat)
+    (hsame : locations.length = request.bytes.length) :
+    pairedReallocMetadata resolve old request locations (.address base) =
+      some (
+        (.replaced
+          { allocation :=
+              { live := true, address := some base,
+                bytes := request.bytes, state := request.state },
+            locations := locations },
+          footprint .metadata (Region.mk 0 0 request.bytes.length)),
+        (.replaced
+          { allocation :=
+              { live := true, address := some (resolve 0),
+                bytes := request.bytes, state := request.state },
+            locations := locations },
+          footprint .metadata (Region.mk 0 0 request.bytes.length))) := by
+  simp [pairedReallocMetadata, reallocMetadata, hsame]
+
 theorem pairedReallocMetadata_failure_shape
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
