@@ -478,6 +478,13 @@ local conditional diamond. It does not identify the hidden values, compare the
 full machine states, prove progress for an arbitrary process set, or admit the
 DarkRISCV counter/CSR case. A caller must still supply the parser-native
 continuous-driver and hierarchy closure that establishes the `readsV` exclusion.
+The companion theorem
+`CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_driver_closure`
+now takes that closure explicitly as
+`coreMemReadNamesThroughDrivers processes fuel names` and derives the
+evaluator exclusions before invoking the local diamond. The process list and
+closure fuel remain admission receipts, so this adapter does not claim that
+hierarchy or transitive closure is complete for every design.
 
 The following results are real and intentionally narrow.
 
