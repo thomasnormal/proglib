@@ -1618,6 +1618,27 @@ theorem pairedRepresentationLoadMetadataByte_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedRepresentationLoadMetadataByte_footprints
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedRepresentationLoadMetadataByte resolve id metadata offset choice =
+      some result) :
+    result.1.2 = footprint .read { allocation := 0, offset := offset, width := 1 } ∧
+      result.2.2 = footprint .read { allocation := 0, offset := offset, width := 1 } := by
+  cases hs : representationLoadMetadataByte metadata offset choice with
+  | none => simp [pairedRepresentationLoadMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : representationLoadMetadataByte (renameMetadata resolve id metadata)
+          offset choice with
+      | none => simp [pairedRepresentationLoadMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedRepresentationLoadMetadataByte, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨representationLoadMetadataByte_footprint _ _ _ _ hs,
+            representationLoadMetadataByte_footprint _ _ _ _ ht⟩
+
 def pairedStoreRepresentationLoadMetadataByte
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
