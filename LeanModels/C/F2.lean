@@ -4234,7 +4234,7 @@ def pairedAllocateAligned (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment : Nat) : Bool :=
   match allocateAligned store request placement alignment,
-    allocateAligned (renameStore resolve store) request
+    allocateAligned (renameStore resolve store) (renameAllocationRequest resolve request)
       (renamedPlacement resolve store.nextId placement) alignment with
   | some _, some _ => true
   | none, none => true
@@ -4245,7 +4245,8 @@ theorem pairedAllocateAligned_both_success
     (request : AllocationRequest Tag State) (placement : Placement)
     (alignment : Nat)
     (hsource : allocateAligned store request placement alignment = some source)
-    (htarget : allocateAligned (renameStore resolve store) request
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve request)
       (renamedPlacement resolve store.nextId placement) alignment = some target) :
     pairedAllocateAligned resolve store request placement alignment = true := by
   simp [pairedAllocateAligned, hsource, htarget]
@@ -4255,7 +4256,8 @@ theorem pairedAllocateAligned_both_refused
     (request : AllocationRequest Tag State) (placement : Placement)
     (alignment : Nat)
     (hsource : allocateAligned store request placement alignment = none)
-    (htarget : allocateAligned (renameStore resolve store) request
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve request)
       (renamedPlacement resolve store.nextId placement) alignment = none) :
     pairedAllocateAligned resolve store request placement alignment = true := by
   simp [pairedAllocateAligned, hsource, htarget]
