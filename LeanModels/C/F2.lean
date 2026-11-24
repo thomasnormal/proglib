@@ -2303,6 +2303,25 @@ theorem pairedRepresentationLoadMetadataByte_footprints
           exact ⟨representationLoadMetadataByte_footprint _ _ _ _ hs,
             representationLoadMetadataByte_footprint _ _ _ _ ht⟩
 
+theorem pairedRepresentationLoadMetadataByte_untyped_byte
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice) (byte : Byte Tag)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hbyteTarget : (renameMetadata resolve id metadata).allocation.bytes[offset]? =
+      some (renameByte resolve byte))
+    (hlocation : metadata.locations[offset]? = some
+      { effectiveType := .untyped, initialized := true }) :
+    pairedRepresentationLoadMetadataByte resolve id metadata offset choice =
+      some ((byte, footprint .read { allocation := 0, offset := offset, width := 1 }),
+        (renameByte resolve byte,
+          footprint .read { allocation := 0, offset := offset, width := 1 })) := by
+  have htargetLocation : (renameMetadata resolve id metadata).locations[offset]? = some
+      { effectiveType := .untyped, initialized := true } := by
+    simpa [renameMetadata] using hlocation
+  simp [pairedRepresentationLoadMetadataByte,
+    representationLoadMetadataByte, hbyte, hbyteTarget, hlocation, htargetLocation]
+
 def pairedStoreRepresentationLoadMetadataByte
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
