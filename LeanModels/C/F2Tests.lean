@@ -160,7 +160,7 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
       metadata.allocation.address == some 128 &&
         resultFootprint == footprint .metadata { allocation := 0, offset := 0, width := 0 }
   | _ => false
-#guard pairedAllocateZeroSize resolve () (.address 128)
+#guard pairedAllocateZeroSize (Tag := Unit) (TypeId := String) resolve () (.address 128)
 #guard ((allocateZeroSize (Tag := Unit) (TypeId := String) () (.address 128)).2.accesses.length == 1)
 #guard reallocZeroGNU17 == .freedNull
 #guard (freeMetadata metadata).isSome

@@ -2422,8 +2422,24 @@ theorem renameZeroSizeOutcome_token_shape
           address := metadata.allocation.address.map (fun _ => resolve 0) } } := by
   rfl
 
-def pairedAllocateZeroSize (resolve : AllocId → Nat) (state : State)
-    (placement : Placement) : Bool := true
+def pairedAllocateZeroSize {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
+    (placement : Placement) : Bool :=
+  match (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).1,
+    (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state
+      (match placement with
+      | .address _ => .address (resolve 0)
+      | .unaddressable => .unaddressable
+      | .fail => .fail)).1 with
+  | .null, .null => true
+  | .token _, .token _ => true
+  | _, _ => false
+
+theorem pairedAllocateZeroSize_agrees
+    {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
+    (placement : Placement) :
+    pairedAllocateZeroSize (Tag := Tag) (State := State) (TypeId := TypeId)
+      resolve state placement = true := by
+  cases placement <;> simp [pairedAllocateZeroSize, allocateZeroSize]
 
 inductive ReallocZeroOutcome where
   | freedNull
