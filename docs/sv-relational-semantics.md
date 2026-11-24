@@ -125,6 +125,9 @@ The current proof inventory has these levels.
   agrees with the canonical commit.
   `EdgeScheduleTerminalPath.length_le_pending` and `exists_bounded` provide
   the progress measure and a finite terminal path for this admitted class.
+  `executor_trace_inclusion_singleton` packages the same admitted step as a
+  one-row trace carrying the input row and committed observation. A multi-row
+  trace relation remains open.
 
 The intended canonical bridge has the following shape. The names below are
 proposed public relation names, not declarations that exist today.
@@ -215,8 +218,9 @@ statement and a separate failure result.
    memory class.
 5. **Trace inclusion** says that the implementation trace is a trace of the
    relational semantics, including its input history and observations. The
-   scheduler enumerator has a slot-level soundness result. The canonical E
-   trace inclusion remains open.
+   scheduler enumerator has a slot-level soundness result, and the admitted
+   NBA class now has `executor_trace_inclusion_singleton` for one input row.
+   Full multi-row canonical-E trace inclusion remains open.
 
 A deterministic executor can therefore establish one allowed outcome without
 establishing schedule independence or progress. Universal user claims need

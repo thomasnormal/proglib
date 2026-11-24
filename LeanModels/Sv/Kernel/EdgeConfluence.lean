@@ -1527,6 +1527,38 @@ theorem CoreMemDesign.executor_result_allowed_by_edge_schedule
   subst st0
   exact ⟨n, t, hp, hv, hm, hcommit⟩
 
+/-! A singleton observation trace packages the same result at the trace
+    boundary.  The input row is retained beside the settled view, so this
+    adapter does not erase which external input history produced the step.
+    Full multi-row trace inclusion still requires a run relation and is not
+    claimed here. -/
+theorem CoreMemDesign.executor_trace_inclusion_singleton
+    {E : CoreMemDesign} (hP : E.SeqProfileI) (hO : E.seqOblI = true)
+    {st st' : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {before after : SvState} {s : EdgeScheduleState}
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV}
+    (hroute : E.edgesV before after s.view (E.memOf st.memory) E.processes.toList = .ok r)
+    (hstep : E.step st entry = .ok st') :
+    ∃ n t,
+      EdgeScheduleTerminalPath E before after s.view (E.memOf st.memory) n s t ∧
+      [(entry, t.view)] = [(entry, commitNba2 s.view r.2.1)] ∧
+      E.memOf st'.memory = mv' := by
+  obtain ⟨n, t, hp, hv, hm, hcommit⟩ :=
+    CoreMemDesign.executor_result_allowed_by_edge_schedule
+      hP hO hc hmc hty hslot hdrivers hdistinct hs hw hkeys hroute hstep
+  have htrace : [(entry, t.view)] = [(entry, commitNba2 s.view r.2.1)] := by
+    simp [hcommit]
+  exact ⟨n, t, hp, htrace, hm⟩
+
 /-! Every finite path in this admitted NBA relation can be replayed through
     the source-shaped edge evaluator.  The path's committed view is preserved
     without choosing a new schedule. -/
