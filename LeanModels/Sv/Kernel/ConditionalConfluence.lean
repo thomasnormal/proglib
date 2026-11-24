@@ -355,6 +355,69 @@ theorem CombPhaseTerminalPath.two_blocking_scalar_hidden_observation
 
 #print axioms CombPhaseTerminalPath.two_blocking_scalar_hidden_observation
 
+/-! The design-guard terminal adapter exposes the same conditional result at
+    the retained terminal-path boundary.  It derives the two directed read
+    exclusions from the complete parser guard and leaves all evaluator and
+    closure receipts explicit. -/
+theorem CombPhaseTerminalPath.two_blocking_scalar_hidden_observation_of_design_guard
+    {E : CoreMemDesign} {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {xN xM : VarId} {vN vM : LVec}
+    {hidden : List String} {p q : PProcess} {d : PDesign}
+    (hg : CombPhaseGuard d)
+    (hprocesses : d.processes = [p, q])
+    (hcommon : coreMemHasCommonEventSourceThroughAssign [p, q] p q = true)
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hlocalN : SvState.lookup locals n = none)
+    (hlocalM : SvState.lookup locals m = none)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : PExpr.hasTestPlusargs eN = false)
+    (htestM : PExpr.hasTestPlusargs eM = false)
+    (hmemN : PExpr.hasMemoryRead eN = false)
+    (hcallN : PExpr.hasFunctionCall eN = false)
+    (hmemM : PExpr.hasMemoryRead eM = false)
+    (hcallM : PExpr.hasFunctionCall eM = false)
+    (hne : E.elems ≠ [])
+    (hvalueN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
+    (hvalueM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
+    (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames q))
+    (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames p))
+    (hnwrites : n ∈ coreMemProcBlockingWrites p)
+    (hmwrites : m ∈ coreMemProcBlockingWrites q)
+    (hnHidden : n ∈ hidden) (hmHidden : m ∈ hidden) :
+    let cN : CombCursor :=
+      { work := [.stmt env (.blockingAssign n eN)], locals := locals }
+    let cM : CombCursor :=
+      { work := [.stmt env (.blockingAssign m eM)], locals := locals }
+    let s : CombPhaseState := { state := st, view := view, active := [cN, cM] }
+    ∃ kN tN kM tM,
+      CombPhaseTerminalPath E kN s tN ∧
+      CombPhaseTerminalPath E kM s tM ∧
+      SvState.agreesOutside hidden tN.view tM.view := by
+  have hpair := CombPhaseGuard.two_process_read_write_exclusions
+    (d := d) hg hprocesses hcommon
+  apply CombPhaseTerminalPath.two_blocking_scalar_hidden_observation
+    (processes := [p, q]) (fuelN := 32) (fuelM := 32)
+    (namesN := coreMemPProcessReadNames p)
+    (namesM := coreMemPProcessReadNames q)
+    hc hxN hxM hlocalN hlocalM htargetN htargetM htestN htestM
+    hmemN hcallN hmemM hcallM hne hvalueN hvalueM hclosureM hclosureN
+  · intro y hy hyn
+    exact (hpair.1 n hnwrites) (by simpa [hyn] using hy)
+  · intro y hy hym
+    exact (hpair.2 m hmwrites) (by simpa [hym] using hy)
+  · exact hnHidden
+  · exact hmHidden
+
+#print axioms CombPhaseTerminalPath.two_blocking_scalar_hidden_observation_of_design_guard
+
 /-! A global conditional observation admission separates the two obligations
 that are often accidentally conflated.  `resume_ok` and
 `continuation_empty` establish progress for every active cursor.  The

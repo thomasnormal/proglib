@@ -502,6 +502,11 @@ the hidden targets. This is the first conditional result stated over terminal
 paths rather than only a one-step diamond. It remains a two-process theorem,
 so it does not yet construct a global admitted scheduler structure or tie a
 hidden-race path to a canonical full-state executor result.
+The companion
+`CombPhaseTerminalPath.two_blocking_scalar_hidden_observation_of_design_guard`
+uses the complete parser guard to derive the same terminal-path result. Its
+closure and evaluator premises are unchanged, and it remains a two-process
+adapter rather than a whole-design admission theorem.
 
 The generic `CombPhaseHiddenObservationAdmission` is the next semantic layer.
 It requires a successful resume and empty continuation for every active cursor,
