@@ -436,6 +436,104 @@ theorem CombPhaseStep.two_blocking_scalar_diamond_of_design_guard
     (by simpa [hprocesses] using hg.no_blocking_read_after_closure)
     hcommon
 
+/-! The two-process source route supplies the canonical runner result to the
+concrete terminal path.  The runner equation is derived from the same
+evaluator values and first compaction receipt used by the retained resumes.
+The final compaction receipt is explicit because the terminal path stores the
+uncompacted scalar state while `runCombInitialWithView` returns its compacted
+state. -/
+theorem CombPhaseTerminalPath.two_blocking_scalar_executor_endpoint
+    {E : CoreMemDesign} {st : CoreMemState} {view : SvState}
+    {n m : String} {eN eM : PExpr}
+    {widthN widthM : Nat} {xN xM : VarId} {vN vM : LVec}
+    (hc : E.Coherent st)
+    (hxN : E.scalar.resolve n = some xN)
+    (hxM : E.scalar.resolve m = some xM)
+    (hdecl : xN.decl ≠ xM.decl)
+    (hn : n ∈ view.map Prod.fst)
+    (hm : m ∈ view.map Prod.fst)
+    (hneq : n ≠ m)
+    (hkeys : (view.map Prod.fst).Nodup)
+    (htargetN : E.scalarTarget n = some widthN)
+    (htargetM : E.scalarTarget m = some widthM)
+    (htestN : PExpr.hasTestPlusargs eN = false)
+    (htestM : PExpr.hasTestPlusargs eM = false)
+    (hmemN : PExpr.hasMemoryRead eN = false)
+    (hcallN : PExpr.hasFunctionCall eN = false)
+    (hmemM : PExpr.hasMemoryRead eM = false)
+    (hcallM : PExpr.hasFunctionCall eM = false)
+    (hne : E.elems ≠ [])
+    (hvalueN : E.evalExprLocals E.env E.elems st (some widthN) [] eN = .ok vN)
+    (hvalueM : E.evalExprLocals E.env E.elems st (some widthM) [] eM = .ok vM)
+    (hreadM : ∀ y ∈
+      (instExpr2 E.env (if E.elems.isEmpty then E.elems else E.elems)
+        (some widthM) eM).idents, y ≠ n)
+    (hreadN : ∀ y ∈
+      (instExpr2 E.env (if E.elems.isEmpty then E.elems else E.elems)
+        (some widthN) eN).idents, y ≠ m)
+    (hcompactN : E.compactScalar (E.setScalarState st n vN)
+        (SvState.set view n vN) = E.setScalarState st n vN)
+    (hcompactFinal : E.compactScalar
+        (E.setScalarState (E.setScalarState st n vN) m vM)
+        (SvState.set (SvState.set view n vN) m vM) =
+      E.setScalarState (E.setScalarState st n vN) m vM) :
+    ∃ k t,
+      CombPhaseTerminalPath E k
+          { state := st, view := view,
+            active := [
+              { work := [.stmt E.env (.blockingAssign n eN)], locals := [] },
+              { work := [.stmt E.env (.blockingAssign m eM)], locals := [] }] } t ∧
+      t = { state := E.setScalarState (E.setScalarState st n vN) m vM,
+            view := SvState.set (SvState.set view n vN) m vM, active := [] } ∧
+      E.runCombInitialWithView st view
+          [.comb (.blockingAssign n eN), .comb (.blockingAssign m eM)] =
+        .ok (E.setScalarState (E.setScalarState st n vN) m vM,
+          SvState.set (SvState.set view n vN) m vM) := by
+  let cN : CombCursor :=
+    { work := [.stmt E.env (.blockingAssign n eN)], locals := [] }
+  let cM : CombCursor :=
+    { work := [.stmt E.env (.blockingAssign m eM)], locals := [] }
+  let s : CombPhaseState := { state := st, view := view, active := [cN, cM] }
+  have hfirstN : cN.resume E st view =
+      .ok (E.setScalarState st n vN, SvState.set view n vN,
+        { work := [], locals := [] }) := by
+    exact CombCursor.resume_blocking_scalar rfl htargetN htestN hvalueN
+  have hfirstM : cM.resume E st view =
+      .ok (E.setScalarState st m vM, SvState.set view m vM,
+        { work := [], locals := [] }) := by
+    exact CombCursor.resume_blocking_scalar rfl htargetM htestM hvalueM
+  have hreadMV : ∀ y ∈ E.readsV E.env E.elems (some widthM) eM, y ≠ n := by
+    intro y hy
+    rw [CoreMemDesign.edge_readsV_eq_instantiated_idents_of_pure hmemM hne] at hy
+    exact hreadM y hy
+  have hreadNV : ∀ y ∈ E.readsV E.env E.elems (some widthN) eN, y ≠ m := by
+    intro y hy
+    rw [CoreMemDesign.edge_readsV_eq_instantiated_idents_of_pure hmemN hne] at hy
+    exact hreadN y hy
+  have hcross := CombCursor.two_blocking_scalar_cross_resume
+    (env := E.env) (locals := []) hc hxN hxM hdecl hn hm hneq hkeys
+    rfl rfl htargetN htargetM htestN htestM hmemN hcallN hmemM hcallM hne
+    hvalueN hvalueM hreadMV hreadNV
+  rcases hcross with ⟨h₂₁, h₁₂, hstate, hview⟩
+  have hpaths := CombPhaseTerminalPath.two_cursor_terminal
+    (s := s) (c₁ := cN) (c₂ := cM) (ha := rfl)
+    (h₁ := hfirstN) (h₂ := hfirstM)
+    (h₂₁ := h₂₁) (h₁₂ := h₁₂) hstate hview rfl rfl
+  rcases hpaths with ⟨k, t, k₂, t₂, hp₁, hp₂, ht_endpoint, ht₂_endpoint⟩
+  have hvalueM' : E.evalExprLocals E.env E.elems
+      (E.setScalarState st n vN) (some widthM) [] eM = .ok vM := by
+    have hframe := CoreMemDesign.edge_evalExprLocals_frame_of_instantiated_reads
+      (v := vN) (locals := []) hc hxN hmemM hcallM hne hreadM
+    rw [← hframe]
+    exact hvalueM
+  have hrun := CoreMemDesign.runCombInitialWithView_two_blocking_scalar
+    htargetN htargetM htestN htestM hvalueN hcompactN hvalueM'
+  rw [hcompactFinal] at hrun
+  refine ⟨k, t, ?_, ?_, hrun⟩
+  · simpa [s, cN, cM] using hp₁
+  · simpa [hstate, hview] using ht_endpoint
+
 #print axioms CombPhaseStep.two_blocking_scalar_diamond_of_design_guard
+#print axioms CombPhaseTerminalPath.two_blocking_scalar_executor_endpoint
 
 end LeanModels.Sv.Kernel
