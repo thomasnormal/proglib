@@ -127,3 +127,15 @@ open LeanModels.Sv
                   (ihLoop E env elems a.state a.locals rest body iterator k hk)
                   (fun b => Res.le_refl _))
 end LeanModels.Sv.Kernel
+
+namespace LeanModels.Sv.Kernel
+
+/-- The statement component of `coreMemFuelMono`, convenient at an arbitrary pair of fuels. -/
+theorem coreMemFuelMono_stmt {fuel fuel' : Nat} (h : fuel ≤ fuel')
+    (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
+    (st : CoreMemState) (locals : SvState) (stmt : PStmt) :
+    E.execStmtFuel env elems st locals fuel stmt ⊑
+      E.execStmtFuel env elems st locals fuel' stmt :=
+  (coreMemFuelMono fuel).1 E env elems st locals stmt fuel' h
+
+end LeanModels.Sv.Kernel
