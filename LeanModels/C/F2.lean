@@ -3346,6 +3346,12 @@ def placementAllowed (store : Store Tag State) (base size : Nat) : Bool :=
         !intervalOverlap base size otherBase allocation.bytes.length
     | _, _ => true
 
+theorem placementAllowed_empty
+    (base size : Nat) :
+    placementAllowed ({ allocations := [], nextId := 0 } : Store Tag State)
+      base size = true := by
+  rfl
+
 def zeroSizePlacementAllowed (store : Store Tag State) (base : Nat) : Bool := true
 
 theorem zeroSizePlacementAllowed_shape
