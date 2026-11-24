@@ -229,10 +229,9 @@ def SettledTrace
     (E : CoreMemDesign) (g : Granularity) (x : XResolution)
     (init : SlotState) (inputs : List InputBatch)
     (trace : List ObsState) : Prop :=
-  ∃ finish, SettledSlotRun E g x init finish ∧
-    ObserveTrace finish inputs trace
+  TraceRun E g x init inputs trace
 
-def RefusalTrace (finish : SlotState) (inputs : List InputBatch)
+def RefusalTrace (init : SlotState) (inputs : List InputBatch)
     (reason : RelRefusal) : Prop := ...
 
 def SettledRun
@@ -247,7 +246,7 @@ def RefusedRun
     (init : SlotState) (inputs : List InputBatch)
     (reason : RelRefusal) : Prop :=
   ∃ finish, RefusedSlotRun E g x init finish reason ∧
-    RefusalTrace finish inputs reason
+    RefusalTrace init inputs reason
 
 def Diverges
     (step : α → α → Prop) (start : α) : Prop :=
@@ -255,7 +254,18 @@ def Diverges
     path 0 = start ∧ ∀ n, step (path n) (path (n + 1))
 ```
 
-runs. `Diverges` is an actual infinite path, rather than arbitrarily chosen
+`TraceRun` is an inductive relation over the input list. Its empty-input
+constructor preserves the initial slot with an empty trace. Its cons
+constructor consumes exactly one `InputBatch`, applies that batch's external
+changes and simultaneous edges, requires a `SlotRun` for that slot, emits one
+observation when the slot settles, and recurses on the next slot. A refusal
+constructor emits `RefusalTrace` at the first refusing batch. Thus the
+`SettledTrace` signature above is shorthand for a genuinely multi-slot
+relation, not an existential witness for one terminal state. `RefusalTrace`
+uses the same prefix structure and records the first refusal reason.
+
+The stream relation and `Diverges` are separate. `Diverges` is an actual
+infinite path, rather than arbitrarily chosen
 finite prefixes. A state with no successor is therefore not silently classified
 as divergence and must be reported as a terminal refusal or an ill-formed
 configuration by the relation.
