@@ -1574,6 +1574,21 @@ theorem representationLoadMetadataByte_success
   cases htype : location.effectiveType <;> cases choice <;>
     simp [representationLoadMetadataByte, hbyte, hlocation, htype]
 
+theorem representationLoadMetadataByte_footprint
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (choice : RepresentationChoice) (result : Byte Tag × Footprint)
+    (hresult : representationLoadMetadataByte metadata offset choice = some result) :
+    result.2 = footprint .read { allocation := 0, offset := offset, width := 1 } := by
+  cases hbyte : metadata.allocation.bytes[offset]? with
+  | none => simp [representationLoadMetadataByte, hbyte] at hresult
+  | some byte =>
+      cases hlocation : metadata.locations[offset]? with
+      | none => simp [representationLoadMetadataByte, hbyte, hlocation] at hresult
+      | some location =>
+          cases htype : location.effectiveType <;> cases choice <;>
+            simp [representationLoadMetadataByte, hbyte, hlocation, htype] at hresult
+          all_goals exact congrArg (fun pair => pair.2) hresult.symm
+
 def pairedRepresentationLoadMetadataByte (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
