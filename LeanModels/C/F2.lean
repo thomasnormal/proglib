@@ -1318,6 +1318,46 @@ theorem pairedTypedStoreLoadMetadataByte_preserves_lengths
                     typedStoreMetadataByte_preserves_byte_length _ _ _ _ _ ht,
                     typedStoreMetadataByte_preserves_length _ _ _ _ _ ht⟩
 
+theorem pairedTypedStoreLoadMetadataByte_preserves_wellFormed
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (result : ((AllocationMetadata Tag State TypeId × Footprint) × (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) × (Byte Tag × Footprint)))
+    (hresult : pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte =
+      some result)
+    (hbytes : bytesWf 0 (listSet metadata.allocation.bytes offset byte))
+    (hbytesTarget : bytesWf 0 (listSet
+      (renameMetadata resolve id metadata).allocation.bytes offset
+      (renameByte resolve byte)))
+    (hlocations : metadata.locations.length = metadata.allocation.bytes.length)
+    (hlocationsTarget :
+      (renameMetadata resolve id metadata).locations.length =
+        (renameMetadata resolve id metadata).allocation.bytes.length) :
+    result.1.1.1.wellFormed 0 ∧ result.2.1.1.wellFormed 0 := by
+  cases hs : typedStoreMetadataByte metadata offset typeId byte with
+  | none => simp [pairedTypedStoreLoadMetadataByte, hs] at hresult
+  | some sourceStore =>
+      cases ht : typedStoreMetadataByte (renameMetadata resolve id metadata)
+          offset typeId (renameByte resolve byte) with
+      | none => simp [pairedTypedStoreLoadMetadataByte, hs, ht] at hresult
+      | some targetStore =>
+          cases hsl : typedLoadMetadataByte sourceStore.1 offset typeId with
+          | none => simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl] at hresult
+          | some sourceLoad =>
+              cases htl : typedLoadMetadataByte targetStore.1 offset typeId with
+              | none => simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl, htl] at hresult
+              | some targetLoad =>
+                  simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl, htl] at hresult
+                  have hpair : ((sourceStore, sourceLoad), (targetStore, targetLoad)) = result :=
+                    hresult.2
+                  rcases hpair with rfl
+                  exact ⟨typedStoreMetadataByte_preserves_wellFormed _ _ _ _ _ hs
+                      hbytes hlocations,
+                    typedStoreMetadataByte_preserves_wellFormed _ _ _ _ _ ht
+                      hbytesTarget hlocationsTarget⟩
+
 theorem pairedTypedStoreLoadMetadataByte_preserves_locations
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
