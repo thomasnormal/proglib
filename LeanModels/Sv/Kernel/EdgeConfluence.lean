@@ -1493,4 +1493,26 @@ theorem CoreMemDesign.executor_result_allowed_by_edge_schedule
   subst st0
   exact ⟨n, t, hp, hv, hm, hcommit⟩
 
+/-! Every finite path in this admitted NBA relation can be replayed through
+    the source-shaped edge evaluator.  The path's committed view is preserved
+    without choosing a new schedule. -/
+theorem EdgeScheduleTerminalPath.finite_path_executor_replay
+    {E : CoreMemDesign} {before after : SvState} {mv : MemV}
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    {s t : EdgeScheduleState} {n : Nat} (F : Nat → NbaQueue2)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hq : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      E.procQ before after s.view mv p = .ok (F k))
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    (hp : EdgeScheduleTerminalPath E before after s.view mv n s t)
+    {r : ExecV}
+    (hroute : E.edgesV before after s.view mv E.processes.toList = .ok r) :
+    ∃ r', E.edgesV before after s.view mv E.processes.toList = .ok r' ∧
+      t.view = commitNba2 s.view r'.2.1 := by
+  exact EdgeScheduleTerminalPath.view_eq_edgesV_processes_indexed_drivers
+    hdrivers hdistinct F hs hw hq hkeys hp hroute
+
 end LeanModels.Sv.Kernel

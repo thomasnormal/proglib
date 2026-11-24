@@ -115,6 +115,11 @@ The current proof inventory has these levels.
   procedural-loop receipts now derive that frame for the narrow source-shaped
   profile. The broad parser predicate and the canonical relational diamond are
   still open.
+* **Concrete NBA bridges.** `executor_result_allowed_by_edge_schedule` is the
+  soundness direction for a canonical `step` result under the admitted NBA
+  guards. `finite_path_executor_replay` is the finite-path replay direction
+  for the same source-shaped edge evaluator. Both retain the route receipt and
+  do not claim the wider scheduler or a full macrostep trace theorem.
 
 The intended canonical bridge has the following shape. The names below are
 proposed public relation names, not declarations that exist today.
