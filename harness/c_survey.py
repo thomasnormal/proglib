@@ -424,6 +424,14 @@ def render(data):
         examples = ", ".join(item.get("files", [])[:5])
         lines.append("| `%s` | %d | %d | %s |" %
                      (item["wall"], item["sole"], item["present"], examples))
+    runner_errors = [row for row in data.get("rows", [])
+                     if row.get("verdict") == "runner-error"]
+    lines += ["", "## Runner errors", "",
+              "These rows were not scored. A wall-clock kill is a runner error, not a timeout or model/compiler mismatch.",
+              "", "| file | detail |", "| --- | --- |"]
+    for row in runner_errors:
+        lines.append("| `%s` | %s |" %
+                     (row.get("name", ""), row.get("detail", "")))
     return "\n".join(lines) + "\n"
 
 
@@ -481,6 +489,12 @@ def selftest():
                                      "present": 1, "files": ["x.c"]}]})
     if "assignment-call" not in page or "sole" not in page:
         print("c_survey --self-test: render failed", file=sys.stderr)
+        return 1
+    runner_page = render({"counts": {}, "total": 1, "manifest_hash": "x",
+                          "rows": [{"name": "slow.c", "verdict": "runner-error",
+                                    "detail": "wall-clock kill after 90s"}]})
+    if "## Runner errors" not in runner_page or "slow.c" not in runner_page:
+        print("c_survey --self-test: runner errors were not rendered", file=sys.stderr)
         return 1
     m1 = {"cache": "/tmp/a", "tests": [{
         "envelope": "/tmp/a/env/x.json", "why": "/tmp/a/src/x.c:1:1: bad"

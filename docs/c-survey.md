@@ -239,3 +239,21 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:variable-length array 'double[n]' lacks parser-native bound expression` | 1 | 1 | 920929-1.c |
 | `unsupported:variable-length array 'int[len][len]' lacks parser-native bound expression` | 1 | 1 | 20221006-1.c |
 | `unsupported:variable-length array 'volatile int[a]' lacks parser-native bound expression` | 1 | 1 | gcc/testsuite/gcc.dg/c23-empty-init-1.c |
+
+## Runner errors
+
+These rows were not scored. A wall-clock kill is a runner error, not a timeout or model/compiler mismatch.
+
+| file | detail |
+| --- | --- |
+| `00040.c` | wall-clock kill after 90s |
+| `20011008-3.c` | wall-clock kill after 90s |
+| `960521-1.c` | wall-clock kill after 90s |
+| `memcpy-1.c` | wall-clock kill after 90s |
+| `minmaxcmp-1.c` | wall-clock kill after 90s |
+| `pr107881-1.c` | wall-clock kill after 90s |
+| `pr28982b.c` | wall-clock kill after 90s |
+| `pr91137.c` | wall-clock kill after 90s |
+| `strcmp-1.c` | wall-clock kill after 90s |
+| `strncmp-1.c` | wall-clock kill after 90s |
+| `subcmp-1.c` | wall-clock kill after 90s |
