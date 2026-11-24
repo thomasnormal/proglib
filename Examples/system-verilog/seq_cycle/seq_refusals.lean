@@ -209,19 +209,30 @@ example (mv : MemV) (N : Nat) (x : Int → LVec) (i : Int) (hi : i ∈ intRange 
     | _ => false
   | _ => false)
 
-/-! The route allocates loop fuel from the evaluated header and runs 4999
-iterations. The penultimate sample is still x, and the 5000th rising edge
-has received the constant input. -/
+/-! A tail-recursive observer for the long run keeps only its count and final two samples. -/
+def runCoreMemLastTwo (E : CoreMemDesign) (st : CoreMemState) (rows : List SvState) :
+    Res (Nat × Option SvState × Option SvState) :=
+  let rec go (st : CoreMemState) (rows : List SvState) (n : Nat)
+      (before after : Option SvState) : Res (Nat × Option SvState × Option SvState) :=
+    match rows with
+    | [] => .ok (n, before, after)
+    | row :: rest => do
+        let st' ← E.step st row
+        go st' rest (n + 1) after (some (E.scalar.view st'.scalar))
+  go st rows 0 none none
+
+/-! The route allocates loop fuel from the evaluated header. After edge 4999
+the penultimate sample is still x, while after edge 5000 the output has
+received the constant input. The row count also proves that all 5000 edges
+ran. -/
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 2000000 in
 #guard (match sfr.e 1 5000 with
-  | .ok E => match runCoreMemRows E E.initial
+  | .ok E => match runCoreMemLastTwo E E.initial
       (cycleRows "clk" (List.replicate 5000 [("d", .ofNat 1 1)])) with
-    | .ok rows => match rows[9997]?, rows[9999]? with
-      | some before, some after =>
-          SvState.showSignal (CoreMemState.view E before) "q" == "x" &&
-          SvState.showSignal (CoreMemState.view E after) "q" == "1"
-      | _, _ => false
+    | .ok (count, some before, some after) => count == 10000 &&
+        SvState.showSignal before "q" == "x" &&
+        SvState.showSignal after "q" == "1"
     | _ => false
   | _ => false)
 
