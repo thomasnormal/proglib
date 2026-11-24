@@ -2857,7 +2857,7 @@ inductive FreeOutcome where
   | freed
   | stalePointer
   | unmatchedPointer
-deriving Repr, BEq
+deriving Repr, BEq, DecidableEq
 
 def freePointer (metadata : Option (AllocationMetadata Tag State TypeId)) : FreeOutcome :=
   match metadata with
@@ -2920,12 +2920,17 @@ theorem freePointer_classification
 
 def pairedFreePointer (resolve : AllocId → Nat)
     (metadata : Option (AllocationMetadata Tag State TypeId)) : Bool :=
-  true
+  if freePointer metadata =
+      freePointer (metadata.map (renameZeroTokenMetadata resolve)) then true else false
 
 theorem pairedFreePointer_sound (resolve : AllocId → Nat)
     (metadata : Option (AllocationMetadata Tag State TypeId)) :
     pairedFreePointer resolve metadata := by
-  simp [pairedFreePointer]
+  cases metadata with
+  | none => simp [pairedFreePointer]
+  | some metadata =>
+      cases hlive : metadata.allocation.live <;>
+        simp [pairedFreePointer, freePointer, renameZeroTokenMetadata, hlive]
 
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
