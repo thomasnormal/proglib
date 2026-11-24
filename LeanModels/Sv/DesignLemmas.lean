@@ -16,8 +16,9 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   step for an ascending generate-for; `generated_child_family`,
   `generated_child_nested_family`, and `generated_child_at_prefix` expose the
   one- and two-level child equations under stable names for hand proofs, while
-  `GenItem.expandH_inst` and `instExpandH_of` expose one child's flattened
-  declarations and processes.
+  `generated_child_pathPrefix_two` and `generated_child_prefix_two` expose the
+  valuation-dependent lexical names, and `GenItem.expandH_inst`/`instExpandH_of`
+  expose one child's flattened declarations and processes.
 * `PDesign.assembleH_decls` and `PDesign.assembleH_processes` connect the
   generated pieces back to the ordinary hierarchical design.
 * `CombDesign` and `Acyclic` are the profile and dependency contracts for a
@@ -139,5 +140,45 @@ theorem generated_child_nested_family
   rw [GenItem.expandH_genFor_ascending_flatMap
     (f := g) hOuterInit hOuterBound hOuterValue hOuterFuel houter]
 
+
+end LeanModels.Sv
+
+namespace LeanModels.Sv
+
+/-- The lexical prefix of a child under two enclosing generate-for bindings.
+This is the source-shaped naming equation used by generated-child hand proofs;
+the indices are evaluated in the current `IEnv`, never baked into the AST. -/
+theorem generated_child_pathPrefix_two
+    (env : IEnv) (outerG innerG outerLabel innerLabel : String)
+    (outer inner : Int) (hG : outerG ≠ innerG) :
+    PInst.pathPrefix ((env.bindVal outerG outer).bindVal innerG inner)
+      [{ label := outerLabel, genvar := some outerG },
+       { label := innerLabel, genvar := some innerG }] =
+      .ok (outerLabel ++ "[" ++ toString outer ++ "]." ++
+        innerLabel ++ "[" ++ toString inner ++ "].") := by
+  have hbeq : (outerG == innerG) = false := by
+    apply Bool.eq_false_iff.mpr
+    intro h
+    exact hG (beq_iff_eq.mp h)
+  simp [PInst.pathPrefix, IEnv.bindVal, List.lookup, String.append_assoc, hbeq,
+    Functor.map, Except.map]
+
+/-- The full name of a generated child instance at a two-level generate point. -/
+theorem generated_child_prefix_two
+    (env : IEnv) (inst : PInst) (outerG innerG outerLabel innerLabel : String)
+    (outer inner : Int) (hG : outerG ≠ innerG) :
+    inst.path =
+      [{ label := outerLabel, genvar := some outerG },
+       { label := innerLabel, genvar := some innerG }] →
+    inst.prefix ((env.bindVal outerG outer).bindVal innerG inner) =
+      .ok (outerLabel ++ "[" ++ toString outer ++ "]." ++
+        innerLabel ++ "[" ++ toString inner ++ "]." ++ inst.name ++ ".") := by
+  intro hpath
+  have hbeq : (outerG == innerG) = false := by
+    apply Bool.eq_false_iff.mpr
+    intro h
+    exact hG (beq_iff_eq.mp h)
+  simp [PInst.prefix, hpath, PInst.pathPrefix, IEnv.bindVal, List.lookup,
+    String.append_assoc, hbeq, Functor.map, Except.map]
 
 end LeanModels.Sv

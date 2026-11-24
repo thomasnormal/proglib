@@ -14,3 +14,20 @@ load_design_sv2 noisyMul from "Examples/system-verilog/sem2/noisy_mul_generate/n
 end Examples.«system-verilog».sem2.noisy_mul_generate
 #check generated_child_family
 #check generated_child_at_prefix
+#check generated_child_nested_family
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
+def andInst : PInst :=
+  { name := "u_and", module := "and2f",
+    path := [{ label := "g_pp", genvar := some "i" },
+      { label := "g_pp_j", genvar := some "j" }] }
+
+theorem andInst_prefix (env : IEnv) (i j : Int) :
+    andInst.prefix ((env.bindVal "i" i).bindVal "j" j) =
+      .ok ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.") := by
+  simpa [andInst, String.append_assoc] using
+    (generated_child_prefix_two env andInst "i" "j" "g_pp" "g_pp_j" i j
+      (by decide) rfl)
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
