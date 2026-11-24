@@ -2,7 +2,7 @@
 
 Generated from `docs/c-survey.json` and `harness/c_cases.json`.
 
-The pinned GNU17 target currently has 1379/2114 MATCH rows in the active survey denominator. Measurement commit `b38f5f4e948325f4a3ea78a2bb0ceee62404eaba`, date `2026-11-24T00:45:04Z`.
+The pinned GNU17 target currently has 1381/2114 MATCH rows in the active survey denominator. Measurement commit `3f4d70b5752e1526f678213c1486e362ed34a46c`, date `2026-11-24T01:00:00Z`.
 
 A focused row is an admitted example when its harness expectation is `match`. A `refuse` row documents the exact refusal boundary. Corpus failures are listed as known wrong answers and remain separate from refusals.
 
@@ -86,6 +86,6 @@ A focused row is an admitted example when its harness expectation is `match`. A 
 
 ## floating point
 
-- admitted: `gnu17-floating-division-infinity` (match): `int main(void) { double x = 1.0 / 0.0; return x > 0.0 ? 0 : 1; }`
+- admitted: `builtin-islessgreater-ieee` (match): `double __builtin_nan(const char *); int main(void) { double n = __builtin_nan(""); return __builtin_islessgreater(1.0, 2.0) != 1 || __builtin_islessgreater(n...`
 - refused: `long-double-floating-literal-refusal` (refuse) — long double floating literal: `int main(void) { return 1.5L == 1.5L ? 0 : 1; }`
 - known wrong: no scored failure in the current survey

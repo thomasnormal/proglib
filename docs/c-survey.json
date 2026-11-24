@@ -12,8 +12,8 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1176,
-   "refused-libc": 26,
+   "passed": 1178,
+   "refused-libc": 24,
    "refused-ub": 41,
    "refused-unsupported": 178,
    "runner-error": 10
@@ -32,8 +32,8 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1379,
-  "refused-libc": 28,
+  "passed": 1381,
+  "refused-libc": 26,
   "refused-ub": 47,
   "refused-unsupported": 313,
   "runner-error": 11
@@ -837,15 +837,6 @@
   },
   {
    "files": [
-    "ieee/fp-cmp-5.c",
-    "ieee/fp-cmp-8.c"
-   ],
-   "present": 2,
-   "sole": 2,
-   "wall": "libc-call: __builtin_isless"
-  },
-  {
-   "files": [
     "20010122-1.c",
     "pr17377.c"
    ],
@@ -997,14 +988,6 @@
   },
   {
    "files": [
-    "ieee/compare-fp-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "libc-call: __builtin_islessgreater"
-  },
-  {
-   "files": [
     "pr78622.c"
    ],
    "present": 1,
@@ -1026,6 +1009,14 @@
    "present": 1,
    "sole": 1,
    "wall": "libc-call: fopen"
+  },
+  {
+   "files": [
+    "991112-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "libc-call: isprint"
   },
   {
    "files": [
@@ -1360,8 +1351,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T00:45:04Z",
- "measured_commit": "b38f5f4e948325f4a3ea78a2bb0ceee62404eaba",
+ "measured_at_utc": "2026-11-24T01:00:00Z",
+ "measured_commit": "3f4d70b5752e1526f678213c1486e362ed34a46c",
  "pin": "C1-C3",
  "rows": [
   {
@@ -12298,15 +12289,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "",
-   "dynamic_wall": null,
+   "detail": "isprint",
+   "dynamic_wall": "libc-call: isprint",
    "manifest_status": "parsed",
    "name": "991112-1.c",
    "sha256": "6ed611e9629336a7603aa4eaea96fd43571cb5ff00a2c648fe0772a79d35d6e9",
    "static_walls": [
     "libc-call: x"
    ],
-   "verdict": "passed"
+   "verdict": "refused-libc"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -16237,19 +16228,18 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_islessgreater",
-   "dynamic_wall": "libc-call: __builtin_islessgreater",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ieee/compare-fp-1.c",
    "sha256": "752695b303780fedbd8706f16e710ddb068acb61ba36f9dcbef6b5b25276fb86",
    "static_walls": [
     "cast:FloatingCast",
     "cast:IntegralToFloating",
-    "libc-call: __builtin_islessgreater",
     "string-literal",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -16464,21 +16454,16 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_isless",
-   "dynamic_wall": "libc-call: __builtin_isless",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ieee/fp-cmp-5.c",
    "sha256": "3287dadc1c6a407b00841baa398829495ee9863d5890a5ab25ea234e70752920",
    "static_walls": [
     "libc-call",
-    "libc-call: __builtin_isgreater",
-    "libc-call: __builtin_isgreaterequal",
-    "libc-call: __builtin_isless",
-    "libc-call: __builtin_islessequal",
-    "libc-call: __builtin_islessgreater",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -16507,21 +16492,16 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "__builtin_isless",
-   "dynamic_wall": "libc-call: __builtin_isless",
+   "detail": "exit(0) \u2014 the oracle's success channel, not a libc model",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ieee/fp-cmp-8.c",
    "sha256": "ff577c6ffef173008f543040c4da071a51d9002644d38a080d05c1ea126c4e87",
    "static_walls": [
     "libc-call",
-    "libc-call: __builtin_isgreater",
-    "libc-call: __builtin_isgreaterequal",
-    "libc-call: __builtin_isless",
-    "libc-call: __builtin_islessequal",
-    "libc-call: __builtin_islessgreater",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -28096,16 +28076,6 @@
   },
   {
    "files": [
-    "ieee/compare-fp-1.c",
-    "ieee/fp-cmp-5.c",
-    "ieee/fp-cmp-8.c"
-   ],
-   "present": 3,
-   "sole": 0,
-   "wall": "libc-call: __builtin_islessgreater"
-  },
-  {
-   "files": [
     "builtins/memmove-2.c",
     "builtins/memmove.c",
     "builtins/memops-asm.c"
@@ -28161,42 +28131,6 @@
    "present": 2,
    "sole": 0,
    "wall": "libc-call: __builtin_copysignl"
-  },
-  {
-   "files": [
-    "ieee/fp-cmp-5.c",
-    "ieee/fp-cmp-8.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_isgreater"
-  },
-  {
-   "files": [
-    "ieee/fp-cmp-5.c",
-    "ieee/fp-cmp-8.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_isgreaterequal"
-  },
-  {
-   "files": [
-    "ieee/fp-cmp-5.c",
-    "ieee/fp-cmp-8.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_isless"
-  },
-  {
-   "files": [
-    "ieee/fp-cmp-5.c",
-    "ieee/fp-cmp-8.c"
-   ],
-   "present": 2,
-   "sole": 0,
-   "wall": "libc-call: __builtin_islessequal"
   },
   {
    "files": [

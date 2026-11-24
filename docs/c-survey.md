@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1379/2114 MATCH (passed 1379, failed 0, oracle 0)
+- verdicts: 1381/2114 MATCH (passed 1381, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `b38f5f4e948325f4a3ea78a2bb0ceee62404eaba`
-- measured at: `2026-11-24T00:45:04Z`
+- measured commit: `3f4d70b5752e1526f678213c1486e362ed34a46c`
+- measured at: `2026-11-24T01:00:00Z`
 
 ## Verdict counts
 
@@ -16,8 +16,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1379 |
-| `refused-libc` | 28 |
+| `passed` | 1381 |
+| `refused-libc` | 26 |
 | `refused-ub` | 47 |
 | `refused-unsupported` | 313 |
 | `runner-error` | 11 |
@@ -35,8 +35,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1176 |
-| `gcc.c-torture/execute` | `refused-libc` | 26 |
+| `gcc.c-torture/execute` | `passed` | 1178 |
+| `gcc.c-torture/execute` | `refused-libc` | 24 |
 | `gcc.c-torture/execute` | `refused-ub` | 41 |
 | `gcc.c-torture/execute` | `refused-unsupported` | 178 |
 | `gcc.c-torture/execute` | `runner-error` | 10 |
@@ -84,17 +84,12 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `libc-call: __builtin_longjmp` | 0 | 5 | built-in-setjmp.c, builtins/lib/chk.c, pr60003.c, pr64242.c, pr84521.c |
 | `unsupported:ExprWithCleanups` | 0 | 5 | 00204.c, 20020320-1.c, 950628-1.c, gcc/testsuite/gcc.dg/c23-stdarg-9.c, pr30185.c |
 | `libc-call: __builtin_setjmp` | 0 | 4 | built-in-setjmp.c, pr60003.c, pr64242.c, pr84521.c |
-| `libc-call: __builtin_islessgreater` | 0 | 3 | ieee/compare-fp-1.c, ieee/fp-cmp-5.c, ieee/fp-cmp-8.c |
 | `libc-call: bcopy` | 0 | 3 | builtins/memmove-2.c, builtins/memmove.c, builtins/memops-asm.c |
 | `unsupported:MaxFieldAlignmentAttr` | 0 | 3 | 20131127-1.c, pr58570.c, pr79737-1.c |
 | `unsupported:MayAliasAttr` | 0 | 3 | mayalias-2.c, mayalias-3.c, pr43987.c |
 | `unsupported:ModeAttr` | 0 | 3 | 20050107-1.c, 20050119-1.c, 20050119-2.c |
 | `libc-call: __builtin_classify_type` | 0 | 2 | 20040709-1.c, 20040709-2.c |
 | `libc-call: __builtin_copysignl` | 0 | 2 | ieee/copysign1.c, ieee/copysign2.c |
-| `libc-call: __builtin_isgreater` | 0 | 2 | ieee/fp-cmp-5.c, ieee/fp-cmp-8.c |
-| `libc-call: __builtin_isgreaterequal` | 0 | 2 | ieee/fp-cmp-5.c, ieee/fp-cmp-8.c |
-| `libc-call: __builtin_isless` | 0 | 2 | ieee/fp-cmp-5.c, ieee/fp-cmp-8.c |
-| `libc-call: __builtin_islessequal` | 0 | 2 | ieee/fp-cmp-5.c, ieee/fp-cmp-8.c |
 | `libc-call: __builtin_stpcpy` | 0 | 2 | builtins/strpcpy-2.c, builtins/strpcpy.c |
 | `libc-call: __builtin_strstr` | 0 | 2 | builtins/strstr-asm.c, builtins/strstr.c |
 | `libc-call: __builtin_trap` | 0 | 2 | 20020418-1.c, pr125291.c |
@@ -196,7 +191,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression` | 3 | 3 | 20040811-1.c, pr43220.c, vla-dealloc-1.c |
 | `libc-call: __builtin_classify_type` | 2 | 2 | 20040709-1.c, 20040709-2.c |
 | `libc-call: __builtin_constant_p` | 2 | 2 | bcp-1.c, builtin-constant.c |
-| `libc-call: __builtin_isless` | 2 | 2 | ieee/fp-cmp-5.c, ieee/fp-cmp-8.c |
 | `libc-call: __builtin_return_address` | 2 | 2 | 20010122-1.c, pr17377.c |
 | `libc-call: _setjmp` | 2 | 2 | 20210505-1.c, pr56982.c |
 | `libc-call: exit (an argument is not a literal 0 — which exit was reached is unknown)` | 2 | 2 | 970217-1.c, loop-8.c |
@@ -214,10 +208,10 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:unknown enum declaration 'id65' (name 'B')` | 2 | 2 | gcc/testsuite/gcc.dg/c23-tag-alias-1.c, gcc/testsuite/gcc.dg/c23-tag-alias-2.c |
 | `ingestion` | 1 | 1 | 20040629-1.c |
 | `libc-call: __builtin_frame_address` | 1 | 1 | frame-address.c |
-| `libc-call: __builtin_islessgreater` | 1 | 1 | ieee/compare-fp-1.c |
 | `libc-call: __builtin_snprintf` | 1 | 1 | pr78622.c |
 | `libc-call: f` | 1 | 1 | gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c |
 | `libc-call: fopen` | 1 | 1 | 00187.c |
+| `libc-call: isprint` | 1 | 1 | 991112-1.c |
 | `libc-call: main_test` | 1 | 1 | builtins/lib/main.c |
 | `libc-call: pow` | 1 | 1 | 980709-1.c |
 | `libc-call: qsort` | 1 | 1 | pr34456.c |
