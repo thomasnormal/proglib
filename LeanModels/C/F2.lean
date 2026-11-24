@@ -2039,6 +2039,24 @@ theorem pairedReallocMetadata_unaddressable_success
           footprint .metadata (Region.mk 0 0 request.bytes.length))) := by
   simp [pairedReallocMetadata, reallocMetadata, hsame]
 
+theorem pairedReallocMetadata_address_rejects_length_mismatch
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (base : Nat)
+    (hmismatch : locations.length ≠ request.bytes.length) :
+    pairedReallocMetadata resolve old request locations (.address base) = none := by
+  simp [pairedReallocMetadata, reallocMetadata, hmismatch]
+
+theorem pairedReallocMetadata_unaddressable_rejects_length_mismatch
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (hmismatch : locations.length ≠ request.bytes.length) :
+    pairedReallocMetadata resolve old request locations .unaddressable = none := by
+  simp [pairedReallocMetadata, reallocMetadata, hmismatch]
+
 theorem pairedReallocMetadata_failure_shape
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
