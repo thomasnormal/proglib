@@ -542,6 +542,13 @@ def typedStoreMetadataByte (metadata : AllocationMetadata Tag State TypeId)
     some ({ allocation := allocation, locations := locations },
       footprint .write { allocation := 0, offset := offset, width := 1 })
 
+theorem typedStoreMetadataByte_outOfBounds
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag)
+    (hout : metadata.allocation.bytes.length ≤ offset) :
+    typedStoreMetadataByte metadata offset typeId byte = none := by
+  simp [typedStoreMetadataByte, hout]
+
 theorem typedStoreMetadataByte_preserves_length
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (typeId : TypeId) (byte : Byte Tag)
