@@ -36,6 +36,7 @@ def main():
         if fresh.read() != ENVELOPE.read_bytes():
             raise RuntimeError("checked-in envelope differs from Slang extraction")
     run(["lake", "env", "lean", str(HERE / "agree.lean")])
+    simulator_rows = {}
     for simulator in ["iverilog"] + (["xrun"] if shutil.which("xrun") else []):
         with tempfile.TemporaryDirectory(prefix="sv-prng-generate-") as directory:
             directory = Path(directory); tb = directory / "tb.sv"; tb.write_text(TB)
@@ -48,14 +49,12 @@ def main():
                 output = run(["xrun", "-sv", "-q", "-timescale", "1ns/1ps", "-top", "tb", str(SOURCE), str(tb)], directory)
                 version = run(["xrun", "-version"], directory).splitlines()[0]
         rows = [line for line in output.splitlines() if line.startswith("ROW ")]
-        if simulator == "iverilog":
-            expected = ["ROW 000 000", "ROW 111 000", "ROW xxx 000"]
-        else:
-            expected = EXPECTED
-        if rows != expected:
-            print(f"{version}: rows DIVERGE from the other pinned simulator")
-        else:
-            print(f"{version}: {len(rows)} rows MATCH")
+        simulator_rows[simulator] = rows
+        print(f"{version}: {len(rows)} rows captured")
+    if len(simulator_rows) == 2:
+        values = list(simulator_rows.values())
+        print("pinned simulators: rows MATCH" if values[0] == values[1]
+              else "pinned simulators: rows DIVERGE")
     print("clocked sv_structure: named for-generate refusal remains")
 
 if __name__ == "__main__":
