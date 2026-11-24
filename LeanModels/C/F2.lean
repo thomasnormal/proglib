@@ -4356,6 +4356,25 @@ theorem allocateBounded_unaddressable_result_counters
       rcases hresult with rfl
       exact allocate_unaddressable_result_counters store request allocationResult halloc
 
+theorem allocateBounded_unaddressable_result_payload
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hresult : allocateBounded store request .unaddressable alignment limit = .ok result) :
+    result.1 =
+      { allocations := store.allocations ++
+          [(store.nextId,
+            { live := true, address := none,
+              bytes := request.bytes, state := request.state })]
+        nextId := store.nextId + 1 } := by
+  cases halloc : allocate store request .unaddressable with
+  | none => simp [allocateBounded, halloc] at hresult
+  | some allocationResult =>
+      simp [allocateBounded, halloc] at hresult
+      rcases hresult with rfl
+      have hinj := Option.some.inj
+        ((allocate_unaddressable_success store request).symm.trans halloc)
+      exact congrArg (fun pair : Store Tag State × Footprint => pair.1) hinj.symm
+
 theorem allocateBounded_address_result_counters
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment limit : Nat) (result : Store Tag State × Footprint)
