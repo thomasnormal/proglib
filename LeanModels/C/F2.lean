@@ -3918,6 +3918,19 @@ theorem renameBoundedResult_comp
       | mk store footprint =>
           simp [renameBoundedResult, renameStore_comp]
 
+theorem renameBoundedResult_preserves_footprint
+    (resolve : AllocId → Nat)
+    (result : Except PlacementFault (Store Tag State × Footprint)) :
+    match result, renameBoundedResult resolve result with
+    | .ok (_, source), .ok (_, target) => target = source
+    | .error _, .error _ => True
+    | _, _ => False := by
+  cases result with
+  | error fault => simp [renameBoundedResult]
+  | ok value =>
+      cases value with
+      | mk store footprint => simp [renameBoundedResult]
+
 def pairedAllocateBounded (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment limit : Nat) : Bool :=
