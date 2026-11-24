@@ -1461,4 +1461,36 @@ theorem CoreMemDesign.edge_nba_confluence_refines_step_guarded_of_defined
 
 #print axioms CoreMemDesign.edge_nba_confluence_refines_step_guarded_of_defined
 
+/-! An executor result is therefore an allowed terminal outcome of the
+    existing scheduler relation.  This is the soundness direction only: the
+    hypotheses include the source-shaped route receipt and the admitted NBA
+    guards, while completeness and uniqueness remain separate obligations. -/
+theorem CoreMemDesign.executor_result_allowed_by_edge_schedule
+    {E : CoreMemDesign} (hP : E.SeqProfileI) (hO : E.seqOblI = true)
+    {st st' : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    {v' : SvState} {mv' : MemV}
+    (hslot : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv'))
+    {before after : SvState} {s : EdgeScheduleState}
+    (hdrivers : E.oblDrivers = true)
+    (hdistinct : ∀ (i j : Nat) (hi : i < E.processes.size) (hj : j < E.processes.size),
+      i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
+    (hs : s.pending = List.range E.processes.size)
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hkeys : (s.view.map Prod.fst).Nodup)
+    {r : ExecV}
+    (hroute : E.edgesV before after s.view (E.memOf st.memory) E.processes.toList = .ok r)
+    (hstep : E.step st entry = .ok st') :
+    ∃ n t,
+      EdgeScheduleTerminalPath E before after s.view (E.memOf st.memory) n s t ∧
+      E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧
+      t.view = commitNba2 s.view r.2.1 := by
+  obtain ⟨n, t, st0, hp, -, hstep0, hv, hm, hcommit⟩ :=
+    CoreMemDesign.edge_nba_confluence_refines_step_guarded_of_defined
+      hP hO hc hmc hty hslot hdrivers hdistinct hs hw hkeys hroute
+  have heq : st0 = st' := Res.ok.inj (hstep0.symm.trans hstep)
+  subst st0
+  exact ⟨n, t, hp, hv, hm, hcommit⟩
+
 end LeanModels.Sv.Kernel
