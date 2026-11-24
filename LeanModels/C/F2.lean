@@ -4851,6 +4851,47 @@ theorem pairedUnaddressableAllocation_both_refused
     pairedUnaddressableAllocation resolve store request = true := by
   simp [pairedUnaddressableAllocation, hsource, htarget]
 
+theorem pairedUnaddressableAllocation_sound
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State)
+    (h : pairedUnaddressableAllocation resolve store request = true) :
+    (∃ source target,
+      allocate store request .unaddressable = some source ∧
+      allocate (renameStore resolve store)
+        (renameAllocationRequest resolve request) .unaddressable = some target) ∨
+    (allocate store request .unaddressable = none ∧
+      allocate (renameStore resolve store)
+        (renameAllocationRequest resolve request) .unaddressable = none) := by
+  cases hs : allocate store request .unaddressable with
+  | none =>
+      cases ht : allocate (renameStore resolve store)
+          (renameAllocationRequest resolve request) .unaddressable with
+      | none => exact Or.inr ⟨rfl, rfl⟩
+      | some target => simp [pairedUnaddressableAllocation, hs, ht] at h
+  | some source =>
+      cases ht : allocate (renameStore resolve store)
+          (renameAllocationRequest resolve request) .unaddressable with
+      | none => simp [pairedUnaddressableAllocation, hs, ht] at h
+      | some target => exact Or.inl ⟨source, target, rfl, rfl⟩
+
+theorem pairedUnaddressableAllocation_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State)
+    (hsource : allocate store request .unaddressable = some source)
+    (htarget : allocate (renameStore resolve store)
+      (renameAllocationRequest resolve request) .unaddressable = none) :
+    pairedUnaddressableAllocation resolve store request = false := by
+  simp [pairedUnaddressableAllocation, hsource, htarget]
+
+theorem pairedUnaddressableAllocation_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State)
+    (hsource : allocate store request .unaddressable = none)
+    (htarget : allocate (renameStore resolve store)
+      (renameAllocationRequest resolve request) .unaddressable = some target) :
+    pairedUnaddressableAllocation resolve store request = false := by
+  simp [pairedUnaddressableAllocation, hsource, htarget]
+
 theorem footprintAgrees_rename (resolve : AllocId → Nat) (footprint : Footprint) :
     footprintAgrees (renameFootprint resolve footprint) footprint := by
   simp [renameFootprint, renameRegion, footprintAgrees]
