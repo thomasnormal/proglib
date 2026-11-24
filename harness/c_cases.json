@@ -21,6 +21,13 @@
     "sanitize": true
   },
   {
+    "id": "defined-goto-pointer-increment-boundary",
+    "source": "int main(void) { int a[2] = { 0, 7 }; int *p = a; goto next; next: ++p; return *p == 7 ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "goto-controlled pointer increment lacks an exact parser path",
+    "sanitize": true
+  },
+  {
     "id": "builtin-fp-predicates-ieee",
     "source": "double __builtin_nan(const char *); int main(void) { double n = __builtin_nan(\"\"); return __builtin_isless(1.0, 2.0) != 1 || __builtin_islessequal(1.0, 1.0) != 1 || __builtin_isgreater(2.0, 1.0) != 1 || __builtin_isgreaterequal(2.0, 2.0) != 1 || __builtin_islessgreater(1.0, 2.0) != 1 || __builtin_isless(n, 2.0) != 0 || __builtin_islessequal(n, 2.0) != 0 || __builtin_isgreater(n, 2.0) != 0 || __builtin_isgreaterequal(n, 2.0) != 0 || __builtin_islessgreater(n, 2.0) != 0 ? 1 : 0; }",
     "expect": "match",
