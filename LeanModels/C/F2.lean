@@ -703,10 +703,8 @@ theorem pairedTypedStoreLoadMetadataByte_decompose
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
-    (result : ((AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint)) ×
-      ((AllocationMetadata Tag State TypeId × Footprint) ×
-      (Byte Tag × Footprint)))
+    (result : ((AllocationMetadata Tag State TypeId × Footprint) × (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) × (Byte Tag × Footprint)))
     (hresult : pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte =
       some result) :
     ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
@@ -790,6 +788,32 @@ def pairedStoreUnionLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
       targetLoad.2 == sourceLoad.2 then
     some ((sourceStore, sourceLoad), (targetStore, targetLoad))
   else none
+
+theorem pairedStoreUnionLoadMetadataByte_decompose
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (result : ((AllocationMetadata Tag State TypeId × Footprint) × (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) × (Byte Tag × Footprint)))
+    (hresult : pairedStoreUnionLoadMetadataByte resolve id metadata offset byte =
+      some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases hs : storeMetadataByte metadata offset byte with
+  | none => simp [pairedStoreUnionLoadMetadataByte, hs] at hresult
+  | some sourceStore =>
+      cases ht : storeMetadataByte (renameMetadata resolve id metadata) offset
+          (renameByte resolve byte) with
+      | none => simp [pairedStoreUnionLoadMetadataByte, hs, ht] at hresult
+      | some targetStore =>
+          cases hsl : unionLoadMetadataByte sourceStore.1 offset with
+          | none => simp [pairedStoreUnionLoadMetadataByte, hs, ht, hsl] at hresult
+          | some sourceLoad =>
+              cases htl : unionLoadMetadataByte targetStore.1 offset with
+              | none => simp [pairedStoreUnionLoadMetadataByte, hs, ht, hsl, htl] at hresult
+              | some targetLoad =>
+                  simp [pairedStoreUnionLoadMetadataByte, hs, ht, hsl, htl] at hresult
+                  exact ⟨(sourceStore, sourceLoad), (targetStore, targetLoad), hresult.2.symm⟩
 
 inductive RepresentationChoice where
   | byte (bits : UInt8)
