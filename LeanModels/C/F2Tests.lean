@@ -97,6 +97,10 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (pairedStoreByte resolve one 0 0 (.value 66 none (some 0))).isSome
 #guard (pairedLoadByte resolve one 0 0).isSome
 #guard (pairedStoreLoadByte resolve one 0 0 (.value 66 none (some 0))).isSome
+#guard (storeByte one 0 0 (.value 66 none (some 0))).any
+  (fun result => result.2 == footprint .write { allocation := 0, offset := 0, width := 1 })
+#guard (loadByte one 0 0).any
+  (fun result => result.2 == footprint .read { allocation := 0, offset := 0, width := 1 })
 #guard (endLifetime one 0).isSome
 #guard (pairedEndLifetime resolve one 0).isSome
 #guard (loadByte ((endLifetime one 0).getD (one, { accesses := [] })).1 0 0).isNone

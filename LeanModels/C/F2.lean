@@ -1523,6 +1523,34 @@ theorem storeByte_preserves_allocation_count
       rcases hresult with ⟨_, _, hEq⟩
       simpa using congrArg (fun pair => pair.1.allocations.length) hEq.symm
 
+theorem storeByte_footprint
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (result : Store Tag State × Footprint)
+    (hresult : storeByte store id offset byte = some result) :
+    result.2 = footprint .write { allocation := id, offset := offset, width := 1 } := by
+  cases hlookup : lookup store id with
+  | none => simp [storeByte, hlookup] at hresult
+  | some allocation =>
+      simp [storeByte, hlookup] at hresult
+      rcases hresult with ⟨_, _, hEq⟩
+      exact congrArg (fun pair => pair.2) hEq.symm
+
+theorem loadByte_footprint
+    (store : Store Tag State) (id offset : Nat)
+    (result : Byte Tag × Footprint)
+    (hresult : loadByte store id offset = some result) :
+    result.2 = footprint .read { allocation := id, offset := offset, width := 1 } := by
+  cases hlookup : lookup store id with
+  | none => simp [loadByte, hlookup] at hresult
+  | some allocation =>
+      simp [loadByte, hlookup] at hresult
+      rcases hindex : allocation.bytes[offset]? with value | none
+      · simp [hindex] at hresult
+      · simp [hindex] at hresult
+        rcases hresult with ⟨hlive, hpair⟩
+        rcases hpair with rfl
+        rfl
+
 theorem endLifetime_preserves_nextId
     (store : Store Tag State) (id : AllocId)
     (result : Store Tag State × Footprint)
