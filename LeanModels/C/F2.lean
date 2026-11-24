@@ -1848,6 +1848,13 @@ theorem pairedMemmoveSnapshot_decompose
     simpa only [Option.bind_some] using Option.some.inj hresult
   exact ⟨bytes, bytes.map (renameByte resolve), hpair.symm⟩
 
+theorem pairedMemmoveSnapshot_success [BEq Tag]
+    (resolve : AllocId → Nat) (source destination : Region)
+    (bytes : List (Byte Tag)) :
+    pairedMemmoveSnapshot resolve source destination bytes =
+      some (bytes, bytes.map (renameByte resolve)) := by
+  simp [pairedMemmoveSnapshot, memmoveSnapshot]
+
 theorem pairedMemmoveSnapshot_preserves_lengths [BEq Tag]
     (resolve : AllocId → Nat) (source destination : Region)
     (bytes : List (Byte Tag)) (result : List (Byte Tag) × List (Byte Tag))
