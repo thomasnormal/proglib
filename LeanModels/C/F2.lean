@@ -754,6 +754,17 @@ theorem typedLoadMetadataByte_indeterminate_refusal
     typedLoadMetadataByte metadata offset typeId = none := by
   simp [typedLoadMetadataByte, hbyte, hlocation]
 
+theorem typedLoadMetadataByte_type_mismatch_refusal
+    [BEq TypeId]
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId storedType : TypeId) (byte : Byte Tag)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hlocation : metadata.locations[offset]? = some
+      { effectiveType := .typed storedType, initialized := true })
+    (hmismatch : (storedType == typeId) = false) :
+    typedLoadMetadataByte metadata offset typeId = none := by
+  simp [typedLoadMetadataByte, hbyte, hlocation, hmismatch]
+
 def pairedTypedLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
