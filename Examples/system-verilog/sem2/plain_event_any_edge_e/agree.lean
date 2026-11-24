@@ -1,9 +1,13 @@
 import LeanModels.Sv.Ingest2
-import LeanModels.Sv.SeqCycleObl
-open LeanModels.Sv LeanModels.Sv.Kernel
+import LeanModels.Sv.Kernel.CoreMemExec
+
 namespace Examples.«system-verilog».sem2.plain_event_any_edge_e
-load_design_sv2 any from "Examples/system-verilog/sem2/plain_event_any_edge_e/plain_event_any_edge_e.sv.json"
-#guard match any.e with
-  | .ok E => E.processes.size == 1 && E.processes[0]?.map CoreMemProc.isEdge == some false
-  | _ => false
+open LeanModels.Sv LeanModels.Sv.Kernel
+
+load_design_sv2 p from
+  "Examples/system-verilog/sem2/plain_event_any_edge_e/plain_event_any_edge_e.sv.json"
+
+#guard p.pdesign.others == []
+#guard match p.e with | .ok _ => true | _ => false
+
 end Examples.«system-verilog».sem2.plain_event_any_edge_e

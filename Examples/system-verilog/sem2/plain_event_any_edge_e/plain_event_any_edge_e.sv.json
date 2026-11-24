@@ -10,7 +10,7 @@
   "source_files": [
     {
       "path": "Examples/system-verilog/sem2/plain_event_any_edge_e/plain_event_any_edge_e.sv",
-      "sha256": "a0e71fca869537a942c98e6e9b947f8cb8b3a335a7717bcb8553ee3f8bf1db9d"
+      "sha256": "d387957b1ed9c662a7670d8ad743c2a817881d8a8d8cfb8781c997e1d35e635e"
     }
   ],
   "packages": [],
@@ -22,7 +22,7 @@
         "span": {
           "line": 1,
           "col": 1,
-          "end_line": 3,
+          "end_line": 4,
           "end_col": 10
         },
         "name": "plain_event_any_edge_e",
@@ -33,10 +33,10 @@
           {
             "kind": "Port",
             "span": {
-              "line": 1,
-              "col": 44,
-              "end_line": 1,
-              "end_col": 47
+              "line": 2,
+              "col": 15,
+              "end_line": 2,
+              "end_col": 18
             },
             "name": "clk",
             "dir": "in",
@@ -49,10 +49,10 @@
           {
             "kind": "Port",
             "span": {
-              "line": 1,
-              "col": 61,
-              "end_line": 1,
-              "end_col": 62
+              "line": 2,
+              "col": 32,
+              "end_line": 2,
+              "end_col": 33
             },
             "name": "d",
             "dir": "in",
@@ -65,10 +65,10 @@
           {
             "kind": "Port",
             "span": {
-              "line": 1,
-              "col": 77,
-              "end_line": 1,
-              "end_col": 78
+              "line": 2,
+              "col": 48,
+              "end_line": 2,
+              "end_col": 49
             },
             "name": "q",
             "dir": "out",
@@ -84,9 +84,9 @@
           {
             "kind": "AlwaysEvent",
             "span": {
-              "line": 2,
+              "line": 3,
               "col": 3,
-              "end_line": 2,
+              "end_line": 3,
               "end_col": 27
             },
             "events": [
@@ -98,17 +98,17 @@
             "body": {
               "kind": "NonblockingAssign",
               "span": {
-                "line": 2,
+                "line": 3,
                 "col": 20,
-                "end_line": 2,
+                "end_line": 3,
                 "end_col": 27
               },
               "target": {
                 "kind": "Ident",
                 "span": {
-                  "line": 2,
+                  "line": 3,
                   "col": 20,
-                  "end_line": 2,
+                  "end_line": 3,
                   "end_col": 21
                 },
                 "width": 1,
@@ -117,9 +117,9 @@
               "value": {
                 "kind": "Ident",
                 "span": {
-                  "line": 2,
+                  "line": 3,
                   "col": 25,
-                  "end_line": 2,
+                  "end_line": 3,
                   "end_col": 26
                 },
                 "width": 1,
