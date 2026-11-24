@@ -4560,7 +4560,8 @@ structure PlacementAgreement where
   right : AllocId → Option Nat
   exposed : AllocId → Bool
 
-def PlacementAgreement.agrees (_agreement : PlacementAgreement) : Bool := true
+def PlacementAgreement.agrees (agreement : PlacementAgreement) : Prop :=
+  ∀ id, agreement.left id = agreement.right id
 
 def PlacementAgreement.agreesAt (agreement : PlacementAgreement) (id : AllocId) : Bool :=
   agreement.left id == agreement.right id
@@ -4588,6 +4589,13 @@ theorem zeroTokenPlacementAgreement_agreesAt
     (id : AllocId) (haddress : left.allocation.address = right.allocation.address) :
     (zeroTokenPlacementAgreement left right).agreesAt id = true := by
   simp [zeroTokenPlacementAgreement, PlacementAgreement.agreesAt, haddress]
+
+theorem zeroTokenPlacementAgreement_agrees
+    (left right : AllocationMetadata Tag State TypeId)
+    (haddress : left.allocation.address = right.allocation.address) :
+    (zeroTokenPlacementAgreement left right).agrees := by
+  intro id
+  simp [zeroTokenPlacementAgreement, haddress]
 
 def placementOf (store : Store Tag State) (id : AllocId) : Option Nat :=
   (lookup store id).bind Allocation.address

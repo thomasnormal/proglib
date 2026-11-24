@@ -74,8 +74,8 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard match allocateBounded one { bytes := [oneByte], state := () } (.address 32) 1 64 with
   | .error .overlap => true
   | _ => false
-#guard (PlacementAgreement.mk (fun _ => some 8) (fun _ => some 8) (fun _ => true)).agrees
-#guard (zeroTokenPlacementAgreement metadata metadata).agrees
+#guard (PlacementAgreement.mk (fun _ => some 8) (fun _ => some 8) (fun _ => true)).agreesAt 0
+#guard (zeroTokenPlacementAgreement metadata metadata).agreesAt 0
 #guard (allocate empty { bytes := [.uninitialized], state := () } (.address 32)).isSome
 #guard (allocate empty { bytes := [.uninitialized], state := () } .unaddressable).isSome
 #guard (allocate empty { bytes := [.uninitialized], state := () } .fail).isNone
