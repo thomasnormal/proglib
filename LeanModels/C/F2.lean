@@ -60,6 +60,13 @@ theorem renamePointer_provenance (resolve : AllocId → Nat) (pointer : Pointer 
     (renamePointer resolve pointer).provenance = pointer.provenance := by
   rfl
 
+theorem renamePointer_address (resolve : AllocId → Nat) (pointer : Pointer Tag) :
+    (renamePointer resolve pointer).address =
+      match pointer.provenance with
+      | none => pointer.address
+      | some provenance => resolve provenance.allocation := by
+  rfl
+
 theorem renamePointer_idempotent (resolve : AllocId → Nat) (pointer : Pointer Tag) :
     renamePointer resolve (renamePointer resolve pointer) = renamePointer resolve pointer := by
   cases pointer with
