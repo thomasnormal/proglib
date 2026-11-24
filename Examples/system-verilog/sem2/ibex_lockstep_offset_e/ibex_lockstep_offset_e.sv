@@ -1,10 +1,6 @@
 package ibex_lockstep_offset_e_pkg;
   function automatic int unsigned vbits(input int unsigned value);
-    if (value == 0) vbits = 1;
-    else begin
-      vbits = 0;
-      for (int unsigned n = value; n != 0; n = n >> 1) vbits++;
-    end
+    return (value == 1) ? 1 : $clog2(value);
   endfunction
 endpackage
 

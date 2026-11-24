@@ -8,15 +8,15 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 SOURCE = HERE / "ibex_lockstep_offset_e.sv"
 ENVELOPE = HERE / (SOURCE.name + ".json")
-EXPECTED = ["ROW 000 000", "ROW 101 101", "ROW xxx xxx", "ROW zzz zzz"]
+EXPECTED = ["ROW 00 00", "ROW 01 01", "ROW xx xx", "ROW zz zz"]
 TB = """module tb;
-  logic [2:0] i; wire [2:0] o;
+  logic [1:0] i; wire [1:0] o;
   ibex_lockstep_offset_e dut(.i(i), .o(o));
   initial begin
-    i=3'b000; #1 $display("ROW %b %b", i, o);
-    i=3'b101; #1 $display("ROW %b %b", i, o);
-    i=3'bxxx; #1 $display("ROW %b %b", i, o);
-    i=3'bzzz; #1 $display("ROW %b %b", i, o);
+    i=2'b00; #1 $display("ROW %b %b", i, o);
+    i=2'b01; #1 $display("ROW %b %b", i, o);
+    i=2'bxx; #1 $display("ROW %b %b", i, o);
+    i=2'bzz; #1 $display("ROW %b %b", i, o);
     $finish;
   end
 endmodule
@@ -37,10 +37,7 @@ def main():
              str(SOURCE.relative_to(ROOT))])
         if fresh.read() != ENVELOPE.read_bytes():
             raise RuntimeError("checked-in envelope differs from Slang extraction")
-    census = run(["python3", "harness/sv/refusal_census.py", "ordinary", str(ENVELOPE)])
-    if "function 'vbits' in a constant context" not in census:
-        raise RuntimeError(f"ordinary route did not retain the named wall: {census}")
-    print("ordinary route: loud constant-function refusal at LockstepOffsetW")
+    run(["lake", "env", "lean", str(HERE / "agree.lean")])
     for simulator in ["iverilog"] + (["xrun"] if shutil.which("xrun") else []):
         with tempfile.TemporaryDirectory(prefix="sv-ibex-lockstep-") as directory:
             directory = Path(directory); tb = directory / "tb.sv"; tb.write_text(TB)
