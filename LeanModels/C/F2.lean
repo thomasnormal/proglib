@@ -997,6 +997,26 @@ theorem unionLoadMetadataByte_footprint
               simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized] at hresult
               exact congrArg (fun pair => pair.2) hresult.symm
 
+theorem pairedUnionLoadMetadataByte_footprints
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedUnionLoadMetadataByte resolve id metadata offset = some result) :
+    result.1.2 = footprint .read { allocation := 0, offset := offset, width := 1 } ∧
+      result.2.2 = footprint .read { allocation := 0, offset := offset, width := 1 } := by
+  cases hs : unionLoadMetadataByte metadata offset with
+  | none => simp [pairedUnionLoadMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : unionLoadMetadataByte (renameMetadata resolve id metadata) offset with
+      | none => simp [pairedUnionLoadMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedUnionLoadMetadataByte, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := hresult.2
+          rcases hpair with rfl
+          exact ⟨unionLoadMetadataByte_footprint _ _ _ hs,
+            unionLoadMetadataByte_footprint _ _ _ ht⟩
+
 def pairedStoreUnionLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
