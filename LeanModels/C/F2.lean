@@ -4218,17 +4218,32 @@ theorem renamedPlacement_comp
 def pairedAllocateAligned (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment : Nat) : Bool :=
-  let source := allocateAligned store request placement alignment
-  let target := allocateAligned (renameStore resolve store) request
-    (renamedPlacement resolve store.nextId placement) alignment
-  true
+  match allocateAligned store request placement alignment,
+    allocateAligned (renameStore resolve store) request
+      (renamedPlacement resolve store.nextId placement) alignment with
+  | some _, some _ => true
+  | none, none => true
+  | _, _ => false
 
-theorem pairedAllocateAligned_shape
+theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
-    (alignment : Nat) :
+    (alignment : Nat)
+    (hsource : allocateAligned store request placement alignment = some source)
+    (htarget : allocateAligned (renameStore resolve store) request
+      (renamedPlacement resolve store.nextId placement) alignment = some target) :
     pairedAllocateAligned resolve store request placement alignment = true := by
-  rfl
+  simp [pairedAllocateAligned, hsource, htarget]
+
+theorem pairedAllocateAligned_both_refused
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment : Nat)
+    (hsource : allocateAligned store request placement alignment = none)
+    (htarget : allocateAligned (renameStore resolve store) request
+      (renamedPlacement resolve store.nextId placement) alignment = none) :
+    pairedAllocateAligned resolve store request placement alignment = true := by
+  simp [pairedAllocateAligned, hsource, htarget]
 
 def placementWithin (base size limit : Nat) : Bool :=
   base ≤ limit && size ≤ limit - base

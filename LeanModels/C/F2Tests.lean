@@ -60,7 +60,7 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard pairedPlacementAllowed resolve one 128 0
 #guard (allocateAligned empty { bytes := [oneByte], state := () } (.address 16) 8).isSome
 #guard (allocateAligned empty { bytes := [oneByte], state := () } (.address 18) 8).isNone
-#guard pairedAllocateAligned resolve empty { bytes := [oneByte], state := () } (.address 16) 8
+#guard pairedAllocateAligned resolve empty { bytes := [oneByte], state := () } (.address 16) 4
 #guard placementWithin 8 4 16
 #guard !placementWithin 14 4 16
 #guard pairedPlacementWithin resolve 0 4 16 100
