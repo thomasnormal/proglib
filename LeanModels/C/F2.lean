@@ -4728,6 +4728,17 @@ theorem renameBoundedResult_success_wellFormed
   simp [renameBoundedResult]
   exact renameStore_preserves_wellFormed resolve store hstore
 
+theorem renameBoundedResult_success_counts
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (footprint : Footprint) :
+    match renameBoundedResult resolve (.ok (store, footprint)) with
+    | .ok (target, _) =>
+        target.nextId = store.nextId ∧
+          target.allocations.length = store.allocations.length
+    | .error _ => True := by
+  simp [renameBoundedResult, renameStore,
+    renameStore_nextId, renameStore_allocation_count]
+
 theorem renameBoundedResult_comp
     (first second : AllocId → Nat)
     (result : Except PlacementFault (Store Tag State × Footprint)) :
