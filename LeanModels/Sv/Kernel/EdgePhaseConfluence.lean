@@ -641,6 +641,27 @@ theorem coreMemEdgeBlockingReadRacePairThroughAssign_false_of_two
 
 #print axioms coreMemEdgeBlockingReadRacePairThroughAssign_false_of_two
 
+/-! The public guard is attached to the complete parser design.  This adapter
+specializes its exact parser-native race field to a two-process source slice,
+so a retained evaluator proof can consume the guard without restating the
+boolean refusal predicate. -/
+theorem CombPhaseGuard.two_process_read_write_exclusions
+    {d : PDesign} {p q : PProcess}
+    (hg : CombPhaseGuard d)
+    (hprocesses : d.processes = [p, q])
+    (hcommon : coreMemHasCommonEventSourceThroughAssign [p, q] p q = true) :
+    (∀ x, x ∈ coreMemProcBlockingWrites p →
+      x ∉ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames q)) ∧
+    (∀ x, x ∈ coreMemProcBlockingWrites q →
+      x ∉ coreMemReadNamesThroughDrivers [p, q] 32
+        (coreMemPProcessReadNames p)) := by
+  apply coreMemEdgeBlockingReadRacePairThroughAssign_false_of_two
+  · simpa [hprocesses] using hg.no_blocking_read_after_closure
+  · exact hcommon
+
+#print axioms CombPhaseGuard.two_process_read_write_exclusions
+
 end LeanModels.Sv.Kernel
 
 namespace LeanModels.Sv.Kernel
