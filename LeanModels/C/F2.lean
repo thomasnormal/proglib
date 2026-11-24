@@ -2231,6 +2231,15 @@ def renameZeroTokenMetadata (resolve : AllocId → Nat)
     allocation := { metadata.allocation with
       address := metadata.allocation.address.map (fun _ => resolve 0) } }
 
+theorem renameZeroTokenMetadata_preserves_payload
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameZeroTokenMetadata resolve metadata).allocation.live = metadata.allocation.live ∧
+      (renameZeroTokenMetadata resolve metadata).allocation.bytes = metadata.allocation.bytes ∧
+      (renameZeroTokenMetadata resolve metadata).allocation.state = metadata.allocation.state ∧
+      (renameZeroTokenMetadata resolve metadata).locations = metadata.locations := by
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
 def pairedZeroTokenEqual (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId) : Bool :=
   zeroTokenEqual (renameZeroTokenMetadata resolve left)
