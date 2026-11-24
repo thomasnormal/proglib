@@ -2704,6 +2704,28 @@ theorem pairedEndLifetime_footprints
           exact ⟨endLifetime_footprint _ _ _ hs,
             endLifetime_footprint _ _ _ ht⟩
 
+theorem pairedEndLifetime_preserves_store_counts
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedEndLifetime resolve store id = some result) :
+    result.1.1.nextId = store.nextId ∧
+      result.2.1.nextId = (renameStore resolve store).nextId ∧
+      result.1.1.allocations.length = store.allocations.length ∧
+      result.2.1.allocations.length = (renameStore resolve store).allocations.length := by
+  cases hs : endLifetime store id with
+  | none => simp [pairedEndLifetime, hs] at hresult
+  | some sourceResult =>
+      cases ht : endLifetime (renameStore resolve store) id with
+      | none => simp [pairedEndLifetime, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedEndLifetime, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨endLifetime_preserves_nextId _ _ _ hs,
+            endLifetime_preserves_nextId _ _ _ ht,
+            endLifetime_preserves_allocation_count _ _ _ hs,
+            endLifetime_preserves_allocation_count _ _ _ ht⟩
+
 #guard true
 #guard (footprint .read { allocation := 1, offset := 0, width := 1 }).accesses.length == 1
 
