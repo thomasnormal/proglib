@@ -1228,6 +1228,10 @@ theorem pairedReallocZero_sound (resolve : AllocId → Nat) :
     pairedReallocZero resolve := by
   simp [pairedReallocZero]
 
+theorem pairedReallocZero_shape (resolve : AllocId → Nat) :
+    pairedReallocZero resolve = true := by
+  rfl
+
 def isZeroToken (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   metadata.allocation.live && metadata.allocation.bytes.isEmpty
 
@@ -1921,6 +1925,12 @@ def unaddressableToken (store : Store Tag State) (id : AllocId) : Bool :=
 def pairedUnaddressableAllocation (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State) :
     Bool := true
+
+theorem pairedUnaddressableAllocation_shape
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) :
+    pairedUnaddressableAllocation resolve store request = true := by
+  rfl
 
 theorem footprintAgrees_rename (resolve : AllocId → Nat) (footprint : Footprint) :
     footprintAgrees (renameFootprint resolve footprint) footprint := by
