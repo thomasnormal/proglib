@@ -3809,6 +3809,38 @@ theorem pairedStoreLoadByte_footprints
                 loadByte_footprint _ _ _ _ hsource,
                 loadByte_footprint _ _ _ _ htarget⟩
 
+theorem pairedStoreLoadByte_preserves_store_counts
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : StoreLoadPair Tag State)
+    (hresult : pairedStoreLoadByte resolve store id offset byte = some result) :
+    result.sourceStore.1.nextId = store.nextId ∧
+      result.targetStore.1.nextId = (renameStore resolve store).nextId ∧
+      result.sourceStore.1.allocations.length = store.allocations.length ∧
+      result.targetStore.1.allocations.length =
+        (renameStore resolve store).allocations.length := by
+  cases hs : storeByte store id offset byte with
+  | none => simp [pairedStoreLoadByte, pairedStoreByte, hs] at hresult
+  | some sourceStore =>
+      cases ht : storeByte (renameStore resolve store) id offset
+          (renameByte resolve byte) with
+      | none => simp [pairedStoreLoadByte, pairedStoreByte, hs, ht] at hresult
+      | some targetStore =>
+          cases hsource : loadByte sourceStore.1 id offset with
+          | none => simp [pairedStoreLoadByte, pairedStoreByte, hs, ht, hsource] at hresult
+          | some sourceLoad =>
+              cases htarget : loadByte targetStore.1 id offset with
+              | none => simp [pairedStoreLoadByte, pairedStoreByte, hs, ht, hsource, htarget] at hresult
+              | some targetLoad =>
+                  simp [pairedStoreLoadByte, pairedStoreByte, hs, ht, hsource, htarget] at hresult
+                  rcases hresult with rfl
+                  exact ⟨storeByte_preserves_nextId store id offset byte sourceStore hs,
+                    storeByte_preserves_nextId (renameStore resolve store) id offset
+                      (renameByte resolve byte) targetStore ht,
+                    storeByte_preserves_allocation_count store id offset byte sourceStore hs,
+                    storeByte_preserves_allocation_count (renameStore resolve store) id offset
+                      (renameByte resolve byte) targetStore ht⟩
+
 theorem pairedEndLifetime_footprints
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
     (result : (Store Tag State × Footprint) ×
