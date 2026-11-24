@@ -1349,6 +1349,30 @@ theorem unionLoadMetadataByte_success
       some (byte, footprint .read { allocation := 0, offset := offset, width := 1 }) := by
   simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized]
 
+theorem pairedUnionLoadMetadataByte_success
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (byte : Byte Tag) (location : LocationState TypeId)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hbyteTarget : (renameMetadata resolve id metadata).allocation.bytes[offset]? =
+      some (renameByte resolve byte))
+    (hlocation : metadata.locations[offset]? = some location)
+    (htargetLocation :
+      (renameMetadata resolve id metadata).locations[offset]? = some location)
+    (hinitialized : location.initialized = true)
+    (hbyteEq : (renameByte resolve byte == renameByte resolve byte) = true)
+    (hfootprintEq :
+      (footprint .read { allocation := 0, offset := offset, width := 1 } ==
+        footprint .read { allocation := 0, offset := offset, width := 1 }) = true) :
+    pairedUnionLoadMetadataByte resolve id metadata offset =
+      some ((byte, footprint .read { allocation := 0, offset := offset, width := 1 }),
+        (renameByte resolve byte,
+          footprint .read { allocation := 0, offset := offset, width := 1 })) := by
+  simp [pairedUnionLoadMetadataByte, unionLoadMetadataByte,
+    hbyte, hbyteTarget, hlocation, htargetLocation, hinitialized,
+    hbyteEq, hfootprintEq]
+
 theorem unionLoadMetadataByte_footprint
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (result : Byte Tag × Footprint)
