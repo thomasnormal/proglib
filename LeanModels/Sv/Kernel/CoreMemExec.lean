@@ -2464,8 +2464,11 @@ read must stay on `evalExpr`, whose source-shaped evaluator threads
 def CoreMemDesign.evalScalarAssignAtView (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view : SvState)
     (ctx : Option Nat) (index : Nat) (value : PExpr) : Res LVec :=
-  if LeanModels.Sv.PExpr.hasTestPlusargs value &&
-      LeanModels.Sv.PExpr.hasFunctionCall value then
+  if LeanModels.Sv.PExpr.hasFunctionCall value then
+    -- User functions retain their parser node and need the source-shaped
+    -- evaluator's formal binding and return conversion (§§13.4–13.5).
+    E.evalExpr env elems st ctx value
+  else if LeanModels.Sv.PExpr.hasTestPlusargs value then
     -- Calls, including `$test$plusargs`, depend on the explicit runtime
     -- environment carried by `CoreMemDesign`.  Keep the parser-shaped
     -- expression on the source evaluator instead of asking `Expr2` to
