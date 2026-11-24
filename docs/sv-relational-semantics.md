@@ -131,7 +131,11 @@ The current proof inventory has these levels.
   `memory_commit_observation_eq_of_perm` carries the queue permutation through
   successful identity-preserving `MemState.commitNba` commits using the
   existing `commitNba_V` view theorem. Its decode, coherence, footprint, and
-  commit-success receipts remain explicit.
+  commit-success receipts remain explicit. `executor_result_memory` now
+  consumes the terminal memory-state invariant to connect one admitted
+  fine-grained path to `CoreMemDesign.step`; settle, edge-run, canonical
+  commit, post-settle, and quiescence receipts remain explicit, so this is a
+  per-path executor bridge rather than a schedule-independence theorem.
 * **Concrete NBA bridges.** `executor_result_allowed_by_edge_schedule` is the
   soundness direction for a canonical `step` result under the admitted NBA
   guards. `finite_path_executor_replay` is the finite-path replay direction

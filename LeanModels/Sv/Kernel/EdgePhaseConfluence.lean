@@ -1358,6 +1358,38 @@ theorem EdgePhaseTerminalPath.memory_state_eq
 
 #print axioms EdgePhaseTerminalPath.memory_state_eq
 
+/-! The same executor bridge for memory-aware admission uses the memory
+terminal-state invariant instead of the scalar-only admission.  All exact E
+settle, edge-run, canonical commit, and post-settle receipts stay visible. -/
+theorem EdgePhaseTerminalPath.executor_result_memory
+    {E : CoreMemDesign} {s t : EdgePhaseState} {n : Nat}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (hp : EdgePhaseTerminalPath E n s t)
+    (hcomb : E.hasComb = false) (himp : E.hasImplicit = false)
+    {st : CoreMemState} {entry : SvState}
+    {pre0 s3 next : CoreMemState} {m : MemState}
+    (h0 : E.settleCanonical E.env E.elems (E.inputState st entry) E.processes.toList = .ok pre0)
+    (h1 : E.settleCanonical E.env E.elems pre0 E.processes.toList = .ok s.state)
+    (he : E.runEdges E.env E.elems t.state
+      (E.scalar.view st.scalar) (E.scalar.view t.state.scalar) E.processes.toList =
+      .ok { state := t.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] })
+    (hm : t.state.memory.commitNba t.memoryQ = some m)
+    (h3 : E.settleCanonical E.env E.elems
+      (E.committedState
+        { state := t.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] } m) E.processes.toList =
+      .ok s3)
+    (h4 : E.settleCanonical E.env E.elems s3 E.processes.toList = .ok next)
+    (hq : E.firesAny (E.scalar.view s.state.scalar) (E.scalar.view next.scalar) = false) :
+    E.step st entry = .ok next := by
+  have hstate := EdgePhaseTerminalPath.memory_state_eq ad hp
+  rw [hstate] at he hm h3
+  exact CoreMemDesign.edge_phase_commit_refines_step
+    (pre := s.state)
+    (edge := { state := s.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] })
+    hcomb himp h0 h1 he hm h3 h4 hq
+
+#print axioms EdgePhaseTerminalPath.executor_result_memory
+
 end LeanModels.Sv.Kernel
 
 namespace LeanModels.Sv.Kernel
