@@ -6044,6 +6044,39 @@ theorem endLifetime_preserves_allocation_count
       rcases hresult with ⟨_, hEq⟩
       simpa using congrArg (fun pair => pair.1.allocations.length) hEq.symm
 
+theorem endLifetime_preserves_wellFormed
+    (store : Store Tag State) (id : AllocId)
+    (result : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hbytes : bytesWf id ((lookup store id).map
+      (fun allocation => allocation.bytes) |>.getD []))
+    (hresult : endLifetime store id = some result) :
+    WellFormed result.1 := by
+  obtain ⟨allocation, hlookup, hpayload⟩ :=
+    endLifetime_success_payload store id result hresult
+  rw [hpayload]
+  unfold WellFormed at hstore ⊢
+  simp [hlookup] at hbytes
+  have map_wf : ∀ entries : List (AllocId × Allocation Tag State),
+      allocationsWf entries →
+      allocationsWf (entries.map (fun entry =>
+        if entry.1 == id then
+          (id, { allocation with live := false })
+        else entry)) := by
+    intro entries
+    induction entries with
+    | nil => intro _; simp [allocationsWf]
+    | cons entry rest ih =>
+        intro hentries
+        rcases entry with ⟨entryId, entryAllocation⟩
+        simp only [List.map_cons, allocationsWf] at hentries ⊢
+        by_cases heq : entryId == id
+        · simp only [heq, ite_true]
+          exact ⟨hbytes, ih hentries.2⟩
+        · simp only [heq, ite_false]
+          exact ⟨hentries.1, ih hentries.2⟩
+  exact map_wf store.allocations hstore
+
 
 theorem endLifetime_footprint
     (store : Store Tag State) (id : AllocId)
@@ -6260,6 +6293,31 @@ theorem pairedEndLifetime_preserves_store_counts
             endLifetime_preserves_nextId _ _ _ ht,
             endLifetime_preserves_allocation_count _ _ _ hs,
             endLifetime_preserves_allocation_count _ _ _ ht⟩
+
+theorem pairedEndLifetime_preserves_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hstore : WellFormed store)
+    (hsourceBytes : bytesWf id ((lookup store id).map
+      (fun allocation => allocation.bytes) |>.getD []))
+    (htargetBytes : bytesWf id ((lookup (renameStore resolve store) id).map
+      (fun allocation => allocation.bytes) |>.getD []))
+    (hresult : pairedEndLifetime resolve store id = some result) :
+    WellFormed result.1.1 ∧ WellFormed result.2.1 := by
+  cases hs : endLifetime store id with
+  | none => simp [pairedEndLifetime, hs] at hresult
+  | some sourceResult =>
+      cases ht : endLifetime (renameStore resolve store) id with
+      | none => simp [pairedEndLifetime, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedEndLifetime, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨endLifetime_preserves_wellFormed store id sourceResult
+              hstore hsourceBytes hs,
+            endLifetime_preserves_wellFormed (renameStore resolve store) id
+              targetResult (renameStore_preserves_wellFormed resolve store hstore)
+              htargetBytes ht⟩
 
 #guard true
 #guard (footprint .read { allocation := 1, offset := 0, width := 1 }).accesses.length == 1
