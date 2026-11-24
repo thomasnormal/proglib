@@ -1692,6 +1692,17 @@ theorem renameLiveRegion_shape
       (renameLiveRegion resolve entry).2.2.2 = entry.2.2.2 := by
   exact ⟨rfl, rfl⟩
 
+theorem renameLiveRegion_base_shape
+    (resolve : AllocId → Nat) (entry : AllocId × Nat × Nat × Tag) :
+    (renameLiveRegion resolve entry).2.1 = resolve entry.1 := by
+  rfl
+
+theorem renameLiveRegion_end_shape
+    (resolve : AllocId → Nat) (entry : AllocId × Nat × Nat × Tag) :
+    (renameLiveRegion resolve entry).2.2.1 =
+      resolve entry.1 + (entry.2.2.1 - entry.2.1) := by
+  rfl
+
 def renameRecovery (resolve : AllocId → Nat) : Recovery Tag → Recovery Tag
   | .recovered pointer => .recovered (renamePointer resolve pointer)
   | .empty address => .empty address
