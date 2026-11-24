@@ -12,6 +12,10 @@ def one : TestStore :=
   { allocations := [(0, { live := true, address := some 32,
                            bytes := [oneByte], state := () })]
     nextId := 1 }
+def dead : TestStore :=
+  { allocations := [(0, { live := false, address := some 32,
+                           bytes := [oneByte], state := () })]
+    nextId := 1 }
 def resolve : AllocId → Nat := fun id => if id == 0 then 100 else 200
 def fragmentByte : TestByte := .value 7 (some { allocation := 3, tag := () }) (some 4)
 def location : LocationState String := { effectiveType := .typed "int", initialized := true }
@@ -93,7 +97,13 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard freePointer (Tag := Unit) (State := Unit) (TypeId := String)
   (some ((freeMetadata metadata).getD (metadata, { accesses := [] })).1) == .stalePointer
 #guard (loadByte one 0 0).isSome
+#guard (loadByte empty 0 0).isNone
+#guard (loadByte dead 0 0).isNone
+#guard (loadByte one 0 1).isNone
 #guard (storeByte one 0 0 (.value 66 none (some 0))).isSome
+#guard (storeByte empty 0 0 (.value 66 none (some 0))).isNone
+#guard (storeByte dead 0 0 (.value 66 none (some 0))).isNone
+#guard (storeByte one 0 1 (.value 66 none (some 0))).isNone
 #guard (pairedStoreByte resolve one 0 0 (.value 66 none (some 0))).isSome
 #guard (pairedLoadByte resolve one 0 0).isSome
 #guard (pairedStoreLoadByte resolve one 0 0 (.value 66 none (some 0))).isSome
@@ -112,6 +122,8 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (loadByte one 0 0).any
   (fun result => result.2 == footprint .read { allocation := 0, offset := 0, width := 1 })
 #guard (endLifetime one 0).isSome
+#guard (endLifetime empty 0).isNone
+#guard (endLifetime dead 0).isNone
 #guard (pairedEndLifetime resolve one 0).isSome
 #guard match pairedEndLifetime resolve one 0 with
   | some ((_, sourceFootprint), (_, targetFootprint)) =>

@@ -1576,6 +1576,54 @@ theorem storeByte_success
   have hnot : ¬ allocation.bytes.length ≤ offset := by omega
   simp [storeByte, hlookup, hlive, hnot]
 
+theorem storeByte_missing
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (hlookup : lookup store id = none) :
+    storeByte store id offset byte = none := by
+  simp [storeByte, hlookup]
+
+theorem storeByte_dead
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (allocation : Allocation Tag State)
+    (hlookup : lookup store id = some allocation)
+    (hdead : allocation.live = false) :
+    storeByte store id offset byte = none := by
+  simp [storeByte, hlookup, hdead]
+
+theorem storeByte_outOfBounds
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (allocation : Allocation Tag State)
+    (hlookup : lookup store id = some allocation)
+    (hlive : allocation.live = true)
+    (hindex : allocation.bytes[offset]? = none) :
+    storeByte store id offset byte = none := by
+  have hoffset : allocation.bytes.length ≤ offset :=
+    (List.getElem?_eq_none_iff).mp hindex
+  simp [storeByte, hlookup, hlive, hoffset]
+
+theorem loadByte_missing
+    (store : Store Tag State) (id offset : Nat)
+    (hlookup : lookup store id = none) :
+    loadByte store id offset = none := by
+  simp [loadByte, hlookup]
+
+theorem loadByte_dead
+    (store : Store Tag State) (id offset : Nat)
+    (allocation : Allocation Tag State)
+    (hlookup : lookup store id = some allocation)
+    (hdead : allocation.live = false) :
+    loadByte store id offset = none := by
+  simp [loadByte, hlookup, hdead]
+
+theorem loadByte_outOfBounds
+    (store : Store Tag State) (id offset : Nat)
+    (allocation : Allocation Tag State)
+    (hlookup : lookup store id = some allocation)
+    (hlive : allocation.live = true)
+    (hindex : allocation.bytes[offset]? = none) :
+    loadByte store id offset = none := by
+  simp [loadByte, hlookup, hlive, hindex]
+
 theorem endLifetime_success
     (store : Store Tag State) (id : AllocId)
     (allocation : Allocation Tag State)
@@ -1584,6 +1632,20 @@ theorem endLifetime_success
     ∃ newStore, endLifetime store id = some
       (newStore, footprint .metadata (Region.mk id 0 allocation.bytes.length)) := by
   simp [endLifetime, hlookup, hlive]
+
+theorem endLifetime_missing
+    (store : Store Tag State) (id : AllocId)
+    (hlookup : lookup store id = none) :
+    endLifetime store id = none := by
+  simp [endLifetime, hlookup]
+
+theorem endLifetime_dead
+    (store : Store Tag State) (id : AllocId)
+    (allocation : Allocation Tag State)
+    (hlookup : lookup store id = some allocation)
+    (hdead : allocation.live = false) :
+    endLifetime store id = none := by
+  simp [endLifetime, hlookup, hdead]
 
 theorem endLifetime_preserves_nextId
     (store : Store Tag State) (id : AllocId)
