@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1381/2114 MATCH (passed 1381, failed 0, oracle 0)
+- verdicts: 1382/2114 MATCH (passed 1382, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `3f4d70b5752e1526f678213c1486e362ed34a46c`
-- measured at: `2026-11-24T01:00:00Z`
+- measured commit: `b2ed152af323fb93b3209a9c7555d5db582993d6`
+- measured at: `2026-11-24T01:10:00Z`
 
 ## Verdict counts
 
@@ -16,8 +16,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1381 |
-| `refused-libc` | 26 |
+| `passed` | 1382 |
+| `refused-libc` | 25 |
 | `refused-ub` | 47 |
 | `refused-unsupported` | 313 |
 | `runner-error` | 11 |
@@ -35,8 +35,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1178 |
-| `gcc.c-torture/execute` | `refused-libc` | 24 |
+| `gcc.c-torture/execute` | `passed` | 1179 |
+| `gcc.c-torture/execute` | `refused-libc` | 23 |
 | `gcc.c-torture/execute` | `refused-ub` | 41 |
 | `gcc.c-torture/execute` | `refused-unsupported` | 178 |
 | `gcc.c-torture/execute` | `runner-error` | 10 |
@@ -52,7 +52,7 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 
 | wall | sole | present | example files |
 | --- | ---: | ---: | --- |
-| `type-layout` | 546 | 1004 | 00015.c, 00016.c, 00017.c, 00018.c, 00019.c |
+| `type-layout` | 547 | 1004 | 00015.c, 00016.c, 00017.c, 00018.c, 00019.c |
 | `unsequenced-effects` | 7 | 17 | 00121.c, 20001228-1.c, 20020406-1.c, 20060102-1.c, 20230802-1.c |
 | `libc-call` | 4 | 17 | 00087.c, 00089.c, 00124.c, 00159.c, 00189.c |
 | `cast:IntegralToPointer` | 3 | 26 | 00214.c, 20000314-1.c, 20000622-1.c, 20010329-1.c, 20021010-2.c |
@@ -150,7 +150,6 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `libc-call: qsort` | 0 | 1 | pr34456.c |
 | `libc-call: rindex` | 0 | 1 | builtins/strrchr.c |
 | `libc-call: sinf` | 0 | 1 | ieee/mzero4.c |
-| `libc-call: sqrt` | 0 | 1 | ieee/20041213-1.c |
 | `libc-call: strcspn` | 0 | 1 | builtins/strcspn.c |
 | `libc-call: strncat` | 0 | 1 | builtins/strncat.c |
 | `libc-call: strpbrk` | 0 | 1 | builtins/strpbrk.c |
@@ -217,7 +216,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `libc-call: qsort` | 1 | 1 | pr34456.c |
 | `libc-call: signal` | 1 | 1 | 20101011-1.c |
 | `libc-call: sin` | 1 | 1 | ieee/mzero4.c |
-| `libc-call: sqrt` | 1 | 1 | ieee/20041213-1.c |
 | `unsupported:AlignedAttr` | 1 | 1 | pr108064.c |
 | `unsupported:TypeTraitExpr` | 1 | 1 | builtin-types-compatible-p.c |
 | `unsupported:__builtin_infl` | 1 | 1 | ieee/inf-1.c |

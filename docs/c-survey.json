@@ -12,8 +12,8 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1178,
-   "refused-libc": 24,
+   "passed": 1179,
+   "refused-libc": 23,
    "refused-ub": 41,
    "refused-unsupported": 178,
    "runner-error": 10
@@ -32,8 +32,8 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1381,
-  "refused-libc": 26,
+  "passed": 1382,
+  "refused-libc": 25,
   "refused-ub": 47,
   "refused-unsupported": 313,
   "runner-error": 11
@@ -1060,14 +1060,6 @@
   },
   {
    "files": [
-    "ieee/20041213-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "libc-call: sqrt"
-  },
-  {
-   "files": [
     "pr108064.c"
    ],
    "present": 1,
@@ -1351,8 +1343,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T01:00:00Z",
- "measured_commit": "3f4d70b5752e1526f678213c1486e362ed34a46c",
+ "measured_at_utc": "2026-11-24T01:10:00Z",
+ "measured_commit": "b2ed152af323fb93b3209a9c7555d5db582993d6",
  "pin": "C1-C3",
  "rows": [
   {
@@ -16080,16 +16072,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "sqrt",
-   "dynamic_wall": "libc-call: sqrt",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "ieee/20041213-1.c",
    "sha256": "625aa7e6b26a3f201c47803734a8bd6a5dadfe65b8a7d21e00f586f6f43e6fd9",
    "static_walls": [
-    "libc-call: sqrt",
     "type-layout"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27258,7 +27249,7 @@
     "zerolen-2.c"
    ],
    "present": 1004,
-   "sole": 546,
+   "sole": 547,
    "wall": "type-layout"
   },
   {
@@ -28628,14 +28619,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: sinf"
-  },
-  {
-   "files": [
-    "ieee/20041213-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: sqrt"
   },
   {
    "files": [
