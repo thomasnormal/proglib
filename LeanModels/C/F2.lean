@@ -930,6 +930,28 @@ theorem pairedTypedLoadMetadataByte_footprints
           exact ⟨typedLoadMetadataByte_footprint _ _ _ _ hs,
             typedLoadMetadataByte_footprint _ _ _ _ ht⟩
 
+theorem pairedTypedLoadMetadataByte_correspondence
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedTypedLoadMetadataByte resolve id metadata offset typeId =
+      some result) :
+    (result.2.1 == renameByte resolve result.1.1) = true ∧
+      (result.2.2 == result.1.2) = true := by
+  cases hs : typedLoadMetadataByte metadata offset typeId with
+  | none => simp [pairedTypedLoadMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : typedLoadMetadataByte (renameMetadata resolve id metadata)
+          offset typeId with
+      | none => simp [pairedTypedLoadMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedTypedLoadMetadataByte, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := hresult.2
+          rcases hpair with rfl
+          exact ⟨hresult.1.1, hresult.1.2⟩
+
 def pairedTypedStoreLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
