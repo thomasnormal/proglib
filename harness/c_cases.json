@@ -7,6 +7,13 @@
     "sanitize": true
   },
   {
+    "id": "builtin-snprintf-hhd",
+    "source": "int main(void) { char b[5]; int n = __builtin_snprintf(b, sizeof b, \"%hhd\", 105); return n == 3 && b[0] == '1' && b[1] == '0' && b[2] == '5' && b[3] == 0 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
     "id": "builtin-fp-predicates-ieee",
     "source": "double __builtin_nan(const char *); int main(void) { double n = __builtin_nan(\"\"); return __builtin_isless(1.0, 2.0) != 1 || __builtin_islessequal(1.0, 1.0) != 1 || __builtin_isgreater(2.0, 1.0) != 1 || __builtin_isgreaterequal(2.0, 2.0) != 1 || __builtin_islessgreater(1.0, 2.0) != 1 || __builtin_isless(n, 2.0) != 0 || __builtin_islessequal(n, 2.0) != 0 || __builtin_isgreater(n, 2.0) != 0 || __builtin_isgreaterequal(n, 2.0) != 0 || __builtin_islessgreater(n, 2.0) != 0 ? 1 : 0; }",
     "expect": "match",

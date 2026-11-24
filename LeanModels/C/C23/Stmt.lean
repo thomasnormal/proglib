@@ -1423,6 +1423,37 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
               liftEval (writeMem (fun mem => mem.storeBytes dp bytes))
               pure (.int IntTy.int_ chars.length)
           | _ => refuseUnsupported "sprintf: missing destination or format argument"
+        let runSnprintf : List CVal → ExecM CVal := fun vs =>
+          match vs with
+          | [dst, sizeValue, fmt, value] => do
+              let dp ← asPtr dst
+              let (_, size) ← asInt sizeValue
+              let fp ← asPtr fmt
+              let (_, n) ← asInt value
+              let m ← get
+              let (_, fo, off) ← liftEval (m.resolve fp 0)
+              let rec concreteString : List CByte → Option (List CByte)
+                | [] => none
+                | .conc x :: rest =>
+                    if x == 0 then some []
+                    else (concreteString rest).map (fun tail => CByte.conc x :: tail)
+                | _ :: _ => none
+              let pattern ← match concreteString (fo.bytes.drop off) with
+                | some bytes => pure bytes
+                | none => refuseUnsupported "snprintf: non-concrete or unterminated format"
+              let expected := [CByte.conc 37, CByte.conc 104, CByte.conc 104,
+                CByte.conc 100]
+              if pattern != expected then
+                refuseUnsupported "snprintf: unsupported format"
+              else
+                let rendered := (toString (IntTy.char_.wrap n)).toList.map
+                  (fun c => CByte.conc (UInt8.ofNat c.toNat))
+                let stored :=
+                  if size ≤ 0 then []
+                  else rendered.take (size - 1).toNat ++ [CByte.conc 0]
+                liftEval (writeMem (fun mem => mem.storeBytes dp stored))
+                pure (.int IntTy.int_ rendered.length)
+          | _ => refuseUnsupported "snprintf: wrong argument count"
         let runPrintf : List CVal → ExecM CVal := fun vs =>
           match vs with
           | fmt :: args => do
@@ -1462,6 +1493,12 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                     let (_, n) ← asInt a
                     let tail ← format rest as
                     pure ((toString n).toList.map (fun c => CByte.conc (UInt8.ofNat c.toNat)) ++ tail)
+                | .conc 37 :: .conc 104 :: .conc 104 :: .conc 100 :: rest, a :: as => do
+                    let (_, n) ← asInt a
+                    let rendered := (toString (IntTy.char_.wrap n)).toList.map
+                      (fun c => CByte.conc (UInt8.ofNat c.toNat))
+                    let tail ← format rest as
+                    pure (rendered ++ tail)
                 | .conc 37 :: .conc 117 :: rest, a :: as => do
                     let (_, n) ← asInt a
                     let tail ← format rest as
@@ -2188,6 +2225,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
             runVaEnd vs
           else if nm == "__builtin_sprintf" || nm == "sprintf" then
             runSprintf vs
+          else if nm == "__builtin_snprintf" || nm == "snprintf" then
+            runSnprintf vs
           else if nm == "__builtin_strcpy" || nm == "strcpy" then
             runBuiltinStrcpy vs
           else if nm == "strncmp" || nm == "__builtin_strncmp" then
