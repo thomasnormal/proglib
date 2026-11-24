@@ -1337,11 +1337,33 @@ def renameReplayPlacement (resolve : AllocId → Nat)
     (placement : ReplayPlacement) : ReplayPlacement :=
   { placement with base := resolve placement.allocation }
 
+theorem renameReplayPlacement_shape
+    (resolve : AllocId → Nat) (placement : ReplayPlacement) :
+    (renameReplayPlacement resolve placement).allocation = placement.allocation ∧
+      (renameReplayPlacement resolve placement).base = resolve placement.allocation ∧
+      (renameReplayPlacement resolve placement).size = placement.size ∧
+      (renameReplayPlacement resolve placement).exposed = placement.exposed := by
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
 def renameReplayFixture (resolve : AllocId → Nat)
     (fixture : ReplayFixture) : ReplayFixture :=
   { fixture with
     placements := fixture.placements.map (renameReplayPlacement resolve)
     events := renameReplayEvents resolve fixture.events }
+
+theorem renameReplayFixture_preserves_metadata
+    (resolve : AllocId → Nat) (fixture : ReplayFixture) :
+    (renameReplayFixture resolve fixture).sourceHash = fixture.sourceHash ∧
+      (renameReplayFixture resolve fixture).compilerVersion = fixture.compilerVersion ∧
+      (renameReplayFixture resolve fixture).targetTriple = fixture.targetTriple ∧
+      (renameReplayFixture resolve fixture).ending = fixture.ending := by
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
+theorem renameReplayFixture_events
+    (resolve : AllocId → Nat) (fixture : ReplayFixture) :
+    (renameReplayFixture resolve fixture).events =
+      fixture.events.map (renameReplayEvent resolve) := by
+  rfl
 
 def ReplayFixture.wellFormed (fixture : ReplayFixture) : Prop :=
   fixture.sourceHash ≠ "" ∧ fixture.compilerVersion ≠ "" ∧
