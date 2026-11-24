@@ -1,4 +1,5 @@
 import LeanModels.Sv.Ingest2
+import LeanModels.Sv.DesignLemmas
 import LeanModels.Sv.CombHier
 open LeanModels.Sv
 open LeanModels.Sv.Kernel
@@ -11,3 +12,5 @@ load_design_sv2 noisyMul from "Examples/system-verilog/sem2/noisy_mul_generate/n
   | .error _ => true
   | .ok _ => false
 end Examples.«system-verilog».sem2.noisy_mul_generate
+#check generated_child_family
+#check generated_child_at_prefix
