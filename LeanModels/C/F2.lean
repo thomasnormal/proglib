@@ -3543,6 +3543,16 @@ theorem allocate_unaddressable_result_counters
   rcases hresult with ⟨rfl, rfl⟩
   simp
 
+theorem allocate_unaddressable_result_footprint
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (result : Store Tag State × Footprint)
+    (hresult : allocate store request .unaddressable = some result) :
+    result.2 = footprint .metadata
+      (Region.mk store.nextId 0 request.bytes.length) := by
+  simp [allocate] at hresult
+  rcases hresult with ⟨rfl, rfl⟩
+  rfl
+
 def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment : Nat) : Option (Store Tag State × Footprint) :=
   match placement with
