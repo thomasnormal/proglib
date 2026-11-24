@@ -5506,6 +5506,51 @@ def pairedStaleStore (resolve : AllocId → Nat) (store : Store Tag State)
       (storeByte targetResult.1 id offset (renameByte resolve byte)).isNone
   | _, _ => false
 
+theorem pairedStaleLoad_both_refused
+    (resolve : AllocId → Nat) (store : Store Tag State) (id offset : Nat)
+    (hsource : endLifetime store id = some sourceResult)
+    (htarget : endLifetime (renameStore resolve store) id = some targetResult)
+    (hloadSource : loadByte sourceResult.1 id offset = none)
+    (hloadTarget : loadByte targetResult.1 id offset = none) :
+    pairedStaleLoad resolve store id offset = true := by
+  simp [pairedStaleLoad, hsource, htarget, hloadSource, hloadTarget]
+
+theorem pairedStaleLoad_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State) (id offset : Nat)
+    (hsource : endLifetime store id = none) :
+    pairedStaleLoad resolve store id offset = false := by
+  simp [pairedStaleLoad, hsource]
+
+theorem pairedStaleLoad_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State) (id offset : Nat)
+    (htarget : endLifetime (renameStore resolve store) id = none) :
+    pairedStaleLoad resolve store id offset = false := by
+  simp [pairedStaleLoad, htarget]
+
+theorem pairedStaleStore_both_refused
+    (resolve : AllocId → Nat) (store : Store Tag State) (id offset : Nat)
+    (byte : Byte Tag)
+    (hsource : endLifetime store id = some sourceResult)
+    (htarget : endLifetime (renameStore resolve store) id = some targetResult)
+    (hstoreSource : storeByte sourceResult.1 id offset byte = none)
+    (hstoreTarget : storeByte targetResult.1 id offset (renameByte resolve byte) = none) :
+    pairedStaleStore resolve store id offset byte = true := by
+  simp [pairedStaleStore, hsource, htarget, hstoreSource, hstoreTarget]
+
+theorem pairedStaleStore_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State) (id offset : Nat)
+    (byte : Byte Tag)
+    (hsource : endLifetime store id = none) :
+    pairedStaleStore resolve store id offset byte = false := by
+  simp [pairedStaleStore, hsource]
+
+theorem pairedStaleStore_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State) (id offset : Nat)
+    (byte : Byte Tag)
+    (htarget : endLifetime (renameStore resolve store) id = none) :
+    pairedStaleStore resolve store id offset byte = false := by
+  simp [pairedStaleStore, htarget]
+
 theorem pairedStaleLoad_sound
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) (h : pairedStaleLoad resolve store id offset = true) :
