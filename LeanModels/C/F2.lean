@@ -3960,6 +3960,26 @@ theorem pairedRecoverAddress_both_empty
     pairedRecoverAddress resolve address live = true := by
   simp [pairedRecoverAddress, hsource, htarget]
 
+theorem pairedRecoverAddress_empty_recovered_refusal
+    (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag))
+    (source : Nat) (target : Pointer Tag)
+    (hsource : recoverAddress address live = .empty source)
+    (htarget : recoverAddress address (live.map (renameLiveRegion resolve)) =
+      .recovered target) :
+    pairedRecoverAddress resolve address live = false := by
+  simp [pairedRecoverAddress, hsource, htarget]
+
+theorem pairedRecoverAddress_recovered_empty_refusal
+    (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag))
+    (source : Pointer Tag) (target : Nat)
+    (hsource : recoverAddress address live = .recovered source)
+    (htarget : recoverAddress address (live.map (renameLiveRegion resolve)) =
+      .empty target) :
+    pairedRecoverAddress resolve address live = false := by
+  simp [pairedRecoverAddress, hsource, htarget]
+
 def offsetPointer (pointer : Pointer Tag) (elementSize : Nat) (delta : Int)
     (bound : Nat) : Except OffsetFault (Pointer Tag) :=
   if elementSize == 0 then .error .alignment
