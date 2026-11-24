@@ -132,6 +132,22 @@ example (E : CoreMemDesign) (before after : SvState) (v : SvState) (mv : MemV)
       commitMemV mv r'.2.2 = commitMemV mv r.2.2 := by
   exact CoreMemDesign.edgesV_order_memory hO hσ hv hnd hlocal h
 
+/-! The exact memory-leaf profile supplies the evaluator frame receipt, so the
+    edge-order theorem needs no separately duplicated semantic premise. -/
+example (E : CoreMemDesign) (before after : SvState) (v : SvState) (mv : MemV)
+    (ps : List CoreMemProc) (hσ : ps.Perm E.processes.toList)
+    (hv : (v.map Prod.fst).Nodup)
+    (hnd : (E.processes.toList.flatMap CoreMemProc.targets).Nodup)
+    (hO : E.oblEdgeOrderMemory = true)
+    (hshape : ∀ f : CoreMemEdge, f.body.memoryLeafB = true)
+    (hdecl : ∀ f : CoreMemEdge, ∀ n ∈ f.body.writes,
+      ∃ md, E.memDecl? n = some md)
+    {r : ExecV} (h : E.edgesV before after v mv E.processes.toList = .ok r) :
+    ∃ r', E.edgesV before after v mv ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      commitMemV mv r'.2.2 = commitMemV mv r.2.2 := by
+  exact CoreMemDesign.edgesV_order_memory_memoryLeaf hO hσ hv hnd hshape hdecl h
+
 example (E : CoreMemDesign) (before after : SvState) (v : SvState) (mv : MemV)
     (ps : List CoreMemProc) (hσ : ps.Perm E.processes.toList)
     (hv : (v.map Prod.fst).Nodup)

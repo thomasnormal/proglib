@@ -2787,6 +2787,35 @@ theorem CoreMemDesign.edgesV_order_memory_seqOblIM {E : CoreMemDesign}
   exact CoreMemDesign.edgesV_order_memory
     (CoreMemDesign.seqOblIM_spec hO).2.2.2.2.2.1 hσ hv hnd hlocal h
 
+/-! Parser-native receipt adapter for the exact memory-leaf body profile. -/
+theorem CoreMemDesign.memoryLeaf_edge_receipt {E : CoreMemDesign}
+    (env : IEnv) (v : SvState) (mv : MemV) (f : CoreMemEdge)
+    (hshape : f.body.memoryLeafB = true)
+    (hdecl : ∀ n ∈ f.body.writes, ∃ md, E.memDecl? n = some md)
+    {v' : SvState} {q : NbaQueue2} {mq : MemQV}
+    (h : E.execV env v mv f.body = .ok (v', q, mq)) :
+    v' = v ∧ (∀ u ∈ q, u.1 ∈ f.body.writes) ∧
+      (∀ u ∈ mq, u.1 ∈ f.body.writes) := by
+  rcases CoreMemDesign.execV_memoryLeafBody env v mv f.body v' q mq hshape hdecl h with
+    ⟨hv, hq, hm⟩
+  exact ⟨hv, by simp [hq], hm⟩
+
+theorem CoreMemDesign.edgesV_order_memory_memoryLeaf {E : CoreMemDesign}
+    (hO : E.oblEdgeOrderMemory = true)
+    {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList)
+    {before after v : SvState} {mv : MemV}
+    (hv : (v.map Prod.fst).Nodup) {r : ExecV}
+    (hnd : (E.processes.toList.flatMap CoreMemProc.targets).Nodup)
+    (hshape : ∀ f : CoreMemEdge, f.body.memoryLeafB = true)
+    (hdecl : ∀ f : CoreMemEdge, ∀ n ∈ f.body.writes, ∃ md, E.memDecl? n = some md)
+    (h : E.edgesV before after v mv E.processes.toList = .ok r) :
+    ∃ r', E.edgesV before after v mv ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      commitMemV mv r'.2.2 = commitMemV mv r.2.2 := by
+  apply CoreMemDesign.edgesV_order_memory hO hσ hv hnd
+    (fun f v' q mq hr => CoreMemDesign.memoryLeaf_edge_receipt E.env v mv f
+      (hshape f) (hdecl f) hr) h
+
 /-- **THE EDGE ORDER DOES NOT MATTER, under the obligations** (rule 4): for every permutation of the processes, the
 edge pass succeeds when the route's (source order) succeeds and commits to the same views. -/
 theorem CoreMemDesign.edgesV_order {E : CoreMemDesign} (hO : E.seqOblI = true)
