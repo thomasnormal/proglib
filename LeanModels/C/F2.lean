@@ -89,6 +89,14 @@ theorem renameByte_preserves_provenance (resolve : AllocId → Nat) (byte : Byte
   | uninitialized => rfl
   | value bits provenance fragment => cases provenance <;> cases fragment <;> rfl
 
+theorem renameByte_pointer_fragment
+    (resolve : AllocId → Nat) (bits : UInt8)
+    (provenance : Provenance Tag) (fragment : Nat) :
+    renameByte resolve (.value bits (some provenance) (some fragment)) =
+      .value (pointerByte (resolve provenance.allocation) fragment)
+        (some provenance) (some fragment) := by
+  rfl
+
 inductive Value (Tag : Type) where
   | scalar (bytes : List UInt8)
   | pointer (pointer : Pointer Tag)
