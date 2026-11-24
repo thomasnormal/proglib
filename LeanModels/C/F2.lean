@@ -3576,6 +3576,20 @@ theorem allocateAligned_address_success
     allocateAligned store request (.address base) alignment = some result := by
   simp [allocateAligned, haligned, hresult]
 
+theorem allocateAligned_address_result_counters
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base alignment : Nat) (result : Store Tag State × Footprint)
+    (haligned : alignmentAllowed base alignment = true)
+    (hresult : allocateAligned store request (.address base) alignment = some result) :
+    result.1.nextId = store.nextId + 1 ∧
+      result.1.allocations.length = store.allocations.length + 1 := by
+  simp [allocateAligned, haligned, allocate] at hresult
+  by_cases hallowed : placementAllowed store base request.bytes.length = true
+  · simp [hallowed] at hresult
+    rcases hresult with ⟨rfl, rfl⟩
+    simp
+  · simp [hallowed] at hresult
+
 def renamedPlacement (resolve : AllocId → Nat) (id : AllocId) :
     Placement → Placement
   | .address _ => .address (resolve id)
