@@ -7273,3 +7273,13 @@ Added the clean-room `fsm_logic_confluence_e` finite-state machine. Its
 case-based edge process and two continuous-assignment drivers instantiate the
 guarded terminal-path-to-executor confluence theorem. Six startup, reset, and
 state-transition rows match Icarus Verilog 13.0 and Xcelium 24.03-s004.
+
+## Combined memory-phase observation bridge — 2026-11-24
+
+The memory-aware edge-phase bridge now combines scalar NBA observation
+confluence with decoded memory observation confluence and the selected path's
+canonical `CoreMemDesign.step` receipts. A separate scalar theorem lifts queue
+permutation to `EdgePhaseMemoryAdmission`. The proof also closes the existing
+memory terminal-path length-balance arithmetic without an axiom. The bridge
+keeps pairwise-disjoint footprint, per-cursor queue, and settle/commit
+premises explicit and does not implement the normative relation.

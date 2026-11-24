@@ -44,6 +44,47 @@ example {E : CoreMemDesign} {s : EdgePhaseState}
     ∃ n t, EdgePhaseTerminalPath E n s t := by
   exact EdgePhaseTerminalPath.memory_exists ad
 
+/-! The combined scalar/memory observation bridge keeps both observations at
+the same terminal-path boundary and retains the canonical executor receipts. -/
+example {E : CoreMemDesign} {s : EdgePhaseState}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (qs : EdgeCursor → NbaQueue2)
+    (hqs : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.scalarQ = qs cursor)
+    (qm : EdgeCursor → MemNbaQueue)
+    (hqm : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.memoryQ = qm cursor)
+    (decode : MemNbaRecord → String × Int × LVec)
+    {n : Nat} {t : EdgePhaseState}
+    (hp : EdgePhaseTerminalPath E n s t)
+    (hkeys : (E.scalar.view s.state.scalar).map Prod.fst |>.Nodup)
+    (hdisjS : ∀ {n' t'}, EdgePhaseTerminalPath E n' s t' →
+      t'.scalarQ.Pairwise NbaDisj)
+    (hdisjM : (t.memoryQ.map decode).Pairwise (fun u v => u.1 ≠ v.1))
+    {st : CoreMemState} {entry : SvState}
+    {pre0 s3 next : CoreMemState} {m : MemState}
+    (hcomb : E.hasComb = false) (himp : E.hasImplicit = false)
+    (h0 : E.settleCanonical E.env E.elems (E.inputState st entry) E.processes.toList = .ok pre0)
+    (h1 : E.settleCanonical E.env E.elems pre0 E.processes.toList = .ok s.state)
+    (he : E.runEdges E.env E.elems t.state
+      (E.scalar.view st.scalar) (E.scalar.view t.state.scalar) E.processes.toList =
+      .ok { state := t.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] })
+    (hm : t.state.memory.commitNba t.memoryQ = some m)
+    (h3 : E.settleCanonical E.env E.elems
+      (E.committedState
+        { state := t.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] } m)
+      E.processes.toList = .ok s3)
+    (h4 : E.settleCanonical E.env E.elems s3 E.processes.toList = .ok next)
+    (hq : E.firesAny (E.scalar.view s.state.scalar) (E.scalar.view next.scalar) = false) :
+    (∀ n' t', EdgePhaseTerminalPath E n' s t' →
+      EdgePhaseState.observable E t' = EdgePhaseState.observable E t ∧
+      commitMemV (E.memOf s.state.memory) (t'.memoryQ.map decode) =
+        commitMemV (E.memOf s.state.memory) (t.memoryQ.map decode)) ∧
+    E.step st entry = .ok next := by
+  exact EdgePhaseTerminalPath.memory_scalar_confluence_refines_step
+    ad qs hqs qm hqm decode hp hkeys hdisjS hdisjM hcomb himp
+    h0 h1 he hm h3 h4 hq
+
 example {E : CoreMemDesign} {s t : EdgePhaseState} {n : Nat}
     (ad : EdgePhaseMemoryAdmission E s)
     (hp : EdgePhaseTerminalPath E n s t) :

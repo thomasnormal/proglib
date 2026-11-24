@@ -502,6 +502,13 @@ The following results are real and intentionally narrow.
   canonical `MemState.commitNba` form. Every terminal path supplies its own
   successful commit, decode identity, and `RecOk` receipts, and its `E.memOf`
   observation is compared with the selected executor path.
+* `EdgePhaseTerminalPath.observable_eq_of_trace_memory` lifts scalar queue
+  permutation to `EdgePhaseMemoryAdmission`, where cursors may also issue
+  memory NBAs. `memory_scalar_confluence_refines_step` combines that scalar
+  observation with the decoded memory observation and the selected path's
+  exact `CoreMemDesign.step` receipts. It still requires explicit
+  pairwise-disjoint footprints, per-cursor queue receipts, and selected-path
+  settle/commit evidence.
 * `EdgePhaseTerminalPath.observable_confluent` and
   `confluence_refines_step` are scalar or admitted-NBA path results. They do
   not establish the whole relation.
