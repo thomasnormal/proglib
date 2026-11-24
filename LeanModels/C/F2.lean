@@ -3400,6 +3400,16 @@ theorem offsetPointer_outOfBounds_nonnegative
   have hneg : ¬ delta < 0 := by omega
   simp [offsetPointer, hsize, hneg, hbound]
 
+theorem offsetPointer_success_negative
+    (pointer : Pointer Tag) (elementSize : Nat) (delta : Int) (bound : Nat)
+    (hsize : elementSize ≠ 0) (hdelta : delta < 0)
+    (hwithin : Int.natAbs delta * elementSize ≤ pointer.address)
+    (hbound : pointer.address - Int.natAbs delta * elementSize ≤ bound) :
+    offsetPointer pointer elementSize delta bound =
+      .ok { pointer with
+        address := pointer.address - Int.natAbs delta * elementSize } := by
+  simp [offsetPointer, hsize, hdelta, hwithin, hbound]
+
 def renameOffsetResult (resolve : AllocId → Nat) :
     Except OffsetFault (Pointer Tag) → Except OffsetFault (Pointer Tag)
   | .error fault => .error fault
