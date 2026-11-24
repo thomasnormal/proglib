@@ -1108,7 +1108,14 @@ def PExpr.isInt (env : IEnv) : PExpr → Bool
   | .unary (.m0 .neg) a | .unary (.m0 .pos) a | .unary .plus a => a.isInt env
   | .binary op l r => op.intArith && l.isInt env && r.isInt env
   | .ternary _ t e => t.isInt env && e.isInt env
-  | .functionCall .. | .aggregateMember .. | .packageAggElem .. | _ => false
+  | .functionCall n _ =>
+      match env.functions.find? (fun f => f.name == n) with
+      | some f =>
+          f.isSigned && match f.returnType with
+            | .packed _ (some 32) | .typeRef _ _ (some 32) => true
+            | _ => false
+      | none => false
+  | .aggregateMember .. | .packageAggElem .. | _ => false
 
 -- The INT-class test computes on syntax (and `vals` lookups): a `simp` that
 -- unfolds `evalInt` decides it by itself.

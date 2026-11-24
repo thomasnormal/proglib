@@ -37102,7 +37102,7 @@ def _sym_package_params(sm):
     return result
 
 
-def _sym_package_functions(sm):
+def _sym_package_functions(sm, module=None):
     """Retain referenced pure package functions for constant contexts.
 
     Package functions are parser declarations just like module functions.  A
@@ -37117,6 +37117,20 @@ def _sym_package_functions(sm):
     packages = set()
     try:
         root = _SYM.comp.getRoot()
+        called_names = set()
+        if module is not None:
+            def collect_calls(node):
+                if isinstance(node, dict):
+                    if node.get("kind") == "FunctionCall":
+                        name = node.get("name")
+                        if isinstance(name, str):
+                            called_names.add(name.split("::")[-1])
+                    for value in node.values():
+                        collect_calls(value)
+                elif isinstance(node, list):
+                    for value in node:
+                        collect_calls(value)
+            collect_calls(module)
         for unit in _SYM.comp.getCompilationUnits():
             for package in unit:
                 if str(getattr(package, "kind", "")).split(".")[-1] != "Package":
@@ -37125,7 +37139,8 @@ def _sym_package_functions(sm):
                     if (str(getattr(member, "kind", "")).split(".")[-1]
                             != "Subroutine"):
                         continue
-                    if not _subroutine_is_referenced(root, member):
+                    if (not _subroutine_is_referenced(root, member)
+                            and member.name not in called_names):
                         continue
                     packages.add(package.name)
                     retained = _sym_function_node(sm, member)
@@ -37296,7 +37311,10 @@ def convert_module_sym(sm, inst):
     decls.extend(lower_proc.hoisted_decls())                  # WP-PROC L1
 
     package_params = _sym_package_params(sm)
-    package_functions, function_packages = _sym_package_functions(sm)
+    package_functions, function_packages = _sym_package_functions(
+        sm, {"params": params, "ports": ports, "decls": decls,
+             "processes": processes, "generates": generates,
+             "others": others})
     _SYM.packages.update(function_packages)
     properties.extend(_SYM_PROPERTIES)
     cell_refs = []
