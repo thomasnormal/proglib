@@ -132,4 +132,18 @@ example (E : CoreMemDesign) (before after : SvState) (v : SvState) (mv : MemV)
       commitMemV mv r'.2.2 = commitMemV mv r.2.2 := by
   exact CoreMemDesign.edgesV_order_memory hO hσ hv hnd hlocal h
 
+example (E : CoreMemDesign) (before after : SvState) (v : SvState) (mv : MemV)
+    (ps : List CoreMemProc) (hσ : ps.Perm E.processes.toList)
+    (hv : (v.map Prod.fst).Nodup)
+    (hnd : (E.processes.toList.flatMap CoreMemProc.targets).Nodup)
+    (hO : E.seqOblIM = true)
+    (hlocal : ∀ (f : CoreMemEdge) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      E.execV E.env v mv f.body = .ok (v', q, mq) →
+      v' = v ∧ (∀ u ∈ q, u.1 ∈ f.body.writes) ∧ (∀ u ∈ mq, u.1 ∈ f.body.writes))
+    {r : ExecV} (h : E.edgesV before after v mv E.processes.toList = .ok r) :
+    ∃ r', E.edgesV before after v mv ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      commitMemV mv r'.2.2 = commitMemV mv r.2.2 := by
+  exact CoreMemDesign.edgesV_order_memory_seqOblIM hO hσ hv hnd hlocal h
+
 end Examples.«system-verilog».sem2.edge_order_memory_e

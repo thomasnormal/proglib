@@ -2768,6 +2768,25 @@ theorem CoreMemDesign.edgesV_order_memory {E : CoreMemDesign}
       CoreMemDesign.edgesV_perm_memory hlocal hσ.symm hw hnd h
     exact ⟨r', h', by rw [hv1', hv1]; exact hc v hv, hm mv⟩
 
+/-! The successor obligation is now accepted at the concrete edge-order
+    boundary.  The evaluator receipt remains explicit until every admitted
+    memory body has a recursive proof. -/
+theorem CoreMemDesign.edgesV_order_memory_seqOblIM {E : CoreMemDesign}
+    (hO : E.seqOblIM = true)
+    {ps : List CoreMemProc} (hσ : ps.Perm E.processes.toList)
+    {before after v : SvState} {mv : MemV}
+    (hv : (v.map Prod.fst).Nodup) {r : ExecV}
+    (hnd : (E.processes.toList.flatMap CoreMemProc.targets).Nodup)
+    (hlocal : ∀ (f : CoreMemEdge) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      E.execV E.env v mv f.body = .ok (v', q, mq) →
+      v' = v ∧ (∀ u ∈ q, u.1 ∈ f.body.writes) ∧ (∀ u ∈ mq, u.1 ∈ f.body.writes))
+    (h : E.edgesV before after v mv E.processes.toList = .ok r) :
+    ∃ r', E.edgesV before after v mv ps = .ok r' ∧
+      commitNba2 r'.1 r'.2.1 = commitNba2 r.1 r.2.1 ∧
+      commitMemV mv r'.2.2 = commitMemV mv r.2.2 := by
+  exact CoreMemDesign.edgesV_order_memory
+    (CoreMemDesign.seqOblIM_spec hO).2.2.2.2.2.1 hσ hv hnd hlocal h
+
 /-- **THE EDGE ORDER DOES NOT MATTER, under the obligations** (rule 4): for every permutation of the processes, the
 edge pass succeeds when the route's (source order) succeeds and commits to the same views. -/
 theorem CoreMemDesign.edgesV_order {E : CoreMemDesign} (hO : E.seqOblI = true)
