@@ -1576,6 +1576,15 @@ theorem storeByte_success
   have hnot : ¬ allocation.bytes.length ≤ offset := by omega
   simp [storeByte, hlookup, hlive, hnot]
 
+theorem endLifetime_success
+    (store : Store Tag State) (id : AllocId)
+    (allocation : Allocation Tag State)
+    (hlive : allocation.live = true)
+    (hlookup : lookup store id = some allocation) :
+    ∃ newStore, endLifetime store id = some
+      (newStore, footprint .metadata (Region.mk id 0 allocation.bytes.length)) := by
+  simp [endLifetime, hlookup, hlive]
+
 theorem endLifetime_preserves_nextId
     (store : Store Tag State) (id : AllocId)
     (result : Store Tag State × Footprint)
