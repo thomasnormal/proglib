@@ -181,6 +181,163 @@ The loop is retained as a loop in the relation. The proof does not unroll a
 parameterized depth. The memory edge-order work is the concrete content needed
 to show that all legal process orders relate the same reset result.
 
+## Five separate obligations
+
+The bridge is not one theorem with five names. Each obligation has a separate
+statement and a separate failure result.
+
+1. **Soundness** says that every result returned by an executor is one result
+   allowed by the relation. `Scheduler.allSlots_sound` is an instance for the
+   M0 scheduler enumerator. The corresponding theorem for canonical E is not
+   proved yet.
+2. **Finite completeness** says that every finite relational execution in the
+   admitted fragment is reproduced by some legal schedule and enough
+   implementation fuel. `Scheduler.allSlots_complete` covers the bounded M0
+   successor function. It is not a canonical-E completeness theorem.
+3. **Schedule independence on observations** compares executions under the
+   same external input history. `edgesV_order` and the memory successor compare
+   block-level NBA commits. They do not yet compare fine-grained scheduler
+   executions.
+4. **Progress** says that every allowed internal execution of a macrostep
+   reaches its settled boundary under its stated assumptions. The abstract
+   `ScheduleConfluence.terminal_exists` and the phase-level `progress` lemmas
+   are scaffolding. There is no canonical-E macrostep progress theorem for the
+   memory class.
+5. **Trace inclusion** says that the implementation trace is a trace of the
+   relational semantics, including its input history and observations. The
+   scheduler enumerator has a slot-level soundness result. The canonical E
+   trace inclusion remains open.
+
+A deterministic executor can therefore establish one allowed outcome without
+establishing schedule independence or progress. Universal user claims need
+all five obligations.
+
+## Simultaneous events and step granularity
+
+One relational macrostep takes an `InputBatch`. The batch contains all external
+input changes and all edge activations at one timestamp. It is not a list of
+serial single-edge steps. The batch for
+
+```systemverilog
+always @(posedge clk_a) a <= b;
+always @(posedge clk_b) b <= a;
+```
+
+with `a = 0` and `b = 1` enables both processes before either NBA update. Both
+RHS values are sampled from the pre-edge state, so the batch result is
+`a = 1, b = 0`. Serial batches that contain only `clk_a` or only `clk_b` are
+different external histories and can produce `(1, 1)` or `(0, 0)`.
+
+An edge caused by an NBA update is an internal event later in the same time
+slot. It is not merged into the external `InputBatch`. The relation retains the
+causal queue position between the input edge and the later NBA-caused edge.
+When an input change and an edge activation share a timestamp, both are active
+events in the batch. The relation permits the standard's legal active-event
+orders, including an edge process running before the input update. The current
+`CoreMemDesign.step` applies all inputs before edge execution, so this is an
+identified gap in the implementation bridge rather than a relational choice
+that the documentation hides.
+
+The acceptance theorem is therefore about every fine-grained execution of one
+batch. Permuting complete `always` blocks is weaker than clause 4.7, which
+permits preemption between parser-shaped statements. The existing
+`edgesV_order` and `edgesV_local_diamond` results are block-level results. They
+must be lifted to `EdgePhaseStep` cursors before they can justify the
+fine-grained theorem.
+
+## One successor relation, three user levels
+
+The scheduler already demonstrates the preferred implementation pattern.
+`mem_nextStates_iff` proves that membership in the executable `nextStates`
+function is exactly `oneStep`. The canonical relation should follow the same
+pattern. A small-step reference relation is exposed by membership in an
+executable successor function, and individual construct lemmas explain that
+function's cases. This avoids a second hand-written transition function while
+keeping rule-by-rule proofs readable.
+
+Users see three levels.
+
+* The **small-step reference** contains regions, pending updates, parser-native
+  continuations, sensitivities, and refusals.
+* A certified RTL profile exposes a deterministic **macrostep** from one
+  settled observable boundary to the next, taking an `InputBatch`. Its proofs
+  cover soundness, observation independence, and progress. Equality of final
+  output bits alone is too weak. The equivalence must preserve the state facts
+  needed by future steps.
+* **Traces and module contracts** quantify over input batches and assumptions
+  about clocks and resets. A contract states observations at settled slot
+  boundaries and, where required, values sampled at an edge. Composition uses
+  those contracts instead of flattening a module hierarchy.
+
+## Write footprints
+
+The future write-frame interface uses footprints rather than only base signal
+names. A footprint records scalar identity or memory declaration identity,
+resolved address, and written bit mask. A scalar write is the one-name special
+case. The language-required order remains intact inside one process, including
+capturing an NBA RHS and target when the assignment is scheduled. Only updates
+with disjoint footprints may commute.
+
+For a dynamic address, syntactic distinctness is insufficient. The proof must
+carry an invariant that the resolved addresses and masks are disjoint, or the
+relation must retain both orders. The current `MemQV` receipts retain memory
+declaration identity and issue order, but `edgesV_perm_memory` still exposes
+source-shaped target membership rather than a general footprint relation.
+
+## Outcomes and liveness assumptions
+
+The relational interface keeps these outcomes distinct.
+
+* **Completed** means a settled state or trace is related.
+* **Budget exhausted** is an implementation result and establishes no
+  relational result by itself.
+* **Unsupported or refused** means the current relation has no rule for the
+  reached construct or the admission guard failed.
+* **Invalid supplied schedule** means the caller supplied an order that is not
+  legal. A typed `ScheduleOracle` prevents this case in the existing scheduler.
+  A textual or external schedule validator must report it separately from a
+  language refusal.
+
+Liveness claims carry their assumptions in the theorem. Clock progress, reset
+release, fairness of external events, and absence of zero-time divergence are
+not inferred from a completed executor call.
+
+## Relation, implementation, and external reading
+
+The first implementation bridge remains the existential-fuel wrapper
+
+```lean
+def StepExec (E : CoreMemDesign) (s : CoreMemState) (i : SvState)
+    (s' : CoreMemState) : Prop :=
+  ∃ fuel, E.execFuel fuel s i = .ok s'
+```
+
+where `execFuel` is a proposed public name for the fuel-parameterized
+implementation interface. A fuel-monotonicity theorem justifies changing the
+successful budget without changing the result. This wrapper is a bridge, not
+the normative definition. The rule-based relation is introduced construct by
+construct and proved equal to the wrapper only in deterministic admitted
+profiles.
+
+Andreas Loow, *The Simulation Semantics of Synthesisable Verilog*, OOPSLA
+2025, arXiv:2502.19348, is an external warning that the standard's wording and
+synthesis practice can diverge and that an executable formalisation needs an
+explicit repair boundary. Our reading agrees with its explicit treatment of
+active-event nondeterminism in §§4.6, 4.7, and 4.9.4 and with capturing an NBA
+RHS before its §10.4.2 update. We keep the IEEE relation and refuse an admitted
+design when its guard cannot prove the required independence. We do not repair
+the standard by changing the meaning to match a simulator or a synthesizer.
+
+## Fixed boundaries outside this design
+
+The relational formulation takes the decided x and environment rules as fixed
+inputs. An x or z is a missing promise resolved independently at each permitted
+read, and environment unknowns are real input bits. No rule mentions a tool.
+Clock crossings and timing remain in the separate hardware layer. The language
+relation has no delays, synthesizer inspection, idiom exceptions, metastability
+model, or new kind of unknown. Multiple clocks enter through one `InputBatch`
+containing the simultaneous input events.
+
 ## Migration order and failure modes
 
 1. Keep `Scheduler.oneStep`, `Slot`, `Run`, `CombPhaseStep`, and
