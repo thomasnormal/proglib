@@ -5,8 +5,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 - verdicts: 1364/2114 MATCH (passed 1364, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `d8a03e68ce19020b583976ed42b34be8e9c44776`
-- measured at: `2026-11-23T23:30:00Z`
+- measured commit: `7abf0b091be01d8a4be9001379144a62d61eac3f`
+- measured at: `2026-11-24T00:15:00Z`
 
 ## Verdict counts
 
@@ -56,7 +56,6 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `unsequenced-effects` | 7 | 17 | 00121.c, 20001228-1.c, 20020406-1.c, 20060102-1.c, 20230802-1.c |
 | `libc-call` | 4 | 17 | 00087.c, 00089.c, 00124.c, 00159.c, 00189.c |
 | `cast:IntegralToPointer` | 3 | 26 | 00214.c, 20000314-1.c, 20000622-1.c, 20010329-1.c, 20021010-2.c |
-| `libc-call: __builtin_unreachable` | 3 | 4 | 20230509-1.c, gcc/testsuite/gcc.dg/c23-unreachable-1.c, pr81281.c, pr97888-1.c |
 | `cast:PointerToIntegral` | 2 | 25 | 00144.c, 20000622-1.c, 20011121-1.c, 20030811-1.c, 20050215-1.c |
 | `libc-call: __builtin_return_address` | 2 | 4 | 20010122-1.c, 20030323-1.c, 20030811-1.c, pr17377.c |
 | `unsupported:StmtExpr` | 1 | 9 | 00213.c, 00214.c, 20000703-1.c, 20000917-1.c, 20001203-2.c |
@@ -69,6 +68,7 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `libc-call: __builtin_frame_address` | 1 | 1 | frame-address.c |
 | `libc-call: fun` | 1 | 1 | pr42231.c |
 | `libc-call: main_test` | 1 | 1 | builtins/lib/main.c |
+| `libc-call: not_defined` | 1 | 1 | gcc/testsuite/gcc.dg/c23-unreachable-1.c |
 | `libc-call: signal` | 1 | 1 | 20101011-1.c |
 | `unsupported:BinaryConditionalOperator` | 1 | 1 | pr68249.c |
 | `string-literal` | 0 | 254 | 00025.c, 00026.c, 00056.c, 00058.c, 00112.c |
@@ -150,7 +150,6 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `libc-call: indirect` | 0 | 1 | pr68390.c |
 | `libc-call: isprint` | 0 | 1 | 991112-1.c |
 | `libc-call: llabs` | 0 | 1 | builtins/abs-2.c |
-| `libc-call: not_defined` | 0 | 1 | gcc/testsuite/gcc.dg/c23-unreachable-1.c |
 | `libc-call: p` | 0 | 1 | 00216.c |
 | `libc-call: pow` | 0 | 1 | 980709-1.c |
 | `libc-call: qsort` | 0 | 1 | pr34456.c |

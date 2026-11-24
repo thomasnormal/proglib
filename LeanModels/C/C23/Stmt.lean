@@ -2180,6 +2180,11 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
             runVfprintf vs
           else if nm == "__builtin_abort" || nm == "abort" then
             terminateAbort
+          else if nm == "__builtin_unreachable" then
+            -- Reaching the GNU unreachable builtin has undefined behavior.
+            -- Keep it as a terminal semantic outcome so defined paths can
+            -- pass without treating the external name as a library call.
+            terminateAbort
           else if nm == "__builtin_exit" || nm == "exit" then
             throw (.libc "exit")
           else if nm == "memset" || nm == "__builtin_memset" then runMemset vs
