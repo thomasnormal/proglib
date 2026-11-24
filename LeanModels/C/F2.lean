@@ -760,6 +760,28 @@ theorem typedLoadMetadataByte_success
       some (byte, footprint .read { allocation := 0, offset := offset, width := 1 }) := by
   simp [typedLoadMetadataByte, hbyte, hlocation, htype, hsame]
 
+theorem typedLoadMetadataByte_footprint
+    [BEq TypeId]
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (result : Byte Tag × Footprint)
+    (hresult : typedLoadMetadataByte metadata offset typeId = some result) :
+    result.2 = footprint .read { allocation := 0, offset := offset, width := 1 } := by
+  cases hbyte : metadata.allocation.bytes[offset]? with
+  | none => simp [typedLoadMetadataByte, hbyte] at hresult
+  | some byte =>
+      cases hlocation : metadata.locations[offset]? with
+      | none => simp [typedLoadMetadataByte, hbyte, hlocation] at hresult
+      | some location =>
+          cases htype : location.effectiveType with
+          | typed storedType =>
+              by_cases hsame : storedType == typeId
+              · simp [typedLoadMetadataByte, hbyte, hlocation, htype, hsame] at hresult
+                exact congrArg (fun pair => pair.2) hresult.symm
+              · simp [typedLoadMetadataByte, hbyte, hlocation, htype, hsame] at hresult
+          | untyped => simp [typedLoadMetadataByte, hbyte, hlocation, htype] at hresult
+          | padding => simp [typedLoadMetadataByte, hbyte, hlocation, htype] at hresult
+          | indeterminate => simp [typedLoadMetadataByte, hbyte, hlocation, htype] at hresult
+
 def pairedTypedStoreLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
