@@ -2318,6 +2318,21 @@ def pairedFreeMetadata (resolve : AllocId → Nat)
   let targetResult ← freeMetadata (renameZeroTokenMetadata resolve metadata)
   some (sourceResult, targetResult)
 
+theorem pairedFreeMetadata_live_success
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hlive : metadata.allocation.live = true) :
+    pairedFreeMetadata resolve metadata =
+      some (
+        ({ metadata with allocation := { metadata.allocation with live := false } },
+          footprint .metadata (Region.mk 0 0 metadata.allocation.bytes.length)),
+        ({ renameZeroTokenMetadata resolve metadata with
+            allocation :=
+              { (renameZeroTokenMetadata resolve metadata).allocation with live := false } },
+          footprint .metadata
+            (Region.mk 0 0 (renameZeroTokenMetadata resolve metadata).allocation.bytes.length))) := by
+  simp [pairedFreeMetadata, freeMetadata, hlive, renameZeroTokenMetadata]
+
 theorem pairedFreeMetadata_decompose
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
