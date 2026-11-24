@@ -108,8 +108,6 @@ theorem two_ff_nba_confluence_of_defined
       i ≠ j → E.processes[i]'hi ≠ E.processes[j]'hj)
     {s : EdgeScheduleState} (hs : s.pending = List.range E.processes.size)
     (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
-    (hdefined : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
-      ∃ q, E.procQ s.view s.view s.view (E.memOf st.memory) p = .ok q)
     (hkeys : (s.view.map Prod.fst).Nodup)
     {r : ExecV} (hroute : E.edgesV s.view s.view s.view (E.memOf st.memory)
       E.processes.toList = .ok r) :
@@ -130,6 +128,7 @@ theorem two_ff_nba_confluence_of_defined
   obtain ⟨E', hE', hPB, hOB⟩ := hD
   rw [hE] at hE'
   cases hE'
+  have hdefined := CoreMemDesign.edgesV_procQ_defined_processes hw hroute
   exact CoreMemDesign.edge_nba_confluence_refines_step_guarded_of_defined
     hPB.toSeqProfileI (CoreMemDesign.seqOblB_I hOB) hc hmc hty hslot
     hdrivers hdistinct hs hw hdefined hkeys hroute

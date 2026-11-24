@@ -904,6 +904,53 @@ theorem CoreMemDesign.edgesV_queue_processes_indexed
 
 #print axioms CoreMemDesign.edgesV_queue_processes_indexed
 
+/-! A successful source-order edge route already contains a defined queue for
+    every retained process.  This is the totality projection used by the
+    queue-free confluence adapter. -/
+theorem CoreMemDesign.edgesV_procQ_defined
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {r : ExecV} {ps : List CoreMemProc}
+    (hw : ∀ p ∈ ps, p.nbaWholeP = true)
+    (hroute : E.edgesV before after v mv ps = .ok r) :
+    ∀ p ∈ ps, ∃ q, E.procQ before after v mv p = .ok q := by
+  induction ps generalizing r with
+  | nil => simp
+  | cons p rest ih =>
+      obtain ⟨qp, rr, hqp, -, hrest, -⟩ :=
+        CoreMemDesign.edgesV_cons_inv (hw p (by simp)) hroute
+      intro q hq
+      simp only [List.mem_cons] at hq
+      rcases hq with rfl | hq
+      · exact ⟨qp, hqp⟩
+      · exact ih (fun p' hp' => hw p' (by simp [hp'])) hrest q hq
+
+theorem CoreMemDesign.edgesV_procQ_defined_processes
+    {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {r : ExecV}
+    (hw : ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p → p.nbaWholeP = true)
+    (hroute : E.edgesV before after v mv E.processes.toList = .ok r) :
+    ∀ (k : Nat) (p : CoreMemProc), E.processes[k]? = some p →
+      ∃ q, E.procQ before after v mv p = .ok q := by
+  intro k p hk
+  have hmem : p ∈ E.processes.toList := by
+    rw [List.mem_iff_getElem]
+    have hopt : E.processes.toList[k]? = some p := by
+      rw [Array.getElem?_toList]
+      exact hk
+    obtain ⟨hklt, hkp⟩ := List.getElem?_eq_some_iff.mp hopt
+    exact ⟨k, by simpa using hklt, hkp⟩
+  exact CoreMemDesign.edgesV_procQ_defined
+    (ps := E.processes.toList)
+    (fun p' hp' => by
+      obtain ⟨j, hj, hjp⟩ := List.mem_iff_getElem.mp hp'
+      have hj' : j < E.processes.size := by simpa using hj
+      exact hw j p' (by
+        rw [← Array.getElem?_toList]
+        exact (List.getElem?_eq_getElem hj).trans (congrArg some hjp)))
+    hroute p hmem
+
+#print axioms CoreMemDesign.edgesV_procQ_defined_processes
+
 /-! The indexed receipt feeds the terminal-path bridge.  The queue receipt is
     still an explicit evaluator premise, so this theorem does not identify a
     scheduler path with `CoreMemDesign.step`. -/
