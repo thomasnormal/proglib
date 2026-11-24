@@ -174,6 +174,11 @@ theorem copyEncoded_preserves (bytes : List (Byte Tag)) :
     copyEncoded bytes = bytes := by
   simp [copyEncoded]
 
+theorem decodePointer_wrong_length_refusal [BEq Tag]
+    (bytes : List (Byte Tag)) (hlength : bytes.length ≠ 8) :
+    decodePointer bytes = none := by
+  simp [decodePointer, hlength]
+
 theorem encodePointer_rename (resolve : AllocId → Nat) (pointer : Pointer Tag) :
     encodePointer (renamePointer resolve pointer) =
       (encodePointer pointer).map (renameByte resolve) := by

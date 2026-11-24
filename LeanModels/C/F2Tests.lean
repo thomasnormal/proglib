@@ -38,6 +38,7 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
     (0, { live := true, address := some 16, bytes := [fragmentByte], state := () }) ==
     (0, { live := true, address := some 100,
           bytes := [renameByte resolve fragmentByte], state := () })
+#guard decodePointer ([] : List (Byte Unit)) == none
 
 #guard placementAllowed one 8 1
 #guard !placementAllowed one 32 1
