@@ -182,6 +182,7 @@ MODELED_EXTERNALS = {
     "__builtin_calloc", "free", "__builtin_free", "__builtin_ffs",
     "__builtin_mul_overflow", "__builtin_add_overflow",
     "__builtin_unreachable",
+    "__builtin_constant_p",
 }
 
 

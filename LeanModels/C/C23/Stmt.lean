@@ -2138,6 +2138,25 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
               else
                 pure (.int IntTy.int_ (if n ≥ 32 && n ≤ 126 then 1 else 0))
           | _ => refuseUnsupported "isprint: wrong argument count"
+        let rec constantExpr : Expr → Bool
+          | .intLit .. | .charLit .. | .floatLit .. | .boolLit .. | .strLit .. => true
+          | .paren sub .. | .implicitCast _ sub .. | .cast _ sub .. => constantExpr sub
+          | .binop op lhs rhs .. =>
+              (op == "+" || op == "-" || op == "*" || op == "/" || op == "%" ||
+                op == "<<" || op == ">>" || op == "&" || op == "|" || op == "^" ||
+                op == "==" || op == "!=" || op == "<" || op == ">" || op == "<=" ||
+                op == ">=") && constantExpr lhs && constantExpr rhs
+          | .unop op sub .. =>
+              (op == "+" || op == "-" || op == "!" || op == "~") && constantExpr sub
+          | .cond c t e .. => constantExpr c && constantExpr t && constantExpr e
+          | .choose c t e .. => constantExpr c && constantExpr t && constantExpr e
+          | .index (.strLit ..) (.intLit ..) .. => true
+          | _ => false
+        let runConstantP : List CallArgument → ExecM CVal := fun args =>
+          match args with
+          | [arg] =>
+              pure (.int IntTy.int_ (if arg.sourceExpr.any constantExpr then 1 else 0))
+          | _ => refuseUnsupported "__builtin_constant_p: wrong argument count"
         let runSyncAdd8 : List CVal → ExecM CVal := fun vs =>
           match vs with
           | [dst, value] => do
@@ -2328,7 +2347,9 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
             | some g => callFn fuel prog g arguments
             | none =>
               match calleeName callee with
-              | some nm => runExternal nm (arguments.map CallArgument.value)
+              | some nm =>
+                  if nm == "__builtin_constant_p" then runConstantP arguments
+                  else runExternal nm (arguments.map CallArgument.value)
               | none => throw (.libc declaration.value)
           | none => match calleeName callee with
           | none =>
@@ -2336,7 +2357,9 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
             -- Do not redo clang's resolved declaration identity by its name.
             refuseUnsupported "indirect call through a non-FunctionDecl reference"
           | some nm => match prog.find? nm with
-            | none => runExternal nm (arguments.map CallArgument.value)
+            | none =>
+                if nm == "__builtin_constant_p" then runConstantP arguments
+                else runExternal nm (arguments.map CallArgument.value)
             | some g => callFn fuel prog g arguments
         -- §6.2.1p4: the frame starts with the file-scope objects in scope,
         -- and the parameters are bound ON TOP of them, so a parameter that
@@ -2385,7 +2408,8 @@ def callByName (fuel : Nat) (prog : Program) (name : String) (args : List CVal) 
         if name == "main" && args.isEmpty && f.params.length == 2 then
           [.int IntTy.int_ 1, .ptr Ptr.null]
         else args
-      callFn fuel prog f (startupArgs.map fun value => ⟨value, none⟩)
+      callFn fuel prog f (startupArgs.map fun value =>
+        { value := value, promotedType := none })
   | none => refuseUnsupported s!"no definition for '{name}'"
 
 /-! ## `fuelMono` — still an obligation, and now with a known technique

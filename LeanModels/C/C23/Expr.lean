@@ -2140,13 +2140,15 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       match calleeName callee with
       | some _ =>
           let vs ← evalArgs ctx args
-          ctx.call callee none (args.zipWith (fun e v => ⟨v, e.structuredType?⟩) vs)
+          ctx.call callee none (args.zipWith (fun e v =>
+            { value := v, promotedType := e.structuredType?, sourceExpr := some e }) vs)
       | none =>
           let target ← evalArgs ctx [callee]
           let vs ← evalArgs ctx args
           match target with
           | [value] =>
-              ctx.call callee (some value) (args.zipWith (fun e v => ⟨v, e.structuredType?⟩) vs)
+              ctx.call callee (some value) (args.zipWith (fun e v =>
+                { value := v, promotedType := e.structuredType?, sourceExpr := some e }) vs)
           | _ => refuseUnsupported "indirect call lost its callee value"
 
   -- N3220 §6.5.4.4p2–5: fixed-size operands and alignof operands are

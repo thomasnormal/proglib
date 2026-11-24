@@ -273,7 +273,11 @@ def CObj.size (c : CObj) : Nat := c.bytes.length
 structure CallArgument where
   value : CVal
   promotedType : Option QualType
-deriving Repr, Inhabited, BEq
+  sourceExpr : Option Expr := none
+deriving Repr, Inhabited
+
+instance : BEq CallArgument where
+  beq a b := a.value == b.value && a.promotedType == b.promotedType
 
 def CallArgument.renameAddress (resolve : ObjId → Nat) (argument : CallArgument) :
     CallArgument :=
