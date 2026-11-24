@@ -5241,6 +5241,34 @@ theorem pairedStoreLoadByte_preserves_store_counts
                     storeByte_preserves_allocation_count (renameStore resolve store) id offset
                       (renameByte resolve byte) targetStore ht⟩
 
+theorem pairedStoreLoadByte_preserves_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : StoreLoadPair Tag State)
+    (hsourceStore : WellFormed store)
+    (hsourceBytes : bytesWf id (listSet
+      ((lookup store id).map (fun allocation => allocation.bytes) |>.getD [])
+      offset byte))
+    (htargetBytes : bytesWf id (listSet
+      ((lookup (renameStore resolve store) id).map
+        (fun allocation => allocation.bytes) |>.getD [])
+      offset (renameByte resolve byte)))
+    (hresult : pairedStoreLoadByte resolve store id offset byte = some result) :
+    WellFormed result.sourceStore.1 ∧ WellFormed result.targetStore.1 := by
+  cases hs : pairedStoreByte resolve store id offset byte with
+  | none => simp [pairedStoreLoadByte, hs] at hresult
+  | some stores =>
+      cases hsource : loadByte stores.1.1 id offset with
+      | none => simp [pairedStoreLoadByte, hs, hsource] at hresult
+      | some sourceLoad =>
+          cases htarget : loadByte stores.2.1 id offset with
+          | none => simp [pairedStoreLoadByte, hs, hsource, htarget] at hresult
+          | some targetLoad =>
+              simp [pairedStoreLoadByte, hs, hsource, htarget] at hresult
+              rcases hresult with rfl
+              exact pairedStoreByte_preserves_wellFormed resolve store id offset byte
+                stores hsourceStore hsourceBytes htargetBytes hs
+
 theorem pairedEndLifetime_footprints
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
     (result : (Store Tag State × Footprint) ×
