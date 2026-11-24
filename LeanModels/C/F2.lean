@@ -539,6 +539,28 @@ theorem renameMetadata_preserves_location_length (resolve : AllocId → Nat) (id
     (renameMetadata resolve id metadata).locations.length = metadata.locations.length := by
   rfl
 
+theorem renameMetadata_preserves_liveness (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameMetadata resolve id metadata).allocation.live = metadata.allocation.live := by
+  rfl
+
+theorem renameMetadata_preserves_state (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameMetadata resolve id metadata).allocation.state = metadata.allocation.state := by
+  rfl
+
+theorem renameMetadata_bytes_shape (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameMetadata resolve id metadata).allocation.bytes =
+      metadata.allocation.bytes.map (renameByte resolve) := by
+  rfl
+
+theorem renameMetadata_address_shape (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameMetadata resolve id metadata).allocation.address =
+      metadata.allocation.address.map (fun _ => resolve id) := by
+  rfl
+
 theorem renameMetadata_comp (first second : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) :
     renameMetadata second id (renameMetadata first id metadata) =
