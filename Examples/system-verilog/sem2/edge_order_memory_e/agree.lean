@@ -1,5 +1,6 @@
 import LeanModels.Sv.Ingest2
 import LeanModels.Sv.SeqCycleStages
+import LeanModels.Sv.SeqCycleObl
 
 namespace Examples.«system-verilog».sem2.edge_order_memory_e
 open LeanModels.Sv LeanModels.Sv.Kernel
@@ -28,5 +29,15 @@ example (v : SvState) (values : List Int) (m : Int → MemQV) :
     execLoopV v (fun i => .ok (v, [], m i)) values =
       .ok (v, [], values.flatMap m) := by
   exact execLoopV_memory v m values
+
+example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
+    (it : String) (init condition step : PExpr) (body : PStmt) (values : List Int)
+    (hloop : PStmt.loopBodyB body = true)
+    (hvals : forValues2 env it init condition step = .ok values)
+    (hbody : ∀ i, ∃ mq, E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes)) :
+    ∃ mq, E.execV env v mv (.forLoop it init condition step body) = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes) := by
+  exact CoreMemDesign.execV_forLoop_memory_records env v mv hloop hvals hbody
 
 end Examples.«system-verilog».sem2.edge_order_memory_e

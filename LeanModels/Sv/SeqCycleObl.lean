@@ -1770,6 +1770,37 @@ theorem CoreMemDesign.execV_memory_leaf {E : CoreMemDesign} {v : SvState} {mv : 
       · intro u hu; simp [hk] at hu
       · intro u hu; simp at hu; simpa [hu, hsource]
 
+/-! A procedural loop receipt packages the per-iteration memory evaluator
+    facts into the exact flat-map queue produced by `execV_forLoop_memory`. -/
+theorem CoreMemDesign.execV_forLoop_memory_records {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
+    {it : String} {init condition step : PExpr} {body : PStmt} {values : List Int}
+    (hloop : PStmt.loopBodyB body = true)
+    (hvals : forValues2 env it init condition step = .ok values)
+    (hbody : ∀ i, ∃ mq, E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes)) :
+    ∃ mq, E.execV env v mv (.forLoop it init condition step body) = .ok (v, [], mq) ∧
+      (∀ u ∈ mq, u.1 ∈ body.writes) := by
+  classical
+  let m : Int → MemQV := fun i => (hbody i).choose
+  have hm : ∀ i, E.execV (env.bindVal it i) v mv body = .ok (v, [], m i) := by
+    intro i
+    exact (hbody i).choose_spec.1
+  have hnames : ∀ i u, u ∈ m i → u.1 ∈ body.writes := by
+    intro i u hu
+    exact (hbody i).choose_spec.2 u hu
+  have hflat : ∀ xs : List Int, ∀ u, u ∈ xs.flatMap m → u.1 ∈ body.writes := by
+    intro xs
+    induction xs with
+    | nil => simp
+    | cons i rest ih =>
+        intro u hu
+        simp only [List.flatMap_cons] at hu
+        rcases List.mem_append.mp hu with hu | hu
+        · exact hnames i u hu
+        · exact ih u hu
+  refine ⟨values.flatMap m, CoreMemDesign.execV_forLoop_memory env v mv m hm hloop hvals, ?_⟩
+  exact hflat values
+
 /-- Two queues writing disjoint signals commit in either order. -/
 theorem commitNba2_swap {st : SvState} (hnd : (st.map Prod.fst).Nodup) {q₁ q₂ : NbaQueue2}
     (h : ∀ u ∈ q₁, ∀ u' ∈ q₂, u.1 ≠ u'.1) : commitNba2 st (q₂ ++ q₁) = commitNba2 st (q₁ ++ q₂) := by
