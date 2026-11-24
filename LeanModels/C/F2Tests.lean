@@ -115,8 +115,14 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard pairedMemmoveFootprint { allocation := 1, offset := 0, width := 2 }
   { allocation := 1, offset := 1, width := 2 } 2
 #guard (reallocMetadata metadata { bytes := [oneByte], state := () } [location] .fail).isSome
+#guard match reallocMetadata metadata { bytes := [oneByte], state := () } [location] .fail with
+  | some (.failed old, resultFootprint) =>
+      old == metadata && resultFootprint == footprint .metadata { allocation := 0, offset := 0, width := 1 }
+  | _ => false
 #guard (reallocMetadata metadata { bytes := [oneByte], state := () } [location] (.address 64)).isSome
 #guard (reallocMetadata metadata { bytes := [oneByte], state := () } [location] .unaddressable).isSome
+#guard (reallocMetadata metadata { bytes := [oneByte], state := () }
+  ([] : List (LocationState String)) (.address 64)).isNone
 #guard (pairedReallocMetadata resolve metadata { bytes := [oneByte], state := () } [location] (.address 64)).isSome
 #guard match allocateZeroSize (Tag := Unit) (TypeId := String) () .fail with
   | (.null, _) => true

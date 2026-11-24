@@ -899,6 +899,59 @@ theorem reallocMetadata_failure_preserves_length
   rcases hresult with ⟨rfl, rfl⟩
   rfl
 
+theorem reallocMetadata_failure_shape
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) :
+    reallocMetadata old request locations .fail =
+      some (.failed old,
+        footprint .metadata (Region.mk 0 0 old.allocation.bytes.length)) := by
+  rfl
+
+theorem reallocMetadata_address_success
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (base : Nat)
+    (hsame : locations.length = request.bytes.length) :
+    reallocMetadata old request locations (.address base) =
+      some (.replaced
+        { allocation :=
+            { live := true, address := some base,
+              bytes := request.bytes, state := request.state },
+          locations := locations },
+        footprint .metadata (Region.mk 0 0 request.bytes.length)) := by
+  simp [reallocMetadata, hsame]
+
+theorem reallocMetadata_unaddressable_success
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (hsame : locations.length = request.bytes.length) :
+    reallocMetadata old request locations .unaddressable =
+      some (.replaced
+        { allocation :=
+            { live := true, address := none,
+              bytes := request.bytes, state := request.state },
+          locations := locations },
+        footprint .metadata (Region.mk 0 0 request.bytes.length)) := by
+  simp [reallocMetadata, hsame]
+
+theorem reallocMetadata_address_rejects_length_mismatch
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (base : Nat)
+    (hmismatch : locations.length ≠ request.bytes.length) :
+    reallocMetadata old request locations (.address base) = none := by
+  simp [reallocMetadata, hmismatch]
+
+theorem reallocMetadata_unaddressable_rejects_length_mismatch
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (hmismatch : locations.length ≠ request.bytes.length) :
+    reallocMetadata old request locations .unaddressable = none := by
+  simp [reallocMetadata, hmismatch]
+
 def pairedReallocMetadata (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
     (request : AllocationRequest Tag State)
