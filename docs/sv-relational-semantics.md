@@ -536,6 +536,9 @@ per-step pattern without treating scalar names as the whole memory state.
 issue-order memory queue when every decoded target is hidden. It preserves the
 queue's required order and makes no aliasing claim for targets outside the
 receipt.
+`EdgePhaseState.observableMemoryView_agreesOutside_of_mem` connects this queue
+frame to the real edge scheduler's observable memory view while keeping the
+`MemNbaRecord` decoder and mapped-queue footprint receipt explicit.
 
 The following results are real and intentionally narrow.
 

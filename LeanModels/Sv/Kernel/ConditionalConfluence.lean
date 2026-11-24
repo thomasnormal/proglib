@@ -96,6 +96,17 @@ theorem MemV.agreesOutside_commitMemV_of_mem
 
 #print axioms MemV.agreesOutside_commitMemV_of_mem
 
+theorem EdgePhaseState.observableMemoryView_agreesOutside_of_mem
+    {E : CoreMemDesign} {decode : MemNbaRecord → String × Int × LVec}
+    {mv : MemV} {s : EdgePhaseState} {hidden : List (String × Int)}
+    (hqueue : ∀ item ∈ s.memoryQ.map decode,
+      (item.1, item.2.1) ∈ hidden) :
+    MemV.agreesOutside hidden mv
+      (EdgePhaseState.observableMemoryView E decode mv s).2 := by
+  exact MemV.agreesOutside_commitMemV_of_mem hqueue
+
+#print axioms EdgePhaseState.observableMemoryView_agreesOutside_of_mem
+
 /-! The real retained resume and the observation frame can be packaged at one
     blocking scalar leaf. This is the smallest concrete bridge into the
     generic admission's per-step premise. -/
