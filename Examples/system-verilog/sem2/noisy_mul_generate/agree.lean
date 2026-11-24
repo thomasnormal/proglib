@@ -144,3 +144,111 @@ theorem noisy_pp_expand_flatten
   rfl
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
+def andDesign : Design2 :=
+  { name := "and2f"
+    decls := #[{ name := "a", width := 1, isInput := true },
+               { name := "b", width := 1, isInput := true },
+               { name := "f", width := 1, isInput := true },
+               { name := "y", width := 1, isOutput := true }]
+    processes :=
+      #[.assign (.ident "y")
+          (.binary .xor (.binary .and (.ident "a") (.ident "b")) (.ident "f"))] }
+
+def andDef : PDesign :=
+  { name := "and2f", params := [], localParams := [], enums := []
+    decls := [{ name := "a", type := .packed [] (some 1), isInput := true },
+              { name := "b", type := .packed [] (some 1), isInput := true },
+              { name := "f", type := .packed [] (some 1), isInput := true },
+              { name := "y", type := .packed [] (some 1), isOutput := true }]
+    processes :=
+      [.assign "y"
+        (.binary (.m0 .xor) (.binary (.m0 .and) (.ident "a") (.ident "b")) (.ident "f"))]
+    generates := [] }
+
+theorem noisy_andDef : noisyMul.plib.head? = some andDef := by
+  rfl
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
+def andEnv : IEnv := { int32 := true, dims := dimTable { int32 := true } andDef.decls }
+
+theorem and_paramEnvH : andDef.paramEnvH { int32 := true } [] = .ok andEnv := by
+  rfl
+
+theorem and_decls : buildDecls andEnv andDef.decls = .ok andDesign.decls.toList := by
+  simp [andDef, andDesign, andEnv, buildDecls, instDecl, PType.width_packed_nil]
+
+def andElems : List (String × Nat) := [("a", 1), ("b", 1), ("f", 1), ("y", 1)]
+
+theorem and_elems : buildElems andEnv andDef.decls = .ok andElems := by
+  simp [andDef, andElems, andEnv, buildElems]
+
+theorem noisy_and_child (env : IEnv) (F : Nat) (clocks : List String) :
+    PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks env andInst = .ok andDesign := by
+  rw [show noisyMul.plib = andDef :: noisyMul.plib.tail from by rfl]
+  simp only [PDesign.childRec, childInstOf]
+  have hg : PInst.given env andDef andInst = .ok [] := by
+    simp [PInst.given, andDef, andInst]
+    rfl
+  have hp : andDef.atPoint [] = .ok (andDef, []) := rfl
+  have hfind : (andDef :: noisyMul.plib.tail).find? (fun x => x.name == andInst.module) = some andDef := by
+    rfl
+  rw [hfind]
+  simp only [hg, hp]
+  have hasm : andDef.assembleH andEnv andDesign.decls.toList [] andElems [] = andDesign := by
+    simp only [PDesign.assembleH, andDesign, andDef, List.append_nil, List.map_nil]
+    sv2_inst_simp [andElems, andEnv]
+  have hok : driversOk andDef.declNames andDef.inputNames andDesign.processes.toList = true := by
+    decide
+  rw [PDesign.instantiateRec_of_ok (depth := 0) (idecls := []) (gens := []) rfl
+    and_paramEnvH and_decls and_elems (by simp [andDef]), hasm]
+  simp only [Res.ok_bind, PDesign.driverGuard, Design2.driverGuard_of_ok hok]
+  simp [Design2.clockGuard, clockGuardProc, Process2.clock?, andDesign]
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
+/-- The actual child-recursion function for `noisy_mul` satisfies the nested
+`u_and` expansion equation, once the parent environment has established the
+symbolic `N` bounds. -/
+theorem noisy_pp_expand_actual
+    (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (clocks : List String) (hFuel : N.toNat < F)
+    (hOuterBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hOuterValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hInnerBound : ∀ i j : Int,
+      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
+    (hInnerValue : ∀ i j : Int,
+      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N) :
+    ppGen.expandH (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+      env elems F =
+      .ok
+        (List.flatMap
+          (fun i => List.flatMap
+            (fun j =>
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+                andInst andDesign).1)
+            (intRange 0 N.toNat)) (intRange 0 N.toNat),
+         List.flatMap
+          (fun i => List.flatMap
+            (fun j =>
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+                andInst andDesign).2)
+            (intRange 0 N.toNat)) (intRange 0 N.toNat)) := by
+  apply noisy_pp_expand_flatten
+    (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+    env elems F N hFuel andDesign hOuterBound hOuterValue hInnerBound hInnerValue
+  intro i j
+  exact noisy_and_child _ F clocks
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
