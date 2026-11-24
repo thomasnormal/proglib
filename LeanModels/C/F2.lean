@@ -980,6 +980,23 @@ theorem unionLoadMetadataByte_success
       some (byte, footprint .read { allocation := 0, offset := offset, width := 1 }) := by
   simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized]
 
+theorem unionLoadMetadataByte_footprint
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (result : Byte Tag × Footprint)
+    (hresult : unionLoadMetadataByte metadata offset = some result) :
+    result.2 = footprint .read { allocation := 0, offset := offset, width := 1 } := by
+  cases hbyte : metadata.allocation.bytes[offset]? with
+  | none => simp [unionLoadMetadataByte, hbyte] at hresult
+  | some byte =>
+      cases hlocation : metadata.locations[offset]? with
+      | none => simp [unionLoadMetadataByte, hbyte, hlocation] at hresult
+      | some location =>
+          cases hinitialized : location.initialized with
+          | false => simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized] at hresult
+          | true =>
+              simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized] at hresult
+              exact congrArg (fun pair => pair.2) hresult.symm
+
 def pairedStoreUnionLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
