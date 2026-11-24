@@ -171,6 +171,7 @@ MODELED_EXTERNALS = {
     "__builtin_signbit", "__builtin_isunordered", "__builtin_inf",
     "__builtin_inff", "__builtin_infl", "__builtin_huge_val",
     "__builtin_huge_valf", "__builtin_huge_vall", "__builtin_abs", "abs",
+    "isprint",
     "__sync_add_and_fetch_8", "__builtin_expect", "__builtin_prefetch",
     "__builtin_alloca", "malloc", "__builtin_malloc", "calloc",
     "__builtin_calloc", "free", "__builtin_free", "__builtin_ffs",

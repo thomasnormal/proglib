@@ -12,8 +12,8 @@
    "not-ingested": 1,
    "not-parsed": 395,
    "oracle-tests-compiler": 3,
-   "passed": 1175,
-   "refused-libc": 27,
+   "passed": 1176,
+   "refused-libc": 26,
    "refused-ub": 41,
    "refused-unsupported": 178,
    "runner-error": 10
@@ -32,8 +32,8 @@
   "not-ingested": 1,
   "not-parsed": 432,
   "oracle-tests-compiler": 3,
-  "passed": 1378,
-  "refused-libc": 29,
+  "passed": 1379,
+  "refused-libc": 28,
   "refused-ub": 47,
   "refused-unsupported": 313,
   "runner-error": 11
@@ -1029,14 +1029,6 @@
   },
   {
    "files": [
-    "991112-1.c"
-   ],
-   "present": 1,
-   "sole": 1,
-   "wall": "libc-call: isprint"
-  },
-  {
-   "files": [
     "builtins/lib/main.c"
    ],
    "present": 1,
@@ -1368,8 +1360,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T00:20:00Z",
- "measured_commit": "168c58e6ee6fca1ed8553c4d8ec1ce628704d177",
+ "measured_at_utc": "2026-11-24T00:45:04Z",
+ "measured_commit": "b38f5f4e948325f4a3ea78a2bb0ceee62404eaba",
  "pin": "C1-C3",
  "rows": [
   {
@@ -12306,16 +12298,15 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "isprint",
-   "dynamic_wall": "libc-call: isprint",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "991112-1.c",
    "sha256": "6ed611e9629336a7603aa4eaea96fd43571cb5ff00a2c648fe0772a79d35d6e9",
    "static_walls": [
-    "libc-call: isprint",
     "libc-call: x"
    ],
-   "verdict": "refused-libc"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -27540,6 +27531,14 @@
   },
   {
    "files": [
+    "991112-1.c"
+   ],
+   "present": 1,
+   "sole": 1,
+   "wall": "libc-call: x"
+  },
+  {
+   "files": [
     "pr68249.c"
    ],
    "present": 1,
@@ -28650,14 +28649,6 @@
   },
   {
    "files": [
-    "991112-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: isprint"
-  },
-  {
-   "files": [
     "builtins/abs-2.c"
    ],
    "present": 1,
@@ -28783,14 +28774,6 @@
    "present": 1,
    "sole": 0,
    "wall": "libc-call: umaxabs"
-  },
-  {
-   "files": [
-    "991112-1.c"
-   ],
-   "present": 1,
-   "sole": 0,
-   "wall": "libc-call: x"
   },
   {
    "files": [
