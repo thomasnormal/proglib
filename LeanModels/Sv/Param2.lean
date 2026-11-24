@@ -877,23 +877,38 @@ def expandFunctionCallsGo (env : IEnv) : PExpr → PExpr
 def expandFunctionCalls (env : IEnv) (e : PExpr) : PExpr :=
   if env.functions.isEmpty then e else expandFunctionCallsGo env e
 
-partial def expandFunctionStmt (env : IEnv) : PStmt → PStmt
+mutual
+def expandFunctionStmt (env : IEnv) : PStmt → PStmt
   | .localDecl n w init => .localDecl n w (init.map (expandFunctionCalls env))
   | .automaticDecl n w init => .automaticDecl n w (init.map (expandFunctionCalls env))
   | .blockingAssign t v => .blockingAssign t (expandFunctionCalls env v)
   | .nbaAssign t v => .nbaAssign t (expandFunctionCalls env v)
   | .ifStmt c yes no => .ifStmt (expandFunctionCalls env c)
-      (expandFunctionStmt env yes) (no.map (expandFunctionStmt env))
-  | .block body => .block (body.map (expandFunctionStmt env))
+      (expandFunctionStmt env yes) (expandFunctionStmtOpt env no)
+  | .block body => .block (expandFunctionStmtList env body)
   | .forLoop i init test step body => .forLoop i (expandFunctionCalls env init)
       (expandFunctionCalls env test) (expandFunctionCalls env step) (expandFunctionStmt env body)
   | .blockingAssignL t v => .blockingAssignL t (expandFunctionCalls env v)
   | .nbaAssignL t v => .nbaAssignL t (expandFunctionCalls env v)
   | .caseStmt subj items default mode check =>
       .caseStmt (expandFunctionCalls env subj)
-        (items.map fun (pats, body) => (pats.map (expandFunctionCalls env), expandFunctionStmt env body))
-        (default.map (expandFunctionStmt env)) mode check
+        (expandFunctionCaseList env items) (expandFunctionStmtOpt env default) mode check
   | .unsupported k t => .unsupported k t
+
+def expandFunctionStmtList (env : IEnv) : List PStmt → List PStmt
+  | [] => []
+  | stmt :: rest => expandFunctionStmt env stmt :: expandFunctionStmtList env rest
+
+def expandFunctionStmtOpt (env : IEnv) : Option PStmt → Option PStmt
+  | none => none
+  | some stmt => some (expandFunctionStmt env stmt)
+
+def expandFunctionCaseList (env : IEnv) : List (List PExpr × PStmt) → List (List PExpr × PStmt)
+  | [] => []
+  | (patterns, body) :: rest =>
+      (patterns.map (expandFunctionCalls env), expandFunctionStmt env body) ::
+        expandFunctionCaseList env rest
+end
 
 def expandFunctionProcess (env : IEnv) : PProcess → PProcess
   | .alwaysFF c b => .alwaysFF c (expandFunctionStmt env b)

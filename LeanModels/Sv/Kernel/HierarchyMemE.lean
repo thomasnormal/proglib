@@ -14,6 +14,7 @@ namespace LeanModels.Sv.Kernel
 open LeanModels.Sv
 set_option autoImplicit false
 
+mutual
 private def hExpr (pfx : String) : PExpr → PExpr
   | .ident n => .ident (pfx ++ n)
   | .arrayElem n is => .arrayElem (pfx ++ n) (is.map (hExpr pfx))
@@ -28,12 +29,26 @@ private def hExpr (pfx : String) : PExpr → PExpr
   | .signedResize w a => .signedResize w (hExpr pfx a)
   | .squash2 w a => .squash2 w (hExpr pfx a)
   | .sysCall f a => .sysCall f (hExpr pfx a)
+  | .typeBits n w => .typeBits n w
   | .reduce o a => .reduce o (hExpr pfx a)
   | .cast s a => .cast s (hExpr pfx a)
   | .repl n a => .repl (hExpr pfx n) (hExpr pfx a)
   | .functionCall n xs => .functionCall n (xs.map (hExpr pfx))
+  | .aggregateMember n path => .aggregateMember (pfx ++ n) (hExprPath pfx path)
+  | .packageAggElem pkg n index => .packageAggElem pkg n (hExpr pfx index)
   | e@(.paramRef ..) | e@(.genvarRef ..) | e@(.enumRef ..)
   | e@(.int ..) | e@(.fill ..) | e@(.lit ..) | e@(.unsupported ..) => e
+
+private def hExprPath (pfx : String) : List (Option String × Option PExpr) →
+    List (Option String × Option PExpr)
+  | [] => []
+  | (field, index) :: rest =>
+      (field, hExprOpt pfx index) :: hExprPath pfx rest
+
+private def hExprOpt (pfx : String) : Option PExpr → Option PExpr
+  | none => none
+  | some e => some (hExpr pfx e)
+end
 
 private def hLhs (pfx : String) : PLhs → PLhs
   | .ident n => .ident (pfx ++ n)
@@ -41,20 +56,38 @@ private def hLhs (pfx : String) : PLhs → PLhs
   | .partSel n a b => .partSel (pfx ++ n) (hExpr pfx a) (hExpr pfx b)
   | .arrayElem n is => .arrayElem (pfx ++ n) (is.map (hExpr pfx))
   | .arrayPart n is m a b => .arrayPart (pfx ++ n) (is.map (hExpr pfx)) m (hExpr pfx a) (hExpr pfx b)
+  | .aggregateMember n path => .aggregateMember (pfx ++ n)
+      (path.map fun (field, ix) => (field, ix.map (hExpr pfx)))
   | .concat xs => .concat (xs.map (hLhs pfx))
 
-private partial def hStmt (pfx : String) : PStmt → PStmt
+mutual
+private def hStmt (pfx : String) : PStmt → PStmt
   | .blockingAssign n e => .blockingAssign (pfx ++ n) (hExpr pfx e)
   | .nbaAssign n e => .nbaAssign (pfx ++ n) (hExpr pfx e)
   | .blockingAssignL l e => .blockingAssignL (hLhs pfx l) (hExpr pfx e)
   | .nbaAssignL l e => .nbaAssignL (hLhs pfx l) (hExpr pfx e)
-  | .ifStmt c a b => .ifStmt (hExpr pfx c) (hStmt pfx a) (b.map (hStmt pfx))
-  | .block xs => .block (xs.map (hStmt pfx))
+  | .ifStmt c a b => .ifStmt (hExpr pfx c) (hStmt pfx a) (hOptStmt pfx b)
+  | .block xs => .block (hStmtList pfx xs)
   | .forLoop i a c s b => .forLoop i (hExpr pfx a) (hExpr pfx c) (hExpr pfx s) (hStmt pfx b)
+  | .localDecl n w init => .localDecl (pfx ++ n) w (init.map (hExpr pfx))
+  | .automaticDecl n w init => .automaticDecl (pfx ++ n) w (init.map (hExpr pfx))
   | .caseStmt e xs d m c => .caseStmt (hExpr pfx e)
-      (xs.map fun (ps, b) => (ps.map (hExpr pfx), hStmt pfx b))
-      (d.map (hStmt pfx)) m c
+      (hCaseList pfx xs) (hOptStmt pfx d) m c
   | e@(.unsupported ..) => e
+
+private def hOptStmt (pfx : String) : Option PStmt → Option PStmt
+  | none => none
+  | some stmt => some (hStmt pfx stmt)
+
+private def hStmtList (pfx : String) : List PStmt → List PStmt
+  | [] => []
+  | stmt :: rest => hStmt pfx stmt :: hStmtList pfx rest
+
+private def hCaseList (pfx : String) : List (List PExpr × PStmt) → List (List PExpr × PStmt)
+  | [] => []
+  | (patterns, body) :: rest =>
+      (patterns.map (hExpr pfx), hStmt pfx body) :: hCaseList pfx rest
+end
 
 
 private def hProcess (pfx : String) (clockMap : List (String × String)) : PProcess → PProcess
@@ -140,14 +173,31 @@ private def genLhs (g : String) (v : Int) : PLhs → PLhs
   | .ident n => .ident n
   | l => l
 
-private partial def genStmt (g : String) (v : Int) : PStmt → PStmt
+mutual
+private def genStmt (g : String) (v : Int) : PStmt → PStmt
   | .nbaAssignL l e => .nbaAssignL (genLhs g v l) (genExpr g v e)
   | .blockingAssignL l e => .blockingAssignL (genLhs g v l) (genExpr g v e)
-  | .block xs => .block (xs.map (genStmt g v))
-  | .ifStmt c a b => .ifStmt (genExpr g v c) (genStmt g v a) (b.map (genStmt g v))
+  | .block xs => .block (genStmtList g v xs)
+  | .ifStmt c a b => .ifStmt (genExpr g v c) (genStmt g v a) (genOptStmt g v b)
+  | .caseStmt e items d mode check =>
+      .caseStmt (genExpr g v e) (genCaseList g v items) (genOptStmt g v d) mode check
   | e => e
 
-private partial def genProcesses (env : IEnv) (fuel : Nat) : List GenItem → Res (List PProcess)
+private def genOptStmt (g : String) (v : Int) : Option PStmt → Option PStmt
+  | none => none
+  | some stmt => some (genStmt g v stmt)
+
+private def genStmtList (g : String) (v : Int) : List PStmt → List PStmt
+  | [] => []
+  | stmt :: rest => genStmt g v stmt :: genStmtList g v rest
+
+private def genCaseList (g : String) (v : Int) : List (List PExpr × PStmt) → List (List PExpr × PStmt)
+  | [] => []
+  | (patterns, body) :: rest =>
+      (patterns.map (genExpr g v), genStmt g v body) :: genCaseList g v rest
+end
+
+private def genProcesses (env : IEnv) (fuel : Nat) : List GenItem → Res (List PProcess)
   | [] => .ok []
   | .process p :: rest => do
       let tail ← genProcesses env fuel rest
@@ -168,6 +218,12 @@ private partial def genProcesses (env : IEnv) (fuel : Nat) : List GenItem → Re
       let tail ← genProcesses env fuel rest
       .ok (here ++ tail)
   | _ :: rest => genProcesses env fuel rest
+termination_by items => sizeOf items
+decreasing_by
+  all_goals simp_wf
+  all_goals try simp only [chosen]
+  all_goals try split
+  all_goals omega
 
 def MemEDesign.ofGenerated (d : PDesign) (args : List Int) : Res MemEDesign := do
   let env ← d.paramEnv2 args

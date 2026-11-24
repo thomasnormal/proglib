@@ -295,15 +295,21 @@ def evalMemEUnsizedXZ (ctx : Option Nat) (payload : String) : Except String LVec
   | .unsupported _ message => .error message
   | _ => .error "unsized x/z conversion did not produce a literal"
 
-partial def memEHasMemory : MemEDesign → PExpr → Bool
+mutual
+def memEHasMemory : MemEDesign → PExpr → Bool
   | d, .arrayElem n _ | d, .arrayPart n _ _ _ _ => d.memDecl? n |>.isSome
   | d, .unary _ a | d, .resize _ a | d, .signedResize _ a | d, .squash2 _ a
   | d, .sysCall _ a | d, .reduce _ a | d, .cast _ a => memEHasMemory d a
   | d, .binary _ a b | d, .bitSel a b | d, .repl a b => memEHasMemory d a || memEHasMemory d b
   | d, .partSel a b c | d, .ternary a b c => memEHasMemory d a || memEHasMemory d b || memEHasMemory d c
-  | d, .concat xs => xs.any (memEHasMemory d)
+  | d, .concat xs => memEHasMemoryList d xs
   | _, .typeBits _ _ => false
   | _, _ => false
+
+def memEHasMemoryList (d : MemEDesign) : List PExpr → Bool
+  | [] => false
+  | e :: rest => memEHasMemory d e || memEHasMemoryList d rest
+end
 
 def evalMemEExpr (d : MemEDesign) (s : MemEState) (ctx : Option Nat) : PExpr → Except String LVec
   | .arrayElem n [idx] => do
