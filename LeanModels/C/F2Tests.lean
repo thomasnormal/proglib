@@ -171,6 +171,9 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard freePointer (Tag := Unit) (State := Unit) (TypeId := String)
   (some ((freeMetadata metadata).getD (metadata, { accesses := [] })).1) == .stalePointer
 #guard (loadByte one 0 0).isSome
+#guard match loadByte one 0 0 with
+  | some (_, fp) => fp == footprint .read { allocation := 0, offset := 0, width := 1 }
+  | none => false
 #guard (loadByte empty 0 0).isNone
 #guard (loadByte dead 0 0).isNone
 #guard (loadByte one 0 1).isNone
