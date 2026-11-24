@@ -3410,6 +3410,16 @@ theorem offsetPointer_success_negative
         address := pointer.address - Int.natAbs delta * elementSize } := by
   simp [offsetPointer, hsize, hdelta, hwithin, hbound]
 
+theorem offsetPointer_negative_underflow
+    (pointer : Pointer Tag) (elementSize : Nat) (delta : Int) (bound : Nat)
+    (hsize : elementSize ≠ 0) (hdelta : delta < 0)
+    (hunderflow : pointer.address < Int.natAbs delta * elementSize) :
+    offsetPointer pointer elementSize delta bound =
+      .ok { pointer with address := 0 } := by
+  have hzero : pointer.address - Int.natAbs delta * elementSize = 0 :=
+    Nat.sub_eq_zero_of_le (Nat.le_of_lt hunderflow)
+  simp [offsetPointer, hsize, hdelta, hzero]
+
 def renameOffsetResult (resolve : AllocId → Nat) :
     Except OffsetFault (Pointer Tag) → Except OffsetFault (Pointer Tag)
   | .error fault => .error fault
