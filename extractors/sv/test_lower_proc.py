@@ -288,7 +288,18 @@ class LoopHeaders(Base):
         m1, m2 = self.two("for (i = 0; i < 4; i = i + 1) y[i] = a[i];", "for (int i = 0; i < 4; i = i + 1) y[i] = a[i];", pre=pre)
         self.assertEqual(sv_kinds(m1), [])
         self.assertEqual(strip_tags(always_comb_body(m1)), strip_tags(always_comb_body(m2)))
-        self.assertEqual([d for d in m1["decls"] if d["name"] == "i"], [])      # the dead declaration is erased
+        iter_decls = [d for d in m1["decls"] if d["name"] == "i"]
+        self.assertEqual(len(iter_decls), 1)
+        self.assertEqual(iter_decls[0]["kind"], "Var")
+
+    def test_module_level_iterator_is_retained_in_clocked_source(self):
+        m = self.module(
+            "module t(input logic clk, output logic [3:0] q); integer i; "
+            "always_ff @(posedge clk) begin for (i = 0; i < 4; i = i + 1) "
+            "q[i] <= 1'b1; end endmodule")
+        iter_decls = [d for d in m["decls"] if d["name"] == "i"]
+        self.assertEqual(len(iter_decls), 1)
+        self.assertEqual(iter_decls[0]["kind"], "Var")
 
     def test_hand_unrolled_equivalence(self):
         m1, m2 = self.two("for (i = 0; i < 4; i = i + 1) y[i] = a[3-i];", "y[0] = a[3]; y[1] = a[2]; y[2] = a[1]; y[3] = a[0];",

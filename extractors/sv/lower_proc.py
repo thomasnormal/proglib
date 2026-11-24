@@ -223,6 +223,17 @@ def erased_iterator(ex, symbol):
             return False
     except Exception:
         return False
+    # A module-level declaration is part of the parser AST and remains part of
+    # the source-shaped envelope even when the loop body is unrolled.  Only a
+    # block-local iterator may be erased as a lowering artifact.
+    try:
+        parent = getattr(getattr(symbol, "syntax", None), "parent", None)
+        if type(parent).__name__ == "DataDeclarationSyntax":
+            parent = getattr(parent, "parent", None)
+        if type(parent).__name__ == "ModuleDeclarationSyntax":
+            return False
+    except Exception:
+        pass
     return _iterator_census(ex, symbol)
 
 
