@@ -7233,3 +7233,14 @@ only the memory admission's stable-state and empty-continuation fields. The
 clean-room memory edge-order agreement module imports and exercises this
 bridge. It does not claim canonical memory commit success or mixed scalar and
 memory observational equality.
+
+## Relational design v2 readiness — 2026-11-24
+
+The relational-semantics design now records the synthesis review's factual
+inventory and migration boundary. The normative relation uses parser-native
+PStmt/PExpr/PLhs nodes with an extensional semantic store, explicit
+process/statement granularity, per-read x choices, separate refusal and
+nontermination outcomes, five independent executor obligations, simultaneous
+input batches, and transport surfaces for SeqRuns and combinational claims.
+The first migration stage is executor de-fuelling owned by the executor lane.
+No trusted relation implementation is authorized by this design packet.

@@ -13,6 +13,14 @@ The relation is built on the source-shaped nodes in `CoreMemDesign`,
 `Scheduler.lean`'s older scalar `Design`, `Stmt2`, or a fuelled executor
 the meaning of the language.
 
+The relation's store is extensional. It contains declared scalar values,
+memory identities and addressed memory cells, aggregate cells, and the
+pending semantic queues needed by a slot. Executor caches such as compiled
+driver lists and scalar arrays stay inside `CoreMemState` and are connected by
+an explicit observation/embedding map. A relation proof therefore cannot
+depend on a cache layout or on a source-order fold that happens to implement
+the executor.
+
 ## Seven settled agreements and their status
 
 1. **One parser-native relation.** The final relation matches PStmt, PExpr,
@@ -51,6 +59,14 @@ the meaning of the language.
 
 ## Existing slot definitions and their fate
 
+The checkout's broader semantic inventory is useful when auditing migration.
+M0 (`Semantics.lean`), S1 (`Scheduler.lean`), R1 (`Slot.lean` and
+`Regions.lean`), the lowered `Design2`/`run2` stack, `MemCycle`, E-core-0/1,
+and canonical E over `CoreMemDesign` are distinct stacks over different ASTs
+and state representations. The table below records their fate. None of the
+bounded enumerators or executor functions is promoted merely because it is
+already executable.
+
 | Existing definition | What it actually covers | Fate |
 | --- | --- | --- |
 | `Core0E.step`, `Steps`, `SlotCloses` in `Kernel/Core0E.lean` and `Core0Comb.lean` | Fuel-free relation over the lowered `Stmt2`, assigns and a limited combinational profile, process-atomic | Bridge and proof precedent. Transport its results to the parser-native relation, then retire or retain as a compatibility shell |
@@ -70,9 +86,10 @@ relations are the correct construction seam.
 
 ## Semantic values, refusals, and the three outcomes
 
-The relation uses the elaborated stores and values already carried by
-`CoreMemDesign`. A semantic refusal records the parser node and the
-applicable clause.
+The relation uses an extensional `SvStore` for semantic state and the
+parser-native elaboration carried by `CoreMemDesign`. The executor's
+`CoreMemState` is related to that store by an embedding and observation map.
+A semantic refusal records the parser node and the applicable clause.
 
 ```lean
 inductive RelRefusal where
@@ -116,20 +133,25 @@ inductive Granularity
 structure XResolution where
   read : Nat → Bool
 
+structure SvStore where
+  scalar : String → LVec
+  memory : String → Int → LVec
+  aggregate : String → Option LVec
+
 structure StmtState where
   env : IEnv
-  store : CoreMemState
+  store : SvStore
   locals : SvState
   scalarQ : NbaQueue2
   memoryQ : MemNbaQueue
 
 inductive ExprRel
     (E : CoreMemDesign) (x : XResolution) :
-    IEnv → CoreMemState → SvState → PExpr → LVec → Prop
+    IEnv → SvStore → SvState → PExpr → LVec → Prop
 
 inductive LhsRel
     (E : CoreMemDesign) (x : XResolution) :
-    IEnv → CoreMemState → SvState → PLhs → LhsTarget → Prop
+    IEnv → SvStore → SvState → PLhs → LhsTarget → Prop
 
 inductive StmtStep
     (E : CoreMemDesign) (g : Granularity) (x : XResolution) :
@@ -144,7 +166,7 @@ def StmtRun
 structure SlotState where
   input : SvState
   region : Region
-  machine : CoreMemState
+  machine : SvStore
   active : List EdgeCursor
   comb : List CombCursor
   scalarQ : NbaQueue2
@@ -599,9 +621,11 @@ against this checkout.
   `CoreMemExec.lean`. This is a confirmed admission bug and is fixed by the
   executor lane's 775472220; it is not a relational theorem.
 * `XResolve.lean` contains the legacy correlated `Resolves` relation and
-  the per-read `XRead`/`XReadRun) relation. The latter is the authority
+  the per-read `XRead`/`XReadRun` relation. The latter is the authority
   under the owner's ruling. Existing executor uses of `condTrue` are not a
   formal x semantics.
+  The proposals that recommend origin-correlated unknowns conflict with the
+  owner's fixed per-read decision and are not adopted here.
 * `EdgePhaseConfluence.lean` imports `Scheduler.lean` for historical
   witnesses. This does not make the old Scheduler relation the authority.
 * Existing memory and phase confluence theorems require explicit admissions,
@@ -617,7 +641,7 @@ implementation budgets from semantic/user theorem paths.
 
 1. Replace fixed statement, LHS, loop, generate, automatic-name, and
    settle parameters with explicit `ExecLimits` in implementation APIs.
-2. Remove the user-facing `PStmt.need ≤ 4096) and the derived `N ≤ 4000)
+2. Remove the user-facing `PStmt.need ≤ 4096` and the derived `N ≤ 4000`
    hypotheses. Keep any implementation limit in executor-only theorem names.
 3. Make pure walkers and finite header computation structural. Repair the
    32-hop closure truncation and classify loop-header integer overflow loudly.
