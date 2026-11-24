@@ -4006,6 +4006,19 @@ theorem allocateMetadata_result_payload
   · rcases hresult with ⟨_, rfl⟩
     exact ⟨rfl, rfl, rfl, rfl⟩
 
+theorem allocateMetadata_result_wellFormed
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hbytes : bytesWf 0 request.bytes)
+    (hresult : allocateMetadata request locations placement = some result) :
+    result.1.wellFormed 0 := by
+  cases placement <;> simp [allocateMetadata, AllocationMetadata.wellFormed] at hresult
+  · rcases hresult with ⟨hEq, rfl⟩
+    exact ⟨hbytes, hEq⟩
+  · rcases hresult with ⟨hEq, rfl⟩
+    exact ⟨hbytes, hEq⟩
+
 theorem allocateMetadata_address_success
     (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (base : Nat)
