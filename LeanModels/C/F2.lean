@@ -4545,41 +4545,6 @@ def storeByte (store : Store Tag State) (id offset : Nat)
     some ({ store with allocations := allocations }, footprint .write
       { allocation := id, offset := offset, width := 1 })
 
-theorem storeByte_success_footprint
-    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
-    (result : Store Tag State × Footprint)
-    (hresult : storeByte store id offset byte = some result) :
-    result.2 = footprint .write
-      { allocation := id, offset := offset, width := 1 } := by
-  cases hlookup : lookup store id with
-  | none => simp [storeByte, hlookup] at hresult
-  | some allocation =>
-      cases hlive : allocation.live with
-      | false => simp [storeByte, hlookup, hlive] at hresult
-      | true =>
-          by_cases hoffset : offset ≥ allocation.bytes.length
-          · simp [storeByte, hlookup, hlive, hoffset] at hresult
-          · simp [storeByte, hlookup, hlive, hoffset] at hresult
-            exact congrArg (fun pair => pair.2) hresult.symm
-
-theorem storeByte_success_preserves_counts
-    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
-    (result : Store Tag State × Footprint)
-    (hresult : storeByte store id offset byte = some result) :
-    result.1.nextId = store.nextId ∧
-      result.1.allocations.length = store.allocations.length := by
-  cases hlookup : lookup store id with
-  | none => simp [storeByte, hlookup] at hresult
-  | some allocation =>
-      cases hlive : allocation.live with
-      | false => simp [storeByte, hlookup, hlive] at hresult
-      | true =>
-          by_cases hoffset : offset ≥ allocation.bytes.length
-          · simp [storeByte, hlookup, hlive, hoffset] at hresult
-          · simp [storeByte, hlookup, hlive, hoffset] at hresult
-            rcases hresult with ⟨rfl, rfl⟩
-            simp [List.length_map]
-
 def storeTransitionCorresponds (resolve : AllocId → Nat)
     (source target : Store Tag State)
     (sourceResult targetResult : Store Tag State × Footprint) : Prop :=
@@ -4621,24 +4586,6 @@ def loadByte (store : Store Tag State) (id offset : Nat) :
   else
     let byte ← allocation.bytes[offset]?
     some (byte, footprint .read { allocation := id, offset := offset, width := 1 })
-
-theorem loadByte_success_footprint
-    (store : Store Tag State) (id offset : Nat)
-    (result : Byte Tag × Footprint)
-    (hresult : loadByte store id offset = some result) :
-    result.2 = footprint .read
-      { allocation := id, offset := offset, width := 1 } := by
-  cases hlookup : lookup store id with
-  | none => simp [loadByte, hlookup] at hresult
-  | some allocation =>
-      cases hlive : allocation.live with
-      | false => simp [loadByte, hlookup, hlive] at hresult
-      | true =>
-          cases hbyte : allocation.bytes[offset]? with
-          | none => simp [loadByte, hlookup, hlive, hbyte] at hresult
-          | some stored =>
-              simp [loadByte, hlookup, hlive, hbyte] at hresult
-              exact congrArg (fun pair => pair.2) hresult.symm
 
 theorem loadByte_success_value
     (store : Store Tag State) (id offset : Nat)
