@@ -518,6 +518,18 @@ theorem storeMetadataByte_preserves_locations
   rcases hresult with ⟨_, hEq⟩
   rw [← hEq]
 
+theorem storeMetadataByte_success_shape
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (byte : Byte Tag) (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : storeMetadataByte metadata offset byte = some result) :
+    result.1.allocation.bytes = listSet metadata.allocation.bytes offset byte ∧
+      result.1.locations = metadata.locations ∧
+      result.2 = footprint .write { allocation := 0, offset := offset, width := 1 } := by
+  simp [storeMetadataByte] at hresult
+  rcases hresult with ⟨_, hEq⟩
+  rcases hEq with rfl
+  exact ⟨rfl, rfl, rfl⟩
+
 def typedStoreMetadataByte (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
     Option (AllocationMetadata Tag State TypeId × Footprint) :=
