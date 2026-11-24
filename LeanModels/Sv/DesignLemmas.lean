@@ -13,10 +13,11 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
 * `PDesign.instantiateRec_of_ok` splits one hierarchical instantiation into
   its parameter environment, declarations, elements, and generated processes.
 * `GenItem.expandH_genFor_ascending_flatMap` gives one structural induction
-  step for an ascending generate-for; `generated_child_family` and
-  `generated_child_at_prefix` expose the same equations under stable names for
-  hand proofs, while `GenItem.expandH_inst` and `instExpandH_of` expose one
-  child's flattened declarations and processes.
+  step for an ascending generate-for; `generated_child_family`,
+  `generated_child_nested_family`, and `generated_child_at_prefix` expose the
+  one- and two-level child equations under stable names for hand proofs, while
+  `GenItem.expandH_inst` and `instExpandH_of` expose one child's flattened
+  declarations and processes.
 * `PDesign.assembleH_decls` and `PDesign.assembleH_processes` connect the
   generated pieces back to the ordinary hierarchical design.
 * `CombDesign` and `Acyclic` are the profile and dependency contracts for a
