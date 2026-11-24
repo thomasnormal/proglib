@@ -5631,6 +5631,33 @@ theorem pairedStoreLoadByte_footprints
                 loadByte_footprint _ _ _ _ hsource,
                 loadByte_footprint _ _ _ _ htarget⟩
 
+theorem pairedStoreLoadByte_operational_results
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : StoreLoadPair Tag State)
+    (hresult : pairedStoreLoadByte resolve store id offset byte = some result) :
+    ∃ stores sourceLoad targetLoad,
+      result.sourceStore = stores.1 ∧
+      result.targetStore = stores.2 ∧
+      result.sourceLoad = sourceLoad ∧
+      result.targetLoad = targetLoad ∧
+      pairedStoreByte resolve store id offset byte = some stores ∧
+      loadByte stores.1.1 id offset = some sourceLoad ∧
+      loadByte stores.2.1 id offset = some targetLoad := by
+  cases hs : pairedStoreByte resolve store id offset byte with
+  | none => simp [pairedStoreLoadByte, hs] at hresult
+  | some stores =>
+      cases hsource : loadByte stores.1.1 id offset with
+      | none => simp [pairedStoreLoadByte, hs, hsource] at hresult
+      | some sourceLoad =>
+          cases htarget : loadByte stores.2.1 id offset with
+          | none => simp [pairedStoreLoadByte, hs, hsource, htarget] at hresult
+          | some targetLoad =>
+              simp [pairedStoreLoadByte, hs, hsource, htarget] at hresult
+              rcases hresult with rfl
+              exact ⟨stores, sourceLoad, targetLoad, rfl, rfl, rfl, rfl,
+                by simp [hs], by simp [hsource], by simp [htarget]⟩
+
 theorem pairedStoreLoadByte_preserves_store_counts
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) (byte : Byte Tag)
