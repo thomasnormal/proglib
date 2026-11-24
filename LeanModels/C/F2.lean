@@ -1622,6 +1622,66 @@ theorem endLifetime_footprint
       rcases hresult with ⟨_, hEq⟩
       exact congrArg (fun pair => pair.2) hEq.symm
 
+theorem pairedStoreByte_footprints
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedStoreByte resolve store id offset byte = some result) :
+    result.1.2 = footprint .write { allocation := id, offset := offset, width := 1 } ∧
+      result.2.2 = footprint .write { allocation := id, offset := offset, width := 1 } := by
+  cases hs : storeByte store id offset byte with
+  | none => simp [pairedStoreByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : storeByte (renameStore resolve store) id offset
+          (renameByte resolve byte) with
+      | none => simp [pairedStoreByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedStoreByte, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨storeByte_footprint _ _ _ _ _ hs,
+            storeByte_footprint _ _ _ _ _ ht⟩
+
+theorem pairedLoadByte_footprints
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedLoadByte resolve store id offset = some result) :
+    result.1.2 = footprint .read { allocation := id, offset := offset, width := 1 } ∧
+      result.2.2 = footprint .read { allocation := id, offset := offset, width := 1 } := by
+  cases hs : loadByte store id offset with
+  | none => simp [pairedLoadByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : loadByte (renameStore resolve store) id offset with
+      | none => simp [pairedLoadByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedLoadByte, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨loadByte_footprint _ _ _ _ hs,
+            loadByte_footprint _ _ _ _ ht⟩
+
+theorem pairedEndLifetime_footprints
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedEndLifetime resolve store id = some result) :
+    result.1.2 = footprint .metadata
+      (Region.mk id 0 ((lookup store id).map
+        (fun allocation => allocation.bytes.length) |>.getD 0)) ∧
+      result.2.2 = footprint .metadata
+        (Region.mk id 0 ((lookup (renameStore resolve store) id).map
+          (fun allocation => allocation.bytes.length) |>.getD 0)) := by
+  cases hs : endLifetime store id with
+  | none => simp [pairedEndLifetime, hs] at hresult
+  | some sourceResult =>
+      cases ht : endLifetime (renameStore resolve store) id with
+      | none => simp [pairedEndLifetime, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedEndLifetime, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨endLifetime_footprint _ _ _ hs,
+            endLifetime_footprint _ _ _ ht⟩
+
 #guard true
 #guard (footprint .read { allocation := 1, offset := 0, width := 1 }).accesses.length == 1
 
