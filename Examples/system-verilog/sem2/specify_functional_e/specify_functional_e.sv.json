@@ -1,0 +1,232 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "specify_repro_check",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/specify_functional_e/specify_functional_e.sv",
+      "sha256": "e38fb6cf2fa66b08d10e58c9f46ca0f496a38a5a6cd6ac30f3c0dad408fd81e6"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 9,
+          "col": 1,
+          "end_line": 11,
+          "end_col": 10
+        },
+        "name": "specify_repro_check",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 9,
+              "col": 40,
+              "end_line": 9,
+              "end_col": 41
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 9,
+              "col": 56,
+              "end_line": 9,
+              "end_col": 57
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [],
+        "generates": [
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 10,
+              "col": 17,
+              "end_line": 10,
+              "end_col": 48
+            },
+            "name": "u_child",
+            "module": "specify_repro",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 10,
+                  "col": 33,
+                  "end_line": 10,
+                  "end_col": 34
+                },
+                "port": "source",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 10,
+                    "col": 33,
+                    "end_line": 10,
+                    "end_col": 34
+                  },
+                  "width": 1,
+                  "name": "a"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 10,
+                  "col": 45,
+                  "end_line": 10,
+                  "end_col": 46
+                },
+                "port": "result",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 10,
+                    "col": 45,
+                    "end_line": 10,
+                    "end_col": 46
+                  },
+                  "width": 1,
+                  "name": "y"
+                }
+              }
+            ]
+          }
+        ],
+        "others": []
+      },
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "specify_repro",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 33,
+              "end_line": 2,
+              "end_col": 39
+            },
+            "name": "source",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 53,
+              "end_line": 2,
+              "end_col": 59
+            },
+            "name": "result",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "net_as_variable": true
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 3,
+              "col": 10,
+              "end_line": 3,
+              "end_col": 25
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 10,
+                "end_line": 3,
+                "end_col": 16
+              },
+              "width": 1,
+              "name": "result"
+            },
+            "value": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 19,
+                "end_line": 3,
+                "end_col": 25
+              },
+              "width": 1,
+              "name": "source"
+            },
+            "continuous_net_target": true
+          }
+        ],
+        "generates": [],
+        "others": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 4,
+              "col": 3,
+              "end_line": 6,
+              "end_col": 13
+            },
+            "sv_kind": "SpecifyBlockSymbol:SpecifyBlock",
+            "text": "specify\n    (source *> result) = (0, 0);\n  endspecify"
+          }
+        ]
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
