@@ -4449,12 +4449,35 @@ theorem pairedPlacementWithin_refusal_target
 
 def placementWithinComposition (first second : AllocId → Nat)
     (id size limit base : Nat) : Bool :=
-  placementWithin (second id) size limit == placementWithin (second id) size limit
+  placementWithin (first id) size limit == placementWithin (second id) size limit
 
-theorem placementWithinComposition_sound (first second : AllocId → Nat)
-    (id size limit base : Nat) :
-    placementWithinComposition first second id size limit base := by
-  simp [placementWithinComposition]
+theorem placementWithinComposition_both_allowed
+    (first second : AllocId → Nat) (id size limit base : Nat)
+    (hfirst : placementWithin (first id) size limit = true)
+    (hsecond : placementWithin (second id) size limit = true) :
+    placementWithinComposition first second id size limit base = true := by
+  simp [placementWithinComposition, hfirst, hsecond]
+
+theorem placementWithinComposition_both_refused
+    (first second : AllocId → Nat) (id size limit base : Nat)
+    (hfirst : placementWithin (first id) size limit = false)
+    (hsecond : placementWithin (second id) size limit = false) :
+    placementWithinComposition first second id size limit base = true := by
+  simp [placementWithinComposition, hfirst, hsecond]
+
+theorem placementWithinComposition_refusal_first
+    (first second : AllocId → Nat) (id size limit base : Nat)
+    (hfirst : placementWithin (first id) size limit = false)
+    (hsecond : placementWithin (second id) size limit = true) :
+    placementWithinComposition first second id size limit base = false := by
+  simp [placementWithinComposition, hfirst, hsecond]
+
+theorem placementWithinComposition_refusal_second
+    (first second : AllocId → Nat) (id size limit base : Nat)
+    (hfirst : placementWithin (first id) size limit = true)
+    (hsecond : placementWithin (second id) size limit = false) :
+    placementWithinComposition first second id size limit base = false := by
+  simp [placementWithinComposition, hfirst, hsecond]
 
 theorem placementWithin_zero (base limit : Nat) :
     placementWithin base 0 limit = (base ≤ limit) := by
