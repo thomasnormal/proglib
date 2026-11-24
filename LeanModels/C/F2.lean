@@ -2160,6 +2160,21 @@ def renameZeroSizeOutcome (resolve : AllocId → Nat) :
         allocation := { metadata.allocation with
           address := metadata.allocation.address.map (fun _ => resolve 0) } }
 
+theorem renameZeroSizeOutcome_preserves_failure
+    (resolve : AllocId → Nat) :
+    renameZeroSizeOutcome (Tag := Tag) (State := State) (TypeId := TypeId)
+      resolve (.null) = .null := by
+  rfl
+
+theorem renameZeroSizeOutcome_token_shape
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    renameZeroSizeOutcome resolve (.token metadata) =
+      .token { metadata with
+        allocation := { metadata.allocation with
+          address := metadata.allocation.address.map (fun _ => resolve 0) } } := by
+  rfl
+
 def pairedAllocateZeroSize (resolve : AllocId → Nat) (state : State)
     (placement : Placement) : Bool := true
 
