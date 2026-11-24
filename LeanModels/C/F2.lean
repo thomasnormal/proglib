@@ -1744,6 +1744,13 @@ theorem pairedCopySnapshot_success
       some (source, source.map (renameByte resolve)) := by
   simp [pairedCopySnapshot, copySnapshot, hsame, List.length_map]
 
+theorem pairedCopySnapshot_refusal
+    [BEq Tag] (resolve : AllocId → Nat)
+    (source destination : List (Byte Tag))
+    (hmismatch : source.length ≠ destination.length) :
+    pairedCopySnapshot resolve source destination = none := by
+  simp [pairedCopySnapshot, copySnapshot, hmismatch]
+
 theorem copySnapshot_preserves_length
     (source destination : List (Byte Tag)) (result : List (Byte Tag))
     (hresult : copySnapshot source destination = some result) :
