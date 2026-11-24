@@ -831,6 +831,29 @@ theorem typedLoadMetadataByte_footprint
           | padding => simp [typedLoadMetadataByte, hbyte, hlocation, htype] at hresult
           | indeterminate => simp [typedLoadMetadataByte, hbyte, hlocation, htype] at hresult
 
+theorem pairedTypedLoadMetadataByte_footprints
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedTypedLoadMetadataByte resolve id metadata offset typeId =
+      some result) :
+    result.1.2 = footprint .read { allocation := 0, offset := offset, width := 1 } ∧
+      result.2.2 = footprint .read { allocation := 0, offset := offset, width := 1 } := by
+  cases hs : typedLoadMetadataByte metadata offset typeId with
+  | none => simp [pairedTypedLoadMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : typedLoadMetadataByte (renameMetadata resolve id metadata)
+          offset typeId with
+      | none => simp [pairedTypedLoadMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedTypedLoadMetadataByte, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := hresult.2
+          rcases hpair with rfl
+          exact ⟨typedLoadMetadataByte_footprint _ _ _ _ hs,
+            typedLoadMetadataByte_footprint _ _ _ _ ht⟩
+
 def pairedTypedStoreLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
