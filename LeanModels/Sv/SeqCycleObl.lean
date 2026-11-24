@@ -1024,6 +1024,72 @@ def CoreMemProc.nbaWholeP : CoreMemProc → Bool
       | none => true
   | _ => true
 
+/-! Memory-aware NBA admission.  The existing `nbaWhole` predicate covers
+whole scalar writes.  This companion admits one-rank memory-element writes and
+the procedural loops whose body has only those nonblocking writes. -/
+mutual
+def _root_.LeanModels.Sv.PStmt.nbaMemory : PStmt → Bool
+  | .nbaAssignL (.arrayElem _ [_]) _ => true
+  | .ifStmt _ y n => PStmt.nbaMemory y && PStmt.optNbaMemory n
+  | .block body => PStmt.listNbaMemory body
+  | .caseStmt _ items d _ _ => PStmt.itemsNbaMemory items && PStmt.optNbaMemory d
+  | .forLoop _ _ _ _ body => PStmt.loopNbaMemory body
+  | _ => false
+termination_by structural s => s
+
+def _root_.LeanModels.Sv.PStmt.optNbaMemory : Option PStmt → Bool
+  | none => true
+  | some s => PStmt.nbaMemory s
+termination_by structural o => o
+
+def _root_.LeanModels.Sv.PStmt.listNbaMemory : List PStmt → Bool
+  | [] => true
+  | s :: ss => PStmt.nbaMemory s && PStmt.listNbaMemory ss
+termination_by structural xs => xs
+
+def _root_.LeanModels.Sv.PStmt.itemsNbaMemory : List (List PExpr × PStmt) → Bool
+  | [] => true
+  | (_, b) :: rest => PStmt.nbaMemory b && PStmt.itemsNbaMemory rest
+termination_by structural xs => xs
+
+def _root_.LeanModels.Sv.PStmt.loopNbaMemory : PStmt → Bool
+  | .nbaAssignL (.arrayElem _ [_]) _ => true
+  | .ifStmt _ y n => PStmt.loopNbaMemory y && PStmt.optLoopNbaMemory n
+  | .block body => PStmt.listLoopNbaMemory body
+  | .caseStmt _ items d _ _ => PStmt.itemsLoopNbaMemory items && PStmt.optLoopNbaMemory d
+  | _ => false
+termination_by structural s => s
+
+def _root_.LeanModels.Sv.PStmt.optLoopNbaMemory : Option PStmt → Bool
+  | none => true
+  | some s => PStmt.loopNbaMemory s
+termination_by structural o => o
+
+def _root_.LeanModels.Sv.PStmt.listLoopNbaMemory : List PStmt → Bool
+  | [] => true
+  | s :: ss => PStmt.loopNbaMemory s && PStmt.listLoopNbaMemory ss
+termination_by structural xs => xs
+
+def _root_.LeanModels.Sv.PStmt.itemsLoopNbaMemory : List (List PExpr × PStmt) → Bool
+  | [] => true
+  | (_, b) :: rest => PStmt.loopNbaMemory b && PStmt.itemsLoopNbaMemory rest
+termination_by structural xs => xs
+end
+
+def CoreMemProc.nbaMemoryP : CoreMemProc → Bool
+  | .edge f => f.body.nbaMemory
+  | .event evs body =>
+      match coreMemEventEdge? evs body with
+      | some f => f.body.nbaMemory
+      | none => true
+  | _ => true
+
+def CoreMemProc.nbaEdgeP (p : CoreMemProc) : Bool := p.nbaWholeP || p.nbaMemoryP
+
+def CoreMemDesign.oblEdgeOrderMemory (E : CoreMemDesign) : Bool :=
+  let edges := E.processes.toList.filter CoreMemProc.isEdge
+  decide (edges.length ≤ 1) || E.processes.toList.all CoreMemProc.nbaEdgeP
+
 theorem CoreMemProc.nbaWholeP_of_edge? {p : CoreMemProc} {f : CoreMemEdge} (h : p.edge? = some f) :
     p.nbaWholeP = f.body.nbaWhole := by
   cases p with
@@ -1073,6 +1139,19 @@ def CoreMemDesign.oblReset (E : CoreMemDesign) (clk : String) : Bool :=
 def CoreMemDesign.oblEdgeOrder (E : CoreMemDesign) : Bool :=
   let edges := E.processes.toList.filter CoreMemProc.isEdge
   decide (edges.length ≤ 1) || E.processes.toList.all CoreMemProc.nbaWholeP
+
+theorem CoreMemDesign.oblEdgeOrderMemory_of_oblEdgeOrder {E : CoreMemDesign}
+    (h : E.oblEdgeOrder = true) : E.oblEdgeOrderMemory = true := by
+  simp only [CoreMemDesign.oblEdgeOrder, CoreMemDesign.oblEdgeOrderMemory,
+    Bool.or_eq_true, decide_eq_true_eq] at h ⊢
+  rcases h with h | h
+  · exact Or.inl h
+  · exact Or.inr (by
+      simp only [List.all_eq_true] at h
+      simp only [List.all_eq_true]
+      intro i hi
+      simp only [CoreMemProc.nbaEdgeP, Bool.or_eq_true]
+      exact Or.inl (h i hi))
 
 /-- No expression of a process holds a node ingestion kept unconverted. -/
 def CoreMemDesign.oblConverted (E : CoreMemDesign) : Bool :=
@@ -1605,6 +1684,92 @@ theorem CoreMemDesign.execItemsV_nbaWhole {E : CoreMemDesign} (v : SvState) (mv 
 
 end
 
+theorem CoreMemDesign.edgesV_cons_mk_local {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {p : CoreMemProc} {rest : List CoreMemProc} {q : NbaQueue2} {mq : MemQV} {rr : ExecV}
+    (h1 : E.edgesV before after v mv rest = .ok rr)
+    (he : p.edge? = none ∧ q = [] ∧ mq = [] ∨
+      ∃ f, p.edge? = some f ∧ f.fires before after = true ∧ E.execV E.env v mv f.body = .ok (v, q, mq)) :
+    E.edgesV before after v mv (p :: rest) = .ok (rr.1, q ++ rr.2.1, mq ++ rr.2.2) := by
+  rcases he with ⟨hnone, rfl, rfl⟩ | ⟨f, hpe, hf, hb⟩
+  · rw [CoreMemDesign.edgesV_cons_none hnone]
+    simpa using h1
+  · rw [CoreMemDesign.edgesV_cons_some hpe]
+    simp [hpe, hf, hb, h1]
+
+/-- Two enabled edge processes with scalar or memory NBAs commute over a fixed
+continuation.  The evaluator results are supplied at the real `execV` boundary. -/
+theorem CoreMemDesign.edgesV_swap_local {E : CoreMemDesign}
+    {before after v : SvState} {mv : MemV} {p q : CoreMemProc} {rest : List CoreMemProc}
+    {qp qq qr : NbaQueue2} {mp mq mr : MemQV} {rv : SvState}
+    (hp : ∃ f, p.edge? = some f ∧ f.fires before after = true ∧ E.execV E.env v mv f.body = .ok (v, qp, mp))
+    (hq : ∃ f, q.edge? = some f ∧ f.fires before after = true ∧ E.execV E.env v mv f.body = .ok (v, qq, mq))
+    (hr : E.edgesV before after v mv rest = .ok (rv, qr, mr))
+    (hdisjS : ∀ u ∈ qp, ∀ u' ∈ qq, u.1 ≠ u'.1)
+    (hdisjM : ∀ u ∈ mp, ∀ u' ∈ mq, u.1 ≠ u'.1)
+    (hnd : (v.map Prod.fst).Nodup) :
+    ∃ r₁ r₂,
+      E.edgesV before after v mv (p :: q :: rest) = .ok r₁ ∧
+      E.edgesV before after v mv (q :: p :: rest) = .ok r₂ ∧
+      r₁.1 = r₂.1 ∧ commitNba2 v r₁.2.1 = commitNba2 v r₂.2.1 ∧
+        commitMemV mv r₁.2.2 = commitMemV mv r₂.2.2 := by
+  obtain ⟨fp, hp, hfp, hbp⟩ := hp
+  obtain ⟨fq, hq, hfq, hbq⟩ := hq
+  let r₁ : ExecV := (rv, qp ++ qq ++ qr, mp ++ mq ++ mr)
+  let r₂ : ExecV := (rv, qq ++ qp ++ qr, mq ++ mp ++ mr)
+  have h₁ : E.edgesV before after v mv (p :: q :: rest) = .ok r₁ := by
+    have hqrest := CoreMemDesign.edgesV_cons_mk_local hr
+      (Or.inr ⟨fq, hq, hfq, hbq⟩)
+    simpa [r₁] using CoreMemDesign.edgesV_cons_mk_local hqrest
+      (Or.inr ⟨fp, hp, hfp, hbp⟩)
+  have h₂ : E.edgesV before after v mv (q :: p :: rest) = .ok r₂ := by
+    have hprest := CoreMemDesign.edgesV_cons_mk_local hr
+      (Or.inr ⟨fp, hp, hfp, hbp⟩)
+    simpa [r₂] using CoreMemDesign.edgesV_cons_mk_local hprest
+      (Or.inr ⟨fq, hq, hfq, hbq⟩)
+  refine ⟨r₁, r₂, h₁, h₂, ?_, ?_, ?_⟩
+  · rfl
+  · simp only [r₁, r₂]
+    calc
+      commitNba2 v (qp ++ qq ++ qr) = commitNba2 (commitNba2 v (qp ++ qq)) qr := by
+        rw [commitNba2_append]
+      _ = commitNba2 (commitNba2 v (qq ++ qp)) qr := by
+        rw [commitNba2_swap hnd (fun u hu u' hu' => Or.inl (hdisjS u hu u' hu'))]
+      _ = commitNba2 v (qq ++ qp ++ qr) := by
+        symm
+        rw [commitNba2_append]
+  · simp only [r₁, r₂]
+    calc
+      commitMemV mv (mp ++ mq ++ mr) = commitMemV (commitMemV mv (mp ++ mq)) mr := by
+        rw [commitMemV_append]
+      _ = commitMemV (commitMemV mv (mq ++ mp)) mr := by
+        rw [commitMemV_swap hdisjM]
+      _ = commitMemV mv (mq ++ mp ++ mr) := by
+        symm
+        rw [commitMemV_append]
+
+/-- A direct memory-element NBA leaves scalar state and scalar queue unchanged. -/
+theorem CoreMemDesign.execV_memory_leaf {E : CoreMemDesign} {v : SvState} {mv : MemV}
+    {name : String} {index : PExpr} {e : PExpr} {v' : SvState} {q : NbaQueue2} {mq : MemQV}
+    (env : IEnv) (hmd : ∃ md, E.memDecl? name = some md)
+    (h : E.execV env v mv (.nbaAssignL (.arrayElem name [index]) e) = .ok (v', q, mq)) :
+    v' = v ∧ q = [] ∧ (∀ u ∈ mq, u.1 = name) := by
+  simp only [CoreMemDesign.execV] at h
+  obtain ⟨md, hd⟩ := hmd
+  cases hx : E.memDecl? name with
+  | none => simp [hx] at hd
+  | some md' =>
+      have heq : md = md' := Option.some.inj (hd.symm.trans hx)
+      subst md'
+      simp only [hx, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at h
+      obtain ⟨x, -, iv, -, rfl, rfl, rfl⟩ := h
+      refine ⟨rfl, rfl, ?_⟩
+      have hsource := (CoreMemDesign.memDecl?_some hx).2
+      simp only [CoreMemDecl.issueV, memIss]
+      generalize hs : index.signedCast = sg
+      cases hk : md.shape.index? sg iv
+      · intro u hu; simp [hk] at hu
+      · intro u hu; simp at hu; simpa [hu, hsource]
+
 /-- Two queues writing disjoint signals commit in either order. -/
 theorem commitNba2_swap {st : SvState} (hnd : (st.map Prod.fst).Nodup) {q₁ q₂ : NbaQueue2}
     (h : ∀ u ∈ q₁, ∀ u' ∈ q₂, u.1 ≠ u'.1) : commitNba2 st (q₂ ++ q₁) = commitNba2 st (q₁ ++ q₂) := by
@@ -1690,6 +1855,52 @@ theorem CoreMemDesign.edgesV_cons_inv {E : CoreMemDesign} {before after v : SvSt
         exact ⟨a, rr, by simp [hf, h1], fun u hu => by simp [List.mem_eraseDups, ha u hu], h2, by simp⟩
       · rename_i hf
         exact ⟨[], r, by simp [hf], by simp, h, by simp⟩
+
+/-! A local decomposition for an edge body whose evaluator leaves the view alone.  The
+ two queue components are retained separately so scalar and memory commits can be
+ framed independently. -/
+theorem CoreMemDesign.edgesV_cons_local {E : CoreMemDesign} {before after v : SvState} {mv : MemV}
+    {p : CoreMemProc} {rest : List CoreMemProc} {r : ExecV}
+    (hlocal : ∀ (f : CoreMemEdge) (v' : SvState) (q : NbaQueue2) (mq : MemQV),
+      E.execV E.env v mv f.body = .ok (v', q, mq) →
+      v' = v ∧ (∀ u ∈ q, u.1 ∈ f.body.writes) ∧ (∀ u ∈ mq, u.1 ∈ f.body.writes))
+    (h : E.edgesV before after v mv (p :: rest) = .ok r) :
+    ∃ q mq rr, E.edgesV before after v mv rest = .ok rr ∧
+      r = (rr.1, q ++ rr.2.1, mq ++ rr.2.2) ∧
+      (∀ u ∈ q, u.1 ∈ p.targets) ∧ (∀ u ∈ mq, u.1 ∈ p.targets) := by
+  cases hpe : p.edge? with
+  | none =>
+      rw [CoreMemDesign.edgesV_cons_none hpe] at h
+      exact ⟨[], [], r, h, by simp, by simp, by simp⟩
+  | some f =>
+      rw [CoreMemDesign.edgesV_cons_some hpe] at h
+      split at h
+      · rename_i hf
+        simp only [Res.bind_eq_ok, Res.ok.injEq] at h
+        obtain ⟨⟨v1, q, mq⟩, h1, rr, h2, rfl⟩ := h
+        obtain ⟨hv, hq, hm⟩ := hlocal f v1 q mq h1
+        subst v1
+        refine ⟨q, mq, rr, h2, by simp, ?_, ?_⟩
+        · intro u hu
+          simp only [CoreMemProc.targets_of_edge? hpe, List.mem_eraseDups]
+          exact hq u hu
+        · intro u hu
+          simp only [CoreMemProc.targets_of_edge? hpe, List.mem_eraseDups]
+          exact hm u hu
+      · rename_i hf
+        exact ⟨[], [], r, h, by simp, by simp, by simp⟩
+
+/-- Mixed scalar and memory NBA queues commute when their target names are disjoint.
+This is the commit-side diamond used by the memory-aware edge-order route. -/
+theorem commitMixed_swap {st : SvState} (hnd : (st.map Prod.fst).Nodup)
+    {mv : MemV} {q₁ q₂ : NbaQueue2} {m₁ m₂ : MemQV}
+    (hs : ∀ u ∈ q₁, ∀ u' ∈ q₂, u.1 ≠ u'.1)
+    (hm : ∀ u ∈ m₁, ∀ u' ∈ m₂, u.1 ≠ u'.1) :
+    commitNba2 st (q₁ ++ q₂) = commitNba2 st (q₂ ++ q₁) ∧
+      commitMemV mv (m₁ ++ m₂) = commitMemV mv (m₂ ++ m₁) := by
+  have hs' := commitNba2_swap (st := st) hnd hs
+  have hm' := commitMemV_swap (mv := mv) hm
+  exact ⟨hs'.symm, hm'⟩
 
 /-- The converse of `edgesV_cons_inv`. -/
 theorem CoreMemDesign.edgesV_cons_mk {E : CoreMemDesign} {before after v : SvState} {mv : MemV} {p : CoreMemProc}

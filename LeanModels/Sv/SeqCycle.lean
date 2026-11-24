@@ -132,6 +132,45 @@ def CoreMemDecl.issueV (md : CoreMemDecl) (signed : Bool) (idx x : LVec) : MemQV
 
 @[simp] theorem commitMemV_nil (mv : MemV) : commitMemV mv [] = mv := rfl
 
+theorem commitMemV_cons (mv : MemV) (u : String × Int × LVec) (q : MemQV) :
+    commitMemV mv (u :: q) = commitMemV (memWrite mv u.1 (some u.2.1) u.2.2) q := by
+  cases u
+  rfl
+
+theorem memWrite_comm_of_name_ne (mv : MemV) {n n' : String} {k k' : Int}
+    {x x' : LVec} (h : n ≠ n') :
+    memWrite (memWrite mv n (some k) x) n' (some k') x' =
+      memWrite (memWrite mv n' (some k') x') n (some k) x := by
+  funext name index
+  by_cases hn : name = n
+  · subst name
+    simp [memWrite, h, Ne.symm h]
+  · by_cases hn' : name = n'
+    · subst name
+      simp [memWrite, h, Ne.symm h]
+    · simp [memWrite, h, Ne.symm h, hn, hn']
+
+theorem commitMemV_move {u : String × Int × LVec} : ∀ {mv : MemV} {B R : MemQV},
+    (∀ u' ∈ B, u.1 ≠ u'.1) →
+      commitMemV mv (u :: (B ++ R)) = commitMemV mv (B ++ u :: R)
+  | _, [], _, _ => rfl
+  | mv, (n, k, x) :: B, R, h => by
+      rw [List.cons_append, commitMemV_cons, commitMemV_cons]
+      rw [memWrite_comm_of_name_ne _ (h (n, k, x) (List.mem_cons_self ..))]
+      rw [← commitMemV_cons]
+      exact commitMemV_move (fun u' hu' => h u' (List.mem_cons_of_mem _ hu'))
+
+theorem commitMemV_swap : ∀ {mv : MemV} {q₁ q₂ : MemQV},
+    (∀ u ∈ q₁, ∀ u' ∈ q₂, u.1 ≠ u'.1) →
+      commitMemV mv (q₁ ++ q₂) = commitMemV mv (q₂ ++ q₁)
+  | _, [], _, _ => by simp
+  | mv, u :: q₁, q₂, h => by
+      rw [List.cons_append, commitMemV_cons,
+        commitMemV_swap
+          (fun x hx y hy => h x (List.mem_cons_of_mem _ hx) y hy),
+        ← commitMemV_cons]
+      exact commitMemV_move (fun u' hu' => h u (List.mem_cons_self ..) u' hu')
+
 theorem commitMemV_append (mv : MemV) : ∀ (q₁ q₂ : MemQV), commitMemV mv (q₁ ++ q₂) = commitMemV (commitMemV mv q₁) q₂
   | [], _ => rfl
   | (n, k, x) :: rest, q₂ => by
@@ -869,6 +908,17 @@ theorem execLoopV_ok (v : SvState) (w : Int → SvState) (q : Int → NbaQueue2)
   | i :: rest => by
       simp only [execLoopV, execLoopV_ok v w q m rest, Res.ok_bind, List.flatMap_cons]
 
+/-- A procedural loop whose body consists only of memory NBAs leaves the scalar
+view and scalar NBA queue unchanged.  The memory records remain in issue order
+as the flat map of the loop values. -/
+theorem execLoopV_memory (v : SvState) (m : Int → MemQV) :
+    ∀ (values : List Int),
+      execLoopV v (fun i => .ok (v, [], m i)) values =
+        .ok (v, [], values.flatMap m)
+  | [] => rfl
+  | i :: rest => by
+      simp only [execLoopV, execLoopV_memory v m rest, Res.ok_bind, List.nil_append, List.flatMap_cons]
+
 mutual
 
 /-- **The route's edge-body executor on views** (`execStmtFuel`): the view after the body's blocking writes, and the
@@ -992,7 +1042,25 @@ def CoreMemDesign.execItemsV (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv 
       else E.execItemsV env v mv sv mode rest dflt
 termination_by structural xs => xs
 
+
 end
+/-- The view executor's procedural-loop arm for a body whose per-iteration
+memory receipt is already established.  The header remains the parser-native
+`forValues2` list and is never unrolled by this theorem. -/
+theorem CoreMemDesign.execV_forLoop_memory {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
+    {it : String} {init condition step : PExpr} {body : PStmt} {values : List Int} (m : Int → MemQV)
+    (hbody : ∀ i, E.execV (env.bindVal it i) v mv body = .ok (v, [], m i))
+    (hloop : PStmt.loopBodyB body = true)
+    (hvals : forValues2 env it init condition step = .ok values) :
+    E.execV env v mv (.forLoop it init condition step body) =
+      .ok (v, [], values.flatMap m) := by
+  simp only [CoreMemDesign.execV, hloop, ↓reduceIte, hvals]
+  have hfun : (fun i => E.execV (env.bindVal it i) v mv body) =
+      (fun i => .ok (v, [], m i)) := by
+    funext i
+    exact hbody i
+  rw [hfun, execLoopV_memory]
+
 
 /-! ## A plain `always` on one clock edge is an edge process
 
