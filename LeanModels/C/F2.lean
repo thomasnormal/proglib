@@ -3978,6 +3978,19 @@ theorem allocateMetadata_preserves_lengths
   · rcases hresult with ⟨hEq, rfl⟩
     exact hEq
 
+theorem allocateMetadata_result_footprint
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : allocateMetadata request locations placement = some result) :
+    result.2 = footprint .metadata
+      (Region.mk 0 0 request.bytes.length) := by
+  cases placement <;> simp [allocateMetadata] at hresult
+  · rcases hresult with ⟨_, rfl⟩
+    rfl
+  · rcases hresult with ⟨_, rfl⟩
+    rfl
+
 theorem allocateMetadata_address_success
     (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (base : Nat)
