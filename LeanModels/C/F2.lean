@@ -274,6 +274,13 @@ theorem setLocation_length (locations : LocationStore TypeId)
   simp [setLocation] at hresult
   rw [← hresult.2, List.length_map]
 
+theorem setLocation_guard_refusal (locations : LocationStore TypeId)
+    (allocation offset : Nat) (state : LocationState TypeId)
+    (hguard : locations.any (fun entry =>
+      entry.1 == allocation && entry.2.1 == offset) = false) :
+    setLocation locations allocation offset state = none := by
+  simp [setLocation, hguard]
+
 structure Store (Tag State : Type) where
   allocations : List (AllocId × Allocation Tag State)
   nextId : AllocId
