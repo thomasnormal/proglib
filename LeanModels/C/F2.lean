@@ -5175,6 +5175,25 @@ theorem pairedLoadByte_value_correspondence
           change targetResult.1 = renameByte resolve sourceResult.1
           exact Option.some.inj (htargetIndex.symm.trans hmapped)
 
+theorem pairedLoadByte_operational_results
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedLoadByte resolve store id offset = some result) :
+    ∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      loadByte store id offset = some sourceResult ∧
+      loadByte (renameStore resolve store) id offset = some targetResult := by
+  cases hs : loadByte store id offset with
+  | none => simp [pairedLoadByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : loadByte (renameStore resolve store) id offset with
+      | none => simp [pairedLoadByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedLoadByte, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨sourceResult, targetResult, rfl, by simp [hs], by simp [ht]⟩
+
 structure StoreLoadPair (Tag State : Type) where
   sourceStore : Store Tag State × Footprint
   targetStore : Store Tag State × Footprint
