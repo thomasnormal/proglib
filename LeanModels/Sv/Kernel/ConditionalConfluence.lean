@@ -499,6 +499,41 @@ theorem CombPhaseScalarHiddenResumeReceipt.toAdmission
 
 #print axioms CombPhaseScalarHiddenResumeReceipt.toAdmission
 
+/-! The same frame at the scheduler boundary is stated directly over the real
+    `CombPhaseStep.select` constructor. This keeps the selected cursor and its
+    source-order position explicit. -/
+theorem CombPhaseStep.select_blocking_scalar_hidden_observation
+    {E : CoreMemDesign} {hidden : List String}
+    {s : CombPhaseState} {before after : List CombCursor}
+    {cursor next : CombCursor} {state : CoreMemState} {view : SvState}
+    {env : IEnv} {n : String} {value : PExpr} {width : Nat}
+    {tail : List CombWork} {locals : SvState} {v : LVec}
+    (hactive : s.active = before ++ cursor :: after)
+    (hwork : cursor.work = .stmt env (.blockingAssign n value) :: tail)
+    (hlocals : cursor.locals = locals)
+    (hlocal : SvState.lookup locals n = none)
+    (htarget : E.scalarTarget n = some width)
+    (htest : PExpr.hasTestPlusargs value = false)
+    (hvalue : E.evalExprLocals env E.elems s.state (some width) locals value = .ok v)
+    (hname : n ∈ hidden) :
+    SvState.agreesOutside hidden s.view
+      (s.after (E.setScalarState s.state n v) (SvState.set s.view n v)
+        { work := tail, locals := locals } before after).view := by
+  have hresume : cursor.resume E s.state s.view =
+      .ok (E.setScalarState s.state n v, SvState.set s.view n v,
+        { work := tail, locals := locals }) := by
+    cases cursor with
+    | mk cursorWork cursorLocals =>
+        simp only at hwork hlocals ⊢
+        subst cursorWork
+        subst cursorLocals
+        exact CombCursor.resume_blocking_scalar hlocal htarget htest hvalue
+  have hstep := CombPhaseStep.select hactive hresume
+  change SvState.agreesOutside hidden s.view (SvState.set s.view n v)
+  exact SvState.agreesOutside_set_of_mem hname
+
+#print axioms CombPhaseStep.select_blocking_scalar_hidden_observation
+
 theorem CombPhaseHiddenObservationAdmission.progress
     {E : CoreMemDesign} {hidden : List String}
     (ad : CombPhaseHiddenObservationAdmission E hidden)

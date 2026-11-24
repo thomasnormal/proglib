@@ -525,6 +525,9 @@ parser-native read predicate and the scheduler's actual process set.
 constructive for scalar leaves. Its receipt still requires each selected
 cursor's exact resume equation, empty continuation, and hidden target. It does
 not encode terminal equality or use the admission conclusion as a premise.
+`CombPhaseStep.select_blocking_scalar_hidden_observation` exposes the same
+frame directly at a selected scheduler step, preserving the cursor's
+source-order position and the actual `select` transition.
 
 The following results are real and intentionally narrow.
 
