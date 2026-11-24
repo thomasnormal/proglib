@@ -1,5 +1,12 @@
 [
   {
+    "id": "isprint-c-locale-ascii",
+    "source": "int isprint(int); int main(void) { return isprint('a') && !isprint('\\002') ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
     "id": "return-zero",
     "source": "int main(void) { return 0; }",
     "expect": "match",

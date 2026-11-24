@@ -2046,6 +2046,17 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
               else
                 pure (.int IntTy.int_ (if n < 0 then -n else n))
           | _ => refuseUnsupported "__builtin_abs: wrong argument count"
+        let runIsprint : List CVal → ExecM CVal := fun vs =>
+          match vs with
+          | [value] => do
+              let (t, n) ← asInt value
+              if t != IntTy.int_ then
+                refuseUnsupported "isprint: argument is not int"
+              else if n < 0 || n > 255 then
+                refuseUnsupported "isprint: argument outside unsigned-char domain"
+              else
+                pure (.int IntTy.int_ (if n ≥ 32 && n ≤ 126 then 1 else 0))
+          | _ => refuseUnsupported "isprint: wrong argument count"
         let runSyncAdd8 : List CVal → ExecM CVal := fun vs =>
           match vs with
           | [dst, value] => do
@@ -2159,6 +2170,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                   runInf nm vs
           else if nm == "__builtin_abs" || nm == "abs" then
             runAbs vs
+          else if nm == "isprint" then
+            runIsprint vs
           else if nm == "__sync_add_and_fetch_8" then
             runSyncAdd8 vs
           else if nm == "__builtin_expect" then
