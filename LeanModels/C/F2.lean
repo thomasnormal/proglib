@@ -3492,6 +3492,17 @@ theorem allocate_address_success
               (Region.mk store.nextId 0 request.bytes.length)) := by
   simp [allocate, hallowed]
 
+theorem allocate_address_result_counters
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (base : Nat) (result : Store Tag State × Footprint)
+    (hallowed : placementAllowed store base request.bytes.length = true)
+    (hresult : allocate store request (.address base) = some result) :
+    result.1.nextId = store.nextId + 1 ∧
+      result.1.allocations.length = store.allocations.length + 1 := by
+  simp [allocate, hallowed] at hresult
+  rcases hresult with ⟨rfl, rfl⟩
+  simp
+
 theorem allocate_address_rejects_placement
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base : Nat)
