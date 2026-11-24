@@ -2269,6 +2269,43 @@ theorem pairedStoreRepresentationLoadMetadataByte_decompose
                   simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl, htl] at hresult
                   exact ⟨(sourceStore, sourceLoad), (targetStore, targetLoad), hresult.symm⟩
 
+theorem pairedStoreRepresentationLoadMetadataByte_footprints
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice)
+    (result : (((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint))))
+    (hresult : pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice =
+      some result) :
+    result.1.1.2 = footprint .write { allocation := 0, offset := offset, width := 1 } ∧
+      result.1.2.2 = footprint .read { allocation := 0, offset := offset, width := 1 } ∧
+      result.2.1.2 = footprint .write { allocation := 0, offset := offset, width := 1 } ∧
+      result.2.2.2 = footprint .read { allocation := 0, offset := offset, width := 1 } := by
+  cases hs : storeMetadataByte metadata offset byte with
+  | none => simp [pairedStoreRepresentationLoadMetadataByte, hs] at hresult
+  | some sourceStore =>
+      cases ht : storeMetadataByte (renameMetadata resolve id metadata)
+          offset (renameByte resolve byte) with
+      | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht] at hresult
+      | some targetStore =>
+          cases hsl : representationLoadMetadataByte sourceStore.1 offset choice with
+          | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl] at hresult
+          | some sourceLoad =>
+              cases htl : representationLoadMetadataByte targetStore.1 offset choice with
+              | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl, htl] at hresult
+              | some targetLoad =>
+                  simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl, htl] at hresult
+                  have hpair : result = ((sourceStore, sourceLoad), (targetStore, targetLoad)) :=
+                    hresult.symm
+                  rcases hpair with rfl
+                  exact ⟨(storeMetadataByte_success_shape _ _ _ _ hs).2.2,
+                    representationLoadMetadataByte_footprint _ _ _ _ hsl,
+                    (storeMetadataByte_success_shape _ _ _ _ ht).2.2,
+                    representationLoadMetadataByte_footprint _ _ _ _ htl⟩
+
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
   | (id, allocation) :: rest =>
