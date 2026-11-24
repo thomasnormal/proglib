@@ -4640,6 +4640,27 @@ theorem loadByte_success_footprint
               simp [loadByte, hlookup, hlive, hbyte] at hresult
               exact congrArg (fun pair => pair.2) hresult.symm
 
+theorem loadByte_success_value
+    (store : Store Tag State) (id offset : Nat)
+    (result : Byte Tag × Footprint)
+    (hresult : loadByte store id offset = some result) :
+    ∃ allocation,
+      lookup store id = some allocation ∧
+      allocation.live = true ∧
+      allocation.bytes[offset]? = some result.1 := by
+  cases hlookup : lookup store id with
+  | none => simp [loadByte, hlookup] at hresult
+  | some allocation =>
+      cases hlive : allocation.live with
+      | false => simp [loadByte, hlookup, hlive] at hresult
+      | true =>
+          cases hbyte : allocation.bytes[offset]? with
+          | none => simp [loadByte, hlookup, hlive, hbyte] at hresult
+          | some stored =>
+              simp [loadByte, hlookup, hlive, hbyte] at hresult
+              rcases hresult with ⟨rfl, rfl⟩
+              exact ⟨allocation, rfl, hlive, hbyte⟩
+
 def loadTransitionCorresponds (resolve : AllocId → Nat)
     (source target : Store Tag State)
     (sourceResult targetResult : Byte Tag × Footprint) : Prop :=

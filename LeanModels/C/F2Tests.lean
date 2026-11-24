@@ -174,6 +174,9 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard match loadByte one 0 0 with
   | some (_, fp) => fp == footprint .read { allocation := 0, offset := 0, width := 1 }
   | none => false
+#guard match loadByte one 0 0 with
+  | some (b, _) => b == oneByte
+  | none => false
 #guard (loadByte empty 0 0).isNone
 #guard (loadByte dead 0 0).isNone
 #guard (loadByte one 0 1).isNone
