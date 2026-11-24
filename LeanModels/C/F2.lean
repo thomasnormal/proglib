@@ -2333,6 +2333,13 @@ theorem pairedFreeMetadata_live_success
             (Region.mk 0 0 (renameZeroTokenMetadata resolve metadata).allocation.bytes.length))) := by
   simp [pairedFreeMetadata, freeMetadata, hlive, renameZeroTokenMetadata]
 
+theorem pairedFreeMetadata_dead_refusal
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hdead : metadata.allocation.live = false) :
+    pairedFreeMetadata resolve metadata = none := by
+  simp [pairedFreeMetadata, freeMetadata, hdead, renameZeroTokenMetadata]
+
 theorem pairedFreeMetadata_decompose
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
