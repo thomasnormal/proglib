@@ -2183,6 +2183,14 @@ theorem representationLoadMetadataByte_outOfBounds
     representationLoadMetadataByte metadata offset choice = none := by
   simp [representationLoadMetadataByte, hbyte]
 
+theorem representationLoadMetadataByte_missing_location
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (choice : RepresentationChoice) (byte : Byte Tag)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hlocation : metadata.locations[offset]? = none) :
+    representationLoadMetadataByte metadata offset choice = none := by
+  simp [representationLoadMetadataByte, hbyte, hlocation]
+
 def pairedRepresentationLoadMetadataByte (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
