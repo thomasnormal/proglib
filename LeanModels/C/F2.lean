@@ -1157,6 +1157,37 @@ theorem pairedStoreUnionLoadMetadataByte_preserves_payload
                     ⟨hslive.symm, hsaddr.symm, hsstate.symm,
                       htlive.symm, htaddr.symm, htstate.symm⟩
 
+theorem pairedStoreUnionLoadMetadataByte_preserves_locations
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (result : ((AllocationMetadata Tag State TypeId × Footprint) × (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) × (Byte Tag × Footprint)))
+    (hresult : pairedStoreUnionLoadMetadataByte resolve id metadata offset byte =
+      some result) :
+    result.1.1.1.locations = metadata.locations ∧
+      result.2.1.1.locations = (renameMetadata resolve id metadata).locations := by
+  cases hs : storeMetadataByte metadata offset byte with
+  | none => simp [pairedStoreUnionLoadMetadataByte, hs] at hresult
+  | some sourceStore =>
+      cases ht : storeMetadataByte (renameMetadata resolve id metadata)
+          offset (renameByte resolve byte) with
+      | none => simp [pairedStoreUnionLoadMetadataByte, hs, ht] at hresult
+      | some targetStore =>
+          cases hsl : unionLoadMetadataByte sourceStore.1 offset with
+          | none => simp [pairedStoreUnionLoadMetadataByte, hs, ht, hsl] at hresult
+          | some sourceLoad =>
+              cases htl : unionLoadMetadataByte targetStore.1 offset with
+              | none => simp [pairedStoreUnionLoadMetadataByte, hs, ht, hsl, htl] at hresult
+              | some targetLoad =>
+                  simp [pairedStoreUnionLoadMetadataByte, hs, ht, hsl, htl] at hresult
+                  have hpair : ((sourceStore, sourceLoad), (targetStore, targetLoad)) = result :=
+                    hresult.2
+                  rcases hpair with rfl
+                  exact ⟨storeMetadataByte_preserves_locations _ _ _ _ hs,
+                    storeMetadataByte_preserves_locations _ _ _ _ ht⟩
+
 inductive RepresentationChoice where
   | byte (bits : UInt8)
 deriving Repr, BEq
