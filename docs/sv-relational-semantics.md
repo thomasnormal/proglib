@@ -363,6 +363,10 @@ The following results are real and intentionally narrow.
   memory-queue permutation observation with that executor bridge. It proves
   decoded, pairwise-disjoint memory views agree across terminal paths while
   retaining the selected path's exact E receipts.
+* `EdgePhaseTerminalPath.memory_canonical_confluence_refines_step` adds the
+  canonical `MemState.commitNba` form. Every terminal path supplies its own
+  successful commit, decode identity, and `RecOk` receipts, and its `E.memOf`
+  observation is compared with the selected executor path.
 * `EdgePhaseTerminalPath.observable_confluent` and
   `confluence_refines_step` are scalar or admitted-NBA path results. They do
   not establish the whole relation.

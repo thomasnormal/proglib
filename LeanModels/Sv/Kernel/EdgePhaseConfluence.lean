@@ -1601,6 +1601,58 @@ theorem EdgePhaseTerminalPath.memory_confluence_refines_step
 
 #print axioms EdgePhaseTerminalPath.memory_confluence_refines_step
 
+/-! Canonical memory commits can be compared path by path when each path
+    supplies its own declaration-identity and well-formedness receipt. -/
+theorem EdgePhaseTerminalPath.memory_canonical_confluence_refines_step
+    {E : CoreMemDesign} {s : EdgePhaseState}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (q : EdgeCursor → MemNbaQueue)
+    (hqueue : ∀ cursor result next, cursor ∈ s.active →
+      cursor.resume E s.state = .ok (result, next) → result.memoryQ = q cursor)
+    (decode : MemNbaRecord → String × Int × LVec)
+    {n : Nat} {t : EdgePhaseState}
+    (hp : EdgePhaseTerminalPath E n s t)
+    (hmo : E.memOkB = true)
+    (hmc : E.MemCoherent s.state.memory)
+    (hcanon : (t.memoryQ.map decode).map E.memRec = t.memoryQ)
+    (hrec : ∀ r ∈ t.memoryQ.map decode, E.RecOk r)
+    (hdisj : memQueuePairwiseDisjoint (t.memoryQ.map decode))
+    (hpaths : ∀ n' t', EdgePhaseTerminalPath E n' s t' →
+      ∃ m', t'.state.memory.commitNba t'.memoryQ = some m' ∧
+        (t'.memoryQ.map decode).map E.memRec = t'.memoryQ ∧
+        (∀ r ∈ t'.memoryQ.map decode, E.RecOk r))
+    {st : CoreMemState} {entry : SvState}
+    {pre0 s3 next : CoreMemState} {m : MemState}
+    (hcomb : E.hasComb = false) (himp : E.hasImplicit = false)
+    (h0 : E.settleCanonical E.env E.elems (E.inputState st entry) E.processes.toList = .ok pre0)
+    (h1 : E.settleCanonical E.env E.elems pre0 E.processes.toList = .ok s.state)
+    (he : E.runEdges E.env E.elems t.state
+      (E.scalar.view st.scalar) (E.scalar.view t.state.scalar) E.processes.toList =
+      .ok { state := t.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] })
+    (hm : t.state.memory.commitNba t.memoryQ = some m)
+    (h3 : E.settleCanonical E.env E.elems
+      (E.committedState
+        { state := t.state, scalarQ := t.scalarQ, memoryQ := t.memoryQ, locals := [] } m)
+      E.processes.toList = .ok s3)
+    (h4 : E.settleCanonical E.env E.elems s3 E.processes.toList = .ok next)
+    (hq : E.firesAny (E.scalar.view s.state.scalar) (E.scalar.view next.scalar) = false) :
+    (∀ n' t', EdgePhaseTerminalPath E n' s t' →
+      ∃ m', t'.state.memory.commitNba t'.memoryQ = some m' ∧
+        E.memOf m' = E.memOf m) ∧
+    E.step st entry = .ok next := by
+  have hobs : ∀ n' t', EdgePhaseTerminalPath E n' s t' →
+      ∃ m', t'.state.memory.commitNba t'.memoryQ = some m' ∧
+        E.memOf m' = E.memOf m := by
+    intro n' t' hp'
+    obtain ⟨m', hm', hcanon', hrec'⟩ := hpaths n' t' hp'
+    have heq := EdgePhaseTerminalPath.memory_commit_observation_eq_of_perm
+      ad q hqueue hp hp' hmo hmc decode hcanon hcanon' hrec hrec' hdisj hm hm'
+    exact ⟨m', hm', heq.symm⟩
+  have hstep := EdgePhaseTerminalPath.executor_result_memory ad hp hcomb himp h0 h1 he hm h3 h4 hq
+  exact ⟨hobs, hstep⟩
+
+#print axioms EdgePhaseTerminalPath.memory_canonical_confluence_refines_step
+
 private theorem queuePairwiseDisjoint_perm {q q' : NbaQueue2}:
     q.Perm q' → queuePairwiseDisjoint q → queuePairwiseDisjoint q'
   | hp, h => (List.Perm.pairwise_iff nbaDisj_symm hp).mp h

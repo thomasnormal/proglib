@@ -10,6 +10,10 @@ canonical commit, post-settle, and quiescence receipts. The theorem leaves
 decode and footprint premises explicit and does not claim whole-design
 confluence.
 
+The canonical form also compares each terminal path's successful
+`MemState.commitNba` result with the selected path under explicit decode and
+`RecOk` receipts, preserving the same narrow admission boundary.
+
 ## Memory edge-order receipt — 2026-11-24
 
 The clean-room `edge_order_memory_e` fixture records a procedural memory reset
