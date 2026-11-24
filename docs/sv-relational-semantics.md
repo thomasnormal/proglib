@@ -120,8 +120,11 @@ The current proof inventory has these levels.
   profile. `EdgePhaseStep.two_nba_memory_observable_diamond` proves the
   fine-grained two-choice commit diamond when scalar and view-level memory
   footprints are disjoint, while retaining the explicit record-projection
-  receipt. A terminal-path theorem over that memory-aware relation and the
-  canonical `MemState` commit remain open.
+  receipt. `EdgePhaseTerminalPath.memory_queue_trace` and
+  `memory_queue_perm` now carry path-independent canonical memory queues for
+  a memory-aware admission receipt. The remaining bridge is the observation
+  theorem from those queue permutations through successful identity-preserving
+  `MemState.commitNba` commits.
 * **Concrete NBA bridges.** `executor_result_allowed_by_edge_schedule` is the
   soundness direction for a canonical `step` result under the admitted NBA
   guards. `finite_path_executor_replay` is the finite-path replay direction
