@@ -4361,6 +4361,33 @@ theorem pairedAllocate_decompose
           simp [pairedAllocate, hs, ht] at hresult
           exact ⟨sourceResult, targetResult, hresult.symm⟩
 
+theorem pairedAllocate_preserves_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hsourceStore : WellFormed store)
+    (hsourceBytes : bytesWf store.nextId request.bytes)
+    (htargetBytes : bytesWf
+      (renameStore resolve store).nextId request.bytes)
+    (hresult : pairedAllocate resolve store request placement = some result) :
+    WellFormed result.1.1 ∧ WellFormed result.2.1 := by
+  cases hs : allocate store request placement with
+  | none => simp [pairedAllocate, hs] at hresult
+  | some sourceResult =>
+      cases ht : allocate (renameStore resolve store) request
+          (renamedPlacement resolve store.nextId placement) with
+      | none => simp [pairedAllocate, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedAllocate, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨allocate_preserves_wellFormed store request placement sourceResult
+              hsourceStore hsourceBytes hs,
+            allocate_preserves_wellFormed (renameStore resolve store) request
+              (renamedPlacement resolve store.nextId placement) targetResult
+              (renameStore_preserves_wellFormed resolve store hsourceStore)
+              htargetBytes ht⟩
+
 def pairedAllocateFailure (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement) : Bool :=
   (allocate store request placement).isNone &&
