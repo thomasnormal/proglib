@@ -794,6 +794,24 @@ def pairedCopySnapshot [BEq Tag] (resolve : AllocId → Nat)
     (destination.map (renameByte resolve))
   some (sourceResult, targetResult)
 
+theorem pairedCopySnapshot_decompose
+    [BEq Tag] (resolve : AllocId → Nat)
+    (source destination : List (Byte Tag))
+    (result : List (Byte Tag) × List (Byte Tag))
+    (hresult : pairedCopySnapshot resolve source destination = some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases hs : copySnapshot source destination with
+  | none => simp [pairedCopySnapshot, hs] at hresult
+  | some sourceResult =>
+      cases ht : copySnapshot (source.map (renameByte resolve))
+          (destination.map (renameByte resolve)) with
+      | none => simp [pairedCopySnapshot, hs, ht] at hresult
+      | some targetResult =>
+          rw [pairedCopySnapshot, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := by
+            simpa only [Option.bind_some] using Option.some.inj hresult
+          exact ⟨sourceResult, targetResult, hpair.symm⟩
+
 theorem copySnapshot_preserves_length
     (source destination : List (Byte Tag)) (result : List (Byte Tag))
     (hresult : copySnapshot source destination = some result) :
@@ -873,6 +891,17 @@ def pairedMemmoveSnapshot [BEq Tag] (resolve : AllocId → Nat)
   let sourceResult ← memmoveSnapshot source destination bytes
   let targetResult ← memmoveSnapshot source destination (bytes.map (renameByte resolve))
   some (sourceResult, targetResult)
+
+theorem pairedMemmoveSnapshot_decompose
+    [BEq Tag] (resolve : AllocId → Nat)
+    (source destination : Region) (bytes : List (Byte Tag))
+    (result : List (Byte Tag) × List (Byte Tag))
+    (hresult : pairedMemmoveSnapshot resolve source destination bytes = some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  rw [pairedMemmoveSnapshot, memmoveSnapshot] at hresult
+  have hpair : (bytes, bytes.map (renameByte resolve)) = result := by
+    simpa only [Option.bind_some] using Option.some.inj hresult
+  exact ⟨bytes, bytes.map (renameByte resolve), hpair.symm⟩
 
 theorem pairedMemmoveSnapshot_preserves_lengths [BEq Tag]
     (resolve : AllocId → Nat) (source destination : Region)
@@ -1230,6 +1259,26 @@ def pairedRepresentationLoadMetadataByte (resolve : AllocId → Nat) (id : Alloc
   let targetResult ← representationLoadMetadataByte (renameMetadata resolve id metadata)
     offset choice
   some (sourceResult, targetResult)
+
+theorem pairedRepresentationLoadMetadataByte_decompose
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedRepresentationLoadMetadataByte resolve id metadata offset choice =
+      some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases hs : representationLoadMetadataByte metadata offset choice with
+  | none => simp [pairedRepresentationLoadMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : representationLoadMetadataByte (renameMetadata resolve id metadata)
+          offset choice with
+      | none => simp [pairedRepresentationLoadMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          rw [pairedRepresentationLoadMetadataByte, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := by
+            simpa only [Option.bind_some] using Option.some.inj hresult
+          exact ⟨sourceResult, targetResult, hpair.symm⟩
 
 def pairedStoreRepresentationLoadMetadataByte
     (resolve : AllocId → Nat) (id : AllocId)
