@@ -7210,3 +7210,16 @@ Verilog 13.0 and Xcelium 24.03-s004.
 - The concrete NBA scheduler receipt now pins its complete twelve-path bounded outcome list, with every path producing the same four-state store.
 
 - Every admitted NBA-only source-shaped edge-phase terminal path now has a kernel-checked length-balance invariant, quantifying the progress bound over all legal cursor choices.
+
+## Relational-semantics design v2 — 2026-11-24
+
+The SystemVerilog design note now records the parser-native, fuel-free
+relational meaning as the normative layer and keeps the canonical E route as
+an implementation. It distinguishes semantic completion, refusal, and
+divergence from implementation budget exhaustion and invalid schedules. The
+note specifies per-read x resolution, parameterized granularity, input
+batches for simultaneous events, five independent bridge obligations, the
+three user levels, footprint-based commuting, and the abstract first
+executor bridge. The factual map and narrow memory/confluence receipts remain
+explicitly bridge-only. Commits `c4f22a031` and `2d36d1215` contain the
+design-review completion and the executor-signature correction.
