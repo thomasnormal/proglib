@@ -49,6 +49,25 @@ theorem SvState.agreesOutside_set_of_mem
   · exact False.elim (hqueried (hq ▸ hname))
   · simp [hq]
 
+def MemV.agreesOutside (hidden : List (String × Int)) (left right : MemV) : Prop :=
+  ∀ name index, (name, index) ∉ hidden → left name index = right name index
+
+theorem MemV.agreesOutside_memWrite_of_mem
+    {hidden : List (String × Int)} {mv : MemV}
+    {name : String} {index : Int} {value : LVec}
+    (htarget : (name, index) ∈ hidden) :
+    MemV.agreesOutside hidden mv (memWrite mv name (some index) value) := by
+  intro queried queriedIndex hqueried
+  simp only [memWrite]
+  by_cases hname : queried = name
+  · subst queried
+    by_cases hindex : queriedIndex = index
+    · exact False.elim (hqueried (by simp [hindex] at htarget ⊢; exact htarget))
+    · simp [hindex, Ne.symm hindex]
+  · simp [hname]
+
+#print axioms MemV.agreesOutside_memWrite_of_mem
+
 /-! The real retained resume and the observation frame can be packaged at one
     blocking scalar leaf. This is the smallest concrete bridge into the
     generic admission's per-step premise. -/

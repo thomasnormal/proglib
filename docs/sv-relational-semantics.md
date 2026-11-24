@@ -528,6 +528,10 @@ not encode terminal equality or use the admission conclusion as a premise.
 `CombPhaseStep.select_blocking_scalar_hidden_observation` exposes the same
 frame directly at a selected scheduler step, preserving the cursor's
 source-order position and the actual `select` transition.
+Memory observations have the analogous extensional frame
+`MemV.agreesOutside_memWrite_of_mem`. A decoded memory write changes only its
+declared name-and-index footprint, so a hidden-cell admission can use the same
+per-step pattern without treating scalar names as the whole memory state.
 
 The following results are real and intentionally narrow.
 
