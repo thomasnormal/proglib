@@ -982,6 +982,22 @@ def allocateZeroSize (state : State) (placement : Placement) :
       (.token { allocation := { live := true, address := none, bytes := [], state := state }, locations := [] },
        footprint AccessKind.metadata (Region.mk 0 0 0))
 
+theorem allocateZeroSize_failure_shape (state : State) :
+    allocateZeroSize (Tag := Tag) (TypeId := TypeId) state .fail =
+      (.null, footprint .metadata (Region.mk 0 0 0)) := by
+  rfl
+
+theorem allocateZeroSize_address_shape (state : State) (base : Nat) :
+    allocateZeroSize (Tag := Tag) (TypeId := TypeId) state (.address base) =
+      (.token { allocation := { live := true, address := some base, bytes := [], state := state }, locations := [] },
+        footprint .metadata (Region.mk 0 0 0)) := by
+  rfl
+
+theorem allocateZeroSize_unaddressable_shape (state : State) :
+    allocateZeroSize (Tag := Tag) (TypeId := TypeId) state .unaddressable =
+      (.token { allocation := { live := true, address := none, bytes := [], state := state }, locations := [] },
+        footprint .metadata (Region.mk 0 0 0)) := by
+  rfl
 def renameZeroSizeOutcome (resolve : AllocId → Nat) :
     ZeroSizeOutcome Tag State TypeId → ZeroSizeOutcome Tag State TypeId
   | .null => .null
@@ -999,6 +1015,10 @@ inductive ReallocZeroOutcome where
 deriving Repr, BEq
 
 def reallocZeroGNU17 : ReallocZeroOutcome := .freedNull
+
+theorem reallocZeroGNU17_shape :
+    reallocZeroGNU17 = .freedNull := by
+  rfl
 
 def pairedReallocZero (resolve : AllocId → Nat) : Bool := true
 

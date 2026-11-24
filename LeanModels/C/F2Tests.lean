@@ -127,6 +127,11 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard match allocateZeroSize (Tag := Unit) (TypeId := String) () .fail with
   | (.null, _) => true
   | _ => false
+#guard match allocateZeroSize (Tag := Unit) (TypeId := String) () (.address 128) with
+  | (.token metadata, resultFootprint) =>
+      metadata.allocation.address == some 128 &&
+        resultFootprint == footprint .metadata { allocation := 0, offset := 0, width := 0 }
+  | _ => false
 #guard pairedAllocateZeroSize resolve () (.address 128)
 #guard ((allocateZeroSize (Tag := Unit) (TypeId := String) () (.address 128)).2.accesses.length == 1)
 #guard reallocZeroGNU17 == .freedNull
