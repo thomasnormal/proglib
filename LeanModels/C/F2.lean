@@ -3660,6 +3660,38 @@ theorem pairedPointerEqual_unequal_choice
     pairedPointerEqual resolve left right .unequal = true := by
   simp [pairedPointerEqual, pointerEqual]
 
+theorem pairedPointerEqual_equal_choice_agrees
+    (resolve : AllocId → Nat) (left right : Pointer Tag)
+    (hleft : (left.address == right.address) = true)
+    (hright : ((renamePointer resolve left).address ==
+      (renamePointer resolve right).address) = true) :
+    pairedPointerEqual resolve left right .equal = true := by
+  simp [pairedPointerEqual, pointerEqual, hleft, hright]
+
+theorem pairedPointerEqual_equal_choice_both_refused
+    (resolve : AllocId → Nat) (left right : Pointer Tag)
+    (hleft : (left.address == right.address) = false)
+    (hright : ((renamePointer resolve left).address ==
+      (renamePointer resolve right).address) = false) :
+    pairedPointerEqual resolve left right .equal = true := by
+  simp [pairedPointerEqual, pointerEqual, hleft, hright]
+
+theorem pairedPointerEqual_equal_choice_refusal_left
+    (resolve : AllocId → Nat) (left right : Pointer Tag)
+    (hleft : (left.address == right.address) = false)
+    (hright : ((renamePointer resolve left).address ==
+      (renamePointer resolve right).address) = true) :
+    pairedPointerEqual resolve left right .equal = false := by
+  simp [pairedPointerEqual, pointerEqual, hleft, hright]
+
+theorem pairedPointerEqual_equal_choice_refusal_right
+    (resolve : AllocId → Nat) (left right : Pointer Tag)
+    (hleft : (left.address == right.address) = true)
+    (hright : ((renamePointer resolve left).address ==
+      (renamePointer resolve right).address) = false) :
+    pairedPointerEqual resolve left right .equal = false := by
+  simp [pairedPointerEqual, pointerEqual, hleft, hright]
+
 inductive OffsetFault where
   | outOfBounds
   | alignment
