@@ -3392,6 +3392,15 @@ theorem pairedPlacementAllowed_both_refused
     pairedPlacementAllowed resolve store base size = true := by
   simp [pairedPlacementAllowed, hsource, htarget]
 
+theorem pairedPlacementAllowed_both_allowed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (base size : Nat)
+    (hsource : placementAllowed store base size = true)
+    (htarget : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) size = true) :
+    pairedPlacementAllowed resolve store base size = true := by
+  simp [pairedPlacementAllowed, hsource, htarget]
+
 def alignmentAllowed (base alignment : Nat) : Bool :=
   alignment > 0 && base % alignment == 0
 
