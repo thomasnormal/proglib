@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1383/2114 MATCH (passed 1383, failed 0, oracle 0)
+- verdicts: 1384/2114 MATCH (passed 1384, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `120ddbc6670608d564a2d0c157b411657f982fc6`
-- measured at: `2026-11-24T01:15:00Z`
+- measured commit: `35644f241facfe28a3f5f1d4b2574078fac62328`
+- measured at: `2026-11-24T01:20:00Z`
 
 ## Verdict counts
 
@@ -16,8 +16,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `not-ingested` | 1 |
 | `not-parsed` | 432 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1383 |
-| `refused-libc` | 24 |
+| `passed` | 1384 |
+| `refused-libc` | 23 |
 | `refused-ub` | 47 |
 | `refused-unsupported` | 313 |
 | `runner-error` | 11 |
@@ -35,8 +35,8 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
 | `gcc.c-torture/execute` | `not-parsed` | 395 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1180 |
-| `gcc.c-torture/execute` | `refused-libc` | 22 |
+| `gcc.c-torture/execute` | `passed` | 1181 |
+| `gcc.c-torture/execute` | `refused-libc` | 21 |
 | `gcc.c-torture/execute` | `refused-ub` | 41 |
 | `gcc.c-torture/execute` | `refused-unsupported` | 178 |
 | `gcc.c-torture/execute` | `runner-error` | 10 |
@@ -204,7 +204,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `libc-call: __builtin_snprintf` | 1 | 1 | pr78622.c |
 | `libc-call: f` | 1 | 1 | gcc/testsuite/gcc.dg/torture/c23-stdarg-split-1a.c |
 | `libc-call: fopen` | 1 | 1 | 00187.c |
-| `libc-call: isprint` | 1 | 1 | 991112-1.c |
 | `libc-call: main_test` | 1 | 1 | builtins/lib/main.c |
 | `libc-call: pow` | 1 | 1 | 980709-1.c |
 | `libc-call: qsort` | 1 | 1 | pr34456.c |
