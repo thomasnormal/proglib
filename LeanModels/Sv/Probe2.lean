@@ -63,10 +63,11 @@ re-extracted ALONE at the overrides that instance receives at `P`
 definition at the same overrides (`ProbeInst2`). Folds inside a child are
 caught at the points the hierarchy actually uses.
 
-**Verdicts.** `.agree` passes ordinary point comparisons. `.memoryAgree` passes
-the separately audited canonical-memory route. `ProbeVerdict.ok` and
-`PDesign.pointAgrees` include both. A refusal on an unprobed instance and an
-unconfirmed node still count as mismatches.
+**Verdicts.** `.agree` passes ordinary point comparisons. `.memoryAgree` is a
+diagnostic result for the separately audited canonical-memory route, but it is
+not a passing sidecar verdict. `ProbeVerdict.ok` and `PDesign.pointAgrees`
+accept only `.agree`. A refusal on an unprobed instance and an unconfirmed node
+still count as mismatches.
 
 **Not covered** (recorded): folds whose dependency is a GENVAR rather than
 a parameter (the extractor binds a generate-for body from its first
@@ -592,22 +593,23 @@ inductive ProbeVerdict where
   | memoryAgree
 deriving Repr, BEq, Inhabited
 
-/-- Passing means an ordinary agreement or the audited memory agreement. -/
+/-- Passing means an ordinary point agreement. Memory-route diagnostics are not admissions. -/
 def ProbeVerdict.ok : ProbeVerdict → Bool
-  | .agree | .memoryAgree => true
+  | .agree => true
   | _ => false
 
 /-- The status word of a verdict: `ok` (agree), `UNCONFIRMED` (equal
 except where a side refuses), `FAIL` (everything else). -/
 def ProbeVerdict.status : ProbeVerdict → String
-  | .agree | .memoryAgree => "ok"
+  | .agree => "ok"
+  | .memoryAgree => "FAIL"
   | .unconfirmed _ => "UNCONFIRMED"
   | _ => "FAIL"
 
 /-- A one-line rendering. -/
 def ProbeVerdict.render : ProbeVerdict → String
   | .agree => "agree"
-  | .memoryAgree => "agree (canonical memory route)"
+  | .memoryAgree => "FAIL: canonical memory route requires separate review"
   | .differ m => s!"differ (SILENT default-point fold): {m}"
   | .unconfirmed ms => s!"unconfirmed (equal except where a side refuses): {String.intercalate " | " ms}"
   | .metaDiffer ms => s!"resolved metadata at the point disagrees: {String.intercalate " | " ms}"
@@ -747,8 +749,7 @@ def PDesign.pointVerdict (dflt pt : PDesign) (lib : List PDesign)
               | [] => .agree
               | msgs => .metaDiffer msgs
 
-/-- `pointVerdict` as a `Bool`: the check passes at `.agree` or the audited
-canonical-memory verdict. -/
+/-- `pointVerdict` as a `Bool`: only an ordinary `.agree` passes the sidecar check. -/
 def PDesign.pointAgrees (dflt pt : PDesign) (lib : List PDesign)
     (ov : List (String × Int)) : Bool :=
   (dflt.pointVerdict pt lib ov).ok
