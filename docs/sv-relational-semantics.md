@@ -521,6 +521,10 @@ independence at the chosen observation boundary. It does not assume a local
 diamond, full-state equality, or the conclusion that all terminal states are
 equal. A future global race theorem must derive this admission from the
 parser-native read predicate and the scheduler's actual process set.
+`CombPhaseScalarHiddenResumeReceipt.toAdmission` makes one such derivation
+constructive for scalar leaves. Its receipt still requires each selected
+cursor's exact resume equation, empty continuation, and hidden target. It does
+not encode terminal equality or use the admission conclusion as a premise.
 
 The following results are real and intentionally narrow.
 

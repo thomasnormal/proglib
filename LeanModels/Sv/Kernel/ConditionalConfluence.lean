@@ -458,6 +458,47 @@ structure CombPhaseHiddenObservationAdmission
   preserves : ∀ {s t : CombPhaseState}, CombPhaseStep E s t →
     SvState.agreesOutside hidden s.view t.view
 
+/-! This receipt form makes the per-step observation premise constructive for
+    scalar leaves. Each active cursor supplies its own hidden target and exact
+    view-update equation. No terminal-path equality is part of the receipt. -/
+structure CombPhaseScalarHiddenResumeReceipt
+    (E : CoreMemDesign) (hidden : List String) where
+  resume_hidden : ∀ (s : CombPhaseState) (cursor : CombCursor), cursor ∈ s.active →
+    ∃ state view next name value,
+      cursor.resume E s.state s.view = .ok (state, view, next) ∧
+      next.work = [] ∧ name ∈ hidden ∧
+      view = SvState.set s.view name value
+
+theorem CombPhaseScalarHiddenResumeReceipt.toAdmission
+    {E : CoreMemDesign} {hidden : List String}
+    (receipt : CombPhaseScalarHiddenResumeReceipt E hidden) :
+    CombPhaseHiddenObservationAdmission E hidden := by
+  constructor
+  · intro s cursor hcursor
+    obtain ⟨state, view, next, name, value, hresume, _, _, _⟩ :=
+      receipt.resume_hidden s cursor hcursor
+    exact ⟨state, view, next, hresume⟩
+  · intro s cursor state view next hcursor hresume
+    obtain ⟨state', view', next', name, value, hresume', hempty, _, hview⟩ :=
+      receipt.resume_hidden s cursor hcursor
+    have : state = state' ∧ view = view' ∧ next = next' := by
+      simpa [hresume] using hresume'
+    exact this.2.2 ▸ hempty
+  · intro s t hstep
+    cases hstep with
+    | @select before after cursor next state view hactive hresume =>
+        obtain ⟨state', view', next', name, value, hresume', _, hname, hview⟩ :=
+          receipt.resume_hidden s cursor (by simp [hactive])
+        have hsame : state = state' ∧ view = view' ∧ next = next' := by
+          simpa [hresume] using hresume'
+        change SvState.agreesOutside hidden s.view view
+        have hview_eq : view = SvState.set s.view name value := by
+          exact hsame.2.1.trans hview
+        rw [hview_eq]
+        exact SvState.agreesOutside_set_of_mem hname
+
+#print axioms CombPhaseScalarHiddenResumeReceipt.toAdmission
+
 theorem CombPhaseHiddenObservationAdmission.progress
     {E : CoreMemDesign} {hidden : List String}
     (ad : CombPhaseHiddenObservationAdmission E hidden)
