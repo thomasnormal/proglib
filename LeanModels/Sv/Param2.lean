@@ -1512,6 +1512,30 @@ def forValuesFuel2.go (env : IEnv) (iterator : String) (condition : PExpr) (delt
             let rest ← forValuesFuel2.go env iterator condition delta fuel (i + delta)
             .ok (i :: rest)
 
+/-- The accumulator-based trace builder is extensionally equal to the audited
+recursive builder.  The accumulator stores prior values in reverse order. -/
+theorem forValuesFuel2Go_eq_recursive (env : IEnv) (iterator : String)
+    (condition : PExpr) (delta : Int) :
+    ∀ (fuel : Nat) (i : Int) (acc : List Int),
+      forValuesFuel2Go env iterator condition delta fuel i acc =
+        (do let rest ← forValuesFuel2.go env iterator condition delta fuel i
+            pure (acc.reverse ++ rest)) := by
+  intro fuel
+  induction fuel with
+  | zero => simp [forValuesFuel2Go, forValuesFuel2.go]
+  | succ fuel ih =>
+      intro i acc
+      simp only [forValuesFuel2Go, forValuesFuel2.go]
+      split <;> rename_i hEval hGuard
+      · simp [hGuard]
+      · by_cases hz : (hEval == 0) = true
+        · simp [hz]
+        · simp only [hz]
+          cases hrest : forValuesFuel2.go env iterator condition delta fuel (i + delta) with
+          | timeout => rw [ih]; simp [hrest]
+          | unsupported msg => rw [ih]; simp [hrest]
+          | ok rest => rw [ih]; simp [hrest, List.append_assoc]
+
 def forValuesFuel2 (env : IEnv) (iterator : String) (init condition step : PExpr) :
     Nat → Res (List Int)
   | 0 => .timeout

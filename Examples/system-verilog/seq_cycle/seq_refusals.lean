@@ -221,6 +221,21 @@ def runCoreMemLastTwo (E : CoreMemDesign) (st : CoreMemState) (rows : List SvSta
         go st' rest (n + 1) after (some (E.scalar.view st'.scalar))
   go st rows 0 none none
 
+/-! The repeated-cycle form keeps the 5000-cycle pin from first constructing a 10000-entry
+list during kernel reduction. It executes the same low/high edge pair as `cycleRows`. -/
+def runCoreMemRepeated (E : CoreMemDesign) (st : CoreMemState) (cycles : Nat) :
+    Res (Nat × Option SvState × Option SvState) :=
+  let rec go (st : CoreMemState) (cycles : Nat) (n : Nat)
+      (before after : Option SvState) : Res (Nat × Option SvState × Option SvState) :=
+    match cycles with
+    | 0 => .ok (n, before, after)
+    | cycles + 1 => do
+        let low ← E.step st (lowEntry "clk" [("d", .ofNat 1 1)])
+        let high ← E.step low (highEntry "clk")
+        go high cycles (n + 2) (some (E.scalar.view low.scalar))
+          (some (E.scalar.view high.scalar))
+  go st cycles 0 none none
+
 /-! The route allocates loop fuel from the evaluated header. After edge 4999
 the penultimate sample is still x, while after edge 5000 the output has
 received the constant input. The row count also proves that all 5000 edges
@@ -228,8 +243,7 @@ ran. -/
 set_option maxRecDepth 100000 in
 set_option maxHeartbeats 2000000 in
 #guard (match sfr.e 1 5000 with
-  | .ok E => match runCoreMemLastTwo E E.initial
-      (cycleRows "clk" (List.replicate 5000 [("d", .ofNat 1 1)])) with
+  | .ok E => match runCoreMemRepeated E E.initial 5000 with
     | .ok (count, some before, some after) => count == 10000 &&
         SvState.showSignal before "q" == "x" &&
         SvState.showSignal after "q" == "1"
