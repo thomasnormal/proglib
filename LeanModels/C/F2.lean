@@ -1510,6 +1510,11 @@ def placementAllowed (store : Store Tag State) (base size : Nat) : Bool :=
 
 def zeroSizePlacementAllowed (store : Store Tag State) (base : Nat) : Bool := true
 
+theorem zeroSizePlacementAllowed_shape
+    (store : Store Tag State) (base : Nat) :
+    zeroSizePlacementAllowed store base = true := by
+  rfl
+
 def pairedPlacementAllowed (resolve : AllocId → Nat)
     (store : Store Tag State) (base size : Nat) : Bool :=
   placementAllowed store base size ==
