@@ -3417,6 +3417,16 @@ theorem renameOffsetResult_success_shape
     renameOffsetResult resolve (.ok pointer) = .ok (renamePointer resolve pointer) := by
   rfl
 
+theorem renameOffsetResult_comp
+    (first second : AllocId → Nat)
+    (result : Except OffsetFault (Pointer Tag)) :
+    renameOffsetResult second (renameOffsetResult first result) =
+      renameOffsetResult second result := by
+  cases result with
+  | error fault => rfl
+  | ok pointer =>
+      simp [renameOffsetResult, renamePointer_comp]
+
 def pairedOffsetPointer (resolve : AllocId → Nat) (pointer : Pointer Tag)
     (elementSize : Nat) (delta : Int) (bound : Nat) :
     Bool :=
