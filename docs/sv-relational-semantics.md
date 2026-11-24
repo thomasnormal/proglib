@@ -440,6 +440,16 @@ meaning. Any concrete contradiction exposed by a differential or proof
 receipt must be recorded as a finding with a reproducer and escalated for an
 owner decision.
 
+Loow's paper repairs an executable formalisation after identifying tensions
+between the standard and synthesis-oriented practice. Our relation uses the
+same clauses as the normative source, but keeps their permitted event orders
+and unresolved choices instead of selecting a repaired executable order as the
+language definition. The executor may implement one such order only after the
+soundness, completeness, progress, and observation-independence obligations
+below are proved for its admitted profile. This records the agreement on the
+clause boundaries while leaving a standards-versus-practice finding visible
+whenever the two differ.
+
 ## Current bridge inventory
 
 ### Frame-lemma audit
@@ -729,6 +739,14 @@ with a known-value premise or a permitted-outcome postcondition. Concrete
 The five proposals agree on the architecture, but the factual map was checked
 against this checkout.
 
+The review's most important correction is a status correction. The tree has
+fuel-free relations in E-core-0 and E-core-1, but they are over lowered
+`Stmt2` and are process-atomic. The parser-native `CoreMemDesign` route is
+still a function executor. No existing declaration is therefore the complete
+normative relation described here. In particular, a theorem that mentions
+`CoreMemDesign.step`, `runCoreMemRows`, `Runs2`, or `SeqRuns*` is an executor
+theorem until its relation transport premise is supplied.
+
 * The existing E-core-0 and E-core-1 relations are real. `Core0E.lean`
   exposes `step`, `Steps`, and `SlotCloses`; `Core1Edge.lean` exposes
   `step1`, `Steps1`, and `SlotCloses1`. They are over `Elab`/`Elab1`
@@ -760,6 +778,22 @@ against this checkout.
 * Existing memory and phase confluence theorems require explicit admissions,
   queue/frame receipts, and in several cases process-atomic or cursor-local
   assumptions. They must not be described as whole-design confluence.
+
+One proposal suggested treating process atomicity as the default. That is not
+an owner decision. `Granularity` remains an explicit parameter, with the
+statement profile carrying the clause 4.7 preemption relation and the process
+profile available only under a declared profile assumption or a proved mover
+theorem. The current edge cursor is also not uniformly statement-granular: its
+case leaf still invokes the bounded statement executor. These are migration
+facts, not hidden choices in the normative rules.
+
+The review also identified two implementation facts that must remain visible in
+the bridge plan. `ScheduleConfluence` is never instantiated for the old
+`Scheduler` state, and its list-shaped active/wakeup state would require an
+observation equivalence rather than literal list equality for a general
+design. Separately, the canonical quiescence workers currently report some
+budget exhaustion as `Res.unsupported`. Both are executor repairs and neither
+may be promoted to a semantic refusal or a confluence theorem.
 
 ## Migration order
 
