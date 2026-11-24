@@ -2712,6 +2712,17 @@ theorem pairedFreeMetadata_preserves_wellFormed
               (renameZeroTokenMetadata resolve metadata) targetResult
               hmetadataTarget ht⟩
 
+theorem pairedFreeMetadata_preserves_wellFormed_from_source
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hmetadata : metadata.wellFormed 0)
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.wellFormed 0 ∧ result.2.1.wellFormed 0 := by
+  exact pairedFreeMetadata_preserves_wellFormed resolve metadata result hmetadata
+    (renameZeroTokenMetadata_preserves_wellFormed resolve metadata hmetadata) hresult
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
