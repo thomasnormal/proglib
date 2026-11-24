@@ -4493,13 +4493,28 @@ theorem unaddressableToken_sound
 
 def pairedUnaddressableAllocation (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State) :
-    Bool := true
+    Bool :=
+  match allocate store request .unaddressable,
+    allocate (renameStore resolve store) request .unaddressable with
+  | some _, some _ => true
+  | none, none => true
+  | _, _ => false
 
-theorem pairedUnaddressableAllocation_shape
+theorem pairedUnaddressableAllocation_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
-    (request : AllocationRequest Tag State) :
+    (request : AllocationRequest Tag State)
+    (hsource : allocate store request .unaddressable = some source)
+    (htarget : allocate (renameStore resolve store) request .unaddressable = some target) :
     pairedUnaddressableAllocation resolve store request = true := by
-  rfl
+  simp [pairedUnaddressableAllocation, hsource, htarget]
+
+theorem pairedUnaddressableAllocation_both_refused
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State)
+    (hsource : allocate store request .unaddressable = none)
+    (htarget : allocate (renameStore resolve store) request .unaddressable = none) :
+    pairedUnaddressableAllocation resolve store request = true := by
+  simp [pairedUnaddressableAllocation, hsource, htarget]
 
 theorem footprintAgrees_rename (resolve : AllocId → Nat) (footprint : Footprint) :
     footprintAgrees (renameFootprint resolve footprint) footprint := by
