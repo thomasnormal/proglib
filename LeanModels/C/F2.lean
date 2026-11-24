@@ -2176,6 +2176,13 @@ theorem representationLoadMetadataByte_footprint
             simp [representationLoadMetadataByte, hbyte, hlocation, htype] at hresult
           all_goals exact congrArg (fun pair => pair.2) hresult.symm
 
+theorem representationLoadMetadataByte_outOfBounds
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (choice : RepresentationChoice)
+    (hbyte : metadata.allocation.bytes[offset]? = none) :
+    representationLoadMetadataByte metadata offset choice = none := by
+  simp [representationLoadMetadataByte, hbyte]
+
 def pairedRepresentationLoadMetadataByte (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
