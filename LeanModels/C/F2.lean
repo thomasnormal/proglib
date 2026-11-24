@@ -4081,6 +4081,20 @@ theorem allocateAligned_unaddressable_result_footprint
   rcases hresult with ⟨rfl, rfl⟩
   rfl
 
+theorem allocateAligned_unaddressable_result_payload
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (alignment : Nat) (result : Store Tag State × Footprint)
+    (hresult : allocateAligned store request .unaddressable alignment = some result) :
+    result.1 =
+      { allocations := store.allocations ++
+          [(store.nextId,
+            { live := true, address := none,
+              bytes := request.bytes, state := request.state })]
+        nextId := store.nextId + 1 } := by
+  simp [allocateAligned, allocate] at hresult
+  rcases hresult with ⟨rfl, rfl⟩
+  rfl
+
 def renamedPlacement (resolve : AllocId → Nat) (id : AllocId) :
     Placement → Placement
   | .address _ => .address (resolve id)
