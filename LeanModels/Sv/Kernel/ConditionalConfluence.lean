@@ -39,6 +39,16 @@ theorem SvState.agreesOutside_two_set_of_mem
     exact hqueried hm
   simp [hnq, hmq]
 
+theorem SvState.agreesOutside_set_of_mem
+    {hidden : List String} {state : SvState} {value : LVec} {name : String}
+    (hname : name ∈ hidden) :
+    SvState.agreesOutside hidden state (SvState.set state name value) := by
+  intro queried hqueried
+  rw [SvState.lookup_set]
+  by_cases hq : name = queried
+  · exact False.elim (hqueried (hq ▸ hname))
+  · simp [hq]
+
 /-! The local two-process theorem quantifies both legal first selections and
 their second selections.  It proves progress to empty active work and equality
 of the observation outside the hidden targets.  It does not assert equality of
