@@ -49,6 +49,30 @@ theorem SvState.agreesOutside_set_of_mem
   · exact False.elim (hqueried (hq ▸ hname))
   · simp [hq]
 
+/-! The real retained resume and the observation frame can be packaged at one
+    blocking scalar leaf. This is the smallest concrete bridge into the
+    generic admission's per-step premise. -/
+theorem CombCursor.resume_blocking_scalar_hidden_observation
+    {E : CoreMemDesign} {hidden : List String}
+    {st : CoreMemState} {view locals : SvState}
+    {env : IEnv} {n : String} {value : PExpr} {width : Nat}
+    {tail : List CombWork} {v : LVec}
+    (hlocal : SvState.lookup locals n = none)
+    (htarget : E.scalarTarget n = some width)
+    (htest : PExpr.hasTestPlusargs value = false)
+    (hvalue : E.evalExprLocals env E.elems st (some width) locals value = .ok v)
+    (hname : n ∈ hidden) :
+    ∃ next,
+      CombCursor.resume E st view
+          { work := .stmt env (.blockingAssign n value) :: tail, locals := locals } =
+        .ok (E.setScalarState st n v, SvState.set view n v, next) ∧
+      SvState.agreesOutside hidden view (SvState.set view n v) := by
+  refine ⟨{ work := tail, locals := locals }, ?_, ?_⟩
+  · exact CombCursor.resume_blocking_scalar hlocal htarget htest hvalue
+  · exact SvState.agreesOutside_set_of_mem hname
+
+#print axioms CombCursor.resume_blocking_scalar_hidden_observation
+
 /-! The local two-process theorem quantifies both legal first selections and
 their second selections.  It proves progress to empty active work and equality
 of the observation outside the hidden targets.  It does not assert equality of

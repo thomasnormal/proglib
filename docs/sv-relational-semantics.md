@@ -461,6 +461,9 @@ scalar writes from `Coherent` state and distinct declaration identities.
 The observation-side helper `SvState.agreesOutside_set_of_mem` records the
 one-write frame case, so a step that updates a hidden target can discharge the
 outside-observation premise without appealing to terminal-path equality.
+`CombCursor.resume_blocking_scalar_hidden_observation` packages that frame
+with the real retained-resume equation, exposing the concrete one-leaf bridge
+used by an admission proof.
 `edge_evalExprLocals_two_write_frame_of_driver_closure` combines that write
 footprint with the evaluator frame. These are kernel-checked frame facts, not
 the scheduler diamond itself. They still require the pure-expression and
