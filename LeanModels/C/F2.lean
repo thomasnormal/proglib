@@ -3375,6 +3375,13 @@ theorem alignmentAllowed_success
     alignmentAllowed base alignment = true := by
   simp [alignmentAllowed, hpositive, hmod]
 
+theorem alignmentAllowed_refusal_remainder
+    (base alignment : Nat)
+    (hpositive : 0 < alignment)
+    (hremainder : base % alignment ≠ 0) :
+    alignmentAllowed base alignment = false := by
+  simp [alignmentAllowed, hpositive, hremainder]
+
 def pairedAlignmentAllowed (resolve : AllocId → Nat)
     (id alignment : Nat) : Bool :=
   alignmentAllowed (resolve id) alignment = alignmentAllowed (resolve id) alignment
