@@ -1138,6 +1138,24 @@ def pairedFreeMetadata (resolve : AllocId → Nat)
   let targetResult ← freeMetadata (renameZeroTokenMetadata resolve metadata)
   some (sourceResult, targetResult)
 
+theorem pairedFreeMetadata_decompose
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases hs : freeMetadata metadata with
+  | none => simp [pairedFreeMetadata, hs] at hresult
+  | some sourceResult =>
+      cases ht : freeMetadata (renameZeroTokenMetadata resolve metadata) with
+      | none => simp [pairedFreeMetadata, hs, ht] at hresult
+      | some targetResult =>
+          rw [pairedFreeMetadata, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := by
+            simpa only [Option.bind_some] using Option.some.inj hresult
+          exact ⟨sourceResult, targetResult, hpair.symm⟩
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
