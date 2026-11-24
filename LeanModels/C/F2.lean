@@ -3549,6 +3549,10 @@ deriving Repr, BEq
 
 def expose (state : Exposure) : Exposure := { exposed := true }
 
+theorem expose_idempotent (state : Exposure) :
+    expose (expose state) = expose state := by
+  rfl
+
 def renameExposure (resolve : AllocId → Nat) (state : Exposure) : Exposure := state
 
 theorem renameExposure_identity (resolve : AllocId → Nat) (state : Exposure) :
