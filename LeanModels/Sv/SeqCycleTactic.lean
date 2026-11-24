@@ -1079,9 +1079,9 @@ macro "sv_seq_obligations" : tactic =>
       LeanModels.Sv.selfWidth2, LeanModels.Sv.fitExpr2, LeanModels.Sv.rigidExpr,
       LeanModels.Sv.PExpr.ctxPropagates, LeanModels.Sv.PExpr.constLeaf, LeanModels.Sv.PExpr.negGenvarWidened,
       LeanModels.Sv.PExpr.signedCast, LeanModels.Sv.Kernel.seqE_except_ok_bind,
-      LeanModels.Sv.Kernel.seqE_except_pure]) <;>
-    (try split) <;>
-    (try simp [LeanModels.Sv.Expr2.idents])
+      LeanModels.Sv.Kernel.seqE_except_pure] <;>
+      (try split) <;>
+      (try simp [LeanModels.Sv.Expr2.idents]))
 
 /-- **`sv_seq_ports`**: the ports of a normal form. -/
 macro "sv_seq_ports" : tactic =>
