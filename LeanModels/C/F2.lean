@@ -745,6 +745,22 @@ def pairedUnionLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     some (sourceResult, targetResult)
   else none
 
+theorem pairedUnionLoadMetadataByte_decompose
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedUnionLoadMetadataByte resolve id metadata offset = some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases hs : unionLoadMetadataByte metadata offset with
+  | none => simp [pairedUnionLoadMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : unionLoadMetadataByte (renameMetadata resolve id metadata) offset with
+      | none => simp [pairedUnionLoadMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedUnionLoadMetadataByte, hs, ht] at hresult
+          exact ⟨sourceResult, targetResult, hresult.2.symm⟩
+
 theorem unionLoadMetadataByte_success
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (byte : Byte Tag) (location : LocationState TypeId)
@@ -1379,6 +1395,34 @@ def pairedStoreRepresentationLoadMetadataByte
   let sourceLoad ← representationLoadMetadataByte sourceStore.1 offset choice
   let targetLoad ← representationLoadMetadataByte targetStore.1 offset choice
   some ((sourceStore, sourceLoad), (targetStore, targetLoad))
+
+theorem pairedStoreRepresentationLoadMetadataByte_decompose
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice)
+    (result : (((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint))))
+    (hresult : pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice =
+      some result) :
+    ∃ sourceResult targetResult, result = (sourceResult, targetResult) := by
+  cases hs : storeMetadataByte metadata offset byte with
+  | none => simp [pairedStoreRepresentationLoadMetadataByte, hs] at hresult
+  | some sourceStore =>
+      cases ht : storeMetadataByte (renameMetadata resolve id metadata) offset
+          (renameByte resolve byte) with
+      | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht] at hresult
+      | some targetStore =>
+          cases hsl : representationLoadMetadataByte sourceStore.1 offset choice with
+          | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl] at hresult
+          | some sourceLoad =>
+              cases htl : representationLoadMetadataByte targetStore.1 offset choice with
+              | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl, htl] at hresult
+              | some targetLoad =>
+                  simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl, htl] at hresult
+                  exact ⟨(sourceStore, sourceLoad), (targetStore, targetLoad), hresult.symm⟩
 
 def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | [] => True
