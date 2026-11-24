@@ -221,6 +221,7 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard (endLifetime empty 0).isNone
 #guard (endLifetime dead 0).isNone
 #guard (pairedEndLifetime resolve one 0).isSome
+#guard pairedLifetimeLookup resolve one 0
 #guard match pairedEndLifetime resolve one 0 with
   | some ((_, sourceFootprint), (_, targetFootprint)) =>
       sourceFootprint == footprint .metadata { allocation := 0, offset := 0, width := 1 } &&

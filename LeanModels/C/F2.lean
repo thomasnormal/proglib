@@ -5470,6 +5470,26 @@ theorem pairedLifetimeLookup_sound
           simp [pairedLifetimeLookup, hs, ht] at h
           exact ⟨sourceResult, targetResult, rfl, rfl⟩
 
+theorem pairedLifetimeLookup_both_success
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (source target : Store Tag State × Footprint)
+    (hsource : endLifetime store id = some source)
+    (htarget : endLifetime (renameStore resolve store) id = some target) :
+    pairedLifetimeLookup resolve store id = true := by
+  simp [pairedLifetimeLookup, hsource, htarget]
+
+theorem pairedLifetimeLookup_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (hsource : endLifetime store id = none) :
+    pairedLifetimeLookup resolve store id = false := by
+  simp [pairedLifetimeLookup, hsource]
+
+theorem pairedLifetimeLookup_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (htarget : endLifetime (renameStore resolve store) id = none) :
+    pairedLifetimeLookup resolve store id = false := by
+  simp [pairedLifetimeLookup, htarget]
+
 def pairedStaleLoad (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) : Bool :=
   match endLifetime store id, endLifetime (renameStore resolve store) id with
