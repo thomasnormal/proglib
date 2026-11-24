@@ -40,6 +40,9 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
     (0, { live := true, address := some 16, bytes := [fragmentByte], state := () }) ==
     (0, { live := true, address := some 100,
           bytes := [renameByte resolve fragmentByte], state := () })
+#guard lookup (renameStore resolve one) 0 ==
+  some (renameAllocationValue resolve 0
+    { live := true, address := some 32, bytes := [oneByte], state := () })
 #guard decodePointer ([] : List (Byte Unit)) == none
 #guard decodePointer (List.replicate 8 (.uninitialized : Byte Unit)) == none
 #guard setLocation ([] : LocationStore String) 0 0 location == none

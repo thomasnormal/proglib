@@ -547,6 +547,24 @@ theorem renameResult_footprint_access_count {Tag State F : Type}
 def lookup (store : Store Tag State) (id : AllocId) : Option (Allocation Tag State) :=
   store.allocations.find? (fun entry => entry.1 == id) |>.map (·.2)
 
+theorem lookup_renameStore (resolve : AllocId → Nat)
+    (store : Store Tag State) (id : AllocId) :
+    lookup (renameStore resolve store) id =
+      (lookup store id).map (renameAllocationValue resolve id) := by
+  cases store with
+  | mk allocations nextId =>
+      induction allocations with
+      | nil => rfl
+      | cons entry rest ih =>
+          cases entry with
+          | mk entryId allocation =>
+              by_cases h : entryId == id
+              · have hid : entryId = id := by simpa using h
+                simp [lookup, renameStore, renameAllocation, renameAllocationValue,
+                  h, hid]
+              · simpa [lookup, renameStore, renameAllocation, renameAllocationValue,
+                  Function.comp_def, h] using ih
+
 def bytesWf (id : AllocId) : List (Byte Tag) → Prop
   | [] => True
   | .uninitialized :: rest => bytesWf id rest
