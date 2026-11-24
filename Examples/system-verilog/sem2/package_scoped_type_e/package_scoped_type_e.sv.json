@@ -1,0 +1,236 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "package_scoped_type_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/package_scoped_type_e/package_scoped_type_e.sv",
+      "sha256": "1cee79e3abbc520700bf18eba337cb29c0ac78accc295a4f76009952a8c145a1"
+    }
+  ],
+  "packages": [
+    "package_scoped_type_e_pkg"
+  ],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 5,
+          "col": 1,
+          "end_line": 9,
+          "end_col": 10
+        },
+        "name": "package_scoped_type_e",
+        "imports": [],
+        "params": [],
+        "package_params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 3,
+              "col": 17,
+              "end_line": 3,
+              "end_col": 22
+            },
+            "name": "W",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 17,
+                      "end_line": 3,
+                      "end_col": 22
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 17,
+                      "end_line": 3,
+                      "end_col": 22
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "resolved": 8,
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 3,
+                "col": 21,
+                "end_line": 3,
+                "end_col": 22
+              },
+              "value": 8,
+              "resolved_width": 32
+            },
+            "package": "package_scoped_type_e_pkg"
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 6,
+              "col": 43,
+              "end_line": 6,
+              "end_col": 49
+            },
+            "name": "i_word",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 18,
+                      "end_line": 2,
+                      "end_col": 19
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 20,
+                      "end_line": 2,
+                      "end_col": 21
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 51,
+              "end_line": 7,
+              "end_col": 57
+            },
+            "name": "o_word",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 7,
+                      "col": 17,
+                      "end_line": 7,
+                      "end_col": 47
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 7,
+                        "col": 17,
+                        "end_line": 7,
+                        "end_col": 45
+                      },
+                      "name": "W",
+                      "from_package": "package_scoped_type_e_pkg"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 7,
+                        "col": 46,
+                        "end_line": 7,
+                        "end_col": 47
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 48,
+                      "end_line": 7,
+                      "end_col": 49
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 8,
+              "col": 10,
+              "end_line": 8,
+              "end_col": 25
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 8,
+                "col": 10,
+                "end_line": 8,
+                "end_col": 16
+              },
+              "width": 8,
+              "name": "o_word"
+            },
+            "value": {
+              "kind": "Ident",
+              "span": {
+                "line": 8,
+                "col": 19,
+                "end_line": 8,
+                "end_col": 25
+              },
+              "width": 8,
+              "name": "i_word"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
