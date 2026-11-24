@@ -2042,6 +2042,15 @@ def pairedAllocateFailure (resolve : AllocId → Nat) (store : Store Tag State)
     (allocate (renameStore resolve store) request
       (renamedPlacement resolve store.nextId placement)).isNone
 
+theorem pairedAllocateFailure_sound
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (h : pairedAllocateFailure resolve store request placement = true) :
+    allocate store request placement = none ∧
+      allocate (renameStore resolve store) request
+        (renamedPlacement resolve store.nextId placement) = none := by
+  simpa [pairedAllocateFailure] using h
+
 def unaddressableToken (store : Store Tag State) (id : AllocId) : Bool :=
   match lookup store id with
   | some allocation => allocation.live && allocation.address.isNone
