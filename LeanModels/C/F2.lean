@@ -308,6 +308,21 @@ theorem optionResolve_comp_direct (first second : AllocId → Nat)
 def renameStore (resolve : AllocId → Nat) (store : Store Tag State) : Store Tag State :=
   { store with allocations := store.allocations.map (renameAllocation resolve) }
 
+theorem renameStore_nextId
+    (resolve : AllocId → Nat) (store : Store Tag State) :
+    (renameStore resolve store).nextId = store.nextId := by
+  rfl
+
+theorem renameStore_allocation_count
+    (resolve : AllocId → Nat) (store : Store Tag State) :
+    (renameStore resolve store).allocations.length = store.allocations.length := by
+  simp [renameStore]
+
+theorem renameAllocation_byte_count
+    (resolve : AllocId → Nat) (entry : AllocId × Allocation Tag State) :
+    (renameAllocation resolve entry).2.bytes.length = entry.2.bytes.length := by
+  simp [renameAllocation]
+
 def storesCorrespond (resolve : AllocId → Nat)
     (source target : Store Tag State) : Prop :=
   target = renameStore resolve source
