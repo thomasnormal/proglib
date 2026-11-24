@@ -1885,6 +1885,26 @@ def pairedStoreByte (resolve : AllocId → Nat) (store : Store Tag State)
   let targetResult ← storeByte (renameStore resolve store) id offset (renameByte resolve byte)
   some (sourceResult, targetResult)
 
+theorem pairedStoreByte_decompose
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedStoreByte resolve store id offset byte = some result) :
+    ∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) := by
+  cases hs : storeByte store id offset byte with
+  | none => simp [pairedStoreByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : storeByte (renameStore resolve store) id offset
+          (renameByte resolve byte) with
+      | none => simp [pairedStoreByte, hs, ht] at hresult
+      | some targetResult =>
+          rw [pairedStoreByte, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := by
+            simpa only [Option.bind_some] using Option.some.inj hresult
+          exact ⟨sourceResult, targetResult, hpair.symm⟩
+
 def loadByte (store : Store Tag State) (id offset : Nat) :
     Option (Byte Tag × Footprint) := do
   let allocation ← lookup store id
@@ -1906,6 +1926,24 @@ def pairedLoadByte (resolve : AllocId → Nat) (store : Store Tag State)
   let sourceResult ← loadByte store id offset
   let targetResult ← loadByte (renameStore resolve store) id offset
   some (sourceResult, targetResult)
+
+theorem pairedLoadByte_decompose
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedLoadByte resolve store id offset = some result) :
+    ∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) := by
+  cases hs : loadByte store id offset with
+  | none => simp [pairedLoadByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : loadByte (renameStore resolve store) id offset with
+      | none => simp [pairedLoadByte, hs, ht] at hresult
+      | some targetResult =>
+          rw [pairedLoadByte, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := by
+            simpa only [Option.bind_some] using Option.some.inj hresult
+          exact ⟨sourceResult, targetResult, hpair.symm⟩
 
 structure StoreLoadPair (Tag State : Type) where
   sourceStore : Store Tag State × Footprint
@@ -1939,6 +1977,24 @@ def pairedEndLifetime (resolve : AllocId → Nat) (store : Store Tag State)
   let sourceResult ← endLifetime store id
   let targetResult ← endLifetime (renameStore resolve store) id
   some (sourceResult, targetResult)
+
+theorem pairedEndLifetime_decompose
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedEndLifetime resolve store id = some result) :
+    ∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) := by
+  cases hs : endLifetime store id with
+  | none => simp [pairedEndLifetime, hs] at hresult
+  | some sourceResult =>
+      cases ht : endLifetime (renameStore resolve store) id with
+      | none => simp [pairedEndLifetime, hs, ht] at hresult
+      | some targetResult =>
+          rw [pairedEndLifetime, hs, ht] at hresult
+          have hpair : (sourceResult, targetResult) = result := by
+            simpa only [Option.bind_some] using Option.some.inj hresult
+          exact ⟨sourceResult, targetResult, hpair.symm⟩
 
 def pairedLifetimeLookup (resolve : AllocId → Nat)
     (store : Store Tag State) (id : AllocId) : Bool :=
