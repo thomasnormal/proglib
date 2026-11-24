@@ -1028,6 +1028,82 @@ private theorem EdgePhaseMemoryAdmission.restrict
       (by simpa [hstate] using hresume)
     exact hs.trans hstate.symm
 
+/-- Memory NBAs do not affect the active-cursor progress measure.  The
+memory-aware admission therefore has the same one-cursor decrease as the
+scalar admission, without requiring the memory queue to be empty. -/
+theorem EdgePhaseStep.memory_measure_decreases
+    {E : CoreMemDesign} {s t : EdgePhaseState}
+    (ad : EdgePhaseMemoryAdmission E s)
+    (h : EdgePhaseStep E s t) :
+    t.active.length < s.active.length := by
+  cases h with
+  | select hactive hresume =>
+      rename_i before after cursor next result
+      have hmem : cursor ∈ s.active := by
+        rw [hactive]
+        simp
+      have hempty := ad.continuation_empty cursor result next hmem hresume
+      rw [hactive]
+      simp [EdgePhaseState.after, hempty]
+
+/-- A nonempty memory-aware edge phase always has a legal next step. -/
+theorem EdgePhaseStep.memory_progress
+    {E : CoreMemDesign} {s : EdgePhaseState}
+    (ad : EdgePhaseMemoryAdmission E s) (hn : s.active ≠ []) :
+    ∃ t, EdgePhaseStep E s t := by
+  obtain ⟨t, h⟩ := EdgePhaseStep.progress hn (ad.resume_ok)
+  exact ⟨t, h⟩
+
+/-- Every memory-aware admitted edge phase has a finite terminal path.  The
+theorem supplies only scheduler progress.  It does not assert queue
+permutation, canonical commit success, or executor agreement. -/
+theorem EdgePhaseTerminalPath.memory_exists
+    {E : CoreMemDesign} {s : EdgePhaseState}
+    (ad : EdgePhaseMemoryAdmission E s) :
+    ∃ n t, EdgePhaseTerminalPath E n s t := by
+  have aux : ∀ k, ∀ (s : EdgePhaseState), s.active.length = k →
+      EdgePhaseMemoryAdmission E s → ∃ n t, EdgePhaseTerminalPath E n s t := by
+    intro k
+    induction k using Nat.strongRecOn with
+    | ind k ih =>
+        intro s hlen ads
+        by_cases hempty : EdgePhaseQuiescent s
+        · exact ⟨0, s, .terminal hempty⟩
+        · obtain ⟨u, hstep⟩ := EdgePhaseStep.memory_progress ads hempty
+          have hlt : u.active.length < k := by
+            have hdec := EdgePhaseStep.memory_measure_decreases ads hstep
+            simpa [hlen] using hdec
+          have hstable : u.state = s.state := by
+            cases hstep with
+            | select hactive hresume =>
+                rename_i before after cursor next result
+                have hmem : cursor ∈ s.active := by
+                  rw [hactive]
+                  simp
+                have hs := ads.stable_state cursor result next hmem hresume
+                simp [EdgePhaseState.after, hs]
+          have hsub : ∀ cursor, cursor ∈ u.active → cursor ∈ s.active := by
+            intro cursor hcursor
+            cases hstep with
+            | select hactive hresume =>
+                rename_i before after selected next result
+                have hempty' := ads.continuation_empty selected result next
+                  (by rw [hactive]; simp) hresume
+                have hc' : cursor ∈ before ++ after := by
+                  simpa [EdgePhaseState.after, hempty'] using hcursor
+                rw [hactive]
+                rcases List.mem_append.mp hc' with hb | ha
+                · exact List.mem_append_left _ hb
+                · exact List.mem_append_right before (List.mem_cons_of_mem selected ha)
+          have adu := EdgePhaseMemoryAdmission.restrict ads hstable hsub
+          obtain ⟨n, t, ht⟩ := ih u.active.length hlt u rfl adu
+          exact ⟨n + 1, t, .head hempty hstep ht⟩
+  exact aux s.active.length s rfl ad
+
+#print axioms EdgePhaseStep.memory_measure_decreases
+#print axioms EdgePhaseStep.memory_progress
+#print axioms EdgePhaseTerminalPath.memory_exists
+
 private theorem EdgePhaseStep.nba_length_succ
     {E : CoreMemDesign} {s t : EdgePhaseState}
     (ad : EdgePhaseNbaAdmission E s)

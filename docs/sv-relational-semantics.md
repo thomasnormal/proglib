@@ -349,8 +349,11 @@ relation or change the executor.
    memory diamond are partial instances. This is open for the complete slot.
 4. **Progress.** Every allowed internal execution of an admitted macrostep
    reaches its settled boundary under its stated assumptions. The abstract
-   `ScheduleConfluence.terminal_exists` and phase progress lemmas are
-   scaffolding. Zero-time divergence is not silently discarded.
+   `ScheduleConfluence.terminal_exists` and scalar phase progress lemmas are
+   scaffolding. The memory-aware edge admission now has a concrete cursor
+   measure, next-step, and finite-terminal-path theorem, still only for its
+   stable-state and empty-continuation premises. Zero-time divergence is not
+   silently discarded.
 5. **Trace inclusion.** The executor's input-and-observation trace is a trace
    of the relation. `executor_trace_inclusion_singleton` is a one-row
    admitted-NBA package. Full multi-row canonical-E trace inclusion is open.
@@ -477,6 +480,10 @@ The following results are real and intentionally narrow.
   terminal queue permutation under explicit memory admission.
   `scalar_queue_perm_memory` gives the corresponding scalar queue permutation
   when those cursors also issue memory NBAs.
+  `EdgePhaseStep.memory_measure_decreases`, `memory_progress`, and
+  `EdgePhaseTerminalPath.memory_exists` provide the corresponding finite
+  scheduler-progress bridge. They do not establish commit success or an
+  observation result.
   `memory_state_eq`, `memory_view_eq_of_trace`, and
   `memory_commit_success_of_decode` expose state, view, and canonical commit
   facts per path.

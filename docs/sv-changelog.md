@@ -7256,3 +7256,12 @@ narrow. They require pure, function-free expressions, explicit closure
 coverage, coherent state, and disjoint declarations. Memory footprints,
 dynamic aliasing, scheduler progress, and the full fine-grained slot bridge
 remain open obligations.
+
+## Memory-admission scheduler progress — 2026-11-24
+
+The source-shaped edge-phase bridge now proves active-cursor measure decrease,
+next-step progress, and finite terminal-path existence for
+`EdgePhaseMemoryAdmission`. The proof retains stable-state and
+empty-continuation premises while allowing memory NBAs. It establishes only
+scheduler progress. Queue permutation, canonical commit success, observation
+independence, and executor refinement remain separate receipts.

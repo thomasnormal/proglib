@@ -39,6 +39,11 @@ example {E : CoreMemDesign} {s t₁ t₂ : EdgePhaseState} {n₁ n₂ : Nat}
     t₁.scalarQ.Perm t₂.scalarQ := by
   exact EdgePhaseTerminalPath.scalar_queue_perm_memory ad q hqueue hp₁ hp₂
 
+example {E : CoreMemDesign} {s : EdgePhaseState}
+    (ad : EdgePhaseMemoryAdmission E s) :
+    ∃ n t, EdgePhaseTerminalPath E n s t := by
+  exact EdgePhaseTerminalPath.memory_exists ad
+
 example :
     commitNba2 [] (([] : NbaQueue2) ++ []) = commitNba2 [] ([] ++ []) ∧
       commitMemV memNone (([] : MemQV) ++ []) = commitMemV memNone ([] ++ []) := by
