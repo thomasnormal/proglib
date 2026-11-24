@@ -33,8 +33,12 @@ inductive EdgePhaseStep (E : CoreMemDesign) : EdgePhaseState → EdgePhaseState 
 They retain parser-shaped cursors and permit any active cursor to be selected.
 `EdgePhaseStep` also retains issue-time scalar and memory NBA queues. Its
 `progress` theorem proves existence of a next step when all active cursors can
-resume. The local diamond and the bridge from these relations to the complete
-canonical slot are not proved for the memory class yet.
+resume. The scalar local diamond is proved. The memory local diamond is now
+proved through `EdgePhaseStep.two_nba_memory_observable_diamond`, with an
+explicit projection receipt from canonical declaration-identity records to
+view-level `MemQV` records. The projection is an adapter premise, so this
+theorem does not claim that every canonical memory queue has such a projection
+or that the complete canonical slot is already related.
 
 The following definitions are executable functions and therefore are not the
 normative judgment.
@@ -113,8 +117,11 @@ The current proof inventory has these levels.
   explicit evaluator frame receipt. `seqOblIM` and `step_seqIM` route the
   memory-aware obligation to the canonical step. The `memoryLeafB` and
   procedural-loop receipts now derive that frame for the narrow source-shaped
-  profile. The broad parser predicate and the canonical relational diamond are
-  still open.
+  profile. `EdgePhaseStep.two_nba_memory_observable_diamond` proves the
+  fine-grained two-choice commit diamond when scalar and view-level memory
+  footprints are disjoint, while retaining the explicit record-projection
+  receipt. A terminal-path theorem over that memory-aware relation and the
+  canonical `MemState` commit remain open.
 * **Concrete NBA bridges.** `executor_result_allowed_by_edge_schedule` is the
   soundness direction for a canonical `step` result under the admitted NBA
   guards. `finite_path_executor_replay` is the finite-path replay direction

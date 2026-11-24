@@ -22,6 +22,15 @@ set_option autoImplicit false
 def EdgePhaseState.observable (E : CoreMemDesign) (s : EdgePhaseState) : SvState :=
   commitNba2 (E.scalar.view s.state.scalar) s.scalarQ
 
+/-! The memory observation is kept as a separate adapter because the
+canonical edge cursor stores declaration-identity records (`MemNbaRecord`),
+while the view-level memory theorem is stated over `MemQV`.  A receipt for a
+chosen record projection is therefore an explicit premise of the adapter.
+This does not identify the two record representations by fiat. -/
+def EdgePhaseState.observableMemoryView (E : CoreMemDesign) (decode : MemNbaRecord → String × Int × LVec)
+    (mv : MemV) (s : EdgePhaseState) : SvState × MemV :=
+  (EdgePhaseState.observable E s, commitMemV mv (s.memoryQ.map decode))
+
 private theorem after_first_active
     {s : EdgePhaseState}
     {c₁ c₂ : EdgeCursor} {r₁ : CoreMemExecResult} {n₁ : EdgeCursor}
@@ -97,6 +106,91 @@ theorem EdgePhaseStep.two_nba_observable_diamond
 
 
 #print axioms EdgePhaseStep.two_nba_observable_diamond
+
+/-! The same local diamond carries memory-element NBAs when each cursor's
+issue-time canonical records have an explicit view-level receipt.  Scalar and
+memory footprints are separate, so each commutation premise is visible.  The
+relation remains fine-grained: only the two legal first selections are
+compared, and no source-order permutation theorem is substituted for it. -/
+theorem EdgePhaseStep.two_nba_memory_observable_diamond
+    {E : CoreMemDesign} {s : EdgePhaseState}
+    {c₁ c₂ : EdgeCursor} {r₁ r₂ : CoreMemExecResult}
+    {n₁ n₂ : EdgeCursor} {m₁ m₂ : MemQV} {mv : MemV}
+    {decode : MemNbaRecord → String × Int × LVec}
+    (ha : s.active = [c₁, c₂]) (hne : c₁ ≠ c₂)
+    (h₁ : c₁.resume E s.state = .ok (r₁, n₁))
+    (h₂ : c₂.resume E s.state = .ok (r₂, n₂))
+    (hn₁ : n₁.work = []) (hn₂ : n₂.work = [])
+    (hs₁ : r₁.state = s.state) (hs₂ : r₂.state = s.state)
+    (hm₁ : r₁.memoryQ.map decode = m₁)
+    (hm₂ : r₂.memoryQ.map decode = m₂)
+    (hkeys : (E.scalar.view s.state.scalar).map Prod.fst |>.Nodup)
+    (hdisjS : ∀ u ∈ r₁.scalarQ, ∀ u' ∈ r₂.scalarQ, NbaDisj u u')
+    (hdisjM : ∀ u ∈ m₁, ∀ u' ∈ m₂, u.1 ≠ u'.1) :
+    EdgePhaseState.observableMemoryView E decode mv
+        ((s.after r₁ n₁ [] [c₂]).after r₂ n₂ [] []) =
+      EdgePhaseState.observableMemoryView E decode mv
+        ((s.after r₂ n₂ [c₁] []).after r₁ n₁ [] []) := by
+  have hstep₁ : EdgePhaseStep E s (s.after r₁ n₁ [] [c₂]) :=
+    .select (by simp [ha]) h₁
+  have hactive₁ : (s.after r₁ n₁ [] [c₂]).active = [c₂] := by
+    simp [EdgePhaseState.after, ha, hn₁, hs₁]
+  have hstep₂ : EdgePhaseStep E (s.after r₁ n₁ [] [c₂])
+      ((s.after r₁ n₁ [] [c₂]).after r₂ n₂ [] []) := by
+    apply EdgePhaseStep.select (cursor := c₂) (before := []) (after := [])
+    · simpa [hactive₁]
+    · simpa [EdgePhaseState.after, hs₁] using h₂
+  have hstep₃ : EdgePhaseStep E s (s.after r₂ n₂ [c₁] []) := by
+    exact .select (by simp [ha]) h₂
+  have hstep₄ : EdgePhaseStep E (s.after r₂ n₂ [c₁] [])
+      ((s.after r₂ n₂ [c₁] []).after r₁ n₁ [] []) := by
+    apply EdgePhaseStep.select (cursor := c₁) (before := []) (after := [])
+    · simp [EdgePhaseState.after, hn₂, hs₂]
+    · simpa [EdgePhaseState.after, hs₂] using h₁
+  have hkeys2 :
+      (commitNba2 (E.scalar.view s.state.scalar) s.scalarQ).map Prod.fst |>.Nodup := by
+    rw [keys_commitNba2]
+    exact hkeys
+  have hswapS := commitNba2_swap hkeys2 hdisjS
+  have hswapM := commitMemV_swap (mv := mv) hdisjM
+  unfold EdgePhaseState.observableMemoryView EdgePhaseState.observable
+  simp only [EdgePhaseState.after, hs₁, hs₂, hn₁, hn₂,
+    List.map_append, List.append_nil, hm₁, hm₂]
+  simp only [List.append_assoc]
+  apply Prod.ext
+  · change commitNba2 (E.scalar.view s.state.scalar)
+      (s.scalarQ ++ (r₁.scalarQ ++ r₂.scalarQ)) =
+      commitNba2 (E.scalar.view s.state.scalar)
+      (s.scalarQ ++ (r₂.scalarQ ++ r₁.scalarQ))
+    let base := E.scalar.view s.state.scalar
+    let hbase := commitNba2 base s.scalarQ
+    calc
+      commitNba2 base (s.scalarQ ++ (r₁.scalarQ ++ r₂.scalarQ)) =
+          commitNba2 hbase (r₁.scalarQ ++ r₂.scalarQ) := by
+            dsimp [hbase]
+            rw [commitNba2_append]
+      _ = commitNba2 hbase (r₂.scalarQ ++ r₁.scalarQ) := hswapS
+      _ = commitNba2 base (s.scalarQ ++ (r₂.scalarQ ++ r₁.scalarQ)) := by
+            dsimp [hbase]
+            symm
+            rw [commitNba2_append]
+  · change commitMemV mv
+      (s.memoryQ.map decode ++ (m₁ ++ m₂)) =
+      commitMemV mv
+      (s.memoryQ.map decode ++ (m₂ ++ m₁))
+    let base := commitMemV mv (s.memoryQ.map decode)
+    calc
+      commitMemV mv (s.memoryQ.map decode ++ (m₁ ++ m₂)) =
+          commitMemV base (m₁ ++ m₂) := by
+            dsimp [base]
+            rw [commitMemV_append]
+      _ = commitMemV base (m₂ ++ m₁) := commitMemV_swap hdisjM
+      _ = commitMemV mv (s.memoryQ.map decode ++ (m₂ ++ m₁)) := by
+            dsimp [base]
+            symm
+            rw [commitMemV_append]
+
+#print axioms EdgePhaseStep.two_nba_memory_observable_diamond
 
 end LeanModels.Sv.Kernel
 
