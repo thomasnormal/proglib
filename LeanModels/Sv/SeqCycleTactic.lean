@@ -598,7 +598,7 @@ theorem forValues2_up_of {env : IEnv} {it : String} {rhs step : PExpr} {c : Cmp}
   simp only [forValuesFuel2, evalInt_int, hstep]
   rw [← TripSchema.toList_arith_one]
   have hg := guard_canon c hri hrv
-  apply forValuesFuel2_go_arith _ s _ (by omega)
+  apply forValuesFuel2Go_arith _ s _ [] (by omega)
   · intro k hk
     obtain ⟨r, hr, hiff⟩ := hg (s + k * 1)
     exact ⟨r, hr, hiff.mpr (by
