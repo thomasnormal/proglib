@@ -466,6 +466,19 @@ declaration disjointness. Memory footprints, dynamic aliasing, process
 progress, and the bridge from every fine-grained slot path to `step` remain
 separate obligations.
 
+`ConditionalConfluence.lean` adds the first semantic conditional observation
+bridge. `SvState.agreesOutside hidden left right` compares every name outside a
+designated hidden set. `CombPhaseStep.two_blocking_scalar_hidden_observation_diamond`
+quantifies the two fine-grained orders of two blocking scalar resumes, proves
+that both reach an empty active list, and proves `agreesOutside` for the two
+terminal views when both targets are hidden. The right-hand values are framed
+through `evalExprLocals` and `readsV`, with explicit pure-expression,
+function-free, coherent-state, and nonempty-elaboration premises. This is a
+local conditional diamond. It does not identify the hidden values, compare the
+full machine states, prove progress for an arbitrary process set, or admit the
+DarkRISCV counter/CSR case. A caller must still supply the parser-native
+continuous-driver and hierarchy closure that establishes the `readsV` exclusion.
+
 The following results are real and intentionally narrow.
 
 * `readsV_eq_instExpr2_idents_of_pure`,
