@@ -29,6 +29,8 @@ def unionMetadata : AllocationMetadata Unit Unit String :=
 
 def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () }, address := 16 }
 
+#guard pointerEqual pointer pointer .unequal == false
+
 #guard placementAllowed one 8 1
 #guard !placementAllowed one 32 1
 #guard (allocate one { bytes := [Byte.uninitialized], state := () } (.address 32)).isNone

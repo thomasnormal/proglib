@@ -3459,6 +3459,10 @@ theorem pointerEqual_choice (left right : Pointer Tag) :
     pointerEqual left right .equal = (left.address == right.address) := by
   rfl
 
+theorem pointerEqual_unequal_choice (left right : Pointer Tag) :
+    pointerEqual left right .unequal = false := by
+  rfl
+
 def pairedPointerEqual (resolve : AllocId → Nat)
     (left right : Pointer Tag) (choice : EqualityChoice) : Bool :=
   pointerEqual (renamePointer resolve left) (renamePointer resolve right) choice =
