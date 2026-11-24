@@ -2648,6 +2648,40 @@ theorem pairedLoadByte_footprints
           exact ⟨loadByte_footprint _ _ _ _ hs,
             loadByte_footprint _ _ _ _ ht⟩
 
+theorem pairedStoreLoadByte_footprints
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : StoreLoadPair Tag State)
+    (hresult : pairedStoreLoadByte resolve store id offset byte = some result) :
+    result.sourceStore.2 = footprint .write
+        { allocation := id, offset := offset, width := 1 } ∧
+      result.targetStore.2 = footprint .write
+        { allocation := id, offset := offset, width := 1 } ∧
+      result.sourceLoad.2 = footprint .read
+        { allocation := id, offset := offset, width := 1 } ∧
+      result.targetLoad.2 = footprint .read
+        { allocation := id, offset := offset, width := 1 } := by
+  cases hs : pairedStoreByte resolve store id offset byte with
+  | none => simp [pairedStoreLoadByte, hs] at hresult
+  | some stores =>
+      cases hsource : loadByte stores.1.1 id offset with
+      | none => simp [pairedStoreLoadByte, hs, hsource] at hresult
+      | some sourceLoad =>
+          cases htarget : loadByte stores.2.1 id offset with
+          | none => simp [pairedStoreLoadByte, hs, hsource, htarget] at hresult
+          | some targetLoad =>
+              simp [pairedStoreLoadByte, hs, hsource, htarget] at hresult
+              rcases hresult with rfl
+              have hsourceStore : stores.1.2 = footprint .write
+                  { allocation := id, offset := offset, width := 1 } :=
+                pairedStoreByte_footprints resolve store id offset byte stores hs |>.1
+              have htargetStore : stores.2.2 = footprint .write
+                  { allocation := id, offset := offset, width := 1 } :=
+                pairedStoreByte_footprints resolve store id offset byte stores hs |>.2
+              exact ⟨hsourceStore, htargetStore,
+                loadByte_footprint _ _ _ _ hsource,
+                loadByte_footprint _ _ _ _ htarget⟩
+
 theorem pairedEndLifetime_footprints
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
     (result : (Store Tag State × Footprint) ×
