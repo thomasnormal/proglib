@@ -952,6 +952,31 @@ theorem pairedTypedLoadMetadataByte_correspondence
           rcases hpair with rfl
           exact ⟨hresult.1.1, hresult.1.2⟩
 
+theorem pairedTypedLoadMetadataByte_success
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (hbyte : metadata.allocation.bytes[offset]? = some byte)
+    (hbyteTarget : (renameMetadata resolve id metadata).allocation.bytes[offset]? =
+      some (renameByte resolve byte))
+    (hlocation : metadata.locations[offset]? = some
+      { effectiveType := .typed typeId, initialized := true })
+    (hsame : (typeId == typeId) = true)
+    (hbyteEq : (renameByte resolve byte == renameByte resolve byte) = true)
+    (hfootprintEq :
+      (footprint .read { allocation := 0, offset := offset, width := 1 } ==
+        footprint .read { allocation := 0, offset := offset, width := 1 }) = true) :
+    pairedTypedLoadMetadataByte resolve id metadata offset typeId =
+      some ((byte, footprint .read { allocation := 0, offset := offset, width := 1 }),
+        (renameByte resolve byte,
+          footprint .read { allocation := 0, offset := offset, width := 1 })) := by
+  have htargetLocation : (renameMetadata resolve id metadata).locations[offset]? = some
+      { effectiveType := .typed typeId, initialized := true } := by
+    simpa [renameMetadata] using hlocation
+  simp [pairedTypedLoadMetadataByte, typedLoadMetadataByte,
+    hbyte, hbyteTarget, hlocation, htargetLocation, hsame, hbyteEq, hfootprintEq]
+
 def pairedTypedStoreLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
