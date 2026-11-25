@@ -16,5 +16,5 @@ def main():
    with tempfile.TemporaryDirectory(prefix='sv-xcelium-unpacked-bit-target-') as w: x=rows(run(['xrun','-sv','-q','-timescale','1ns/1ps','-top','unpacked_bitselect_target_tb',str(HERE/'unpacked_bitselect_target.sv'),str(HERE/'unpacked_bitselect_target_tb.sv')],w))
    print('Xcelium 24.03-s004:',len(x),'rows MATCH' if x==got else 'rows DIVERGE')
   else: print('Xcelium 24.03-s004: unavailable')
- print('ordinary E: explicit memory-target refusal after source-shaped extraction')
+ print('ordinary E: rows are pinned by agree.lean after source-shaped extraction')
 if __name__=='__main__': main()
