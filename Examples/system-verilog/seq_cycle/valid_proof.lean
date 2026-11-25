@@ -39,7 +39,7 @@ namespace Examples.«system-verilog».seq_cycle.valid_proof
 load_design_sv2 vc from "Examples/system-verilog/seq_valid_chain/valid_chain_profile.sv.json"
 
 -- The instantiation at every width, computed once (`vc.mirror`, `vc.mirror_eq`, `vc.mirror_def`).
-set_option maxHeartbeats 1000000 in
+set_option maxHeartbeats 2000000 in
 seq_mirror (W : Nat) (h1 : 1 ≤ W) (h2 : W < 2 ^ 30) : vc.e W
 
 -- A run on the route at `W = 8` (compiled): reset, load 0x5a, hold, load 0x3c.
