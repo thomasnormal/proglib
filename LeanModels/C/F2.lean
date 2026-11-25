@@ -3317,6 +3317,23 @@ theorem pairedReallocMetadata_preserves_locations
       rcases hresult with rfl
       simp
 
+theorem pairedReallocMetadata_empty_result_locations
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (state : State) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old { bytes := [], state := state }
+      [] placement = some result) :
+    (match result.1.1 with
+    | .failed previous => previous.locations = old.locations
+    | .replaced fresh => fresh.locations = []) ∧
+    (match result.2.1 with
+    | .failed previous => previous.locations = (renameMetadata resolve 0 old).locations
+    | .replaced fresh => fresh.locations = []) := by
+  exact pairedReallocMetadata_preserves_locations resolve old
+    { bytes := [], state := state } [] placement result hresult
+
 theorem pairedReallocMetadata_refusal_source
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
