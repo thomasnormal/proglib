@@ -718,6 +718,10 @@ def rowLoop : CombHier.GeneratedLoop :=
   { label := some "g_row", genvar := "i", initE := .int 1,
     bound := .paramRef "N" none, step := .unary .inc (.genvarRef "i"), rc := some 3 }
 
+def outLoop : CombHier.GeneratedLoop :=
+  { label := some "g_out", genvar := "i", initE := .int 0,
+    bound := .paramRef "N" none, step := .unary .inc (.genvarRef "i"), rc := some 4 }
+
 theorem noisy_generated_row_nodes :
     CombHier.generatedNodes noisyMul.plib [] [rowGen] =
       .ok [
@@ -729,6 +733,28 @@ theorem noisy_generated_row_nodes :
   rw [noisy_row_shape_test, noisy_row_body_shape]
   rw [noisy_row_inner_shape]
   simp [rowLoop, rowInnerLoops, CombHier.generatedNodes,
+    noisyMul.plib, andDef, xorDef, majDef, xorInst, xorSInst, majInst]
+
+theorem noisy_generated_top_nodes :
+    CombHier.generatedNodes noisyMul.plib [] noisyMul.pdesign.generates =
+      .ok [
+        .child (CombHier.GeneratedChildRef.mk ppLoops andInst andDef),
+        .process [rowLoop] rowLeft,
+        .child (CombHier.GeneratedChildRef.mk rowInnerLoops xorInst xorDef),
+        .child (CombHier.GeneratedChildRef.mk rowInnerLoops xorSInst xorDef),
+        .child (CombHier.GeneratedChildRef.mk rowInnerLoops majInst majDef),
+        .process [rowLoop] rowRight,
+        .process [outLoop] outProc] := by
+  rw [noisy_top_generates_shape]
+  rw [show ppGen = .genFor (some "g_pp") "i" (.int 0)
+      (.binary .slt (.genvarRef "i") (.paramRef "N" none))
+      (.unary .inc (.genvarRef "i")) (some 4)
+      [.genFor (some "g_pp_j") "j" (.int 0)
+        (.binary .slt (.genvarRef "j") (.paramRef "N" none))
+        (.unary .inc (.genvarRef "j")) (some 4) [.inst andInst]] by rfl]
+  rw [noisy_row_shape_test, noisy_row_body_shape, noisy_row_inner_shape,
+    noisy_out_body_shape]
+  simp [ppLoops, rowLoop, outLoop, CombHier.generatedNodes,
     noisyMul.plib, andDef, xorDef, majDef, xorInst, xorSInst, majInst]
 
 theorem noisy_row_inner_shape :
