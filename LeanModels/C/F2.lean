@@ -3726,6 +3726,12 @@ theorem pairedAlignmentAllowed_both_allowed (resolve : AllocId → Nat)
     pairedAlignmentAllowed resolve id alignment = true := by
   simp [pairedAlignmentAllowed, hsource, htarget]
 
+theorem pairedAlignmentAllowed_sound (resolve : AllocId → Nat)
+    (id alignment : Nat)
+    (h : pairedAlignmentAllowed resolve id alignment = true) :
+    alignmentAllowed id alignment = alignmentAllowed (resolve id) alignment := by
+  simpa [pairedAlignmentAllowed] using h
+
 theorem pairedAlignmentAllowed_both_refused (resolve : AllocId → Nat)
     (id alignment : Nat)
     (hsource : alignmentAllowed id alignment = false)
@@ -3778,6 +3784,12 @@ theorem alignmentComposition_refusal_second (first second : AllocId → Nat)
     (hsecond : alignmentAllowed (second id) alignment = false) :
     alignmentComposition first second id alignment = false := by
   simp [alignmentComposition, hfirst, hsecond]
+
+theorem alignmentComposition_sound (first second : AllocId → Nat)
+    (id alignment : Nat)
+    (h : alignmentComposition first second id alignment = true) :
+    alignmentAllowed (first id) alignment = alignmentAllowed (second id) alignment := by
+  simpa [alignmentComposition] using h
 
 theorem zeroAlignmentRefused (base : Nat) :
     alignmentAllowed base 0 = false := by
