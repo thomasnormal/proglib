@@ -7265,6 +7265,26 @@ theorem pairedAllocate_unaddressable_success_shape
               (renameAllocationRequest resolve request).bytes.length))) := by
   simp [pairedAllocate, allocate, renamedPlacement, renameAllocationRequest]
 
+theorem pairedAllocate_empty_unaddressable_success_shape
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) :
+    pairedAllocate resolve store { bytes := [], state := state } .unaddressable =
+      some (
+        ({ allocations := store.allocations ++
+              [(store.nextId,
+                { live := true, address := none,
+                  bytes := [], state := state })],
+            nextId := store.nextId + 1 },
+          footprint .metadata (Region.mk store.nextId 0 0)),
+        ({ allocations := (renameStore resolve store).allocations ++
+              [((renameStore resolve store).nextId,
+                { live := true, address := none,
+                  bytes := [], state := state })],
+            nextId := (renameStore resolve store).nextId + 1 },
+          footprint .metadata
+            (Region.mk (renameStore resolve store).nextId 0 0))) := by
+  simp [pairedAllocate, allocate, renamedPlacement, renameAllocationRequest]
+
 def pairedAllocateFailure (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement) : Bool :=
   (allocate store request placement).isNone &&
