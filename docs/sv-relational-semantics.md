@@ -60,7 +60,10 @@ kinds. It does not reject nonempty primitive, `$readmemh`, or declaration
 initializer metadata, although none of those regions is executed by
 `NdState.begin` or by the step function. Those fields need an explicit
 admission condition or a start-state rule before the packet can claim the
-documented refusal boundary.
+documented refusal boundary. A kernel check of the draft admission predicate
+accepts an edge-only design carrying each of the latter two metadata classes,
+which makes this an executable admission finding rather than a source-level
+possibility.
 
 The relation's store is extensional. It contains declared scalar values,
 memory identities and addressed memory cells, aggregate cells, and the
