@@ -625,6 +625,11 @@ E-core-1 has the same implementation transport for edge processes. In
 over lowered `Stmt2` edge bodies, process-atomic active/NBA phases, and the
 `Elab1` store. It supplies no parser-native memory relation or fine-grained
 §4.7 result, so it remains bridge infrastructure.
+The companion `rEdge_exec1` theorem transports the admitted `rEdge` witness to
+one successful bounded `exec1` run and preserves its canonical `commitNba2`
+observation. This is an implementation witness only. It does not widen the
+relation's AST, add memory footprints, or establish soundness for
+`CoreMemDesign.step`.
 The existing `rEdge` theorem is the corresponding admitted-profile result:
 for every legal choice and a typed, duplicate-free ready set, it produces a
 closed path whose view is the `commitNba2` of all updates computed from the
@@ -973,9 +978,10 @@ theorem until its relation transport premise is supplied.
 * The quiescence route in `CoreMemExec.lean` has executor paths that return
   `.unsupported` on exhaustion. That message must be separated from a
   semantic refusal.
-* The race-guard transitive closures use a literal 32-hop argument in
-  `CoreMemExec.lean`. This is a confirmed admission bug and is fixed by the
-  executor lane's 775472220; it is not a relational theorem.
+* The race-guard transitive closures still use a literal 32-hop argument in
+  `CoreMemExec.lean` in this checkout. This is a confirmed admission bug. The
+  proposed executor-lane repair `775472220` is not present on this branch, so
+  the document does not count that repair as landed or as a relational theorem.
 * `XResolve.lean` contains the legacy correlated `Resolves` relation and
   the per-read `XRead`/`XReadRun` relation. The latter is the authority
   under the owner's ruling. Existing executor uses of `condTrue` are not a
