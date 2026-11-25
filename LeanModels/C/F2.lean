@@ -2946,12 +2946,6 @@ theorem pairedReallocZero_sound (resolve : AllocId → Nat) :
   change reallocZeroAgrees reallocZeroGNU17 reallocZeroGNU17 = true
   simp [reallocZeroAgrees]
 
-theorem pairedReallocZero_shape (resolve : AllocId → Nat) :
-    pairedReallocZero resolve = true := by
-  change reallocZeroAgrees reallocZeroGNU17 reallocZeroGNU17 = true
-  simp [reallocZeroAgrees]
-
-
 def isZeroToken (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   metadata.allocation.live && metadata.allocation.bytes.isEmpty
 
