@@ -368,6 +368,27 @@ theorem exec1_sound {E : Elab1} {ch : Choice} :
           exact ⟨.refl _, hs⟩
       | refused m => simp [hs] at h
 
+/-- **Finite executor completeness for E-core-1**: every finite closed edge
+schedule path is reproduced by `exec1` with some implementation limit. -/
+theorem exec1_complete {E : Elab1} {ch : Choice} {c c' : Config1} :
+    SlotCloses1 E ch c c' → ∃ n, exec1 E ch n c = .closed c' := by
+  rintro ⟨hs, hclose⟩
+  induction hs with
+  | refl =>
+      exact ⟨1, by simp [exec1, hclose]⟩
+  | @head c c₁ c₂ hstep htail ih =>
+      obtain ⟨n, hn⟩ := ih hclose
+      exact ⟨n + 1, by simp [exec1, hstep, hn]⟩
+
+/-- Successful bounded edge-executor runs characterize the fuel-free
+closed-slot judgment. -/
+theorem exec1_closed_iff_slotCloses1 {E : Elab1} {ch : Choice} {c c' : Config1} :
+    (∃ n, exec1 E ch n c = .closed c') ↔ SlotCloses1 E ch c c' := by
+  constructor
+  · rintro ⟨n, h⟩
+    exact exec1_sound h
+  · exact exec1_complete
+
 /-! ## What a body writes, and that it runs -/
 
 mutual

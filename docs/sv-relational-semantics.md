@@ -618,6 +618,14 @@ two successful bounded runs agree even when their legal choices and
 implementation limits differ. It remains an E-core-0 transport theorem and
 does not remove the parser-native bridge obligation.
 
+E-core-1 has the same implementation transport for edge processes. In
+`Kernel/Core1Edge.lean`, `exec1_complete` proves that each finite
+`SlotCloses1` path is reproduced by `exec1` at some implementation limit, and
+`exec1_closed_iff_slotCloses1` combines it with `exec1_sound`. The theorem is
+over lowered `Stmt2` edge bodies, process-atomic active/NBA phases, and the
+`Elab1` store. It supplies no parser-native memory relation or fine-grained
+§4.7 result, so it remains bridge infrastructure.
+
 ### Frame-lemma audit
 
 The first diamond ingredients are present on the real evaluator. The
