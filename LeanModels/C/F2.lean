@@ -2950,6 +2950,16 @@ theorem allocateZeroSize_token_wellFormed
       rcases hresult with rfl
       simp [AllocationMetadata.wellFormed, bytesWf]
 
+theorem renameZeroSizeOutcome_token_byte_length
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    ∃ renamed,
+      renameZeroSizeOutcome resolve (.token metadata) = .token renamed ∧
+      renamed.allocation.bytes.length = metadata.allocation.bytes.length := by
+  refine ⟨{ metadata with
+    allocation := { metadata.allocation with
+      address := metadata.allocation.address.map (fun _ => resolve 0) } }, rfl, rfl⟩
+
 inductive ReallocZeroOutcome where
   | freedNull
   | refusedUndefined
