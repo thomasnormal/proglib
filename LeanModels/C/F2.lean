@@ -2262,6 +2262,10 @@ def mergeBytes (old : List (Byte Tag)) (values masks choices : List UInt8) :
     old (List.zipWith (fun value mask => (value, mask)) values masks
       |>.zip choices))
 
+theorem mergeBytes_empty_success {Tag : Type} :
+    mergeBytes ([] : List (Byte Tag)) [] [] [] = some [] := by
+  rfl
+
 def mergeFootprint (allocation offset width : Nat) : Footprint :=
   footprint .write { allocation := allocation, offset := offset, width := width }
 
