@@ -4281,6 +4281,14 @@ theorem pairedFreePointer_agrees (resolve : AllocId → Nat)
       cases hlive : metadata.allocation.live <;>
         simp [freePointer, renameZeroTokenMetadata, hlive]
 
+theorem pairedFreePointer_empty_agrees
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hbytes : metadata.allocation.bytes = []) :
+    freePointer (some metadata) =
+      freePointer (some (renameZeroTokenMetadata resolve metadata)) := by
+  exact pairedFreePointer_agrees resolve (some metadata)
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
