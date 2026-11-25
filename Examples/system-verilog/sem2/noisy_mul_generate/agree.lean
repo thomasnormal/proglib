@@ -64,6 +64,19 @@ theorem noisy_fault_row_index_affine_refusal :
     CombView.affOf? (.binary .mul (.genvarRef "i") (.paramRef "N" none)) = none := by
   rfl
 
+theorem noisy_fault_row_index_affine_supported :
+    CombView.affOf?
+        (.binary (.m0 .sub)
+          (.binary (.m0 .add) (.paramRef "N" none)
+            (.binary (.m0 .mul) (.int 3) (.genvarRef "i"))) (.int 3)) =
+      some { terms := [("N", 1), ("i", 3)], c := -3, qs := [], xs := [] } := by
+  rfl
+
+theorem noisy_bit_index_affine_supported :
+    CombView.affOf? (.binary (.m0 .add) (.genvarRef "j") (.int 1)) =
+      some { terms := [("j", 1)], c := 1, qs := [], xs := [] } := by
+  rfl
+
 theorem andInst_prefix (env : IEnv) (i j : Int) :
     andInst.prefix ((env.bindVal "i" i).bindVal "j" j) =
       .ok ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.") := by
