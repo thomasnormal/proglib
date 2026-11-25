@@ -1178,6 +1178,15 @@ def hierInsts (d : PDesign) (lib : List PDesign) : Except String (List (PInst ×
           | some c => .ok (i, c)
     | it => .error (itemRefusal it)
 
+/-- A generated `for` item is refused before child lookup.  This is the
+source-shaped hand-proof boundary for hierarchy summaries: generated child
+families are not silently treated as module-level instances. -/
+theorem hierInsts_refuses_genFor {d : PDesign} {lib : List PDesign} {label : Option String}
+    {g : String} {initE bound step : PExpr} {rc : Option Nat} {body rest : List GenItem} :
+    hierInsts { d with generates := .genFor label g initE bound step rc body :: rest } lib =
+      .error (itemRefusal (.genFor label g initE bound step rc body)) := by
+  rfl
+
 /-- The checks on one child and its instance, with the refusal that names what v1 does not read. -/
 def childCheck (i : PInst) (c : PDesign) : Except String Unit := do
   unless c.generates.isEmpty do

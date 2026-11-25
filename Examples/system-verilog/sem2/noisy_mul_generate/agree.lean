@@ -11,10 +11,14 @@ load_design_sv2 noisyMul from "Examples/system-verilog/sem2/noisy_mul_generate/n
 #guard match CombHier.summaryH noisyMul.pdesign noisyMul.plib with
   | .error _ => true
   | .ok _ => false
+#guard match CombHier.hierInsts noisyMul.pdesign noisyMul.plib with
+  | .error e => e.startsWith "an instance sits inside the generate loop"
+  | .ok _ => false
 end Examples.«system-verilog».sem2.noisy_mul_generate
 #check generated_child_family
 #check generated_child_at_prefix
 #check generated_child_nested_family
+#check CombHier.hierInsts_refuses_genFor
 
 namespace Examples.«system-verilog».sem2.noisy_mul_generate
 
