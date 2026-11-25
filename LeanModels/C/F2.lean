@@ -6977,6 +6977,23 @@ theorem pairedAllocateAligned_empty_unaddressable_result_counts
       state alignment target
       (by simpa [renameAllocationRequest] using htarget) |>.2⟩
 
+theorem pairedAllocateAligned_empty_unaddressable_result_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment : Nat)
+    (source target : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hsource : allocateAligned store { bytes := [], state := state }
+      .unaddressable alignment = some source)
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      .unaddressable alignment = some target) :
+    WellFormed source.1 ∧ WellFormed target.1 := by
+  exact ⟨allocateAligned_empty_unaddressable_preserves_wellFormed store state
+      alignment source hstore hsource,
+    allocateAligned_empty_unaddressable_preserves_wellFormed (renameStore resolve store)
+      state alignment target (renameStore_preserves_wellFormed resolve store hstore)
+      (by simpa [renameAllocationRequest] using htarget)⟩
+
 theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
