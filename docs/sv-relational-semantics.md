@@ -1,87 +1,68 @@
 # Relational semantics for SystemVerilog
 
-This document is the v2 design requested by the owner ruling on
-2026-11-24. The normative meaning is a fuel-free relation over the
-parser-native, memory-capable SystemVerilog representation. The existing
-function-based executor remains an implementation and a differential-test
-instrument. T1 is implemented in `LeanModels/Sv/Kernel/RelSem.lean` and is
-imported by the kernel build root.
+This document records the owner-approved fuel-free relation for the admitted
+clocked fragment. The relation is the normative meaning at the elaborated
+`CoreMemDesign` boundary. The existing function-based executor remains an
+implementation and differential-test instrument.
 
-The relation is built on the source-shaped nodes in `CoreMemDesign`,
-`PStmt`, `PExpr`, and `PLhs`, and on the cursor and phase shape in
-`LeanModels/Sv/Kernel/CoreMemResume.lean`. It does not make
-`Scheduler.lean`'s older scalar `Design`, `Stmt2`, or a fuelled executor
-the meaning of the language.
+The relation is defined once in `LeanModels/Sv/Kernel/NdStep.lean`. The public
+kernel seam `LeanModels/Sv/Kernel/RelSem.lean` re-exports that module so older
+imports keep the stable entry point. There is one authoritative step function,
+`ndStep`, and one closure, `Nd.Run`.
 
 The relation is about the elaborated `CoreMemDesign` presented to it. Generate
-expansion and hierarchy elaboration that produce that design remain a
-separate trusted step, currently evaluated with the elaborator's `iterFuel`
-budget of 4096. That budget has no counterpart in the relation and is an
-open trust debt. A relation theorem therefore states its elaboration
-precondition explicitly rather than treating a failed or incomplete
-elaboration as a semantic outcome.
+expansion and hierarchy elaboration remain a separate trusted step, currently
+evaluated with the elaborator's `iterFuel` budget of 4096. That budget has no
+counterpart in the relation and remains a trust debt. A relation theorem states
+its elaboration precondition instead of treating failed elaboration as a
+semantic outcome.
 
-## T1 fuel-free step and run
+## T1 fuel-free choice-explicit step and run
 
-`RelState` is either a `CombPhaseState` or an `EdgePhaseState`, together with
-an oracle read counter and the concrete values selected at prior read sites.
-`RelChoice.cursor` selects any active cursor by list index. `RelChoice.reads`
-records the source values consulted by that one-node transition. The
-`RelXOracle` supplies a fresh `XRead` witness at each counter position, and
-`oracleReads_resolves` proves the paired-list rule without sharing a witness
-between repeated reads. The transition appends those witnesses to the state
-trace and increments the counter.
+`NdState` contains the existing `CoreMemState`, a list of runnable
+`EdgeCursor`s, pending scalar and memory NBA queues, the scalar view at the last
+wake point, and a consumed `Oracle`. `NdState.begin` applies one input row and
+wakes the event processes. `NdState.fire` chooses a cursor by list index and
+opens exactly one parser-native `EdgeWork` node. `NdState.commit` applies the
+queued NBA updates and wakes the next event set. `ndStep` dispatches to one of
+those moves, with no fuel or depth argument.
 
-`relStepOne` is total. It returns a successor, a positive language refusal, or
-`stuck` when the current implementation times out or the selected cursor index
-is absent. `RelStep` admits only successor transitions and carries the explicit
-`XReadRun` premise. `RelRun` is the fuel-free reflexive/transitive closure of
-those steps. There is no depth, budget, or fixed schedule in these definitions.
-The cursor resume call is the implementation seam for T2. Its current
-expression evaluator does not yet expose read sites, so T2 must supply and
-prove the read-site correspondence before treating `RelChoice.reads` as a
-complete executor trace.
+The scheduling choice is the `Nat` cursor index passed to `ndStep`. Every index
+is available at every active step, so `Nd.Step` is set-valued and does not pick
+a convenient process order. The relation leaves the cut between parser nodes
+explicit. A process-atomic restriction can be stated later as a predicate on
+runs without changing this meaning.
 
-The additive choice-explicit draft in the maintainer review packet is not
-accepted as the relation. Its `NdState.begin` wakes edge and event processes
-but drops every `.initial` process even though `ndAdmitted` admits it. A
-design containing an initial block would therefore lose an observable write
-at time zero. The packet must either schedule initial work in its start state
-or remove initial processes from the admitted fragment before it can be used
-for T2. Its current T2 proof also covers only nonblocking-only bodies, and
-its opened read sites are limited to `if` conditions. Case selectors and
-items, expression-level x reads, x observers, dynamic write indices, and
-clock x policy remain outside the proved relation. The packet's NBA commit
-is atomic and its input-before-wake ordering is still an explicit design
-choice, so neither is treated as an IEEE-complete rule here.
+`Oracle` is an unbounded stream of Boolean answers. `Oracle.read` consumes one
+answer for each unknown bit in the value read by an `if` condition and leaves
+the remaining stream in the state. `Oracle.read_xread` proves each answer is an
+`XRead` resolution, while `Oracle.read_complete` proves every admissible
+per-read resolution has an oracle and an arbitrary remaining stream. Repeated
+reads therefore receive independent answers. Known values consume nothing, as
+shown by `Oracle.read_known`.
 
-The draft admission predicate also checks only resolved nets and process
-kinds. It does not reject nonempty primitive, `$readmemh`, or declaration
-initializer metadata, although none of those regions is executed by
-`NdState.begin` or by the step function. Those fields need an explicit
-admission condition or a start-state rule before the packet can claim the
-documented refusal boundary. A kernel check of the draft admission predicate
-accepts an edge-only design carrying each of the latter two metadata classes,
-which makes this an executable admission finding rather than a source-level
-possibility.
+`Nd.Step E s t` holds when some scheduling choice makes `ndStep E choice s`
+return `.next t`. A timeout or unsupported construct returns a named
+`.refused` outcome. An invalid cursor index returns `.disabled` and is not a
+semantic transition. `Nd.Run` is the reflexive-transitive closure of `Nd.Step`.
+`Nd.EventSettles` adds the input start state and a settled terminal state. It
+contains no bound on the run length or on the number of NBA rounds.
 
-The maintainer draft was also checked at its implementation seams. Its choice
-index and per-read oracle have the intended shape, but its statement opener
-still executes some leaves through the bounded statement evaluator and refuses
-`case` statements. The draft therefore does not yet provide a fuel-free rule
-for every admitted statement node. Its executor bridge covers only
-nonblocking-only bodies and the executor's fixed oracle, so it is not the T2
-soundness theorem for the full relation. The draft's confluence proof covers
-one quiet NBA round. Memory-queue permutation is an assumption there, and
-equality of the committed memories is still unproved.
+The admitted fragment has edge and event processes, no resolved continuous
+net, no primitive or combinational process, and no time-zero metadata. Initial
+processes, declaration initializers, and `$readmemh` metadata are refused by
+`CoreMemDesign.ndAdmitted` until a separate time-zero relation models their
+ordering. `case` statements and blocking writes that would wake a waiting
+process are named refusals in `ndOpenStmt` and `NdState.fire`. Leaf execution
+reuses the existing evaluator at its one-node boundary and reports its timeout
+as a refusal. The fixed evaluator call is an implementation seam, not a bound
+on `Nd.Run`.
 
-The simultaneous-edge draft supplies a useful T4a shape. For every settled
-outcome, every oracle, and a coherent start view, the two clocked assignments
-produce the swap. Its proof uses the footprint invariant and the settled-view
-confluence lemma instead of enumerating schedules. The four-row simulator
-receipt is recorded separately, but the draft environment did not rerun that
-receipt, so it contributes no new oracle result. These limitations keep the
-packet under review and do not promote it to the normative relation.
+L1 is `Nd.Run.invariant` and its event-level form
+`Nd.EventSettles.invariant`. L3 is `ndStep_oracle_irrelevant`, which states that
+steps whose condition values are all known are independent of the oracle, with
+`ndStep_oracle_unchanged` recording that no answers were consumed. These are
+proof interfaces over the one step function, not alternate semantics.
 
 The relation's store is extensional. It contains declared scalar values,
 memory identities and addressed memory cells, aggregate cells, and the
@@ -1068,10 +1049,10 @@ theorem until its relation transport premise is supplied.
 
 The owner has reduced the first relational milestone to four items.
 
-1. **T1** is the small fuel-free choice-bearing cursor relation. The public
-   seam in `LeanModels/Sv/Kernel/RelSem.lean` is landed as `29320f4a6`.
-   Scheduling choices and independent per-read `XRead` witnesses are
-   explicit, and `RelRun` has no budget.
+1. **T1** is the small fuel-free choice-bearing cursor relation. The
+   authoritative definition is `LeanModels/Sv/Kernel/NdStep.lean`, re-exported
+   by `LeanModels/Sv/Kernel/RelSem.lean`. Scheduling choices and independent
+   per-read `XRead` witnesses are explicit, and `Nd.Run` has no budget.
 2. **T2** must state soundness for the executor's actual successful result.
    Its start state, settled result, and read-site correspondence are all
    bound in the theorem. A step-unfolding lemma or a theorem comparing a
