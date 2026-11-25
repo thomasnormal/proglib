@@ -6,3 +6,6 @@ dimension. The function keeps a local `integer`, assigns it through a blocking
 `case`, and returns through the function name, matching the Ibex `vbits`
 shape. Canonical E evaluates the retained function body and `$clog2` without
 inlining the source call. The ordinary row matches both pinned simulators.
+
+The current receipt regenerates byte-identically and reports the single
+package-function width row on both pinned simulators.
