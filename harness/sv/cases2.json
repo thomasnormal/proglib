@@ -2782,6 +2782,7 @@
       "name": "streaming_leading_bits",
       "example": "sem2/streaming_leading_bits",
       "top": "streaming_leading_bits",
+      "refusal": "10.4.1",
       "signals": [
         "source",
         "hi",
