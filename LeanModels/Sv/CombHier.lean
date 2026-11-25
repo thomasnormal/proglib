@@ -1274,6 +1274,58 @@ theorem generatedChildRefPairs_segmentAt_mapM_ok
       rw [htail]
       rfl
 
+/-! A generated body may mix child instances with ordinary processes.  Keep
+the complete lexical source order in a source-shaped reader instead of
+silently dropping process siblings or treating generated instances as
+module-level instances. -/
+
+inductive GeneratedNode where
+  | process (loops : List GeneratedLoop) (p : PProcess)
+  | child (ref : GeneratedChildRef)
+deriving Repr, Inhabited
+
+def generatedNodes (lib : List PDesign) (loops : List GeneratedLoop) :
+    List GenItem → Except String (List GeneratedNode)
+  | [] => .ok []
+  | .genFor label g initE bound step rc body :: rest => do
+      let here ← generatedNodes lib
+        (loops ++ [{ label, genvar := g, initE, bound, step, rc }]) body
+      let tail ← generatedNodes lib loops rest
+      return here ++ tail
+  | .process p :: rest => do
+      let tail ← generatedNodes lib loops rest
+      return .process loops p :: tail
+  | .inst i :: rest => do
+      if loops.isEmpty then
+        throw s!"instance `{i.name}` is not inside a generate family"
+      let c ← match lib.find? (·.name == i.module) with
+        | some c => pure c
+        | none => throw s!"instance `{i.name}`: module `{i.module}` is not in the envelope's module library"
+      let tail ← generatedNodes lib loops rest
+      return .child { loops := loops, inst := i, child := c } :: tail
+  | .decl d :: _ =>
+      throw s!"generated hierarchy declaration: declaration `{d.name}` is outside the mixed generated-node reader"
+  | .localParam p :: _ =>
+      throw s!"generated hierarchy localparam: `{p.name}` is outside the mixed generated-node reader"
+  | .genIf _ _ _ :: _ =>
+      throw "generated hierarchy conditional: conditional generate is outside the mixed generated-node reader"
+  | .unsupported kind text :: _ => throw s!"{kind}: {text}"
+
+theorem generatedNodes_genFor_process_child_order
+    {lib : List PDesign} {label : Option String} {g : String}
+    {initE bound step : PExpr} {rc : Option Nat}
+    {p : PProcess} {i : PInst} {c : PDesign}
+    (hchild : lib.find? (·.name == i.module) = some c) :
+    generatedNodes lib []
+        [.genFor label g initE bound step rc
+          [.process p, .inst i]] =
+      .ok [GeneratedNode.process [GeneratedLoop.mk label g initE bound step rc] p,
+        GeneratedNode.child (GeneratedChildRef.mk
+          [GeneratedLoop.mk label g initE bound step rc] i c)] := by
+  simp only [generatedNodes, List.isEmpty, Bool.false_eq_true, ↓reduceIte, hchild,
+    Except.bind, Except.pure, pure, Functor.map, Except.map, List.append_nil]
+  rfl
+
 /-- Read a generate-only family of child instances, preserving its nested
 headers and source order.  This is intentionally narrower than the eventual
 hierarchy summary: process/declaration/conditional siblings refuse loudly

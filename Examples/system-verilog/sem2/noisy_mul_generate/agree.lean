@@ -714,6 +714,23 @@ theorem noisy_row_body_shape :
       GenItem.process rowRight] := by
   rfl
 
+def rowLoop : CombHier.GeneratedLoop :=
+  { label := some "g_row", genvar := "i", initE := .int 1,
+    bound := .paramRef "N" none, step := .unary .inc (.genvarRef "i"), rc := some 3 }
+
+theorem noisy_generated_row_nodes :
+    CombHier.generatedNodes noisyMul.plib [] [rowGen] =
+      .ok [
+        .process [rowLoop] rowLeft,
+        .child (CombHier.GeneratedChildRef.mk rowInnerLoops xorInst xorDef),
+        .child (CombHier.GeneratedChildRef.mk rowInnerLoops xorSInst xorDef),
+        .child (CombHier.GeneratedChildRef.mk rowInnerLoops majInst majDef),
+        .process [rowLoop] rowRight] := by
+  rw [noisy_row_shape_test, noisy_row_body_shape]
+  rw [noisy_row_inner_shape]
+  simp [rowLoop, rowInnerLoops, CombHier.generatedNodes,
+    noisyMul.plib, andDef, xorDef, majDef, xorInst, xorSInst, majInst]
+
 theorem noisy_row_inner_shape :
     rowInnerBody = [.inst xorInst, .inst xorSInst,
       .inst majInst] := by
