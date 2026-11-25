@@ -6183,6 +6183,14 @@ def exposedPlacementAgreement (resolve : AllocId → Nat)
     right := fun id => (placementOf store id).map (fun _ => resolve id)
     exposed := exposed }
 
+theorem exposedPlacementAgreement_empty_agrees
+    {Tag State : Type} (resolve : AllocId → Nat)
+    (exposed : AllocId → Bool) :
+    (exposedPlacementAgreement (Tag := Tag) (State := State) resolve
+      ({ allocations := [], nextId := 0 } : Store Tag State) exposed).agrees := by
+  intro id
+  rfl
+
 def pairedAllocate (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement) :
     Option ((Store Tag State × Footprint) × (Store Tag State × Footprint)) := do
