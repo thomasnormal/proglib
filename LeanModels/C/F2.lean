@@ -3055,6 +3055,13 @@ theorem pairedZeroTokenEqual_sound (resolve : AllocId → Nat)
       (renameZeroTokenMetadata resolve right) = zeroTokenEqual left right := by
   simpa [pairedZeroTokenEqual] using h
 
+theorem pairedZeroTokenEqual_success (resolve : AllocId → Nat)
+    (left right : AllocationMetadata Tag State TypeId)
+    (heq : zeroTokenEqual (renameZeroTokenMetadata resolve left)
+      (renameZeroTokenMetadata resolve right) = zeroTokenEqual left right) :
+    pairedZeroTokenEqual resolve left right = true := by
+  simp [pairedZeroTokenEqual, heq]
+
 theorem pairedZeroTokenEqual_refusal (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId)
     (hneq : zeroTokenEqual (renameZeroTokenMetadata resolve left)
