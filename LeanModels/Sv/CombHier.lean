@@ -1556,6 +1556,44 @@ theorem assembleGeneratedPathsAt_of_segments
       rw [htail]
       rfl
 
+/-! A family-level realization keeps the source-order path list separate from
+the ordinary `Design2` pair it realizes.  In particular, `paths` may mix
+outer-loop process nodes with children under an additional inner loop; the
+relation records the exact valuation supplied to each node and the ordered
+flattening that the ordinary instantiation consumes. -/
+
+def GeneratedFamilyRealization (env : IEnv) (elems : List (String × Nat))
+    (paths : List (GeneratedNode × List Int))
+    (child : GeneratedChildRef → Except String Design2)
+    (generated : List Decl × List Process2) : Prop :=
+  ∃ segs : List (List Decl × List Process2),
+    paths.mapM (fun p => p.1.segmentAtPath child env p.2 elems) = .ok segs ∧
+      GeneratedNode.flattenSegments segs = generated
+
+theorem generatedFamilyRealization_of_segments
+    (env : IEnv) (elems : List (String × Nat))
+    (paths : List (GeneratedNode × List Int))
+    (child : GeneratedChildRef → Except String Design2)
+    (seg : GeneratedNode × List Int → List Decl × List Process2)
+    (hok : ∀ p ∈ paths,
+      p.1.segmentAtPath child env p.2 elems = .ok (seg p)) :
+    GeneratedFamilyRealization env elems paths child
+      (GeneratedNode.flattenSegments (paths.map seg)) := by
+  refine ⟨paths.map seg, ?_, rfl⟩
+  exact generatedPaths_segmentAtPath_mapM_ok hok
+
+theorem assembleGeneratedPathsAt_of_realization
+    (d : PDesign) (env : IEnv) (decls idecls : List Decl)
+    (elems : List (String × Nat))
+    (paths : List (GeneratedNode × List Int))
+    (child : GeneratedChildRef → Except String Design2)
+    (generated : List Decl × List Process2)
+    (hreal : GeneratedFamilyRealization env elems paths child generated) :
+    assembleGeneratedPathsAt d env decls idecls elems paths child =
+      .ok (d.assembleH env decls (idecls ++ generated.1) elems generated.2) := by
+  rcases hreal with ⟨segs, hseg, hflat⟩
+  rw [assembleGeneratedPathsAt_of_ok d env decls idecls elems paths child hseg, hflat]
+
 @[simp] theorem assembleGeneratedAt_processes
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
     (elems : List (String × Nat))
