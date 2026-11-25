@@ -210,7 +210,13 @@ structure InputBatch where
   time : Nat
   changes : List (String × LVec)
   edges : List (String × Edge)
-  nodup : (changes.map Prod.fst ++ edges.map Prod.fst).Nodup
+  changes_nodup : changes.map Prod.fst |>.Nodup
+  edges_nodup : edges.map Prod.fst |>.Nodup
+
+The two lists may mention the same signal. This represents an input change and
+the edge it causes at one timestamp, while each list still has one update per
+signal. The relation retains their causal distinction and admits every legal
+ordering between the resulting events.
 
 structure ObsState where
   time : Nat
