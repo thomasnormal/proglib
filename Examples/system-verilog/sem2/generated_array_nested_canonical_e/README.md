@@ -23,3 +23,6 @@ python3 extractors/sv/extract.py --top generated_array_nested_canonical_e \
 
 This receipt covers the retained nested generated-array select family named
 `genvar_unpacked_chain` in the wall packet.
+
+The current receipt reports 16 matching ordinary/source rows across `W=4`
+and `W=8` on both pinned simulators.
