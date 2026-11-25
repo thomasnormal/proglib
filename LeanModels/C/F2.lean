@@ -4833,6 +4833,11 @@ theorem expose_renameExposure (resolve : AllocId → Nat) (state : Exposure) :
     renameExposure resolve (expose state) = expose (renameExposure resolve state) := by
   rfl
 
+theorem expose_renameExposure_exposed
+    (resolve : AllocId → Nat) (state : Exposure) :
+    (renameExposure resolve (expose state)).exposed = true := by
+  rfl
+
 structure ReplayPlacement where
   allocation : AllocId
   base : Nat
