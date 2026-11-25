@@ -4907,6 +4907,21 @@ theorem pairedAllocate_refusal
   | inl hsource => simp [pairedAllocate, hsource]
   | inr htarget => simp [pairedAllocate, htarget]
 
+theorem pairedAllocate_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (hsource : allocate store request placement = none) :
+    pairedAllocate resolve store request placement = none := by
+  simp [pairedAllocate, hsource]
+
+theorem pairedAllocate_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (htarget : allocate (renameStore resolve store) (renameAllocationRequest resolve request)
+      (renamedPlacement resolve store.nextId placement) = none) :
+    pairedAllocate resolve store request placement = none := by
+  simp [pairedAllocate, htarget]
+
 theorem pairedAllocate_decompose
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
