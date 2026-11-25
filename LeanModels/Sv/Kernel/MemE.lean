@@ -327,6 +327,21 @@ def evalMemEExpr (d : MemEDesign) (s : MemEState) (ctx : Option Nat) : PExpr →
         resToExcept (evalPure2 s.scalar (instExpr2 d.env d.elemWidths ctx e))
       else .error "memory RHS part select is outside the one-rank E profile"
   | .arrayPart .. => .error "memory RHS part select is outside the one-rank E profile"
+  | .ternary c t f => do
+      let cv ← evalMemEExpr d s (some 1) c
+      let tv ← evalMemEExpr d s ctx t
+      let fv ← evalMemEExpr d s ctx f
+      .ok (LVec.ternary cv tv fv)
+  | .ident n =>
+      match d.sourceDecls.find? (fun pd => pd.name == n) with
+      | some pd =>
+          match pd.flatBase, pd.flatIndex, d.memDecl? (pd.flatBase.getD "") with
+          | some base, some index, some _ =>
+              let width := (d.decls.find? (fun (dc : Decl) => dc.name == n)).map (·.width) |>.getD 1
+              .ok ((s.memory.read base index).getD (LVec.xVec width))
+          | _, _, _ => resToExcept (evalPure2 s.scalar (instExpr2 d.env d.elemWidths ctx (.ident n)))
+      | none =>
+          resToExcept (evalPure2 s.scalar (instExpr2 d.env d.elemWidths ctx (.ident n)))
   | .fill bit =>
       match ctx with
       | some w => .ok (LVec.replicate w bit)

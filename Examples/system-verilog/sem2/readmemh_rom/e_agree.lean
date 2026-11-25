@@ -49,10 +49,10 @@ def runRows (d : MemEDesign) (s : MemEState) : List SvState → Except String (L
   | .ok d =>
       match d.timeZero with
       | .ok s =>
-          SvState.lookup s.scalar "rom[0]" == some (LVec.ofNat 8 0) &&
-          SvState.lookup s.scalar "rom[1]" == some (LVec.ofNat 8 17) &&
-          SvState.lookup s.scalar "rom[2]" == some (LVec.ofNat 8 34) &&
-          SvState.lookup s.scalar "rom[3]" == some (LVec.ofNat 8 51)
+          s.memory.read "rom" 0 == some (LVec.ofNat 8 0) &&
+          s.memory.read "rom" 1 == some (LVec.ofNat 8 17) &&
+          s.memory.read "rom" 2 == some (LVec.ofNat 8 34) &&
+          s.memory.read "rom" 3 == some (LVec.ofNat 8 51)
       | _ => false
   | _ => false
 
