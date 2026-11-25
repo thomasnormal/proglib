@@ -65,6 +65,24 @@ accepts an edge-only design carrying each of the latter two metadata classes,
 which makes this an executable admission finding rather than a source-level
 possibility.
 
+The maintainer draft was also checked at its implementation seams. Its choice
+index and per-read oracle have the intended shape, but its statement opener
+still executes some leaves through the bounded statement evaluator and refuses
+`case` statements. The draft therefore does not yet provide a fuel-free rule
+for every admitted statement node. Its executor bridge covers only
+nonblocking-only bodies and the executor's fixed oracle, so it is not the T2
+soundness theorem for the full relation. The draft's confluence proof covers
+one quiet NBA round. Memory-queue permutation is an assumption there, and
+equality of the committed memories is still unproved.
+
+The simultaneous-edge draft supplies a useful T4a shape. For every settled
+outcome, every oracle, and a coherent start view, the two clocked assignments
+produce the swap. Its proof uses the footprint invariant and the settled-view
+confluence lemma instead of enumerating schedules. The four-row simulator
+receipt is recorded separately, but the draft environment did not rerun that
+receipt, so it contributes no new oracle result. These limitations keep the
+packet under review and do not promote it to the normative relation.
+
 The relation's store is extensional. It contains declared scalar values,
 memory identities and addressed memory cells, aggregate cells, and the
 pending semantic queues needed by a slot. Executor caches such as compiled
