@@ -1,6 +1,7 @@
 import LeanModels.Sv.Ingest2
 import LeanModels.Sv.DesignLemmas
 import LeanModels.Sv.CombHier
+import LeanModels.Sv.CombProcTactic
 open LeanModels.Sv
 open LeanModels.Sv.Kernel
 namespace Examples.«system-verilog».sem2.noisy_mul_generate
@@ -14,6 +15,16 @@ load_design_sv2 noisyMul from "Examples/system-verilog/sem2/noisy_mul_generate/n
 #guard match CombHier.hierInsts noisyMul.pdesign noisyMul.plib with
   | .error e => e.startsWith "an instance sits inside the generate loop"
   | .ok _ => false
+
+/-! The tactic route names the same source-shaped boundary for every symbolic
+parameter value.  This is a regression receipt for the refusal: it must not
+fall through to a fixed-parameter expansion or a timeout. -/
+/--
+error: sv_structure: this design instantiates modules, and the hierarchy summary (`CombHier.lean`) does not read it: an instance sits inside the generate loop `g_pp` (genvar `i`): v1 of the hierarchy summary reads module-level instances only (one instance per loop iteration would make the child's sites a generate family whose names carry the loop index, which the summary does not build yet); the structure of such a design can be proved by hand (`Examples/system-verilog/ripple_fa` is a worked by-hand proof)
+-/
+#guard_msgs (whitespace := lax) in
+example (N : Nat) : CombDesign (noisyMul.sem N) := by
+  sv_structure
 end Examples.«system-verilog».sem2.noisy_mul_generate
 #check generated_child_family
 #check generated_child_family_segments
