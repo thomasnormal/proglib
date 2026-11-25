@@ -3554,6 +3554,23 @@ theorem pairedRepresentationLoadMetadataByte_refusal
   | inl hsource => simp [pairedRepresentationLoadMetadataByte, hsource]
   | inr htarget => simp [pairedRepresentationLoadMetadataByte, htarget]
 
+theorem pairedRepresentationLoadMetadataByte_refusal_source
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice)
+    (hsource : representationLoadMetadataByte metadata offset choice = none) :
+    pairedRepresentationLoadMetadataByte resolve id metadata offset choice = none := by
+  simp [pairedRepresentationLoadMetadataByte, hsource]
+
+theorem pairedRepresentationLoadMetadataByte_refusal_target
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice)
+    (htarget : representationLoadMetadataByte (renameMetadata resolve id metadata)
+      offset choice = none) :
+    pairedRepresentationLoadMetadataByte resolve id metadata offset choice = none := by
+  simp [pairedRepresentationLoadMetadataByte, htarget]
+
 theorem pairedRepresentationLoadMetadataByte_footprints
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
