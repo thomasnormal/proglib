@@ -6416,6 +6416,12 @@ theorem pairedAllocateFailure_fail_true
     pairedAllocateFailure resolve store request .fail = true := by
   simp [pairedAllocateFailure, allocate, renamedPlacement]
 
+theorem pairedAllocateFailure_unaddressable_false
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) :
+    pairedAllocateFailure resolve store request .unaddressable = false := by
+  simp [pairedAllocateFailure, allocate, renamedPlacement]
+
 theorem pairedAllocateFailure_sound
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
