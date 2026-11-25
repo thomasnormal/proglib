@@ -8,3 +8,6 @@ elaborates that child point and hoists the generated process before applying
 
 Eight known and z input rows match canonical E, Icarus Verilog 13.0, and
 Xcelium 24.03-s004.
+
+The current receipt reports eight matching generated-child rows, including the
+z input case.
