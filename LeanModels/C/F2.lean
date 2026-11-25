@@ -6067,6 +6067,29 @@ theorem pairedAllocate_address_success_shape
   simp [pairedAllocate, allocate, renamedPlacement, hsource, htarget,
     htarget', renameAllocationRequest]
 
+theorem pairedAllocate_unaddressable_success_shape
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) :
+    pairedAllocate resolve store request .unaddressable =
+      some (
+        ({ allocations := store.allocations ++
+              [(store.nextId,
+                { live := true, address := none,
+                  bytes := request.bytes, state := request.state })],
+            nextId := store.nextId + 1 },
+          footprint .metadata
+            (Region.mk store.nextId 0 request.bytes.length)),
+        ({ allocations := (renameStore resolve store).allocations ++
+              [((renameStore resolve store).nextId,
+                { live := true, address := none,
+                  bytes := (renameAllocationRequest resolve request).bytes,
+                  state := request.state })],
+            nextId := (renameStore resolve store).nextId + 1 },
+          footprint .metadata
+            (Region.mk (renameStore resolve store).nextId 0
+              (renameAllocationRequest resolve request).bytes.length))) := by
+  simp [pairedAllocate, allocate, renamedPlacement, renameAllocationRequest]
+
 def pairedAllocateFailure (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement) : Bool :=
   (allocate store request placement).isNone &&
