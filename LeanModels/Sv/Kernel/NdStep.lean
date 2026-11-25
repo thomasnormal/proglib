@@ -5,8 +5,8 @@ import LeanModels.Sv.Obs
 
 /-! # A choice-explicit step for the clocked Active and NBA regions
 
-**Status: draft of the normative relation for one fragment; additive; no
-existing definition is changed.**
+**Status: T1 implementation seam.** The relation is normative only for the
+admitted fragment below. The executor remains an implementation instrument.
 
 The meaning given here is the closure of ONE total step function
 `ndStep E choice s`.  It has no fuel argument and no bound on the number of
@@ -18,8 +18,8 @@ steps.  Its two choice points are explicit:
   Nothing here says whether a process may be preempted between two of its own
   nodes: the relation offers every index at every step, and a coarser
   (process-atomic) meaning is the restriction of the same relation to runs
-  that keep choosing the same cursor until it is empty.  That owner question
-  is left open on purpose; see `NOTES.txt`.
+  that keep choosing the same cursor until it is empty. Granularity remains an
+  owner question.
 * **Unknown reads** (the x rule, `docs/sv-x-interface.md`): the state carries
   an `Oracle`, an unbounded supply of answers.  A decision that consults a
   value with unknown bits takes one answer per unknown bit and the supply is
@@ -49,8 +49,12 @@ Refused by name (`NdOutcome.refused`), never approximated:
   not in this relation yet;
 * a `case` statement: which reads of the selector and of the items resolve is
   not settled between the two x documents;
-* a blocking write that changes a value some process is waiting on: the
-  process would have to be woken inside the Active region.
+* case equality/inequality, wildcard equality, `casex` and `casez`, and an
+  unknown write index, because their per-read x behavior is not opened here;
+* x/z on a clock or event expression;
+* a blocking write that changes an event-source signal. The NBA may then
+  produce a second edge from an intermediate value while the old wake base is
+  retained.
 * time-zero `initial` processes, declaration initializers, and `$readmemh`
   metadata. Their ordering and execution belong to a separate time-zero
   relation and are rejected at admission until that relation is present.
@@ -62,6 +66,17 @@ unknown) and the `case` arm (it ran the whole statement through
 `execStmtFuel ... 4096`).  Every other arm is the existing function.  Leaf
 statements call the existing executor on that one statement; the fuel literal
 `1` there is not a bound, `execStmtFuel` does not recurse on a leaf.
+
+The reused leaf evaluator retains implementation budgets of 4096 in
+`resolveLhs2` and `resolveConcatLhs2`. Expression values use the existing
+`Expr2` lowering and its four-state ternary and memory-read-index merge,
+which is a deliberate superset until the owner decides whether those reads
+also become oracle sites. Elaboration's `iterFuel = 4096` is outside this
+relation.
+
+Open owner questions are scheduling granularity, x on clocks and event
+controls, inputs-first ordering within a row, atomicity of NBA commit, the
+ternary and memory-index x rule, and the elaboration budget boundary.
 -/
 
 namespace LeanModels.Sv.Kernel
