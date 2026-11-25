@@ -272,11 +272,11 @@ def Diverges
 constructor preserves the initial slot with an empty trace. Its cons
 constructor consumes exactly one `InputBatch`, applies that batch's external
 changes and simultaneous edges, requires a `SlotRun` for that slot, emits one
-observation when the slot settles, and recurses on the next slot. A refusal
-constructor emits `RefusalTrace` at the first refusing batch. Thus the
-`SettledTrace` signature above is shorthand for a genuinely multi-slot
-relation, not an existential witness for one terminal state. `RefusalTrace`
-uses the same prefix structure and records the first refusal reason.
+observation when the slot settles, and recurses on the next slot. Refusals use
+the separate `RefusalTrace` and `RefusedRun` judgments, which record the first
+refusing batch and reason rather than extending the settled trace relation.
+Thus the `SettledTrace` signature above is shorthand for a genuinely
+multi-slot relation, not an existential witness for one terminal state.
 
 The stream relation and `Diverges` are separate. `Diverges` is an actual
 infinite path, rather than arbitrarily chosen
