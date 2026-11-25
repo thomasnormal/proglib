@@ -8022,6 +8022,13 @@ def pairedStaleLoad (resolve : AllocId → Nat) (store : Store Tag State)
       (loadByte targetResult.1 id offset).isNone
   | _, _ => false
 
+theorem pairedStaleLoad_empty_false
+    {Tag State : Type} (resolve : AllocId → Nat)
+    (id offset : Nat) :
+    pairedStaleLoad resolve
+      ({ allocations := [], nextId := 0 } : Store Tag State) id offset = false := by
+  rfl
+
 def pairedStaleStore (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) (byte : Byte Tag) : Bool :=
   match endLifetime store id, endLifetime (renameStore resolve store) id with
