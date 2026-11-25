@@ -4,8 +4,8 @@ namespace Examples.«system-verilog».sem2.port_connection_target_struct_array.a
 open LeanModels.Sv
 
 /- The whole unpacked aggregate target is retained as a parser-native
-`PortConnection:target` refusal.  The canonical aggregate store currently
-has member-path reads and writes, but no whole-aggregate port-copy relation. -/
+aggregate-member output connection.  Canonical E currently reaches the
+preemptive scheduler refusal when the child writes the aggregate fields. -/
 #guard_msgs (whitespace := lax) in
 load_design_sv2 registerParent from
   "Examples/system-verilog/sem2/port_connection_target_struct_array/port_connection_target_struct_array.sv.json"
@@ -14,7 +14,7 @@ load_design_sv2 registerParent from
   | [GenItem.inst
       { name := _, module := _, path := _, params := _,
         conns := [PConn.input _ (some (.ident "d")) false,
-          PConn.unsupported _ "PortConnection:target" "hwif_out"] }] => true
+          PConn.output _ (some (.aggregateMember "state" []))] }] => true
   | _ => false
 
 end Examples.«system-verilog».sem2.port_connection_target_struct_array.agree
