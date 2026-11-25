@@ -4189,6 +4189,17 @@ theorem pairedFreeMetadata_empty_preserves_locations
       result.2.1.locations = (renameZeroTokenMetadata resolve metadata).locations := by
   exact pairedFreeMetadata_preserves_locations resolve metadata result hresult
 
+theorem freeMetadata_empty_preserves_payload
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : freeMetadata metadata = some result) :
+    result.1.allocation.address = metadata.allocation.address ∧
+      result.1.allocation.bytes = [] ∧
+      result.1.allocation.state = metadata.allocation.state := by
+  have hgeneral := freeMetadata_preserves_payload metadata result hresult
+  exact ⟨hgeneral.1, by simpa [hbytes] using hgeneral.2.1, hgeneral.2.2⟩
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
