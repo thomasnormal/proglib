@@ -19,7 +19,7 @@ resolves its run-time index against the native one-rank `MemState` (§7.4.6,
   | _ => false
 
 #guard match PDesign.instantiateCoreMem unpackedArrayTarget.pdesign [] with
-  | .unsupported msg => msg == "Comb:dependency-order: 9.2.2.2/9.4.2.2: reactive process reads 'slot' from itself or a later reactive process; canonical E has no fixed-point scheduler"
+  | .ok _ => true
   | _ => false
 
 end Examples.«system-verilog».sem2.unpacked_array_target_canonical_e

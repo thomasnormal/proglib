@@ -76,7 +76,7 @@ def main():
 
     run(["lake", "build",
          "Examples.«system-verilog».sem2.unpacked_array_target_canonical_e.agree"])
-    print("E: canonical dependency-order refusal")
+    print("E: dynamic unpacked target nine rows")
     print("extractor: retained envelope regenerates byte-identically")
 
     if not shutil.which("iverilog") or not shutil.which("vvp"):
