@@ -6540,6 +6540,16 @@ theorem allocateAligned_address_result_footprint
     rfl
   · simp [hallowed] at hresult
 
+theorem allocateAligned_empty_address_result_footprint
+    (store : Store Tag State) (state : State)
+    (base alignment : Nat) (result : Store Tag State × Footprint)
+    (haligned : alignmentAllowed base alignment = true)
+    (hresult : allocateAligned store { bytes := [], state := state }
+      (.address base) alignment = some result) :
+    result.2 = footprint .metadata (Region.mk store.nextId 0 0) := by
+  exact allocateAligned_address_result_footprint store
+    { bytes := [], state := state } base alignment result haligned hresult
+
 theorem allocateAligned_address_result_payload
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment : Nat) (result : Store Tag State × Footprint)
