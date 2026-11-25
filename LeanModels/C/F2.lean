@@ -4436,6 +4436,11 @@ def allocationsWf : List (AllocId × Allocation Tag State) → Prop
 def WellFormed (store : Store Tag State) : Prop :=
   allocationsWf store.allocations
 
+theorem wellFormed_empty
+    {Tag State : Type} :
+    WellFormed ({ allocations := [], nextId := 0 } : Store Tag State) := by
+  simp [WellFormed, allocationsWf]
+
 theorem bytesWf_rename (resolve : AllocId → Nat) (id : AllocId)
     (bytes : List (Byte Tag)) (h : bytesWf id bytes) :
     bytesWf id (bytes.map (renameByte resolve)) := by
