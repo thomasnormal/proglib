@@ -7020,6 +7020,13 @@ theorem pairedAllocateAligned_empty_unaddressable_result_wellFormed
       state alignment target (renameStore_preserves_wellFormed resolve store hstore)
       (by simpa [renameAllocationRequest] using htarget)⟩
 
+theorem pairedAllocateAligned_empty_unaddressable_result_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment : Nat) :
+    pairedAllocateAligned resolve store { bytes := [], state := state }
+      .unaddressable alignment = true := by
+  exact pairedAllocateAligned_empty_unaddressable_true resolve store state alignment
+
 theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
