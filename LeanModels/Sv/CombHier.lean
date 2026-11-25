@@ -1570,6 +1570,24 @@ def GeneratedFamilyRealization (env : IEnv) (elems : List (String × Nat))
     paths.mapM (fun p => p.1.segmentAtPath child env p.2 elems) = .ok segs ∧
       GeneratedNode.flattenSegments segs = generated
 
+def GeneratedFamilyExpansion (cb : ChildInst) (env : IEnv)
+    (elems : List (String × Nat)) (fuel : Nat) (d : PDesign)
+    (paths : List (GeneratedNode × List Int))
+    (child : GeneratedChildRef → Except String Design2)
+    (generated : List Decl × List Process2) : Prop :=
+  expandListH cb env elems fuel d.generates = .ok generated ∧
+    GeneratedFamilyRealization env elems paths child generated
+
+theorem GeneratedFamilyExpansion.of_parts
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (fuel : Nat)
+    (d : PDesign) (paths : List (GeneratedNode × List Int))
+    (child : GeneratedChildRef → Except String Design2)
+    (generated : List Decl × List Process2)
+    (hexpand : expandListH cb env elems fuel d.generates = .ok generated)
+    (hreal : GeneratedFamilyRealization env elems paths child generated) :
+    GeneratedFamilyExpansion cb env elems fuel d paths child generated :=
+  ⟨hexpand, hreal⟩
+
 theorem generatedFamilyRealization_of_segments
     (env : IEnv) (elems : List (String × Nat))
     (paths : List (GeneratedNode × List Int))
@@ -1593,6 +1611,18 @@ theorem assembleGeneratedPathsAt_of_realization
       .ok (d.assembleH env decls (idecls ++ generated.1) elems generated.2) := by
   rcases hreal with ⟨segs, hseg, hflat⟩
   rw [assembleGeneratedPathsAt_of_ok d env decls idecls elems paths child hseg, hflat]
+
+theorem GeneratedFamilyExpansion.assembleAt
+    (d : PDesign) (env : IEnv) (decls idecls : List Decl)
+    (elems : List (String × Nat)) (fuel : Nat)
+    (paths : List (GeneratedNode × List Int))
+    (child : GeneratedChildRef → Except String Design2)
+    (generated : List Decl × List Process2)
+    (h : GeneratedFamilyExpansion cb env elems fuel d paths child generated) :
+    assembleGeneratedPathsAt d env decls idecls elems paths child =
+      .ok (d.assembleH env decls (idecls ++ generated.1) elems generated.2) :=
+  assembleGeneratedPathsAt_of_realization d env decls idecls elems paths child generated h.2
+
 
 @[simp] theorem assembleGeneratedAt_processes
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
