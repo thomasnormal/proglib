@@ -18,10 +18,11 @@ def run(args, cwd=ROOT):
 
 def rows(out): return [line.split()[1:] for line in out.splitlines() if line.startswith("ROW ")]
 def main():
-    expected = rows(run(["lake", "env", "lean", "--run", str(HERE / "oracle.lean")]))
-    if expected != [["N=1", "W=1"], ["N=8", "W=3"], ["N=16", "W=4"]]:
-        raise RuntimeError(f"E rows: {expected}")
-    print("E: 3 package-function constant rows MATCH")
+    refusal = subprocess.run(["lake", "env", "lean", str(HERE / "agree.lean")], cwd=ROOT,
+                             text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if refusal.returncode == 0 or "function 'vbits' in a constant context" not in refusal.stdout:
+        raise RuntimeError(f"ordinary route refusal changed:\n{refusal.stdout}")
+    print("E: REFUSED package function in constant context")
     src = str(HERE / "constant_function_package_e.sv")
     tb = '''module tb; localparam integer N = `N; logic [7:0] y; constant_function_package_e #(.N(N)) dut(.y(y)); initial begin #1 $display("ROW N=%0d W=%0d y=%0d", N, dut.W, y); $finish; end endmodule'''
     for sim in (["iverilog"] if shutil.which("iverilog") else []):
