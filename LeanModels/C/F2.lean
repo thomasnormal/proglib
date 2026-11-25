@@ -8250,6 +8250,22 @@ theorem pairedAllocateBounded_address_success_shape
     htargetWithin, htargetWithin', htargetAligned, hsource, htarget, htarget', allocate,
     renameAllocationRequest]
 
+theorem pairedAllocateBounded_empty_address_success_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment limit : Nat)
+    (hsourceWithin : placementWithin base 0 limit = true)
+    (hsourceAligned : alignmentAllowed base alignment = true)
+    (htargetWithin : placementWithin (resolve store.nextId) 0 limit = true)
+    (htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true)
+    (hsource : placementAllowed store base 0 = true)
+    (htarget : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) 0 = true) :
+    pairedAllocateBounded resolve store { bytes := [], state := state }
+      (.address base) alignment limit = true := by
+  exact pairedAllocateBounded_address_success_shape resolve store
+    { bytes := [], state := state } base alignment limit
+    hsourceWithin hsourceAligned htargetWithin htargetAligned hsource htarget
+
 theorem pairedAllocateBounded_address_exhausted_true
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (base alignment limit : Nat)
