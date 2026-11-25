@@ -7607,6 +7607,14 @@ def pairedLoadByte (resolve : AllocId → Nat) (store : Store Tag State)
   let targetResult ← loadByte (renameStore resolve store) id offset
   some (sourceResult, targetResult)
 
+theorem pairedLoadByte_empty_none
+    {Tag State : Type} (resolve : AllocId → Nat)
+    (id offset : Nat) :
+    pairedLoadByte resolve
+      ({ allocations := [], nextId := 0 } : Store Tag State)
+      id offset = none := by
+  rfl
+
 theorem pairedLoadByte_decompose
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat)
