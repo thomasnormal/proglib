@@ -8043,6 +8043,19 @@ theorem allocateBounded_empty_unaddressable_result_payload
   exact allocateBounded_unaddressable_result_payload store
     { bytes := [], state := state } alignment limit result hresult
 
+theorem allocateBounded_unaddressable_result_footprint
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hresult : allocateBounded store request .unaddressable alignment limit = .ok result) :
+    result.2 = footprint .metadata
+      (Region.mk store.nextId 0 request.bytes.length) := by
+  cases halloc : allocate store request .unaddressable with
+  | none => simp [allocateBounded, halloc] at hresult
+  | some allocationResult =>
+      simp [allocateBounded, halloc] at hresult
+      rcases hresult with rfl
+      exact allocate_unaddressable_result_footprint store request allocationResult halloc
+
 theorem allocateBounded_unaddressable_preserves_wellFormed
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (alignment limit : Nat) (result : Store Tag State × Footprint)
