@@ -1095,6 +1095,33 @@ theorem pairedTypedLoadMetadataByte_decompose
           simp [pairedTypedLoadMetadataByte, hs, ht] at hresult
           exact ⟨sourceResult, targetResult, hresult.2.symm⟩
 
+theorem pairedTypedLoadMetadataByte_sound
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedTypedLoadMetadataByte resolve id metadata offset typeId =
+      some result) :
+    ∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      typedLoadMetadataByte metadata offset typeId = some sourceResult ∧
+      typedLoadMetadataByte (renameMetadata resolve id metadata) offset typeId = some targetResult ∧
+      (targetResult.1 == renameByte resolve sourceResult.1) = true ∧
+      (targetResult.2 == sourceResult.2) = true := by
+  cases hs : typedLoadMetadataByte metadata offset typeId with
+  | none => simp [pairedTypedLoadMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : typedLoadMetadataByte (renameMetadata resolve id metadata)
+          offset typeId with
+      | none => simp [pairedTypedLoadMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedTypedLoadMetadataByte, hs, ht] at hresult
+          rcases hresult with ⟨hcondition, hpair⟩
+          exact ⟨sourceResult, targetResult, hpair.symm,
+            by simpa using hs, by simpa using ht,
+            hcondition.1, hcondition.2⟩
+
 theorem pairedTypedLoadMetadataByte_refusal
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
