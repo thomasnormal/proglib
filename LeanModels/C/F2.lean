@@ -5093,6 +5093,11 @@ theorem pairedRecoverAddress_both_empty
     pairedRecoverAddress resolve address live = true := by
   simp [pairedRecoverAddress, hsource, htarget]
 
+theorem pairedRecoverAddress_empty_live
+    {Tag : Type} (resolve : AllocId → Nat) (address : Nat) :
+    pairedRecoverAddress (Tag := Tag) resolve address [] = true := by
+  simp [pairedRecoverAddress, recoverAddress]
+
 theorem pairedRecoverAddress_empty_recovered_refusal
     (resolve : AllocId → Nat) (address : Nat)
     (live : List (AllocId × Nat × Nat × Tag))
