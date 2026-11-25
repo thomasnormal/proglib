@@ -2457,6 +2457,12 @@ def memcpySnapshot (source destination : Region) (bytes : List (Byte Tag)) :
   if regionsOverlap source destination bytes.length then none
   else copySnapshot bytes bytes
 
+theorem memcpySnapshot_empty_success {Tag : Type}
+    (source destination : Region)
+    (hnonoverlap : regionsOverlap source destination 0 = false) :
+    memcpySnapshot (Tag := Tag) source destination [] = some [] := by
+  simp [memcpySnapshot, hnonoverlap, copySnapshot]
+
 theorem memcpySnapshot_rejects_overlap
     (source destination : Region) (bytes : List (Byte Tag))
     (hoverlap : regionsOverlap source destination bytes.length = true) :
