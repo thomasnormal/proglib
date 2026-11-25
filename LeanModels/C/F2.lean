@@ -1351,6 +1351,25 @@ theorem pairedTypedStoreLoadMetadataByte_decompose
                   simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl, htl] at hresult
                   exact ⟨(sourceStore, sourceLoad), (targetStore, targetLoad), hresult.2.symm⟩
 
+theorem pairedTypedStoreLoadMetadataByte_refusal_source_store
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (hsource : typedStoreMetadataByte metadata offset typeId byte = none) :
+    pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte = none := by
+  simp [pairedTypedStoreLoadMetadataByte, hsource]
+
+theorem pairedTypedStoreLoadMetadataByte_refusal_target_store
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (htarget : typedStoreMetadataByte (renameMetadata resolve id metadata)
+      offset typeId (renameByte resolve byte) = none) :
+    pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte = none := by
+  simp [pairedTypedStoreLoadMetadataByte, htarget]
+
 theorem pairedTypedStoreLoadMetadataByte_sound
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
