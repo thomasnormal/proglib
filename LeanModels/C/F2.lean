@@ -3826,6 +3826,21 @@ theorem pairedFreeMetadata_live_success
             (Region.mk 0 0 (renameZeroTokenMetadata resolve metadata).allocation.bytes.length))) := by
   simp [pairedFreeMetadata, freeMetadata, hlive, renameZeroTokenMetadata]
 
+theorem pairedFreeMetadata_empty_live_success
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hlive : metadata.allocation.live = true)
+    (hbytes : metadata.allocation.bytes = []) :
+    pairedFreeMetadata resolve metadata =
+      some (
+        ({ metadata with allocation := { metadata.allocation with live := false } },
+          footprint .metadata (Region.mk 0 0 0)),
+        ({ renameZeroTokenMetadata resolve metadata with
+            allocation :=
+              { (renameZeroTokenMetadata resolve metadata).allocation with live := false } },
+          footprint .metadata (Region.mk 0 0 0))) := by
+  simp [pairedFreeMetadata, freeMetadata, hlive, hbytes, renameZeroTokenMetadata]
+
 theorem pairedFreeMetadata_dead_refusal
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
