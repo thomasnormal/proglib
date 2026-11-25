@@ -2796,6 +2796,24 @@ theorem pairedReallocMetadata_refusal_target
         | .fail => .fail) = none) :
     pairedReallocMetadata resolve old request locations placement = none := by
   simp [pairedReallocMetadata, htarget]
+
+theorem pairedReallocMetadata_refusal
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (hrefusal : reallocMetadata old request locations placement = none ∨
+      reallocMetadata (renameMetadata resolve 0 old)
+        (renameAllocationRequest resolve request) locations
+        (match placement with
+        | .address _ => .address (resolve 0)
+        | .unaddressable => .unaddressable
+        | .fail => .fail) = none) :
+    pairedReallocMetadata resolve old request locations placement = none := by
+  rcases hrefusal with hsource | htarget
+  · simp [pairedReallocMetadata, hsource]
+  · simp [pairedReallocMetadata, htarget]
+
 inductive ZeroSizeOutcome (Tag State TypeId : Type) where
   | null
   | token (metadata : AllocationMetadata Tag State TypeId)
