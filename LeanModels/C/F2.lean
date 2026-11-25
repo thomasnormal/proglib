@@ -6778,6 +6778,14 @@ theorem pairedAllocateAligned_unaddressable_true
   simp [pairedAllocateAligned, allocateAligned, allocate, renamedPlacement,
     renameAllocationRequest]
 
+theorem pairedAllocateAligned_empty_unaddressable_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment : Nat) :
+    pairedAllocateAligned resolve store { bytes := [], state := state }
+      .unaddressable alignment = true := by
+  exact pairedAllocateAligned_unaddressable_true resolve store
+    { bytes := [], state := state } alignment
+
 theorem pairedAllocateAligned_address_misaligned_true
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (base alignment : Nat)
