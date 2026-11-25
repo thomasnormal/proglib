@@ -34,6 +34,19 @@ expression evaluator does not yet expose read sites, so T2 must supply and
 prove the read-site correspondence before treating `RelChoice.reads` as a
 complete executor trace.
 
+The additive choice-explicit draft in the maintainer review packet is not
+accepted as the relation. Its `NdState.begin` wakes edge and event processes
+but drops every `.initial` process even though `ndAdmitted` admits it. A
+design containing an initial block would therefore lose an observable write
+at time zero. The packet must either schedule initial work in its start state
+or remove initial processes from the admitted fragment before it can be used
+for T2. Its current T2 proof also covers only nonblocking-only bodies, and
+its opened read sites are limited to `if` conditions. Case selectors and
+items, expression-level x reads, x observers, dynamic write indices, and
+clock x policy remain outside the proved relation. The packet's NBA commit
+is atomic and its input-before-wake ordering is still an explicit design
+choice, so neither is treated as an IEEE-complete rule here.
+
 The relation's store is extensional. It contains declared scalar values,
 memory identities and addressed memory cells, aggregate cells, and the
 pending semantic queues needed by a slot. Executor caches such as compiled
