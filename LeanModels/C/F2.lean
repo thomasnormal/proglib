@@ -886,6 +886,25 @@ theorem pairedTypedStoreMetadataByte_refusal
   | inl hsource => simp [pairedTypedStoreMetadataByte, hsource]
   | inr htarget => simp [pairedTypedStoreMetadataByte, htarget]
 
+theorem pairedTypedStoreMetadataByte_refusal_source
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (hsource : typedStoreMetadataByte metadata offset typeId byte = none) :
+    pairedTypedStoreMetadataByte resolve id metadata offset typeId byte = none := by
+  simp [pairedTypedStoreMetadataByte, hsource]
+
+theorem pairedTypedStoreMetadataByte_refusal_target
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (htarget : typedStoreMetadataByte (renameMetadata resolve id metadata)
+      offset typeId (renameByte resolve byte) = none) :
+    pairedTypedStoreMetadataByte resolve id metadata offset typeId byte = none := by
+  simp [pairedTypedStoreMetadataByte, htarget]
+
 theorem pairedTypedStoreMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
