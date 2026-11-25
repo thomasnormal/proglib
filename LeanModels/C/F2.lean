@@ -2859,6 +2859,16 @@ theorem renameZeroSizeOutcome_token_shape
           address := metadata.allocation.address.map (fun _ => resolve 0) } } := by
   rfl
 
+theorem renameZeroSizeOutcome_token_preserves_wellFormed
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (h : metadata.wellFormed 0) :
+    ({ metadata with
+        allocation := { metadata.allocation with
+          address := metadata.allocation.address.map (fun _ => resolve 0) } }).wellFormed 0 := by
+  unfold AllocationMetadata.wellFormed at h ⊢
+  exact ⟨h.1, h.2⟩
+
 def pairedAllocateZeroSize {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
     (placement : Placement) : Bool :=
   match (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).1,
