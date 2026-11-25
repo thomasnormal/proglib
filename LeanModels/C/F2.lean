@@ -3267,6 +3267,24 @@ theorem pairedReallocMetadata_preserves_liveness
       rcases hresult with rfl
       simp
 
+theorem pairedReallocMetadata_empty_result_liveness
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (state : State) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old { bytes := [], state := state }
+      [] placement = some result) :
+    (match result.1.1 with
+    | .failed previous => previous.allocation.live = old.allocation.live
+    | .replaced fresh => fresh.allocation.live = true) ∧
+    (match result.2.1 with
+    | .failed previous => previous.allocation.live =
+        (renameMetadata resolve 0 old).allocation.live
+    | .replaced fresh => fresh.allocation.live = true) := by
+  exact pairedReallocMetadata_preserves_liveness resolve old
+    { bytes := [], state := state } [] placement result hresult
+
 theorem pairedReallocMetadata_preserves_locations
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
