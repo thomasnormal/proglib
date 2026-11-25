@@ -94,6 +94,16 @@ end LeanModels.Sv
 
 namespace LeanModels.Sv
 
+/-! Exact natural-number geometry for packed row-major ports.  This remains
+separate from `CombView.Aff`: a product of two symbolic quantities is
+nonlinear and must not be reinterpreted as affine just to satisfy a tactic. -/
+theorem rowMajor_lt {rows cols row col : Nat} (hrow : row < rows) (hcol : col < cols) :
+    row * cols + col < rows * cols := by
+  calc
+    row * cols + col < row * cols + cols := Nat.add_lt_add_left hcol _
+    _ = (row + 1) * cols := by simp [Nat.add_mul]
+    _ ≤ rows * cols := Nat.mul_le_mul_right cols (Nat.succ_le_of_lt hrow)
+
 /-! A generated-child summary is a family of source-order segments.  Keeping
 one segment per genvar value preserves the valuation-dependent names and the
 child boundary; flattening is a separate, explicit operation for the ordinary

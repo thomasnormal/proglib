@@ -75,6 +75,11 @@ theorem noisy_fault_row_index_affine_refusal :
     CombView.affOf? (.binary .mul (.genvarRef "i") (.paramRef "N" none)) = none := by
   rfl
 
+theorem noisy_fault_row_major_index_in_range
+    {N i j : Nat} (hi : i < N) (hj : j < N) :
+    i * N + j < N * N := by
+  exact rowMajor_lt hi hj
+
 theorem noisy_fault_row_index_affine_supported :
     CombView.affOf?
         (.binary (.m0 .sub)
