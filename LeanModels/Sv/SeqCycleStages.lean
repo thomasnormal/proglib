@@ -422,6 +422,39 @@ partial def exprUnsupportedOther? (e : Lean.Expr) : MetaM (Option (String × Str
   else
     pure none
 
+partial def exprHasGenInstance? (e : Lean.Expr) : MetaM Bool := do
+  let e ← whnf e
+  if e.isAppOfArity ``List.nil 1 then
+    pure false
+  else if e.isAppOfArity ``List.cons 3 then
+    return (← exprHasGenInstance? (e.getArg! 1)) || (← exprHasGenInstance? (e.getArg! 2))
+  else if e.getAppFn.constName? == some ``GenItem.inst then
+    pure true
+  else if e.isAppOfArity ``GenItem.genFor 7 then
+    exprHasGenInstance? (e.getArg! 7)
+  else if e.isAppOfArity ``GenItem.genIf 3 then
+    return (← exprHasGenInstance? (e.getArg! 1)) || (← exprHasGenInstance? (e.getArg! 2))
+  else
+    pure false
+
+partial def exprUnsupportedGenInstance? (e : Lean.Expr) : MetaM Bool := do
+  let e ← whnf e
+  if e.isAppOfArity ``List.nil 1 then
+    pure false
+  else if e.isAppOfArity ``List.cons 3 then
+    return (← exprUnsupportedGenInstance? (e.getArg! 1)) ||
+      (← exprUnsupportedGenInstance? (e.getArg! 2))
+  else if e.isAppOfArity ``GenItem.genFor 7 then
+    if ← exprHasGenInstance? (e.getArg! 7) then
+      pure true
+    else
+      pure false
+  else if e.isAppOfArity ``GenItem.genIf 3 then
+    return (← exprUnsupportedGenInstance? (e.getArg! 1)) ||
+      (← exprUnsupportedGenInstance? (e.getArg! 2))
+  else
+    pure false
+
 /-- The instantiation's three outcomes for `r = X.e P…`: the `ok` goal with `hSeq : <normal form> = E` substituted
 away, the refused outcomes closed (or named). Returns the `ok` goal. -/
 def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
@@ -436,6 +469,9 @@ def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
   let others := mkApp (mkConst ``PDesign.others) source
   if let some (kind, text) ← exprUnsupportedOther? others then
     throwError "{stage}: the source design contains an unsupported node `{kind}`: {text}"
+  let generates := mkApp (mkConst ``PDesign.generates) source
+  if ← exprUnsupportedGenInstance? generates then
+    throwError "{stage}: a clocked generate loop contains a child instance; generated-child instantiation is not yet modeled"
   let procs := mkApp (mkConst ``PDesign.processes) (mkConst pN)
   if let some (kind, text) ← exprUnsupportedProcess? procs then
     throwError "{stage}: the design contains an unsupported process `{kind}`: {text}"

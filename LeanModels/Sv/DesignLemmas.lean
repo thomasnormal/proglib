@@ -49,6 +49,12 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   `flattenInst` bridge once a child design and prefix are available.
   `CombHier.generatedChildRefs_genFor_singleton` composes one symbolic loop
   header with a child reference without selecting an iteration.
+  Clocked generated-child families additionally need a valuation-aware child
+  `CoreMemDesign` composition equation: it must map each generated instance's
+  packed bit-select connections, preserve the child's event/process identities,
+  and prove the resulting family aggregation before `SeqProfileI` can be
+  formed.  Until that bridge exists, a clocked `for` generate containing child
+  instances is a deliberate refusal rather than an unrolled fixed-`N` case.
 * Memory-backed combinational designs are a separate boundary from `Design2`:
   the hand-proof route needs four named bridges before a generated unpacked
   array can be admitted.  The loader must preserve each generated element
