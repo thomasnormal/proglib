@@ -2673,6 +2673,18 @@ theorem reallocMetadata_unaddressable_success
         footprint .metadata (Region.mk 0 0 request.bytes.length)) := by
   simp [reallocMetadata, hsame]
 
+theorem reallocMetadata_empty_unaddressable_success
+    (old : AllocationMetadata Tag State TypeId) (state : State) :
+    reallocMetadata old { bytes := [], state := state } [] .unaddressable =
+      some (.replaced
+        { allocation :=
+            { live := true, address := none,
+              bytes := [], state := state },
+          locations := [] },
+        footprint .metadata (Region.mk 0 0 0)) := by
+  exact reallocMetadata_unaddressable_success old
+    { bytes := [], state := state } [] rfl
+
 theorem reallocMetadata_address_rejects_length_mismatch
     (old : AllocationMetadata Tag State TypeId)
     (request : AllocationRequest Tag State)
