@@ -2821,6 +2821,10 @@ theorem allocateZeroSize_failure_shape (state : State) :
       (.null, footprint .metadata (Region.mk 0 0 0)) := by
   rfl
 
+theorem allocateZeroSize_failure_result (state : State) :
+    (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state .fail).1 = .null := by
+  rfl
+
 theorem allocateZeroSize_address_shape (state : State) (base : Nat) :
     allocateZeroSize (Tag := Tag) (TypeId := TypeId) state (.address base) =
       (.token { allocation := { live := true, address := some base, bytes := [], state := state }, locations := [] },
