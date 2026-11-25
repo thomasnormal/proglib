@@ -190,6 +190,7 @@ theorem noisy_hierarchy_refusal :
       .error (CombHier.itemRefusal ppGen) := by
   rfl
 
+set_option maxRecDepth 100000 in
 theorem noisy_summary_refusal :
     CombHier.summaryH noisyMul.pdesign noisyMul.plib =
       .error
@@ -1235,7 +1236,38 @@ theorem noisy_top_expand_actual
                   [instProcess2 (env.bindVal "i" i) elems rowRight] })).2 ++
           (intRange 0 N.toNat).flatMap fun i =>
             [instProcess2 (env.bindVal "i" i) elems outProc]) := by
-  apply noisy_top_generated_expand
+  refine noisy_top_generated_expand
+    (pp :=
+      (List.flatMap
+        (fun i => List.flatMap
+          (fun j =>
+            (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+              ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+              andInst andDesign).1)
+        (intRange 0 N.toNat)) (intRange 0 N.toNat),
+       List.flatMap
+        (fun i => List.flatMap
+          (fun j =>
+            (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+              ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+              andInst andDesign).2)
+        (intRange 0 N.toNat)) (intRange 0 N.toNat)))
+    (row :=
+      ((GeneratedChildSegment.flatten
+        ((intRange 1 (N - 1).toNat).map fun i =>
+          { decls := (noisy_row_inner_segment env elems i N).1,
+            processes := instProcess2 (env.bindVal "i" i) elems rowLeft ::
+              (noisy_row_inner_segment env elems i N).2 ++
+              [instProcess2 (env.bindVal "i" i) elems rowRight] })).1,
+       (GeneratedChildSegment.flatten
+        ((intRange 1 (N - 1).toNat).map fun i =>
+          { decls := (noisy_row_inner_segment env elems i N).1,
+            processes := instProcess2 (env.bindVal "i" i) elems rowLeft ::
+              (noisy_row_inner_segment env elems i N).2 ++
+              [instProcess2 (env.bindVal "i" i) elems rowRight] })).2))
+    (out := ([], (intRange 0 N.toNat).flatMap fun i =>
+      [instProcess2 (env.bindVal "i" i) elems outProc]))
+    ?_ ?_ ?_
   · exact noisy_pp_expand_actual env elems F N clocks hFuel
       hBound hValue hInnerBound hInnerValue
   · exact noisy_row_expand_process_family_exact env elems F N clocks hRowFuel
@@ -1252,10 +1284,16 @@ def noisyTopGeneratedRefs : List CombHier.GeneratedChildRef :=
 
 theorem noisy_top_generated_refs :
     CombHier.generatedChildRefs noisyMul.plib [] noisyMul.pdesign.generates =
-      .ok noisyTopGeneratedRefs := by
+      .error "generated child family contains a process sibling; use the process-aware family rule" := by
   rw [noisy_top_generates_shape]
-  simp [noisyTopGeneratedRefs, CombHier.generatedChildRefs, ppLoops, rowInnerLoops,
-    noisy_row_inner_shape, andInst, xorInst, xorSInst, majInst, andDef, xorDef, majDef]
+  rw [noisy_row_shape_test]
+  rw [show noisyMul.plib = andDef :: xorDef :: majDef :: [] from by rfl]
+  have ha : (andDef :: xorDef :: majDef :: []).find?
+      (fun x => x.name == andInst.module) = some andDef := by
+    simp [andDef, andInst]
+  simp [CombHier.generatedChildRefs, ppGen, rowGen, outGen, rowBody,
+    noisyMul.pdesign, ha, Except.bind, Except.pure, pure, Functor.map, Except.map]
+  rfl
 
 def noisyTopGeneratedPairs : List (CombHier.GeneratedChildRef × Design2) :=
   [({ loops := ppLoops, inst := andInst, child := andDef }, andDesign),
