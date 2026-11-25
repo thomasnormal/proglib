@@ -697,7 +697,8 @@ theorem evalInt_paramRef_of_intVal {E : IEnv} {n : String} {v : Int}
   · simp [evalInt, hv]
   · cases hv : E.vals.lookup n with
     | none =>
-        have hs : n ∉ E.stale := fun hs => by simp [IEnv.intVal?, hv, hs] at h
+        have hs : n ∉ E.stale := fun hs => by
+          simp [IEnv.intVal?, hv, hs] at h
         simp [evalInt, IEnv.intVal?, hv, hn, hs]
     | some x =>
         have heq : x = v := by simpa [IEnv.intVal?, hv, hn] using h
