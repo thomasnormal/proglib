@@ -19,5 +19,6 @@ def result : String := match PDesign.instantiateCoreMem memoryOnlyQuiesce.pdesig
     | .unsupported msg => "initial:" ++ msg
   | .timeout => "design-timeout"
   | .unsupported msg => "design:" ++ msg
+#guard result.startsWith "design:Comb:memory-quiescence:"
 #eval result
 end Examples.«system-verilog».sem2.memory_only_quiesce
