@@ -625,6 +625,13 @@ E-core-1 has the same implementation transport for edge processes. In
 over lowered `Stmt2` edge bodies, process-atomic active/NBA phases, and the
 `Elab1` store. It supplies no parser-native memory relation or fine-grained
 §4.7 result, so it remains bridge infrastructure.
+The existing `rEdge` theorem is the corresponding admitted-profile result:
+for every legal choice and a typed, duplicate-free ready set, it produces a
+closed path whose view is the `commitNba2` of all updates computed from the
+pre-edge store. This is an existential path-plus-canonical-commit theorem for
+the one-writer, NBA-only profile. It does not by itself characterize every
+closed endpoint, add parser-native memory footprints, or prove the
+fine-grained relation.
 
 ### Frame-lemma audit
 
