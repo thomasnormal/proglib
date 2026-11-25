@@ -56,12 +56,12 @@ def main():
     finally:
         regenerated.unlink(missing_ok=True)
 
-    expected = rows(run([
-        "lake", "env", "lean", "--run", str(HERE / "oracle.lean")]))
-    if expected != [["N=1", "W=1"], ["N=8", "W=3"],
-                    ["N=16", "W=4"]]:
-        raise RuntimeError(f"E rows: {expected}")
-    print("E: 3 qualified package-function constant rows MATCH")
+    refusal = subprocess.run(
+        ["lake", "env", "lean", str(HERE / "oracle.lean")], cwd=ROOT,
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if refusal.returncode == 0 or "function 'vbits' in a constant context" not in refusal.stdout:
+        raise RuntimeError(f"ordinary route refusal changed:\n{refusal.stdout}")
+    print("E: REFUSED package function in constant context")
 
     tb = (
         "module tb; localparam integer N = `N; logic [7:0] y; "
