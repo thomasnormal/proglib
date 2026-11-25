@@ -4454,6 +4454,15 @@ theorem bytesWf_value_unprovenanced
     bytesWf id (.value bits none fragment :: rest) := by
   simpa [bytesWf] using h
 
+theorem bytesWf_value_provenanced
+    {Tag : Type} (id : AllocId) (bits : UInt8)
+    (provenance : Provenance Tag) (fragment : Option Nat)
+    (rest : List (Byte Tag))
+    (hprovenance : provenance.allocation = id)
+    (h : bytesWf id rest) :
+    bytesWf id (.value bits (some provenance) fragment :: rest) := by
+  simp [bytesWf, hprovenance, h]
+
 theorem wellFormed_empty
     {Tag State : Type} :
     WellFormed ({ allocations := [], nextId := 0 } : Store Tag State) := by
