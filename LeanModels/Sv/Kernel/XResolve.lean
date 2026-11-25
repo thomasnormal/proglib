@@ -1,15 +1,15 @@
 import LeanModels.Sv.Basic
 
 /-!
-# Correlated 0/1 concretizations of unknown values
+# Per-read 0/1 resolutions of unknown values
 
-**Status: derived relation; executor integration pending.**
+**Status: derived per-read relation; executor integration pending.**
 
 IEEE 1800 §6.3.1 treats `x` and `z` as bits whose 0/1 value is not known.
-This file is the first E-facing piece of `docs/sv-x-resolution.md`: it
-enumerates all concretizations of one source value, keeping the choice
-correlated for every later read of that value. It contains no execution and no
-fuel.
+This file is the first E-facing piece of `docs/sv-x-resolution.md`. It
+enumerates the 0/1 values permitted at one read site. A later read constructs
+another `XRead` witness and may choose differently, even when it reads the
+same four-state value. It contains no execution and no fuel.
 -/
 
 namespace LeanModels.Sv
@@ -47,8 +47,8 @@ private theorem resolves_of_mem : ∀ (b c : Logic),
   intro b c
   cases b <;> cases c <;> simp [Logic.resolutions, Logic.Resolves]
 
-/-- A vector is a concretization of another when every bit resolves and the
-width is preserved. -/
+/- A single read's concrete vector resolves the abstract vector bitwise and
+   preserves its width. -/
 def LVec.Resolves (abstract concrete : LVec) : Prop :=
   abstract.bits.toList.length = concrete.bits.toList.length ∧
     bitListResolves abstract.bits.toList concrete.bits.toList
@@ -94,7 +94,7 @@ theorem typedResolution_twoState_eq_toTwoState {source result : LVec}
     result = source.toTwoState := by
   exact twoStateBoundary_unique h (typedResolution_twoState_total source)
 
-/-- A decision is known when every correlated concretization gives the same
+/-- A decision is known when every per-read concretization gives the same
 boolean result. This is deliberately weaker than requiring every source bit
 to be known: `1'bx` is definitely true for a nonzero test, while `1'b0x` is
 not. The predicate is proof-facing; it does not change the four-state
@@ -104,7 +104,7 @@ def DecisionKnown (v : LVec) : Prop :=
     LVec.condTrue v = LVec.condTrue w ∧ LVec.condTrue w = LVec.condTrue z
 
 /-- A resolved branch decision: the concrete value is tied to the source
-through the correlated relation, and the source condition is known to agree
+through the per-read relation, and the source condition is known to agree
 across all such values. This is the proof object a future E branch step can
 consume without consulting x-optimistic `condTrue` directly. -/
 structure ResolvedDecision (source result : LVec) : Prop where
@@ -181,13 +181,12 @@ theorem typedResolution_fourState_eq_of_known {source result : LVec}
   rw [concretizations_of_known hknown] at h
   simpa using h
 
-/-! ## X-E's independent read interface
+/-! ## X-E's independent per-read interface
 
-`LVec.Resolves` is the historical value relation above. The interface used by
-the new X-E route names the per-read boundary explicitly: each read carries
-its own witness from the source value to one concrete value. A list of reads
-uses a structural paired-list relation, so no witness is shared between two
-positions. -/
+`LVec.Resolves` describes one read. The X-E route names the per-read boundary
+explicitly: each read carries its own witness from the source value to one
+concrete value. A list of reads uses a structural paired-list relation, so no
+witness is shared between two positions. -/
 
 /-- One read-site resolution. A later read constructs a fresh `XRead` even
 when its source value has the same bits. -/
@@ -220,6 +219,12 @@ theorem xReadRun_cons {source concrete : LVec}
     (htail : XReadRun sources concreteTail) :
     XReadRun (source :: sources) (concrete :: concreteTail) :=
   .cons hhead htail
+
+/- Two reads of the same source may carry distinct concrete witnesses. -/
+theorem xReadRun_same_source {source first second : LVec}
+    (hfirst : XRead source first) (hsecond : XRead source second) :
+    XReadRun [source, source] [first, second] :=
+  .cons hfirst (.cons hsecond .nil)
 
 /-- The independent per-read relation preserves the number and order of
 read sites.  Each constructor pairs one source value with one concrete value,
