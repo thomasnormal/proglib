@@ -5265,6 +5265,26 @@ theorem pairedOffsetPointer_negative_underflow_unprovenanced
               hunderflow, hprov, hbound]
       | some p => simp [hprov] at hprovenance
 
+theorem pairedOffsetPointer_success_negative_unprovenanced
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat)
+    (hprovenance : pointer.provenance = none)
+    (hsize : elementSize ≠ 0) (hdelta : delta < 0)
+    (hwithin : Int.natAbs delta * elementSize ≤ pointer.address)
+    (hsourceBound : pointer.address - Int.natAbs delta * elementSize ≤ bound)
+    (htargetBound : (renamePointer resolve pointer).address -
+      Int.natAbs delta * elementSize ≤ bound) :
+    pairedOffsetPointer resolve pointer elementSize delta bound = true := by
+  cases pointer with
+  | mk provenance address =>
+      cases hprov : provenance with
+      | none =>
+          have hbound : ¬ bound < address - Int.natAbs delta * elementSize :=
+            Nat.not_lt.mpr hsourceBound
+          simp [renamePointer, pairedOffsetPointer, offsetPointer, hsize, hdelta,
+            hwithin, hbound, hprov]
+      | some p => simp [hprov] at hprovenance
+
 theorem pairedOffsetPointer_both_success [BEq Tag]
     (resolve : AllocId → Nat) (pointer : Pointer Tag)
     (elementSize : Nat) (delta : Int) (bound : Nat)
