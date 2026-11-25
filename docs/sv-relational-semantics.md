@@ -286,8 +286,12 @@ configuration by the relation.
 
 The actual relation will use the existing cursor fields and memory identities
 rather than introduce a second lowered statement language. The `...` in
-`Run` and `Diverges` marks the remaining design work, not an admitted
-axiom or a definition to use before the relation is implemented.
+`Run`, `BatchStep`, `ObserveTrace`, and `RefusalTrace` marks remaining
+construction work, not an admitted axiom or a definition to use before the
+relation is implemented. `Diverges` already has its explicit infinite-path
+definition above. Its path predicate is a design commitment, while the
+configuration and transition types that it will instantiate remain part of
+the implementation work.
 
 Expression constructors follow the parser node that they interpret. LHS
 resolution carries declaration identity, dynamic index resolution, and written
