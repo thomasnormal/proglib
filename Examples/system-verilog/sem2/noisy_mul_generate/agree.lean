@@ -459,6 +459,67 @@ theorem noisy_row_shape_test :
       (.unary .inc (.genvarRef "i")) (some 3) rowBody := by
   simp [rowGen, rowBody, noisyMul.pdesign]
 
+def rowLeft : PProcess :=
+  .assignL (.arrayElem "c" [.genvarRef "i", .int 0]) (.lit ⟨#[.l0]⟩)
+
+def rowRight : PProcess :=
+  .assignL (.arrayElem "s" [.genvarRef "i", .paramRef "N" none])
+    (.arrayElem "c" [.genvarRef "i", .paramRef "N" none])
+
+def rowInnerBody : List GenItem :=
+  match rowBody with
+  | .process _ :: .genFor _ _ _ _ _ _ body :: .process _ :: [] => body
+  | _ => []
+
+theorem noisy_row_body_shape :
+    rowBody = [GenItem.process rowLeft,
+      .genFor (some "g_bit") "j" (.int 0)
+        (.binary .slt (.genvarRef "j") (.paramRef "N" none))
+        (.unary .inc (.genvarRef "j")) (some 4) rowInnerBody,
+      GenItem.process rowRight] := by
+  rfl
+
+theorem noisy_row_expand_process_family
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (hFuel : (N - 1).toNat < F)
+    (f : Int → List Decl × List Process2)
+    (hBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hInnerInit : ∀ i : Int, evalInt (env.bindVal "i" i) (.int 0) = .ok 0)
+    (hInnerBound : ∀ i j : Int,
+      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
+    (hInnerValue : ∀ i j : Int,
+      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N)
+    (hInnerFuel : N.toNat < F)
+    (hInnerInst : GenItem.listInstFree rowInnerBody = false)
+    (hInner : ∀ i : Int, 1 ≤ i → i < N →
+      expandListH cb (env.bindVal "i" i) elems F
+        [.genFor (some "g_bit") "j" (.int 0)
+          (.binary .slt (.genvarRef "j") (.paramRef "N" none))
+          (.unary .inc (.genvarRef "j")) (some 4) rowInnerBody] =
+        .ok (f i)) :
+    rowGen.expandH cb env elems F =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange 1 (N - 1).toNat).map fun i =>
+          { decls := (f i).1,
+            processes := instProcess2 (env.bindVal "i" i) elems rowLeft ::
+              (f i).2 ++ [instProcess2 (env.bindVal "i" i) elems rowRight] })) := by
+  simpa [rowGen, rowBody, rowInnerBody, rowLeft, rowRight, noisyMul.pdesign] using
+    (generated_child_nested_with_processes
+      (cb := cb) (env := env) (elems := elems) (F := F)
+      (outerG := "i") (innerG := "j")
+      (outerLabel := some "g_row") (innerLabel := some "g_bit")
+      (outerInit := .int 1) (outerBound := .paramRef "N" none)
+      (innerInit := .int 0) (innerBound := .paramRef "N" none)
+      (outerRc := some 3) (innerRc := some 4)
+      (outerI0 := 1) (outerN := N) (innerI0 := 0) (innerN := N)
+      (left := rowLeft) (right := rowRight) (innerBody := rowInnerBody)
+      (f := f)
+      (by simp) hBound hValue hFuel
+      hInnerInit hInnerBound hInnerValue (by simpa using hInnerFuel) hInnerInst hInner)
+
 theorem noisy_row_expand_segments
     (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
     (N : Int) (hFuel : (N - 1).toNat < F)
