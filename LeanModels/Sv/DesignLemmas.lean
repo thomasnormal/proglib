@@ -52,6 +52,10 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   valuation-dependent segments in source order without choosing an iteration.
   `CombHier.generatedChildRefPairs_segmentAt_mapM_ok` is the heterogeneous
   variant when each retained reference carries its own child `Design2`.
+  `CombHier.GeneratedNode` extends that boundary to source-ordered bodies that
+  mix generated child instances with ordinary processes; `GeneratedNode.segmentAt`
+  and `generatedNodes_segmentAt_flatten_ok` preserve the order while folding
+  the valuation-dependent segments.
   `CombHier.generatedChildRefs_genFor_singleton` composes one symbolic loop
   header with a child reference without selecting an iteration.
   `CombHier.generatedChildRefs_genFor_nested_singleton` composes two nested
