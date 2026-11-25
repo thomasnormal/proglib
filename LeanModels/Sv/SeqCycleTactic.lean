@@ -369,8 +369,8 @@ theorem seqE_ite_snd {α β : Type} (p : Prop) [Decidable p] (a b : α × β) :
 
 A run-time element read (`Expr2.index`) and a select target's window (`resolveLhs2` on `.index`) decide on the index
 value (x/z or out of range: all x, or no write window, §11.5.1). The evaluation pass keeps that decision as a value
-(`seqIndexRead`, `seqIndexWin`) instead of a `match` at the `Res` level, and evaluates the window resolver's fuel
-evaluator by its fuel-free twin (`evalExpr2_eq_evalPure2`). -/
+(`seqIndexRead`, `seqIndexWin`) instead of a `match` at the `Res` level. The window resolver uses the same
+fuel-free expression evaluator as its structural implementation. -/
 
 /-- `evalPure2`'s run-time element read, its decision a value. -/
 def seqIndexRead (bv : LVec) (i? : Option Int) (w : Nat) : LVec :=
@@ -407,12 +407,12 @@ def seqIndexWin (old : LVec) (i? : Option Int) (w : Nat) : Option (Nat × Nat) :
 
 theorem seqE_resolveLhs2_index (fuel : Nat) (st : SvState) (n : String) (idx : Expr2) (w : Nat) :
     resolveLhs2 fuel st (.index n idx w) = (do
-      let iv ← evalExpr2 fuel st idx
+      let iv ← evalPure2 st idx
       match SvState.lookup st n with
       | none => .unsupported s!"unknown assignment target '{n}'"
       | some old => .ok (n, seqIndexWin old (indexInt? idx iv) w)) := by
   simp only [resolveLhs2]
-  cases evalExpr2 fuel st idx with
+  cases evalPure2 st idx with
   | ok iv =>
       simp only [Res.ok_bind]
       cases SvState.lookup st n with

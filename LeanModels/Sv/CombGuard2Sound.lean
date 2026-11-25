@@ -1,5 +1,6 @@
 import LeanModels.Sv.CombGuard2
 import LeanModels.Sv.Obs
+import LeanModels.Sv.Pure2Adequacy
 
 /-!
 # The self-read guard is sound: an admitted body is its own fixpoint (WP4)
@@ -663,6 +664,7 @@ theorem eval_congr {wd : String → Option Nat} {τ σ : SvState} (hsh : SameSha
 index expression's bits agree. -/
 theorem resolveLhs2_congr {wd : String → Option Nat} {fuel : Nat} {τ σ : SvState}
     (hsh : SameShape τ σ)
+    (hs : Shaped wd σ)
     (hE : ∀ e : Expr2, AgreeOn (e.rdW wd) τ σ → evalExpr2 fuel τ e = evalExpr2 fuel σ e)
     (t : Lhs2) (h : AgreeOn (t.rdW wd) τ σ) : resolveLhs2 fuel τ t = resolveLhs2 fuel σ t := by
   cases t with
@@ -674,7 +676,11 @@ theorem resolveLhs2_congr {wd : String → Option Nat} {fuel : Nat} {τ σ : SvS
   | slice n lo w => rfl
   | index n idx ew =>
     simp only [Lhs2.rdW] at h
-    simp only [resolveLhs2, hE idx h]
+    have hp : evalPure2 τ idx = evalPure2 σ idx := by
+      have he := (eval_congr hsh hs (idx.size + 1)).1 idx h
+      rw [evalExpr2_eq_evalPure2 (by omega), evalExpr2_eq_evalPure2 (by omega)] at he
+      exact he
+    simp only [resolveLhs2, hp]
     rcases hsh.cases n with ⟨h1, h2⟩ | ⟨u, v, h1, h2, h3⟩
     · rw [h1, h2]
     · rw [h1, h2]; simp [h3]
@@ -1110,7 +1116,7 @@ theorem sim (wd : String → Option Nat) : ∀ fuel : Nat,
     · intro s F σ τ σ' nb q M A hs hsh hv h1 hinv hF
       have hE := (eval_congr hsh hs k).1
       have hEs := (eval_congr hsh hs k).2
-      have hR := resolveLhs2_congr (fuel := k) hsh hE
+      have hR := resolveLhs2_congr (fuel := k) hsh hs hE
       cases s with
       | blockingAssign t e =>
         simp only [Stmt2.combViol] at hv
@@ -1131,7 +1137,7 @@ theorem sim (wd : String → Option Nat) : ∀ fuel : Nat,
           have hag := agree_of_viol hv hinv (hF_pre hF hframe)
           have hev' : evalExpr2 k τ e = .ok v := by rw [hE e hag.left, hev]
           have hws' : resolveConcatLhs2 k τ (.concat parts) = .ok ws := by
-            rw [resolveConcatLhs2_congr (fun t ht => resolveLhs2_congr hsh hE t ht) _ hag.right, hws]
+            rw [resolveConcatLhs2_congr (fun t ht => resolveLhs2_congr hsh hs hE t ht) _ hag.right, hws]
           obtain ⟨τ', hgo, hsh', hin, hout⟩ := go_rel _ ws τ σ σ'' _ hsh hσ''
           refine ⟨τ', ?_, hsh', ?_, hframe⟩
           · simp only [execStmt2, hev', Res.ok_bind, hws', writeConcatLhs2, hgo]

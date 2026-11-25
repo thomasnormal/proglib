@@ -345,7 +345,8 @@ def EdgeWork.openNode (E : CoreMemDesign) (st : CoreMemState)
         [.edgeStmt (env.bindVal name value) body, .edgeLoop env name body rest])
   | EdgeWork.edgeStmt env stmt =>
       do
-        let result ← E.execStmtFuel env E.elems st locals 4096 stmt
+        let result ← E.execStmtFuel env E.elems st locals
+          (1 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
         .ok (result, [])
 
 def EdgeCursor.resume (E : CoreMemDesign) (cursor : EdgeCursor)

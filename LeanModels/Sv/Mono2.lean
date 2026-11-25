@@ -98,8 +98,7 @@ theorem resolveLhs2_le_of {fuel fuel' : Nat} {st : SvState}
   | ident n => exact Res.le_refl _
   | slice n lo w => exact Res.le_refl _
   | index n idx elemW =>
-    simp only [resolveLhs2]
-    exact Res.le_bind (hE idx) fun _ => Res.le_refl _
+    exact Res.le_refl _
   | concat parts => exact Res.le_refl _
 
 /-- `resolveConcatLhs2` at fuel `fuel` is `⊑` its run at `fuel'` whenever

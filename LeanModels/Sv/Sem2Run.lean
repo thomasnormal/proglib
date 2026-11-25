@@ -1,4 +1,5 @@
 import LeanModels.Sv.Sem2Ast
+import LeanModels.Sv.Pure2
 
 namespace LeanModels.Sv
 
@@ -94,14 +95,18 @@ def evalExprs2 (fuel : Nat) (st : SvState) (es : List Expr2) : Res (List LVec) :
 `none` window = the pinned no-write case (x/z or out-of-range dynamic
 index; the statement is still executed for its RHS side… M0 expressions are
 pure, so "executed" just means the assignment is dropped). -/
-def resolveLhs2 (fuel : Nat) (st : SvState) : Lhs2 → Res (String × Option (Nat × Nat))
+/- The target resolver keeps the historical fuel argument in its API so
+callers and monotonicity lemmas remain source-compatible.  Target indices are
+pure expressions, so their exact result is obtained by the structural
+`evalPure2` evaluator and no semantic budget is consumed here. -/
+def resolveLhs2 (_fuel : Nat) (st : SvState) : Lhs2 → Res (String × Option (Nat × Nat))
   | .ident n => do
       match SvState.lookup st n with
       | some old => return (n, some (0, old.width))
       | none => .unsupported s!"unknown assignment target '{n}'"
   | .slice n lo w => .ok (n, some (lo, w))
   | .index n idx elemW => do
-      let iv ← evalExpr2 fuel st idx
+      let iv ← evalPure2 st idx
       match SvState.lookup st n with
       | none => .unsupported s!"unknown assignment target '{n}'"
       | some old =>

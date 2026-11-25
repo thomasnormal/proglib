@@ -3700,7 +3700,7 @@ end
 
 def CoreMemDesign.execStmt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmt : PStmt) : CoreMemExec :=
-  E.execStmtFuel env elems st [] (4096 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
+  E.execStmtFuel env elems st [] (1 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
 
 /-! ## Slots, scalar E commit, and memory commit -/
 
