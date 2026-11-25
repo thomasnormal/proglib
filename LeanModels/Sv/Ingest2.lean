@@ -1093,8 +1093,9 @@ def parseModule2 (j : Json) : Except String PDesign :=
               (← row.getArr?).toList.mapM fun fj => do
                 pure (← getStrField fj "name", ← parsePExpr (← getField fj "value"))
             pure (some rows)
+      let isString := (getOptField qj "string").bind (·.getBool?.toOption) |>.getD false
       let pp : PParam := PParam.mk pname defaultVal (getOptInt qj "resolved")
-        typeVal signedVal false aggregateVal aggregateDefaultVal
+        typeVal signedVal false aggregateVal aggregateDefaultVal isString
       packageParams := packageParams ++ [(pkg, pp)]
     for pj in (← (← getField j "params").getArr?) do
       match ← getKind pj with
@@ -1107,8 +1108,9 @@ def parseModule2 (j : Json) : Except String PDesign :=
             | none => pure none
             | some tj => pure (some (← withCtx s!"parameter '{pname}' type" (parsePType tj)))
           let signed? ← parseOptSigned pj
+          let isString := (getOptField pj "string").bind (·.getBool?.toOption) |>.getD false
           params := params ++
-            [{ name := pname, default?, resolved? := getOptInt pj "resolved", type?, signed? }]
+            [{ name := pname, default?, resolved? := getOptInt pj "resolved", type?, signed?, isString }]
       | "LocalParam" =>
           let pname ← getStrField pj "name"
           let expr ← withCtx s!"localparam '{pname}'" (parsePExpr (← getField pj "expr"))

@@ -34648,6 +34648,8 @@ def convert_param_sym(sm, m):
         ptype = _sym_param_syntax_dims(sm, m, None)
     init = getattr(m, "initializer", None)
     init_d = convert_sym_expr(sm, init) if init is not None else None
+    is_string = (type(getattr(getattr(m, "type", None), "canonicalType", None)).__name__
+                 == "StringType")
     resolved = None
     try:
         resolved = _cv_int(m.value)
@@ -34661,6 +34663,7 @@ def convert_param_sym(sm, m):
             "type": ptype,
             "expr": init_d,
             "resolved": resolved,
+            "string": is_string,
         }))
     return _sym_implicit_signing(tsyn, ptype, _sym_param_signedness(m, ptype, {
         "kind": "ParameterDecl",
@@ -34669,6 +34672,7 @@ def convert_param_sym(sm, m):
         "type": ptype,
         "default": init_d,
         "resolved": resolved,
+        "string": is_string,
     }))
 
 

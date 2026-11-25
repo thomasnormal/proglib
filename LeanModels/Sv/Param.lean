@@ -399,6 +399,9 @@ structure PParam where
   aggregate? : Option PAggType := none
   /-- Keyed packed-struct elements of a fixed unpacked package parameter. -/
   aggregateDefault? : Option (List (List (String × PExpr))) := none
+  /-- A parser-retained `string` parameter.  Its value is source metadata and
+  does not enter the integer elaboration environment. -/
+  isString : Bool := false
 deriving Repr, BEq, Inhabited
 
 structure PackageAggValue where
@@ -2377,7 +2380,9 @@ override binders; their defaults are evaluated in declaration order. -/
 private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → Res IEnv
   | [] => .ok env
   | (pkg, p) :: rest =>
-      if p.aggregate?.isSome then
+      if p.isString then
+        bindPackageParamsInOrder env rest
+      else if p.aggregate?.isSome then
         match bindPackageAggregate env pkg p with
         | .ok env' => bindPackageParamsInOrder env' rest
         | .unsupported msg => .unsupported msg
@@ -2979,29 +2984,32 @@ def IEnv.withPDims (env : IEnv) (n : String) (ty? : Option PType) : IEnv :=
 value converted to the declared type (`canonInt` — what SV does with an
 override that does not fit). -/
 def bindParams (env : IEnv) : List PParam → List Int → Except String IEnv
-  | p :: ps, v :: vs => do
-      if p.type?.isNone && p.signed? == some false then
-        throw "Constant:untyped-unsigned — IEEE 1800-2023 §6.20.2 leaves unsigned no-range parameters implementation-defined"
-      if p.hasAggregateDefault env then
-        -- An aggregate parameter is not an integer binder.  Preserve its
-        -- absence from the integer environment so a forwarded reference
-        -- remains parser-shaped and direct use fails loudly downstream.
-        bindParams { env with stale := p.name :: env.stale } ps vs
-      else
-      match ← (declConstType env p.type? p.signed?).mapError
-          (fun e => s!"parameter '{p.name}' type: {e}") with
-      | none =>
-          if p.overrideRetypes then
-            bindParams { env.bindNVal p.name (canonInt 32 true v) 32 true with
-              stale := p.name :: env.stale } ps vs
-          else if env.int32 then
-            bindParams (env.bindNVal p.name (canonInt 32 true v) 32 true) ps vs
-          else bindParams { env with vals := env.vals ++ [(p.name, v)] } ps vs
-      | some (w, s) =>
-          if p.overrideRetypes then
-            bindParams { (env.withPDims p.name p.type?).bindNVal p.name (canonInt w s v) w s with
-              stale := p.name :: env.stale } ps vs
-          else bindParams ((env.withPDims p.name p.type?).bindNVal p.name (canonInt w s v) w s) ps vs
+  | p :: ps, v :: vs =>
+      if p.isString then
+        bindParams env ps vs
+      else do
+        if p.type?.isNone && p.signed? == some false then
+          throw "Constant:untyped-unsigned — IEEE 1800-2023 §6.20.2 leaves unsigned no-range parameters implementation-defined"
+        if p.hasAggregateDefault env then
+          -- An aggregate parameter is not an integer binder.  Preserve its
+          -- absence from the integer environment so a forwarded reference
+          -- remains parser-shaped and direct use fails loudly downstream.
+          bindParams { env with stale := p.name :: env.stale } ps vs
+        else
+        match ← (declConstType env p.type? p.signed?).mapError
+            (fun e => s!"parameter '{p.name}' type: {e}") with
+        | none =>
+            if p.overrideRetypes then
+              bindParams { env.bindNVal p.name (canonInt 32 true v) 32 true with
+                stale := p.name :: env.stale } ps vs
+            else if env.int32 then
+              bindParams (env.bindNVal p.name (canonInt 32 true v) 32 true) ps vs
+            else bindParams { env with vals := env.vals ++ [(p.name, v)] } ps vs
+        | some (w, s) =>
+            if p.overrideRetypes then
+              bindParams { (env.withPDims p.name p.type?).bindNVal p.name (canonInt w s v) w s with
+                stale := p.name :: env.stale } ps vs
+            else bindParams ((env.withPDims p.name p.type?).bindNVal p.name (canonInt w s v) w s) ps vs
   | _, _ => .ok env
 
 /-- `bindParams` in `Res` (a failure is a loud `.unsupported`). -/
@@ -3263,7 +3271,7 @@ sized to `N = 4`; an `integer`/`int` one at 32 bits, `evalIntTarget`, round
 4); an untyped default by `evalInt` (its own type, §6.20.2), loud where
 that value wraps (`evalUntyped`, round 5). -/
 def PParam.evalDefault (env : IEnv) (p : PParam) (e : PExpr) : Except String Int :=
-  match p.type? with
+  if p.isString then .ok 0 else match p.type? with
   | some _ =>
       if e.isInt env then evalInt env e
       else do
@@ -3285,7 +3293,7 @@ reading already). Typed and ranged parameters keep their declared type at
 every point (`none`). -/
 def PParam.defaultConstType (env : IEnv) (p : PParam) :
     Except String (Option (Nat × Bool)) :=
-  match p.type?, p.default? with
+  if p.isString then .ok none else match p.type?, p.default? with
   | none, some e =>
       if e.isInt env && p.signed? != some false then .ok none
       else do
