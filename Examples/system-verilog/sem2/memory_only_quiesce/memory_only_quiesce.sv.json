@@ -1,0 +1,238 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "memory_only_quiesce",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/memory_only_quiesce/memory_only_quiesce.sv",
+      "sha256": "a76943b648888f46f43274631e691c6622fb8aef12447a52f5cf3608da196e4f"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "memory_only_quiesce",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 40,
+              "end_line": 2,
+              "end_col": 44
+            },
+            "name": "seed",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 59,
+              "end_line": 2,
+              "end_col": 60
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 3,
+              "col": 9,
+              "end_line": 3,
+              "end_col": 18
+            },
+            "name": "mem[0]",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "two_state": false,
+            "flat_base": "mem",
+            "flat_index": 0,
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 3,
+              "col": 9,
+              "end_line": 3,
+              "end_col": 18
+            },
+            "name": "mem[1]",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "two_state": false,
+            "flat_base": "mem",
+            "flat_index": 1,
+            "init": null
+          }
+        ],
+        "processes": [
+          {
+            "kind": "AlwaysComb",
+            "span": {
+              "line": 4,
+              "col": 3,
+              "end_line": 4,
+              "end_col": 31
+            },
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 4,
+                "col": 15,
+                "end_line": 4,
+                "end_col": 31
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 4,
+                  "col": 15,
+                  "end_line": 4,
+                  "end_col": 21
+                },
+                "width": 1,
+                "name": "mem[1]"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 4,
+                  "col": 24,
+                  "end_line": 4,
+                  "end_col": 30
+                },
+                "width": 1,
+                "name": "mem[0]"
+              }
+            }
+          },
+          {
+            "kind": "AlwaysComb",
+            "span": {
+              "line": 5,
+              "col": 3,
+              "end_line": 5,
+              "end_col": 29
+            },
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 5,
+                "col": 15,
+                "end_line": 5,
+                "end_col": 29
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 5,
+                  "col": 15,
+                  "end_line": 5,
+                  "end_col": 21
+                },
+                "width": 1,
+                "name": "mem[0]"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 5,
+                  "col": 24,
+                  "end_line": 5,
+                  "end_col": 28
+                },
+                "width": 1,
+                "name": "seed"
+              }
+            }
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 6,
+              "col": 10,
+              "end_line": 6,
+              "end_col": 18
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 6,
+                "col": 10,
+                "end_line": 6,
+                "end_col": 11
+              },
+              "width": 1,
+              "name": "q"
+            },
+            "value": {
+              "kind": "Literal",
+              "span": {
+                "line": 6,
+                "col": 14,
+                "end_line": 6,
+                "end_col": 18
+              },
+              "width": 1,
+              "bits": "0"
+            }
+          }
+        ],
+        "generates": [],
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "mem[1]",
+            "base": "mem",
+            "index": 1
+          },
+          {
+            "name": "mem[0]",
+            "base": "mem",
+            "index": 0
+          }
+        ]
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

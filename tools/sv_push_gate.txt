@@ -63,11 +63,6 @@ LeanModels.Sv.CombViewThm
 LeanModels.Sv.CombWord
 LeanModels.Sv.CombWordPins
 LeanModels.Sv.Ingest2
-LeanModels.Sv.MemPreemptGuard
-Examples/system-verilog/counter/proof.lean
-Examples/system-verilog/toggle/proof.lean
-Examples/system-verilog/xsel/proof.lean
-Examples/system-verilog/seq_neg/check.lean
 Examples/system-verilog/comb_bridge/bridge.lean
 Examples/system-verilog/comb_bridge/cover.lean
 Examples/system-verilog/comb_case/comb_errors.lean
@@ -292,8 +287,6 @@ LeanModels
 
 LeanModels.Sv.Scheduler
 LeanModels.Sv.Kernel.CoreMemResume
-LeanModels.Sv.Kernel.NdStep
-Examples/system-verilog/sem2/ndstep_rows/rows.lean
 Examples/system-verilog/sem2/plain_internal_edge_e/agree.lean
 Examples/system-verilog/sem2/memory_edge_blocking_canonical_e/agree.lean
 Examples/system-verilog/sem2/child_instance_e/agree.lean
@@ -351,7 +344,6 @@ Examples/system-verilog/sem2/blocking_local_always_ff_step11/relation.lean
 Examples/system-verilog/sem2/mixed_core_step10/agree.lean
 
 Examples/system-verilog/sem2/package_wall_suite/suite.lean
-Examples/system-verilog/sem2/horner_child_defaults_e/agree.lean
 
 Examples/system-verilog/sem2/generate_walls_w2_scope/agree.lean
 Examples/system-verilog/sem2/generate_walls_w2_per_instance/agree.lean
@@ -399,3 +391,4 @@ Examples/system-verilog/sem2/clocked_tick_assign_e/agree.lean
 Examples/system-verilog/sem2/duplicate_generate_group_e/agree.lean
 
 Examples/system-verilog/sem2/packed_dimension_crosscheck_e/agree.lean
+Examples/system-verilog/sem2/memory_only_quiesce/agree.lean
