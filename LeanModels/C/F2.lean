@@ -6301,6 +6301,16 @@ theorem pairedStoreByte_refusal_target
     pairedStoreByte resolve store id offset byte = none := by
   simp [pairedStoreByte, htarget]
 
+theorem pairedStoreByte_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (hrefusal : storeByte store id offset byte = none ∨
+      storeByte (renameStore resolve store) id offset (renameByte resolve byte) = none) :
+    pairedStoreByte resolve store id offset byte = none := by
+  rcases hrefusal with hsource | htarget
+  · simp [pairedStoreByte, hsource]
+  · simp [pairedStoreByte, htarget]
+
 theorem pairedStoreRepresentationLoadMetadataByte_sound
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
@@ -6462,6 +6472,16 @@ theorem pairedLoadByte_refusal_target
     (htarget : loadByte (renameStore resolve store) id offset = none) :
     pairedLoadByte resolve store id offset = none := by
   simp [pairedLoadByte, htarget]
+
+theorem pairedLoadByte_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (hrefusal : loadByte store id offset = none ∨
+      loadByte (renameStore resolve store) id offset = none) :
+    pairedLoadByte resolve store id offset = none := by
+  rcases hrefusal with hsource | htarget
+  · simp [pairedLoadByte, hsource]
+  · simp [pairedLoadByte, htarget]
 
 theorem pairedLoadByte_value_correspondence
     (resolve : AllocId → Nat) (store : Store Tag State)
