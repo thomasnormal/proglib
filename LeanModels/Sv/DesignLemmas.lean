@@ -16,6 +16,8 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   step for an ascending generate-for; `generated_child_family`,
   `generated_child_nested_family`, and `generated_child_at_prefix` expose the
   one- and two-level child equations under stable names for hand proofs, while
+  `generated_child_family_segments` and `generated_child_nested_segments`
+  retain valuation-dependent per-iteration segments before flattening.
   `generated_child_pathPrefix_two` and `generated_child_prefix_two` expose the
   valuation-dependent lexical names, and `GenItem.expandH_inst`/`instExpandH_of`
   expose one child's flattened declarations and processes.
@@ -52,6 +54,22 @@ end LeanModels.Sv
 
 namespace LeanModels.Sv
 
+/-! A generated-child summary is a family of source-order segments.  Keeping
+one segment per genvar value preserves the valuation-dependent names and the
+child boundary; flattening is a separate, explicit operation for the ordinary
+`Design2` representation. -/
+
+structure GeneratedChildSegment where
+  decls : List Decl
+  processes : List Process2
+
+namespace GeneratedChildSegment
+
+def flatten (xs : List GeneratedChildSegment) : List Decl × List Process2 :=
+  (xs.flatMap (·.decls), xs.flatMap (·.processes))
+
+end GeneratedChildSegment
+
 /-- One ascending generate family whose body is a single generated child.
 The equation keeps the source loop symbolic and exposes the child's ordinary
 `flattenInst` at each genvar value; no loop is unrolled by this lemma. -/
@@ -72,6 +90,30 @@ theorem generated_child_family
   rw [GenItem.expandH_genFor_ascending_flatMap hi hbound hvalue hfuel]
   intro v hv0 hvN
   exact hbody v hv0 hvN
+
+/-! The same equation with the per-iteration child results retained as a
+valuation-dependent segment list.  This is the hand-proof representation a
+hierarchy summary can consume without inventing static names or unrolling the
+source loop. -/
+
+theorem generated_child_family_segments
+    {cb : ChildInst} {env : IEnv} {elems : List (String × Nat)} {F : Nat}
+    {label : Option String} {g : String} {initE bound : PExpr} {rc : Option Nat}
+    {i0 N : Int} {inst : PInst} {f : Int → List Decl × List Process2}
+    (hi : evalInt env initE = .ok i0)
+    (hbound : ∀ i : Int, bound.isInt (env.bindVal g i) = true)
+    (hvalue : ∀ i : Int, evalInt (env.bindVal g i) bound = .ok N)
+    (hfuel : (N - i0).toNat < F)
+    (hbody : ∀ v : Int, i0 ≤ v → v < N →
+      expandListH cb (env.bindVal g v) elems F [.inst inst] = .ok (f v)) :
+    (GenItem.genFor label g initE (.binary .slt (.genvarRef g) bound)
+      (.unary .inc (.genvarRef g)) rc [.inst inst]).expandH cb env elems F =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange i0 (N - i0).toNat).map fun v =>
+          let r := f v
+          { decls := r.1, processes := r.2 })) := by
+  rw [generated_child_family hi hbound hvalue hfuel hbody]
+  simp [GeneratedChildSegment.flatten, List.flatMap_map]
 
 /-- A generated child expansion can be discharged directly from a decided
 prefix and child design.  This is the hand-proof equation used at each leaf
@@ -143,6 +185,47 @@ theorem generated_child_nested_family
       exact hBody outer inner hOuter0 hOuterN hInner0 hInnerN
   rw [GenItem.expandH_genFor_ascending_flatMap
     (f := g) hOuterInit hOuterBound hOuterValue hOuterFuel houter]
+
+/-! Retain one segment per outer iteration before flattening the nested
+family.  The inner family remains a source-order segment inside that outer
+segment, so both generate indices stay available to a later hierarchy rule. -/
+
+theorem generated_child_nested_segments
+    {cb : ChildInst} {env : IEnv} {elems : List (String × Nat)} {F : Nat}
+    {outerLabel innerLabel : Option String} {outerG innerG : String}
+    {outerInit outerBound innerInit innerBound : PExpr}
+    {outerRc innerRc : Option Nat} {outerI0 outerN innerI0 innerN : Int}
+    {inst : PInst} {f : Int → Int → List Decl × List Process2}
+    (hOuterInit : evalInt env outerInit = .ok outerI0)
+    (hOuterBound : ∀ i : Int, outerBound.isInt (env.bindVal outerG i) = true)
+    (hOuterValue : ∀ i : Int, evalInt (env.bindVal outerG i) outerBound = .ok outerN)
+    (hOuterFuel : (outerN - outerI0).toNat < F)
+    (hInnerInit : ∀ outer : Int,
+      evalInt (env.bindVal outerG outer) innerInit = .ok innerI0)
+    (hInnerBound : ∀ outer i : Int,
+      innerBound.isInt ((env.bindVal outerG outer).bindVal innerG i) = true)
+    (hInnerValue : ∀ outer i : Int,
+      evalInt ((env.bindVal outerG outer).bindVal innerG i) innerBound = .ok innerN)
+    (hInnerFuel : (innerN - innerI0).toNat < F)
+    (hBody : ∀ outer inner : Int, outerI0 ≤ outer → outer < outerN →
+      innerI0 ≤ inner → inner < innerN →
+      expandListH cb ((env.bindVal outerG outer).bindVal innerG inner) elems F [.inst inst] =
+        .ok (f outer inner)) :
+    (GenItem.genFor outerLabel outerG outerInit
+      (.binary .slt (.genvarRef outerG) outerBound)
+      (.unary .inc (.genvarRef outerG)) outerRc
+      [GenItem.genFor innerLabel innerG innerInit
+        (.binary .slt (.genvarRef innerG) innerBound)
+        (.unary .inc (.genvarRef innerG)) innerRc [.inst inst]]).expandH cb env elems F =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange outerI0 (outerN - outerI0).toNat).map fun outer =>
+          { decls := (intRange innerI0 (innerN - innerI0).toNat).flatMap fun inner =>
+              (f outer inner).1,
+            processes := (intRange innerI0 (innerN - innerI0).toNat).flatMap fun inner =>
+              (f outer inner).2 })) := by
+  rw [generated_child_nested_family hOuterInit hOuterBound hOuterValue hOuterFuel
+    hInnerInit hInnerBound hInnerValue hInnerFuel hBody]
+  simp [GeneratedChildSegment.flatten, List.flatMap_map]
 
 
 /-- A nested generated child family whose leaf is already a decided child

@@ -16,8 +16,10 @@ load_design_sv2 noisyMul from "Examples/system-verilog/sem2/noisy_mul_generate/n
   | .ok _ => false
 end Examples.«system-verilog».sem2.noisy_mul_generate
 #check generated_child_family
+#check generated_child_family_segments
 #check generated_child_at_prefix
 #check generated_child_nested_family
+#check generated_child_nested_segments
 #check CombHier.hierInsts_refuses_genFor
 
 namespace Examples.«system-verilog».sem2.noisy_mul_generate
@@ -113,6 +115,87 @@ theorem noisy_pp_expand_family
       (by intro i; simp)
       hInnerBound hInnerValue (by simpa using hFuel)
       (by simpa using hBody))
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
+/-! The same source-shaped family with its valuation-dependent outer segments
+retained until the final flattening step.  This is the concrete receipt for
+the new hierarchy-summary representation; no generated name is made static. -/
+theorem noisy_pp_expand_segments
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (hFuel : N.toNat < F)
+    (f : Int → Int → List Decl × List Process2)
+    (hOuterBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hOuterValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hInnerBound : ∀ i j : Int,
+      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
+    (hInnerValue : ∀ i j : Int,
+      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N)
+    (hBody : ∀ i j : Int, 0 ≤ i → i < N → 0 ≤ j → j < N →
+      expandListH cb ((env.bindVal "i" i).bindVal "j" j) elems F [.inst andInst] =
+        .ok (f i j)) :
+    ppGen.expandH cb env elems F =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange 0 N.toNat).map fun i =>
+          { decls := (intRange 0 N.toNat).flatMap fun j => (f i j).1,
+            processes := (intRange 0 N.toNat).flatMap fun j => (f i j).2 })) := by
+  simpa [ppGen] using
+    (generated_child_nested_segments
+      (cb := cb) (env := env) (elems := elems) (F := F)
+      (outerLabel := some "g_pp") (innerLabel := some "g_pp_j")
+      (outerG := "i") (innerG := "j")
+      (outerInit := .int 0)
+      (outerBound := .paramRef "N" none)
+      (outerRc := some 4) (outerI0 := 0) (outerN := N)
+      (innerInit := .int 0)
+      (innerBound := .paramRef "N" none)
+      (innerRc := some 4) (innerI0 := 0) (innerN := N)
+      (inst := andInst) (f := f)
+      (by simp) hOuterBound hOuterValue (by simpa using hFuel)
+      (by intro i; simp) hInnerBound hInnerValue (by simpa using hFuel) hBody)
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
+theorem noisy_pp_expand_actual_segments
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (hFuel : N.toNat < F) (child : Design2)
+    (hOuterBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hOuterValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hInnerBound : ∀ i j : Int,
+      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
+    (hInnerValue : ∀ i j : Int,
+      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N)
+    (hChild : ∀ i j : Int,
+      cb ((env.bindVal "i" i).bindVal "j" j) andInst = .ok child) :
+    ppGen.expandH cb env elems F =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange 0 N.toNat).map fun i =>
+          { decls := (intRange 0 N.toNat).flatMap fun j =>
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+                andInst child).1,
+            processes := (intRange 0 N.toNat).flatMap fun j =>
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+                andInst child).2 })) := by
+  apply noisy_pp_expand_segments cb env elems F N hFuel
+    (fun i j => flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+      ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.") andInst child)
+    hOuterBound hOuterValue hInnerBound hInnerValue
+  intro i j hi0 hiN hj0 hjN
+  apply expandListH_singleton_ok (h := by simp [GenItem.instFree])
+  rw [GenItem.expandH_inst]
+  exact instExpandH_of
+    (andInst_prefix env i j)
+    (hChild i j)
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
 
