@@ -6933,6 +6933,21 @@ theorem pairedAllocateBounded_address_exhausted_true
   simp [pairedAllocateBounded, allocateBounded, renamedPlacement, hsource,
     htarget, htarget', renameAllocationRequest] <;> decide
 
+theorem pairedAllocateBounded_address_misaligned_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (base alignment limit : Nat)
+    (hsourceWithin : placementWithin base request.bytes.length limit = true)
+    (htargetWithin : placementWithin (resolve store.nextId)
+      (renameAllocationRequest resolve request).bytes.length limit = true)
+    (hsource : alignmentAllowed base alignment = false)
+    (htarget : alignmentAllowed (resolve store.nextId) alignment = false) :
+    pairedAllocateBounded resolve store request (.address base) alignment limit = true := by
+  have htargetWithin' : placementWithin (resolve store.nextId)
+      request.bytes.length limit = true := by
+    simpa [renameAllocationRequest] using htargetWithin
+  simp [pairedAllocateBounded, allocateBounded, renamedPlacement, hsourceWithin,
+    htargetWithin, htargetWithin', hsource, htarget, renameAllocationRequest] <;> decide
+
 theorem pairedAllocateBounded_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
