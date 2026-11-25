@@ -8092,6 +8092,17 @@ theorem allocateBounded_unaddressable_preserves_wellFormed
         exact ⟨hentries.1, ih hentries.2⟩
   exact append_wf store.allocations hstore
 
+theorem allocateBounded_empty_unaddressable_preserves_wellFormed
+    (store : Store Tag State) (state : State)
+    (alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hbytes : bytesWf (Tag := Tag) store.nextId [])
+    (hresult : allocateBounded store { bytes := [], state := state }
+      .unaddressable alignment limit = .ok result) :
+    WellFormed result.1 := by
+  exact allocateBounded_unaddressable_preserves_wellFormed store
+    { bytes := [], state := state } alignment limit result hstore hbytes hresult
+
 theorem allocateBounded_address_result_counters
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment limit : Nat) (result : Store Tag State × Footprint)
