@@ -1284,6 +1284,32 @@ inductive GeneratedNode where
   | child (ref : GeneratedChildRef)
 deriving Repr, Inhabited
 
+def GeneratedNode.segmentAt (child : GeneratedChildRef → Except String Design2)
+    (env : IEnv) (elems : List (String × Nat)) : GeneratedNode →
+    Except String (List Decl × List Process2)
+  | .process _ p => .ok ([], [instProcess2 env elems p])
+  | .child r => do
+      let d ← child r
+      r.segmentAt d env elems
+
+theorem generatedNodes_segmentAt_mapM_ok
+    {ns : List GeneratedNode}
+    {child : GeneratedChildRef → Except String Design2}
+    {env : IEnv} {elems : List (String × Nat)}
+    {seg : GeneratedNode → List Decl × List Process2}
+    (hok : ∀ n ∈ ns, n.segmentAt child env elems = .ok (seg n)) :
+    ns.mapM (fun n => n.segmentAt child env elems) = .ok (ns.map seg) := by
+  induction ns with
+  | nil => rfl
+  | cons n ns ih =>
+      simp only [List.mapM_cons]
+      rw [hok n (by simp)]
+      have htail : ns.mapM (fun n => n.segmentAt child env elems) =
+          .ok (ns.map seg) :=
+        ih (fun n' hn' => hok n' (by simp [hn']))
+      rw [htail]
+      rfl
+
 def generatedNodes (lib : List PDesign) (loops : List GeneratedLoop) :
     List GenItem → Except String (List GeneratedNode)
   | [] => .ok []
