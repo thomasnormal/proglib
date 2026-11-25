@@ -6874,6 +6874,40 @@ theorem pairedAllocateAligned_empty_address_result_footprints
       (by simpa [renameAllocationRequest, renamedPlacement] using htargetAligned)
       (by simpa [renameAllocationRequest, renamedPlacement] using htarget)⟩
 
+theorem pairedAllocateAligned_empty_address_result_counts
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment : Nat)
+    (source target : Store Tag State × Footprint)
+    (hsource : allocateAligned store { bytes := [], state := state }
+      (.address base) alignment = some source)
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId (.address base)) alignment = some target) :
+    source.1.nextId = store.nextId + 1 ∧
+      target.1.nextId = (renameStore resolve store).nextId + 1 ∧
+      source.1.allocations.length = store.allocations.length + 1 ∧
+      target.1.allocations.length = (renameStore resolve store).allocations.length + 1 := by
+  have hsourceAligned : alignmentAllowed base alignment = true := by
+    by_cases h : alignmentAllowed base alignment = true
+    · exact h
+    · simp [allocateAligned, h] at hsource
+  have htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true := by
+    by_cases h : alignmentAllowed (resolve store.nextId) alignment = true
+    · exact h
+    · simp [allocateAligned, renamedPlacement, h] at htarget
+  exact ⟨allocateAligned_empty_address_result_counters store state base alignment
+      source hsourceAligned hsource |>.1,
+    allocateAligned_empty_address_result_counters (renameStore resolve store)
+      state (resolve store.nextId) alignment target
+      (by simpa [renameAllocationRequest, renamedPlacement] using htargetAligned)
+      (by simpa [renameAllocationRequest, renamedPlacement] using htarget) |>.1,
+    allocateAligned_empty_address_result_counters store state base alignment
+      source hsourceAligned hsource |>.2,
+    allocateAligned_empty_address_result_counters (renameStore resolve store)
+      state (resolve store.nextId) alignment target
+      (by simpa [renameAllocationRequest, renamedPlacement] using htargetAligned)
+      (by simpa [renameAllocationRequest, renamedPlacement] using htarget) |>.2⟩
+
 theorem pairedAllocateAligned_empty_unaddressable_result_footprints
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (alignment : Nat)
