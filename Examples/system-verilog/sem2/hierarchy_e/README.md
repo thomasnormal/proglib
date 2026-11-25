@@ -14,6 +14,9 @@ the flattened declaration/process shape and the E execution.  `check.py`
 compares the same rows with Icarus Verilog 13.0 and readiness-gated Xcelium
 24.03-s004.
 
+The current receipt reports five matching ordinary/source rows on both pinned
+simulators.
+
 Run the focused receipt and differential comparison with:
 
 ```text
