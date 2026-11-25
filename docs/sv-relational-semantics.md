@@ -1036,6 +1036,32 @@ theorem until its relation transport premise is supplied.
   queue/frame receipts, and in several cases process-atomic or cursor-local
   assumptions. They must not be described as whole-design confluence.
 
+## Cut-down acceptance plan
+
+The owner has reduced the first relational milestone to four items.
+
+1. **T1** is the small fuel-free choice-bearing cursor relation. The public
+   seam in `LeanModels/Sv/Kernel/RelSem.lean` is landed as `29320f4a6`.
+   Scheduling choices and independent per-read `XRead` witnesses are
+   explicit, and `RelRun` has no budget.
+2. **T2** must state soundness for the executor's actual successful result.
+   Its start state, settled result, and read-site correspondence are all
+   bound in the theorem. A step-unfolding lemma or a theorem comparing a
+   function with its own iteration does not satisfy T2.
+3. **T3** is uniqueness only under a visible race-free admission. Its proof
+   uses invariants and footprint confluence over every schedule and every
+   oracle. It does not enumerate schedules.
+4. **T4** consists of four unbounded acceptance theorems over the relation.
+   The simultaneous two-clock swap is the first case. The two-flop
+   synchroniser gets a stability theorem for its asynchronous input. A
+   repeated unknown read may choose independently. The FIFO theorem is
+   parametric in its depth.
+
+   Completeness, progress, migration of the old stacks, and an independent
+   clause-by-clause rule set are outside this milestone. Each acceptance
+   theorem must quantify over the relation's choices and carry its admitted
+   profile as a hypothesis.
+
 One proposal suggested treating process atomicity as the default. That is not
 an owner decision. `Granularity` remains an explicit parameter, with the
 statement profile carrying the clause 4.7 preemption relation and the process
