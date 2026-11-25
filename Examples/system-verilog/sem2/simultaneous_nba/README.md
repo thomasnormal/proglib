@@ -10,3 +10,6 @@ not cover the simultaneous batch.
 The testbench forces the initial output values only for the oracle run. The
 source itself has no initialization process. The fixture is evidence for the
 input-batch and NBA sampling design, not an implementation of the relation.
+
+The receipt is reproducible with `python3 check.py`. On 2026-11-25 it reports
+four matching rows on Icarus Verilog 13.0 and Xcelium 24.03-s004.
