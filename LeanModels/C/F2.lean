@@ -6953,6 +6953,30 @@ theorem pairedAllocateAligned_empty_unaddressable_result_payload
       state alignment target
       (by simpa [renameAllocationRequest] using htarget)⟩
 
+theorem pairedAllocateAligned_empty_unaddressable_result_counts
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment : Nat)
+    (source target : Store Tag State × Footprint)
+    (hsource : allocateAligned store { bytes := [], state := state }
+      .unaddressable alignment = some source)
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      .unaddressable alignment = some target) :
+    source.1.nextId = store.nextId + 1 ∧
+      target.1.nextId = (renameStore resolve store).nextId + 1 ∧
+      source.1.allocations.length = store.allocations.length + 1 ∧
+      target.1.allocations.length = (renameStore resolve store).allocations.length + 1 := by
+  exact ⟨allocateAligned_empty_unaddressable_result_counters store state
+      alignment source hsource |>.1,
+    allocateAligned_empty_unaddressable_result_counters (renameStore resolve store)
+      state alignment target
+      (by simpa [renameAllocationRequest] using htarget) |>.1,
+    allocateAligned_empty_unaddressable_result_counters store state alignment
+      source hsource |>.2,
+    allocateAligned_empty_unaddressable_result_counters (renameStore resolve store)
+      state alignment target
+      (by simpa [renameAllocationRequest] using htarget) |>.2⟩
+
 theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
