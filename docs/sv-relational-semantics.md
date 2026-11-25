@@ -246,7 +246,7 @@ def SettledTrace
   TraceRun E g x init inputs trace
 
 def RefusalTrace (init : SlotState) (inputs : List InputBatch)
-    (reason : RelRefusal) : Prop := ...
+    (finish : SlotState) (reason : RelRefusal) : Prop := ...
 
 def SettledRun
     (E : CoreMemDesign) (g : Granularity) (x : XResolution)
@@ -260,7 +260,7 @@ def RefusedRun
     (init : SlotState) (inputs : List InputBatch)
     (reason : RelRefusal) : Prop :=
   ∃ finish, RefusedSlotRun E g x init finish reason ∧
-    RefusalTrace init inputs reason
+    RefusalTrace init inputs finish reason
 
 def Diverges
     (step : α → α → Prop) (start : α) : Prop :=
@@ -274,7 +274,8 @@ constructor consumes exactly one `InputBatch`, applies that batch's external
 changes and simultaneous edges, requires a `SlotRun` for that slot, emits one
 observation when the slot settles, and recurses on the next slot. Refusals use
 the separate `RefusalTrace` and `RefusedRun` judgments, which record the first
-refusing batch and reason rather than extending the settled trace relation.
+refusing batch, terminal state, and reason rather than extending the settled
+trace relation.
 Thus the `SettledTrace` signature above is shorthand for a genuinely
 multi-slot relation, not an existential witness for one terminal state.
 
