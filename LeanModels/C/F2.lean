@@ -7999,6 +7999,17 @@ theorem allocateBounded_address_overlap
       .error .overlap := by
   simp [allocateBounded, hwithin, haligned, hrejected]
 
+theorem allocateBounded_empty_address_overlap
+    (store : Store Tag State) (state : State)
+    (base alignment limit : Nat)
+    (hwithin : placementWithin base 0 limit = true)
+    (haligned : alignmentAllowed base alignment = true)
+    (hrejected : placementAllowed store base 0 = false) :
+    allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .error .overlap := by
+  exact allocateBounded_address_overlap store
+    { bytes := [], state := state } base alignment limit hwithin haligned hrejected
+
 theorem allocateBounded_unaddressable_success
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (alignment limit : Nat)
