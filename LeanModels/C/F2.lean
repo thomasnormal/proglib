@@ -6599,6 +6599,13 @@ theorem pairedAllocateBounded_fail_true
   rw [show renamedPlacement resolve store.nextId .fail = .fail by rfl]
   simp [allocateBounded] <;> decide
 
+theorem pairedAllocateBounded_unaddressable_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (alignment limit : Nat) :
+    pairedAllocateBounded resolve store request .unaddressable alignment limit = true := by
+  simp [pairedAllocateBounded, allocateBounded, allocate, renamedPlacement,
+    renameAllocationRequest]
+
 theorem pairedAllocateBounded_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
