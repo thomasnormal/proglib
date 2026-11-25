@@ -1349,6 +1349,20 @@ theorem GeneratedNode.flattenSegments_map
       rcases x with ⟨ds, ps⟩
       simp [GeneratedNode.flattenSegments, ih, List.flatMap]
 
+theorem GeneratedNode.flattenSegments_append
+    (xs ys : List (List Decl × List Process2)) :
+    GeneratedNode.flattenSegments (xs ++ ys) =
+      let left := GeneratedNode.flattenSegments xs
+      let right := GeneratedNode.flattenSegments ys
+      (left.1 ++ right.1, left.2 ++ right.2) := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih =>
+      rcases x with ⟨ds, ps⟩
+      simp only [List.cons_append, GeneratedNode.flattenSegments]
+      rw [ih]
+      simp [List.append_assoc]
+
 theorem generatedNodes_segmentAt_flatten_ok
     {ns : List GeneratedNode}
     {child : GeneratedChildRef → Except String Design2}
@@ -1360,6 +1374,27 @@ theorem generatedNodes_segmentAt_flatten_ok
       .ok (GeneratedNode.flattenSegments (ns.map seg)) := by
   rw [generatedNodes_segmentAt_mapM_ok hok]
   rfl
+
+theorem generatedNodes_segmentAt_flatten_append_ok
+    {ns₁ ns₂ : List GeneratedNode}
+    {child : GeneratedChildRef → Except String Design2}
+    {env : IEnv} {elems : List (String × Nat)}
+    {seg : GeneratedNode → List Decl × List Process2}
+    (h₁ : ∀ n ∈ ns₁, n.segmentAt child env elems = .ok (seg n))
+    (h₂ : ∀ n ∈ ns₂, n.segmentAt child env elems = .ok (seg n)) :
+    Except.map GeneratedNode.flattenSegments
+        ((ns₁ ++ ns₂).mapM (fun n => n.segmentAt child env elems)) =
+      .ok (GeneratedNode.flattenSegments
+        ((ns₁.map seg) ++ (ns₂.map seg))) := by
+  rw [generatedNodes_segmentAt_mapM_ok (ns := ns₁ ++ ns₂)
+    (seg := seg) (fun n hn => by
+      rcases List.mem_append.mp hn with h | h
+      · exact h₁ n h
+      · exact h₂ n h)]
+  rw [List.map_append, GeneratedNode.flattenSegments_append]
+  change Except.ok (GeneratedNode.flattenSegments
+    (List.map seg ns₁ ++ List.map seg ns₂)) = _
+  rw [GeneratedNode.flattenSegments_append]
 
 /-! The generated-family bridge into the ordinary semantic design.  A
 generated source node is first read at one valuation, then its declaration

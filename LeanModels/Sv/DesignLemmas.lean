@@ -60,6 +60,9 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   `Design2` assembly path at one valuation, and
   `CombHier.assembleGeneratedAt_of_segments` exposes its declaration/process
   equations without a tactic or a generated-list unrolling.
+  `CombHier.GeneratedNode.flattenSegments_append` and
+  `generatedNodes_segmentAt_flatten_append_ok` compose adjacent source-order
+  families without rebuilding or enumerating the surrounding generate bounds.
   `CombHier.generatedChildRefs_genFor_singleton` composes one symbolic loop
   header with a child reference without selecting an iteration.
   `CombHier.generatedChildRefs_genFor_nested_singleton` composes two nested
