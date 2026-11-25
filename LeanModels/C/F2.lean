@@ -5192,6 +5192,12 @@ def pairedOffsetPointer (resolve : AllocId → Nat) (pointer : Pointer Tag)
   | .error .alignment, .error .alignment => true
   | _, _ => false
 
+theorem pairedOffsetPointer_zero_element_size
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (delta : Int) (bound : Nat) :
+    pairedOffsetPointer resolve pointer 0 delta bound = true := by
+  simp [pairedOffsetPointer, offsetPointer]
+
 theorem pairedOffsetPointer_both_success [BEq Tag]
     (resolve : AllocId → Nat) (pointer : Pointer Tag)
     (elementSize : Nat) (delta : Int) (bound : Nat)
