@@ -633,6 +633,7 @@ partial def parseTargetL (j : Json) : Except String (Except String PLhs) := do
       | .bitSel (.ident n) idx => return .ok (.bitSel n idx)
       | .partSel (.ident n) msb lsb => return .ok (.partSel n msb lsb)
       | .arrayElem n is => return .ok (.arrayElem n is)
+      | .bitSel (.arrayElem n is) bit => return .ok (.arrayBitSel n is bit)
       | .arrayPart n is mode a b => return .ok (.arrayPart n is mode a b)
       | .aggregateMember base path => return .ok (.aggregateMember base path)
       | _ => return .error "AssignmentExpression:target"

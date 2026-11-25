@@ -133,6 +133,8 @@ private def hParamLhs (vals : List (String × PExpr)) : PLhs → PLhs
   | .partSel n a b => .partSel n (hParamExpr vals a) (hParamExpr vals b)
   | .concat xs => .concat (xs.map (hParamLhs vals))
   | .arrayElem n xs => .arrayElem n (xs.map (hParamExpr vals))
+  | .arrayBitSel n xs bit =>
+      .arrayBitSel n (xs.map (hParamExpr vals)) (hParamExpr vals bit)
   | .arrayPart n xs mode a b =>
       .arrayPart n (xs.map (hParamExpr vals)) mode (hParamExpr vals a) (hParamExpr vals b)
   | .aggregateMember n path =>
@@ -252,6 +254,8 @@ private def hLhs (pfx : String) : PLhs → PLhs
   | .bitSel n i => .bitSel (pfx ++ n) (hExpr pfx i)
   | .partSel n a b => .partSel (pfx ++ n) (hExpr pfx a) (hExpr pfx b)
   | .arrayElem n is => .arrayElem (pfx ++ n) (is.map (hExpr pfx))
+  | .arrayBitSel n is bit =>
+      .arrayBitSel (pfx ++ n) (is.map (hExpr pfx)) (hExpr pfx bit)
   | .arrayPart n is m a b => .arrayPart (pfx ++ n) (is.map (hExpr pfx)) m (hExpr pfx a) (hExpr pfx b)
   | .aggregateMember n path =>
       .aggregateMember (pfx ++ n) (path.map fun (field, ix) => (field, ix.map (hExpr pfx)))

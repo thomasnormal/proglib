@@ -411,6 +411,7 @@ theorem tgtOf?_cases {ds : List DeclT} {l : PLhs} {a : Acc} (h : tgtOf? ds l = .
   | partSel n m l => right; right; right; right; exact ⟨n, m, l, rfl, h⟩
   | concat ps => simp [tgtOf?] at h
   | arrayElem n is => right; right; left; exact ⟨n, is, rfl, h⟩
+  | arrayBitSel n is bit => simp [tgtOf?] at h
   | arrayPart n is mode hi lo => right; right; right; left; exact ⟨n, is, mode, hi, lo, rfl, h⟩
   | aggregateMember _ _ => simp [tgtOf?] at h
 

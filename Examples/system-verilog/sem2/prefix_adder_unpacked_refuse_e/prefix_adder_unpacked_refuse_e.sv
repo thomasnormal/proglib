@@ -1,3 +1,4 @@
+// Clean-room generated-unpacked-array wall: canonical E retains mem[0][i].
 module prefix_adder_unpacked_refuse_e #(parameter int WIDTH = 4) (
   input logic [WIDTH-1:0] a, output logic [WIDTH-1:0] y);
   logic [WIDTH-1:0] mem [0:1];

@@ -29070,6 +29070,15 @@ def convert_continuous_assign(sm, m):
     else:
         target, ok = (legacy_blocking_target(sm, e.left)
                       if _SYM is None else select_target(sm, e.left))
+        # Generated assignments such as `mem[0][i] = a[i]` retain an
+        # unpacked ArraySel followed by a packed BitSel in the parser tree.
+        # Keep that exact target for canonical E's native memory route. The
+        # generic target classifier historically rejected this composition
+        # before the memory loader could see it.
+        if _SYM is not None and _RETAIN_PROC_REWRITES:
+            retained_target = convert_expr(sm, e.left)
+            if isinstance(retained_target, dict) and _target_shape_ok(retained_target):
+                target, ok = retained_target, True
         if (_SYM is None and ok
                 and target.get("kind") in ("SelectTarget", "ConcatTarget")
                 and _symbolic_target_windows(target) is None):

@@ -395,6 +395,8 @@ def memELhsReadExprs : PLhs → List PExpr
   | .partSel _ a b => memEReadExprs a ++ memEReadExprs b
   | .concat xs => memELhsReadExprsList xs
   | .arrayElem _ indices => memEReadExprsList indices
+  | .arrayBitSel _ indices bit =>
+      memEReadExprsList indices ++ memEReadExprs bit
   | .arrayPart _ indices _ a b =>
       memEReadExprsList indices ++ memEReadExprs a ++ memEReadExprs b
   | .aggregateMember _ path =>

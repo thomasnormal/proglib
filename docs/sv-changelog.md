@@ -1,5 +1,13 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## Generated unpacked-array bit targets — 2026-11-25
+
+Canonical E now retains `mem[0][i]` as a parser-shaped memory bit target
+through generated expansion and settles the selected bit in the native
+`MemState`. The clean-room `prefix_adder_unpacked_refuse_e` receipt runs four
+rows matching Icarus Verilog 13.0 and Xcelium 24.03-s004, including x/z.
+
+
 ## SVA `inside` item-side wildcard semantics — 2026-11-25
 
 The parser-native lowering of integral SVA `inside` membership now uses the

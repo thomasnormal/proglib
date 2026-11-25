@@ -55,6 +55,8 @@ private def hLhs (pfx : String) : PLhs → PLhs
   | .bitSel n i => .bitSel (pfx ++ n) (hExpr pfx i)
   | .partSel n a b => .partSel (pfx ++ n) (hExpr pfx a) (hExpr pfx b)
   | .arrayElem n is => .arrayElem (pfx ++ n) (is.map (hExpr pfx))
+  | .arrayBitSel n is bit =>
+      .arrayBitSel (pfx ++ n) (is.map (hExpr pfx)) (hExpr pfx bit)
   | .arrayPart n is m a b => .arrayPart (pfx ++ n) (is.map (hExpr pfx)) m (hExpr pfx a) (hExpr pfx b)
   | .aggregateMember n path => .aggregateMember (pfx ++ n)
       (path.map fun (field, ix) => (field, ix.map (hExpr pfx)))
@@ -170,6 +172,7 @@ private def genExpr (g : String) (v : Int) : PExpr → PExpr
 
 private def genLhs (g : String) (v : Int) : PLhs → PLhs
   | .arrayElem n xs => .arrayElem n (xs.map (genExpr g v))
+  | .arrayBitSel n xs bit => .arrayBitSel n (xs.map (genExpr g v)) (genExpr g v bit)
   | .ident n => .ident n
   | l => l
 

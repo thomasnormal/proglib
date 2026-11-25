@@ -1409,6 +1409,8 @@ def instLhsLeaf2 (env : IEnv) (elems : List (String × Nat)) :
       | _, .error e, _ | _, _, .error e => .error s!"part-select bound: {e}"
   | .concat _ => .error "nested continuous concatenation target"
   | .arrayElem n is => arrayElemTarget env n is
+  | .arrayBitSel _ _ _ =>
+      .error "native memory array-bit target requires the canonical memory route"
   | .arrayPart n is mode a b => arrayPartTarget env n is mode a b
   | .aggregateMember .. => .error "MemberAccessExpression:aggregate target is outside scalar Lhs2"
 

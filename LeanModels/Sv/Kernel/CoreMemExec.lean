@@ -159,6 +159,7 @@ def coreMemEquationB : List CoreMemProc → Bool
   | .assign (.arrayPart _ [] .down _ _) _ :: rest => coreMemEquationB rest
   | .assign (.arrayElem _ []) (.arrayElem _ []) :: rest => coreMemEquationB rest
   | .assign (.arrayElem _ [_]) _ :: rest => coreMemEquationB rest
+  | .assign (.arrayBitSel _ [_] _) _ :: rest => coreMemEquationB rest
   | _ => false
 
 def CoreMemDesign.EquationGate (d : CoreMemDesign) : Prop :=
@@ -558,7 +559,7 @@ def coreMemProcWriteLhss : PProcess → List PLhs
 
 def coreMemLhsRoot : PLhs → String
   | .ident name | .bitSel name _ | .partSel name _ _ | .arrayElem name _
-  | .arrayPart name _ .. | .aggregateMember name _ => name
+  | .arrayBitSel name _ _ | .arrayPart name _ .. | .aggregateMember name _ => name
   | .concat _ => ""
 
 def coreMemArrayIndicesMayOverlap : List PExpr → List PExpr → Bool
@@ -575,29 +576,39 @@ def coreMemLhsMayOverlap (lhs rhs : PLhs) : Bool :=
   | .ident left, .ident right => left == right
   | .ident left, .bitSel right _ | .ident left, .partSel right _ _
   | .ident left, .arrayElem right _ | .ident left, .arrayPart right _ ..
-  | .ident left, .aggregateMember right _ => left == right
+  | .ident left, .arrayBitSel right _ _ | .ident left, .aggregateMember right _ => left == right
   | .bitSel left (.int index), .bitSel right (.int otherIndex) =>
       left == right && index == otherIndex
   | .bitSel left _, .bitSel right _ => left == right
   | .bitSel left _, .ident right | .bitSel left _, .partSel right _ _
   | .bitSel left _, .arrayElem right _ | .bitSel left _, .arrayPart right _ ..
-  | .bitSel left _, .aggregateMember right _ => left == right
+  | .bitSel left _, .arrayBitSel right _ _ | .bitSel left _, .aggregateMember right _ => left == right
   | .partSel left _ _, .partSel right _ _ | .partSel left _ _, .ident right
   | .partSel left _ _, .bitSel right _ | .partSel left _ _, .arrayElem right _
+  | .partSel left _ _, .arrayBitSel right _ _
   | .partSel left _ _, .arrayPart right _ .. | .partSel left _ _, .aggregateMember right _ =>
       left == right
   | .arrayElem left leftIndices, .arrayElem right rightIndices =>
       left == right && coreMemArrayIndicesMayOverlap leftIndices rightIndices
+  | .arrayBitSel left leftIndices _, .arrayBitSel right rightIndices _ =>
+      left == right && coreMemArrayIndicesMayOverlap leftIndices rightIndices
+  | .arrayBitSel left _ _, .ident right | .arrayBitSel left _ _, .arrayElem right _
+  | .arrayBitSel left _ _, .arrayPart right _ .. => left == right
+  | .arrayBitSel left _ _, .bitSel right _ | .arrayBitSel left _ _, .partSel right _ _
+  | .arrayBitSel left _ _, .aggregateMember right _ => left == right
   | .arrayElem left _, .ident right | .arrayElem left _, .bitSel right _
   | .arrayElem left _, .partSel right _ _
+  | .arrayElem left _, .arrayBitSel right _ _
   | .arrayElem left _, .arrayPart right _ .. | .arrayElem left _, .aggregateMember right _ =>
       left == right
   | .arrayPart left _ .., .ident right | .arrayPart left _ .., .bitSel right _
   | .arrayPart left _ .., .partSel right _ _ | .arrayPart left _ .., .arrayElem right _
+  | .arrayPart left _ .., .arrayBitSel right _ _
   | .arrayPart left _ .., .arrayPart right _ .. | .arrayPart left _ .., .aggregateMember right _ =>
       left == right
   | .aggregateMember left _, .ident right | .aggregateMember left _, .bitSel right _
   | .aggregateMember left _, .partSel right _ _ | .aggregateMember left _, .arrayElem right _
+  | .aggregateMember left _, .arrayBitSel right _ _
   | .aggregateMember left _, .arrayPart right _ .. | .aggregateMember left _, .aggregateMember right _ =>
       left == right
   | .concat _, _ | _, .concat _ => true
@@ -912,6 +923,7 @@ def coreMemSubstLhs (scope : CoreMemScope) : PLhs → PLhs
   | .partSel n a b => .partSel n (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .concat xs => .concat (xs.map (coreMemSubstLhs scope))
   | .arrayElem n xs => .arrayElem n (xs.map (coreMemSubstExpr scope))
+  | .arrayBitSel n xs bit => .arrayBitSel n (xs.map (coreMemSubstExpr scope)) (coreMemSubstExpr scope bit)
   | .arrayPart n xs mode a b => .arrayPart n (xs.map (coreMemSubstExpr scope)) mode
       (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | l => l
@@ -1127,7 +1139,7 @@ def coreMemSignalNamesList : List PExpr → List String
 end
 
 def coreMemLhsTargets : PLhs → List String
-  | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayPart n .. => [n]
+  | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayBitSel n _ _ | .arrayPart n .. => [n]
   | .aggregateMember n _ => [n]
   | .concat xs => xs.flatMap coreMemLhsTargets
 
@@ -1170,7 +1182,7 @@ end
 
 mutual
 def coreMemPLhsHasMemory : PLhs → Bool
-  | .arrayElem .. | .arrayPart .. => true
+  | .arrayElem .. | .arrayBitSel .. | .arrayPart .. => true
   | .aggregateMember .. => true
   | .bitSel _ i => coreMemPExprHasMemory i
   | .partSel _ msb lsb => coreMemPExprHasMemory msb || coreMemPExprHasMemory lsb
@@ -1200,6 +1212,7 @@ def coreMemPAssignUsesMemory : PProcess → Bool
 def coreMemPAssignLhsKeys : PLhs → List (String × List PExpr)
   | .ident name | .bitSel name _ | .partSel name _ _ => [(name, [])]
   | .arrayElem name indices | .arrayPart name indices .. => [(name, indices)]
+  | .arrayBitSel name indices bit => [(name, indices ++ [bit])]
   | .aggregateMember name _ => [(name, [])]
   | .concat parts => parts.flatMap coreMemPAssignLhsKeys
 
@@ -1308,6 +1321,7 @@ def coreMemLhsReadNames : PLhs → List String
   | .partSel _ msb lsb => coreMemSignalNames msb ++ coreMemSignalNames lsb
   | .concat parts => coreMemLhsReadNamesList parts
   | .arrayElem _ indices | .arrayPart _ indices .. => coreMemSignalNamesList indices
+  | .arrayBitSel _ indices bit => coreMemSignalNamesList indices ++ coreMemSignalNames bit
   | .aggregateMember _ path =>
       (path.filterMap (fun step => step.2)).flatMap coreMemSignalNames
 
@@ -2039,6 +2053,7 @@ def coreMemLhsReadExprs : PLhs → List PExpr
   | .partSel _ a b => coreMemReadExprs a ++ coreMemReadExprs b
   | .concat xs => coreMemLhsReadExprsList xs
   | .arrayElem _ indices => coreMemReadExprsList indices
+  | .arrayBitSel _ indices bit => coreMemReadExprsList indices ++ coreMemReadExprs bit
   | .arrayPart _ indices _ a b =>
       coreMemReadExprsList indices ++ coreMemReadExprs a ++ coreMemReadExprs b
   | .aggregateMember _ path =>
@@ -3577,6 +3592,22 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
           let st' ← E.writeScalarBitAssign env elems st name select value
           let view' := E.scalar.view st'.scalar
           E.settleAssignAt env elems st' view' (index + 1) rest
+      | .arrayBitSel name [arrayIndex] bitIndex =>
+          match E.memDecl? name with
+          | none => .unsupported s!"10.3: continuous memory target '{name}' is undeclared"
+          | some md => do
+              let arrayValue ← E.evalExpr env elems st (some md.shape.elemWidth)
+                (.arrayElem name [arrayIndex])
+              let bit ← E.evalIndex env elems st bitIndex
+              let some position := bit.toNat? | .ok (st, view)
+              if position >= md.shape.elemWidth then
+                E.settleAssignAt env elems st view (index + 1) rest
+              else
+                let rhs ← E.evalScalarAssignAtView env elems st view (some 1) index value
+                let updated := arrayValue.insertAt position rhs
+                let target := PLhs.arrayElem name [arrayIndex]
+                let st' ← E.writeMemoryAssign env elems st target md updated
+                E.settleAssignAt env elems st' view (index + 1) rest
       | .partSel name msb lsb =>
           let width ← match E.scalarWidth? name with
             | some w => .ok w

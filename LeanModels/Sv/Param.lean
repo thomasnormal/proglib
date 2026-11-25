@@ -514,6 +514,9 @@ inductive PLhs where
   /-- A packed-array select path target (`PExpr.arrayElem`'s shape —
   `pp[i][j] = …`): lowered to ONE flat window of the declared vector. -/
   | arrayElem (name : String) (indices : List PExpr)
+  /-- A packed bit select of one unpacked array element, retained as one
+      parser-shaped memory target (`mem[0][i]`, IEEE 1800-2023 §§7.4.6, 11.5.1). -/
+  | arrayBitSel (name : String) (indices : List PExpr) (bit : PExpr)
   /-- … with a trailing part select (`PExpr.arrayPart`'s shape). -/
   | arrayPart (name : String) (indices : List PExpr) (mode : PartMode) (a b : PExpr)
   /-- Source-shaped aggregate member path target. -/
@@ -522,7 +525,7 @@ deriving Repr, BEq, Inhabited
 
 /-- The targeted signal's name. -/
 def PLhs.name : PLhs → String
-  | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayPart n ..
+  | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayBitSel n _ _ | .arrayPart n ..
   | .aggregateMember n _ => n
   | .concat (part :: _) => part.name
   | .concat [] => ""

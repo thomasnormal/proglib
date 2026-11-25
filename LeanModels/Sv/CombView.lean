@@ -3040,6 +3040,8 @@ def tgtOf? (ds : List DeclT) : PLhs → Except String Acc
       | some a => bitAcc? ds n a
       | none => .error s!"non-affine genvar-index obligation: write to `{n}[…]` has a dynamic or nonlinear index, so the driven window cannot be determined"
   | .arrayElem n is => elemAcc? ds n is
+  | .arrayBitSel .. =>
+      .error "packed bit select of an unpacked array element is outside the scalar view"
   | .arrayPart n is mode hi lo => partAcc? ds n is mode hi lo
   | .partSel n msb lsb => partAcc? ds n [] .range msb lsb
   | .aggregateMember .. => .error "aggregate member target (outside the v1 fragment)"
