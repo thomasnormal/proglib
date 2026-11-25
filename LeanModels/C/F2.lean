@@ -4142,6 +4142,22 @@ theorem pairedFreeMetadata_preserves_wellFormed_from_source
   exact pairedFreeMetadata_preserves_wellFormed resolve metadata result hmetadata
     (renameZeroTokenMetadata_preserves_wellFormed resolve metadata hmetadata) hresult
 
+theorem pairedFreeMetadata_empty_preserves_payload
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.allocation.bytes = [] ∧
+      result.2.1.allocation.bytes = [] := by
+  have hgeneral := pairedFreeMetadata_preserves_payload resolve metadata result hresult
+  have htargetBytes : (renameZeroTokenMetadata resolve metadata).allocation.bytes = [] := by
+    simp [renameZeroTokenMetadata, hbytes]
+  rcases hgeneral with ⟨hsa, hsb, hsc, hta, htb, htc⟩
+  exact ⟨by simpa [hbytes] using hsb,
+    by simpa [htargetBytes] using htb⟩
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
