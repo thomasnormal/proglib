@@ -2977,6 +2977,16 @@ theorem zeroTokenFreeable_sound
       metadata.allocation.bytes = [] := by
   simpa [zeroTokenFreeable, isZeroToken] using h
 
+theorem zeroTokenFreeable_refusal
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hrefusal : metadata.allocation.live = false ∨
+      metadata.allocation.bytes ≠ []) :
+    zeroTokenFreeable metadata = false := by
+  rcases hrefusal with hdead | hbytes
+  · simp [zeroTokenFreeable, isZeroToken, hdead]
+  · cases h : metadata.allocation.live <;>
+      simp [zeroTokenFreeable, isZeroToken, h, hbytes]
+
 def renameZeroTokenMetadata (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
     AllocationMetadata Tag State TypeId :=
