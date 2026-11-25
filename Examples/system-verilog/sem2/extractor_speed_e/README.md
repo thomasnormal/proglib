@@ -10,3 +10,6 @@ measured the parser-shaped package and generate hierarchy at 0.397s, 0.411s,
 and 0.398s on three current-master runs. The source is generated in the
 temporary directory by the tool, so no scratch path or generated envelope is
 checked in.
+
+A current rerun reports `package/generate hierarchy extraction: 0.409s` on the
+same source-shaped wall fixture.
