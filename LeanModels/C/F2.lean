@@ -4993,6 +4993,12 @@ theorem renameLiveRegion_end_shape
       resolve entry.1 + (entry.2.2.1 - entry.2.1) := by
   rfl
 
+theorem renameLiveRegion_size_shape
+    (resolve : AllocId → Nat) (entry : AllocId × Nat × Nat × Tag) :
+    (renameLiveRegion resolve entry).2.2.1 -
+        (renameLiveRegion resolve entry).2.1 = entry.2.2.1 - entry.2.1 := by
+  simp [renameLiveRegion]
+
 theorem renameLiveRegion_comp
     (first second : AllocId → Nat)
     (entry : AllocId × Nat × Nat × Tag) :
