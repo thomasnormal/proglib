@@ -755,7 +755,7 @@ def NoRefusal (E : CoreMemDesign) (g : Granularity) : Prop :=
     ¬ RefusedRun E g x (Initial E init) inputs reason
 ```
 
-`Total` quantifies over `SettledSlotRun`, so a refusal cannot discharge a
+`Total` quantifies over `SettledRun` traces, so a refusal cannot discharge a
 liveness or total-correctness theorem. `NoRefusal` is stated separately when
 the claim also requires that no reachable path reports an unsupported node.
 `AllRuns` is the settled-trace projection of the run relation. A safety
