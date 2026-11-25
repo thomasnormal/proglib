@@ -5235,6 +5235,14 @@ theorem renameOffsetResult_success_shape
     renameOffsetResult resolve (.ok pointer) = .ok (renamePointer resolve pointer) := by
   rfl
 
+theorem renameOffsetResult_kind_preserved
+    (resolve : AllocId → Nat) (result : Except OffsetFault (Pointer Tag)) :
+    match result, renameOffsetResult resolve result with
+    | .ok _, .ok _ => True
+    | .error _, .error _ => True
+    | _, _ => False := by
+  cases result <;> simp [renameOffsetResult]
+
 theorem renameOffsetResult_comp
     (first second : AllocId → Nat)
     (result : Except OffsetFault (Pointer Tag)) :
