@@ -6161,6 +6161,15 @@ theorem unaddressableToken_sound
       simp [unaddressableToken, hlookup] at h
       exact ⟨allocation, rfl, h.1, by simpa using h.2⟩
 
+theorem unaddressableToken_true
+    (store : Store Tag State) (id : AllocId)
+    (allocation : Allocation Tag State)
+    (hlookup : lookup store id = some allocation)
+    (hlive : allocation.live = true)
+    (haddress : allocation.address = none) :
+    unaddressableToken store id = true := by
+  simp [unaddressableToken, hlookup, hlive, haddress]
+
 def pairedUnaddressableAllocation (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State) :
     Bool :=
