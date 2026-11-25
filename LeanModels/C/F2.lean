@@ -6145,6 +6145,12 @@ theorem zeroTokenPlacementAgreement_refusal
 def placementOf (store : Store Tag State) (id : AllocId) : Option Nat :=
   (lookup store id).bind Allocation.address
 
+theorem placementOf_empty
+    {Tag State : Type} (id : AllocId) :
+    placementOf (Tag := Tag) (State := State)
+      { allocations := [], nextId := 0 } id = none := by
+  rfl
+
 def placementAgreementOfStores (left right : Store Tag State)
     (exposed : AllocId → Bool) : PlacementAgreement :=
   { left := placementOf left
