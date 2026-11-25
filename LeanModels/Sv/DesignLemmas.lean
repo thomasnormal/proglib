@@ -18,6 +18,8 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   one- and two-level child equations under stable names for hand proofs, while
   `generated_child_family_segments` and `generated_child_nested_segments`
   retain valuation-dependent per-iteration segments before flattening.
+  `generated_family_body_segments` applies the same segment representation to
+  a generated body containing assignments and nested generate items.
   `generated_child_pathPrefix_two` and `generated_child_prefix_two` expose the
   valuation-dependent lexical names, and `GenItem.expandH_inst`/`instExpandH_of`
   expose one child's flattened declarations and processes.

@@ -43,6 +43,13 @@ def ppGen : GenItem :=
       (.binary .slt (.genvarRef "j") (.paramRef "N" none))
       (.unary .inc (.genvarRef "j")) (some 4) [.inst andInst]]
 
+def rowGen : GenItem := noisyMul.pdesign.generates[1]!
+
+def rowBody : List GenItem :=
+  match rowGen with
+  | .genFor _ _ _ _ _ _ body => body
+  | _ => []
+
 /-! The hierarchy tactic refuses this source-shaped design at the exact first
 generated child site.  Keep the refusal as a named hand-proof receipt: the
 compositional equations below are usable, but no static flat twin is claimed.
@@ -360,5 +367,38 @@ theorem noisy_pp_expand_actual
     env elems F N hFuel andDesign hOuterBound hOuterValue hInnerBound hInnerValue
   intro i j
   exact noisy_and_child _ F clocks
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
+theorem noisy_row_shape_test :
+    rowGen = GenItem.genFor (some "g_row") "i" (.int 1)
+      (.binary .slt (.genvarRef "i") (.paramRef "N" none))
+      (.unary .inc (.genvarRef "i")) (some 3) rowBody := by
+  simp [rowGen, rowBody, noisyMul.pdesign]
+
+theorem noisy_row_expand_segments
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (hFuel : (N - 1).toNat < F)
+    (f : Int → List Decl × List Process2)
+    (hBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hBody : ∀ i : Int, 1 ≤ i → i < N →
+      expandListH cb (env.bindVal "i" i) elems F rowBody = .ok (f i)) :
+    rowGen.expandH cb env elems F =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange 1 (N - 1).toNat).map fun i =>
+          let r := f i
+          { decls := r.1, processes := r.2 })) := by
+  simpa [rowGen, rowBody, noisyMul.pdesign] using
+    (generated_family_body_segments
+      (cb := cb) (env := env) (elems := elems) (F := F)
+      (label := some "g_row") (g := "i")
+      (initE := .int 1) (bound := .paramRef "N" none) (rc := some 3)
+      (body := rowBody) (i0 := 1) (N := N) (f := f)
+      (by simp) hBound hValue hFuel hBody)
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
