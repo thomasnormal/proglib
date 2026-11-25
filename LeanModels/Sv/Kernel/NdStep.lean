@@ -604,6 +604,37 @@ theorem ndStep_oracle_unchanged {E : CoreMemDesign} {s t : NdState} {choice : Na
   have := congrArg NdState.oracle h'
   simpa using this
 
+/-! ## Totality and repeated unknown reads
+
+An unsettled state always has a move for choice zero, either a successor or a
+named refusal.  The only states without a successor or refusal are settled
+states.
+-/
+theorem ndStep_zero_enabled {E : CoreMemDesign} {s : NdState} (h : s.settled = false) :
+    ndStep E 0 s ≠ .disabled := by
+  intro hd
+  unfold ndStep at hd
+  simp only [h, Bool.false_eq_true, ↓reduceIte] at hd
+  cases ha : s.active with
+  | nil =>
+      simp only [ha, List.isEmpty_nil, ↓reduceIte, NdState.commit] at hd
+      split at hd <;> simp at hd
+  | cons c rest =>
+      simp only [ha, List.isEmpty_cons, Bool.false_eq_true, ↓reduceIte, NdState.fire, pickAt] at hd
+      repeat' split at hd
+      all_goals simp at hd
+
+/-! The same unknown decision can resolve differently at two reads. -/
+theorem ndOpenStmt_if_unknown_twice (E : CoreMemDesign) (st : CoreMemState) (locals : SvState)
+    (env : IEnv) (cond : PExpr) (yes : PStmt) (no : Option PStmt)
+    (h : E.evalExprLocals env E.elems st (some 1) locals cond = .ok ⟨#[Logic.lx]⟩) (o : Oracle) :
+    ndOpenStmt E st locals (Oracle.cons true (Oracle.cons false o)) env (.ifStmt cond yes no) =
+        .ok (.idle st locals, [EdgeWork.edgeStmt env yes], Oracle.cons false o) ∧
+      ndOpenStmt E st locals (Oracle.cons false o) env (.ifStmt cond yes no) =
+        .ok (.idle st locals, no.toList.map (EdgeWork.edgeStmt env), o) := by
+  constructor <;>
+    simp [ndOpenStmt, h, Oracle.read, Oracle.bits, Logic.isKnown, LVec.condTrue] <;> decide
+
 #print axioms Oracle.read_xread
 #print axioms Oracle.read_complete
 #print axioms Oracle.read_known
@@ -613,5 +644,7 @@ theorem ndStep_oracle_unchanged {E : CoreMemDesign} {s t : NdState} {choice : Na
 #print axioms Nd.EventSettles.invariant
 #print axioms ndStep_oracle_irrelevant
 #print axioms ndStep_oracle_unchanged
+#print axioms ndStep_zero_enabled
+#print axioms ndOpenStmt_if_unknown_twice
 
 end LeanModels.Sv.Kernel
