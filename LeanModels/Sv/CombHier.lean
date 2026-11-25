@@ -1260,6 +1260,22 @@ theorem generatedChildRefs_singleton {lib : List PDesign} {loops : List Generate
     generatedChildRefs lib loops [.inst i] = .ok [{ loops := loops, inst := i, child := c }] := by
   simp [generatedChildRefs, hloops, hc, Except.map, Functor.map]
 
+theorem generatedChildRefs_genFor_singleton
+    {lib : List PDesign} {loops : List GeneratedLoop}
+    {label : Option String} {g : String} {initE bound step : PExpr} {rc : Option Nat}
+    {i : PInst} {c : PDesign}
+    (hloops : loops.length = 0)
+    (hc : lib.find? (·.name == i.module) = some c) :
+    generatedChildRefs lib loops
+        [.genFor label g initE bound step rc [.inst i]] =
+      .ok [{ loops := loops ++ [{ label, genvar := g, initE, bound, step, rc }],
+             inst := i, child := c }] := by
+  have hne : (loops ++ [{ label, genvar := g, initE, bound, step, rc }]) ≠ [] := by
+    simp [hloops]
+  simp only [generatedChildRefs, generatedChildRefs_singleton hne hc, List.append_nil,
+    Except.bind, pure, Except.pure, Functor.map, Except.map]
+  rfl
+
 /-- The checks on one child and its instance, with the refusal that names what v1 does not read. -/
 def childCheck (i : PInst) (c : PDesign) : Except String Unit := do
   unless c.generates.isEmpty do
