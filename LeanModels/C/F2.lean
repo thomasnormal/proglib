@@ -2881,6 +2881,18 @@ theorem renameZeroSizeOutcome_token_unaddressable
       address := metadata.allocation.address.map (fun _ => resolve 0) } }, rfl, ?_⟩
   simp [haddress]
 
+theorem renameZeroSizeOutcome_token_address
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId) (base : Nat)
+    (haddress : metadata.allocation.address = some base) :
+    ∃ renamed,
+      renameZeroSizeOutcome resolve (.token metadata) = .token renamed ∧
+      renamed.allocation.address = some (resolve 0) := by
+  refine ⟨{ metadata with
+    allocation := { metadata.allocation with
+      address := metadata.allocation.address.map (fun _ => resolve 0) } }, rfl, ?_⟩
+  simp [haddress]
+
 def pairedAllocateZeroSize {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
     (placement : Placement) : Bool :=
   match (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).1,
