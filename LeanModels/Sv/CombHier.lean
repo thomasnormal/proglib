@@ -1540,6 +1540,14 @@ theorem mapM_append_ok {α β : Type} {f : α → Except String β}
   simp [List.mapM_append, h₁, h₂]
   rfl
 
+theorem mapM_append_ok_of_ok {α β : Type} {f : α → Except String β}
+    {l₁ l₂ : List α} {r₁ r₂ : List β}
+    (h₁ : l₁.mapM f = .ok r₁)
+    (h₂ : l₂.mapM f = .ok r₂) :
+    (l₁ ++ l₂).mapM f = .ok (r₁ ++ r₂) := by
+  simp [List.mapM_append, h₁, h₂]
+  rfl
+
 theorem assembleGeneratedPathsAt_of_segments
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
     (elems : List (String × Nat))
@@ -1607,6 +1615,21 @@ theorem generatedFamilyRealization_of_segments
       (GeneratedNode.flattenSegments (paths.map seg)) := by
   refine ⟨paths.map seg, ?_, rfl⟩
   exact generatedPaths_segmentAtPath_mapM_ok hok
+
+theorem generatedFamilyRealization_append
+    (env : IEnv) (elems : List (String × Nat))
+    {paths₁ paths₂ : List (GeneratedNode × List Int)}
+    (child : GeneratedChildRef → Except String Design2)
+    {generated₁ generated₂ : List Decl × List Process2}
+    (h₁ : GeneratedFamilyRealization env elems paths₁ child generated₁)
+    (h₂ : GeneratedFamilyRealization env elems paths₂ child generated₂) :
+    GeneratedFamilyRealization env elems (paths₁ ++ paths₂) child
+      (generated₁.1 ++ generated₂.1, generated₁.2 ++ generated₂.2) := by
+  rcases h₁ with ⟨segs₁, hm₁, hf₁⟩
+  rcases h₂ with ⟨segs₂, hm₂, hf₂⟩
+  refine ⟨segs₁ ++ segs₂, ?_, ?_⟩
+  · exact mapM_append_ok_of_ok hm₁ hm₂
+  · rw [GeneratedNode.flattenSegments_append, hf₁, hf₂]
 
 theorem assembleGeneratedPathsAt_of_realization
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
