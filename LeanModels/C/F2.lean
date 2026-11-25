@@ -2648,6 +2648,17 @@ theorem reallocMetadata_address_success
         footprint .metadata (Region.mk 0 0 request.bytes.length)) := by
   simp [reallocMetadata, hsame]
 
+theorem reallocMetadata_empty_address_success
+    (old : AllocationMetadata Tag State TypeId) (state : State) (base : Nat) :
+    reallocMetadata old { bytes := [], state := state } [] (.address base) =
+      some (.replaced
+        { allocation :=
+            { live := true, address := some base,
+              bytes := [], state := state },
+          locations := [] },
+        footprint .metadata (Region.mk 0 0 0)) := by
+  exact reallocMetadata_address_success old { bytes := [], state := state } [] base rfl
+
 theorem reallocMetadata_unaddressable_success
     (old : AllocationMetadata Tag State TypeId)
     (request : AllocationRequest Tag State)
