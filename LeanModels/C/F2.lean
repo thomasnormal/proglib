@@ -2892,6 +2892,33 @@ theorem pairedAllocateZeroSize_sound
         | .fail => .fail)).1 = .token target) := by
   cases placement <;> simp [allocateZeroSize]
 
+theorem pairedAllocateZeroSize_both_null
+    {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
+    (placement : Placement)
+    (hsource : (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).1 = .null)
+    (htarget : (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state
+      (match placement with
+      | .address _ => .address (resolve 0)
+      | .unaddressable => .unaddressable
+      | .fail => .fail)).1 = .null) :
+    pairedAllocateZeroSize (Tag := Tag) (State := State) (TypeId := TypeId)
+      resolve state placement = true := by
+  cases placement <;> simp [pairedAllocateZeroSize, allocateZeroSize]
+
+theorem pairedAllocateZeroSize_both_token
+    {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
+    (placement : Placement) (source target : AllocationMetadata Tag State TypeId)
+    (hsource : (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).1 =
+      .token source)
+    (htarget : (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state
+      (match placement with
+      | .address _ => .address (resolve 0)
+      | .unaddressable => .unaddressable
+      | .fail => .fail)).1 = .token target) :
+    pairedAllocateZeroSize (Tag := Tag) (State := State) (TypeId := TypeId)
+      resolve state placement = true := by
+  cases placement <;> simp [pairedAllocateZeroSize, allocateZeroSize]
+
 inductive ReallocZeroOutcome where
   | freedNull
   | refusedUndefined
