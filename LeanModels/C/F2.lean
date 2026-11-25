@@ -6406,6 +6406,26 @@ theorem pairedLoadByte_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedLoadByte_sound
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedLoadByte resolve store id offset = some result) :
+    ∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      loadByte store id offset = some sourceResult ∧
+      loadByte (renameStore resolve store) id offset = some targetResult := by
+  cases hs : loadByte store id offset with
+  | none => simp [pairedLoadByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : loadByte (renameStore resolve store) id offset with
+      | none => simp [pairedLoadByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedLoadByte, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨sourceResult, targetResult, rfl, by simpa using hs,
+            by simpa using ht⟩
+
 theorem pairedLoadByte_refusal_source
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat)
