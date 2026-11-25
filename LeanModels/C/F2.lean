@@ -7961,6 +7961,15 @@ theorem allocateBounded_address_exhausted
       .error .exhausted := by
   simp [allocateBounded, hrejected]
 
+theorem allocateBounded_empty_address_exhausted
+    (store : Store Tag State) (state : State)
+    (base alignment limit : Nat)
+    (hrejected : placementWithin base 0 limit = false) :
+    allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .error .exhausted := by
+  exact allocateBounded_address_exhausted store
+    { bytes := [], state := state } base alignment limit hrejected
+
 theorem allocateBounded_address_misaligned
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment limit : Nat)
