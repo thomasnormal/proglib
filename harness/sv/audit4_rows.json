@@ -16,6 +16,9 @@
     {"name": "lf3_ext_nest_p3", "kind": "refusal", "model": "ForLoopStatement: external iterator nesting"},
     {"name": "a4_rg_comb40", "kind": "refusal", "model": "Event:edge-blocking-race"},
     {"name": "a4_rg_hier40", "kind": "refusal", "model": "Event:edge-blocking-race"},
+    {"name": "a4_rg_evt1", "kind": "refusal", "model": "Event:edge-blocking-race"},
+    {"name": "a4_rg_evt_clk", "kind": "refusal", "model": "Event:edge-blocking-race"},
+    {"name": "a4_ext_two_proc2", "kind": "refusal", "model": "ForLoopStatement: shared module-scope iterator"},
     {"name": "a4_q_init_mem", "kind": "refusal", "model": "Comb:memory-quiescence"},
     {"name": "a4_q_comb_mem_read", "kind": "refusal", "model": "Comb:memory-quiescence"},
     {"name": "a4_q_hier_mem", "kind": "refusal", "model": "Comb:memory-quiescence"}

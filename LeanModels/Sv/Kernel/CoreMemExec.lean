@@ -1592,7 +1592,18 @@ def coreMemEventSourcesThroughAssign (processes : List PProcess) :
   | fuel + 1, events =>
       let expanded :=
         (events ++ events.flatMap fun event =>
-          (coreMemAssignSources processes event.1).map fun source => (source, event.2)).eraseDups
+          (processes.flatMap fun p =>
+            match p with
+            | .assign name value =>
+                if name == event.1 then coreMemSignalNames value else []
+            | .assignL lhs value =>
+                if coreMemLhsRoot lhs == event.1 then coreMemSignalNames value else []
+            | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+            | .alwaysEvent _ body =>
+                if (coreMemProcWriteLhss p).any (fun lhs => coreMemLhsRoot lhs == event.1) then
+                  coreMemStmtReadNames body
+                else []
+            | _ => []).map fun source => (source, event.2)).eraseDups
       if expanded == events then events
       else coreMemEventSourcesThroughAssign processes fuel expanded
 
@@ -1608,7 +1619,8 @@ def coreMemPProcessAllReadNames : PProcess → List String
 def coreMemReactiveDriverSources (processes : List PProcess) (target : String) : List String :=
   processes.flatMap fun p =>
     match p with
-    | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body =>
+    | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+    | .alwaysEvent _ body =>
         if (coreMemProcWriteLhss p).any (fun lhs => coreMemLhsRoot lhs == target) then
           coreMemPProcessAllReadNames p
         else []
@@ -4910,6 +4922,24 @@ private def auditEdgeAssignChain (n : Nat) : List PProcess :=
 #guard coreMemReadNamesThroughAssign (auditEdgeAssignChain 40) (41 + 1) ["w"] |>.contains "x"
 #guard coreMemEdgeBlockingReadRaceThroughAssign (auditEdgeAssignChain 30)
 #guard coreMemEdgeBlockingReadRaceThroughAssign (auditEdgeAssignChain 40)
+
+/-! Explicit event controls can also be drivers and event expressions can be
+derived through them.  The edge guard must close both paths under the same
+IEEE 1800-2023 §4.7 schedule relation. -/
+private def auditEdgeEventDriverProcesses : List PProcess :=
+  [.alwaysEvent [{ signal := "x", edge := .any }]
+      (.blockingAssign "w" (.ident "x")),
+   .alwaysFF "clk" (.blockingAssign "x" (.ident "d")),
+   .alwaysFF "clk" (.nbaAssign "b" (.ident "w"))]
+
+private def auditEdgeDerivedClockProcesses : List PProcess :=
+  [.alwaysEvent [{ signal := "clk", edge := .any }]
+      (.blockingAssign "gclk" (.ident "clk")),
+   .alwaysFF "clk" (.blockingAssign "x" (.ident "d")),
+   .alwaysFF "gclk" (.nbaAssign "b" (.ident "x"))]
+
+#guard coreMemEdgeBlockingReadRaceThroughAssign auditEdgeEventDriverProcesses
+#guard coreMemEdgeBlockingReadRaceThroughAssign auditEdgeDerivedClockProcesses
 
 private def auditEventSelfWriteProcesses : List PProcess :=
   [.alwaysEvent [{ signal := "a", edge := .any }, { signal := "t", edge := .any }]

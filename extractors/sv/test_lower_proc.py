@@ -362,6 +362,18 @@ class LoopHeaders(Base):
                         " for (i = 0; i < 4; i = i + 1) y[i] = a[i]; for (i = 3; i >= 0; i--) z[i] = a[3-i]; end endmodule")
         self.assertEqual(sv_kinds(m), [])
 
+    def test_same_iterator_in_two_processes_stays_loud(self):
+        # The module declaration is shared storage.  Two edge processes may
+        # be suspended between writes to `i`, so replacing each loop with an
+        # independent symbolic binding would choose one §4.7 schedule.
+        m = self.module(
+            "module t (input logic clk, output logic [3:0] y, z); integer i; "
+            "always @(posedge clk) begin y = '0; "
+            "for (i = 0; i < 4; i = i + 1) y[i] <= 1'b1; end "
+            "always @(posedge clk) begin z = '0; "
+            "for (i = 0; i < 4; i = i + 1) z[i] <= 1'b1; end endmodule")
+        self.assertIn("ForLoopStatement", sv_kinds(m))
+
     def test_nested_loops_share_one_external_iterator_stay_loud(self):
         # The inner initializer writes the same module-scope variable as the
         # outer loop.  SV therefore has one shared iterator and may not be
