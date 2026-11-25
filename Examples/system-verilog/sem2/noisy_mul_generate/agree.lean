@@ -1316,6 +1316,14 @@ theorem noisy_top_generated_segments
       (CombHier.GeneratedChildRef.segmentAt_ok (majInst_prefix env i j))
   simp at hr
 
+theorem noisy_top_generated_pairs_fst :
+    noisyTopGeneratedPairs.map Prod.fst = noisyTopGeneratedRefs := by
+  rfl
+
+theorem noisy_top_child_instance_names_nodup :
+    (noisyTopGeneratedRefs.map (fun r => r.inst.name)).Nodup := by
+  decide
+
 theorem noisy_top_generated_segments_explicit
     (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
     noisyTopGeneratedPairs.mapM
