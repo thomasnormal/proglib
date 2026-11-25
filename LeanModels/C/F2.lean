@@ -2918,6 +2918,13 @@ theorem pairedAllocateZeroSize_agrees
       resolve state placement = true := by
   cases placement <;> simp [pairedAllocateZeroSize, allocateZeroSize]
 
+theorem pairedAllocateZeroSize_true
+    {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
+    (placement : Placement) :
+    pairedAllocateZeroSize (Tag := Tag) (State := State) (TypeId := TypeId)
+      resolve state placement = true := by
+  exact pairedAllocateZeroSize_agrees resolve state placement
+
 theorem pairedAllocateZeroSize_sound
     {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
     (placement : Placement) :
