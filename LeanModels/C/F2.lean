@@ -6794,6 +6794,20 @@ theorem pairedAllocateAligned_address_misaligned_true
     pairedAllocateAligned resolve store request (.address base) alignment = true := by
   simp [pairedAllocateAligned, allocateAligned, renamedPlacement, hsource, htarget]
 
+theorem pairedAllocateAligned_empty_address_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment : Nat)
+    (hsourceAligned : alignmentAllowed base alignment = true)
+    (htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true)
+    (hsourcePlacement : placementAllowed store base 0 = true)
+    (htargetPlacement : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) 0 = true) :
+    pairedAllocateAligned resolve store { bytes := [], state := state }
+      (.address base) alignment = true := by
+  simp [pairedAllocateAligned, allocateAligned, allocate, renamedPlacement,
+    hsourceAligned, htargetAligned, hsourcePlacement, htargetPlacement,
+    renameAllocationRequest]
+
 theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
