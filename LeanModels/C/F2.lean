@@ -795,6 +795,12 @@ theorem renameMetadata_address_shape (resolve : AllocId → Nat) (id : AllocId)
       metadata.allocation.address.map (fun _ => resolve id) := by
   rfl
 
+theorem renameMetadata_address_presence (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameMetadata resolve id metadata).allocation.address.isSome =
+      metadata.allocation.address.isSome := by
+  simp [renameMetadata]
+
 theorem renameMetadata_comp (first second : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) :
     renameMetadata second id (renameMetadata first id metadata) =
