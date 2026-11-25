@@ -199,9 +199,10 @@ theorem rf_cycle (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign} 
 view): the write equation, the low slot writing nothing, the read equation before and after the edge. -/
 def RfClaim (N : Nat) (tr : List ((SvState × MemV) × (SvState × MemV))) : Prop :=
   ∀ (c : Nat) (pc : (SvState × MemV) × (SvState × MemV)), tr[c]? = some pc →
-    -- the write equation: the edge writes `wdata` at the resolved address when `we` reads 1
-    pc.2.2 = (if (lk pc.1.1 "we").condTrue then
-      memWrite pc.1.2 "cpuregs" (rfIdx N (lk pc.1.1 "waddr")) (lk pc.1.1 "wdata") else pc.1.2) ∧
+    -- the write equation is exposed only when the write-enable decision is known
+    (DecisionKnown (lk pc.1.1 "we") →
+      pc.2.2 = (if (lk pc.1.1 "we").condTrue then
+        memWrite pc.1.2 "cpuregs" (rfIdx N (lk pc.1.1 "waddr")) (lk pc.1.1 "wdata") else pc.1.2)) ∧
     -- the low slot writes nothing: the cycle starts from the previous cycle's memory
     (∀ pp, tr[c - 1]? = some pp → 1 ≤ c → pc.1.2 = pp.2.2) ∧
     -- the read equation, before and after the edge
@@ -232,7 +233,8 @@ theorem rfClaim_of_runF (N : Nat) (σ : SvState × MemV) (ins : List SvState) : 
       simp only [hin, Option.map_some, Option.some.injEq] at hpc
       subst hpc
       refine ⟨?_, ?_, ?_, ?_⟩
-      · simp [rfF, lk, view, SvState.lookup]
+      · intro _
+        simp [rfF, lk, view, SvState.lookup]
       · intro pp hpp hc
         rw [show (rfF N (stF (rfF N) σ ins c) dt).1.2 = (stF (rfF N) σ ins c).2 from rfl,
           prev_cycle N σ ins c pp hc hpp]
@@ -248,9 +250,11 @@ theorem rfIdx_ofBitVec {N : Nat} (a : BitVec 5) (h : a.toNat < N) : rfIdx N (LVe
 of `a` in the pre sample of cycle `c + 1`. -/
 theorem rf_read_after_write {N : Nat} {tr : List ((SvState × MemV) × (SvState × MemV))} (h : RfClaim N tr)
     {c : Nat} {pc pc' : (SvState × MemV) × (SvState × MemV)} (hc : tr[c]? = some pc) (hc' : tr[c + 1]? = some pc')
-    {a : BitVec 5} (hwe : lk pc.1.1 "we" = LVec.ofBitVec 1#1) (hwa : lk pc.1.1 "waddr" = LVec.ofBitVec a)
+    {a : BitVec 5} (hweKnown : DecisionKnown (lk pc.1.1 "we"))
+    (hwe : lk pc.1.1 "we" = LVec.ofBitVec 1#1) (hwa : lk pc.1.1 "waddr" = LVec.ofBitVec a)
     (hN : a.toNat < N) (hra : lk pc'.1.1 "raddr" = LVec.ofBitVec a) : lk pc'.1.1 "rdata" = lk pc.1.1 "wdata" := by
   obtain ⟨hw, -, -, -⟩ := h c pc hc
+  have hw := hw hweKnown
   obtain ⟨-, hlow, hrd, -⟩ := h (c + 1) pc' hc'
   rw [hrd, hra, hlow pc (by simpa using hc) (by omega), hw, hwe, hwa, rfIdx_ofBitVec a hN]
   simp [memRd, memWrite]
@@ -259,9 +263,11 @@ theorem rf_read_after_write {N : Nat} {tr : List ((SvState × MemV) × (SvState 
 cycle shows what `b` held before the write. -/
 theorem rf_read_other {N : Nat} {tr : List ((SvState × MemV) × (SvState × MemV))} (h : RfClaim N tr)
     {c : Nat} {pc pc' : (SvState × MemV) × (SvState × MemV)} (hc : tr[c]? = some pc) (hc' : tr[c + 1]? = some pc')
-    {a b : BitVec 5} (hwa : lk pc.1.1 "waddr" = LVec.ofBitVec a) (hba : b ≠ a) (hbN : b.toNat < N)
+    {a b : BitVec 5} (hweKnown : DecisionKnown (lk pc.1.1 "we"))
+    (hwa : lk pc.1.1 "waddr" = LVec.ofBitVec a) (hba : b ≠ a) (hbN : b.toNat < N)
     (hrb : lk pc'.1.1 "raddr" = LVec.ofBitVec b) : lk pc'.1.1 "rdata" = pc.1.2 "cpuregs" (b.toNat : Int) := by
   obtain ⟨hw, -, -, -⟩ := h c pc hc
+  have hw := hw hweKnown
   obtain ⟨-, hlow, hrd, -⟩ := h (c + 1) pc' hc'
   have hne : rfIdx N (LVec.ofBitVec a) ≠ some (b.toNat : Int) := by
     unfold rfIdx
@@ -277,16 +283,19 @@ theorem rf_read_other {N : Nat} {tr : List ((SvState × MemV) × (SvState × Mem
 /-- **No write without `we = 1`**: a cycle whose `we` reads 0, x or z leaves the memory as it was. -/
 theorem rf_no_write {N : Nat} {tr : List ((SvState × MemV) × (SvState × MemV))} (h : RfClaim N tr)
     {c : Nat} {pc : (SvState × MemV) × (SvState × MemV)} (hc : tr[c]? = some pc)
-    (hwe : (lk pc.1.1 "we").condTrue = false) : pc.2.2 = pc.1.2 := by
+    (hweKnown : DecisionKnown (lk pc.1.1 "we")) (hwe : (lk pc.1.1 "we").condTrue = false) : pc.2.2 = pc.1.2 := by
   obtain ⟨hw, -, -, -⟩ := h c pc hc
+  have hw := hw hweKnown
   rw [hw, hwe]
   rfl
 
 /-- **No write at an x/z address**: a cycle whose write address has an x or z bit leaves the memory as it was. -/
 theorem rf_x_address {N : Nat} {tr : List ((SvState × MemV) × (SvState × MemV))} (h : RfClaim N tr)
     {c : Nat} {pc : (SvState × MemV) × (SvState × MemV)} (hc : tr[c]? = some pc)
+    (hweKnown : DecisionKnown (lk pc.1.1 "we"))
     (hwa : (lk pc.1.1 "waddr").toNat? = none) : pc.2.2 = pc.1.2 := by
   obtain ⟨hw, -, -, -⟩ := h c pc hc
+  have hw := hw hweKnown
   have hnone : rfIdx N (lk pc.1.1 "waddr") = none := by simp [rfIdx, hwa]
   rw [hw, hnone, memWrite_none]
   split <;> rfl
@@ -321,13 +330,14 @@ read of another known address `b < N` there shows what `b` held before the write
 theorem rf_runs_raw (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) :
     SeqRunsM (rf.e N) "clk" fun tr => ∀ (c : Nat) (pc pc' : (SvState × MemV) × (SvState × MemV)) (a : BitVec 5),
       tr[c]? = some pc → tr[c + 1]? = some pc' → lk pc.1.1 "waddr" = LVec.ofBitVec a → a.toNat < N →
+      DecisionKnown (lk pc.1.1 "we") →
       (lk pc.1.1 "we" = LVec.ofBitVec 1#1 → lk pc'.1.1 "raddr" = LVec.ofBitVec a →
         lk pc'.1.1 "rdata" = lk pc.1.1 "wdata") ∧
       (∀ b : BitVec 5, b ≠ a → b.toNat < N → lk pc'.1.1 "raddr" = LVec.ofBitVec b →
         lk pc'.1.1 "rdata" = pc.1.2 "cpuregs" (b.toNat : Int)) :=
-  (rf_runs N h1 h2).mono fun _ h c pc pc' a hc hc' hwa hN =>
-    ⟨fun hwe hra => rf_read_after_write h hc hc' hwe hwa hN hra,
-     fun b hba hbN hrb => rf_read_other h hc hc' hwa hba hbN hrb⟩
+  (rf_runs N h1 h2).mono fun _ h c pc pc' a hc hc' hwa hN hweKnown =>
+    ⟨fun hwe hra => rf_read_after_write h hc hc' hweKnown hwe hwa hN hra,
+     fun b hba hbN hrb => rf_read_other h hc hc' hweKnown hwa hba hbN hrb⟩
 
 #print axioms rf_structure
 #print axioms rf_ports
