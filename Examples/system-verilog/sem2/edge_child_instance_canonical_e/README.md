@@ -7,3 +7,6 @@ the native E design.
 
 Icarus Verilog 13.0 and Xcelium 24.03-s004 execute the two source rows
 (`y=x`, then `y=0`), matching ordinary canonical E.
+
+This is the ordinary-route child-instance control for the remaining
+hierarchical clocked wall.
