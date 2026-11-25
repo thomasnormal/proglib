@@ -7318,3 +7318,11 @@ loader's refusal of the string-parameter ROM, and
 `sem2/unpacked_bitselect_target` pins the values E now computes (no oracle
 result is claimed for that pin). `seq_cycle/valid_proof` raises the
 heartbeat budget of its `seq_mirror` to 2000000.
+
+The `seq_mirror` timing change was audited on 2026-11-25. The targeted
+`valid_proof` build completes in 147 seconds at the repaired tip. The cost
+comes from the earlier automatic-procedural-locals change `668e5571e`, which
+threads activation locals through `execStmtFuel` and routes statements through
+`evalExprLocals`. The later `ad78507fb` commit only raises the heartbeat
+ceiling. The ARRAYBITSEL audit and the relational work are downstream of this
+change and are not the source of the slowdown.
