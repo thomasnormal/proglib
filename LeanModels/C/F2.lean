@@ -7559,6 +7559,11 @@ def loadByte (store : Store Tag State) (id offset : Nat) :
     let byte ← allocation.bytes[offset]?
     some (byte, footprint .read { allocation := id, offset := offset, width := 1 })
 
+theorem loadByte_empty_none
+    {Tag State : Type} (id offset : Nat) :
+    loadByte ({ allocations := [], nextId := 0 } : Store Tag State) id offset = none := by
+  rfl
+
 theorem loadByte_success_value
     (store : Store Tag State) (id offset : Nat)
     (result : Byte Tag × Footprint)
