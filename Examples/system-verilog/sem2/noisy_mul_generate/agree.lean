@@ -1609,4 +1609,15 @@ theorem noisy_generated_source_segments
   · rw [CombHier.GeneratedNode.segmentAt_process]
     rfl
 
+theorem noisy_generated_source_flatten
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    Except.map CombHier.GeneratedNode.flattenSegments
+      (noisyTopSourceNodes.mapM
+        (fun n => n.segmentAt noisyTopNodeChild
+          ((env.bindVal "i" i).bindVal "j" j) elems)) =
+      .ok (CombHier.GeneratedNode.flattenSegments
+        (noisyTopSourceNodes.map (noisyTopSourceNodeSegment env elems i j))) := by
+  rw [noisy_generated_source_segments]
+  rfl
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
