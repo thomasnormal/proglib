@@ -6263,6 +6263,29 @@ theorem pairedStoreByte_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedStoreByte_sound
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedStoreByte resolve store id offset byte = some result) :
+    ∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      storeByte store id offset byte = some sourceResult ∧
+      storeByte (renameStore resolve store) id offset (renameByte resolve byte) =
+        some targetResult := by
+  cases hs : storeByte store id offset byte with
+  | none => simp [pairedStoreByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : storeByte (renameStore resolve store) id offset
+          (renameByte resolve byte) with
+      | none => simp [pairedStoreByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedStoreByte, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨sourceResult, targetResult, rfl, by simpa using hs,
+            by simpa using ht⟩
+
 theorem pairedStoreByte_refusal_source
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) (byte : Byte Tag)
@@ -6313,28 +6336,6 @@ theorem pairedStoreRepresentationLoadMetadataByte_sound
                   exact ⟨sourceStore, sourceLoad, targetStore, targetLoad,
                     hresult.symm, by simpa using hs, by simpa using ht,
                     by simpa using hsl, by simpa using htl⟩
-
-theorem pairedStoreByte_operational_results
-    (resolve : AllocId → Nat) (store : Store Tag State)
-    (id offset : Nat) (byte : Byte Tag)
-    (result : (Store Tag State × Footprint) ×
-      (Store Tag State × Footprint))
-    (hresult : pairedStoreByte resolve store id offset byte = some result) :
-    ∃ sourceResult targetResult,
-      result = (sourceResult, targetResult) ∧
-      storeByte store id offset byte = some sourceResult ∧
-      storeByte (renameStore resolve store) id offset (renameByte resolve byte) =
-        some targetResult := by
-  cases hs : storeByte store id offset byte with
-  | none => simp [pairedStoreByte, hs] at hresult
-  | some sourceResult =>
-      cases ht : storeByte (renameStore resolve store) id offset
-          (renameByte resolve byte) with
-      | none => simp [pairedStoreByte, hs, ht] at hresult
-      | some targetResult =>
-          simp [pairedStoreByte, hs, ht] at hresult
-          rcases hresult with rfl
-          exact ⟨sourceResult, targetResult, rfl, by simp [hs], by simp [ht]⟩
 
 theorem pairedStoreByte_preserves_wellFormed
     (resolve : AllocId → Nat) (store : Store Tag State)
