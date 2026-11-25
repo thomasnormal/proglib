@@ -900,6 +900,26 @@ def rowInnerLoops : List CombHier.GeneratedLoop :=
    { label := some "g_bit", genvar := "j", initE := .int 0,
      bound := .paramRef "N" none, step := .unary .inc (.genvarRef "j"), rc := some 4 }]
 
+theorem noisy_generated_process_child_order :
+    CombHier.generatedNodes noisyMul.plib []
+        [.genFor (some "g_row") "i" (.int 1) (.paramRef "N" none)
+          (.unary .inc (.genvarRef "i")) (some 3)
+          [.process rowLeft, .inst xorInst]] =
+      .ok [
+        .process [rowLoop] rowLeft,
+        .child { loops := [rowLoop], inst := xorInst, child := xorDef }] := by
+  rw [show noisyMul.plib = andDef :: xorDef :: majDef :: [] from by rfl]
+  have hx : (andDef :: xorDef :: majDef :: []).find?
+      (fun x => x.name == xorInst.module) = some xorDef := by
+    simp [andDef, xorInst, xorDef]
+  simpa [rowLoop] using
+    (CombHier.generatedNodes_genFor_process_child_order
+      (lib := [andDef, xorDef, majDef])
+      (label := some "g_row") (g := "i")
+      (initE := .int 1) (bound := .paramRef "N" none)
+      (step := .unary .inc (.genvarRef "i")) (rc := some 3)
+      (p := rowLeft) (i := xorInst) (c := xorDef) hx)
+
 theorem noisy_generated_row_inner_refs :
     CombHier.generatedChildRefs noisyMul.plib []
       [.genFor (some "g_row") "i" (.int 1) (.paramRef "N" none)
