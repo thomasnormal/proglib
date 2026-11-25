@@ -6591,6 +6591,14 @@ def pairedAllocateBounded (resolve : AllocId → Nat)
   | .error sourceFault, .error targetFault => sourceFault == targetFault
   | _, _ => false
 
+theorem pairedAllocateBounded_fail_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (alignment limit : Nat) :
+    pairedAllocateBounded resolve store request .fail alignment limit = true := by
+  simp only [pairedAllocateBounded]
+  rw [show renamedPlacement resolve store.nextId .fail = .fail by rfl]
+  simp [allocateBounded] <;> decide
+
 theorem pairedAllocateBounded_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
