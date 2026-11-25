@@ -3857,6 +3857,31 @@ theorem pairedFreeMetadata_empty_live_success
           footprint .metadata (Region.mk 0 0 0))) := by
   simp [pairedFreeMetadata, freeMetadata, hlive, hbytes, renameZeroTokenMetadata]
 
+theorem pairedFreeMetadata_empty_preserves_wellFormed
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hmetadata : metadata.wellFormed 0)
+    (hlive : metadata.allocation.live = true)
+    (hbytes : metadata.allocation.bytes = []) :
+    ∃ result,
+      pairedFreeMetadata resolve metadata = some result ∧
+      result.1.1.wellFormed 0 ∧ result.2.1.wellFormed 0 := by
+  have hsingle : ∃ sourceResult,
+      freeMetadata metadata = some sourceResult ∧ sourceResult.1.wellFormed 0 :=
+    freeMetadata_empty_preserves_wellFormed metadata hmetadata hlive hbytes
+  have htargetMetadata : (renameZeroTokenMetadata resolve metadata).wellFormed 0 := by
+    exact renameZeroTokenMetadata_preserves_wellFormed resolve metadata hmetadata
+  have htargetLive : (renameZeroTokenMetadata resolve metadata).allocation.live = true := by
+    simp [renameZeroTokenMetadata, hlive]
+  have htargetBytes : (renameZeroTokenMetadata resolve metadata).allocation.bytes = [] := by
+    simp [renameZeroTokenMetadata, hbytes]
+  have htarget := freeMetadata_empty_preserves_wellFormed
+    (renameZeroTokenMetadata resolve metadata) htargetMetadata htargetLive htargetBytes
+  rcases hsingle with ⟨sourceResult, hsource, hsourceWf⟩
+  rcases htarget with ⟨targetResult, htarget, htargetWf⟩
+  refine ⟨(sourceResult, targetResult), ?_, hsourceWf, htargetWf⟩
+  simp [pairedFreeMetadata, hsource, htarget]
+
 theorem pairedFreeMetadata_dead_refusal
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
