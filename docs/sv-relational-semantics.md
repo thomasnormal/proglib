@@ -13,6 +13,14 @@ The relation is built on the source-shaped nodes in `CoreMemDesign`,
 `Scheduler.lean`'s older scalar `Design`, `Stmt2`, or a fuelled executor
 the meaning of the language.
 
+The relation is about the elaborated `CoreMemDesign` presented to it. Generate
+expansion and hierarchy elaboration that produce that design remain a
+separate trusted step, currently evaluated with the elaborator's `iterFuel`
+budget of 4096. That budget has no counterpart in the relation and is an
+open trust debt. A relation theorem therefore states its elaboration
+precondition explicitly rather than treating a failed or incomplete
+elaboration as a semantic outcome.
+
 ## T1 fuel-free step and run
 
 `RelState` is either a `CombPhaseState` or an `EdgePhaseState`, together with
