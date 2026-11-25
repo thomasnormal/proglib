@@ -2694,6 +2694,42 @@ theorem reallocMetadata_empty_unaddressable_success
   exact reallocMetadata_unaddressable_success old
     { bytes := [], state := state } [] rfl
 
+theorem reallocMetadata_empty_result_shape
+    (old : AllocationMetadata Tag State TypeId)
+    (state : State) (placement : Placement)
+    (result : ReallocOutcome Tag State TypeId × Footprint)
+    (hresult : reallocMetadata old { bytes := [], state := state } [] placement = some result) :
+    match placement with
+    | .address base =>
+        result =
+          (.replaced
+            { allocation :=
+                { live := true, address := some base,
+                  bytes := [], state := state },
+              locations := [] },
+            footprint .metadata (Region.mk 0 0 0))
+    | .unaddressable =>
+        result =
+          (.replaced
+            { allocation :=
+                { live := true, address := none,
+                  bytes := [], state := state },
+              locations := [] },
+            footprint .metadata (Region.mk 0 0 0))
+    | .fail =>
+        result = (.failed old,
+          footprint .metadata (Region.mk 0 0 old.allocation.bytes.length)) := by
+  cases placement with
+  | address base =>
+      simp [reallocMetadata] at hresult
+      exact hresult.symm
+  | unaddressable =>
+      simp [reallocMetadata] at hresult
+      exact hresult.symm
+  | fail =>
+      simp [reallocMetadata] at hresult
+      exact hresult.symm
+
 theorem reallocMetadata_address_rejects_length_mismatch
     (old : AllocationMetadata Tag State TypeId)
     (request : AllocationRequest Tag State)
