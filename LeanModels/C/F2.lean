@@ -1182,6 +1182,25 @@ theorem pairedTypedLoadMetadataByte_refusal
   | inl hsource => simp [pairedTypedLoadMetadataByte, hsource]
   | inr htarget => simp [pairedTypedLoadMetadataByte, htarget]
 
+theorem pairedTypedLoadMetadataByte_refusal_source
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId)
+    (hsource : typedLoadMetadataByte metadata offset typeId = none) :
+    pairedTypedLoadMetadataByte resolve id metadata offset typeId = none := by
+  simp [pairedTypedLoadMetadataByte, hsource]
+
+theorem pairedTypedLoadMetadataByte_refusal_target
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId)
+    (htarget : typedLoadMetadataByte (renameMetadata resolve id metadata)
+      offset typeId = none) :
+    pairedTypedLoadMetadataByte resolve id metadata offset typeId = none := by
+  simp [pairedTypedLoadMetadataByte, htarget]
+
 theorem typedLoadMetadataByte_success
     [BEq TypeId]
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
