@@ -115,6 +115,29 @@ theorem generated_child_family_segments
   rw [generated_child_family hi hbound hvalue hfuel hbody]
   simp [GeneratedChildSegment.flatten, List.flatMap_map]
 
+/-! The segment equation does not require a singleton child body.  This is
+the rule for a generated row whose iteration contains assignments and a
+nested child family, such as `g_row/g_bit` in the noisy multiplier. -/
+
+theorem generated_family_body_segments
+    {cb : ChildInst} {env : IEnv} {elems : List (String × Nat)} {F : Nat}
+    {label : Option String} {g : String} {initE bound : PExpr} {rc : Option Nat}
+    {body : List GenItem} {i0 N : Int} {f : Int → List Decl × List Process2}
+    (hi : evalInt env initE = .ok i0)
+    (hbound : ∀ i : Int, bound.isInt (env.bindVal g i) = true)
+    (hvalue : ∀ i : Int, evalInt (env.bindVal g i) bound = .ok N)
+    (hfuel : (N - i0).toNat < F)
+    (hbody : ∀ v : Int, i0 ≤ v → v < N →
+      expandListH cb (env.bindVal g v) elems F body = .ok (f v)) :
+    (GenItem.genFor label g initE (.binary .slt (.genvarRef g) bound)
+      (.unary .inc (.genvarRef g)) rc body).expandH cb env elems F =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange i0 (N - i0).toNat).map fun v =>
+          let r := f v
+          { decls := r.1, processes := r.2 })) := by
+  rw [GenItem.expandH_genFor_ascending_flatMap hi hbound hvalue hfuel hbody]
+  simp [GeneratedChildSegment.flatten, List.flatMap_map]
+
 /-- A generated child expansion can be discharged directly from a decided
 prefix and child design.  This is the hand-proof equation used at each leaf
 of a nested family. -/
