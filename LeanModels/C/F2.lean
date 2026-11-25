@@ -2967,6 +2967,17 @@ theorem zeroTokenEqual_sound
   simp [zeroTokenEqual, isZeroToken] at h ⊢
   exact ⟨h.1.1, h.1.2, by simpa using h.2⟩
 
+theorem zeroTokenEqual_refusal
+    (left right : AllocationMetadata Tag State TypeId)
+    (hrefusal : isZeroToken left = false ∨
+      isZeroToken right = false ∨
+      left.allocation.address ≠ right.allocation.address) :
+    zeroTokenEqual left right = false := by
+  rcases hrefusal with hleft | hright | haddress
+  · simp [zeroTokenEqual, hleft]
+  · simp [zeroTokenEqual, hright]
+  · simp [zeroTokenEqual, haddress]
+
 def zeroTokenFreeable (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   isZeroToken metadata
 
