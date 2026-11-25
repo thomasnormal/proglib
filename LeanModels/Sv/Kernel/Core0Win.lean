@@ -780,6 +780,18 @@ theorem WSettles.schedule_independent {E : Elab} {d : Design2} {own : ProcId →
   obtain ⟨he₂, hs₂, hf₂⟩ := hS.slotCloses_combEqs hI h₂
   exact combEqs_unique hS.comb hS.acyclic hs₁ hs₂ he₁ he₂ (hf₁.symm.trans hf₂)
 
+/-- Successful bounded executor runs have the same observation under the
+rank-guarded equation profile, even when they use different legal schedules or
+implementation limits. -/
+theorem WSettles.exec_view_independent {E : Elab} {d : Design2}
+    {own : ProcId → List Nat} {rank : Nat → Nat}
+    (hS : WSettles E d own rank) {c : Config} (hI : WSettleInv E d own c)
+    {ch₁ ch₂ : Choice} {n₁ n₂ : Nat} {c₁ c₂ : Config}
+    (h₁ : exec E ch₁ n₁ c = .closed c₁)
+    (h₂ : exec E ch₂ n₂ c = .closed c₂) :
+    E.view c₁.store = E.view c₂.store := by
+  exact hS.schedule_independent hI (exec_sound h₁) (exec_sound h₂)
+
 /-- **R-COMB-1, generic** (derived from E): from every configuration satisfying the invariant,
 under every process-atomic legal schedule, the slot closes; the closed store solves the window equations, keeps
 the undriven bits, and is the ONLY shaped solution that does. -/

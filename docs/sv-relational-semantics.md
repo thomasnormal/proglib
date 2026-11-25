@@ -612,7 +612,11 @@ shaped solution. `Settles.toW` supplies the ordinary one-window-per-process
 special case. These theorems establish observation independence for this
 lowered rank profile. They do not cover arbitrary parser-native designs,
 fine-grained clause 4.7 interleavings, memory footprints, or the
-`CoreMemDesign.step` executor.
+`CoreMemDesign.step` executor. The adapter
+`WSettles.exec_view_independent` composes this result with `exec_sound`, so
+two successful bounded runs agree even when their legal choices and
+implementation limits differ. It remains an E-core-0 transport theorem and
+does not remove the parser-native bridge obligation.
 
 ### Frame-lemma audit
 
