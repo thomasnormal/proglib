@@ -6466,6 +6466,23 @@ theorem allocate_empty_result_wellFormed
   exact allocate_preserves_wellFormed store { bytes := [], state := state }
     placement result hstore (by simp [bytesWf]) hresult
 
+theorem allocate_empty_result_footprint
+    (store : Store Tag State) (state : State) (placement : Placement)
+    (result : Store Tag State × Footprint)
+    (hresult : allocate store { bytes := [], state := state } placement = some result) :
+    result.2 = footprint .metadata (Region.mk store.nextId 0 0) := by
+  cases placement with
+  | address base =>
+      simp [allocate] at hresult
+      rcases hresult with ⟨_, rfl⟩
+      rfl
+  | unaddressable =>
+      simp [allocate] at hresult
+      rcases hresult with ⟨rfl, rfl⟩
+      rfl
+  | fail =>
+      simp [allocate] at hresult
+
 def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment : Nat) : Option (Store Tag State × Footprint) :=
   match placement with
