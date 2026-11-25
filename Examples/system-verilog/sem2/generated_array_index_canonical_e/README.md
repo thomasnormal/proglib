@@ -16,3 +16,6 @@ python3 extractors/sv/extract.py --top generated_array_index_canonical_e \
 
 Icarus Verilog 13.0 and Xcelium 24.03-s004 execute the same nine rows as E,
 including the first uninitialized value, defaults, and x/z inputs.
+
+The current receipt covers the generated-array-index wall with nine matching
+ordinary/source rows on both pinned simulators.
