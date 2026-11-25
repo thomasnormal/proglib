@@ -6920,6 +6920,19 @@ theorem pairedAllocateBounded_address_success_shape
     htargetWithin, htargetWithin', htargetAligned, hsource, htarget, htarget', allocate,
     renameAllocationRequest]
 
+theorem pairedAllocateBounded_address_exhausted_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (base alignment limit : Nat)
+    (hsource : placementWithin base request.bytes.length limit = false)
+    (htarget : placementWithin (resolve store.nextId)
+      (renameAllocationRequest resolve request).bytes.length limit = false) :
+    pairedAllocateBounded resolve store request (.address base) alignment limit = true := by
+  have htarget' : placementWithin (resolve store.nextId)
+      request.bytes.length limit = false := by
+    simpa [renameAllocationRequest] using htarget
+  simp [pairedAllocateBounded, allocateBounded, renamedPlacement, hsource,
+    htarget, htarget', renameAllocationRequest] <;> decide
+
 theorem pairedAllocateBounded_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
