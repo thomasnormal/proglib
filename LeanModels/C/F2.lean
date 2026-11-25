@@ -4158,6 +4158,26 @@ theorem pairedFreeMetadata_empty_preserves_payload
   exact ⟨by simpa [hbytes] using hsb,
     by simpa [htargetBytes] using htb⟩
 
+theorem pairedFreeMetadata_empty_preserves_lengths
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.allocation.bytes.length = 0 ∧
+      result.1.1.locations.length = metadata.locations.length ∧
+      result.2.1.allocation.bytes.length = 0 ∧
+      result.2.1.locations.length =
+        (renameZeroTokenMetadata resolve metadata).locations.length := by
+  have hgeneral := pairedFreeMetadata_preserves_lengths resolve metadata result hresult
+  have htargetBytes : (renameZeroTokenMetadata resolve metadata).allocation.bytes = [] := by
+    simp [renameZeroTokenMetadata, hbytes]
+  exact ⟨by simpa [hbytes] using hgeneral.1,
+    hgeneral.2.1,
+    by simpa [htargetBytes] using hgeneral.2.2.1,
+    hgeneral.2.2.2⟩
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
