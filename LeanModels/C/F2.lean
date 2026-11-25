@@ -4340,6 +4340,20 @@ theorem pairedPointerEqual_equal_choice_refusal_right
     pairedPointerEqual resolve left right .equal = false := by
   simp [pairedPointerEqual, pointerEqual, hleft, hright]
 
+theorem pairedPointerEqual_equal_choice_refusal
+    (resolve : AllocId → Nat) (left right : Pointer Tag)
+    (hrefusal :
+      ((left.address == right.address) = false ∧
+        ((renamePointer resolve left).address ==
+          (renamePointer resolve right).address) = true) ∨
+      ((left.address == right.address) = true ∧
+        ((renamePointer resolve left).address ==
+          (renamePointer resolve right).address) = false)) :
+    pairedPointerEqual resolve left right .equal = false := by
+  rcases hrefusal with ⟨hleft, hright⟩ | ⟨hleft, hright⟩
+  · simp [pairedPointerEqual, pointerEqual, hleft, hright]
+  · simp [pairedPointerEqual, pointerEqual, hleft, hright]
+
 theorem pairedPointerEqual_sound
     (resolve : AllocId → Nat) (left right : Pointer Tag)
     (choice : EqualityChoice)
