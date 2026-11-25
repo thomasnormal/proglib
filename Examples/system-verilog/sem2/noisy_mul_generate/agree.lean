@@ -312,6 +312,33 @@ def andDesign : Design2 :=
       #[.assign (.ident "y")
           (.binary .xor (.binary .and (.ident "a") (.ident "b")) (.ident "f"))] }
 
+def xorDesign : Design2 :=
+  { name := "xor2f"
+    decls := #[{ name := "a", width := 1, isInput := true },
+               { name := "b", width := 1, isInput := true },
+               { name := "f", width := 1, isInput := true },
+               { name := "y", width := 1, isOutput := true }]
+    processes :=
+      #[.assign (.ident "y")
+          (.binary .xor (.binary .xor (.ident "a") (.ident "b")) (.ident "f"))] }
+
+def majDesign : Design2 :=
+  { name := "maj3f"
+    decls := #[{ name := "a", width := 1, isInput := true },
+               { name := "b", width := 1, isInput := true },
+               { name := "c", width := 1, isInput := true },
+               { name := "f", width := 1, isInput := true },
+               { name := "y", width := 1, isOutput := true }]
+    processes :=
+      #[.assign (.ident "y")
+          (.binary .xor
+            (.binary .or
+              (.binary .or
+                (.binary .and (.ident "a") (.ident "b"))
+                (.binary .and (.ident "a") (.ident "c")))
+              (.binary .and (.ident "b") (.ident "c")))
+            (.ident "f"))] }
+
 def andDef : PDesign :=
   { name := "and2f", params := [], localParams := [], enums := []
     decls := [{ name := "a", type := .packed [] (some 1), isInput := true },
@@ -325,6 +352,35 @@ def andDef : PDesign :=
 
 theorem noisy_andDef : noisyMul.plib.head? = some andDef := by
   rfl
+
+def xorDef : PDesign :=
+  { name := "xor2f", params := [], localParams := [], enums := []
+    decls := [{ name := "a", type := .packed [] (some 1), isInput := true },
+              { name := "b", type := .packed [] (some 1), isInput := true },
+              { name := "f", type := .packed [] (some 1), isInput := true },
+              { name := "y", type := .packed [] (some 1), isOutput := true }]
+    processes :=
+      [.assign "y"
+        (.binary (.m0 .xor) (.binary (.m0 .xor) (.ident "a") (.ident "b")) (.ident "f"))]
+    generates := [] }
+
+def majDef : PDesign :=
+  { name := "maj3f", params := [], localParams := [], enums := []
+    decls := [{ name := "a", type := .packed [] (some 1), isInput := true },
+              { name := "b", type := .packed [] (some 1), isInput := true },
+              { name := "c", type := .packed [] (some 1), isInput := true },
+              { name := "f", type := .packed [] (some 1), isInput := true },
+              { name := "y", type := .packed [] (some 1), isOutput := true }]
+    processes :=
+      [.assign "y"
+        (.binary (.m0 .xor)
+          (.binary (.m0 .or)
+            (.binary (.m0 .or)
+              (.binary (.m0 .and) (.ident "a") (.ident "b"))
+              (.binary (.m0 .and) (.ident "a") (.ident "c")))
+            (.binary (.m0 .and) (.ident "b") (.ident "c")))
+          (.ident "f"))]
+    generates := [] }
 
 def ppLoops : List CombHier.GeneratedLoop :=
   [{ label := some "g_pp", genvar := "i", initE := .int 0,
@@ -412,6 +468,24 @@ end Examples.«system-verilog».sem2.noisy_mul_generate
 
 namespace Examples.«system-verilog».sem2.noisy_mul_generate
 
+def xorEnv : IEnv := { int32 := true, dims := dimTable { int32 := true } xorDef.decls }
+
+theorem xor_paramEnvH : xorDef.paramEnvH { int32 := true } [] = .ok xorEnv := by
+  rfl
+
+def xorElems : List (String × Nat) := [("a", 1), ("b", 1), ("f", 1), ("y", 1)]
+
+theorem xor_decls : buildDecls xorEnv xorDef.decls = .ok xorDesign.decls.toList := by
+  simp [xorDef, xorDesign, xorEnv, buildDecls, instDecl, PType.width_packed_nil]
+
+theorem xor_elems : buildElems xorEnv xorDef.decls = .ok xorElems := by
+  simp [xorDef, xorElems, xorEnv, buildElems]
+
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
 /-- The actual child-recursion function for `noisy_mul` satisfies the nested
 `u_and` expansion equation, once the parent environment has established the
 symbolic `N` bounds. -/
@@ -471,6 +545,41 @@ def rowInnerBody : List GenItem :=
   | .process _ :: .genFor _ _ _ _ _ _ body :: .process _ :: [] => body
   | _ => []
 
+def xorInst : PInst :=
+  { name := "u_t", module := "xor2f",
+    path := [{ label := "g_row", genvar := some "i" }, { label := "g_bit", genvar := some "j" }],
+    conns :=
+      [.input "a" (some (.arrayElem "s" [.binary (.m0 .sub) (.genvarRef "i") (.int 1),
+        .binary (.m0 .add) (.genvarRef "j") (.int 1)])) false,
+       .input "b" (some (.arrayElem "pp" [.genvarRef "i", .genvarRef "j"])) false,
+       .input "f" (some (.arrayElem "f" [.binary (.m0 .sub)
+         (.binary (.m0 .add) (.paramRef "N" none) (.binary .mul (.int 3) (.genvarRef "i"))) (.int 3),
+         (.genvarRef "j")])) false,
+       .output "y" (some (.arrayElem "t" [.genvarRef "i", .genvarRef "j"]))] }
+
+def majInst : PInst :=
+  { name := "u_c", module := "maj3f",
+    path := [{ label := "g_row", genvar := some "i" }, { label := "g_bit", genvar := some "j" }],
+    conns :=
+      [.input "a" (some (.arrayElem "s" [.binary (.m0 .sub) (.genvarRef "i") (.int 1),
+        .binary (.m0 .add) (.genvarRef "j") (.int 1)])) false,
+       .input "b" (some (.arrayElem "pp" [.genvarRef "i", .genvarRef "j"])) false,
+       .input "c" (some (.arrayElem "c" [.genvarRef "i", .genvarRef "j"])) false,
+       .input "f" (some (.arrayElem "f" [.binary (.m0 .sub)
+         (.binary (.m0 .add) (.paramRef "N" none) (.binary .mul (.int 3) (.genvarRef "i"))) (.int 1),
+         (.genvarRef "j")])) false,
+       .output "y" (some (.arrayElem "c" [.genvarRef "i", .binary (.m0 .add) (.genvarRef "j") (.int 1)]))] }
+
+def xorSInst : PInst :=
+  { name := "u_s", module := "xor2f", path := xorInst.path,
+    conns :=
+      [.input "a" (some (.arrayElem "t" [.genvarRef "i", .genvarRef "j"])) false,
+       .input "b" (some (.arrayElem "c" [.genvarRef "i", .genvarRef "j"])) false,
+       .input "f" (some (.arrayElem "f" [.binary (.m0 .sub)
+         (.binary (.m0 .add) (.paramRef "N" none) (.binary .mul (.int 3) (.genvarRef "i"))) (.int 2),
+         (.genvarRef "j")])) false,
+       .output "y" (some (.arrayElem "s" [.genvarRef "i", .genvarRef "j"]))] }
+
 theorem noisy_row_body_shape :
     rowBody = [GenItem.process rowLeft,
       .genFor (some "g_bit") "j" (.int 0)
@@ -478,6 +587,174 @@ theorem noisy_row_body_shape :
         (.unary .inc (.genvarRef "j")) (some 4) rowInnerBody,
       GenItem.process rowRight] := by
   rfl
+
+theorem noisy_row_inner_shape :
+    rowInnerBody = [.inst xorInst, .inst xorSInst,
+      .inst majInst] := by
+  rfl
+
+theorem noisy_xor_child (env : IEnv) (F : Nat) (clocks : List String) :
+    PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks env xorInst = .ok xorDesign := by
+  rw [show noisyMul.plib = andDef :: xorDef :: majDef :: [] from by rfl]
+  simp only [PDesign.childRec, childInstOf]
+  have hg : PInst.given env xorDef xorInst = .ok [] := by
+    simp [PInst.given, xorDef]
+    rfl
+  have hp : xorDef.atPoint [] = .ok (xorDef, []) := rfl
+  have hfind : (andDef :: xorDef :: majDef :: []).find?
+      (fun x => x.name == xorInst.module) = some xorDef := by
+    simp [andDef, xorInst, xorDef]
+  rw [hfind]
+  simp only [hg, hp]
+  have hasm : xorDef.assembleH xorEnv xorDesign.decls.toList [] xorElems [] = xorDesign := by
+    simp only [PDesign.assembleH, xorDesign, xorDef, List.append_nil, List.map_nil]
+    sv2_inst_simp [xorElems, xorEnv]
+  have hok : driversOk xorDef.declNames xorDef.inputNames xorDesign.processes.toList = true := by
+    decide
+  rw [PDesign.instantiateRec_of_ok (depth := 0) (idecls := []) (gens := []) rfl
+    xor_paramEnvH xor_decls xor_elems (by simp [xorDef]), hasm]
+  simp only [Res.ok_bind, PDesign.driverGuard, Design2.driverGuard_of_ok hok]
+  simp [Design2.clockGuard, clockGuardProc, Process2.clock?, xorDesign]
+
+theorem xorS_prefix (env : IEnv) (i j : Int) :
+    xorSInst.prefix ((env.bindVal "i" i).bindVal "j" j) =
+      .ok ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") := by
+  simpa [xorSInst, String.append_assoc] using
+    (generated_child_prefix_two env xorSInst "i" "j" "g_row" "g_bit" i j (by decide) rfl)
+
+theorem xorInst_prefix (env : IEnv) (i j : Int) :
+    xorInst.prefix ((env.bindVal "i" i).bindVal "j" j) =
+      .ok ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") := by
+  simpa [xorInst, String.append_assoc] using
+    (generated_child_prefix_two env xorInst "i" "j" "g_row" "g_bit" i j (by decide) rfl)
+
+theorem majInst_prefix (env : IEnv) (i j : Int) :
+    majInst.prefix ((env.bindVal "i" i).bindVal "j" j) =
+      .ok ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") := by
+  simpa [majInst, String.append_assoc] using
+    (generated_child_prefix_two env majInst "i" "j" "g_row" "g_bit" i j (by decide) rfl)
+
+theorem noisy_xorS_child (env : IEnv) (F : Nat) (clocks : List String) :
+    PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks env xorSInst = .ok xorDesign := by
+  rw [show noisyMul.plib = andDef :: xorDef :: majDef :: [] from by rfl]
+  simp only [PDesign.childRec, childInstOf]
+  have hg : PInst.given env xorDef xorSInst = .ok [] := by
+    simp [PInst.given, xorDef]
+    rfl
+  have hp : xorDef.atPoint [] = .ok (xorDef, []) := rfl
+  have hfind : (andDef :: xorDef :: majDef :: []).find?
+      (fun x => x.name == xorSInst.module) = some xorDef := by
+    simp [andDef, xorSInst, xorDef]
+  rw [hfind]
+  simp only [hg, hp]
+  have hasm : xorDef.assembleH xorEnv xorDesign.decls.toList [] xorElems [] = xorDesign := by
+    simp only [PDesign.assembleH, xorDesign, xorDef, List.append_nil, List.map_nil]
+    sv2_inst_simp [xorElems, xorEnv]
+  have hok : driversOk xorDef.declNames xorDef.inputNames xorDesign.processes.toList = true := by
+    decide
+  rw [PDesign.instantiateRec_of_ok (depth := 0) (idecls := []) (gens := []) rfl
+    xor_paramEnvH xor_decls xor_elems (by simp [xorDef]), hasm]
+  simp only [Res.ok_bind, PDesign.driverGuard, Design2.driverGuard_of_ok hok]
+  simp [Design2.clockGuard, clockGuardProc, Process2.clock?, xorDesign]
+
+theorem noisy_row_inner_expand
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (i j : Int) (childT childS childC : Design2)
+    (hT : cb ((env.bindVal "i" i).bindVal "j" j) xorInst = .ok childT)
+    (hS : cb ((env.bindVal "i" i).bindVal "j" j) xorSInst = .ok childS)
+    (hC : cb ((env.bindVal "i" i).bindVal "j" j) majInst = .ok childC) :
+    expandListH cb ((env.bindVal "i" i).bindVal "j" j) elems F rowInnerBody =
+      .ok
+        ((flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+            ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst childT).1 ++
+          (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+            ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst childS).1 ++
+          (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+            ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst childC).1,
+         (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+            ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst childT).2 ++
+          (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+            ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst childS).2 ++
+          (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+            ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst childC).2) := by
+  have h1 : (GenItem.inst xorInst).expandH cb ((env.bindVal "i" i).bindVal "j" j) elems F =
+      .ok (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+        ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst childT) := by
+    rw [GenItem.expandH_inst]
+    exact instExpandH_of (xorInst_prefix env i j) hT
+  have h2 : (GenItem.inst xorSInst).expandH cb ((env.bindVal "i" i).bindVal "j" j) elems F =
+      .ok (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+        ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst childS) := by
+    rw [GenItem.expandH_inst]
+    exact instExpandH_of (xorS_prefix env i j) hS
+  have h3 : (GenItem.inst majInst).expandH cb ((env.bindVal "i" i).bindVal "j" j) elems F =
+      .ok (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+        ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst childC) := by
+    rw [GenItem.expandH_inst]
+    exact instExpandH_of (majInst_prefix env i j) hC
+  rw [noisy_row_inner_shape]
+  have hr : expandListH cb ((env.bindVal "i" i).bindVal "j" j) elems F
+      [.inst xorSInst, .inst majInst] =
+      .ok ((flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst childS).1 ++
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst childC).1,
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst childS).2 ++
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst childC).2) := by
+    exact expandListH_cons_ok (it := .inst xorSInst) (rest := [.inst majInst])
+      (ds := (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+        ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst childS).1)
+      (ps := (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+        ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst childS).2)
+      (h := by simp [GenItem.listInstFree, GenItem.instFree]) h2
+      (expandListH_singleton_ok (it := .inst majInst) (h := by simp [GenItem.instFree]) h3)
+  simpa [List.append_assoc] using
+    (expandListH_cons_ok (it := .inst xorInst) (rest := [.inst xorSInst, .inst majInst])
+      (ds := (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+        ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst childT).1)
+      (ps := (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+        ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst childT).2)
+      (h := by simp [GenItem.listInstFree, GenItem.instFree]) h1 hr)
+
+
+def majEnv : IEnv := { int32 := true, dims := dimTable { int32 := true } majDef.decls }
+
+theorem maj_paramEnvH : majDef.paramEnvH { int32 := true } [] = .ok majEnv := by
+  rfl
+
+def majElems : List (String × Nat) :=
+  [("a", 1), ("b", 1), ("c", 1), ("f", 1), ("y", 1)]
+
+theorem maj_decls : buildDecls majEnv majDef.decls = .ok majDesign.decls.toList := by
+  simp [majDef, majDesign, majEnv, buildDecls, instDecl, PType.width_packed_nil]
+
+theorem maj_elems : buildElems majEnv majDef.decls = .ok majElems := by
+  simp [majDef, majElems, majEnv, buildElems]
+
+theorem noisy_maj_child (env : IEnv) (F : Nat) (clocks : List String) :
+    PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks env majInst = .ok majDesign := by
+  rw [show noisyMul.plib = andDef :: xorDef :: majDef :: [] from by rfl]
+  simp only [PDesign.childRec, childInstOf]
+  have hg : PInst.given env majDef majInst = .ok [] := by
+    simp [PInst.given, majDef]
+    rfl
+  have hp : majDef.atPoint [] = .ok (majDef, []) := rfl
+  have hfind : (andDef :: xorDef :: majDef :: []).find?
+      (fun x => x.name == majInst.module) = some majDef := by
+    simp [andDef, xorDef, majDef, majInst]
+  rw [hfind]
+  simp only [hg, hp]
+  have hasm : majDef.assembleH majEnv majDesign.decls.toList [] majElems [] = majDesign := by
+    simp only [PDesign.assembleH, majDesign, majDef, List.append_nil, List.map_nil]
+    sv2_inst_simp [majElems, majEnv]
+  have hok : driversOk majDef.declNames majDef.inputNames majDesign.processes.toList = true := by
+    decide
+  rw [PDesign.instantiateRec_of_ok (depth := 0) (idecls := []) (gens := []) rfl
+    maj_paramEnvH maj_decls maj_elems (by simp [majDef]), hasm]
+  simp only [Res.ok_bind, PDesign.driverGuard, Design2.driverGuard_of_ok hok]
+  simp [Design2.clockGuard, clockGuardProc, Process2.clock?, majDesign]
 
 theorem noisy_row_expand_process_family
     (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
@@ -519,6 +796,30 @@ theorem noisy_row_expand_process_family
       (f := f)
       (by simp) hBound hValue hFuel
       hInnerInit hInnerBound hInnerValue (by simpa using hInnerFuel) hInnerInst hInner)
+
+theorem noisy_row_inner_expand_actual
+    (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (i j N : Int) (clocks : List String) (hFuel : N.toNat < F)
+    (hPrefix : 1 ≤ i) :
+    expandListH (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+      ((env.bindVal "i" i).bindVal "j" j) elems F rowInnerBody =
+      .ok ((flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst xorDesign).1 ++
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst xorDesign).1 ++
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst majDesign).1,
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst xorDesign).2 ++
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst xorDesign).2 ++
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst majDesign).2) := by
+  apply noisy_row_inner_expand
+  · exact noisy_xor_child _ F clocks
+  · exact noisy_xorS_child _ F clocks
+  · exact noisy_maj_child _ F clocks
+
 
 theorem noisy_row_expand_segments
     (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
