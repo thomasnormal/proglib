@@ -98,7 +98,88 @@
               "end_col": 25
             },
             "sv_kind": "VariableSymbol:type",
-            "text": "state"
+            "text": "state",
+            "metadata": {
+              "name": "state",
+              "aggregate": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "name": "fields",
+                    "type": {
+                      "kind": "array",
+                      "msb": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 3,
+                          "col": 34,
+                          "end_line": 3,
+                          "end_col": 35
+                        },
+                        "value": 0,
+                        "resolved_width": null
+                      },
+                      "lsb": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 3,
+                          "col": 36,
+                          "end_line": 3,
+                          "end_col": 37
+                        },
+                        "value": 1,
+                        "resolved_width": null
+                      },
+                      "elem": {
+                        "kind": "struct",
+                        "fields": [
+                          {
+                            "name": "value",
+                            "type": {
+                              "kind": "scalar",
+                              "type": {
+                                "kind": "PackedType",
+                                "packed": [
+                                  {
+                                    "msb": {
+                                      "kind": "Int",
+                                      "span": {
+                                        "line": 2,
+                                        "col": 25,
+                                        "end_line": 2,
+                                        "end_col": 26
+                                      },
+                                      "value": 3,
+                                      "resolved_width": null
+                                    },
+                                    "lsb": {
+                                      "kind": "Int",
+                                      "span": {
+                                        "line": 2,
+                                        "col": 27,
+                                        "end_line": 2,
+                                        "end_col": 28
+                                      },
+                                      "value": 0,
+                                      "resolved_width": null
+                                    }
+                                  }
+                                ],
+                                "resolved": 4
+                              },
+                              "signed": false,
+                              "two_state": false
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "signed": false,
+              "two_state": false
+            }
           }
         ],
         "processes": [
@@ -122,15 +203,36 @@
               "name": "y"
             },
             "value": {
-              "kind": "Ident",
+              "kind": "AggregateMember",
               "span": {
                 "line": 13,
                 "col": 14,
                 "end_line": 13,
                 "end_col": 35
               },
-              "width": 4,
-              "name": "state.fields[0].value"
+              "base": "state",
+              "path": [
+                {
+                  "field": "fields"
+                },
+                {
+                  "index": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 13,
+                      "col": 27,
+                      "end_line": 13,
+                      "end_col": 28
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                },
+                {
+                  "field": "value"
+                }
+              ],
+              "width": 4
             }
           }
         ],
@@ -171,15 +273,27 @@
                 }
               },
               {
-                "kind": "Unsupported",
+                "kind": "PortConn",
                 "span": {
                   "line": 12,
-                  "col": 17,
+                  "col": 41,
                   "end_line": 12,
-                  "end_col": 48
+                  "end_col": 46
                 },
-                "sv_kind": "PortConnection:target",
-                "text": "hwif_out"
+                "port": "hwif_out",
+                "dir": "out",
+                "target": {
+                  "kind": "AggregateMember",
+                  "span": {
+                    "line": 12,
+                    "col": 41,
+                    "end_line": 12,
+                    "end_col": 46
+                  },
+                  "base": "state",
+                  "path": [],
+                  "width": 0
+                }
               }
             ]
           }
@@ -224,7 +338,89 @@
               "end_col": 69
             },
             "sv_kind": "PortSymbol:type",
-            "text": "hwif_out"
+            "text": "hwif_out",
+            "metadata": {
+              "name": "hwif_out",
+              "aggregate": {
+                "kind": "struct",
+                "fields": [
+                  {
+                    "name": "fields",
+                    "type": {
+                      "kind": "array",
+                      "msb": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 3,
+                          "col": 34,
+                          "end_line": 3,
+                          "end_col": 35
+                        },
+                        "value": 0,
+                        "resolved_width": null
+                      },
+                      "lsb": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 3,
+                          "col": 36,
+                          "end_line": 3,
+                          "end_col": 37
+                        },
+                        "value": 1,
+                        "resolved_width": null
+                      },
+                      "elem": {
+                        "kind": "struct",
+                        "fields": [
+                          {
+                            "name": "value",
+                            "type": {
+                              "kind": "scalar",
+                              "type": {
+                                "kind": "PackedType",
+                                "packed": [
+                                  {
+                                    "msb": {
+                                      "kind": "Int",
+                                      "span": {
+                                        "line": 2,
+                                        "col": 25,
+                                        "end_line": 2,
+                                        "end_col": 26
+                                      },
+                                      "value": 3,
+                                      "resolved_width": null
+                                    },
+                                    "lsb": {
+                                      "kind": "Int",
+                                      "span": {
+                                        "line": 2,
+                                        "col": 27,
+                                        "end_line": 2,
+                                        "end_col": 28
+                                      },
+                                      "value": 0,
+                                      "resolved_width": null
+                                    }
+                                  }
+                                ],
+                                "resolved": 4
+                              },
+                              "signed": false,
+                              "two_state": false
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "dir": "out",
+              "signed": false,
+              "two_state": false
+            }
           }
         ],
         "decls": [],
@@ -255,15 +451,36 @@
                     "end_col": 39
                   },
                   "target": {
-                    "kind": "Ident",
+                    "kind": "AggregateMember",
                     "span": {
                       "line": 6,
                       "col": 5,
                       "end_line": 6,
                       "end_col": 29
                     },
-                    "width": 4,
-                    "name": "hwif_out.fields[0].value"
+                    "base": "hwif_out",
+                    "path": [
+                      {
+                        "field": "fields"
+                      },
+                      {
+                        "index": {
+                          "kind": "Int",
+                          "span": {
+                            "line": 6,
+                            "col": 21,
+                            "end_line": 6,
+                            "end_col": 22
+                          },
+                          "value": 0,
+                          "resolved_width": 32
+                        }
+                      },
+                      {
+                        "field": "value"
+                      }
+                    ],
+                    "width": 4
                   },
                   "value": {
                     "kind": "Repl",
@@ -319,15 +536,36 @@
                     "end_col": 37
                   },
                   "target": {
-                    "kind": "Ident",
+                    "kind": "AggregateMember",
                     "span": {
                       "line": 7,
                       "col": 5,
                       "end_line": 7,
                       "end_col": 29
                     },
-                    "width": 4,
-                    "name": "hwif_out.fields[1].value"
+                    "base": "hwif_out",
+                    "path": [
+                      {
+                        "field": "fields"
+                      },
+                      {
+                        "index": {
+                          "kind": "Int",
+                          "span": {
+                            "line": 7,
+                            "col": 21,
+                            "end_line": 7,
+                            "end_col": 22
+                          },
+                          "value": 1,
+                          "resolved_width": 32
+                        }
+                      },
+                      {
+                        "field": "value"
+                      }
+                    ],
+                    "width": 4
                   },
                   "value": {
                     "kind": "Literal",

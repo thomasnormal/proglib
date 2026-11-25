@@ -25,9 +25,9 @@ def main():
     census = subprocess.run(["python3", "harness/sv/refusal_census.py", "ordinary", str(ENV)],
                             cwd=ROOT, check=True, text=True, stdout=subprocess.PIPE).stdout
     rows = [json.loads(x) for x in census.splitlines()]
-    target = [r for r in rows if r.get("construct") == "PortConnection:target"]
-    if len(target) != 1 or target[0]["function"] != "parsePConn":
-        raise RuntimeError(f"unexpected target census: {rows}")
+    schedule = [r for r in rows if r.get("construct") == "Instantiation:E:unsupported"]
+    if len(schedule) != 1 or "Schedule:preemptive" not in schedule[0]["message"]:
+        raise RuntimeError(f"unexpected ordinary census: {rows}")
     with tempfile.TemporaryDirectory(prefix="sv-port-target-") as work:
         tb = Path(work) / "tb.sv"; tb.write_text(TB)
         p = subprocess.run(["xrun", "-sv", "-q", "-timescale", "1ns/1ps", "-top", "tb",
@@ -37,7 +37,7 @@ def main():
     actual = [line.split()[1:] for line in p.stdout.splitlines() if line.startswith("ROW ")]
     if actual != EXPECTED:
         raise RuntimeError(f"Xcelium: {actual} != {EXPECTED}")
-    print("ordinary census: PortConnection:target / parsePConn / hwif_out")
+    print("ordinary census: Instantiation:E:unsupported / Schedule:preemptive")
     print("Xcelium 24.03-s004: 4 x/z rows MATCH")
     print("Icarus: unsupported unpacked structs; no oracle result claimed")
 
