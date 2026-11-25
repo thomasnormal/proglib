@@ -603,6 +603,17 @@ combinational flat-scope profile. It does not establish soundness for
 per-read `XResolution`, or statement-granular clause 4.7 preemption. Those
 remain separate transport obligations below.
 
+The rank-guarded E-core-0 layer adds a stronger result for its admitted
+equation profile. `WSettles.slot_closes` gives a closed slot and preserves its
+invariant for every process-atomic legal choice, while
+`WSettles.schedule_independent` proves that any two such closed paths have the
+same `Elab.view` when their windows are acyclic, covered, and have a unique
+shaped solution. `Settles.toW` supplies the ordinary one-window-per-process
+special case. These theorems establish observation independence for this
+lowered rank profile. They do not cover arbitrary parser-native designs,
+fine-grained clause 4.7 interleavings, memory footprints, or the
+`CoreMemDesign.step` executor.
+
 ### Frame-lemma audit
 
 The first diamond ingredients are present on the real evaluator. The
