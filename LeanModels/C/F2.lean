@@ -1370,6 +1370,29 @@ theorem pairedTypedStoreLoadMetadataByte_refusal_target_store
     pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte = none := by
   simp [pairedTypedStoreLoadMetadataByte, htarget]
 
+theorem pairedTypedStoreLoadMetadataByte_refusal_source_load
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (sourceStore : AllocationMetadata Tag State TypeId × Footprint)
+    (hstore : typedStoreMetadataByte metadata offset typeId byte = some sourceStore)
+    (hload : typedLoadMetadataByte sourceStore.1 offset typeId = none) :
+    pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte = none := by
+  simp [pairedTypedStoreLoadMetadataByte, hstore, hload]
+
+theorem pairedTypedStoreLoadMetadataByte_refusal_target_load
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (targetStore : AllocationMetadata Tag State TypeId × Footprint)
+    (htarget : typedStoreMetadataByte (renameMetadata resolve id metadata)
+      offset typeId (renameByte resolve byte) = some targetStore)
+    (hload : typedLoadMetadataByte targetStore.1 offset typeId = none) :
+    pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte = none := by
+  simp [pairedTypedStoreLoadMetadataByte, htarget, hload]
+
 theorem pairedTypedStoreLoadMetadataByte_sound
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
