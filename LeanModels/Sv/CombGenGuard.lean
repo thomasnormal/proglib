@@ -585,12 +585,34 @@ theorem opd_eval {E : IEnv} {σ : String → Int} :
   | .squash2 .., _, _, h, _, _, _, _ | .sysCall .., _, _, h, _, _, _, _ | .cast .., _, _, h, _, _, _, _
   | .unsupported .., _, _, h, _, _, _, _ | .functionCall .., _, _, h, _, _, _, _ => by simp [opdAffs?] at h
 
+/-- No expression mentions a name of the empty list: an environment without stale constants (`IEnv.stale = []`)
+refuses no generate condition for staleness. -/
+theorem _root_.LeanModels.Sv.PExpr.mentionsAny_nil (e : PExpr) : e.mentionsAny [] = false := by
+  induction e using PExpr.mentionsAny.induct
+    (motive_2 := fun ps => PExpr.mentionsAnyList [] ps = false) <;>
+    simp_all [PExpr.mentionsAny, PExpr.mentionsAnyList]
+
+/-- A generate condition that mentions no stale constant (`IEnv.stale`) is not refused by `evalGenGuard`'s stale check:
+its value is the typed evaluation (`ctype`, `evalAt`) with the 32-bit fallback. -/
+theorem evalGenGuard_of_not_mentions {E : IEnv} {c : PExpr} (h : c.mentionsAny E.stale = false) :
+    evalGenGuard E c = (match ctype E c with
+      | .ok ty =>
+          match evalAt E ty c with
+          | .ok v => .ok v
+          | .error _ => evalGenGuard32 E c
+      | .error _ => evalGenGuard32 E c) := by
+  unfold evalGenGuard
+  rw [if_neg (by simp [h])]
+  rfl
+
 /-- **The instantiation's value of a generate condition** (`evalGenGuard`): `1` where the guard holds, `0` where it
-does not, when the genvars its operands read are bound in `vals`, the parameters agree, and every subterm of the
-operands is a 32-bit value. -/
+does not, when the genvars its operands read are bound in `vals`, the parameters agree, every subterm of the
+operands is a 32-bit value, and the condition mentions no stale constant (`hst`: `evalGenGuard` refuses a condition that
+reads an overridden untyped parameter, so without it the equation is false). -/
 theorem guard_eval {E : IEnv} {σ : String → Int} {c : PExpr} {g : Guard} (hg : guardOf? c = some g)
     (hgv : ∀ n ∈ c.gvLeaves, E.vals.lookup n = some (σ n)) (hpv : ∀ n ∈ c.pLeaves, E.intVal? n = some (σ n))
-    (hr : ∀ a ∈ g.rngs, -2147483648 ≤ a.eval σ ∧ a.eval σ < 2147483648) (hx : ∀ a ∈ g.rngs, a.XOk σ) :
+    (hr : ∀ a ∈ g.rngs, -2147483648 ≤ a.eval σ ∧ a.eval σ < 2147483648) (hx : ∀ a ∈ g.rngs, a.XOk σ)
+    (hst : c.mentionsAny E.stale = false) :
     evalGenGuard E c = .ok (if g.holds σ then 1 else 0) := by
   cases c with
   | binary op l r =>
@@ -613,28 +635,32 @@ theorem guard_eval {E : IEnv} {σ : String → Int} {c : PExpr} {g : Guard} (hg 
       | slt =>
           simp only [gcmpOf?, Option.some.injEq] at hc
           subst hc
-          simp only [evalGenGuard, ctype, evalAt, SymBinOp.constClass, hcl, hcr]
+          rw [evalGenGuard_of_not_mentions hst]
+          simp only [ctype, evalAt, SymBinOp.constClass, hcl, hcr]
           unfold_param_private
           simp only [hel, her, Gen2.except_ok_bind]
           by_cases h : al.eval σ < ar.eval σ <;> simp [h, hel, her, Gen2.except_ok_bind, Guard.holds, GCmp.holds, convertConst, canonInt] <;> rfl
       | sle =>
           simp only [gcmpOf?, Option.some.injEq] at hc
           subst hc
-          simp only [evalGenGuard, ctype, evalAt, SymBinOp.constClass, hcl, hcr]
+          rw [evalGenGuard_of_not_mentions hst]
+          simp only [ctype, evalAt, SymBinOp.constClass, hcl, hcr]
           unfold_param_private
           simp only [hel, her, Gen2.except_ok_bind]
           by_cases h : al.eval σ ≤ ar.eval σ <;> simp [h, hel, her, Gen2.except_ok_bind, Guard.holds, GCmp.holds, convertConst, canonInt] <;> rfl
       | sgt =>
           simp only [gcmpOf?, Option.some.injEq] at hc
           subst hc
-          simp only [evalGenGuard, ctype, evalAt, SymBinOp.constClass, hcl, hcr]
+          rw [evalGenGuard_of_not_mentions hst]
+          simp only [ctype, evalAt, SymBinOp.constClass, hcl, hcr]
           unfold_param_private
           simp only [hel, her, Gen2.except_ok_bind]
           by_cases h : ar.eval σ < al.eval σ <;> simp [h, hel, her, Gen2.except_ok_bind, Guard.holds, GCmp.holds, convertConst, canonInt] <;> rfl
       | sge =>
           simp only [gcmpOf?, Option.some.injEq] at hc
           subst hc
-          simp only [evalGenGuard, ctype, evalAt, SymBinOp.constClass, hcl, hcr]
+          rw [evalGenGuard_of_not_mentions hst]
+          simp only [ctype, evalAt, SymBinOp.constClass, hcl, hcr]
           unfold_param_private
           simp only [hel, her, Gen2.except_ok_bind]
           by_cases h : ar.eval σ ≤ al.eval σ <;> simp [h, hel, her, Gen2.except_ok_bind, Guard.holds, GCmp.holds, convertConst, canonInt] <;> rfl
@@ -643,14 +669,16 @@ theorem guard_eval {E : IEnv} {σ : String → Int} {c : PExpr} {g : Guard} (hg 
           | eq =>
               simp only [gcmpOf?, Option.some.injEq] at hc
               subst hc
-              simp only [evalGenGuard, ctype, evalAt, SymBinOp.constClass, hcl, hcr]
+              rw [evalGenGuard_of_not_mentions hst]
+              simp only [ctype, evalAt, SymBinOp.constClass, hcl, hcr]
               unfold_param_private
               simp only [hel, her, Gen2.except_ok_bind]
               by_cases h : al.eval σ = ar.eval σ <;> simp [h, hel, her, Gen2.except_ok_bind, Guard.holds, GCmp.holds, convertConst, canonInt] <;> rfl
           | ne =>
               simp only [gcmpOf?, Option.some.injEq] at hc
               subst hc
-              simp only [evalGenGuard, ctype, evalAt, SymBinOp.constClass, hcl, hcr]
+              rw [evalGenGuard_of_not_mentions hst]
+              simp only [ctype, evalAt, SymBinOp.constClass, hcl, hcr]
               unfold_param_private
               simp only [hel, her, Gen2.except_ok_bind]
               by_cases h : al.eval σ = ar.eval σ <;> simp [h, hel, her, Gen2.except_ok_bind, Guard.holds, GCmp.holds, convertConst, canonInt] <;> rfl

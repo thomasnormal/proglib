@@ -2140,6 +2140,7 @@ theorem instantiateHD2_twin {d : PDesign} {lib : List PDesign} {args : List Int}
     {sF : Summary} {envF : IEnv} (hs : dF.summary = .ok sF) (harity : args.length = dF.params.length)
     (h1 : dF.paramEnv2 args = .ok envF)
     (hag : sF.params.map (fun n => envF.intVal? n) = sF.params.map (fun n => some (sF.val args n)))
+    (hst : envF.stale = [])
     (hok : sF.StructOk) (hauto : sF.AutoObl (sF.val args) args) (hin : sF.InRangeObl (sF.val args))
     (hdisj : sF.DisjObl (sF.val args)) (hfrag : sF.EqFrag) (hwid : sF.WidthObl (sF.val args))
     {dsP : List DeclT} (hdsP : declsOf? d.decls = .ok dsP) (hck : HierOk d dsP pl sF)
@@ -2171,7 +2172,7 @@ theorem instantiateHD2_twin {d : PDesign} {lib : List PDesign} {args : List Int}
   have CF := ctx_of_env hsd (paramEnv2_dims h1) hagF hdeclF
   have hMF := PDesign.instantiate2_of_ok (F := PDesign.surfaceFuel args) harity h1 h2F h3F (gens := [])
     (by show expandList2 _ _ _ [] = _; exact expandList2_nil)
-  obtain ⟨M', hM', hR⟩ := Summary.sound hs harity h1 hagF hok hauto hin
+  obtain ⟨M', hM', hR⟩ := Summary.sound hs harity h1 hagF hst hok hauto hin
   rw [hMF] at hM'
   obtain rfl := Res.ok.inj hM'
   obtain ⟨hcMF, hposMF⟩ := realized_comb hR hok hauto hin hdisj
@@ -2385,6 +2386,7 @@ theorem instantiateHDAlias2_twin {d : PDesign} {lib : List PDesign} {args : List
     {sF : Summary} {envF : IEnv} (hs : dF.summary = .ok sF) (harity : args.length = dF.params.length)
     (h1 : dF.paramEnv2 args = .ok envF)
     (hag : sF.params.map (fun n => envF.intVal? n) = sF.params.map (fun n => some (sF.val args n)))
+    (hst : envF.stale = [])
     (hok : sF.StructOk) (hauto : sF.AutoObl (sF.val args) args) (hin : sF.InRangeObl (sF.val args))
     (hdisj : sF.DisjObl (sF.val args)) (hfrag : sF.EqFrag) (hwid : sF.WidthObl (sF.val args))
     {dsP : List DeclT} (hdsP : declsOf? d.decls = .ok dsP) (hck : HierOk d dsP pl sF)
@@ -2394,9 +2396,9 @@ theorem instantiateHDAlias2_twin {d : PDesign} {lib : List PDesign} {args : List
     (hch : AllChildEnvOk (sF.val args) (envP.withDecls (dsP.map (DeclT.toDecl (sF.val args)))) pl) :
     d.instantiateHDAlias2 lib args = dF.instantiateGD2 args := by
   unfold PDesign.instantiateHDAlias2
-  rw [instantiateHD2_twin htw hs harity h1 hag hok hauto hin hdisj hfrag hwid hdsP hck h1P hagP hch]
+  rw [instantiateHD2_twin htw hs harity h1 hag hst hok hauto hin hdisj hfrag hwid hdsP hck h1P hagP hch]
   apply Design2.aliasGuard_of_noComb
-  have hc := comb_of_summary hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj
+  have hc := comb_of_summary hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj
   intro p hp b hb
   obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hp
   obtain ⟨t, e, ws, hpe, -⟩ := hc.assign i p (by rw [← Array.getElem?_toList]; exact hi)

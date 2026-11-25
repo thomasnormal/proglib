@@ -485,12 +485,12 @@ theorem pairs_descL {s : Summary} {args : List Int} {σ : String → Int} {envD 
 /-! ## The finite family expansion over `SpecOkP` -/
 
 theorem fams_expand2P {s : Summary} {σ : String → Int} {env : IEnv} {elems : List (String × Nat)}
-    {F : Nat} (hag : Agrees σ env s.params) (hok : s.StructOk) (hspec : s.SpecOkP)
+    {F : Nat} (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk) (hspec : s.SpecOkP)
     (hfuel : s.FuelOk σ F) :
     ∀ (fs : List TFam), (∀ f ∈ fs, f ∈ s.fams) →
       expandList2 env elems F (fs.map TFam.toGen) =
         .ok (fs.flatMap fun f => TFam.enum (procB elems) σ env f) :=
-  fams_expand2W hag hok (fun f hf => (hspec f hf).1) hfuel
+  fams_expand2W hag hst hok (fun f hf => (hspec f hf).1) hfuel
 
 /-! ## `Summary.soundL` -/
 
@@ -500,7 +500,7 @@ the lowered sense: its declarations are the summary's and its processes are the 
 with an assign (an old site as instantiated, a proc site as `assign {W} = {E}`). -/
 theorem Summary.soundL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hwithin : s.DisjWithin σ) (hself : s.NoSelfRead σ) :
     ∃ (m d' : Design2) (E : IEnv) (elems : List (String × Nat)),
       d.instantiate2 args (PDesign.surfaceFuel args) = .ok m ∧ m.lowerComb = some d' ∧
@@ -515,7 +515,7 @@ theorem Summary.soundL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {ar
   obtain ⟨hproc, hsites0⟩ := sitesOfP?_spec hsts
   have hsites := lsitesP_spec hsites0 hspec
   obtain ⟨C, M, hMi, hMd, hMp⟩ :=
-    sound_prefix harity h1 hag hok hauto hoth hsd hproc hgen (fun f hf => (hspec f hf).1)
+    sound_prefix harity h1 hag hst hok hauto hoth hsd hproc hgen (fun f hf => (hspec f hf).1)
   have hC := pairs_descL hMd C hok hauto hin hwithin hself hsites
   obtain ⟨E0, hE0⟩ : ∃ E0, E0 = env.withDecls (s.decls.map (DeclT.toDecl σ)) := ⟨_, rfl⟩
   obtain ⟨el0, hel0⟩ : ∃ el0, el0 = s.decls.map (fun dt => (dt.name, dt.elemW σ)) := ⟨_, rfl⟩
@@ -783,10 +783,10 @@ theorem PDesign.instantiateGD2_of_lowered {d : PDesign} {args : List Int} {M d' 
 /-- **`∃ d', (name.sem N).lowerComb = some d' ∧ CombDesign d'`** from the summary and the obligations. -/
 theorem comb_of_summaryL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hdisj : s.DisjObl σ) (hself : s.NoSelfRead σ) :
     ∃ d', (d.instantiateGD2 args).lowerComb = some d' ∧ CombDesign d' := by
-  obtain ⟨m, d', -, -, hm, hl, hdm, hdd, hrel, hR, -⟩ := Summary.soundL hs harity h1 hag hok hauto hin hdisj.within_all hself
+  obtain ⟨m, d', -, -, hm, hl, hdm, hdd, hrel, hR, -⟩ := Summary.soundL hs harity h1 hag hst hok hauto hin hdisj.within_all hself
   obtain ⟨hc, hpos⟩ := realizedL_comb hR hok hauto hin hdisj
   rw [PDesign.instantiateGD2_of_lowered hm hdd hc hpos hrel]
   exact ⟨d', hl, hc⟩
@@ -794,12 +794,12 @@ theorem comb_of_summaryL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {
 /-- **`∃ d', (name.sem N).lowerComb = some d' ∧ CombDesign d' ∧ Acyclic d'`** from a `Nat`-valued rank. -/
 theorem struct_of_summaryL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hdisj : s.DisjObl σ) (hself : s.NoSelfRead σ)
     {R : SiteId → SiteId → Prop} (hr : s.RankObl' R σ)
     (hrank : ∀ L : List SiteId, ∃ rk : SiteId → Nat, ∀ a ∈ L, ∀ b ∈ L, R b a → rk b < rk a) :
     ∃ d', (d.instantiateGD2 args).lowerComb = some d' ∧ CombDesign d' ∧ Acyclic d' := by
-  obtain ⟨m, d', -, -, hm, hl, hdm, hdd, hrel, hR, -⟩ := Summary.soundL hs harity h1 hag hok hauto hin hdisj.within_all hself
+  obtain ⟨m, d', -, -, hm, hl, hdm, hdd, hrel, hR, -⟩ := Summary.soundL hs harity h1 hag hst hok hauto hin hdisj.within_all hself
   obtain ⟨hc, hpos⟩ := realizedL_comb hR hok hauto hin hdisj
   rw [PDesign.instantiateGD2_of_lowered hm hdd hc hpos hrel]
   exact ⟨d', hl, hc, realizedL_acyclic hR hok hauto hin hr hrank⟩
@@ -807,21 +807,21 @@ theorem struct_of_summaryL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s)
 /-- … with a `Nat`-valued rank over site identities. -/
 theorem struct_of_rankL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hdisj : s.DisjObl σ) (hself : s.NoSelfRead σ)
     {ρ : SiteId → Nat} (hrank : s.RankObl ρ σ) :
     ∃ d', (d.instantiateGD2 args).lowerComb = some d' ∧ CombDesign d' ∧ Acyclic d' :=
-  struct_of_summaryL hs harity h1 hag hok hauto hin hdisj hself hrank
+  struct_of_summaryL hs harity h1 hag hst hok hauto hin hdisj hself hrank
     (fun _ => ⟨ρ, fun _ _ _ _ h => h⟩)
 
 /-- … with a LEXICOGRAPHIC key. -/
 theorem struct_of_lexL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hdisj : s.DisjObl σ) (hself : s.NoSelfRead σ)
     {κ : SiteId → Key} (hrank : s.LexObl κ σ) :
     ∃ d', (d.instantiateGD2 args).lowerComb = some d' ∧ CombDesign d' ∧ Acyclic d' :=
-  struct_of_summaryL hs harity h1 hag hok hauto hin hdisj hself hrank
+  struct_of_summaryL hs harity h1 hag hst hok hauto hin hdisj hself hrank
     (fun L => ⟨countRank L κ, fun _ _ _ hb h => countRank_lt L κ hb h⟩)
 
 /-! ## The forms the tactic uses (valuation `s.val args`, environment check in a `rfl`-provable form) -/
@@ -831,35 +831,38 @@ theorem comb_viewL {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (hself : s.NoSelfRead (s.val args)) :
     ∃ d', (d.instantiateGD2 args).lowerComb = some d' ∧ CombDesign d' :=
-  comb_of_summaryL hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj hself
+  comb_of_summaryL hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj hself
 
 theorem struct_viewL {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (hs : d.summaryP = .ok s) (harity : args.length = d.params.length)
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (hself : s.NoSelfRead (s.val args))
     (ρ : SiteId → Nat) (hrank : s.RankObl ρ (s.val args)) :
     ∃ d', (d.instantiateGD2 args).lowerComb = some d' ∧ CombDesign d' ∧ Acyclic d' :=
-  struct_of_rankL hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj hself hrank
+  struct_of_rankL hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj hself hrank
 
 theorem struct_lex_viewL {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (hs : d.summaryP = .ok s) (harity : args.length = d.params.length)
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (hself : s.NoSelfRead (s.val args))
     (κ : SiteId → Key) (hrank : s.LexObl κ (s.val args)) :
     ∃ d', (d.instantiateGD2 args).lowerComb = some d' ∧ CombDesign d' ∧ Acyclic d' :=
-  struct_of_lexL hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj hself hrank
+  struct_of_lexL hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj hself hrank
 
 /-! ## Axiom pins (standard axioms only) -/
 

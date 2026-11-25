@@ -713,12 +713,12 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
         if aliasNames then
           evalTactic (← `(tactic|
             refine LeanModels.Sv.CombView.comb_viewLA (d := $pdT) (args := $argsT) (s := ?s) (env := ?env)
-              (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hauto := ?hauto)
+              (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto)
               (hin := ?hin) (hdisj := ?hdisj) (hself := ?hself) (halias := ?halias)))
         else
           evalTactic (← `(tactic|
             refine LeanModels.Sv.CombView.comb_viewL (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity)
-              (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj)
+              (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj)
               (hself := ?hself)))
       else if lexE?.isSome then
         let r ← match lexStx? with
@@ -728,12 +728,12 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
         if aliasNames then
           evalTactic (← `(tactic|
             refine LeanModels.Sv.CombView.struct_lex_viewLA (d := $pdT) (args := $argsT) (s := ?s) (env := ?env)
-              (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hauto := ?hauto)
+              (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto)
               (hin := ?hin) (hdisj := ?hdisj) (hself := ?hself) (halias := ?halias) (κ := $rT) (hrank := ?hrank)))
         else
           evalTactic (← `(tactic|
             refine LeanModels.Sv.CombView.struct_lex_viewL (s := ?s) (env := ?env) (hs := ?hs)
-              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin)
+              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin)
               (hdisj := ?hdisj) (hself := ?hself) (κ := $rT) (hrank := ?hrank)))
       else
         let r ← match rankStx? with
@@ -743,12 +743,12 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
         if aliasNames then
           evalTactic (← `(tactic|
             refine LeanModels.Sv.CombView.struct_viewLA (d := $pdT) (args := $argsT) (s := ?s) (env := ?env)
-              (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hauto := ?hauto)
+              (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto)
               (hin := ?hin) (hdisj := ?hdisj) (hself := ?hself) (halias := ?halias) (ρ := $rT) (hrank := ?hrank)))
         else
           evalTactic (← `(tactic|
             refine LeanModels.Sv.CombView.struct_viewL (s := ?s) (env := ?env) (hs := ?hs)
-              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin)
+              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin)
               (hdisj := ?hdisj) (hself := ?hself) (ρ := $rT) (hrank := ?hrank)))
       let goals ← getGoals
       let find (n : Name) : TacticM MVarId := do
@@ -775,6 +775,9 @@ unsafe def runSvStructureL (rankStx? lexStx? : Option Syntax) (hintOnly : Bool) 
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
       closeParamEnv "sv_structure" (← find `h1) (lift := s.hasCond) (comp := true)
       closeHag "sv_structure" (← find `hag) s args
+      closeWith `hst ("the instantiation environment holds a stale constant (`IEnv.stale`: an overridden " ++
+        "untyped parameter, or a localparam defined from one), where no generate condition can be read")
+        (← `(tactic| rfl))
       closeDecide `hok "the structural check failed"
       if aliasNames then closeDecide `halias "the alias name check (`Summary.aliasOk`) failed"
       let mut out : Array MVarId := #[]
@@ -1139,19 +1142,19 @@ unsafe def runSvEquationsL (hintOnly : Bool) : TacticM Unit := do
       if multi then
         evalTactic (← `(tactic|
           have $keyI:ident := LeanModels.Sv.CombEq.eq_viewLM (s := ?s) (env := ?env) (hs := ?hs)
-              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hauto := ?hauto)
+              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto)
               (hin := ?hin) (hwithin := ?hwithin) (hself := ?hself) (hfrag := ?hfrag) (hwid := ?hwid)
               (hbit := ?hbit) (hcov := ?hcov) (hinK := ?hinK) (hl := $hlI) (hc := $hcI) (ha := $haI)
               (heqs := $heqsI) (hsh := $hshI)))
       else
         evalTactic (← `(tactic|
           have $keyI:ident := LeanModels.Sv.CombEq.eq_viewL (s := ?s) (env := ?env) (hs := ?hs)
-              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hauto := ?hauto)
+              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto)
               (hin := ?hin) (hself := ?hself) (hfrag := ?hfrag) (hwid := ?hwid) (hbit := ?hbit)
               (hcov := ?hcov) (hinK := ?hinK) (hl := $hlI) (hc := $hcI) (ha := $haI)
               (heqs := $heqsI) (hsh := $hshI)))
       let goals ← getGoals
-      let named : List Name := [`s, `env, `hs, `harity, `h1, `hag, `hok, `hauto, `hin, `hself,
+      let named : List Name := [`s, `env, `hs, `harity, `h1, `hag, `hst, `hok, `hauto, `hin, `hself,
         `hfrag, `hwid, `hbit, `hcov, `hinK] ++ (if multi then [`hwithin] else [])
       let mut bodyGoal? : Option MVarId := none
       for g in goals do
@@ -1183,6 +1186,9 @@ unsafe def runSvEquationsL (hintOnly : Bool) : TacticM Unit := do
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
       closeParamEnv "sv_equations" (← find `h1) (lift := s.hasCond) (comp := true)
       closeHag "sv_equations" (← find `hag) s args
+      closeWith `hst ("the instantiation environment holds a stale constant (`IEnv.stale`: an overridden " ++
+        "untyped parameter, or a localparam defined from one), where no generate condition can be read")
+        (← `(tactic| rfl))
       closeDecide `hok "the structural check failed"
       closeDecide `hfrag "a right-hand side is outside the fragment of `sv_equations` (an expression over accesses and known literals built from `& | ^`, `~ !`, the reductions, `&& ||`, `== !=` and `?:`, a concatenation of accesses and known literals, or a fill `'0`/`'1`; in an `always_comb`, the same at every leaf and a one-bit such expression as the condition)"
       let mut out : Array MVarId := #[]

@@ -3125,7 +3125,7 @@ def signedWrap (pd args : Lean.Expr) (tm : TSyntax `term) : TacticM (TSyntax `te
   let pdT ← Term.exprToSyntax pd
   let argsT ← Term.exprToSyntax args
   `(Eq.mpr (congrArg $motiveT (LeanModels.Sv.CombEq.instantiateGD2_unsign_view (d := $pdT) (args := $argsT)
-      (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok)
+      (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok)
       (hauto := ?hauto) (hin := ?hin) (hfrag := ?hfrag) (hwid := ?hwid) (hbit := ?hbit))) $tm)
 
 
@@ -3400,7 +3400,7 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
         let thm := mkIdent (if isCombShared then ``LeanModels.Sv.CombView.comb_shared_view
           else ``LeanModels.Sv.CombView.comb_view)
         evalTactic (← `(tactic| refine $(← wrapT (← `($thm:ident (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1)
-            (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj))))))
+            (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj))))))
       else if isBoth then
         if lexE?.isSome then
           let r ← match lexStx? with
@@ -3410,7 +3410,7 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
           let thm := mkIdent (if isShared then ``LeanModels.Sv.CombView.comb_lex_shared_view
             else ``LeanModels.Sv.CombView.comb_lex_view)
           evalTactic (← `(tactic| refine $(← wrapT (← `($thm:ident (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1)
-              (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj)
+              (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj)
               (κ := $rT) (hrank := ?hrank))))))
         else
           let r ← match rankStx? with
@@ -3420,7 +3420,7 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
           let thm := mkIdent (if isShared then ``LeanModels.Sv.CombView.comb_acyclic_shared_view
             else ``LeanModels.Sv.CombView.comb_acyclic_view)
           evalTactic (← `(tactic| refine $(← wrapT (← `($thm:ident (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1)
-              (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj)
+              (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj)
               (ρ := $rT) (hrank := ?hrank))))))
       else if lexE?.isSome then
         let r ← match lexStx? with
@@ -3430,12 +3430,12 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
         match usingStx? with
         | none =>
           evalTactic (← `(tactic| refine $(← wrapT (← `(LeanModels.Sv.CombView.lex_view (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1)
-              (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj)
+              (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj)
               (κ := $rT) (hrank := ?hrank))))))
         | some u =>
           let uT : TSyntax `term := ⟨u⟩
           evalTactic (← `(tactic| refine $(← wrapT (← `(LeanModels.Sv.CombView.lex_view_using (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1)
-              (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hc := $uT)
+              (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hc := $uT)
               (κ := $rT) (hrank := ?hrank))))))
       else
         let r ← match rankStx? with
@@ -3445,12 +3445,12 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
         match usingStx? with
         | none =>
           evalTactic (← `(tactic| refine $(← wrapT (← `(LeanModels.Sv.CombView.acyclic_view (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1)
-              (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj)
+              (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj)
               (ρ := $rT) (hrank := ?hrank))))))
         | some u =>
           let uT : TSyntax `term := ⟨u⟩
           evalTactic (← `(tactic| refine $(← wrapT (← `(LeanModels.Sv.CombView.acyclic_view_using (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1)
-              (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hc := $uT)
+              (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hc := $uT)
               (ρ := $rT) (hrank := ?hrank))))))
       -- name the new goals, close the structural hypotheses, keep the obligations
       let goals ← getGoals
@@ -3480,6 +3480,9 @@ unsafe def runSvStructure (rankStx? lexStx? usingStx? : Option Syntax) (hintOnly
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
       closeParamEnv "sv_structure" (← find `h1) (lift := s.hasCond) (comp := true)
       closeHag "sv_structure" (← find `hag) s args
+      closeWith `hst ("the instantiation environment holds a stale constant (`IEnv.stale`: an overridden " ++
+        "untyped parameter, or a localparam defined from one), where no generate condition can be read")
+        (← `(tactic| rfl))
       closeDecide `hok "the structural check failed"
       let mut out : Array MVarId := #[]
       let ranged := sv_comb.rank_ranged.get (← getOptions)

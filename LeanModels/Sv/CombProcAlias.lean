@@ -787,19 +787,19 @@ end admits
 the summary's obligations hold and the names pass `Summary.aliasOk`. -/
 theorem Summary.aliasGuard_eq {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hdisj : s.DisjObl σ) (hself : s.NoSelfRead σ)
     (halias : s.aliasOk = true) :
     d.instantiateGDAlias2 args = d.instantiateGD2 args := by
   obtain ⟨m, d', -, -, hm, hl, hdm, hdd, hrel, hR, -⟩ :=
-    Summary.soundL hs harity h1 hag hok hauto hin hdisj.within_all hself
+    Summary.soundL hs harity h1 hag hst hok hauto hin hdisj.within_all hself
   obtain ⟨hc, hpos⟩ := realizedL_comb hR hok hauto hin hdisj
   have hGD : d.instantiateGD2 args = m := PDesign.instantiateGD2_of_lowered hm hdd hc hpos hrel
   obtain ⟨-, -, hoth, -, hsd, hsts, hgen, hspec⟩ := summaryP_spec hs
   obtain ⟨hproc, hsites0⟩ := sitesOfP?_spec hsts
   have hsites := lsitesP_spec hsites0 hspec
   obtain ⟨C, M, hMi, hMd, hMp⟩ :=
-    sound_prefix harity h1 hag hok hauto hoth hsd hproc hgen (fun f hf => (hspec f hf).1)
+    sound_prefix harity h1 hag hst hok hauto hoth hsd hproc hgen (fun f hf => (hspec f hf).1)
   have hmM : m = M := by
     rw [hm] at hMi
     injection hMi
@@ -816,38 +816,41 @@ theorem comb_viewLA {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (hself : s.NoSelfRead (s.val args)) (halias : s.aliasOk = true) :
     ∃ d', (d.instantiateGDAlias2 args).lowerComb = some d' ∧ CombDesign d' := by
-  rw [Summary.aliasGuard_eq hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj hself halias]
-  exact comb_viewL hs harity h1 hag hok hauto hin hdisj hself
+  rw [Summary.aliasGuard_eq hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj hself halias]
+  exact comb_viewL hs harity h1 hag hst hok hauto hin hdisj hself
 
 theorem struct_viewLA {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (hs : d.summaryP = .ok s) (harity : args.length = d.params.length)
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (hself : s.NoSelfRead (s.val args)) (halias : s.aliasOk = true)
     (ρ : SiteId → Nat) (hrank : s.RankObl ρ (s.val args)) :
     ∃ d', (d.instantiateGDAlias2 args).lowerComb = some d' ∧ CombDesign d' ∧ Acyclic d' := by
-  rw [Summary.aliasGuard_eq hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj hself halias]
-  exact struct_viewL hs harity h1 hag hok hauto hin hdisj hself ρ hrank
+  rw [Summary.aliasGuard_eq hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj hself halias]
+  exact struct_viewL hs harity h1 hag hst hok hauto hin hdisj hself ρ hrank
 
 theorem struct_lex_viewLA {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (hs : d.summaryP = .ok s) (harity : args.length = d.params.length)
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (hself : s.NoSelfRead (s.val args)) (halias : s.aliasOk = true)
     (κ : SiteId → Key) (hrank : s.LexObl κ (s.val args)) :
     ∃ d', (d.instantiateGDAlias2 args).lowerComb = some d' ∧ CombDesign d' ∧ Acyclic d' := by
-  rw [Summary.aliasGuard_eq hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj hself halias]
-  exact struct_lex_viewL hs harity h1 hag hok hauto hin hdisj hself κ hrank
+  rw [Summary.aliasGuard_eq hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj hself halias]
+  exact struct_lex_viewL hs harity h1 hag hst hok hauto hin hdisj hself κ hrank
 
 /-! ## Axiom pins (standard axioms only) -/
 

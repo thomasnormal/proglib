@@ -224,7 +224,7 @@ open CombView
 `Summary.pairs`, and the instantiation context is the summary's. -/
 theorem sound_pairs {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) :
     ∃ (m : Design2) (E : IEnv) (elems : List (String × Nat)),
       d.instantiate2 args (PDesign.surfaceFuel args) = .ok m ∧
@@ -253,7 +253,7 @@ theorem sound_pairs {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args :
         (env.withDecls (s.decls.map (DeclT.toDecl σ))) f) := by
     rw [hgen]
     exact fams_expand2 (env := env.withDecls (s.decls.map (DeclT.toDecl σ)))
-      (elems := s.decls.map fun dt => (dt.name, dt.elemW σ)) hag hok hspec hfuel
+      (elems := s.decls.map fun dt => (dt.name, dt.elemW σ)) hag hst hok hspec hfuel
       s.fams (fun f hf => hf)
   refine ⟨_, env.withDecls (s.decls.map (DeclT.toDecl σ)),
     s.decls.map fun dt => (dt.name, dt.elemW σ), PDesign.instantiate2_of_ok harity h1 h2 h3 h4,
@@ -358,7 +358,7 @@ theorem mem_declNames_of_input {s : Summary} {n : String} (h : n ∈ s.inputName
 (`EqFragV`, at their own width 32: `PwObl`). -/
 theorem eq_of_summaryV {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ)
     (hfrag : s.EqFragV) (hpw : s.PwObl env) (hwid : s.WidthObl σ) (hbit : s.BitReadObl σ) (hcov : s.CoverObl σ)
     {st : SvState} (hinK : s.InKnown σ st)
@@ -366,7 +366,7 @@ theorem eq_of_summaryV {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {arg
     (heqs : CombEqs (d.instantiateGD2 args) st) (hsh : StateShape (d.instantiateGD2 args) st) :
     s.Eqs σ st ∧ s.Knowns σ st := by
   obtain ⟨m, E, elems, hm, hdecl, hproc, C, hdesc, hsites, hEpw, hEnv⟩ :=
-    sound_pairs hs harity h1 hag hok hauto hin
+    sound_pairs hs harity h1 hag hst hok hauto hin
   have hGD := instantiateGD2_eq_of_comb hm hc
   rw [hGD] at hc ha heqs hsh
   have hik : m.InputsKnown st := by
@@ -570,14 +570,14 @@ theorem eq_of_summaryV {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {arg
 /-- **The equations and knownness of a design `X.sem N` of the fragment.** -/
 theorem eq_of_summary {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ)
     (hfrag : s.EqFrag) (hwid : s.WidthObl σ) (hbit : s.BitReadObl σ) (hcov : s.CoverObl σ)
     {st : SvState} (hinK : s.InKnown σ st)
     (hc : CombDesign (d.instantiateGD2 args)) (ha : Acyclic (d.instantiateGD2 args))
     (heqs : CombEqs (d.instantiateGD2 args) st) (hsh : StateShape (d.instantiateGD2 args) st) :
     s.Eqs σ st ∧ s.Knowns σ st :=
-  eq_of_summaryV hs harity h1 hag hok hauto hin (CombView.Summary.EqFragV_of_EqFrag s hfrag) (CombView.Summary.PwObl_of_EqFrag s hfrag) hwid hbit
+  eq_of_summaryV hs harity h1 hag hst hok hauto hin (CombView.Summary.EqFragV_of_EqFrag s hfrag) (CombView.Summary.PwObl_of_EqFrag s hfrag) hwid hbit
     hcov hinK hc ha heqs hsh
 
 /-- The tactic's form: the valuation is the parameters zipped with the arguments, then the
@@ -587,6 +587,7 @@ theorem eq_view {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args))
     (hfrag : s.EqFrag) (hwid : s.WidthObl (s.val args))
@@ -595,7 +596,7 @@ theorem eq_view {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (hc : CombDesign (d.instantiateGD2 args)) (ha : Acyclic (d.instantiateGD2 args))
     (heqs : CombEqs (d.instantiateGD2 args) st) (hsh : StateShape (d.instantiateGD2 args) st) :
     s.Eqs (s.val args) st ∧ s.Knowns (s.val args) st :=
-  eq_of_summary hs harity h1 (Agrees_of_map hag) hok hauto hin hfrag hwid hbit hcov hinK hc ha
+  eq_of_summary hs harity h1 (Agrees_of_map hag) hst hok hauto hin hfrag hwid hbit hcov hinK hc ha
     heqs hsh
 
 /-- `eq_view` with constants read as values (`EqFragV`, `PwObl`). -/
@@ -604,6 +605,7 @@ theorem eq_viewV {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args))
     (hfrag : s.EqFragV) (hpw : s.PwObl env) (hwid : s.WidthObl (s.val args))
@@ -612,7 +614,7 @@ theorem eq_viewV {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (hc : CombDesign (d.instantiateGD2 args)) (ha : Acyclic (d.instantiateGD2 args))
     (heqs : CombEqs (d.instantiateGD2 args) st) (hsh : StateShape (d.instantiateGD2 args) st) :
     s.Eqs (s.val args) st ∧ s.Knowns (s.val args) st :=
-  eq_of_summaryV hs harity h1 (Agrees_of_map hag) hok hauto hin hfrag hpw hwid hbit hcov hinK hc ha
+  eq_of_summaryV hs harity h1 (Agrees_of_map hag) hst hok hauto hin hfrag hpw hwid hbit hcov hinK hc ha
     heqs hsh
 
 /-- An input port holding `ofBitVec x` is known, at the width `W = w` the obligation names. -/

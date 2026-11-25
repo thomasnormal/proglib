@@ -148,7 +148,7 @@ unsafe def runSvExhaustive : TacticM Unit := withDeepRec do
       rw [Summary.InKnown, show Summary.inputNames $S = $(← lit (toString (repr s.inputNames))) from rfl]
       simp only [List.forall_mem_cons, List.mem_nil_iff, false_implies, implies_true, and_true]; exact $hinKs
     have key := $(← if proc then `(LeanModels.Sv.CombEq.eq_viewL (s := $S) (args := []) (hs := rfl) (harity := rfl)
-      (h1 := rfl) (hag := rfl) (hok := by sv_decide) (hfrag := by sv_decide)
+      (h1 := rfl) (hag := rfl) (hst := rfl) (hok := by sv_decide) (hfrag := by sv_decide)
       (hauto := Summary.autoObl_of_plain _ _ _ (by sv_decide) (by sv_decide) (by sv_decide))
       (hin := Summary.inRangeObl_of_plain _ _ (by sv_decide) (by sv_decide))
       (hself := noSelfRead_of_plain (by sv_decide) (by sv_decide) (by sv_decide))
@@ -157,7 +157,7 @@ unsafe def runSvExhaustive : TacticM Unit := withDeepRec do
       (hcov := Summary.coverObl_of_plain _ _ (by sv_decide) (by sv_decide)) (hinK := hinK)
       (Eq.mp (congrArg (fun x => LeanModels.Sv.Design2.lowerComb x = some d') hA) hl) hc ha heqs hs)
       else `(eqsL_of_eqs (by sv_decide) (LeanModels.Sv.CombEq.eq_view (s := $S) (args := []) (hs := rfl)
-      (harity := rfl) (h1 := rfl) (hag := rfl) (hok := by sv_decide) (hfrag := by sv_decide)
+      (harity := rfl) (h1 := rfl) (hag := rfl) (hst := rfl) (hok := by sv_decide) (hfrag := by sv_decide)
       (hauto := Summary.autoObl_of_plain _ _ _ (by sv_decide) (by sv_decide) (by sv_decide))
       (hin := Summary.inRangeObl_of_plain _ _ (by sv_decide) (by sv_decide))
       (hwid := Summary.widthObl_of_plain _ _ (by sv_decide) (by sv_decide))

@@ -628,7 +628,7 @@ obligations of `sv_equations` that concern instantiation (the parameter stage, t
 fragment, width and bit-read obligations). -/
 theorem instantiate2_unsign {d : PDesign} {s : Summary} (hs : d.unsign.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ)
     (hfrag : s.EqFrag) (hwid : s.WidthObl σ) (hbit : s.BitReadObl σ) :
     d.instantiate2 args (PDesign.surfaceFuel args) = d.unsign.instantiate2 args (PDesign.surfaceFuel args) := by
@@ -638,7 +638,7 @@ theorem instantiate2_unsign {d : PDesign} {s : Summary} (hs : d.unsign.summary =
   have hsites := lsites_spec hsites0 hspec
   have h1u : d.unsign.paramEnv2 args = .ok env := h1
   obtain ⟨C, M, hM, hMd, hMp⟩ :=
-    sound_prefix (d := d.unsign) harity h1u hag hok hauto hoth hsd hproc hgen (fun f hf => (hspec f hf).1)
+    sound_prefix (d := d.unsign) harity h1u hag hst hok hauto hoth hsd hproc hgen (fun f hf => (hspec f hf).1)
   -- the design as written
   obtain ⟨s', hs', hrel⟩ := summaryG_unsign hs
   obtain ⟨-, -, hoth', -, hsd', hsts', hgen', hspec'⟩ := summaryG_spec siteOfU? siteOfU?_proc hs'
@@ -647,7 +647,7 @@ theorem instantiate2_unsign {d : PDesign} {s : Summary} (hs : d.unsign.summary =
   have hok' := Summary.structOk_of_mapProcs hok
   have hauto' := Summary.autoObl_of_mapProcs hauto
   obtain ⟨-, M', hM', hM'd, hM'p⟩ :=
-    sound_prefix (d := d) (s := s') harity h1 hag hok' hauto' hoth' hsd' hproc' hgen'
+    sound_prefix (d := d) (s := s') harity h1 hag hst hok' hauto' hoth' hsd' hproc' hgen'
       (fun f hf => (hspec' f hf).1)
   rw [hM, hM']
   congr 1
@@ -686,11 +686,11 @@ theorem instantiate2_unsign {d : PDesign} {s : Summary} (hs : d.unsign.summary =
 /-- **`instantiate2_unsign` at the comb family** `X.sem`'s unguarded twin (`PDesign.instantiateGD2`). -/
 theorem instantiateGD2_unsign {d : PDesign} {s : Summary} (hs : d.unsign.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ)
     (hfrag : s.EqFrag) (hwid : s.WidthObl σ) (hbit : s.BitReadObl σ) :
     d.instantiateGD2 args = d.unsign.instantiateGD2 args := by
-  have h := instantiate2_unsign hs harity h1 hag hok hauto hin hfrag hwid hbit
+  have h := instantiate2_unsign hs harity h1 hag hst hok hauto hin hfrag hwid hbit
   unfold PDesign.instantiateGD2 PDesign.instantiateG2 PDesign.driverGuard
   rw [h]
   rfl
@@ -702,10 +702,11 @@ theorem instantiateGD2_unsign_view {d : PDesign} {s : Summary} {args : List Int}
     (hs : d.unsign.summary = .ok s) (harity : args.length = d.unsign.params.length)
     (h1 : d.unsign.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) = s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args) (hin : s.InRangeObl (s.val args))
     (hfrag : s.EqFrag) (hwid : s.WidthObl (s.val args)) (hbit : s.BitReadObl (s.val args)) :
     d.instantiateGD2 args = d.unsign.instantiateGD2 args :=
-  instantiateGD2_unsign hs harity h1 (Agrees_of_map hag) hok hauto hin hfrag hwid hbit
+  instantiateGD2_unsign hs harity h1 (Agrees_of_map hag) hst hok hauto hin hfrag hwid hbit
 
 /-! ## The declarations of a design with signed reads (`sv_interface`)
 

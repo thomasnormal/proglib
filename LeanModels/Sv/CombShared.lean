@@ -55,11 +55,12 @@ theorem comb_acyclic_shared_view {d : PDesign} {s : Summary} {args : List Int} {
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (ρ : SiteId → Nat) (hrank : s.RankObl ρ (s.val args)) :
     CombDesign (d.instantiateGD2 args) ∧ Acyclic (d.instantiateGD2 args) ∧ SharedObl d args :=
-  let h := comb_acyclic_view hs harity h1 hag hok hauto hin hdisj ρ hrank
+  let h := comb_acyclic_view hs harity h1 hag hst hok hauto hin hdisj ρ hrank
   ⟨h.1, h.2, sharedObl_of hs hauto hin⟩
 
 /-- … with a lexicographic key. -/
@@ -68,11 +69,12 @@ theorem comb_lex_shared_view {d : PDesign} {s : Summary} {args : List Int} {env 
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (κ : SiteId → Key) (hrank : s.LexObl κ (s.val args)) :
     CombDesign (d.instantiateGD2 args) ∧ Acyclic (d.instantiateGD2 args) ∧ SharedObl d args :=
-  let h := comb_lex_view hs harity h1 hag hok hauto hin hdisj κ hrank
+  let h := comb_lex_view hs harity h1 hag hst hok hauto hin hdisj κ hrank
   ⟨h.1, h.2, sharedObl_of hs hauto hin⟩
 
 /-- `comb_view`, and the shared obligations packaged (`sv_structure` on `CombDesign D ∧ SharedObl X.pdesign args`):
@@ -83,9 +85,10 @@ theorem comb_shared_view {d : PDesign} {s : Summary} {args : List Int} {env : IE
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args)) :
     CombDesign (d.instantiateGD2 args) ∧ SharedObl d args :=
-  ⟨comb_view hs harity h1 hag hok hauto hin hdisj, sharedObl_of hs hauto hin⟩
+  ⟨comb_view hs harity h1 hag hst hok hauto hin hdisj, sharedObl_of hs hauto hin⟩
 
 end LeanModels.Sv.CombView

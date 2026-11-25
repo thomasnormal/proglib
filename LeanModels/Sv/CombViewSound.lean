@@ -1260,41 +1260,42 @@ mutual
 a loop by `Hdr.expand2`, its body under each index's binding; a condition by `guard_eval`, the arm it selects. -/
 theorem TItem.expand2_eq {elems : List (String × Nat)} {F : Nat} :
     ∀ (gvs ns : List String) (σ : String → Int) (E : IEnv) (outer : List Hdr) (cur : Hdr) (blk : String)
-      (it : TItem), AgreesV σ E gvs → Agrees σ E ns → it.ExpOk F gvs ns σ →
+      (it : TItem), AgreesV σ E gvs → Agrees σ E ns → E.stale = [] → it.ExpOk F gvs ns σ →
       it.toGen.expand2 E elems F = .ok (it.enumAt (procB elems) outer cur blk σ E)
-  | _, _, _, _, _, _, _, .site st, _, _, _ => by simp [TItem.toGen, TItem.enumAt, procB]
-  | gvs, ns, σ, E, outer, cur, blk, .loop hd rc body, hav, hag, hok => by
+  | _, _, _, _, _, _, _, .site st, _, _, _, _ => by simp [TItem.toGen, TItem.enumAt, procB]
+  | gvs, ns, σ, E, outer, cur, blk, .loop hd rc body, hav, hag, hst, hok => by
       simp only [TItem.ExpOk] at hok
       obtain ⟨hwf, hbn, hF, hbx, hsn, hsx, hb⟩ := hok
       rw [TItem.toGen_loop]
       simp only [TItem.enumAt]
       exact Hdr.expand2 hag hwf hbn hbx hsn hsx hF rc (body.map TItem.toGen)
         (fun v hv => TItem.expandL_eq (hd.g :: gvs) (hd.g :: ns) (bindσ hd.g v σ) (E.bindVal hd.g v)
-          (outer ++ [cur]) hd hd.name body (hav.bindVal hd.g v) (hag.bindVal hd.g v) (hb v hv))
-  | gvs, ns, σ, E, outer, cur, blk, .cond c g thn els, hav, hag, hok => by
+          (outer ++ [cur]) hd hd.name body (hav.bindVal hd.g v) (hag.bindVal hd.g v) hst (hb v hv))
+  | gvs, ns, σ, E, outer, cur, blk, .cond c g thn els, hav, hag, hst, hok => by
       simp only [TItem.ExpOk] at hok
       obtain ⟨hg, hgv, hpv, hr, hrx, ht, he⟩ := hok
       have hc := guard_eval (E := E) (σ := σ) hg (fun n hn => hav n (hgv n hn)) (fun n hn => hag n (hpv n hn)) hr hrx
+        (by rw [hst]; exact PExpr.mentionsAny_nil c)
       rw [TItem.toGen_cond]
       simp only [TItem.enumAt]
       by_cases hh : g.holds σ
       · rw [if_pos hh] at hc ⊢
         rw [GenItem.expand2_genIf_of_ne hc (by decide)]
-        exact TItem.expandL_eq gvs ns σ E outer _ blk thn hav hag (ht hh)
+        exact TItem.expandL_eq gvs ns σ E outer _ blk thn hav hag hst (ht hh)
       · rw [if_neg hh] at hc ⊢
         rw [GenItem.expand2_genIf_of_eq hc]
-        exact TItem.expandL_eq gvs ns σ E outer _ blk els hav hag (he hh)
+        exact TItem.expandL_eq gvs ns σ E outer _ blk els hav hag hst (he hh)
 
 theorem TItem.expandL_eq {elems : List (String × Nat)} {F : Nat} :
     ∀ (gvs ns : List String) (σ : String → Int) (E : IEnv) (outer : List Hdr) (cur : Hdr) (blk : String)
-      (its : List TItem), AgreesV σ E gvs → Agrees σ E ns → TItem.ExpOkL F gvs ns σ its →
+      (its : List TItem), AgreesV σ E gvs → Agrees σ E ns → E.stale = [] → TItem.ExpOkL F gvs ns σ its →
       expandList2 E elems F (its.map TItem.toGen) = .ok (TItem.enumAtL (procB elems) outer cur blk σ E its)
-  | _, _, _, _, _, _, _, [], _, _, _ => by simp [TItem.enumAtL]
-  | gvs, ns, σ, E, outer, cur, blk, it :: rest, hav, hag, hok => by
+  | _, _, _, _, _, _, _, [], _, _, _, _ => by simp [TItem.enumAtL]
+  | gvs, ns, σ, E, outer, cur, blk, it :: rest, hav, hag, hst, hok => by
       simp only [TItem.ExpOkL] at hok
       obtain ⟨h1, h2⟩ := hok
-      rw [List.map_cons, expandList2_cons_ok (TItem.expand2_eq gvs ns σ E outer cur blk it hav hag h1)
-        (TItem.expandL_eq gvs ns σ E outer cur blk rest hav hag h2)]
+      rw [List.map_cons, expandList2_cons_ok (TItem.expand2_eq gvs ns σ E outer cur blk it hav hag hst h1)
+        (TItem.expandL_eq gvs ns σ E outer cur blk rest hav hag hst h2)]
       rfl
 end
 
@@ -1467,7 +1468,7 @@ theorem Summary.fuelOk_of_auto {s : Summary} {σ : String → Int} {args : List 
 generate constructs. An inner loop's bound may name the genvars of the loops around it: it is read under their binding,
 and its fuel is owed at every valuation of them (`FuelOk`). -/
 theorem fam_expand2 {s : Summary} {σ : String → Int} {env : IEnv} {elems : List (String × Nat)}
-    {F : Nat} (hag : Agrees σ env s.params) (hok : s.StructOk) (hfuel : s.FuelOk σ F)
+    {F : Nat} (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk) (hfuel : s.FuelOk σ F)
     {f : TFam} (hf : f ∈ s.fams) (hwf : f.Wf) :
     f.toGen.expand2 env elems F = .ok (TFam.enum (procB elems) σ env f) := by
   have hp1 : [f.hdr] ∈ s.hdrPaths := by
@@ -1516,7 +1517,7 @@ theorem fam_expand2 {s : Summary} {σ : String → Int} {env : IEnv} {elems : Li
     (f := fun i => TItem.enumAtL (procB elems) [] f.hdr f.hdr.name (bindσ f.hdr.g i σ) (env.bindVal f.hdr.g i)
       f.body)
     (fun v hv => TItem.expandL_eq [f.hdr.g] (f.hdr.g :: s.params) (bindσ f.hdr.g v σ) (env.bindVal f.hdr.g v)
-      [] f.hdr f.hdr.name f.body (fun n hn => by simp at hn; subst hn; simp) (hag.bindVal f.hdr.g v)
+      [] f.hdr f.hdr.name f.body (fun n hn => by simp at hn; subst hn; simp) (hag.bindVal f.hdr.g v) hst
       (TItem.expOkL_of [] f.hdr (bindσ f.hdr.g v σ) [f.hdr.g] (f.hdr.g :: s.params) f.body
         ⟨v, hv, rfl⟩ (fun n hn => by simpa using hn) (fun n hn => by simpa using hn) hwf.2 hsteps hconds))
   exact this
@@ -1525,7 +1526,7 @@ theorem fam_expand2 {s : Summary} {σ : String → Int} {env : IEnv} {elems : Li
 /-- The finite family expansion, from the well-formedness of the families alone (the only part of the spec the
 expansion reads): the core of `fams_expand2` (over `SpecOk`) and `fams_expand2P` (over `SpecOkP`). -/
 theorem fams_expand2W {s : Summary} {σ : String → Int} {env : IEnv} {elems : List (String × Nat)}
-    {F : Nat} (hag : Agrees σ env s.params) (hok : s.StructOk) (hwf : ∀ f ∈ s.fams, f.Wf)
+    {F : Nat} (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk) (hwf : ∀ f ∈ s.fams, f.Wf)
     (hfuel : s.FuelOk σ F) :
     ∀ (fs : List TFam), (∀ f ∈ fs, f ∈ s.fams) →
       expandList2 env elems F (fs.map TFam.toGen) =
@@ -1533,17 +1534,17 @@ theorem fams_expand2W {s : Summary} {σ : String → Int} {env : IEnv} {elems : 
   | [], _ => by simp
   | f :: fs, hfs => by
       have hf : f ∈ s.fams := hfs f (List.mem_cons_self ..)
-      rw [List.map_cons, expandList2_cons_ok (fam_expand2 hag hok hfuel hf (hwf f hf))
-        (fams_expand2W hag hok hwf hfuel fs (fun g hg => hfs g (List.mem_cons_of_mem _ hg))),
+      rw [List.map_cons, expandList2_cons_ok (fam_expand2 hag hst hok hfuel hf (hwf f hf))
+        (fams_expand2W hag hst hok hwf hfuel fs (fun g hg => hfs g (List.mem_cons_of_mem _ hg))),
         List.flatMap_cons]
 
 theorem fams_expand2 {s : Summary} {σ : String → Int} {env : IEnv} {elems : List (String × Nat)}
-    {F : Nat} (hag : Agrees σ env s.params) (hok : s.StructOk) (hspec : s.SpecOk)
+    {F : Nat} (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk) (hspec : s.SpecOk)
     (hfuel : s.FuelOk σ F) :
     ∀ (fs : List TFam), (∀ f ∈ fs, f ∈ s.fams) →
       expandList2 env elems F (fs.map TFam.toGen) =
         .ok (fs.flatMap fun f => TFam.enum (procB elems) σ env f) :=
-  fams_expand2W hag hok (fun f hf => (hspec f hf).1) hfuel
+  fams_expand2W hag hst hok (fun f hf => (hspec f hf).1) hfuel
 
 /-! ## The soundness theorem -/
 
@@ -1561,7 +1562,7 @@ whose declarations are the summary's and whose process list is the second compon
 reached context holds. -/
 theorem sound_prefix {d : PDesign} {s : Summary} {args : List Int} {σ : String → Int} {env : IEnv}
     (harity : args.length = d.params.length) (h1 : d.paramEnv2 args = .ok env)
-    (hag : Agrees σ env s.params) (hok : s.StructOk) (hauto : s.AutoObl σ args)
+    (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk) (hauto : s.AutoObl σ args)
     (hoth : d.others = []) (hsd : declsOf? d.decls = .ok s.decls)
     (hproc : s.statics.map TSite.proc = d.processes) (hgen : d.generates = s.fams.map TFam.toGen)
     (hwf : ∀ f ∈ s.fams, f.Wf) :
@@ -1587,7 +1588,7 @@ theorem sound_prefix {d : PDesign} {s : Summary} {args : List Int} {σ : String 
         (env.withDecls (s.decls.map (DeclT.toDecl σ))) f) := by
     rw [hgen]
     exact fams_expand2W (env := env.withDecls (s.decls.map (DeclT.toDecl σ)))
-      (elems := s.decls.map fun dt => (dt.name, dt.elemW σ)) hag hok hwf hfuel
+      (elems := s.decls.map fun dt => (dt.name, dt.elemW σ)) hag hst hok hwf hfuel
       s.fams (fun f hf => hf)
   refine ⟨_, PDesign.instantiate2_of_ok harity h1 h2 h3 h4, by simp, ?_⟩
   rw [PDesign.assemble2_processes, hoth, ← hproc]
@@ -1603,14 +1604,14 @@ theorem sound_prefix {d : PDesign} {s : Summary} {args : List Int} {σ : String 
 /-- **`Summary.sound`: the family summary is sound against `PDesign.instantiate2`.** -/
 theorem Summary.sound {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) :
     ∃ m, d.instantiate2 args (PDesign.surfaceFuel args) = .ok m ∧ Realized s σ m := by
   obtain ⟨hloc, hens, hoth, hpar, hsd, hsts, hgen, hspec⟩ := summary_spec hs
   obtain ⟨hproc, hsites0⟩ := sitesOf?_spec hsts
   have hsites := lsites_spec hsites0 hspec
   obtain ⟨C, M, hMi, hMd, hMp⟩ :=
-    sound_prefix harity h1 hag hok hauto hoth hsd hproc hgen (fun f hf => (hspec f hf).1)
+    sound_prefix harity h1 hag hst hok hauto hoth hsd hproc hgen (fun f hf => (hspec f hf).1)
   exact ⟨M, hMi, hMd, env.withDecls (s.decls.map (DeclT.toDecl σ)),
     s.pairs σ (env.withDecls (s.decls.map (DeclT.toDecl σ))) (s.decls.map fun dt => (dt.name, dt.elemW σ)),
     Summary.pairs_map_fst .., hMp, pairs_desc C hok hauto hin hsites⟩

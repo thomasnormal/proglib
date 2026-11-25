@@ -1806,7 +1806,7 @@ theorem site_lowLM {s : Summary} {σ : String → Int} {envD : IEnv} {elems : Li
 The settled-state hypotheses are about the LOWERED design `d'`. -/
 theorem eq_of_summaryL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hself : s.NoSelfRead σ)
     (hfrag : s.EqFragL) (hwid : s.WidthOblL σ) (hbit : s.BitReadObl σ) (hcov : s.CoverObl σ)
     {st : SvState} (hinK : s.InKnown σ st) {d' : Design2}
@@ -1815,7 +1815,7 @@ theorem eq_of_summaryL {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {ar
     (heqs : CombEqs d' st) (hsh : StateShape d' st) :
     s.EqsL σ st ∧ s.Knowns σ st := by
   obtain ⟨M, d0, E, elems, hm, hl0, hdecl, hdd, hrel, hR, hproc, C, hdesc, hsites⟩ :=
-    Summary.soundL hs harity h1 hag hok hauto hin
+    Summary.soundL hs harity h1 hag hst hok hauto hin
       (Summary.DisjWithin.of_single fun b hb => (hfrag b hb).2.2) hself
   have hGD := instantiateGD2_eq_of_lowerable hm hl
   rw [hGD, hl0] at hl
@@ -1982,6 +1982,7 @@ theorem eq_viewL {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hself : s.NoSelfRead (s.val args))
     (hfrag : s.EqFragL) (hwid : s.WidthOblL (s.val args))
@@ -1991,7 +1992,7 @@ theorem eq_viewL {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (hc : CombDesign d') (ha : Acyclic d')
     (heqs : CombEqs d' st) (hsh : StateShape d' st) :
     s.EqsL (s.val args) st ∧ s.Knowns (s.val args) st :=
-  eq_of_summaryL hs harity h1 (Agrees_of_map hag) hok hauto hin hself hfrag hwid hbit hcov hinK hl
+  eq_of_summaryL hs harity h1 (Agrees_of_map hag) hst hok hauto hin hself hfrag hwid hbit hcov hinK hl
     hc ha heqs hsh
 
 /-- **The equations and knownness of a design `X.sem N` with procedural `always_comb` processes, some of which
@@ -2000,7 +2001,7 @@ equation per further window, and the same for knownness). The settled-state hypo
 design `d'`; `hwithin` says the windows of one instance of a body are pairwise disjoint. -/
 theorem eq_of_summaryM {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ)
     (hwithin : s.DisjWithin σ)
     (hself : s.NoSelfRead σ)
@@ -2011,7 +2012,7 @@ theorem eq_of_summaryM {d : PDesign} {s : Summary} (hs : d.summaryP = .ok s) {ar
     (heqs : CombEqs d' st) (hsh : StateShape d' st) :
     s.EqsM σ st ∧ s.KnownsM σ st := by
   obtain ⟨M, d0, E, elems, hm, hl0, hdecl, hdd, hrel, hR, hproc, C, hdesc, hsites⟩ :=
-    Summary.soundL hs harity h1 hag hok hauto hin hwithin hself
+    Summary.soundL hs harity h1 hag hst hok hauto hin hwithin hself
   have hGD := instantiateGD2_eq_of_lowerable hm hl
   rw [hGD, hl0] at hl
   have hd0 : d0 = d' := Option.some.inj hl
@@ -2229,6 +2230,7 @@ theorem eq_viewLM {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args))
     (hwithin : s.DisjWithin (s.val args))
@@ -2240,7 +2242,7 @@ theorem eq_viewLM {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (hc : CombDesign d') (ha : Acyclic d')
     (heqs : CombEqs d' st) (hsh : StateShape d' st) :
     s.EqsM (s.val args) st ∧ s.KnownsM (s.val args) st :=
-  eq_of_summaryM hs harity h1 (Agrees_of_map hag) hok hauto hin hwithin hself hfrag hwid hbit hcov hinK
+  eq_of_summaryM hs harity h1 (Agrees_of_map hag) hst hok hauto hin hwithin hself hfrag hwid hbit hcov hinK
     hl hc ha heqs hsh
 
 /-! ## Axiom pins (standard axioms only) -/

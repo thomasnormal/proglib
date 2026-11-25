@@ -872,10 +872,10 @@ theorem realized_acyclic {s : Summary} {σ : String → Int} {m : Design2} {args
 /-- **`CombDesign (name.sem N)`** from the summary and the obligations. -/
 theorem comb_of_summary {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hdisj : s.DisjObl σ) :
     CombDesign (d.instantiateGD2 args) := by
-  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hok hauto hin
+  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hst hok hauto hin
   obtain ⟨hc, hpos⟩ := realized_comb hR hok hauto hin hdisj
   rw [PDesign.instantiateGD2_of_combDesign hm hc hpos]
   exact hc
@@ -883,11 +883,11 @@ theorem comb_of_summary {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {ar
 /-- **`Acyclic (name.sem N)`** from the summary, the obligations and a rank over sites. -/
 theorem acyclic_of_summary {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hdisj : s.DisjObl σ)
     {ρ : SiteId → Nat} (hrank : s.RankObl ρ σ) :
     Acyclic (d.instantiateGD2 args) := by
-  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hok hauto hin
+  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hst hok hauto hin
   obtain ⟨hc, hpos⟩ := realized_comb hR hok hauto hin hdisj
   rw [PDesign.instantiateGD2_of_combDesign hm hc hpos]
   exact realized_acyclic hR hok hauto hin hrank (fun _ => ⟨ρ, fun _ _ _ _ h => h⟩)
@@ -895,11 +895,11 @@ theorem acyclic_of_summary {d : PDesign} {s : Summary} (hs : d.summary = .ok s) 
 /-- … from a LEXICOGRAPHIC key: the rank is the number of instances with a smaller key. -/
 theorem acyclic_of_lex {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hdisj : s.DisjObl σ)
     {κ : SiteId → Key} (hrank : s.LexObl κ σ) :
     Acyclic (d.instantiateGD2 args) := by
-  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hok hauto hin
+  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hst hok hauto hin
   obtain ⟨hc, hpos⟩ := realized_comb hR hok hauto hin hdisj
   rw [PDesign.instantiateGD2_of_combDesign hm hc hpos]
   exact realized_acyclic hR hok hauto hin hrank
@@ -921,32 +921,35 @@ theorem comb_view {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args)) :
     CombDesign (d.instantiateGD2 args) :=
-  comb_of_summary hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj
+  comb_of_summary hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj
 
 theorem acyclic_view {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (hs : d.summary = .ok s) (harity : args.length = d.params.length)
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (ρ : SiteId → Nat) (hrank : s.RankObl ρ (s.val args)) :
     Acyclic (d.instantiateGD2 args) :=
-  acyclic_of_summary hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj hrank
+  acyclic_of_summary hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj hrank
 
 theorem lex_view {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (hs : d.summary = .ok s) (harity : args.length = d.params.length)
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (κ : SiteId → Key) (hrank : s.LexObl κ (s.val args)) :
     Acyclic (d.instantiateGD2 args) :=
-  acyclic_of_lex hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj hrank
+  acyclic_of_lex hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj hrank
 
 /-- A design that is a comb design in the guarded family IS the unguarded instantiation. -/
 theorem instantiateGD2_eq_of_comb {d : PDesign} {args : List Int} {m : Design2}
@@ -976,13 +979,13 @@ instantiated design). The in-range obligation stays: an out-of-range element sel
 no-op window, so `CombDesign` alone does not pin the promised windows. -/
 theorem acyclic_using {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ)
     (hc : CombDesign (d.instantiateGD2 args))
     {R : SiteId → SiteId → Prop} (hr : s.RankObl' R σ)
     (hrank : ∀ L : List SiteId, ∃ rk : SiteId → Nat, ∀ a ∈ L, ∀ b ∈ L, R b a → rk b < rk a) :
     Acyclic (d.instantiateGD2 args) := by
-  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hok hauto hin
+  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hst hok hauto hin
   rw [instantiateGD2_eq_of_comb hm hc]
   exact realized_acyclic hR hok hauto hin hr hrank
 
@@ -991,12 +994,13 @@ theorem acyclic_view_using {d : PDesign} {s : Summary} {args : List Int} {env : 
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args))
     (hc : CombDesign (d.instantiateGD2 args))
     (ρ : SiteId → Nat) (hrank : s.RankObl ρ (s.val args)) :
     Acyclic (d.instantiateGD2 args) :=
-  acyclic_using hs harity h1 (Agrees_of_map hag) hok hauto hin hc hrank
+  acyclic_using hs harity h1 (Agrees_of_map hag) hst hok hauto hin hc hrank
     (fun _ => ⟨ρ, fun _ _ _ _ h => h⟩)
 
 theorem lex_view_using {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
@@ -1004,12 +1008,13 @@ theorem lex_view_using {d : PDesign} {s : Summary} {args : List Int} {env : IEnv
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args))
     (hc : CombDesign (d.instantiateGD2 args))
     (κ : SiteId → Key) (hrank : s.LexObl κ (s.val args)) :
     Acyclic (d.instantiateGD2 args) :=
-  acyclic_using hs harity h1 (Agrees_of_map hag) hok hauto hin hc hrank
+  acyclic_using hs harity h1 (Agrees_of_map hag) hst hok hauto hin hc hrank
     (fun L => ⟨countRank L κ, fun a _ b hb h => countRank_lt L κ hb h⟩)
 
 /-! ## WP-P (P1): the bundle `CombDesign ∧ Acyclic`, and the declarations of a comb design
@@ -1027,11 +1032,11 @@ instantiation succeeded). -/
 /-- `CombDesign` and `Acyclic` of `name.sem N` from one set of obligations and a `Nat` rank. -/
 theorem comb_acyclic_of_summary {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hdisj : s.DisjObl σ)
     {ρ : SiteId → Nat} (hrank : s.RankObl ρ σ) :
     CombDesign (d.instantiateGD2 args) ∧ Acyclic (d.instantiateGD2 args) := by
-  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hok hauto hin
+  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hst hok hauto hin
   obtain ⟨hc, hpos⟩ := realized_comb hR hok hauto hin hdisj
   rw [PDesign.instantiateGD2_of_combDesign hm hc hpos]
   exact ⟨hc, realized_acyclic hR hok hauto hin hrank (fun _ => ⟨ρ, fun _ _ _ _ h => h⟩)⟩
@@ -1039,11 +1044,11 @@ theorem comb_acyclic_of_summary {d : PDesign} {s : Summary} (hs : d.summary = .o
 /-- … from a LEXICOGRAPHIC key. -/
 theorem comb_acyclic_of_lex {d : PDesign} {s : Summary} (hs : d.summary = .ok s) {args : List Int}
     {σ : String → Int} {env : IEnv} (harity : args.length = d.params.length)
-    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hok : s.StructOk)
+    (h1 : d.paramEnv2 args = .ok env) (hag : Agrees σ env s.params) (hst : env.stale = []) (hok : s.StructOk)
     (hauto : s.AutoObl σ args) (hin : s.InRangeObl σ) (hdisj : s.DisjObl σ)
     {κ : SiteId → Key} (hrank : s.LexObl κ σ) :
     CombDesign (d.instantiateGD2 args) ∧ Acyclic (d.instantiateGD2 args) := by
-  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hok hauto hin
+  obtain ⟨m, hm, hR⟩ := Summary.sound hs harity h1 hag hst hok hauto hin
   obtain ⟨hc, hpos⟩ := realized_comb hR hok hauto hin hdisj
   rw [PDesign.instantiateGD2_of_combDesign hm hc hpos]
   exact ⟨hc, realized_acyclic hR hok hauto hin hrank
@@ -1056,11 +1061,12 @@ theorem comb_acyclic_view {d : PDesign} {s : Summary} {args : List Int} {env : I
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (ρ : SiteId → Nat) (hrank : s.RankObl ρ (s.val args)) :
     CombDesign (d.instantiateGD2 args) ∧ Acyclic (d.instantiateGD2 args) :=
-  comb_acyclic_of_summary hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj hrank
+  comb_acyclic_of_summary hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj hrank
 
 /-- … with a lexicographic key. -/
 theorem comb_lex_view {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
@@ -1068,11 +1074,12 @@ theorem comb_lex_view {d : PDesign} {s : Summary} {args : List Int} {env : IEnv}
     (h1 : d.paramEnv2 args = .ok env)
     (hag : s.params.map (fun n => env.intVal? n) =
       s.params.map (fun n => some (s.val args n)))
+    (hst : env.stale = [])
     (hok : s.StructOk) (hauto : s.AutoObl (s.val args) args)
     (hin : s.InRangeObl (s.val args)) (hdisj : s.DisjObl (s.val args))
     (κ : SiteId → Key) (hrank : s.LexObl κ (s.val args)) :
     CombDesign (d.instantiateGD2 args) ∧ Acyclic (d.instantiateGD2 args) :=
-  comb_acyclic_of_lex hs harity h1 (Agrees_of_map hag) hok hauto hin hdisj hrank
+  comb_acyclic_of_lex hs harity h1 (Agrees_of_map hag) hst hok hauto hin hdisj hrank
 
 theorem errorDesign_not_comb (n m : String) : ¬ CombDesign (Design2.errorDesign n m) := by
   intro hc

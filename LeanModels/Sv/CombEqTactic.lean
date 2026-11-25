@@ -462,7 +462,7 @@ def hierBridge (pd lib args twinE plE : Lean.Expr) : TacticM (TSyntax `term) := 
   let plT ← Term.exprToSyntax plE
   `(LeanModels.Sv.CombHier.instantiateHDAlias2_twin (d := $pdT) (lib := $libT) (args := $argsT) (dF := $twinT)
       (pl := $plT) (htw := ?htw) (sF := ?s) (envF := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1)
-      (hag := ?hag) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj) (hfrag := ?hfrag)
+      (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto) (hin := ?hin) (hdisj := ?hdisj) (hfrag := ?hfrag)
       (hwid := ?hwid) (dsP := ?dsP) (hdsP := ?hdsP) (hck := ?hck) (envP := ?envP) (h1P := ?h1P)
       (hagP := ?hagP) (hch := ?hch))
 
@@ -644,7 +644,7 @@ unsafe def runSvEquationsCore (hintOnly : Bool) : TacticM Unit := do
         let pdT ← Term.exprToSyntax pd
         let argsT ← Term.exprToSyntax args
         `(Eq.mp (congrArg $motiveT (LeanModels.Sv.CombEq.instantiateGD2_unsign_view (d := $pdT) (args := $argsT)
-            (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok)
+            (s := ?s) (env := ?env) (hs := ?hs) (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok)
             (hauto := ?hauto) (hin := ?hin) (hfrag := ?hfrag) (hwid := ?hwid) (hbit := ?hbit))) $hT)
       let hcI ← hyp hcN
       let haI ← hyp haN
@@ -657,17 +657,17 @@ unsafe def runSvEquationsCore (hintOnly : Bool) : TacticM Unit := do
       if vrOk then
         evalTactic (← `(tactic|
           have $keyI:ident := LeanModels.Sv.CombEq.eq_viewV (s := ?s) (env := ?env) (hs := ?hs)
-              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hauto := ?hauto)
+              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto)
               (hin := ?hin) (hfrag := ?hfrag) (hpw := ?hpw) (hwid := ?hwid) (hbit := ?hbit) (hcov := ?hcov)
               (hinK := ?hinK) (hc := $hcI) (ha := $haI) (heqs := $heqsI) (hsh := $hshI)))
       else
         evalTactic (← `(tactic|
           have $keyI:ident := LeanModels.Sv.CombEq.eq_view (s := ?s) (env := ?env) (hs := ?hs)
-              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hok := ?hok) (hauto := ?hauto)
+              (harity := ?harity) (h1 := ?h1) (hag := ?hag) (hst := ?hst) (hok := ?hok) (hauto := ?hauto)
               (hin := ?hin) (hfrag := ?hfrag) (hwid := ?hwid) (hbit := ?hbit) (hcov := ?hcov)
               (hinK := ?hinK) (hc := $hcI) (ha := $haI) (heqs := $heqsI) (hsh := $hshI)))
       let goals ← getGoals
-      let named : List Name := [`s, `env, `hs, `harity, `h1, `hag, `hok, `hauto, `hin, `hfrag, `hpw, `hwid,
+      let named : List Name := [`s, `env, `hs, `harity, `h1, `hag, `hst, `hok, `hauto, `hin, `hfrag, `hpw, `hwid,
         `hbit, `hcov, `hinK, `htw, `hdisj, `dsP, `hdsP, `hck, `envP, `h1P, `hagP, `hch]
       let mut bodyGoal? : Option MVarId := none
       for g in goals do
@@ -701,6 +701,9 @@ unsafe def runSvEquationsCore (hintOnly : Bool) : TacticM Unit := do
       closeWith `harity "the number of arguments differs from the number of parameters" (← `(tactic| rfl))
       closeParamEnv "sv_equations" (← find `h1) (lift := s.hasCond) (comp := true)
       closeHag "sv_equations" (← find `hag) s args
+      closeWith `hst ("the instantiation environment holds a stale constant (`IEnv.stale`: an overridden " ++
+        "untyped parameter, or a localparam defined from one), where no generate condition can be read")
+        (← `(tactic| rfl))
       closeDecide `hok "the structural check failed"
       let paramRd? : Option String := if vrOk then none else
         s.lsites.findSome? fun ls => (LeanModels.Sv.CombEq.rhsOf ls.site.proc).paramRdName?
