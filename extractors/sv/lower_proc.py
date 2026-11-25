@@ -152,8 +152,19 @@ def _iterator_census(ex, symbol):
                 and not any(str(m.kind).split(".")[-1] == "Port" and m.name == symbol.name for m in scope)):
             extents = []          # (start, end) offsets of every init-form loop on this symbol
             refs = []             # offsets of every reference
+            process_ranges = []   # source ranges of procedural processes containing references
+            for member in scope:
+                if type(member).__name__ == "ProceduralBlockSymbol":
+                    r = getattr(getattr(member, "body", None), "sourceRange", None)
+                    if r is not None:
+                        process_ranges.append((r.start.offset, r.end.offset))
             def visit(node):
                 kind = type(node).__name__
+                if kind in ("ProceduralBlock", "AlwaysBlock", "AlwaysCombBlock",
+                              "AlwaysFFBlock", "AlwaysLatchBlock"):
+                    r = getattr(node, "sourceRange", None)
+                    if r is not None:
+                        process_ranges.append((r.start.offset, r.end.offset))
                 if kind == "ForLoopStatement":
                     form = _init_form(ex, node)
                     header_symbol = form[0] if form is not None else None
@@ -187,7 +198,19 @@ def _iterator_census(ex, symbol):
                 for a, b in extents
                 for inner_a, inner_b in extents
                 if (a, b) != (inner_a, inner_b))
-            ok = bool(extents) and not nested and all(any(a <= o < b for a, b in extents) for o in refs)
+            # An external iterator is one module variable.  Independent
+            # symbolic bindings are sound only when every reference belongs
+            # to one procedural process.  If two same-time processes use the
+            # variable, IEEE 1800-2023 §4.7 leaves their suspension order
+            # open and the loop must remain a loud refusal.
+            ref_processes = {
+                process_index
+                for offset in refs
+                for process_index, (start, end) in enumerate(process_ranges)
+                if start <= offset < end
+            }
+            shared = len(ref_processes) > 1
+            ok = bool(extents) and not nested and not shared and all(any(a <= o < b for a, b in extents) for o in refs)
     except Exception:
         ok = False
     _CENSUS[key] = (symbol, ok)
