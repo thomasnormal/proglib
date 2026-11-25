@@ -5935,6 +5935,28 @@ theorem pairedAllocateBounded_sound
             (placementFault_beq_iff sourceFault targetFault).mp hEqBool
           exact Or.inr ⟨sourceFault, rfl, by simpa [heq] using ht⟩
 
+theorem pairedAllocateBounded_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment limit : Nat)
+    (hsource : allocateBounded store request placement alignment limit = .error sourceFault)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve request)
+      (renamedPlacement resolve store.nextId placement) alignment limit = .ok target) :
+    pairedAllocateBounded resolve store request placement alignment limit = false := by
+  simp [pairedAllocateBounded, hsource, htarget]
+
+theorem pairedAllocateBounded_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment limit : Nat)
+    (hsource : allocateBounded store request placement alignment limit = .ok source)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve request)
+      (renamedPlacement resolve store.nextId placement) alignment limit = .error targetFault) :
+    pairedAllocateBounded resolve store request placement alignment limit = false := by
+  simp [pairedAllocateBounded, hsource, htarget]
+
 def allocateMetadata (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) :
     Option (AllocationMetadata Tag State TypeId × Footprint) :=
