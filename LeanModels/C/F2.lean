@@ -6808,6 +6808,45 @@ theorem pairedAllocateAligned_empty_address_true
     hsourceAligned, htargetAligned, hsourcePlacement, htargetPlacement,
     renameAllocationRequest]
 
+theorem pairedAllocateAligned_empty_address_result_payload
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment : Nat)
+    (source target : Store Tag State × Footprint)
+    (hsource : allocateAligned store { bytes := [], state := state }
+      (.address base) alignment = some source)
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId (.address base)) alignment = some target) :
+    source.1 =
+        { allocations := store.allocations ++
+            [(store.nextId,
+              { live := true, address := some base,
+                bytes := [], state := state })]
+          nextId := store.nextId + 1 } ∧
+      target.1 =
+        { allocations := (renameStore resolve store).allocations ++
+            [((renameStore resolve store).nextId,
+              { live := true, address := some (resolve store.nextId),
+                bytes := [], state := state })]
+          nextId := (renameStore resolve store).nextId + 1 } := by
+  have hsourceAligned : alignmentAllowed base alignment = true := by
+    by_cases h : alignmentAllowed base alignment = true
+    · exact h
+    · simp [allocateAligned, h] at hsource
+  have htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true := by
+    by_cases h : alignmentAllowed (resolve store.nextId) alignment = true
+    · exact h
+    · simp [allocateAligned, renamedPlacement, h] at htarget
+  have hsourcePayload := allocateAligned_empty_address_result_payload store
+    state base alignment source hsourceAligned hsource
+  have htargetPayload := allocateAligned_empty_address_result_payload
+    (renameStore resolve store) state (resolve store.nextId) alignment target
+    (by simpa [renameAllocationRequest, renamedPlacement] using htargetAligned)
+    (by simpa [renameAllocationRequest, renamedPlacement] using htarget)
+  rcases hsourcePayload with ⟨_, hs⟩
+  rcases htargetPayload with ⟨_, ht⟩
+  exact ⟨hs, ht⟩
+
 theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
