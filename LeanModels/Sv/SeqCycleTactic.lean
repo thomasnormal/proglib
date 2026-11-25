@@ -710,11 +710,12 @@ theorem forValuesFuel2_slt_nval {env : IEnv} {it p : String} (h : nvalInt env p 
   simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at h
   obtain ⟨hv, hn⟩ := h
   cases hl : env.nvals.lookup p with
-  | none => simp [hl] at hn
+  | none => simp [hl] at hv
   | some t =>
     obtain ⟨B, w, sg⟩ := t
     have hval : nvalOf env p = B := by simp [nvalOf, hl]
-    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    have hnstale : ¬p ∈ env.stale := by simpa using hn
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl, hnstale]
     have hfuel : forFuel2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
         (.unary .inc (.genvarRef it)) = .ok ((B - s).toNat + 2) := by
       by_cases hsB : s < B
@@ -736,11 +737,12 @@ theorem forFuel2_slt_nval {env : IEnv} {it p : String} (h : nvalInt env p = true
   simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at hh
   obtain ⟨hv, hn⟩ := hh
   cases hl : env.nvals.lookup p with
-  | none => simp [hl] at hn
+  | none => simp [hl] at hv
   | some t =>
     obtain ⟨B, w, sg⟩ := t
     have hval : nvalOf env p = B := by simp [nvalOf, hl]
-    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    have hnstale : ¬p ∈ env.stale := by simpa using hn
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl, hnstale]
     by_cases hsB : s < B
     · have ht : 0 ≤ B - s := by omega
       have ht0 : ¬ B - s < 0 := by omega
@@ -760,11 +762,12 @@ theorem forValuesFuel2_slt_nval_add {env : IEnv} {it p : String} (h : nvalInt en
   simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at h
   obtain ⟨hv, hn⟩ := h
   cases hl : env.nvals.lookup p with
-  | none => simp [hl] at hn
+  | none => simp [hl] at hv
   | some t =>
     obtain ⟨B, w, sg⟩ := t
     have hval : nvalOf env p = B := by simp [nvalOf, hl]
-    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    have hnstale : ¬p ∈ env.stale := by simpa using hn
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl, hnstale]
     have hfuel : forFuel2 env it (.int s) (.binary .slt (.genvarRef it) (.paramRef p none))
         (.binary (.m0 .add) (.genvarRef it) (.int 1)) = .ok ((B - s).toNat + 2) := by
       by_cases hsB : s < B
@@ -786,11 +789,12 @@ theorem forFuel2_slt_nval_add {env : IEnv} {it p : String} (h : nvalInt env p = 
   simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at hh
   obtain ⟨hv, hn⟩ := hh
   cases hl : env.nvals.lookup p with
-  | none => simp [hl] at hn
+  | none => simp [hl] at hv
   | some t =>
     obtain ⟨B, w, sg⟩ := t
     have hval : nvalOf env p = B := by simp [nvalOf, hl]
-    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    have hnstale : ¬p ∈ env.stale := by simpa using hn
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl, hnstale]
     by_cases hsB : s < B
     · have ht : 0 ≤ B - s := by omega
       have ht0 : ¬ B - s < 0 := by omega
@@ -816,11 +820,12 @@ theorem forValues2Int32_slt_nval_trace {env : IEnv} {it p : String} (h : nvalInt
   simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at hh
   obtain ⟨hv, hn⟩ := hh
   cases hl : env.nvals.lookup p with
-  | none => simp [hl] at hn
+  | none => simp [hl] at hv
   | some t =>
     obtain ⟨B, w, sg⟩ := t
     have hval : nvalOf env p = B := by simp [nvalOf, hl]
-    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    have hnstale : ¬p ∈ env.stale := by simpa using hn
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl, hnstale]
     simp only [heval, hval]
     by_cases hs : 0 ≤ B - s
     · have hnat : ((B - s).toNat : Int) = B - s := Int.toNat_of_nonneg hs
@@ -855,11 +860,12 @@ theorem forValues2Int32_slt_nval_add_trace {env : IEnv} {it p : String} (h : nva
   simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at hh
   obtain ⟨hv, hn⟩ := hh
   cases hl : env.nvals.lookup p with
-  | none => simp [hl] at hn
+  | none => simp [hl] at hv
   | some t =>
     obtain ⟨B, w, sg⟩ := t
     have hval : nvalOf env p = B := by simp [nvalOf, hl]
-    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl]
+    have hnstale : ¬p ∈ env.stale := by simpa using hn
+    have heval : evalInt env (.paramRef p none) = .ok B := by simp [evalInt, hv, hl, hnstale]
     simp only [heval, hval]
     by_cases hs : 0 ≤ B - s
     · have hnat : ((B - s).toNat : Int) = B - s := Int.toNat_of_nonneg hs
