@@ -74,6 +74,7 @@ def body (W : Nat) (r d : LVec) : LVec :=
 def AmStep (W : Nat) (σ : SvState × MemV) (dt : SvState) (pp : (SvState × MemV) × (SvState × MemV)) : Prop :=
   let r := appliedIn dt σ.1 "rstn"
   let d := appliedIn dt σ.1 "d"
+  DecisionKnown r →
   lk pp.1.1 "rstn" = r ∧ lk pp.1.1 "d" = d ∧ lk pp.2.1 "rstn" = r ∧ lk pp.2.1 "d" = d ∧
   -- cell 0 after the edge, and `q` reading it
   pp.2.2 "mem" 0 = body W r d ∧ lk pp.2.1 "q" = pp.2.2 "mem" 0 ∧
@@ -133,6 +134,7 @@ theorem am_eqs (W : Nat) (hW1 : 2 ≤ W) (hW2 : W < 2 ^ 30) (N : Nat) (hN1 : 2 �
   simp only [am_index0 hN1, view, lk, fell, body, SvState.lookup, Res.ok.injEq, exists_eq_left',
     String.reduceBEq, Bool.false_eq_true, ↓reduceIte, beq_self_eq_true, Option.getD_some]
   -- the two decisions of the cycle: `!rstn`, and whether the reset fell in the low slot
+  intro _
   have hsz : r'.bits.size = 1 := hr'
   simp only [Array.getElem?_eq_getElem (show 0 < r'.bits.size by omega), Option.getD_some]
   by_cases hA : (evalUnaryOp UnaryOp.lnot r').condTrue = true <;>
@@ -146,10 +148,12 @@ theorem am_eqs (W : Nat) (hW1 : 2 ≤ W) (hW2 : W < 2 ^ 30) (N : Nat) (hN1 : 2 �
 before it when the reset fell), `rstn = 1` loads `d` into cell 0, and every other cell keeps its contents. -/
 def AmClaim (W : Nat) (tr : List ((SvState × MemV) × (SvState × MemV))) : Prop :=
   ∀ (c : Nat) (pc : (SvState × MemV) × (SvState × MemV)), tr[c]? = some pc →
+    DecisionKnown (lk pc.1.1 "rstn") →
     -- a cycle that sees `rstn = 0` shows `q = 0` after its edge
     (lk pc.1.1 "rstn" = LVec.ofBitVec 0#1 → lk pc.2.1 "q" = LVec.ofBitVec 0#W) ∧
     -- asynchronous: when `rstn` falls from 1 to 0, the pre sample (before the clock edge) already shows `q = 0`
-    (∀ pp, tr[c - 1]? = some pp → 1 ≤ c → lk pp.1.1 "rstn" = LVec.ofBitVec 1#1 →
+    (∀ pp, tr[c - 1]? = some pp → 1 ≤ c → DecisionKnown (lk pp.1.1 "rstn") →
+      lk pp.1.1 "rstn" = LVec.ofBitVec 1#1 →
       lk pc.1.1 "rstn" = LVec.ofBitVec 0#1 → lk pc.1.1 "q" = LVec.ofBitVec 0#W) ∧
     -- `rstn = 1`: `q` after the edge is the `d` the cycle saw
     (lk pc.1.1 "rstn" = LVec.ofBitVec 1#1 → lk pc.2.1 "q" = lk pc.1.1 "d") ∧
@@ -166,16 +170,18 @@ theorem fell_one_zero : fell (LVec.ofBitVec 1#1) (LVec.ofBitVec 0#1) = true := b
 /-- **The claim from the per-signal equations**, cycle by cycle (`RunSat.get`). -/
 theorem amClaim_of_runSat (W : Nat) (σ : SvState × MemV) (ins : List SvState)
     (tr : List ((SvState × MemV) × (SvState × MemV))) (h : RunSat (AmStep W) σ ins tr) : AmClaim W tr := by
-  intro c pc hpc
+  intro c pc hpc hrstKnown
   obtain ⟨σc, dt, -, hs, -, hprev⟩ := RunSat.get h hpc
+  have hs := hs hrstKnown
   obtain ⟨hr1, hd1, hr2, hd2, hm0, hq2, hm0', hq1, hk⟩ := hs
   refine ⟨?_, ?_, ?_, fun k hk0 => by rw [(hk k hk0).2, (hk k hk0).1], ?_⟩
   · intro h0
     rw [hq2, hm0, ← hr1, h0]
     simp [body, lnot_zero]
-  · intro pp hpp hc h1 h0
+  · intro pp hpp hc hprevKnown h1 h0
     have hσ := hprev pp hpp hc
     obtain ⟨σp, dp, -, hsp, -, -⟩ := RunSat.get h hpp
+    have hsp := hsp hprevKnown
     obtain ⟨hpr1, -, hpr2, -⟩ := hsp
     rw [hq1, hm0', ← hr1, h0, hσ, hpr2, ← hpr1, h1, fell_one_zero]
     simp [body, lnot_zero]
