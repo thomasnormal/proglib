@@ -48,6 +48,8 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   child designs, and refuses process/declaration/conditional siblings loudly.
   `CombHier.GeneratedChildRef.segmentAt` is the direct valuation-to-
   `flattenInst` bridge once a child design and prefix are available.
+  `CombHier.generatedChildRefs_segmentAt_mapM_ok` composes those
+  valuation-dependent segments in source order without choosing an iteration.
   `CombHier.generatedChildRefs_genFor_singleton` composes one symbolic loop
   header with a child reference without selecting an iteration.
   `CombHier.generatedChildRefs_genFor_nested_singleton` composes two nested

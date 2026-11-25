@@ -1224,6 +1224,31 @@ theorem GeneratedChildRef.segmentAt_ok {r : GeneratedChildRef}
     r.segmentAt child env elems = .ok (flattenInst env elems pfx r.inst child) := by
   simp [GeneratedChildRef.segmentAt, hp]
 
+/-- A list of retained generated-child references composes pointwise: if every
+reference has a successful valuation-dependent segment, the ordered `mapM`
+result is the corresponding ordered list of segments.  This is the hand-proof
+bridge used before a hierarchy summary folds those segments into a design. -/
+theorem generatedChildRefs_segmentAt_mapM_ok
+    {rs : List GeneratedChildRef}
+    {child : GeneratedChildRef → Design2}
+    {env : GeneratedChildRef → IEnv}
+    {elems : List (String × Nat)}
+    {seg : GeneratedChildRef → List Decl × List Process2}
+    (hok : ∀ r ∈ rs,
+      r.segmentAt (child r) (env r) elems = .ok (seg r)) :
+    rs.mapM (fun r => r.segmentAt (child r) (env r) elems) =
+      .ok (rs.map seg) := by
+  induction rs with
+  | nil => rfl
+  | cons r rs ih =>
+      simp only [List.mapM_cons]
+      rw [hok r (by simp)]
+      have htail : rs.mapM (fun r => r.segmentAt (child r) (env r) elems) =
+          .ok (rs.map seg) :=
+        ih (fun r' hr' => hok r' (by simp [hr']))
+      rw [htail]
+      rfl
+
 /-- Read a generate-only family of child instances, preserving its nested
 headers and source order.  This is intentionally narrower than the eventual
 hierarchy summary: process/declaration/conditional siblings refuse loudly
