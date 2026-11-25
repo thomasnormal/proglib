@@ -7333,6 +7333,11 @@ def storeByte (store : Store Tag State) (id offset : Nat)
     some ({ store with allocations := allocations }, footprint .write
       { allocation := id, offset := offset, width := 1 })
 
+theorem storeByte_empty_none
+    {Tag State : Type} (id offset : Nat) (byte : Byte Tag) :
+    storeByte ({ allocations := [], nextId := 0 } : Store Tag State) id offset byte = none := by
+  rfl
+
 theorem storeByte_success_payload
     (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
     (result : Store Tag State × Footprint)
