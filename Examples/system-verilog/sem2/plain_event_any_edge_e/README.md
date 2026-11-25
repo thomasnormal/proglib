@@ -8,3 +8,6 @@ profile covers edge events only.
 This is the clean-room `plain_event_any_edge` shape. The ordinary route's
 four rows match both pinned simulators, while `sv_structure` keeps the
 explicit any-edge refusal.
+
+The current receipt reports four matching ordinary/source rows on both pinned
+simulators and preserves the explicit clocked-profile refusal.
