@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import os
 import subprocess, tempfile
 
 HERE = Path(__file__).resolve().parent
@@ -17,8 +18,9 @@ endmodule
 """
 EXPECTED = ["ROW seed0 q=0 mem=00", "ROW seed1 q=0 mem=11"]
 
+scratch_dir = Path(os.environ.get("TMPDIR", "/scratch"))
 with tempfile.TemporaryDirectory(prefix="sv-memory-quiesce-",
-                                 dir="/scratch/thomas-ahle/gate/ls-sv2/tmp") as td:
+                                 dir=scratch_dir) as td:
     work = Path(td)
     tb = work / "tb.sv"
     tb.write_text(TB)
