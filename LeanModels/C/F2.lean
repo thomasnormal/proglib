@@ -3982,6 +3982,18 @@ theorem pairedFreeMetadata_footprints
           exact ⟨freeMetadata_footprint_shape _ _ hs,
             by simpa [renameZeroTokenMetadata] using htarget⟩
 
+theorem pairedFreeMetadata_empty_footprints
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedFreeMetadata resolve metadata = some result)
+    (hbytes : metadata.allocation.bytes = []) :
+    result.1.2 = footprint .metadata (Region.mk 0 0 0) ∧
+      result.2.2 = footprint .metadata (Region.mk 0 0 0) := by
+  have hgeneral := pairedFreeMetadata_footprints resolve metadata result hresult
+  simpa [hbytes, renameZeroTokenMetadata] using hgeneral
+
 theorem pairedFreeMetadata_marks_dead
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
