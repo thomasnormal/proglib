@@ -4447,6 +4447,13 @@ theorem bytesWf_uninitialized
     bytesWf id (.uninitialized :: rest) := by
   simpa [bytesWf] using h
 
+theorem bytesWf_value_unprovenanced
+    {Tag : Type} (id : AllocId) (bits : UInt8)
+    (fragment : Option Nat) (rest : List (Byte Tag))
+    (h : bytesWf id rest) :
+    bytesWf id (.value bits none fragment :: rest) := by
+  simpa [bytesWf] using h
+
 theorem wellFormed_empty
     {Tag State : Type} :
     WellFormed ({ allocations := [], nextId := 0 } : Store Tag State) := by
