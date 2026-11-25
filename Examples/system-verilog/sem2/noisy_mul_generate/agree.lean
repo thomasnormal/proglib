@@ -593,6 +593,10 @@ theorem noisy_row_inner_shape :
       .inst majInst] := by
   rfl
 
+theorem noisy_row_inner_instFree : GenItem.listInstFree rowInnerBody = false := by
+  rw [noisy_row_inner_shape]
+  decide
+
 theorem noisy_xor_child (env : IEnv) (F : Nat) (clocks : List String) :
     PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks env xorInst = .ok xorDesign := by
   rw [show noisyMul.plib = andDef :: xorDef :: majDef :: [] from by rfl]
