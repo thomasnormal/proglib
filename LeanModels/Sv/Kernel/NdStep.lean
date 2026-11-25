@@ -285,33 +285,136 @@ def ndLeaf (E : CoreMemDesign) (st : CoreMemState) (locals : SvState) (o : Oracl
   | .timeout => .timeout
   | .unsupported msg => .unsupported msg
 
+/-! The choice-explicit relation does not yet open case-equality and wildcard
+observers as independent x-read choices.  Refuse those parser nodes before the
+four-state leaf evaluator can collapse them to one answer. -/
+mutual
+def ndXObserver? : PExpr → Option String
+  | .binary op left right =>
+      match op with
+      | .ceq => some "12.4: case equality '===' is outside per-read x semantics"
+      | .cne => some "12.4: case inequality '!==' is outside per-read x semantics"
+      | .m0 .caseEq => some "12.4: case equality '===' is outside per-read x semantics"
+      | .m0 .caseNe => some "12.4: case inequality '!==' is outside per-read x semantics"
+      | .m0 .wildEq => some "12.5.4: wildcard equality '==?' is outside per-read x semantics"
+      | .m0 .wildNe => some "12.5.4: wildcard inequality '!=?' is outside per-read x semantics"
+      | _ => (ndXObserver? left).or (ndXObserver? right)
+  | .unary _ arg | .resize _ arg | .signedResize _ arg | .squash2 _ arg
+  | .sysCall _ arg | .reduce _ arg | .cast _ arg => ndXObserver? arg
+  | .ternary cond yes no => (ndXObserver? cond).or ((ndXObserver? yes).or (ndXObserver? no))
+  | .concat parts => ndXObserverList? parts
+  | .bitSel base index | .repl base index => (ndXObserver? base).or (ndXObserver? index)
+  | .partSel base msb lsb => (ndXObserver? base).or ((ndXObserver? msb).or (ndXObserver? lsb))
+  | .arrayElem _ indices => ndXObserverList? indices
+  | .arrayPart _ indices _ a b =>
+      (ndXObserverList? indices).or ((ndXObserver? a).or (ndXObserver? b))
+  | .aggregateMember _ _ => none
+  | .packageAggElem _ _ index => ndXObserver? index
+  | .functionCall _ args => ndXObserverList? args
+  | .lit _ | .ident _ | .paramRef _ _ | .genvarRef _ | .enumRef _ _ _
+  | .int _ | .fill _ | .typeBits _ _ | .unsupported _ _ => none
+termination_by structural e => e
+
+def ndXObserverList? : List PExpr → Option String
+  | [] => none
+  | e :: es => (ndXObserver? e).or (ndXObserverList? es)
+termination_by structural es => es
+end
+
+def ndIndexExprs : PLhs → List PExpr
+  | .ident _ => []
+  | .bitSel _ index => [index]
+  | .partSel _ msb lsb => [msb, lsb]
+  | .concat parts => parts.flatMap ndIndexExprs
+  | .arrayElem _ indices => indices
+  | .arrayBitSel _ indices bit => indices ++ [bit]
+  | .arrayPart _ indices _ a b => indices ++ [a, b]
+  | .aggregateMember _ path => path.filterMap (fun (_, index) => index)
+
+def CoreMemDesign.ndCheckIndexExprs (E : CoreMemDesign) (env : IEnv)
+    (st : CoreMemState) (locals : SvState) : List PExpr → Res Unit
+  | [] => .ok ()
+  | index :: rest =>
+      match E.evalIndexLocals env E.elems st locals index with
+      | .timeout => .timeout
+      | .unsupported msg => .unsupported msg
+      | .ok value =>
+          if value.bits.toList.all Logic.isKnown then
+            E.ndCheckIndexExprs env st locals rest
+          else
+            .unsupported "11.5.1: unknown write index is outside per-read x semantics"
+
+def CoreMemDesign.ndCheckTarget (E : CoreMemDesign) (env : IEnv)
+    (st : CoreMemState) (locals : SvState) (target : PLhs) : Res Unit :=
+  E.ndCheckIndexExprs env st locals (ndIndexExprs target)
+
+def CoreMemDesign.ndCheckExpr (E : CoreMemDesign) (expr : PExpr) : Res Unit :=
+  match ndXObserver? expr with
+  | none => .ok ()
+  | some msg => .unsupported msg
+
+def CoreMemDesign.ndCheckOptionalExpr (E : CoreMemDesign) : Option PExpr → Res Unit
+  | none => .ok ()
+  | some expr => E.ndCheckExpr expr
+
 /-- Inspect one statement node. -/
 def ndOpenStmt (E : CoreMemDesign) (st : CoreMemState) (locals : SvState) (o : Oracle)
     (env : IEnv) : PStmt → Res (CoreMemExecResult × List EdgeWork × Oracle)
   | .block body => .ok (.idle st locals, [.edgeBlock env body], o)
   | .ifStmt cond yes no =>
+      match E.ndCheckExpr cond with
+      | .unsupported msg => .unsupported msg
+      | .timeout => .timeout
+      | .ok () =>
       -- §12.4: the condition is a resolution site.  The four-state value is
       -- read once through the oracle; the branch is decided on the 0/1 result.
-      match E.evalExprLocals env E.elems st (some 1) locals cond with
-      | .ok cv =>
-          .ok (.idle st locals,
-            (if (o.read cv).1.condTrue then some yes else no).toList.map (EdgeWork.edgeStmt env),
-            (o.read cv).2)
-      | .timeout => .timeout
-      | .unsupported msg => .unsupported msg
+          match E.evalExprLocals env E.elems st (some 1) locals cond with
+          | .ok cv =>
+              .ok (.idle st locals,
+                (if (o.read cv).1.condTrue then some yes else no).toList.map (EdgeWork.edgeStmt env),
+                (o.read cv).2)
+          | .timeout => .timeout
+          | .unsupported msg => .unsupported msg
   | .forLoop name init cond step body =>
       match forValues2 env name init cond step with
       | .ok values => .ok (.idle st locals, [.edgeLoop env name body values], o)
       | .unsupported msg => .unsupported s!"ForLoopStatement: {msg}"
       | .timeout => .timeout
-  | .caseStmt _ _ _ _ _ =>
-      .unsupported "12.5: case statement is not opened in the choice-explicit step (selector and item reads)"
-  | .blockingAssign target value => ndLeaf E st locals o env (.blockingAssign target value)
-  | .blockingAssignL target value => ndLeaf E st locals o env (.blockingAssignL target value)
-  | .nbaAssign target value => ndLeaf E st locals o env (.nbaAssign target value)
-  | .nbaAssignL target value => ndLeaf E st locals o env (.nbaAssignL target value)
-  | .localDecl name width init => ndLeaf E st locals o env (.localDecl name width init)
-  | .automaticDecl name width init => ndLeaf E st locals o env (.automaticDecl name width init)
+  | .caseStmt _ _ _ mode _ =>
+      match mode with
+      | .casex => .unsupported "12.5.4: casex is outside per-read x semantics"
+      | .casez => .unsupported "12.5.4: casez is outside per-read x semantics"
+      | _ => .unsupported "12.5: case statement is not opened in the choice-explicit step (selector and item reads)"
+  | .blockingAssign target value =>
+      match E.ndCheckExpr value with
+      | .ok () => ndLeaf E st locals o env (.blockingAssign target value)
+      | .timeout => .timeout
+      | .unsupported msg => .unsupported msg
+  | .blockingAssignL target value =>
+      match E.ndCheckExpr value, E.ndCheckTarget env st locals target with
+      | .ok (), .ok () => ndLeaf E st locals o env (.blockingAssignL target value)
+      | .timeout, _ | _, .timeout => .timeout
+      | .unsupported msg, _ | _, .unsupported msg => .unsupported msg
+  | .nbaAssign target value =>
+      match E.ndCheckExpr value with
+      | .ok () => ndLeaf E st locals o env (.nbaAssign target value)
+      | .timeout => .timeout
+      | .unsupported msg => .unsupported msg
+  | .nbaAssignL target value =>
+      match E.ndCheckExpr value, E.ndCheckTarget env st locals target with
+      | .ok (), .ok () => ndLeaf E st locals o env (.nbaAssignL target value)
+      | .timeout, _ | _, .timeout => .timeout
+      | .unsupported msg, _ | _, .unsupported msg => .unsupported msg
+  | .localDecl name width init =>
+      match E.ndCheckOptionalExpr init with
+      | .ok () => ndLeaf E st locals o env (.localDecl name width init)
+      | .timeout => .timeout
+      | .unsupported msg => .unsupported msg
+  | .automaticDecl name width init =>
+      match E.ndCheckOptionalExpr init with
+      | .ok () => ndLeaf E st locals o env (.automaticDecl name width init)
+      | .timeout => .timeout
+      | .unsupported msg => .unsupported msg
   | .unsupported kind text => .unsupported s!"{kind}: {text}"
 
 /-- Inspect one pending node of a cursor.  Returns the node's effect, the
@@ -556,24 +659,66 @@ private theorem ndOpen_retag (E : CoreMemDesign) (st : CoreMemState) (locals : S
       cases stmt with
       | ifStmt cond yes no =>
           simp only [EdgeWork.ndOpen, ndOpenStmt]
-          cases hc : E.evalExprLocals env E.elems st (some 1) locals cond with
-          | timeout => rfl
-          | unsupported msg => rfl
-          | ok cv =>
-              have hkn := hk env cond yes no cv rfl hc
-              simp [retag, Oracle.read_known _ _ hkn]
+          cases hcheck : E.ndCheckExpr cond with
+          | timeout => simp [retag]
+          | unsupported msg => simp [hcheck, retag]
+          | ok u =>
+              cases hc : E.evalExprLocals env E.elems st (some 1) locals cond with
+              | timeout => simp [hcheck, hc, retag]
+              | unsupported msg => simp [hcheck, hc, retag]
+              | ok cv =>
+                  have hkn := hk env cond yes no cv rfl hc
+                  simp [hcheck, hc, retag, Oracle.read_known _ _ hkn]
       | forLoop name init cond step body =>
           simp only [EdgeWork.ndOpen, ndOpenStmt]
           cases forValues2 env name init cond step <;> rfl
       | block body => rfl
-      | caseStmt subject items dflt mode check => rfl
+      | caseStmt subject items dflt mode check =>
+          simp only [EdgeWork.ndOpen, ndOpenStmt]
+          cases mode <;> rfl
       | unsupported kind text => rfl
-      | blockingAssign target value => simp only [EdgeWork.ndOpen, ndOpenStmt]; exact ndLeaf_retag E st locals o o' env _
-      | blockingAssignL target value => simp only [EdgeWork.ndOpen, ndOpenStmt]; exact ndLeaf_retag E st locals o o' env _
-      | nbaAssign target value => simp only [EdgeWork.ndOpen, ndOpenStmt]; exact ndLeaf_retag E st locals o o' env _
-      | nbaAssignL target value => simp only [EdgeWork.ndOpen, ndOpenStmt]; exact ndLeaf_retag E st locals o o' env _
-      | localDecl name width init => simp only [EdgeWork.ndOpen, ndOpenStmt]; exact ndLeaf_retag E st locals o o' env _
-      | automaticDecl name width init => simp only [EdgeWork.ndOpen, ndOpenStmt]; exact ndLeaf_retag E st locals o o' env _
+      | blockingAssign target value =>
+          simp only [EdgeWork.ndOpen, ndOpenStmt]
+          cases hcheck : E.ndCheckExpr value with
+          | timeout => simp [retag]
+          | unsupported msg => simp [retag]
+          | ok u => simpa [hcheck] using ndLeaf_retag E st locals o o' env _
+      | blockingAssignL target value =>
+          simp only [EdgeWork.ndOpen, ndOpenStmt]
+          cases hcheck : E.ndCheckExpr value with
+          | timeout => simp [hcheck, retag]
+          | unsupported msg =>
+              cases htarget : E.ndCheckTarget env st locals target <;> rfl
+          | ok u =>
+              cases htarget : E.ndCheckTarget env st locals target with
+              | timeout => simp [retag]
+              | unsupported msg => simp [retag]
+              | ok v => simpa [hcheck, htarget] using ndLeaf_retag E st locals o o' env _
+      | nbaAssign target value =>
+          simp only [EdgeWork.ndOpen, ndOpenStmt]
+          cases hcheck : E.ndCheckExpr value with
+          | timeout => simp [retag]
+          | unsupported msg => simp [retag]
+          | ok u => simpa [hcheck] using ndLeaf_retag E st locals o o' env _
+      | nbaAssignL target value =>
+          simp only [EdgeWork.ndOpen, ndOpenStmt]
+          cases hcheck : E.ndCheckExpr value with
+          | timeout => simp [retag]
+          | unsupported msg =>
+              cases htarget : E.ndCheckTarget env st locals target <;> rfl
+          | ok u =>
+              cases htarget : E.ndCheckTarget env st locals target with
+              | timeout => simp [retag]
+              | unsupported msg => simp [retag]
+              | ok v => simpa [hcheck, htarget] using ndLeaf_retag E st locals o o' env _
+      | localDecl name width init =>
+          simp only [EdgeWork.ndOpen, ndOpenStmt]
+          cases hi : E.ndCheckOptionalExpr init <;> simp [hi, retag]
+          exact ndLeaf_retag E st locals o o' env _
+      | automaticDecl name width init =>
+          simp only [EdgeWork.ndOpen, ndOpenStmt]
+          cases hi : E.ndCheckOptionalExpr init <;> simp [hi, retag]
+          exact ndLeaf_retag E st locals o o' env _
 
 /-- **L3.**  If the move `choice` reads no unknown, the step function gives
 the same outcome under any oracle, and the oracle passes through unchanged.
@@ -652,13 +797,15 @@ theorem ndStep_zero_enabled {E : CoreMemDesign} {s : NdState} (h : s.settled = f
 /-! The same unknown decision can resolve differently at two reads. -/
 theorem ndOpenStmt_if_unknown_twice (E : CoreMemDesign) (st : CoreMemState) (locals : SvState)
     (env : IEnv) (cond : PExpr) (yes : PStmt) (no : Option PStmt)
-    (h : E.evalExprLocals env E.elems st (some 1) locals cond = .ok ⟨#[Logic.lx]⟩) (o : Oracle) :
+    (h : E.evalExprLocals env E.elems st (some 1) locals cond = .ok ⟨#[Logic.lx]⟩)
+    (hobs : ndXObserver? cond = none) (o : Oracle) :
     ndOpenStmt E st locals (Oracle.cons true (Oracle.cons false o)) env (.ifStmt cond yes no) =
         .ok (.idle st locals, [EdgeWork.edgeStmt env yes], Oracle.cons false o) ∧
       ndOpenStmt E st locals (Oracle.cons false o) env (.ifStmt cond yes no) =
         .ok (.idle st locals, no.toList.map (EdgeWork.edgeStmt env), o) := by
   constructor <;>
-    simp [ndOpenStmt, h, Oracle.read, Oracle.bits, Logic.isKnown, LVec.condTrue] <;> decide
+    simp [ndOpenStmt, CoreMemDesign.ndCheckExpr, h, hobs, Oracle.read, Oracle.bits,
+      Logic.isKnown, LVec.condTrue] <;> decide
 
 #print axioms Oracle.read_xread
 #print axioms Oracle.read_complete
