@@ -2336,6 +2336,10 @@ theorem pairedMergeByte_refusal
 def copySnapshot (source destination : List (Byte Tag)) : Option (List (Byte Tag)) :=
   if source.length == destination.length then some source else none
 
+theorem copySnapshot_empty_success :
+    copySnapshot ([] : List (Byte Tag)) [] = some [] := by
+  rfl
+
 def pairedCopySnapshot [BEq Tag] (resolve : AllocId → Nat)
     (source destination : List (Byte Tag)) :
     Option ((List (Byte Tag)) × (List (Byte Tag))) := do
@@ -2343,6 +2347,12 @@ def pairedCopySnapshot [BEq Tag] (resolve : AllocId → Nat)
   let targetResult ← copySnapshot (source.map (renameByte resolve))
     (destination.map (renameByte resolve))
   some (sourceResult, targetResult)
+
+theorem pairedCopySnapshot_empty_success
+    {Tag : Type} [BEq Tag] (resolve : AllocId → Nat) :
+    pairedCopySnapshot (Tag := Tag) resolve ([] : List (Byte Tag)) [] =
+      some (([] : List (Byte Tag)), []) := by
+  rfl
 
 theorem pairedCopySnapshot_decompose
     [BEq Tag] (resolve : AllocId → Nat)
