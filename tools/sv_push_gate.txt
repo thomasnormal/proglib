@@ -320,3 +320,5 @@ Examples/system-verilog/sem2/unpacked_bitselect_target/agree.lean
 Examples/system-verilog/sem2/comb_chain_unpacked/agree.lean
 
 Examples/system-verilog/sem2/struct_port_assign_e/agree.lean
+
+Examples/system-verilog/sem2/generated_unpacked_fifo_e/agree.lean

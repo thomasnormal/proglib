@@ -561,6 +561,15 @@ def coreMemLhsRoot : PLhs → String
   | .arrayPart name _ .. | .aggregateMember name _ => name
   | .concat _ => ""
 
+def coreMemArrayIndicesMayOverlap : List PExpr → List PExpr → Bool
+  | [], [] => true
+  | left :: leftRest, right :: rightRest =>
+      match left, right with
+      | .int leftValue, .int rightValue =>
+          leftValue == rightValue && coreMemArrayIndicesMayOverlap leftRest rightRest
+      | _, _ => true
+  | _, _ => true
+
 def coreMemLhsMayOverlap (lhs rhs : PLhs) : Bool :=
   match lhs, rhs with
   | .ident left, .ident right => left == right
@@ -577,8 +586,10 @@ def coreMemLhsMayOverlap (lhs rhs : PLhs) : Bool :=
   | .partSel left _ _, .bitSel right _ | .partSel left _ _, .arrayElem right _
   | .partSel left _ _, .arrayPart right _ .. | .partSel left _ _, .aggregateMember right _ =>
       left == right
+  | .arrayElem left leftIndices, .arrayElem right rightIndices =>
+      left == right && coreMemArrayIndicesMayOverlap leftIndices rightIndices
   | .arrayElem left _, .ident right | .arrayElem left _, .bitSel right _
-  | .arrayElem left _, .partSel right _ _ | .arrayElem left _, .arrayElem right _
+  | .arrayElem left _, .partSel right _ _
   | .arrayElem left _, .arrayPart right _ .. | .arrayElem left _, .aggregateMember right _ =>
       left == right
   | .arrayPart left _ .., .ident right | .arrayPart left _ .., .bitSel right _
