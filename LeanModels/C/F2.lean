@@ -1313,6 +1313,47 @@ theorem pairedTypedStoreLoadMetadataByte_decompose
                   simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl, htl] at hresult
                   exact ⟨(sourceStore, sourceLoad), (targetStore, targetLoad), hresult.2.symm⟩
 
+theorem pairedTypedStoreLoadMetadataByte_sound
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (result : ((AllocationMetadata Tag State TypeId × Footprint) × (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) × (Byte Tag × Footprint)))
+    (hresult : pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte =
+      some result) :
+    ∃ sourceStore sourceLoad targetStore targetLoad,
+      result = ((sourceStore, sourceLoad), (targetStore, targetLoad)) ∧
+      typedStoreMetadataByte metadata offset typeId byte = some sourceStore ∧
+      typedStoreMetadataByte (renameMetadata resolve id metadata) offset typeId
+        (renameByte resolve byte) = some targetStore ∧
+      typedLoadMetadataByte sourceStore.1 offset typeId = some sourceLoad ∧
+      typedLoadMetadataByte targetStore.1 offset typeId = some targetLoad ∧
+      (targetStore.1 == renameMetadata resolve id sourceStore.1) = true ∧
+      (targetStore.2 == sourceStore.2) = true ∧
+      (targetLoad.1 == renameByte resolve sourceLoad.1) = true ∧
+      (targetLoad.2 == sourceLoad.2) = true := by
+  cases hs : typedStoreMetadataByte metadata offset typeId byte with
+  | none => simp [pairedTypedStoreLoadMetadataByte, hs] at hresult
+  | some sourceStore =>
+      cases ht : typedStoreMetadataByte (renameMetadata resolve id metadata)
+          offset typeId (renameByte resolve byte) with
+      | none => simp [pairedTypedStoreLoadMetadataByte, hs, ht] at hresult
+      | some targetStore =>
+          cases hsl : typedLoadMetadataByte sourceStore.1 offset typeId with
+          | none => simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl] at hresult
+          | some sourceLoad =>
+              cases htl : typedLoadMetadataByte targetStore.1 offset typeId with
+              | none => simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl, htl] at hresult
+              | some targetLoad =>
+                  simp [pairedTypedStoreLoadMetadataByte, hs, ht, hsl, htl] at hresult
+                  rcases hresult with ⟨hcondition, hpair⟩
+                  exact ⟨sourceStore, sourceLoad, targetStore, targetLoad,
+                    hpair.symm, by simpa using hs, by simpa using ht,
+                    by simpa using hsl, by simpa using htl,
+                    hcondition.1.1.1, hcondition.1.1.2,
+                    hcondition.1.2, hcondition.2⟩
+
 theorem pairedTypedStoreLoadMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
