@@ -6131,6 +6131,25 @@ theorem pairedAllocateBounded_refusal_target
     pairedAllocateBounded resolve store request placement alignment limit = false := by
   simp [pairedAllocateBounded, hsource, htarget]
 
+theorem pairedAllocateBounded_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment limit : Nat)
+    (hrefusal :
+      (∃ sourceFault target,
+        allocateBounded store request placement alignment limit = .error sourceFault ∧
+        allocateBounded (renameStore resolve store) (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment limit = .ok target) ∨
+      (∃ source targetFault,
+        allocateBounded store request placement alignment limit = .ok source ∧
+        allocateBounded (renameStore resolve store) (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment limit = .error targetFault)) :
+    pairedAllocateBounded resolve store request placement alignment limit = false := by
+  rcases hrefusal with ⟨sourceFault, target, hsource, htarget⟩ |
+    ⟨source, targetFault, hsource, htarget⟩
+  · simp [pairedAllocateBounded, hsource, htarget]
+  · simp [pairedAllocateBounded, hsource, htarget]
+
 def allocateMetadata (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) :
     Option (AllocationMetadata Tag State TypeId × Footprint) :=
