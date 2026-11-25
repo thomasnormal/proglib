@@ -4650,6 +4650,24 @@ theorem pairedRecoverAddress_recovered_empty_refusal
     pairedRecoverAddress resolve address live = false := by
   simp [pairedRecoverAddress, hsource, htarget]
 
+theorem pairedRecoverAddress_refusal
+    (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag))
+    (hrefusal :
+      (∃ source target,
+        recoverAddress address live = .empty source ∧
+        recoverAddress address (live.map (renameLiveRegion resolve)) =
+          .recovered target) ∨
+      (∃ source target,
+        recoverAddress address live = .recovered source ∧
+        recoverAddress address (live.map (renameLiveRegion resolve)) =
+          .empty target)) :
+    pairedRecoverAddress resolve address live = false := by
+  rcases hrefusal with ⟨source, target, hsource, htarget⟩ |
+    ⟨source, target, hsource, htarget⟩
+  · simp [pairedRecoverAddress, hsource, htarget]
+  · simp [pairedRecoverAddress, hsource, htarget]
+
 theorem pairedRecoverAddress_sound
     (resolve : AllocId → Nat) (address : Nat)
     (live : List (AllocId × Nat × Nat × Tag))
