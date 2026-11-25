@@ -1083,6 +1083,7 @@ def parseModule2 (j : Json) : Except String PDesign :=
         | none => pure none
         | some tj => pure (some (← withCtx s!"package parameter '{pkg}::{pname}' type" (parsePType tj)))
       let signedVal ← parseOptSigned qj
+      let unsupportedVal := getOptStr qj "unsupported"
       let aggregateVal ← match getOptField qj "aggregate" with
         | none => pure none
         | some aj => some <$> parsePAggType aj
@@ -1095,7 +1096,7 @@ def parseModule2 (j : Json) : Except String PDesign :=
             pure (some rows)
       let isString := (getOptField qj "string").bind (·.getBool?.toOption) |>.getD false
       let pp : PParam := PParam.mk pname defaultVal (getOptInt qj "resolved")
-        typeVal signedVal false aggregateVal aggregateDefaultVal isString
+        typeVal signedVal false aggregateVal aggregateDefaultVal isString unsupportedVal
       packageParams := packageParams ++ [(pkg, pp)]
     for pj in (← (← getField j "params").getArr?) do
       match ← getKind pj with

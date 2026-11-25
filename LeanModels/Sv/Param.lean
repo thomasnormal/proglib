@@ -402,6 +402,10 @@ structure PParam where
   /-- A parser-retained `string` parameter.  Its value is source metadata and
   does not enter the integer elaboration environment. -/
   isString : Bool := false
+  /-- A package member outside the extractor's constant tier.  It remains in
+      the package table while references to it fail through the usual loud
+      unknown-package-constant path. -/
+  unsupported? : Option String := none
 deriving Repr, BEq, Inhabited
 
 structure PackageAggValue where
@@ -2380,7 +2384,7 @@ override binders; their defaults are evaluated in declaration order. -/
 private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → Res IEnv
   | [] => .ok env
   | (pkg, p) :: rest =>
-      if p.isString then
+      if p.isString || p.unsupported?.isSome then
         bindPackageParamsInOrder env rest
       else if p.aggregate?.isSome then
         match bindPackageAggregate env pkg p with

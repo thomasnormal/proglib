@@ -36992,6 +36992,7 @@ def _sym_package_params(sm):
                 for member in package:
                     if str(getattr(member, "kind", "")).split(".")[-1] != "Parameter":
                         continue
+                    node = None
                     t = getattr(member, "type", None)
                     node = convert_param_sym(sm, member)
                     aggregate_shape = _aggregate_shape_sym(
@@ -37090,13 +37091,16 @@ def _sym_package_params(sm):
                     # contains a parameter would be the default-point shape
                     # and must stay loud until package width metadata is
                     # carried per point.
+                    if ptype.get("kind") == "PackedType" and ptype.get("packed") is None:
+                        node = dict(node)
+                        node["unsupported"] = "PackageParameter:type"
                     if ptype.get("kind") == "PackedType" and any(
                         bound.get("kind") != "Int"
-                        for dim in ptype.get("packed", [])
+                        for dim in (ptype.get("packed") or [])
                         for bound in (dim.get("msb", {}), dim.get("lsb", {}))
                     ):
                         if all(_sym_package_constant_expr(bound)
-                               for dim in ptype.get("packed", [])
+                               for dim in (ptype.get("packed") or [])
                                for bound in (dim.get("msb", {}), dim.get("lsb", {}))):
                             node = dict(node)
                             node["type"] = {
@@ -37113,8 +37117,22 @@ def _sym_package_params(sm):
                     node = dict(node)
                     node["package"] = package.name
                     result.append(node)
-    except Exception:
-        return []
+    except Exception as exc:
+        # A single package member must never erase the table for every other
+        # package constant.  Preserve the member as a loud entry and keep all
+        # successfully converted entries.  The loader skips this marker until
+        # a source expression actually references the member.
+        try:
+            candidate = locals().get("node")
+            if not isinstance(candidate, dict):
+                candidate = convert_param_sym(sm, locals()["member"])
+            candidate = dict(candidate)
+            candidate["package"] = locals()["package"].name
+            candidate["unsupported"] = "PackageParameter:unconvertible"
+            result.append(candidate)
+        except Exception:
+            pass
+        return result
     return result
 
 
