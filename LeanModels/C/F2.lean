@@ -6457,6 +6457,15 @@ theorem allocate_empty_result_counters
   | fail =>
       simp [allocate] at hresult
 
+theorem allocate_empty_result_wellFormed
+    (store : Store Tag State) (state : State) (placement : Placement)
+    (result : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hresult : allocate store { bytes := [], state := state } placement = some result) :
+    WellFormed result.1 := by
+  exact allocate_preserves_wellFormed store { bytes := [], state := state }
+    placement result hstore (by simp [bytesWf]) hresult
+
 def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment : Nat) : Option (Store Tag State × Footprint) :=
   match placement with
