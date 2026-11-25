@@ -594,6 +594,13 @@ def storeMetadataByte (metadata : AllocationMetadata Tag State TypeId)
     some ({ metadata with allocation := allocation },
       footprint .write { allocation := 0, offset := offset, width := 1 })
 
+theorem storeMetadataByte_empty_none
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (hbytes : metadata.allocation.bytes = []) :
+    storeMetadataByte metadata offset byte = none := by
+  simp [storeMetadataByte, hbytes]
+
 theorem storeMetadataByte_outOfBounds
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (byte : Byte Tag)
