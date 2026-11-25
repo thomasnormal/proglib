@@ -1,0 +1,23 @@
+{
+  "simulators": {
+    "iverilog": "Icarus Verilog 13.0 (s20250103-64-gdad78d525)",
+    "xcelium": "Xcelium 26.09 via refsim"
+  },
+  "rows": [
+    {"name": "lf3_nest_dep_p1k", "kind": "answer", "iverilog": "00000bb8", "xcelium": "00000bb8"},
+    {"name": "a4_dep10i", "kind": "answer", "iverilog": "0000003c", "xcelium": "0000003c"},
+    {"name": "a4_dep3i", "kind": "answer", "iverilog": "00000054", "xcelium": "00000054"},
+    {"name": "a4_sz_bound", "kind": "refusal", "model": "ForLoopStatement: explicit cast in literal header"},
+    {"name": "a4_sz_bound2", "kind": "refusal", "model": "ForLoopStatement: explicit cast in literal header"},
+    {"name": "a4_sz_init", "kind": "refusal", "model": "ForLoopStatement: explicit cast in literal header"},
+    {"name": "a4_sgn_bound", "kind": "refusal", "model": "ForLoopStatement: explicit cast in literal header"},
+    {"name": "a4_sz_step", "kind": "refusal", "model": "ForLoopStatement: explicit cast in literal header"},
+    {"name": "lf3_ext_nest", "kind": "refusal", "model": "ForLoopStatement: external iterator nesting"},
+    {"name": "lf3_ext_nest_p3", "kind": "refusal", "model": "ForLoopStatement: external iterator nesting"},
+    {"name": "a4_rg_comb40", "kind": "refusal", "model": "Event:edge-blocking-race"},
+    {"name": "a4_rg_hier40", "kind": "refusal", "model": "Event:edge-blocking-race"},
+    {"name": "a4_q_init_mem", "kind": "refusal", "model": "Comb:memory-quiescence"},
+    {"name": "a4_q_comb_mem_read", "kind": "refusal", "model": "Comb:memory-quiescence"},
+    {"name": "a4_q_hier_mem", "kind": "refusal", "model": "Comb:memory-quiescence"}
+  ]
+}

@@ -717,6 +717,7 @@ step  "sv-refusals-register" python3 tools/gen_sv_refusals.py --check
 step  "sv-oracle-admission-tests" python3 harness/sv/test_oracle_admission.py
 step  "sv-oracle-disagreement-tests" python3 harness/sv/test_oracle_disagreements.py
 step  "sv-alias-battery-tests" python3 harness/sv/test_alias_battery.py
+step  "sv-audit4-rows-tests" python3 harness/sv/test_audit4_rows.py
 step  "ci-oracle-admission-tests" python3 harness/sv/test_ci_oracle_admission.py
 step  "spectre-probe-tests" python3 harness/spice/test_spectre_probe.py
 step  "tool-self-tests" selftests

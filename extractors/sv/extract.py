@@ -23358,6 +23358,14 @@ def _sym_for_values(statement):
     symbol, initial = header
     if not _sym_loop_plain_int(symbol):
         return None
+    condition_node = getattr(statement, "stopExpr", None)
+    # IEEE 1800-2017 §6.24.1 gives an explicit size/sign cast semantics that
+    # the literal trace evaluator does not yet carry.  Refuse the complete
+    # header until initializer, bound, and step expressions are represented at
+    # their real width and signedness.  In particular, do not peel a cast in
+    # `_literal_integral_value` and silently use the operand's type.
+    if _sym_for_header_has_explicit_cast(statement):
+        return None
     if not _sym_loop_condition_signed(statement, symbol):
         return None
     condition = getattr(statement, "stopExpr", None)
@@ -23399,6 +23407,25 @@ def _sym_for_values(statement):
             return None
         value = next_value
     return symbol, values
+
+
+def _sym_for_header_has_explicit_cast(statement):
+    """Whether a literal loop header contains an explicit conversion."""
+    header = lower_proc.loop_header(sys.modules[__name__], statement)
+    nodes = [getattr(header[0], "initializer", None)] if header is not None else []
+    nodes += [getattr(statement, "stopExpr", None)]
+    nodes += list(getattr(statement, "steps", ()))
+    for node in nodes:
+        found = False
+        def visit(n):
+            nonlocal found
+            if type(n).__name__ == "ConversionExpression" and not getattr(n, "isImplicit", True):
+                found = True
+        if node is not None:
+            node.visit(visit)
+        if found:
+            return True
+    return False
 
 
 def _sym_for_step_node(sm, step, symbol):
@@ -23677,6 +23704,10 @@ def _convert_stmt(sm, s):
 
     if cname == "ForLoopStatement":
         if _SYM is not None:
+            if _sym_for_header_has_explicit_cast(s):
+                return unsupported(
+                    sm, s, "ForLoopStatement",
+                    "explicit cast in literal header: " + source_text(s))
             if _RETAIN_LOOPS:
                 retained = _sym_for_parameter_shape(sm, s)
                 if retained is not None:

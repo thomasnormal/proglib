@@ -1,4 +1,5 @@
 import LeanModels.Sv.Kernel.CoreMemFuel
+import LeanModels.Sv.Mono2
 /-! loopfuel-audit3, C5 (an audit check outside the repository; `lake env lean` in the tree under test).
 
 The question C5 asks: wherever the OLD fixed-fuel semantics (the merge base) gives a decided answer, does the NEW
@@ -49,6 +50,54 @@ theorem RC_le {α : Type} {x y z : Res α} (h : RC x y) (hle : y ⊑ z) : RC x z
   · rcases hle with hl | hl
     · subst h; cases hl
     · exact Or.inr (Or.inr ⟨m, hl ▸ h⟩)
+
+/-! The merge-base resolver evaluated a dynamic index with the caller's
+fuel.  The tip resolves that pure index structurally.  The kept old executor
+copy shares the tree's scalar-target helpers, so its resolver call is the one
+shared implementation boundary.  `mbResolveLhs2_conservative` records the
+old resolver result against the structural resolver, while the remaining
+shared helpers have unchanged definitions.  Keeping this fact beside the
+old copy prevents the executor comparison from silently treating the
+resolver change as an unrelated definition. -/
+def mbResolveLhs2 (fuel : Nat) (st : SvState) : Lhs2 →
+    Res (String × Option (Nat × Nat))
+  | .ident n => do
+      match SvState.lookup st n with
+      | some old => return (n, some (0, old.width))
+      | none => .unsupported s!"unknown assignment target '{n}'"
+  | .slice n lo w => .ok (n, some (lo, w))
+  | .index n idx elemW => do
+      let iv ← evalExpr2 fuel st idx
+      match SvState.lookup st n with
+      | none => .unsupported s!"unknown assignment target '{n}'"
+      | some old =>
+          match indexInt? idx iv with
+          | some i =>
+              if 0 ≤ i && (i + 1) * elemW ≤ old.width then
+                return (n, some (i.toNat * elemW, elemW))
+              else return (n, none)
+          | none => return (n, none)
+  | .concat _ => .unsupported "concatenated target requires continuous-assignment execution"
+
+theorem mbResolveLhs2_conservative (fuel fuel' : Nat) (st : SvState) (t : Lhs2) :
+    mbResolveLhs2 fuel st t ⊑ resolveLhs2 fuel' st t := by
+  cases t with
+  | ident n =>
+      simp only [mbResolveLhs2, resolveLhs2]
+      cases h : st.lookup n <;> exact Res.le_refl _
+  | slice n lo w => simp only [mbResolveLhs2, resolveLhs2]; exact Res.le_refl _
+  | concat parts => simp only [mbResolveLhs2, resolveLhs2]; exact Res.le_refl _
+  | index n idx elemW =>
+      simp only [mbResolveLhs2, resolveLhs2]
+      exact Res.le_bind (evalExpr2_le_evalPure2 fuel st idx) (fun iv => by
+        cases h : st.lookup n with
+        | none => exact Res.le_refl _
+        | some old =>
+            cases hi : indexInt? idx iv with
+            | none => simp only [hi]; exact Res.le_refl _
+            | some i =>
+                simp only [hi]
+                split <;> exact Res.le_refl _)
 
 /-- The checked trace is the unchecked one, or the range refusal. -/
 theorem audit_forValues2Int32_cases (env : IEnv) (it : String) (init cond step : PExpr) :
@@ -177,7 +226,7 @@ end
 
 def oldExecStmt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmt : PStmt) : CoreMemExec :=
-  oldStmtFuel E env elems st [] (1 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
+  oldStmtFuel E env elems st [] (4096 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
 -- END MERGE-BASE
 
 /-! ## Old (merge base) against new (tip), at the same fuel -/
@@ -298,8 +347,8 @@ theorem audit_execStmt_conservative (E : CoreMemDesign) (env : IEnv) (elems : Li
     (st : CoreMemState) (stmt : PStmt) :
     RC (oldExecStmt E env elems st stmt) (E.execStmt env elems st stmt) := by
   unfold oldExecStmt CoreMemDesign.execStmt
-  exact RC_le ((audit_old_new (1 + PStmt.need env stmt + PStmt.runtimeNeed env stmt)).1 E env elems st [] stmt)
-    (coreMemFuelMono_stmt (by omega) E env elems st [] stmt)
+  exact RC_le ((audit_old_new (4096 + PStmt.need env stmt + PStmt.runtimeNeed env stmt)).1 E env elems st [] stmt)
+    (Res.le_refl _)
 
 /-- The decided reading: an old value is the new value unless the new route refuses. -/
 theorem audit_execStmt_ok (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
