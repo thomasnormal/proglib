@@ -14,4 +14,6 @@ set_option maxHeartbeats 1000000 in
 theorem cnt_structure (D AW : Nat) : SeqDesign (cnt.e D AW) "clk" := by
   sv_structure
 
+#print axioms cnt_structure
+
 end Examples.«system-verilog».sem2.clocked_param_width_topo_e
