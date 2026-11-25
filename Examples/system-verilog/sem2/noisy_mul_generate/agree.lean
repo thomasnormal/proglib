@@ -62,6 +62,33 @@ def rowBody : List GenItem :=
   | .genFor _ _ _ _ _ _ body => body
   | _ => []
 
+def outGen : GenItem := noisyMul.pdesign.generates[2]!
+
+theorem noisy_top_generates_shape : noisyMul.pdesign.generates = [ppGen, rowGen, outGen] := by
+  rfl
+
+theorem noisy_top_generated_expand
+    {cb : ChildInst} {env : IEnv} {elems : List (String × Nat)} {F : Nat}
+    {pp row out : List Decl × List Process2}
+    (hpp : ppGen.expandH cb env elems F = .ok pp)
+    (hrow : rowGen.expandH cb env elems F = .ok row)
+    (hout : expandListH cb env elems F [outGen] = .ok out) :
+    expandListH cb env elems F noisyMul.pdesign.generates =
+      .ok (pp.1 ++ row.1 ++ out.1, pp.2 ++ row.2 ++ out.2) := by
+  rw [noisy_top_generates_shape]
+  have htail :
+      expandListH cb env elems F [rowGen, outGen] =
+        .ok (row.1 ++ out.1, row.2 ++ out.2) := by
+    exact expandListH_cons_ok (it := rowGen) (rest := [outGen])
+      (ds := row.1) (ps := row.2) (ds' := out.1) (qs := out.2)
+      (h := by decide) hrow hout
+  simpa [List.append_assoc] using
+    (expandListH_cons_ok (it := ppGen) (rest := [rowGen, outGen])
+      (ds := pp.1) (ps := pp.2)
+      (ds' := row.1 ++ out.1) (qs := row.2 ++ out.2)
+      (h := by decide) hpp htail)
+
+
 /-! The hierarchy tactic refuses this source-shaped design at the exact first
 generated child site.  Keep the refusal as a named hand-proof receipt: the
 compositional equations below are usable, but no static flat twin is claimed.
