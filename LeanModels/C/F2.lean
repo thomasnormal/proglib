@@ -4441,6 +4441,12 @@ theorem bytesWf_empty
     bytesWf (Tag := Tag) id [] := by
   simp [bytesWf]
 
+theorem bytesWf_uninitialized
+    {Tag : Type} (id : AllocId) (rest : List (Byte Tag))
+    (h : bytesWf id rest) :
+    bytesWf id (.uninitialized :: rest) := by
+  simpa [bytesWf] using h
+
 theorem wellFormed_empty
     {Tag State : Type} :
     WellFormed ({ allocations := [], nextId := 0 } : Store Tag State) := by
