@@ -6710,6 +6710,18 @@ theorem pairedEndLifetime_refusal
   | inl hsource => simp [pairedEndLifetime, hsource]
   | inr htarget => simp [pairedEndLifetime, htarget]
 
+theorem pairedEndLifetime_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (hsource : endLifetime store id = none) :
+    pairedEndLifetime resolve store id = none := by
+  simp [pairedEndLifetime, hsource]
+
+theorem pairedEndLifetime_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (htarget : endLifetime (renameStore resolve store) id = none) :
+    pairedEndLifetime resolve store id = none := by
+  simp [pairedEndLifetime, htarget]
+
 theorem pairedEndLifetime_both_success
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
     (source target : Store Tag State × Footprint)
