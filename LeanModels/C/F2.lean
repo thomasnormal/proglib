@@ -8305,6 +8305,20 @@ theorem pairedAllocateBounded_address_misaligned_true
   simp [pairedAllocateBounded, allocateBounded, renamedPlacement, hsourceWithin,
     htargetWithin, htargetWithin', hsource, htarget, renameAllocationRequest] <;> decide
 
+theorem pairedAllocateBounded_empty_address_misaligned_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment limit : Nat)
+    (hsourceWithin : placementWithin base 0 limit = true)
+    (htargetWithin : placementWithin (resolve store.nextId) 0 limit = true)
+    (hsource : alignmentAllowed base alignment = false)
+    (htarget : alignmentAllowed (resolve store.nextId) alignment = false) :
+    pairedAllocateBounded resolve store { bytes := [], state := state }
+      (.address base) alignment limit = true := by
+  simpa [renameAllocationRequest] using
+    pairedAllocateBounded_address_misaligned_true resolve store
+      { bytes := [], state := state } base alignment limit
+      hsourceWithin htargetWithin hsource htarget
+
 theorem pairedAllocateBounded_address_overlap_true
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (base alignment limit : Nat)
