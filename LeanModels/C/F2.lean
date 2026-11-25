@@ -2849,6 +2849,19 @@ theorem pairedReallocMetadata_failure_shape
   rcases hresult with ⟨rfl, rfl⟩
   exact ⟨rfl, rfl, rfl, rfl⟩
 
+theorem pairedReallocMetadata_empty_failure_shape
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (hbytes : old.allocation.bytes = []) :
+    pairedReallocMetadata resolve old request locations .fail =
+      some (
+        (.failed old, footprint .metadata (Region.mk 0 0 0)),
+        (.failed (renameMetadata resolve 0 old),
+          footprint .metadata (Region.mk 0 0 0))) := by
+  simp [pairedReallocMetadata, reallocMetadata, renameMetadata, hbytes]
+
 theorem pairedReallocMetadata_decompose
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
