@@ -2472,6 +2472,11 @@ theorem memcpySnapshot_success_nonoverlap
 def memmoveSnapshot (_source _destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag)) := some bytes
 
+theorem memmoveSnapshot_empty_success {Tag : Type}
+    (source destination : Region) :
+    memmoveSnapshot (Tag := Tag) source destination [] = some [] := by
+  rfl
+
 theorem memmoveSnapshot_success
     (source destination : Region) (bytes : List (Byte Tag)) :
     memmoveSnapshot source destination bytes = some bytes := by
@@ -2490,6 +2495,13 @@ def pairedMemmoveSnapshot [BEq Tag] (resolve : AllocId → Nat)
   let sourceResult ← memmoveSnapshot source destination bytes
   let targetResult ← memmoveSnapshot source destination (bytes.map (renameByte resolve))
   some (sourceResult, targetResult)
+
+theorem pairedMemmoveSnapshot_empty_success
+    {Tag : Type} [BEq Tag] (resolve : AllocId → Nat)
+    (source destination : Region) :
+    pairedMemmoveSnapshot (Tag := Tag) resolve source destination [] =
+      some (([] : List (Byte Tag)), []) := by
+  rfl
 
 theorem pairedMemmoveSnapshot_decompose
     [BEq Tag] (resolve : AllocId → Nat)
