@@ -5482,6 +5482,13 @@ theorem zeroTokenPlacementAgreement_agrees
   intro id
   simp [zeroTokenPlacementAgreement, haddress]
 
+theorem zeroTokenPlacementAgreement_refusal
+    (left right : AllocationMetadata Tag State TypeId)
+    (id : AllocId)
+    (haddress : left.allocation.address ≠ right.allocation.address) :
+    (zeroTokenPlacementAgreement left right).agreesAt id = false := by
+  simp [zeroTokenPlacementAgreement, PlacementAgreement.agreesAt, haddress]
+
 def placementOf (store : Store Tag State) (id : AllocId) : Option Nat :=
   (lookup store id).bind Allocation.address
 
