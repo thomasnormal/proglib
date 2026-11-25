@@ -8510,6 +8510,30 @@ theorem pairedAllocateBounded_refusal
   · simp [pairedAllocateBounded, hsource, htarget]
   · simp [pairedAllocateBounded, hsource, htarget]
 
+theorem pairedAllocateBounded_empty_address_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment limit : Nat)
+    (hrefusal :
+      (∃ sourceFault target,
+        allocateBounded store { bytes := [], state := state }
+          (.address base) alignment limit = .error sourceFault ∧
+        allocateBounded (renameStore resolve store)
+          (renameAllocationRequest resolve { bytes := [], state := state })
+          (renamedPlacement resolve store.nextId (.address base)) alignment limit =
+            .ok target) ∨
+      (∃ source targetFault,
+        allocateBounded store { bytes := [], state := state }
+          (.address base) alignment limit = .ok source ∧
+        allocateBounded (renameStore resolve store)
+          (renameAllocationRequest resolve { bytes := [], state := state })
+          (renamedPlacement resolve store.nextId (.address base)) alignment limit =
+            .error targetFault)) :
+    pairedAllocateBounded resolve store { bytes := [], state := state }
+      (.address base) alignment limit = false := by
+  apply pairedAllocateBounded_refusal resolve store
+    { bytes := [], state := state } (.address base) alignment limit
+  simpa using hrefusal
+
 def allocateMetadata (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) :
     Option (AllocationMetadata Tag State TypeId × Footprint) :=
