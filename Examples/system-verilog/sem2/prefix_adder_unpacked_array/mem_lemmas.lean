@@ -62,4 +62,19 @@ theorem prefixMem_packed_readback {bits : Nat → BitVec 1} {base : LVec}
   · exact h0
   · exact h1
 
+
+theorem prefixMem_distinct_cell_writes {v w : LVec} {q : Int}
+    (hv : LVec.width v = 1) (hw : LVec.width w = 1) :
+    ((MemState.write prefixMemDesign.initial.memory "mem" 0 v).bind
+        (fun s' => MemState.write s' "mem" 1 w)).bind
+        (fun s' => MemState.read s' "mem" q) =
+      ((MemState.write prefixMemDesign.initial.memory "mem" 1 w).bind
+        (fun s' => MemState.write s' "mem" 0 v)).bind
+        (fun s' => MemState.read s' "mem" q) := by
+  apply MemState.distinct_cell_writes_read_commute
+  · rfl
+  · omega
+  · exact hv
+  · exact hw
+
 end Examples.«system-verilog».sem2.prefix_adder_unpacked_array.mem_lemmas
