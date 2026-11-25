@@ -3738,6 +3738,29 @@ theorem pairedStoreRepresentationLoadMetadataByte_refusal_target_store
     pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice = none := by
   simp [pairedStoreRepresentationLoadMetadataByte, htarget]
 
+theorem pairedStoreRepresentationLoadMetadataByte_refusal_source_load
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice)
+    (sourceStore : AllocationMetadata Tag State TypeId × Footprint)
+    (hstore : storeMetadataByte metadata offset byte = some sourceStore)
+    (hload : representationLoadMetadataByte sourceStore.1 offset choice = none) :
+    pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice = none := by
+  simp [pairedStoreRepresentationLoadMetadataByte, hstore, hload]
+
+theorem pairedStoreRepresentationLoadMetadataByte_refusal_target_load
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice)
+    (targetStore : AllocationMetadata Tag State TypeId × Footprint)
+    (htarget : storeMetadataByte (renameMetadata resolve id metadata) offset
+      (renameByte resolve byte) = some targetStore)
+    (hload : representationLoadMetadataByte targetStore.1 offset choice = none) :
+    pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice = none := by
+  simp [pairedStoreRepresentationLoadMetadataByte, htarget, hload]
+
 theorem pairedStoreRepresentationLoadMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
