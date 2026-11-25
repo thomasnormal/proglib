@@ -7089,6 +7089,57 @@ theorem pairedStaleStore_refusal_target_store
     pairedStaleStore resolve store id offset byte = false := by
   simp [pairedStaleStore, hsource, htarget, hstoreSource, hstoreTarget]
 
+theorem pairedStaleLoad_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State) (id offset : Nat)
+    (hrefusal :
+      endLifetime store id = none ∨
+      endLifetime (renameStore resolve store) id = none ∨
+      (∃ sourceResult targetResult, ∃ (sourceLoad : Byte Tag × Footprint),
+        endLifetime store id = some sourceResult ∧
+        endLifetime (renameStore resolve store) id = some targetResult ∧
+        loadByte sourceResult.1 id offset = some sourceLoad) ∨
+      (∃ sourceResult targetResult, ∃ (sourceLoad targetLoad : Byte Tag × Footprint),
+        endLifetime store id = some sourceResult ∧
+        endLifetime (renameStore resolve store) id = some targetResult ∧
+        loadByte sourceResult.1 id offset = none ∧
+        loadByte targetResult.1 id offset = some targetLoad)) :
+    pairedStaleLoad resolve store id offset = false := by
+  rcases hrefusal with hsource | htarget | hsourceLoad | htargetLoad
+  · simp [pairedStaleLoad, hsource]
+  · simp [pairedStaleLoad, htarget]
+  · rcases hsourceLoad with ⟨sourceResult, targetResult, sourceLoad, hsource,
+      htarget, hloadSource⟩
+    simp [pairedStaleLoad, hsource, htarget, hloadSource]
+  · rcases htargetLoad with ⟨sourceResult, targetResult, sourceLoad, targetLoad,
+      hsource, htarget, hloadSource, hloadTarget⟩
+    simp [pairedStaleLoad, hsource, htarget, hloadSource, hloadTarget]
+
+theorem pairedStaleStore_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State) (id offset : Nat)
+    (byte : Byte Tag)
+    (hrefusal :
+      endLifetime store id = none ∨
+      endLifetime (renameStore resolve store) id = none ∨
+      (∃ sourceResult targetResult, ∃ (sourceStore : Store Tag State × Footprint),
+        endLifetime store id = some sourceResult ∧
+        endLifetime (renameStore resolve store) id = some targetResult ∧
+        storeByte sourceResult.1 id offset byte = some sourceStore) ∨
+      (∃ sourceResult targetResult, ∃ (sourceStore targetStore : Store Tag State × Footprint),
+        endLifetime store id = some sourceResult ∧
+        endLifetime (renameStore resolve store) id = some targetResult ∧
+        storeByte sourceResult.1 id offset byte = none ∧
+        storeByte targetResult.1 id offset (renameByte resolve byte) = some targetStore)) :
+    pairedStaleStore resolve store id offset byte = false := by
+  rcases hrefusal with hsource | htarget | hsourceStore | htargetStore
+  · simp [pairedStaleStore, hsource]
+  · simp [pairedStaleStore, htarget]
+  · rcases hsourceStore with ⟨sourceResult, targetResult, sourceStore, hsource,
+      htarget, hstoreSource⟩
+    simp [pairedStaleStore, hsource, htarget, hstoreSource]
+  · rcases htargetStore with ⟨sourceResult, targetResult, sourceStore, targetStore,
+      hsource, htarget, hstoreSource, hstoreTarget⟩
+    simp [pairedStaleStore, hsource, htarget, hstoreSource, hstoreTarget]
+
 theorem pairedStaleLoad_sound
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) (h : pairedStaleLoad resolve store id offset = true) :
