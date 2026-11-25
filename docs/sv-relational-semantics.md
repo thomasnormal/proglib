@@ -816,14 +816,21 @@ def RelSeqRunsOn {α}
 
 theorem SeqRunsOn_to_RelSeqRunsOn
     (h : SeqRunsOn r rowsOf Ok P)
-    (hsound : ExecutorSound E g) :
+    (hcomplete : ExecutorComplete E g) :
     RelSeqRunsOn E g rowsOf Ok P
 
 theorem RelSeqRunsOn_to_SeqRunsOn
     (h : RelSeqRunsOn E g rowsOf Ok P)
-    (hcomplete : ExecutorComplete E g) :
+    (hsound : ExecutorSound E g)
+    (hterm : ExecutorTerminates E g) :
     SeqRunsOn r rowsOf Ok P
 ```
+
+Here `ExecutorComplete` is the relation-to-executor finite-completeness
+direction, while `ExecutorSound` maps every successful executor result into a
+relational run. The reverse adapter also needs an executor termination or
+successful-run witness because a relational safety statement alone does not
+establish that the executor produces a result.
 
 The analogous `RelSeqRunsM` and `RelSeqRunsI` preserve memory views and
 multi-clock instants. `SeqRunsOn` currently uses `runCoreMemRows` and a
