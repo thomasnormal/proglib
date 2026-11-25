@@ -770,8 +770,8 @@ guards and quantifies over every schedule:
 theorem sync_two_flop_relational
     (hdesign : SyncAdmitted E g) :
     ∀ init x inputs t₁ t₂,
-      Run E g x (Initial E init) inputs t₁ →
-      Run E g x (Initial E init) inputs t₂ →
+      SettledRun E g x (Initial E init) inputs t₁ →
+      SettledRun E g x (Initial E init) inputs t₂ →
       observable E t₁ = observable E t₂ ∧
       syncInvariant t₁ ∧ syncInvariant t₂ := by
   ...
@@ -786,7 +786,7 @@ theorem fifo_reset_loop_relational
     (hreset : ResetBatch inputs) :
     ∀ init x trace,
       coherent init →
-      Run E g x (Initial E init) inputs trace →
+      SettledRun E g x (Initial E init) inputs trace →
       ∀ k, 0 ≤ k → k < depth →
         memoryView (last trace) k = zero ∧
         fifoInvariant (last trace) := by
