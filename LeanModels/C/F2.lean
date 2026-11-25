@@ -3474,6 +3474,15 @@ theorem freePointer_classification
       cases h : metadata.allocation.live <;>
         simp [freePointer, h]
 
+theorem freePointer_ne_unmatchedPointer
+    (metadata : Option (AllocationMetadata Tag State TypeId)) :
+    freePointer metadata ≠ .unmatchedPointer := by
+  cases metadata with
+  | none => simp [freePointer]
+  | some metadata =>
+      cases h : metadata.allocation.live <;>
+        simp [freePointer, h]
+
 def pairedFreePointer (resolve : AllocId → Nat)
     (metadata : Option (AllocationMetadata Tag State TypeId)) : Bool :=
   if freePointer metadata =
