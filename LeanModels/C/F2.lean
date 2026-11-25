@@ -6410,6 +6410,12 @@ def pairedAllocateFailure (resolve : AllocId → Nat) (store : Store Tag State)
     (allocate (renameStore resolve store) (renameAllocationRequest resolve request)
       (renamedPlacement resolve store.nextId placement)).isNone
 
+theorem pairedAllocateFailure_fail_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) :
+    pairedAllocateFailure resolve store request .fail = true := by
+  simp [pairedAllocateFailure, allocate, renamedPlacement]
+
 theorem pairedAllocateFailure_sound
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
