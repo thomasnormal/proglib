@@ -463,6 +463,12 @@ def CoreMemDesign.ndEventSources (E : CoreMemDesign) : List String :=
 def CoreMemDesign.ndEventSourceChanged (E : CoreMemDesign) (before after : SvState) : Bool :=
   E.ndEventSources.any fun name => SvState.lookup before name != SvState.lookup after name
 
+def CoreMemDesign.ndControlsKnownIn (E : CoreMemDesign) (view : SvState) : Bool :=
+  E.ndEventSources.all fun name =>
+    match SvState.lookup view name with
+    | some value => value.bits.toList.all Logic.isKnown
+    | none => false
+
 def EdgeWork.isBlockingWrite : EdgeWork → Bool
   | .edgeStmt _ (.blockingAssign _ _) | .edgeStmt _ (.blockingAssignL _ _) => true
   | _ => false
@@ -504,14 +510,17 @@ def NdState.commit (E : CoreMemDesign) (s : NdState) : NdOutcome :=
       let scalar := E.scalarEdge.commit s.store.scalar s.scalarQ
       let store := E.normalizeScalar { s.store with scalar, memory } scalar
       let view := E.scalar.view store.scalar
-      let woken := E.ndWake s.base view
-      .next { store
-              active := woken
-              scalarQ := []
-              memoryQ := []
-              base := view
-              oracle := s.oracle
-              settled := woken.isEmpty }
+      if !E.ndControlsKnownIn s.base || !E.ndControlsKnownIn view then
+        .refused "9.4.2: x/z on a clock or event expression is outside the choice-explicit relation"
+      else
+        let woken := E.ndWake s.base view
+        .next { store
+                active := woken
+                scalarQ := []
+                memoryQ := []
+                base := view
+                oracle := s.oracle
+                settled := woken.isEmpty }
 
 /-- **The step function.**  Total, no fuel.  `choice` selects among the
 runnable cursors; when none is runnable the only move is the NBA commit and
@@ -580,13 +589,16 @@ def NdState.begin (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) (o :
     let pre := E.normalizeScalar { st with memory := memoryInput } inputStore
     let before := E.scalar.view st.scalar
     let after := E.scalar.view pre.scalar
-    .next { store := pre
-            active := E.ndWake before after
-            scalarQ := []
-            memoryQ := []
-            base := after
-            oracle := o
-            settled := false }
+    if !E.ndControlsKnownIn before || !E.ndControlsKnownIn after then
+      .refused "9.4.2: x/z on a clock or event expression is outside the choice-explicit relation"
+    else
+      .next { store := pre
+              active := E.ndWake before after
+              scalarQ := []
+              memoryQ := []
+              base := after
+              oracle := o
+              settled := false }
   else
     .refused "the continuous-assignment and combinational regions are not in the choice-explicit relation yet"
 
@@ -735,6 +747,7 @@ theorem ndStep_oracle_irrelevant {E : CoreMemDesign} {s : NdState} {choice : Nat
       | true =>
           simp only [Bool.false_eq_true, ↓reduceIte, NdState.commit]
           cases s.store.memory.commitNba s.memoryQ <;> simp [NdOutcome.withOracle]
+          split <;> simp [NdOutcome.withOracle]
       | false =>
           simp only [Bool.false_eq_true, ↓reduceIte, NdState.fire]
           cases hp : pickAt choice s.active with
@@ -780,7 +793,7 @@ An unsettled state always has a move for choice zero, either a successor or a
 named refusal.  The only states without a successor or refusal are settled
 states.
 -/
-theorem ndStep_zero_enabled {E : CoreMemDesign} {s : NdState} (h : s.settled = false) :
+theorem ndStep_zero_not_disabled {E : CoreMemDesign} {s : NdState} (h : s.settled = false) :
     ndStep E 0 s ≠ .disabled := by
   intro hd
   unfold ndStep at hd
@@ -788,7 +801,11 @@ theorem ndStep_zero_enabled {E : CoreMemDesign} {s : NdState} (h : s.settled = f
   cases ha : s.active with
   | nil =>
       simp only [ha, List.isEmpty_nil, ↓reduceIte, NdState.commit] at hd
-      split at hd <;> simp at hd
+      cases hmem : s.store.memory.commitNba s.memoryQ with
+      | none => simp [hmem] at hd
+      | some memory =>
+          simp [hmem] at hd
+          split at hd <;> simp_all
   | cons c rest =>
       simp only [ha, List.isEmpty_cons, Bool.false_eq_true, ↓reduceIte, NdState.fire, pickAt] at hd
       repeat' split at hd
@@ -816,7 +833,7 @@ theorem ndOpenStmt_if_unknown_twice (E : CoreMemDesign) (st : CoreMemState) (loc
 #print axioms Nd.EventSettles.invariant
 #print axioms ndStep_oracle_irrelevant
 #print axioms ndStep_oracle_unchanged
-#print axioms ndStep_zero_enabled
+#print axioms ndStep_zero_not_disabled
 #print axioms ndOpenStmt_if_unknown_twice
 
 end LeanModels.Sv.Kernel
