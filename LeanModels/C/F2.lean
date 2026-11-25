@@ -5620,6 +5620,12 @@ def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag S
       else allocate store request placement
   | _ => allocate store request placement
 
+theorem allocateAligned_failure_shape
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (alignment : Nat) :
+    allocateAligned store request .fail alignment = none := by
+  rfl
+
 theorem allocateAligned_rejects_misaligned
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment : Nat)
