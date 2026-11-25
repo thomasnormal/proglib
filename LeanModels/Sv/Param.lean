@@ -2446,14 +2446,34 @@ private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → 
           | some (.typeRef _ _ _) | some (.unrecoverable _) =>
               .unsupported s!"ParamRef:package: package parameter '{pkg}::{p.name}' has an unsupported type"
 
+private def packageExprReady (knownPackages : List String) (env : IEnv) : PExpr → Bool
+    | .paramRef name (some pkg) =>
+        !knownPackages.contains pkg ||
+        (env.packageFVal pkg name).isSome ||
+        (env.packageVal pkg name).isSome ||
+        (env.packageNVal pkg name).isSome
+    | .unary _ arg | .sysCall _ arg | .cast _ arg | .reduce _ arg =>
+        packageExprReady knownPackages env arg
+    | .binary _ left right =>
+        packageExprReady knownPackages env left && packageExprReady knownPackages env right
+    | .ternary cond thenE elseE =>
+        packageExprReady knownPackages env cond &&
+        packageExprReady knownPackages env thenE &&
+        packageExprReady knownPackages env elseE
+    | .resize _ arg | .signedResize _ arg | .squash2 _ arg =>
+        packageExprReady knownPackages env arg
+    | .bitSel base index | .repl base index =>
+        packageExprReady knownPackages env base && packageExprReady knownPackages env index
+    | .partSel base msb lsb =>
+        packageExprReady knownPackages env base &&
+        packageExprReady knownPackages env msb &&
+        packageExprReady knownPackages env lsb
+    | _ => true
+
 private def packageParamReady (knownPackages : List String) (env : IEnv) (p : PParam) : Bool :=
   match p.default? with
-  | some (.paramRef name (some pkg)) =>
-      !knownPackages.contains pkg ||
-      (env.packageFVal pkg name).isSome ||
-      (env.packageVal pkg name).isSome ||
-      (env.packageNVal pkg name).isSome
-  | _ => true
+  | some e => packageExprReady knownPackages env e
+  | none => true
 
 /-- Bind package parameters in dependency order. Slang's compilation-unit
 order can place a package that references another package before its
