@@ -6827,6 +6827,15 @@ theorem renameBoundedResult_success_shape
       .ok (renameStore resolve store, footprint) := by
   rfl
 
+theorem renameBoundedResult_kind_preserved
+    (resolve : AllocId → Nat)
+    (result : Except PlacementFault (Store Tag State × Footprint)) :
+    match result, renameBoundedResult resolve result with
+    | .ok _, .ok _ => True
+    | .error _, .error _ => True
+    | _, _ => False := by
+  cases result <;> simp [renameBoundedResult]
+
 theorem renameBoundedResult_success_wellFormed
     (resolve : AllocId → Nat) (store : Store Tag State)
     (footprint : Footprint) (hstore : WellFormed store) :
