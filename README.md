@@ -420,13 +420,19 @@ endmodule
 
 ```lean
 -- Examples/system-verilog/counter/spec.lean
-theorem counter_refines : counterDesign ⊑@clk[from rst] counterModel := by proofs
+theorem counter_refines
+    (hknown : ∀ (σ : ScheduleOracle) (stim tr : List SvState), Runs counterDesign σ stim tr →
+      ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ResetKnownFrom tr i) :
+    counterDesign ⊑@clk[from rst] counterModel := by proofs
 ```
 
 ```lean
 -- Examples/system-verilog/counter/proof.lean
-theorem counter_refines : counterDesign ⊑@clk[from rst] counterModel := by
-  sv_prove [counter_from_reset, sampledRst_eq, counterModelRun_eq, counter_firstOutput]
+theorem counter_refines
+    (hknown : ∀ (σ : ScheduleOracle) (stim tr : List SvState), Runs counterDesign σ stim tr →
+      ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ResetKnownFrom tr i) :
+    counterDesign ⊑@clk[from rst] counterModel := by
+  sv_prove [counter_from_reset, sampledRst_eq, counterModelRun_eq, counter_firstOutput, hknown]
 ```
 
 All six extracted designs are proved in this layout: `swap_nba`
