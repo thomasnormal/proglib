@@ -63,6 +63,8 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   `Design2` assembly path at one valuation, and
   `CombHier.assembleGeneratedAt_of_segments` exposes its declaration/process
   equations without a tactic or a generated-list unrolling.
+  `CombHier.assembleGeneratedPathsAt` is the mixed-depth variant for source
+  bodies whose siblings sit under different enclosing generate paths.
   `CombHier.GeneratedNode.flattenSegments_append` and
   `generatedNodes_segmentAt_flatten_append_ok` compose adjacent source-order
   families without rebuilding or enumerating the surrounding generate bounds.

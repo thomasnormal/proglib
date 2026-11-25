@@ -1458,6 +1458,18 @@ def assembleGeneratedAt (d : PDesign) (env : IEnv)
   let generated := GeneratedNode.flattenSegments segs
   return d.assembleH env decls (idecls ++ generated.1) elems generated.2
 
+/-- Assemble source nodes whose enclosing paths have different depths (for
+example, a process under the outer loop beside children under two nested
+loops).  Each node receives its own valuation list; the resulting segments
+are still folded in the original lexical order. -/
+def assembleGeneratedPathsAt (d : PDesign) (env : IEnv)
+    (decls idecls : List Decl) (elems : List (String × Nat))
+    (paths : List (GeneratedNode × List Int))
+    (child : GeneratedChildRef → Except String Design2) : Except String Design2 := do
+  let segs ← paths.mapM (fun p => p.1.segmentAtPath child env p.2 elems)
+  let generated := GeneratedNode.flattenSegments segs
+  return d.assembleH env decls (idecls ++ generated.1) elems generated.2
+
 theorem assembleGeneratedAt_of_ok
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
     (elems : List (String × Nat)) (nodes : List GeneratedNode)
@@ -1484,6 +1496,45 @@ theorem assembleGeneratedAt_of_segments
         elems (GeneratedNode.flattenSegments (nodes.map seg)).2) := by
   apply assembleGeneratedAt_of_ok
   exact generatedNodes_segmentAt_mapM_ok hok
+
+theorem assembleGeneratedPathsAt_of_ok
+    (d : PDesign) (env : IEnv) (decls idecls : List Decl)
+    (elems : List (String × Nat))
+    (paths : List (GeneratedNode × List Int))
+    (child : GeneratedChildRef → Except String Design2)
+    {segs : List (List Decl × List Process2)}
+    (hseg : paths.mapM (fun p => p.1.segmentAtPath child env p.2 elems) = .ok segs) :
+    assembleGeneratedPathsAt d env decls idecls elems paths child =
+      .ok (d.assembleH env decls
+        (idecls ++ (GeneratedNode.flattenSegments segs).1)
+        elems (GeneratedNode.flattenSegments segs).2) := by
+  unfold assembleGeneratedPathsAt
+  rw [hseg]
+  rfl
+
+theorem assembleGeneratedPathsAt_of_segments
+    (d : PDesign) (env : IEnv) (decls idecls : List Decl)
+    (elems : List (String × Nat))
+    (paths : List (GeneratedNode × List Int))
+    (child : GeneratedChildRef → Except String Design2)
+    {seg : GeneratedNode × List Int → List Decl × List Process2}
+    (hok : ∀ p ∈ paths,
+      p.1.segmentAtPath child env p.2 elems = .ok (seg p)) :
+    assembleGeneratedPathsAt d env decls idecls elems paths child =
+      .ok (d.assembleH env decls
+        (idecls ++ (GeneratedNode.flattenSegments (paths.map seg)).1)
+        elems (GeneratedNode.flattenSegments (paths.map seg)).2) := by
+  apply assembleGeneratedPathsAt_of_ok
+  induction paths with
+  | nil => rfl
+  | cons p ps ih =>
+      simp only [List.mapM_cons]
+      rw [hok p (by simp)]
+      have htail : ps.mapM (fun p => p.1.segmentAtPath child env p.2 elems) =
+          .ok (ps.map seg) :=
+        ih (fun p hp => hok p (by simp [hp]))
+      rw [htail]
+      rfl
 
 @[simp] theorem assembleGeneratedAt_processes
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
