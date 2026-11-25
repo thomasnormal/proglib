@@ -5690,6 +5690,20 @@ theorem pairedUnaddressableAllocation_refusal_target
     pairedUnaddressableAllocation resolve store request = false := by
   simp [pairedUnaddressableAllocation, hsource, htarget]
 
+theorem pairedUnaddressableAllocation_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State)
+    (hrefusal : allocate store request .unaddressable = none ∧
+      allocate (renameStore resolve store)
+        (renameAllocationRequest resolve request) .unaddressable = some target ∨
+      allocate store request .unaddressable = some source ∧
+      allocate (renameStore resolve store)
+        (renameAllocationRequest resolve request) .unaddressable = none) :
+    pairedUnaddressableAllocation resolve store request = false := by
+  rcases hrefusal with ⟨hsource, htarget⟩ | ⟨hsource, htarget⟩
+  · simp [pairedUnaddressableAllocation, hsource, htarget]
+  · simp [pairedUnaddressableAllocation, hsource, htarget]
+
 theorem footprintAgrees_rename (resolve : AllocId → Nat) (footprint : Footprint) :
     footprintAgrees (renameFootprint resolve footprint) footprint := by
   simp [renameFootprint, renameRegion, footprintAgrees]
