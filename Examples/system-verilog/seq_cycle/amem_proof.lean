@@ -75,7 +75,7 @@ def body (W : Nat) (r d : LVec) : LVec :=
 def AmStep (W : Nat) (σ : SvState × MemV) (dt : SvState) (pp : (SvState × MemV) × (SvState × MemV)) : Prop :=
   let r := appliedIn dt σ.1 "rstn"
   let d := appliedIn dt σ.1 "d"
-  DecisionKnown r →
+  DecisionKnown (lk pp.1.1 "rstn") →
   lk pp.1.1 "rstn" = r ∧ lk pp.1.1 "d" = d ∧ lk pp.2.1 "rstn" = r ∧ lk pp.2.1 "d" = d ∧
   -- cell 0 after the edge, and `q` reading it
   pp.2.2 "mem" 0 = body W r d ∧ lk pp.2.1 "q" = pp.2.2 "mem" 0 ∧
@@ -135,7 +135,6 @@ theorem am_eqs (W : Nat) (hW1 : 2 ≤ W) (hW2 : W < 2 ^ 30) (N : Nat) (hN1 : 2 �
   simp only [am_index0 hN1, view, lk, fell, body, SvState.lookup, Res.ok.injEq, exists_eq_left',
     String.reduceBEq, Bool.false_eq_true, ↓reduceIte, beq_self_eq_true, Option.getD_some]
   -- the two decisions of the cycle: `!rstn`, and whether the reset fell in the low slot
-  intro _
   have hsz : r'.bits.size = 1 := hr'
   simp only [Array.getElem?_eq_getElem (show 0 < r'.bits.size by omega), Option.getD_some]
   by_cases hA : (evalUnaryOp UnaryOp.lnot r').condTrue = true <;>

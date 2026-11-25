@@ -381,10 +381,10 @@ theorem rz_read_after_reset {W N : Nat} {tr : List ((SvState × MemV) × (SvStat
     (hrstKnown : DecisionKnown (lk pc.1.1 "rst"))
     (hrst : (lk pc.1.1 "rst").condTrue = true) {a : BitVec 5} (hN : a.toNat < N)
     (hra : lk pc'.1.1 "ra" = LVec.ofBitVec a) : lk pc'.1.1 "rd" = LVec.ofBitVec 0#W := by
-  obtain ⟨hz, -, -, -, -⟩ := h c pc hc hrstKnown
-  obtain ⟨-, -, hlow, hrd, -⟩ := h (c + 1) pc' hc' hrstKnown
+  obtain ⟨hz, -, -, -, -⟩ := h c pc hc
+  obtain ⟨-, -, hlow, hrd, -⟩ := h (c + 1) pc' hc'
   rw [hrd, hra, hlow pc (by simpa using hc) (by omega), rzIdx_ofBitVec a hN]
-  exact hz hrst (a.toNat : Int) (by omega) (by omega)
+  exact hz hrstKnown hrst (a.toNat : Int) (by omega) (by omega)
 
 set_option maxHeartbeats 1000000 in
 /-- **THE CLAIM**: in every run of the route, from every coherent state (memory contents arbitrary), on every typed
