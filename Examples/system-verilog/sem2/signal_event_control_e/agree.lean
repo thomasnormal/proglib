@@ -4,6 +4,7 @@ open LeanModels.Sv
 load_design_sv2 signalEventControl from
   "Examples/system-verilog/sem2/signal_event_control_e/signal_event_control_e.sv.json"
 #guard match signalEventControl.pdesign.processes with
-  | [.unsupported "Clock:implicit" _] => true
+  | [.alwaysEvent [{ signal := "clk", edge := .any }] _] => true
   | _ => false
+#guard match signalEventControl.e with | .ok _ => true | _ => false
 end Examples.«system-verilog».sem2.signal_event_control_e
