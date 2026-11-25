@@ -6908,6 +6908,32 @@ theorem pairedAllocateAligned_empty_address_result_counts
       (by simpa [renameAllocationRequest, renamedPlacement] using htargetAligned)
       (by simpa [renameAllocationRequest, renamedPlacement] using htarget) |>.2⟩
 
+theorem pairedAllocateAligned_empty_address_result_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment : Nat)
+    (source target : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hsource : allocateAligned store { bytes := [], state := state }
+      (.address base) alignment = some source)
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId (.address base)) alignment = some target) :
+    WellFormed source.1 ∧ WellFormed target.1 := by
+  have hsourceAligned : alignmentAllowed base alignment = true := by
+    by_cases h : alignmentAllowed base alignment = true
+    · exact h
+    · simp [allocateAligned, h] at hsource
+  have htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true := by
+    by_cases h : alignmentAllowed (resolve store.nextId) alignment = true
+    · exact h
+    · simp [allocateAligned, renamedPlacement, h] at htarget
+  exact ⟨allocateAligned_empty_address_preserves_wellFormed store state
+      base alignment source hstore hsourceAligned hsource,
+    allocateAligned_empty_address_preserves_wellFormed (renameStore resolve store)
+      state (resolve store.nextId) alignment target (renameStore_preserves_wellFormed resolve store hstore)
+      (by simpa [renameAllocationRequest, renamedPlacement] using htargetAligned)
+      (by simpa [renameAllocationRequest, renamedPlacement] using htarget)⟩
+
 theorem pairedAllocateAligned_empty_unaddressable_result_footprints
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (alignment : Nat)
