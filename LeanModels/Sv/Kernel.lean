@@ -6,6 +6,7 @@ import LeanModels.Sv.Kernel.Core1Obs
 import LeanModels.Sv.Kernel.Core1Resolve
 import LeanModels.Sv.Kernel.CoreMem
 import LeanModels.Sv.Kernel.CoreMemFuel
+import LeanModels.Sv.Kernel.CoreMemQuiesceFuel
 import LeanModels.Sv.Kernel.Conservative
 import LeanModels.Sv.Kernel.Aggregate
 import LeanModels.Sv.Kernel.AggregateBridge
