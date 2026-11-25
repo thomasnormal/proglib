@@ -4,14 +4,35 @@ This document is the v2 design requested by the owner ruling on
 2026-11-24. The normative meaning is a fuel-free relation over the
 parser-native, memory-capable SystemVerilog representation. The existing
 function-based executor remains an implementation and a differential-test
-instrument. No implementation of this relation starts until this design is
-accepted.
+instrument. T1 is implemented in `LeanModels/Sv/Kernel/RelSem.lean` and is
+imported by the kernel build root.
 
 The relation is built on the source-shaped nodes in `CoreMemDesign`,
 `PStmt`, `PExpr`, and `PLhs`, and on the cursor and phase shape in
 `LeanModels/Sv/Kernel/CoreMemResume.lean`. It does not make
 `Scheduler.lean`'s older scalar `Design`, `Stmt2`, or a fuelled executor
 the meaning of the language.
+
+## T1 fuel-free step and run
+
+`RelState` is either a `CombPhaseState` or an `EdgePhaseState`, together with
+an oracle read counter and the concrete values selected at prior read sites.
+`RelChoice.cursor` selects any active cursor by list index. `RelChoice.reads`
+records the source values consulted by that one-node transition. The
+`RelXOracle` supplies a fresh `XRead` witness at each counter position, and
+`oracleReads_resolves` proves the paired-list rule without sharing a witness
+between repeated reads. The transition appends those witnesses to the state
+trace and increments the counter.
+
+`relStepOne` is total. It returns a successor, a positive language refusal, or
+`stuck` when the current implementation times out or the selected cursor index
+is absent. `RelStep` admits only successor transitions and carries the explicit
+`XReadRun` premise. `RelRun` is the fuel-free reflexive/transitive closure of
+those steps. There is no depth, budget, or fixed schedule in these definitions.
+The cursor resume call is the implementation seam for T2. Its current
+expression evaluator does not yet expose read sites, so T2 must supply and
+prove the read-site correspondence before treating `RelChoice.reads` as a
+complete executor trace.
 
 The relation's store is extensional. It contains declared scalar values,
 memory identities and addressed memory cells, aggregate cells, and the

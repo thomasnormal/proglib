@@ -8,6 +8,7 @@ import LeanModels.Sv.Kernel.CoreMem
 import LeanModels.Sv.Kernel.Aggregate
 import LeanModels.Sv.Kernel.AggregateBridge
 import LeanModels.Sv.Kernel.XResolve
+import LeanModels.Sv.Kernel.RelSem
 import LeanModels.Sv.Kernel.MemElab
 import LeanModels.Sv.Kernel.MemE
 import LeanModels.Sv.Kernel.MemEResolve
