@@ -1571,6 +1571,23 @@ def noisyTopSourceNodeSegment
     CombHier.GeneratedNode → List Decl × List Process2 :=
   noisyTopNodeSegment env elems i j
 
+def noisyTopSourcePaths (i j : Int) :
+    List (CombHier.GeneratedNode × List Int) :=
+  [(.child { loops := ppSourceLoops, inst := andInst, child := andDef }, [i, j]),
+   (.process [rowSourceLoop] rowLeft, [i]),
+   (.child { loops := rowSourceLoops, inst := xorInst, child := xorDef }, [i, j]),
+   (.child { loops := rowSourceLoops, inst := xorSInst, child := xorDef }, [i, j]),
+   (.child { loops := rowSourceLoops, inst := majInst, child := majDef }, [i, j]),
+   (.process [rowSourceLoop] rowRight, [i]),
+   (.process [outSourceLoop] outProc, [i])]
+
+theorem noisy_top_source_paths_shape (i j : Int) :
+    noisyTopSourcePaths i j = noisyTopSourceNodes.map (fun n =>
+      (n, match n with
+      | .process loops _ => if loops.length = 1 then [i] else [i, j]
+      | .child ref => if ref.loops.length = 1 then [i] else [i, j])) := by
+  rfl
+
 theorem noisy_generated_source_segments
     (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
     noisyTopSourceNodes.mapM
