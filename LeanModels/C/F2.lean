@@ -2977,6 +2977,38 @@ theorem pairedReallocMetadata_preserves_liveness
       rcases hresult with rfl
       simp
 
+theorem pairedReallocMetadata_preserves_locations
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old request locations placement = some result) :
+    (match result.1.1 with
+    | .failed previous => previous.locations = old.locations
+    | .replaced fresh => fresh.locations = locations) ∧
+    (match result.2.1 with
+    | .failed previous => previous.locations = (renameMetadata resolve 0 old).locations
+    | .replaced fresh => fresh.locations = locations) := by
+  cases placement with
+  | address base =>
+      by_cases hsame : locations.length = request.bytes.length
+      · simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest, hsame] at hresult
+        rcases hresult with rfl
+        simp
+      · simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest, hsame] at hresult
+  | unaddressable =>
+      by_cases hsame : locations.length = request.bytes.length
+      · simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest, hsame] at hresult
+        rcases hresult with rfl
+        simp
+      · simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest, hsame] at hresult
+  | fail =>
+      simp [pairedReallocMetadata, reallocMetadata] at hresult
+      rcases hresult with rfl
+      simp
+
 theorem pairedReallocMetadata_refusal_source
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
