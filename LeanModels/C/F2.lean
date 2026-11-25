@@ -3472,6 +3472,30 @@ theorem allocateZeroSize_token_wellFormed
       rcases hresult with rfl
       simp [AllocationMetadata.wellFormed, bytesWf]
 
+theorem pairedAllocateZeroSize_tokens_wellFormed
+    {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
+    (placement : Placement) (source target : AllocationMetadata Tag State TypeId)
+    (hsource : (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).1 =
+      .token source)
+    (htarget : (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state
+      (match placement with
+      | .address _ => .address (resolve 0)
+      | .unaddressable => .unaddressable
+      | .fail => .fail)).1 = .token target) :
+    source.wellFormed 0 ∧ target.wellFormed 0 := by
+  cases placement with
+  | fail => simp [allocateZeroSize] at hsource htarget
+  | address base =>
+      simp [allocateZeroSize] at hsource htarget
+      rcases hsource with rfl
+      rcases htarget with rfl
+      simp [AllocationMetadata.wellFormed, bytesWf]
+  | unaddressable =>
+      simp [allocateZeroSize] at hsource htarget
+      rcases hsource with rfl
+      rcases htarget with rfl
+      simp [AllocationMetadata.wellFormed, bytesWf]
+
 theorem renameZeroSizeOutcome_token_byte_length
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
