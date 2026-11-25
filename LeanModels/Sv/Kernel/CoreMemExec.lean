@@ -1286,6 +1286,56 @@ def coreMemPLhsHasMemoryList : List PLhs → Bool
 
 end
 
+/-! Reactive memory bodies are refused until the quiescence scheduler carries
+memory and aggregate changes through its sensitivity and fixpoint state.  The
+edge route remains memory-capable.  This guard prevents the scalar-only
+quiescence check from fabricating a settled result for `always_comb`,
+`always_latch`, `always @*`, `always` event, or `initial` bodies that consult or
+write source-shaped memory or aggregate storage. -/
+
+mutual
+
+def coreMemStmtHasMemory : PStmt → Bool
+  | .blockingAssign _ value | .nbaAssign _ value => coreMemPExprHasMemory value
+  | .blockingAssignL target value | .nbaAssignL target value =>
+      coreMemPLhsHasMemory target || coreMemPExprHasMemory value
+  | .ifStmt condition yes no =>
+      coreMemPExprHasMemory condition || coreMemStmtHasMemory yes ||
+        match no with
+        | none => false
+        | some branch => coreMemStmtHasMemory branch
+  | .block body => coreMemStmtHasMemoryList body
+  | .localDecl _ _ init | .automaticDecl _ _ init =>
+      match init with
+      | none => false
+      | some value => coreMemPExprHasMemory value
+  | .forLoop _ init condition step body =>
+      coreMemPExprHasMemory init || coreMemPExprHasMemory condition ||
+        coreMemPExprHasMemory step || coreMemStmtHasMemory body
+  | .caseStmt subject items default? _ _ =>
+      coreMemPExprHasMemory subject || coreMemCaseHasMemory items ||
+        match default? with
+        | none => false
+        | some branch => coreMemStmtHasMemory branch
+  | .unsupported _ _ => false
+
+def coreMemStmtHasMemoryList : List PStmt → Bool
+  | [] => false
+  | stmt :: rest => coreMemStmtHasMemory stmt || coreMemStmtHasMemoryList rest
+
+def coreMemCaseHasMemory : List (List PExpr × PStmt) → Bool
+  | [] => false
+  | (patterns, body) :: rest =>
+      patterns.any coreMemPExprHasMemory || coreMemStmtHasMemory body ||
+        coreMemCaseHasMemory rest
+
+end
+
+def coreMemReactiveMemoryProc : PProcess → Bool
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+  | .alwaysEvent _ body | .initial body => coreMemStmtHasMemory body
+  | _ => false
+
 def coreMemPAssignTarget : PProcess → Option String
   | .assign target _ => some target
   | .assignL target _ => some target.name
@@ -1445,6 +1495,74 @@ def coreMemPProcessReadNames : PProcess → List String
   | .alwaysFF _ body | .alwaysFFNegedge _ body | .alwaysPlain _ body
   | .alwaysFFR _ _ body _ | .alwaysEvent _ body => coreMemStmtReadNames body
   | _ => []
+
+def coreMemStmtTouchesNames (names : List String) (body : PStmt) : Bool :=
+  (coreMemStmtReadNames body ++ coreMemStmtWrites body).any (fun name => names.contains name)
+
+mutual
+
+def coreMemStmtHasAggregateWrite : PStmt → Bool
+  | .blockingAssignL target _ | .nbaAssignL target _ =>
+      match target with
+      | .aggregateMember _ _ => true
+      | .concat parts => coreMemLhsHasAggregateWriteList parts
+      | _ => false
+  | .ifStmt _ yes no =>
+      coreMemStmtHasAggregateWrite yes || match no with
+        | none => false
+        | some branch => coreMemStmtHasAggregateWrite branch
+  | .block body => coreMemStmtHasAggregateWriteList body
+  | .forLoop _ _ _ _ body => coreMemStmtHasAggregateWrite body
+  | .caseStmt _ items default? _ _ =>
+      coreMemCaseHasAggregateWrite items || match default? with
+        | none => false
+        | some branch => coreMemStmtHasAggregateWrite branch
+  | _ => false
+
+def coreMemLhsHasAggregateWrite : PLhs → Bool
+  | .aggregateMember _ _ => true
+  | .concat parts => coreMemLhsHasAggregateWriteList parts
+  | _ => false
+
+def coreMemLhsHasAggregateWriteList : List PLhs → Bool
+  | [] => false
+  | part :: rest => coreMemLhsHasAggregateWrite part || coreMemLhsHasAggregateWriteList rest
+
+def coreMemStmtHasAggregateWriteList : List PStmt → Bool
+  | [] => false
+  | stmt :: rest => coreMemStmtHasAggregateWrite stmt || coreMemStmtHasAggregateWriteList rest
+
+def coreMemCaseHasAggregateWrite : List (List PExpr × PStmt) → Bool
+  | [] => false
+  | item :: rest => coreMemStmtHasAggregateWrite item.2 || coreMemCaseHasAggregateWrite rest
+
+end
+
+def coreMemReactiveMemoryProcFor (memoryNames : List String) : PProcess → Bool
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
+  | .alwaysEvent _ body | .initial body =>
+      coreMemStmtTouchesNames memoryNames body || coreMemStmtHasAggregateWrite body
+  | _ => false
+
+-- The parser may retain a fixed unpacked cell as a declaration with `flatBase`
+-- metadata and a resolved `mem[k]` name.  Carry those names from the typed
+-- declaration instead of recovering array structure from source text.
+def coreMemReactiveMemoryViolFor (memoryNames : List String) : List PProcess → Option String
+  | [] => none
+  | p :: rest =>
+      if coreMemReactiveMemoryProcFor memoryNames p then
+        some (match p with
+          | .alwaysComb _ => "always_comb"
+          | .alwaysLatch _ => "always_latch"
+          | .alwaysImplicit _ => "always @*"
+          | .alwaysEvent _ _ => "always event"
+          | .initial _ => "initial"
+          | _ => "reactive")
+      else coreMemReactiveMemoryViolFor memoryNames rest
+
+def coreMemReactiveMemoryViol : List PProcess → Option String :=
+  coreMemReactiveMemoryViolFor []
+
 
 /-! A continuous assignment is a source-shaped reader edge.  When an edge
 process reads its target, the values that can reach that target are also part
@@ -1938,62 +2056,70 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none =>
             let allProcesses := d.processes ++ generated
-            match coreMemCombSelfReadViol allProcesses with
-            | some name =>
-                .unsupported s!"AlwaysComb:self-read: 9.2.2.2.1: always_comb reads '{name}' before writing it; canonical E refuses the simulator-dependent startup value"
+            let memoryNames := (d.decls ++ generatedDecls).filterMap
+              (fun pd => if pd.flatBase.isSome || !pd.unpackedDims.isEmpty then some pd.name else none)
+            match if memoryNames.isEmpty then none
+              else coreMemReactiveMemoryViolFor memoryNames allProcesses with
+            | some processKind =>
+                .unsupported s!"Comb:memory-quiescence: IEEE 1800-2023 §§4.5, 9.2.2.2 require memory-aware reactive sensitivity and settling; canonical E refuses memory or aggregate access in '{processKind}' until that scheduler is implemented"
             | none =>
-              match coreMemLatchSelfReadViol allProcesses with
+              match coreMemCombSelfReadViol allProcesses with
               | some name =>
-                  .unsupported s!"AlwaysLatch:self-read: 9.2.2.3: always_latch reads '{name}' before writing it; canonical E refuses the simulator-dependent activation value"
+                  .unsupported s!"AlwaysComb:self-read: 9.2.2.2.1: always_comb reads '{name}' before writing it; canonical E refuses the simulator-dependent startup value"
               | none =>
-                  let eventViol := if coreMemHasEventProcess allProcesses then
-                    coreMemEventSelfReadViol allProcesses
-                  else none
-                  match eventViol with
-                  | some name =>
-                      .unsupported s!"AlwaysEvent:self-write: 9.4.2: explicit event control includes '{name}', which the body reads before a blocking write; canonical E refuses self-trigger reactivation"
-                  | none =>
-                  if coreMemHasEdgeProc allProcesses && !coreMemPAssignMemoryTopoB allProcesses then
-                    .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
-                  else match coreMemAssignReactiveChainViol (d.processes ++ generated) with
-                  | some name =>
-                      .unsupported s!"Comb:dependency-order: 9.2.2.2/9.4.2.2/10.3: reactive output reaches continuous assignment '{name}' and a downstream reactive process; canonical E settles assignments before reactive activation and has no fixed-point scheduler"
-                  | none =>
-                    match coreMemClockResetViol d generated with
-                    | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+                match coreMemLatchSelfReadViol allProcesses with
+                | some name =>
+                    .unsupported s!"AlwaysLatch:self-read: 9.2.2.3: always_latch reads '{name}' before writing it; canonical E refuses the simulator-dependent activation value"
+                | none =>
+                    let eventViol := if coreMemHasEventProcess allProcesses then
+                      coreMemEventSelfReadViol allProcesses
+                    else none
+                    match eventViol with
+                    | some name =>
+                        .unsupported s!"AlwaysEvent:self-write: 9.4.2: explicit event control includes '{name}', which the body reads before a blocking write; canonical E refuses self-trigger reactivation"
                     | none =>
-                      match coreMemFirstUnsupportedOther d allForNet d.others with
-          | some (kind, text) =>
-              .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
-          | none =>
-              let decls0 ← buildScalarDecls1 env2 (d.decls ++ generatedDecls ++ localDecls)
-              let declInitializers ← coreMemDeclInitializers env2
-                (d.decls ++ generatedDecls ++ localDecls)
-              let decls := decls0 ++ (coreMemNetDecls d allForNet).filter
-                (fun dc => !sourceNames.contains dc.name)
-              let elementDecls := sourceDecls.filter (fun pd => pd.aggregate?.isNone)
-              let elems ← buildElems env2 elementDecls
-              let envP := { env2 with widths := decls.map (fun dc => (dc.name, dc.width)) }
-              let memories ← buildMemDecls1 envP (d.decls ++ generatedDecls) 0
-              let aggregates ← buildAggDecls1 envP (d.decls ++ generatedDecls) 0
-              if memories.isEmpty && (d.decls ++ generatedDecls).any (fun pd => !pd.unpackedDims.isEmpty) then
-                .unsupported "UnpackedDecl:memory: no one-rank unpacked declaration was admitted"
-              else
-                let scalar : Elab :=
-                  { name := d.name, decls := decls.toArray, procs := #[] }
-                let scalarEdge : Elab1 :=
-                  { decls := decls.toArray, procs := #[], name := d.name }
-                let processes := (d.processes.map (CoreMemProc.ofPProcessAt envP)) ++
-                  (d.primitives.map CoreMemProc.ofPPrimitive) ++
-                  (generated.map (CoreMemProc.ofPProcessAt envP))
-                let resolvedNets := coreMemResolvedNetNames d allForNet
-                let result : CoreMemDesign :=
-                    { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
-                      memories := memories.toArray, aggregates := aggregates.toArray,
-                      processes := processes.toArray,
-                      readmemh := d.readmemh, resolvedNets := resolvedNets,
-                      declInitializers := declInitializers }
-                .ok { result with compiledAssigns := result.compileAssigns }
+                      if coreMemHasEdgeProc allProcesses && !coreMemPAssignMemoryTopoB allProcesses then
+                        .unsupported "Comb:memory-topology: 10.3/4.5: continuous assignment reads a memory cell driven by itself or a later assignment; canonical E requires topological source order"
+                      else
+                        match coreMemAssignReactiveChainViol (d.processes ++ generated) with
+                        | some name =>
+                            .unsupported s!"Comb:dependency-order: 9.2.2.2/9.4.2.2/10.3: reactive output reaches continuous assignment '{name}' and a downstream reactive process; canonical E settles assignments before reactive activation and has no fixed-point scheduler"
+                        | none =>
+                          match coreMemClockResetViol d generated with
+                          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+                          | none =>
+                            match coreMemFirstUnsupportedOther d allForNet d.others with
+                            | some (kind, text) =>
+                                .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
+                            | none =>
+                              let decls0 ← buildScalarDecls1 env2 (d.decls ++ generatedDecls ++ localDecls)
+                              let declInitializers ← coreMemDeclInitializers env2
+                                (d.decls ++ generatedDecls ++ localDecls)
+                              let decls := decls0 ++ (coreMemNetDecls d allForNet).filter
+                                (fun dc => !sourceNames.contains dc.name)
+                              let elementDecls := sourceDecls.filter (fun pd => pd.aggregate?.isNone)
+                              let elems ← buildElems env2 elementDecls
+                              let envP := { env2 with widths := decls.map (fun dc => (dc.name, dc.width)) }
+                              let memories ← buildMemDecls1 envP (d.decls ++ generatedDecls) 0
+                              let aggregates ← buildAggDecls1 envP (d.decls ++ generatedDecls) 0
+                              if memories.isEmpty && (d.decls ++ generatedDecls).any (fun pd => !pd.unpackedDims.isEmpty) then
+                                .unsupported "UnpackedDecl:memory: no one-rank unpacked declaration was admitted"
+                              else
+                                let scalar : Elab :=
+                                  { name := d.name, decls := decls.toArray, procs := #[] }
+                                let scalarEdge : Elab1 :=
+                                  { decls := decls.toArray, procs := #[], name := d.name }
+                                let processes := (d.processes.map (CoreMemProc.ofPProcessAt envP)) ++
+                                  (d.primitives.map CoreMemProc.ofPPrimitive) ++
+                                  (generated.map (CoreMemProc.ofPProcessAt envP))
+                                let resolvedNets := coreMemResolvedNetNames d allForNet
+                                let result : CoreMemDesign :=
+                                    { name := d.name, env := envP, elems, scalar := scalar, scalarEdge := scalarEdge,
+                                      memories := memories.toArray, aggregates := aggregates.toArray,
+                                      processes := processes.toArray,
+                                      readmemh := d.readmemh, resolvedNets := resolvedNets,
+                                      declInitializers := declInitializers }
+                                .ok { result with compiledAssigns := result.compileAssigns }
 
 /-! ## Expressions -/
 
