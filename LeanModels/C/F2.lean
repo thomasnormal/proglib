@@ -8395,6 +8395,20 @@ theorem pairedAllocateBounded_matching_fault
     pairedAllocateBounded resolve store request placement alignment limit = true := by
   cases fault <;> simp [pairedAllocateBounded, hsource, htarget] <;> rfl
 
+theorem pairedAllocateBounded_empty_address_matching_fault
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment limit : Nat) (fault : PlacementFault)
+    (hsource : allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .error fault)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId (.address base)) alignment limit =
+        .error fault) :
+    pairedAllocateBounded resolve store { bytes := [], state := state }
+      (.address base) alignment limit = true := by
+  exact pairedAllocateBounded_matching_fault resolve store
+    { bytes := [], state := state } (.address base) alignment limit fault hsource htarget
+
 theorem pairedAllocateBounded_sound
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
