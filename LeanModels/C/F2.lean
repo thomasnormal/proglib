@@ -2634,6 +2634,15 @@ theorem reallocMetadata_failure_shape
         footprint .metadata (Region.mk 0 0 old.allocation.bytes.length)) := by
   rfl
 
+theorem reallocMetadata_empty_failure_shape
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId))
+    (hbytes : old.allocation.bytes = []) :
+    reallocMetadata old request locations .fail =
+      some (.failed old, footprint .metadata (Region.mk 0 0 0)) := by
+  simp [reallocMetadata, hbytes]
+
 theorem reallocMetadata_address_success
     (old : AllocationMetadata Tag State TypeId)
     (request : AllocationRequest Tag State)
