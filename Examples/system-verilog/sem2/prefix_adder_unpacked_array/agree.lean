@@ -16,7 +16,9 @@ names, while the generated element assignments remain packed `PLhs.bitSel`
 targets.  The native `MemState` combinational theorem cannot apply until the
 loader preserves the unpacked declaration and maps generated element writes to
 that memory identity (or the canonical profile admits the retained bit-select
-form with equivalent cell equations). -/
+form with equivalent cell equations).  The reusable memory equations and a
+hand-built two-cell receipt are in `mem_lemmas.lean`; they do not claim a
+correctness theorem for this loaded envelope. -/
 
 #guard match prefixAdder.e 4 with
   | .ok d => d.memories.toList.isEmpty

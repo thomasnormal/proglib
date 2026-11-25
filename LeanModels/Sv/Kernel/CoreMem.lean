@@ -154,6 +154,27 @@ theorem MemBlock.read_write_other {m : MemBlock} {k j : Int} {v : LVec}
     · simp [MemBlock.write, MemBlock.read, hj, hji]
   · simp [MemBlock.write, hj]
 
+theorem MemBlock.read_two_writes_comm_of_distinct {m : MemBlock} {k j q : Int} {v w : LVec}
+    (hjk : j ≠ k) (hv : v.width = m.shape.elemWidth)
+    (hw : w.width = m.shape.elemWidth) :
+    ((m.write k v).write j w).read q = ((m.write j w).write k v).read q := by
+  by_cases hqk : q = k
+  · subst q
+    by_cases hk : m.shape.inRange k <;>
+      by_cases hj : m.shape.inRange j <;>
+      simp [MemBlock.write, MemBlock.read, hk, hj, hjk, Ne.symm hjk, hv, hw]
+  · by_cases hqj : q = j
+    · subst q
+      by_cases hk : m.shape.inRange k <;>
+        by_cases hj : m.shape.inRange j <;>
+        simp [MemBlock.write, MemBlock.read, hk, hj, hjk, Ne.symm hjk, hv, hw]
+    · have hqk' : k ≠ q := Ne.symm hqk
+      have hqj' : j ≠ q := Ne.symm hqj
+      by_cases hk : m.shape.inRange k <;>
+        by_cases hj : m.shape.inRange j <;>
+        simp [MemBlock.write, MemBlock.read, hk, hj, hqk, hqj, hqk', hqj', hjk,
+          Ne.symm hjk, hv, hw]
+
 theorem MemBlock.read_oob {m : MemBlock} {k : Int}
     (hout : ¬m.shape.inRange k) :
     m.read k = LVec.xVec m.shape.elemWidth := by
@@ -380,6 +401,18 @@ theorem MemState.read_write_other {s : MemState} {name : String} {k j : Int}
   simp [MemState.write, hm, MemState.read, MemState.set,
     MemState.findName, MemState.upsertName]
   exact MemBlock.read_write_other hjk hv
+
+theorem MemState.read_two_writes_comm_of_distinct {s : MemState} {name : String} {k j q : Int}
+    {v w : LVec} {m : MemBlock} (hm : s.lookup name = some m)
+    (hjk : j ≠ k) (hv : v.width = m.shape.elemWidth)
+    (hw : w.width = m.shape.elemWidth) :
+    ((s.write name k v).bind (fun s' => s'.write name j w)).bind
+        (fun s' => s'.read name q) =
+      ((s.write name j w).bind (fun s' => s'.write name k v)).bind
+        (fun s' => s'.read name q) := by
+  simp [MemState.write, hm, MemState.read, MemState.set,
+    MemState.findName, MemState.upsertName]
+  exact MemBlock.read_two_writes_comm_of_distinct hjk hv hw
 
 theorem MemState.read_unknown {s : MemState} {name : String} {k : Int}
     (hm : s.lookup name = none) : s.read name k = none := by

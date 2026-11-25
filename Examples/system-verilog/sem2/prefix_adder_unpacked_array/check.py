@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Differential receipt for generated packed-element writes from an unpacked declaration."""
+import os
 from pathlib import Path
 import os
 import signal
@@ -83,7 +84,8 @@ def main():
         work = Path(work)
         tb = work / "tb.sv"
         tb.write_text(testbench())
-        actual = rows(run(["/var/tmp/thomas-ahle/fleet2/bin/refsim", "-sv", "-q",
+        oracle_bin = os.environ.get("SV_ORACLE", "xrun")
+        actual = rows(run([oracle_bin, "-sv", "-q",
                            "-timescale", "1ns/1ps", "-top",
                            "prefix_adder_unpacked_array_tb", source, str(tb)], work))
     if actual != EXPECTED:

@@ -2,6 +2,7 @@ import LeanModels.Sv.Hier2Gen
 import LeanModels.Sv.CombHier
 import LeanModels.Sv.CombEBase
 import LeanModels.Sv.Comb2Term
+import LeanModels.Sv.MemCombLemmas
 
 /-!
 # Reader's index for compositional SystemVerilog design proofs
@@ -66,6 +67,12 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   view, not alternate meanings of `Design2`; until the loader and those
   bridges exist, `sv_structure` must refuse the route and no correctness
   theorem is claimed.
+  `MemState.read_after_cell_write` and `read_other_after_cell_write` are the
+  per-cell equations; `MemState.distinct_cell_writes_read_commute` is the
+  disjoint-cell order bridge; `MemState.readPacked_ofBitVec` is the packed
+  readback bridge; and `CoreMemDesign.memory_settle_fixpoint` is the named
+  acyclic settle/fixpoint rule.  A concrete two-cell hand-built receipt lives
+  in `Examples/system-verilog/sem2/prefix_adder_unpacked_array/mem_lemmas.lean`.
 
 A hand proof should use these equations first and only then invoke a tactic as
 an optional plumbing layer.  No theorem in this index is bounded by an
