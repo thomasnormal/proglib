@@ -113,7 +113,8 @@ end
 
 mutual
   def PLhs.memPreemptWrites (d : MemDesign2) : PLhs → List BWin
-    | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayBitSel n _ _ | .arrayPart n .. =>
+    | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ |
+      .arrayBitSel n _ _ | .arrayPart n .. =>
         memPreemptWhole d n
     | .aggregateMember n _ => memPreemptWhole d n
     | .concat xs => PLhs.memPreemptWritesList d xs

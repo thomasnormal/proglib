@@ -74206,6 +74206,23 @@
       ],
       "refusal": "Event:edge-blocking-race",
       "measured": "2026-11-23: selected assign and always_comb driver paths are schedule-dependent. Icarus Verilog 13.0 gives xx,xx,xx,01,01,00; Xcelium 24.03-s004 gives xx,xx,xx,11,11,00; canonical E refuses after driver closure under IEEE 1800-2023 §§4.7 and 10.4.1."
-    }
+    },
+    {
+      "name": "audit4_dep3i", "example": "loopfuel_audit4", "top": "a4_dep3i", "params": {"N": 8}, "signals": ["q"], "stimulus": [{}, {}, {}]
+    },
+    {"name": "audit4_dep10i", "example": "loopfuel_audit4", "top": "a4_dep10i", "params": {"N": 4}, "signals": ["q"], "stimulus": [{}, {}, {}]},
+    {"name": "audit4_nest_dep_p1k", "example": "loopfuel_audit4", "top": "lf3_nest_dep_p1k", "params": {"N": 3}, "fuel": 12000, "signals": ["q"], "stimulus": [{}, {}, {}]},
+    {"name": "audit4_sz_bound", "example": "loopfuel_audit4", "top": "a4_sz_bound", "signals": ["q"], "stimulus": [{}, {}, {}], "refusal": "ForLoopStatement"},
+    {"name": "audit4_sz_bound2", "example": "loopfuel_audit4", "top": "a4_sz_bound2", "signals": ["q"], "stimulus": [{}, {}, {}], "refusal": "ForLoopStatement"},
+    {"name": "audit4_sz_init", "example": "loopfuel_audit4", "top": "a4_sz_init", "signals": ["q"], "stimulus": [{}, {}, {}], "refusal": "ForLoopStatement"},
+    {"name": "audit4_sgn_bound", "example": "loopfuel_audit4", "top": "a4_sgn_bound", "signals": ["q"], "stimulus": [{}, {}, {}], "refusal": "ForLoopStatement"},
+    {"name": "audit4_sz_step", "example": "loopfuel_audit4", "top": "a4_sz_step", "signals": ["q"], "stimulus": [{}, {}, {}], "refusal": "ForLoopStatement"},
+    {"name": "audit4_ext_nest", "example": "loopfuel_audit4", "top": "lf3_ext_nest", "signals": ["q"], "stimulus": [{}, {}, {}], "refusal": "ForLoopStatement"},
+    {"name": "audit4_ext_nest_p3", "example": "loopfuel_audit4", "top": "lf3_ext_nest_p3", "params": {"N": 3}, "signals": ["q"], "stimulus": [{}, {}, {}], "refusal": "ForLoopStatement"},
+    {"name": "audit4_rg_comb40", "example": "loopfuel_audit4", "top": "a4_rg_comb40", "signals": ["b"], "stimulus": [{"d": "00000000"}, {"d": "00000001"}, {"d": "00000000"}], "refusal": "Schedule:preemptive"},
+    {"name": "audit4_rg_hier40", "example": "loopfuel_audit4", "top": "a4_rg_hier40", "signals": ["b"], "stimulus": [{"d": "00000000"}, {"d": "00000001"}, {"d": "00000000"}], "refusal": "Schedule:preemptive"},
+    {"name": "audit4_q_init_mem", "example": "loopfuel_audit4", "top": "a4_q_init_mem", "signals": ["r"], "stimulus": [{"a": "00"}, {"a": "01"}], "refusal": "Schedule:preemptive", "memory": true},
+    {"name": "audit4_q_comb_mem_read", "example": "loopfuel_audit4", "top": "a4_q_comb_mem_read", "signals": ["r"], "stimulus": [{"d": "00000000"}, {"d": "00000001"}], "refusal": "Schedule:preemptive", "memory": true},
+    {"name": "audit4_q_hier_mem", "example": "loopfuel_audit4", "top": "a4_q_hier_mem", "signals": ["q", "r"], "stimulus": [{"seed": "0"}, {"seed": "1"}], "refusal": "memory runner does not admit hierarchy", "memory": true}
   ]
 }

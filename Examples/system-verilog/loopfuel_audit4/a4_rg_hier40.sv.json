@@ -1,0 +1,4402 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "a4_rg_hier40",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/loopfuel_audit4/a4_rg_hier40.sv",
+      "sha256": "c22c9b8846e120e96c834aeee4edfd92d67f6fe9386e3c0fd010fa7dde31f1d2"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 5,
+          "col": 1,
+          "end_line": 49,
+          "end_col": 10
+        },
+        "name": "a4_rg_hier40",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 34,
+              "end_line": 5,
+              "end_col": 37
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 57,
+              "end_line": 5,
+              "end_col": 58
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 52,
+                      "end_line": 5,
+                      "end_col": 53
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 54,
+                      "end_line": 5,
+                      "end_col": 55
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 79,
+              "end_line": 5,
+              "end_col": 80
+            },
+            "name": "b",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 74,
+                      "end_line": 5,
+                      "end_col": 75
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 76,
+                      "end_line": 5,
+                      "end_col": 77
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 15,
+              "end_line": 6,
+              "end_col": 17
+            },
+            "name": "c0",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 19,
+              "end_line": 6,
+              "end_col": 21
+            },
+            "name": "c1",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 23,
+              "end_line": 6,
+              "end_col": 25
+            },
+            "name": "c2",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 27,
+              "end_line": 6,
+              "end_col": 29
+            },
+            "name": "c3",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 31,
+              "end_line": 6,
+              "end_col": 33
+            },
+            "name": "c4",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 35,
+              "end_line": 6,
+              "end_col": 37
+            },
+            "name": "c5",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 39,
+              "end_line": 6,
+              "end_col": 41
+            },
+            "name": "c6",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 43,
+              "end_line": 6,
+              "end_col": 45
+            },
+            "name": "c7",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 47,
+              "end_line": 6,
+              "end_col": 49
+            },
+            "name": "c8",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 51,
+              "end_line": 6,
+              "end_col": 53
+            },
+            "name": "c9",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 55,
+              "end_line": 6,
+              "end_col": 58
+            },
+            "name": "c10",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 60,
+              "end_line": 6,
+              "end_col": 63
+            },
+            "name": "c11",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 65,
+              "end_line": 6,
+              "end_col": 68
+            },
+            "name": "c12",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 70,
+              "end_line": 6,
+              "end_col": 73
+            },
+            "name": "c13",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 75,
+              "end_line": 6,
+              "end_col": 78
+            },
+            "name": "c14",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 80,
+              "end_line": 6,
+              "end_col": 83
+            },
+            "name": "c15",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 85,
+              "end_line": 6,
+              "end_col": 88
+            },
+            "name": "c16",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 90,
+              "end_line": 6,
+              "end_col": 93
+            },
+            "name": "c17",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 95,
+              "end_line": 6,
+              "end_col": 98
+            },
+            "name": "c18",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 100,
+              "end_line": 6,
+              "end_col": 103
+            },
+            "name": "c19",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 105,
+              "end_line": 6,
+              "end_col": 108
+            },
+            "name": "c20",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 110,
+              "end_line": 6,
+              "end_col": 113
+            },
+            "name": "c21",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 115,
+              "end_line": 6,
+              "end_col": 118
+            },
+            "name": "c22",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 120,
+              "end_line": 6,
+              "end_col": 123
+            },
+            "name": "c23",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 125,
+              "end_line": 6,
+              "end_col": 128
+            },
+            "name": "c24",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 130,
+              "end_line": 6,
+              "end_col": 133
+            },
+            "name": "c25",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 135,
+              "end_line": 6,
+              "end_col": 138
+            },
+            "name": "c26",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 140,
+              "end_line": 6,
+              "end_col": 143
+            },
+            "name": "c27",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 145,
+              "end_line": 6,
+              "end_col": 148
+            },
+            "name": "c28",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 150,
+              "end_line": 6,
+              "end_col": 153
+            },
+            "name": "c29",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 155,
+              "end_line": 6,
+              "end_col": 158
+            },
+            "name": "c30",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 160,
+              "end_line": 6,
+              "end_col": 163
+            },
+            "name": "c31",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 165,
+              "end_line": 6,
+              "end_col": 168
+            },
+            "name": "c32",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 170,
+              "end_line": 6,
+              "end_col": 173
+            },
+            "name": "c33",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 175,
+              "end_line": 6,
+              "end_col": 178
+            },
+            "name": "c34",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 180,
+              "end_line": 6,
+              "end_col": 183
+            },
+            "name": "c35",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 185,
+              "end_line": 6,
+              "end_col": 188
+            },
+            "name": "c36",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 190,
+              "end_line": 6,
+              "end_col": 193
+            },
+            "name": "c37",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 195,
+              "end_line": 6,
+              "end_col": 198
+            },
+            "name": "c38",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 200,
+              "end_line": 6,
+              "end_col": 203
+            },
+            "name": "c39",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 205,
+              "end_line": 6,
+              "end_col": 208
+            },
+            "name": "c40",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 12,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "init": null
+          }
+        ],
+        "processes": [
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 7,
+              "col": 3,
+              "end_line": 7,
+              "end_col": 35
+            },
+            "style": "always_ff",
+            "clock": "clk",
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 7,
+                "col": 28,
+                "end_line": 7,
+                "end_col": 35
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 7,
+                  "col": 28,
+                  "end_line": 7,
+                  "end_col": 30
+                },
+                "width": 8,
+                "name": "c0"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 7,
+                  "col": 33,
+                  "end_line": 7,
+                  "end_col": 34
+                },
+                "width": 8,
+                "name": "d"
+              }
+            }
+          },
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 48,
+              "col": 3,
+              "end_line": 48,
+              "end_col": 37
+            },
+            "style": "always_ff",
+            "clock": "clk",
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 48,
+                "col": 28,
+                "end_line": 48,
+                "end_col": 37
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 48,
+                  "col": 28,
+                  "end_line": 48,
+                  "end_col": 29
+                },
+                "width": 8,
+                "name": "b"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 48,
+                  "col": 33,
+                  "end_line": 48,
+                  "end_col": 36
+                },
+                "width": 8,
+                "name": "c40"
+              }
+            }
+          }
+        ],
+        "generates": [
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 8,
+              "col": 10,
+              "end_line": 8,
+              "end_col": 29
+            },
+            "name": "u0",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 8,
+                  "col": 17,
+                  "end_line": 8,
+                  "end_col": 19
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 8,
+                    "col": 17,
+                    "end_line": 8,
+                    "end_col": 19
+                  },
+                  "width": 8,
+                  "name": "c0"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 8,
+                  "col": 25,
+                  "end_line": 8,
+                  "end_col": 27
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 8,
+                    "col": 25,
+                    "end_line": 8,
+                    "end_col": 27
+                  },
+                  "width": 8,
+                  "name": "c1"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 9,
+              "col": 10,
+              "end_line": 9,
+              "end_col": 29
+            },
+            "name": "u1",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 9,
+                  "col": 17,
+                  "end_line": 9,
+                  "end_col": 19
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 9,
+                    "col": 17,
+                    "end_line": 9,
+                    "end_col": 19
+                  },
+                  "width": 8,
+                  "name": "c1"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 9,
+                  "col": 25,
+                  "end_line": 9,
+                  "end_col": 27
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 9,
+                    "col": 25,
+                    "end_line": 9,
+                    "end_col": 27
+                  },
+                  "width": 8,
+                  "name": "c2"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 10,
+              "col": 10,
+              "end_line": 10,
+              "end_col": 29
+            },
+            "name": "u2",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 10,
+                  "col": 17,
+                  "end_line": 10,
+                  "end_col": 19
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 10,
+                    "col": 17,
+                    "end_line": 10,
+                    "end_col": 19
+                  },
+                  "width": 8,
+                  "name": "c2"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 10,
+                  "col": 25,
+                  "end_line": 10,
+                  "end_col": 27
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 10,
+                    "col": 25,
+                    "end_line": 10,
+                    "end_col": 27
+                  },
+                  "width": 8,
+                  "name": "c3"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 11,
+              "col": 10,
+              "end_line": 11,
+              "end_col": 29
+            },
+            "name": "u3",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 11,
+                  "col": 17,
+                  "end_line": 11,
+                  "end_col": 19
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 11,
+                    "col": 17,
+                    "end_line": 11,
+                    "end_col": 19
+                  },
+                  "width": 8,
+                  "name": "c3"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 11,
+                  "col": 25,
+                  "end_line": 11,
+                  "end_col": 27
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 11,
+                    "col": 25,
+                    "end_line": 11,
+                    "end_col": 27
+                  },
+                  "width": 8,
+                  "name": "c4"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 12,
+              "col": 10,
+              "end_line": 12,
+              "end_col": 29
+            },
+            "name": "u4",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 12,
+                  "col": 17,
+                  "end_line": 12,
+                  "end_col": 19
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 12,
+                    "col": 17,
+                    "end_line": 12,
+                    "end_col": 19
+                  },
+                  "width": 8,
+                  "name": "c4"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 12,
+                  "col": 25,
+                  "end_line": 12,
+                  "end_col": 27
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 12,
+                    "col": 25,
+                    "end_line": 12,
+                    "end_col": 27
+                  },
+                  "width": 8,
+                  "name": "c5"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 13,
+              "col": 10,
+              "end_line": 13,
+              "end_col": 29
+            },
+            "name": "u5",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 13,
+                  "col": 17,
+                  "end_line": 13,
+                  "end_col": 19
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 13,
+                    "col": 17,
+                    "end_line": 13,
+                    "end_col": 19
+                  },
+                  "width": 8,
+                  "name": "c5"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 13,
+                  "col": 25,
+                  "end_line": 13,
+                  "end_col": 27
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 13,
+                    "col": 25,
+                    "end_line": 13,
+                    "end_col": 27
+                  },
+                  "width": 8,
+                  "name": "c6"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 14,
+              "col": 10,
+              "end_line": 14,
+              "end_col": 29
+            },
+            "name": "u6",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 14,
+                  "col": 17,
+                  "end_line": 14,
+                  "end_col": 19
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 14,
+                    "col": 17,
+                    "end_line": 14,
+                    "end_col": 19
+                  },
+                  "width": 8,
+                  "name": "c6"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 14,
+                  "col": 25,
+                  "end_line": 14,
+                  "end_col": 27
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 14,
+                    "col": 25,
+                    "end_line": 14,
+                    "end_col": 27
+                  },
+                  "width": 8,
+                  "name": "c7"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 15,
+              "col": 10,
+              "end_line": 15,
+              "end_col": 29
+            },
+            "name": "u7",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 15,
+                  "col": 17,
+                  "end_line": 15,
+                  "end_col": 19
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 15,
+                    "col": 17,
+                    "end_line": 15,
+                    "end_col": 19
+                  },
+                  "width": 8,
+                  "name": "c7"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 15,
+                  "col": 25,
+                  "end_line": 15,
+                  "end_col": 27
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 15,
+                    "col": 25,
+                    "end_line": 15,
+                    "end_col": 27
+                  },
+                  "width": 8,
+                  "name": "c8"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 16,
+              "col": 10,
+              "end_line": 16,
+              "end_col": 29
+            },
+            "name": "u8",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 16,
+                  "col": 17,
+                  "end_line": 16,
+                  "end_col": 19
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 16,
+                    "col": 17,
+                    "end_line": 16,
+                    "end_col": 19
+                  },
+                  "width": 8,
+                  "name": "c8"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 16,
+                  "col": 25,
+                  "end_line": 16,
+                  "end_col": 27
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 16,
+                    "col": 25,
+                    "end_line": 16,
+                    "end_col": 27
+                  },
+                  "width": 8,
+                  "name": "c9"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 17,
+              "col": 10,
+              "end_line": 17,
+              "end_col": 30
+            },
+            "name": "u9",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 17,
+                  "col": 17,
+                  "end_line": 17,
+                  "end_col": 19
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 17,
+                    "col": 17,
+                    "end_line": 17,
+                    "end_col": 19
+                  },
+                  "width": 8,
+                  "name": "c9"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 17,
+                  "col": 25,
+                  "end_line": 17,
+                  "end_col": 28
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 17,
+                    "col": 25,
+                    "end_line": 17,
+                    "end_col": 28
+                  },
+                  "width": 8,
+                  "name": "c10"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 18,
+              "col": 10,
+              "end_line": 18,
+              "end_col": 32
+            },
+            "name": "u10",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 18,
+                  "col": 18,
+                  "end_line": 18,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 18,
+                    "col": 18,
+                    "end_line": 18,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c10"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 18,
+                  "col": 27,
+                  "end_line": 18,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 18,
+                    "col": 27,
+                    "end_line": 18,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c11"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 19,
+              "col": 10,
+              "end_line": 19,
+              "end_col": 32
+            },
+            "name": "u11",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 19,
+                  "col": 18,
+                  "end_line": 19,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 19,
+                    "col": 18,
+                    "end_line": 19,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c11"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 19,
+                  "col": 27,
+                  "end_line": 19,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 19,
+                    "col": 27,
+                    "end_line": 19,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c12"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 20,
+              "col": 10,
+              "end_line": 20,
+              "end_col": 32
+            },
+            "name": "u12",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 20,
+                  "col": 18,
+                  "end_line": 20,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 20,
+                    "col": 18,
+                    "end_line": 20,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c12"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 20,
+                  "col": 27,
+                  "end_line": 20,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 20,
+                    "col": 27,
+                    "end_line": 20,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c13"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 21,
+              "col": 10,
+              "end_line": 21,
+              "end_col": 32
+            },
+            "name": "u13",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 21,
+                  "col": 18,
+                  "end_line": 21,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 21,
+                    "col": 18,
+                    "end_line": 21,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c13"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 21,
+                  "col": 27,
+                  "end_line": 21,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 21,
+                    "col": 27,
+                    "end_line": 21,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c14"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 22,
+              "col": 10,
+              "end_line": 22,
+              "end_col": 32
+            },
+            "name": "u14",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 22,
+                  "col": 18,
+                  "end_line": 22,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 22,
+                    "col": 18,
+                    "end_line": 22,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c14"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 22,
+                  "col": 27,
+                  "end_line": 22,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 22,
+                    "col": 27,
+                    "end_line": 22,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c15"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 23,
+              "col": 10,
+              "end_line": 23,
+              "end_col": 32
+            },
+            "name": "u15",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 23,
+                  "col": 18,
+                  "end_line": 23,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 23,
+                    "col": 18,
+                    "end_line": 23,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c15"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 23,
+                  "col": 27,
+                  "end_line": 23,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 23,
+                    "col": 27,
+                    "end_line": 23,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c16"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 24,
+              "col": 10,
+              "end_line": 24,
+              "end_col": 32
+            },
+            "name": "u16",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 24,
+                  "col": 18,
+                  "end_line": 24,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 24,
+                    "col": 18,
+                    "end_line": 24,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c16"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 24,
+                  "col": 27,
+                  "end_line": 24,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 24,
+                    "col": 27,
+                    "end_line": 24,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c17"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 25,
+              "col": 10,
+              "end_line": 25,
+              "end_col": 32
+            },
+            "name": "u17",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 25,
+                  "col": 18,
+                  "end_line": 25,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 25,
+                    "col": 18,
+                    "end_line": 25,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c17"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 25,
+                  "col": 27,
+                  "end_line": 25,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 25,
+                    "col": 27,
+                    "end_line": 25,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c18"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 26,
+              "col": 10,
+              "end_line": 26,
+              "end_col": 32
+            },
+            "name": "u18",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 26,
+                  "col": 18,
+                  "end_line": 26,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 26,
+                    "col": 18,
+                    "end_line": 26,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c18"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 26,
+                  "col": 27,
+                  "end_line": 26,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 26,
+                    "col": 27,
+                    "end_line": 26,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c19"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 27,
+              "col": 10,
+              "end_line": 27,
+              "end_col": 32
+            },
+            "name": "u19",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 27,
+                  "col": 18,
+                  "end_line": 27,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 27,
+                    "col": 18,
+                    "end_line": 27,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c19"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 27,
+                  "col": 27,
+                  "end_line": 27,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 27,
+                    "col": 27,
+                    "end_line": 27,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c20"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 28,
+              "col": 10,
+              "end_line": 28,
+              "end_col": 32
+            },
+            "name": "u20",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 28,
+                  "col": 18,
+                  "end_line": 28,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 28,
+                    "col": 18,
+                    "end_line": 28,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c20"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 28,
+                  "col": 27,
+                  "end_line": 28,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 28,
+                    "col": 27,
+                    "end_line": 28,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c21"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 29,
+              "col": 10,
+              "end_line": 29,
+              "end_col": 32
+            },
+            "name": "u21",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 29,
+                  "col": 18,
+                  "end_line": 29,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 29,
+                    "col": 18,
+                    "end_line": 29,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c21"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 29,
+                  "col": 27,
+                  "end_line": 29,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 29,
+                    "col": 27,
+                    "end_line": 29,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c22"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 30,
+              "col": 10,
+              "end_line": 30,
+              "end_col": 32
+            },
+            "name": "u22",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 30,
+                  "col": 18,
+                  "end_line": 30,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 30,
+                    "col": 18,
+                    "end_line": 30,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c22"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 30,
+                  "col": 27,
+                  "end_line": 30,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 30,
+                    "col": 27,
+                    "end_line": 30,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c23"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 31,
+              "col": 10,
+              "end_line": 31,
+              "end_col": 32
+            },
+            "name": "u23",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 31,
+                  "col": 18,
+                  "end_line": 31,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 31,
+                    "col": 18,
+                    "end_line": 31,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c23"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 31,
+                  "col": 27,
+                  "end_line": 31,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 31,
+                    "col": 27,
+                    "end_line": 31,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c24"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 32,
+              "col": 10,
+              "end_line": 32,
+              "end_col": 32
+            },
+            "name": "u24",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 32,
+                  "col": 18,
+                  "end_line": 32,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 32,
+                    "col": 18,
+                    "end_line": 32,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c24"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 32,
+                  "col": 27,
+                  "end_line": 32,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 32,
+                    "col": 27,
+                    "end_line": 32,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c25"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 33,
+              "col": 10,
+              "end_line": 33,
+              "end_col": 32
+            },
+            "name": "u25",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 33,
+                  "col": 18,
+                  "end_line": 33,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 33,
+                    "col": 18,
+                    "end_line": 33,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c25"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 33,
+                  "col": 27,
+                  "end_line": 33,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 33,
+                    "col": 27,
+                    "end_line": 33,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c26"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 34,
+              "col": 10,
+              "end_line": 34,
+              "end_col": 32
+            },
+            "name": "u26",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 34,
+                  "col": 18,
+                  "end_line": 34,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 34,
+                    "col": 18,
+                    "end_line": 34,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c26"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 34,
+                  "col": 27,
+                  "end_line": 34,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 34,
+                    "col": 27,
+                    "end_line": 34,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c27"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 35,
+              "col": 10,
+              "end_line": 35,
+              "end_col": 32
+            },
+            "name": "u27",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 35,
+                  "col": 18,
+                  "end_line": 35,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 35,
+                    "col": 18,
+                    "end_line": 35,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c27"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 35,
+                  "col": 27,
+                  "end_line": 35,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 35,
+                    "col": 27,
+                    "end_line": 35,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c28"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 36,
+              "col": 10,
+              "end_line": 36,
+              "end_col": 32
+            },
+            "name": "u28",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 36,
+                  "col": 18,
+                  "end_line": 36,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 36,
+                    "col": 18,
+                    "end_line": 36,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c28"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 36,
+                  "col": 27,
+                  "end_line": 36,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 36,
+                    "col": 27,
+                    "end_line": 36,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c29"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 37,
+              "col": 10,
+              "end_line": 37,
+              "end_col": 32
+            },
+            "name": "u29",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 37,
+                  "col": 18,
+                  "end_line": 37,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 37,
+                    "col": 18,
+                    "end_line": 37,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c29"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 37,
+                  "col": 27,
+                  "end_line": 37,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 37,
+                    "col": 27,
+                    "end_line": 37,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c30"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 38,
+              "col": 10,
+              "end_line": 38,
+              "end_col": 32
+            },
+            "name": "u30",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 38,
+                  "col": 18,
+                  "end_line": 38,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 38,
+                    "col": 18,
+                    "end_line": 38,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c30"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 38,
+                  "col": 27,
+                  "end_line": 38,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 38,
+                    "col": 27,
+                    "end_line": 38,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c31"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 39,
+              "col": 10,
+              "end_line": 39,
+              "end_col": 32
+            },
+            "name": "u31",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 39,
+                  "col": 18,
+                  "end_line": 39,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 39,
+                    "col": 18,
+                    "end_line": 39,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c31"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 39,
+                  "col": 27,
+                  "end_line": 39,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 39,
+                    "col": 27,
+                    "end_line": 39,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c32"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 40,
+              "col": 10,
+              "end_line": 40,
+              "end_col": 32
+            },
+            "name": "u32",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 40,
+                  "col": 18,
+                  "end_line": 40,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 40,
+                    "col": 18,
+                    "end_line": 40,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c32"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 40,
+                  "col": 27,
+                  "end_line": 40,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 40,
+                    "col": 27,
+                    "end_line": 40,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c33"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 41,
+              "col": 10,
+              "end_line": 41,
+              "end_col": 32
+            },
+            "name": "u33",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 41,
+                  "col": 18,
+                  "end_line": 41,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 41,
+                    "col": 18,
+                    "end_line": 41,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c33"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 41,
+                  "col": 27,
+                  "end_line": 41,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 41,
+                    "col": 27,
+                    "end_line": 41,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c34"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 42,
+              "col": 10,
+              "end_line": 42,
+              "end_col": 32
+            },
+            "name": "u34",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 42,
+                  "col": 18,
+                  "end_line": 42,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 42,
+                    "col": 18,
+                    "end_line": 42,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c34"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 42,
+                  "col": 27,
+                  "end_line": 42,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 42,
+                    "col": 27,
+                    "end_line": 42,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c35"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 43,
+              "col": 10,
+              "end_line": 43,
+              "end_col": 32
+            },
+            "name": "u35",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 43,
+                  "col": 18,
+                  "end_line": 43,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 43,
+                    "col": 18,
+                    "end_line": 43,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c35"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 43,
+                  "col": 27,
+                  "end_line": 43,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 43,
+                    "col": 27,
+                    "end_line": 43,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c36"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 44,
+              "col": 10,
+              "end_line": 44,
+              "end_col": 32
+            },
+            "name": "u36",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 44,
+                  "col": 18,
+                  "end_line": 44,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 44,
+                    "col": 18,
+                    "end_line": 44,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c36"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 44,
+                  "col": 27,
+                  "end_line": 44,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 44,
+                    "col": 27,
+                    "end_line": 44,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c37"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 45,
+              "col": 10,
+              "end_line": 45,
+              "end_col": 32
+            },
+            "name": "u37",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 45,
+                  "col": 18,
+                  "end_line": 45,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 45,
+                    "col": 18,
+                    "end_line": 45,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c37"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 45,
+                  "col": 27,
+                  "end_line": 45,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 45,
+                    "col": 27,
+                    "end_line": 45,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c38"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 46,
+              "col": 10,
+              "end_line": 46,
+              "end_col": 32
+            },
+            "name": "u38",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 46,
+                  "col": 18,
+                  "end_line": 46,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 46,
+                    "col": 18,
+                    "end_line": 46,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c38"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 46,
+                  "col": 27,
+                  "end_line": 46,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 46,
+                    "col": 27,
+                    "end_line": 46,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c39"
+                }
+              }
+            ]
+          },
+          {
+            "kind": "Instance",
+            "span": {
+              "line": 47,
+              "col": 10,
+              "end_line": 47,
+              "end_col": 32
+            },
+            "name": "u39",
+            "module": "a4_buf",
+            "path": [],
+            "params": [],
+            "ports": [
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 47,
+                  "col": 18,
+                  "end_line": 47,
+                  "end_col": 21
+                },
+                "port": "i",
+                "dir": "in",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 47,
+                    "col": 18,
+                    "end_line": 47,
+                    "end_col": 21
+                  },
+                  "width": 8,
+                  "name": "c39"
+                }
+              },
+              {
+                "kind": "PortConn",
+                "span": {
+                  "line": 47,
+                  "col": 27,
+                  "end_line": 47,
+                  "end_col": 30
+                },
+                "port": "o",
+                "dir": "out",
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 47,
+                    "col": 27,
+                    "end_line": 47,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "name": "c40"
+                }
+              }
+            ]
+          }
+        ],
+        "others": []
+      },
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 4,
+          "end_col": 10
+        },
+        "name": "a4_buf",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 34,
+              "end_line": 2,
+              "end_col": 35
+            },
+            "name": "i",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 29,
+                      "end_line": 2,
+                      "end_col": 30
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 31,
+                      "end_line": 2,
+                      "end_col": 32
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 56,
+              "end_line": 2,
+              "end_col": 57
+            },
+            "name": "o",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 51,
+                      "end_line": 2,
+                      "end_col": 52
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 53,
+                      "end_line": 2,
+                      "end_col": 54
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 3,
+              "col": 10,
+              "end_line": 3,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 10,
+                "end_line": 3,
+                "end_col": 11
+              },
+              "width": 8,
+              "name": "o"
+            },
+            "value": {
+              "kind": "Ident",
+              "span": {
+                "line": 3,
+                "col": 14,
+                "end_line": 3,
+                "end_col": 15
+              },
+              "width": 8,
+              "name": "i"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

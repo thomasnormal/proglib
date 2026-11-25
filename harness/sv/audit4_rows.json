@@ -1,7 +1,7 @@
 {
   "simulators": {
     "iverilog": "Icarus Verilog 13.0 (s20250103-64-gdad78d525)",
-    "xcelium": "Xcelium 26.09 via refsim"
+    "xcelium": "Xcelium 26.09 via fleet reference runner"
   },
   "rows": [
     {"name": "lf3_nest_dep_p1k", "kind": "answer", "iverilog": "00000bb8", "xcelium": "00000bb8"},
