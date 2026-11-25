@@ -6151,6 +6151,17 @@ theorem placementOf_empty
       { allocations := [], nextId := 0 } id = none := by
   rfl
 
+theorem placementOf_renameStore
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
+    placementOf (renameStore resolve store) id =
+      (placementOf store id).map (fun _ => resolve id) := by
+  simp only [placementOf]
+  rw [lookup_renameStore]
+  cases hlookup : lookup store id with
+  | none => simp [placementOf, hlookup]
+  | some allocation =>
+      simp [placementOf, hlookup, renameAllocationValue]
+
 def placementAgreementOfStores (left right : Store Tag State)
     (exposed : AllocId → Bool) : PlacementAgreement :=
   { left := placementOf left
