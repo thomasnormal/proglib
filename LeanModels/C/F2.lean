@@ -7964,6 +7964,12 @@ def pairedLifetimeLookup (resolve : AllocId → Nat)
   | some (source, _), some (target, _) => true
   | _, _ => false
 
+theorem pairedLifetimeLookup_empty_false
+    {Tag State : Type} (resolve : AllocId → Nat) (id : AllocId) :
+    pairedLifetimeLookup resolve
+      ({ allocations := [], nextId := 0 } : Store Tag State) id = false := by
+  rfl
+
 theorem pairedLifetimeLookup_sound
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
     (h : pairedLifetimeLookup resolve store id = true) :
