@@ -3035,6 +3035,25 @@ theorem pairedReallocMetadata_preserves_wellFormed
           by simpa [renameMetadata] using hold.2⟩
       exact ⟨hold, htarget⟩
 
+theorem pairedReallocMetadata_empty_result_wellFormed
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (state : State) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hold : old.wellFormed 0)
+    (hresult : pairedReallocMetadata resolve old { bytes := [], state := state }
+      [] placement = some result) :
+    (match result.1.1 with
+    | .failed previous => previous.wellFormed 0
+    | .replaced fresh => fresh.wellFormed 0) ∧
+    (match result.2.1 with
+    | .failed previous => previous.wellFormed 0
+    | .replaced fresh => fresh.wellFormed 0) := by
+  exact pairedReallocMetadata_preserves_wellFormed resolve old
+    { bytes := [], state := state } [] placement result hold
+    (by simp [bytesWf]) rfl hresult
+
 theorem pairedReallocMetadata_preserves_lengths
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
