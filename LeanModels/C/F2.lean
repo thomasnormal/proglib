@@ -2590,6 +2590,7 @@ theorem pairedReallocZero_shape (resolve : AllocId → Nat) :
   change reallocZeroAgrees reallocZeroGNU17 reallocZeroGNU17 = true
   simp [reallocZeroAgrees]
 
+
 def isZeroToken (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   metadata.allocation.live && metadata.allocation.bytes.isEmpty
 
@@ -2821,6 +2822,40 @@ theorem pairedFreeMetadata_decompose
           have hpair : (sourceResult, targetResult) = result := by
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
+
+theorem pairedFreeMetadata_sound
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    ∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      freeMetadata metadata = some sourceResult ∧
+      freeMetadata (renameZeroTokenMetadata resolve metadata) = some targetResult := by
+  cases hs : freeMetadata metadata with
+  | none => simp [pairedFreeMetadata, hs] at hresult
+  | some sourceResult =>
+      cases ht : freeMetadata (renameZeroTokenMetadata resolve metadata) with
+      | none => simp [pairedFreeMetadata, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedFreeMetadata, hs, ht] at hresult
+          exact ⟨sourceResult, targetResult, hresult.symm,
+            by simpa using hs, by simpa using ht⟩
+
+theorem pairedFreeMetadata_refusal_source
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hsource : freeMetadata metadata = none) :
+    pairedFreeMetadata resolve metadata = none := by
+  simp [pairedFreeMetadata, hsource]
+
+theorem pairedFreeMetadata_refusal_target
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (htarget : freeMetadata (renameZeroTokenMetadata resolve metadata) = none) :
+    pairedFreeMetadata resolve metadata = none := by
+  simp [pairedFreeMetadata, htarget]
 
 theorem pairedFreeMetadata_footprints
     (resolve : AllocId → Nat)
