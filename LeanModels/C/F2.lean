@@ -4143,6 +4143,18 @@ theorem pairedPlacementAllowed_both_allowed
     pairedPlacementAllowed resolve store base size = true := by
   simp [pairedPlacementAllowed, hsource, htarget]
 
+theorem pairedPlacementAllowed_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (base size : Nat)
+    (hrefusal : placementAllowed store base size = false ∧
+      placementAllowed (renameStore resolve store) (resolve store.nextId) size = true ∨
+      placementAllowed store base size = true ∧
+      placementAllowed (renameStore resolve store) (resolve store.nextId) size = false) :
+    pairedPlacementAllowed resolve store base size = false := by
+  rcases hrefusal with ⟨hsource, htarget⟩ | ⟨hsource, htarget⟩
+  · simp [pairedPlacementAllowed, hsource, htarget]
+  · simp [pairedPlacementAllowed, hsource, htarget]
+
 def alignmentAllowed (base alignment : Nat) : Bool :=
   alignment > 0 && base % alignment == 0
 
