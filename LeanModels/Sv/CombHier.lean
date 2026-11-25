@@ -1292,6 +1292,25 @@ def GeneratedNode.segmentAt (child : GeneratedChildRef → Except String Design2
       let d ← child r
       r.segmentAt d env elems
 
+@[simp] theorem GeneratedNode.segmentAt_process
+    (child : GeneratedChildRef → Except String Design2)
+    (env : IEnv) (elems : List (String × Nat))
+    (loops : List GeneratedLoop) (p : PProcess) :
+    GeneratedNode.segmentAt child env elems (.process loops p) =
+      .ok ([], [instProcess2 env elems p]) := by
+  rfl
+
+theorem GeneratedNode.segmentAt_child
+    {child : GeneratedChildRef → Except String Design2}
+    {env : IEnv} {elems : List (String × Nat)} {r : GeneratedChildRef}
+    {d : Design2} {pfx : String}
+    (hc : child r = .ok d)
+    (hp : r.inst.prefix env = .ok pfx) :
+    GeneratedNode.segmentAt child env elems (.child r) =
+      .ok (flattenInst env elems pfx r.inst d) := by
+  simp [GeneratedNode.segmentAt, hc]
+  exact GeneratedChildRef.segmentAt_ok hp
+
 theorem generatedNodes_segmentAt_mapM_ok
     {ns : List GeneratedNode}
     {child : GeneratedChildRef → Except String Design2}
