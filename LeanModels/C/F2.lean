@@ -4303,6 +4303,13 @@ theorem pairedFreePointer_empty_agrees
       freePointer (some (renameZeroTokenMetadata resolve metadata)) := by
   exact pairedFreePointer_agrees resolve (some metadata)
 
+theorem pairedFreePointer_empty_true
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hbytes : metadata.allocation.bytes = []) :
+    pairedFreePointer resolve (some metadata) = true := by
+  exact pairedFreePointer_true resolve (some metadata)
+
 def representationLoadMetadataByte
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (choice : RepresentationChoice) :
