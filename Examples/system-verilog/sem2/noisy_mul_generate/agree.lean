@@ -1238,4 +1238,76 @@ theorem noisy_top_expand_actual
       (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
       env elems F N hFuel hBound hValue
 
+def noisyTopGeneratedRefs : List CombHier.GeneratedChildRef :=
+  [{ loops := ppLoops, inst := andInst, child := andDef },
+   { loops := rowInnerLoops, inst := xorInst, child := xorDef },
+   { loops := rowInnerLoops, inst := xorSInst, child := xorDef },
+   { loops := rowInnerLoops, inst := majInst, child := majDef }]
+
+theorem noisy_top_generated_refs :
+    CombHier.generatedChildRefs noisyMul.plib [] noisyMul.pdesign.generates =
+      .ok noisyTopGeneratedRefs := by
+  rw [noisy_top_generates_shape]
+  simp [noisyTopGeneratedRefs, CombHier.generatedChildRefs, ppLoops, rowInnerLoops,
+    noisy_row_inner_shape, andInst, xorInst, xorSInst, majInst, andDef, xorDef, majDef]
+
+def noisyTopGeneratedPairs : List (CombHier.GeneratedChildRef × Design2) :=
+  [({ loops := ppLoops, inst := andInst, child := andDef }, andDesign),
+   ({ loops := rowInnerLoops, inst := xorInst, child := xorDef }, xorDesign),
+   ({ loops := rowInnerLoops, inst := xorSInst, child := xorDef }, xorDesign),
+   ({ loops := rowInnerLoops, inst := majInst, child := majDef }, majDesign)]
+
+def noisyTopGeneratedPairSegment
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    CombHier.GeneratedChildRef × Design2 → List Decl × List Process2
+  | (r, _) =>
+      if r.inst.name == andInst.name then
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.") andInst andDesign
+      else if r.inst.name == xorInst.name then
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst xorDesign
+      else if r.inst.name == xorSInst.name then
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst xorDesign
+      else
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst majDesign
+
+theorem noisy_top_generated_segments
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    noisyTopGeneratedPairs.mapM
+      (fun r => r.1.segmentAt r.2
+        ((env.bindVal "i" i).bindVal "j" j) elems) =
+      .ok (noisyTopGeneratedPairs.map
+        (noisyTopGeneratedPairSegment env elems i j)) := by
+  apply (CombHier.generatedChildRefPairs_segmentAt_mapM_ok
+    (rs := noisyTopGeneratedPairs)
+    (env := fun _ => (env.bindVal "i" i).bindVal "j" j)
+    (elems := elems)
+    (seg := noisyTopGeneratedPairSegment env elems i j))
+  intro r hr
+  have hat : andInst.name ≠ xorInst.name := by decide
+  have hta : xorInst.name ≠ andInst.name := by decide
+  have has : andInst.name ≠ xorSInst.name := by decide
+  have hsa : xorSInst.name ≠ andInst.name := by decide
+  have hst : xorSInst.name ≠ xorInst.name := by decide
+  have hmt : majInst.name ≠ xorInst.name := by decide
+  have hms : majInst.name ≠ xorSInst.name := by decide
+  have hma : majInst.name ≠ andInst.name := by decide
+  simp only [noisyTopGeneratedPairs, List.mem_cons] at hr
+  rcases hr with rfl | hr
+  · simpa [noisyTopGeneratedPairSegment] using
+      (CombHier.GeneratedChildRef.segmentAt_ok (andInst_prefix env i j))
+  rcases hr with rfl | hr
+  · simpa [noisyTopGeneratedPairSegment, hta, hat, hmt] using
+      (CombHier.GeneratedChildRef.segmentAt_ok (xorInst_prefix env i j))
+  rcases hr with rfl | hr
+  · simpa [noisyTopGeneratedPairSegment, hsa, has, hst, hms] using
+      (CombHier.GeneratedChildRef.segmentAt_ok (xorS_prefix env i j))
+  rcases hr with rfl | hr
+  · simpa [noisyTopGeneratedPairSegment, hma, hmt, hms] using
+      (CombHier.GeneratedChildRef.segmentAt_ok (majInst_prefix env i j))
+  simp at hr
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
