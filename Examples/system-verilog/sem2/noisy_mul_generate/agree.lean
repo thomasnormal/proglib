@@ -18,6 +18,7 @@ end Examples.«system-verilog».sem2.noisy_mul_generate
 #check generated_child_family
 #check generated_child_family_segments
 #check generated_family_body_segments
+#check generated_child_nested_with_processes
 #check generated_child_at_prefix
 #check generated_child_nested_family
 #check generated_child_nested_segments

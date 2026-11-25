@@ -20,6 +20,8 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   retain valuation-dependent per-iteration segments before flattening.
   `generated_family_body_segments` applies the same segment representation to
   a generated body containing assignments and nested generate items.
+  `generated_child_nested_with_processes` composes a process–nested-family–process
+  row without lowering that source shape.
   `generated_child_pathPrefix_two` and `generated_child_prefix_two` expose the
   valuation-dependent lexical names, and `GenItem.expandH_inst`/`instExpandH_of`
   expose one child's flattened declarations and processes.
@@ -139,6 +141,98 @@ theorem generated_family_body_segments
           { decls := r.1, processes := r.2 })) := by
   rw [GenItem.expandH_genFor_ascending_flatMap hi hbound hvalue hfuel hbody]
   simp [GeneratedChildSegment.flatten, List.flatMap_map]
+
+/-! A common generated-row shape has a process before and after a nested child
+family.  This equation keeps that shape explicit and composes the ordinary
+process expansion with the nested-family result; callers still provide the
+child equation, rather than a lowered or unrolled row. -/
+
+theorem generated_child_nested_with_processes
+    {cb : ChildInst} {env : IEnv} {elems : List (String × Nat)} {F : Nat}
+    {outerG innerG : String} {outerLabel innerLabel : Option String}
+    {outerInit outerBound innerInit innerBound : PExpr}
+    {outerRc innerRc : Option Nat} {outerI0 outerN innerI0 innerN : Int}
+    {left right : PProcess} {innerBody : List GenItem}
+    {f : Int → List Decl × List Process2}
+    (hOuterInit : evalInt env outerInit = .ok outerI0)
+    (hOuterBound : ∀ i : Int, outerBound.isInt (env.bindVal outerG i) = true)
+    (hOuterValue : ∀ i : Int, evalInt (env.bindVal outerG i) outerBound = .ok outerN)
+    (hOuterFuel : (outerN - outerI0).toNat < F)
+    (hInnerInit : ∀ outer : Int,
+      evalInt (env.bindVal outerG outer) innerInit = .ok innerI0)
+    (hInnerBound : ∀ outer i : Int,
+      innerBound.isInt ((env.bindVal outerG outer).bindVal innerG i) = true)
+    (hInnerValue : ∀ outer i : Int,
+      evalInt ((env.bindVal outerG outer).bindVal innerG i) innerBound = .ok innerN)
+    (hInnerFuel : (innerN - innerI0).toNat < F)
+    (hInnerInst : GenItem.listInstFree innerBody = false)
+    (hInner : ∀ outer : Int, outerI0 ≤ outer → outer < outerN →
+      expandListH cb (env.bindVal outerG outer) elems F
+        [GenItem.genFor innerLabel innerG innerInit
+          (.binary .slt (.genvarRef innerG) innerBound)
+          (.unary .inc (.genvarRef innerG)) innerRc innerBody] = .ok (f outer)) :
+    (GenItem.genFor outerLabel outerG outerInit
+      (.binary .slt (.genvarRef outerG) outerBound)
+      (.unary .inc (.genvarRef outerG)) outerRc
+      [GenItem.process left,
+       GenItem.genFor innerLabel innerG innerInit
+         (.binary .slt (.genvarRef innerG) innerBound)
+         (.unary .inc (.genvarRef innerG)) innerRc innerBody,
+       GenItem.process right]).expandH cb env elems F =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange outerI0 (outerN - outerI0).toNat).map fun outer =>
+          { decls := (f outer).1,
+            processes := instProcess2 (env.bindVal outerG outer) elems left ::
+              (f outer).2 ++ [instProcess2 (env.bindVal outerG outer) elems right] })) := by
+  let g : Int → List Decl × List Process2 := fun outer =>
+    ((f outer).1,
+      instProcess2 (env.bindVal outerG outer) elems left ::
+        (f outer).2 ++ [instProcess2 (env.bindVal outerG outer) elems right])
+  have houter : ∀ outer : Int, outerI0 ≤ outer → outer < outerN →
+      expandListH cb (env.bindVal outerG outer) elems F
+        [GenItem.process left,
+         GenItem.genFor innerLabel innerG innerInit
+           (.binary .slt (.genvarRef innerG) innerBound)
+           (.unary .inc (.genvarRef innerG)) innerRc innerBody,
+         GenItem.process right] = .ok (g outer) := by
+    intro outer hOuter0 hOuterN
+    refine expandListH_cons_ok (it := .process left)
+      (rest := [GenItem.genFor innerLabel innerG innerInit
+        (.binary .slt (.genvarRef innerG) innerBound)
+        (.unary .inc (.genvarRef innerG)) innerRc innerBody,
+        GenItem.process right])
+      (ds := []) (ps := [instProcess2 (env.bindVal outerG outer) elems left])
+      (ds' := (f outer).1)
+      (qs := (f outer).2 ++ [instProcess2 (env.bindVal outerG outer) elems right])
+      (h := by simp [GenItem.listInstFree, GenItem.instFree, hInnerInst]) ?_ ?_
+    · rw [GenItem.expandH_process]
+    · have htmp := expandListH_cons_ok
+          (it := .genFor innerLabel innerG innerInit
+            (.binary .slt (.genvarRef innerG) innerBound)
+            (.unary .inc (.genvarRef innerG)) innerRc innerBody)
+          (rest := [GenItem.process right])
+          (ds := (f outer).1) (ps := (f outer).2)
+          (ds' := [])
+          (qs := [instProcess2 (env.bindVal outerG outer) elems right])
+          (h := by simp [GenItem.listInstFree, GenItem.instFree, hInnerInst])
+          (by
+            have hgen :
+                (GenItem.genFor innerLabel innerG innerInit
+                  (.binary .slt (.genvarRef innerG) innerBound)
+                  (.unary .inc (.genvarRef innerG)) innerRc innerBody).instFree = false := by
+              simp [GenItem.instFree, hInnerInst]
+            have hlist : GenItem.listInstFree
+                [GenItem.genFor innerLabel innerG innerInit
+                  (.binary .slt (.genvarRef innerG) innerBound)
+                  (.unary .inc (.genvarRef innerG)) innerRc innerBody] = false := by
+              simp [GenItem.listInstFree, hgen]
+            simpa [expandListH, hlist] using (hInner outer hOuter0 hOuterN))
+          (by
+            simp [expandListH, expandList2, GenItem.listInstFree, GenItem.expandH_process])
+      simpa only [List.append_nil] using htmp
+  rw [GenItem.expandH_genFor_ascending_flatMap
+    (f := g) hOuterInit hOuterBound hOuterValue hOuterFuel houter]
+  simp [GeneratedChildSegment.flatten, g, List.flatMap_map]
 
 /-- A generated child expansion can be discharged directly from a decided
 prefix and child design.  This is the hand-proof equation used at each leaf
