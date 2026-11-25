@@ -3977,6 +3977,15 @@ def pairedRepresentationLoadMetadataByte (resolve : AllocId → Nat) (id : Alloc
     offset choice
   some (sourceResult, targetResult)
 
+theorem pairedRepresentationLoadMetadataByte_empty_none
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice)
+    (hbytes : metadata.allocation.bytes = []) :
+    pairedRepresentationLoadMetadataByte resolve id metadata offset choice = none := by
+  simp [pairedRepresentationLoadMetadataByte, representationLoadMetadataByte,
+    renameMetadata, hbytes]
+
 theorem pairedRepresentationLoadMetadataByte_decompose
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
