@@ -2760,6 +2760,78 @@ theorem pairedReallocMetadata_sound
               exact ⟨sourceResult, targetResult, hresult.symm, by simpa using hs,
                 by simpa using ht⟩
 
+theorem pairedReallocMetadata_preserves_wellFormed
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hold : old.wellFormed 0)
+    (hbytes : bytesWf 0 request.bytes)
+    (hlocations : locations.length = request.bytes.length)
+    (hresult : pairedReallocMetadata resolve old request locations placement = some result) :
+    (match result.1.1 with
+    | .failed previous => previous.wellFormed 0
+    | .replaced fresh => fresh.wellFormed 0) ∧
+    (match result.2.1 with
+    | .failed previous => previous.wellFormed 0
+    | .replaced fresh => fresh.wellFormed 0) := by
+  have renameBytesWf : ∀ (id : AllocId) (bytes : List (Byte Tag)),
+      bytesWf id bytes → bytesWf id (bytes.map (renameByte resolve)) := by
+    intro id bytes h
+    induction bytes with
+    | nil => simp [bytesWf]
+    | cons byte rest ih =>
+        cases byte with
+        | uninitialized =>
+            simp [bytesWf] at h ⊢
+            exact ih h
+        | value bits provenance fragment =>
+            cases provenance with
+            | none =>
+                simp [bytesWf, renameByte] at h ⊢
+                exact ih h
+            | some provenance =>
+                cases fragment with
+                | none =>
+                    simp [bytesWf, renameByte] at h ⊢
+                    exact And.intro h.1 (ih h.2)
+                | some fragment =>
+                    simp [bytesWf, renameByte] at h ⊢
+                    exact And.intro h.1 (ih h.2)
+  cases placement with
+  | address base =>
+      simp [pairedReallocMetadata, reallocMetadata, hlocations,
+        renameAllocationRequest] at hresult
+      rcases hresult with rfl
+      have hbytesTarget : bytesWf 0 (renameAllocationRequest resolve request).bytes := by
+        simpa [renameAllocationRequest] using renameBytesWf 0 request.bytes hbytes
+      constructor
+      · simp [AllocationMetadata.wellFormed]
+        exact ⟨hbytes, hlocations⟩
+      · simp only [AllocationMetadata.wellFormed]
+        exact ⟨hbytesTarget, by simpa [renameAllocationRequest] using hlocations⟩
+  | unaddressable =>
+      simp [pairedReallocMetadata, reallocMetadata, hlocations,
+        renameAllocationRequest] at hresult
+      rcases hresult with rfl
+      have hbytesTarget : bytesWf 0 (renameAllocationRequest resolve request).bytes := by
+        simpa [renameAllocationRequest] using renameBytesWf 0 request.bytes hbytes
+      constructor
+      · simp [AllocationMetadata.wellFormed]
+        exact ⟨hbytes, hlocations⟩
+      · simp only [AllocationMetadata.wellFormed]
+        exact ⟨hbytesTarget, by simpa [renameAllocationRequest] using hlocations⟩
+  | fail =>
+      simp [pairedReallocMetadata, reallocMetadata] at hresult
+      rcases hresult with rfl
+      have htarget : (renameMetadata resolve 0 old).wellFormed 0 := by
+        unfold AllocationMetadata.wellFormed at hold ⊢
+        exact ⟨renameBytesWf 0 old.allocation.bytes hold.1,
+          by simpa [renameMetadata] using hold.2⟩
+      exact ⟨hold, htarget⟩
+
 theorem pairedReallocMetadata_refusal_source
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
