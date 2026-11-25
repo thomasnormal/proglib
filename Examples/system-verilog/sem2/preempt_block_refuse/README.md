@@ -11,3 +11,6 @@ Receipt command
 ```text
 TMPDIR=<scratch> python3 Examples/system-verilog/sem2/preempt_block_refuse/check.py
 ```
+
+The current run preserves the ordinary E `Schedule:preemptive` refusal and
+matches four rows on both pinned simulators.
