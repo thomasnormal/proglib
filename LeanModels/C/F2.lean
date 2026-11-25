@@ -7885,6 +7885,12 @@ def pairedEndLifetime (resolve : AllocId → Nat) (store : Store Tag State)
   let targetResult ← endLifetime (renameStore resolve store) id
   some (sourceResult, targetResult)
 
+theorem pairedEndLifetime_empty_none
+    {Tag State : Type} (resolve : AllocId → Nat) (id : AllocId) :
+    pairedEndLifetime resolve
+      ({ allocations := [], nextId := 0 } : Store Tag State) id = none := by
+  rfl
+
 theorem pairedEndLifetime_decompose
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
     (result : (Store Tag State × Footprint) ×
