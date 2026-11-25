@@ -125,6 +125,7 @@ def PLhs.hren (pfx : String) : PLhs → PLhs
   | .concat ps => .concat (PLhs.hrenL pfx ps)
   | .arrayElem n is => .arrayElem (pfx ++ n) (PExpr.hrenL pfx is)
   | .arrayPart n is m a b => .arrayPart (pfx ++ n) (PExpr.hrenL pfx is) m (a.hren pfx) (b.hren pfx)
+  | .arrayBitSel n is bit => .arrayBitSel (pfx ++ n) (PExpr.hrenL pfx is) (bit.hren pfx)
   | .aggregateMember n path => .aggregateMember (pfx ++ n) (PExpr.hrenPath pfx path)
 
 /-- `PLhs.hren`, elementwise. -/
