@@ -50,6 +50,9 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   `flattenInst` bridge once a child design and prefix are available.
   `CombHier.generatedChildRefs_genFor_singleton` composes one symbolic loop
   header with a child reference without selecting an iteration.
+  `CombHier.generatedChildRefs_genFor_nested_singleton` composes two nested
+  symbolic headers in source order; use `GeneratedChildRef.segmentAt` only
+  after supplying a valuation and a child `Design2`.
   Clocked generated-child families additionally need a valuation-aware child
   `CoreMemDesign` composition equation: it must map each generated instance's
   packed bit-select connections, preserve the child's event/process identities,

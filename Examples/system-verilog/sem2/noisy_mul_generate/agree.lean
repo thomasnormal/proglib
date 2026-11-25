@@ -326,6 +326,24 @@ theorem noisy_generated_child_ref :
   · simp [ppLoops]
   · rfl
 
+theorem noisy_generated_child_nested_ref :
+    CombHier.generatedChildRefs noisyMul.plib []
+      [.genFor (some "g_pp") "i" (.int 0) (.paramRef "N" none)
+        (.unary .inc (.genvarRef "i")) (some 4)
+        [.genFor (some "g_pp_j") "j" (.int 0) (.paramRef "N" none)
+          (.unary .inc (.genvarRef "j")) (some 4) [.inst andInst]]] =
+      .ok [{ loops := ppLoops, inst := andInst, child := andDef }] := by
+  simpa [ppLoops] using
+    (CombHier.generatedChildRefs_genFor_nested_singleton
+      (lib := noisyMul.plib) (loops := [])
+      (outerLabel := some "g_pp") (outerG := "i")
+      (outerInit := .int 0) (outerBound := .paramRef "N" none)
+      (outerStep := .unary .inc (.genvarRef "i")) (outerRc := some 4)
+      (innerLabel := some "g_pp_j") (innerG := "j")
+      (innerInit := .int 0) (innerBound := .paramRef "N" none)
+      (innerStep := .unary .inc (.genvarRef "j")) (innerRc := some 4)
+      (i := andInst) (c := andDef) (by simp) (by rfl))
+
 
 
 end Examples.«system-verilog».sem2.noisy_mul_generate

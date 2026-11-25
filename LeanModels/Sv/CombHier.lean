@@ -1276,6 +1276,60 @@ theorem generatedChildRefs_genFor_singleton
     Except.bind, pure, Except.pure, Functor.map, Except.map]
   rfl
 
+/-- The same one-header equation when an enclosing generated path is already
+present.  This is the compositional step used to add an inner generate-for
+header without collapsing the outer lexical path. -/
+theorem generatedChildRefs_genFor_singleton_of_nonempty
+    {lib : List PDesign} {loops : List GeneratedLoop}
+    {label : Option String} {g : String} {initE bound step : PExpr} {rc : Option Nat}
+    {i : PInst} {c : PDesign}
+    (hloops : loops ≠ [])
+    (hc : lib.find? (·.name == i.module) = some c) :
+    generatedChildRefs lib loops
+        [.genFor label g initE bound step rc [.inst i]] =
+      .ok [{ loops := loops ++ [{ label, genvar := g, initE, bound, step, rc }],
+             inst := i, child := c }] := by
+  have hne : (loops ++ [{ label, genvar := g, initE, bound, step, rc }]) ≠ [] := by
+    simp [hloops]
+  simp only [generatedChildRefs, generatedChildRefs_singleton hne hc,
+    List.append_nil, Except.bind, pure, Except.pure, Functor.map, Except.map]
+  rfl
+
+/-- A nested source-shaped generate family containing one child instance.  The
+loop headers are retained in lexical order; this theorem does not enumerate
+their valuations or flatten the child.  It is the hand-proof entry point for
+hierarchy readers that need to compose two generate-for headers before asking
+for a valuation-dependent `segmentAt`. -/
+theorem generatedChildRefs_genFor_nested_singleton
+    {lib : List PDesign} {loops : List GeneratedLoop}
+    {outerLabel innerLabel : Option String}
+    {outerG innerG : String}
+    {outerInit outerBound outerStep innerInit innerBound innerStep : PExpr}
+    {outerRc innerRc : Option Nat}
+    {i : PInst} {c : PDesign}
+    (hloops : loops.length = 0)
+    (hc : lib.find? (·.name == i.module) = some c) :
+    generatedChildRefs lib loops
+        [.genFor outerLabel outerG outerInit outerBound outerStep outerRc
+          [.genFor innerLabel innerG innerInit innerBound innerStep innerRc
+            [.inst i]]] =
+      .ok [{ loops := loops ++
+          [{ label := outerLabel, genvar := outerG, initE := outerInit,
+             bound := outerBound, step := outerStep, rc := outerRc },
+           { label := innerLabel, genvar := innerG, initE := innerInit,
+             bound := innerBound, step := innerStep, rc := innerRc }],
+             inst := i, child := c }] := by
+  have houter : loops ++
+      [{ label := outerLabel, genvar := outerG, initE := outerInit,
+         bound := outerBound, step := outerStep, rc := outerRc }] ≠ [] := by
+    simp
+  rw [generatedChildRefs]
+  simp only [generatedChildRefs_genFor_singleton_of_nonempty houter hc,
+    List.append_nil, Except.bind, pure, Except.pure, Functor.map, Except.map]
+  simp [generatedChildRefs, List.append_assoc, Except.bind, Except.pure]
+  rfl
+
+
 /-- The checks on one child and its instance, with the refusal that names what v1 does not read. -/
 def childCheck (i : PInst) (c : PDesign) : Except String Unit := do
   unless c.generates.isEmpty do
