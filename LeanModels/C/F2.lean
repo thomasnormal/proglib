@@ -3111,6 +3111,20 @@ theorem pairedReallocMetadata_empty_result_lengths
   exact pairedReallocMetadata_preserves_lengths resolve old
     { bytes := [], state := state } [] placement result hresult
 
+theorem pairedReallocMetadata_empty_address_result_footprints
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (state : State) (base : Nat)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old { bytes := [], state := state }
+      [] (.address base) = some result) :
+    result.1.2 = footprint .metadata (Region.mk 0 0 0) ∧
+      result.2.2 = footprint .metadata (Region.mk 0 0 0) := by
+  simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest] at hresult
+  rcases hresult with rfl
+  exact ⟨rfl, rfl⟩
+
 theorem pairedReallocMetadata_footprints
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
