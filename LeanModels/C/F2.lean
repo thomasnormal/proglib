@@ -5634,6 +5634,19 @@ theorem pairedAllocateFailure_refusal_target
     pairedAllocateFailure resolve store request placement = false := by
   simp [pairedAllocateFailure, htarget]
 
+theorem pairedAllocateFailure_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (hrefusal :
+      allocate store request placement = some source ∨
+      allocate (renameStore resolve store)
+        (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) = some target) :
+    pairedAllocateFailure resolve store request placement = false := by
+  rcases hrefusal with hsource | htarget
+  · simp [pairedAllocateFailure, hsource]
+  · simp [pairedAllocateFailure, htarget]
+
 def unaddressableToken (store : Store Tag State) (id : AllocId) : Bool :=
   match lookup store id with
   | some allocation => allocation.live && allocation.address.isNone
