@@ -4152,6 +4152,16 @@ def pairedStoreRepresentationLoadMetadataByte
   let targetLoad ← representationLoadMetadataByte targetStore.1 offset choice
   some ((sourceStore, sourceLoad), (targetStore, targetLoad))
 
+theorem pairedStoreRepresentationLoadMetadataByte_empty_none
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice)
+    (hbytes : metadata.allocation.bytes = []) :
+    pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice = none := by
+  simp [pairedStoreRepresentationLoadMetadataByte, storeMetadataByte,
+    renameMetadata, hbytes]
+
 theorem pairedStoreRepresentationLoadMetadataByte_decompose
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
