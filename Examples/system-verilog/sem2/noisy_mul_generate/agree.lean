@@ -302,6 +302,20 @@ def andDef : PDesign :=
 theorem noisy_andDef : noisyMul.plib.head? = some andDef := by
   rfl
 
+def ppLoops : List CombHier.GeneratedLoop :=
+  [{ label := some "g_pp", genvar := "i", initE := .int 0,
+     bound := .paramRef "N" none, step := .unary .inc (.genvarRef "i"), rc := some 4 },
+   { label := some "g_pp_j", genvar := "j", initE := .int 0,
+     bound := .paramRef "N" none, step := .unary .inc (.genvarRef "j"), rc := some 4 }]
+
+theorem noisy_generated_child_ref :
+    CombHier.generatedChildRefs noisyMul.plib ppLoops [.inst andInst] =
+      .ok [{ loops := ppLoops, inst := andInst, child := andDef }] := by
+  apply CombHier.generatedChildRefs_singleton
+  · simp [ppLoops]
+  · rfl
+
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
 
 namespace Examples.«system-verilog».sem2.noisy_mul_generate

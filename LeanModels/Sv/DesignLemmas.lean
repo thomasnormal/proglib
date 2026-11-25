@@ -42,6 +42,9 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   for a generated child family: it refuses before child lookup, so a hand
   proof can switch to `generated_child_nested_family` without pretending that
   the hierarchy summary already covers valuation-dependent instance names.
+* `CombHier.generatedChildRefs` is the non-flattening hierarchy reader for a
+  generate-only family: it retains symbolic loop headers, instance paths, and
+  child designs, and refuses process/declaration/conditional siblings loudly.
 
 A hand proof should use these equations first and only then invoke a tactic as
 an optional plumbing layer.  No theorem in this index is bounded by an

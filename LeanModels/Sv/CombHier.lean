@@ -1187,6 +1187,63 @@ theorem hierInsts_refuses_genFor {d : PDesign} {lib : List PDesign} {label : Opt
       .error (itemRefusal (.genFor label g initE bound step rc body)) := by
   rfl
 
+/-- One source-shaped generate header retained by the generated-child hierarchy
+reader.  Unlike `PInst.prefix`, this record keeps the header expressions and
+genvar name symbolic; no valuation or instance name is chosen here. -/
+structure GeneratedLoop where
+  label : Option String
+  genvar : String
+  initE : PExpr
+  bound : PExpr
+  step : PExpr
+  rc : Option Nat
+deriving Repr, Inhabited
+
+/-- A child instance under a symbolic generate path.  The loop headers and
+the child design remain separate so a later summary can enumerate each
+valuation without rebuilding or unrolling the source tree. -/
+structure GeneratedChildRef where
+  loops : List GeneratedLoop
+  inst : PInst
+  child : PDesign
+deriving Repr, Inhabited
+
+/-- Read a generate-only family of child instances, preserving its nested
+headers and source order.  This is intentionally narrower than the eventual
+hierarchy summary: process/declaration/conditional siblings refuse loudly
+instead of being dropped or flattened as module-level instances. -/
+def generatedChildRefs (lib : List PDesign) (loops : List GeneratedLoop) :
+    List GenItem → Except String (List GeneratedChildRef)
+  | [] => .ok []
+  | .genFor label g initE bound step rc body :: rest => do
+      let here ← generatedChildRefs lib (loops ++ [{ label, genvar := g, initE, bound, step, rc }]) body
+      let tail ← generatedChildRefs lib loops rest
+      return here ++ tail
+  | .inst i :: rest => do
+      if loops.isEmpty then
+        throw s!"instance `{i.name}` is not inside a generate family"
+      let c ← match lib.find? (·.name == i.module) with
+        | none => throw s!"instance `{i.name}`: module `{i.module}` is not in the envelope's module library"
+        | some c => pure c
+      let tail ← generatedChildRefs lib loops rest
+      return { loops := loops, inst := i, child := c } :: tail
+  | .process _ :: _ =>
+      .error "generated child family contains a process sibling; use the process-aware family rule"
+  | .decl d :: _ =>
+      .error s!"generated child family contains declaration `{d.name}`"
+  | .localParam p :: _ =>
+      .error s!"generated child family contains generate-local parameter `{p.name}`"
+  | .genIf _ _ _ :: _ =>
+      .error "generated child family contains a conditional generate"
+  | .unsupported k t :: _ =>
+      .error s!"{t} ({k})"
+
+theorem generatedChildRefs_singleton {lib : List PDesign} {loops : List GeneratedLoop}
+    {i : PInst} {c : PDesign} (hloops : loops ≠ [])
+    (hc : lib.find? (·.name == i.module) = some c) :
+    generatedChildRefs lib loops [.inst i] = .ok [{ loops := loops, inst := i, child := c }] := by
+  simp [generatedChildRefs, hloops, hc, Except.map, Functor.map]
+
 /-- The checks on one child and its instance, with the refusal that names what v1 does not read. -/
 def childCheck (i : PInst) (c : PDesign) : Except String Unit := do
   unless c.generates.isEmpty do
