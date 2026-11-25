@@ -6580,6 +6580,22 @@ theorem allocateAligned_address_result_payload
     exact ⟨hallowed, rfl⟩
   · simp [hallowed] at hresult
 
+theorem allocateAligned_empty_address_result_payload
+    (store : Store Tag State) (state : State)
+    (base alignment : Nat) (result : Store Tag State × Footprint)
+    (haligned : alignmentAllowed base alignment = true)
+    (hresult : allocateAligned store { bytes := [], state := state }
+      (.address base) alignment = some result) :
+    ∃ hallowed : placementAllowed store base 0 = true,
+      result.1 =
+        { allocations := store.allocations ++
+            [(store.nextId,
+              { live := true, address := some base,
+                bytes := [], state := state })]
+          nextId := store.nextId + 1 } := by
+  exact allocateAligned_address_result_payload store
+    { bytes := [], state := state } base alignment result haligned hresult
+
 theorem allocateAligned_address_preserves_wellFormed
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment : Nat) (result : Store Tag State × Footprint)
