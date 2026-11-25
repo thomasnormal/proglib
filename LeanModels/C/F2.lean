@@ -5463,6 +5463,14 @@ theorem PlacementAgreement.agreesAt_refusal
     agreement.agreesAt id = false := by
   simp [PlacementAgreement.agreesAt, h]
 
+theorem PlacementAgreement.agrees_refusal
+    (agreement : PlacementAgreement)
+    (hrefusal : ∃ id, agreement.left id ≠ agreement.right id) :
+    ¬ agreement.agrees := by
+  intro hagrees
+  rcases hrefusal with ⟨id, hneq⟩
+  exact hneq (hagrees id)
+
 def zeroTokenPlacementAgreement (left right : AllocationMetadata Tag State TypeId) :
     PlacementAgreement :=
   { left := fun _ => left.allocation.address
