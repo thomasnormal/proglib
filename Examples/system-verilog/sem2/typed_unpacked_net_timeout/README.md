@@ -12,5 +12,8 @@ all eight rows in Icarus Verilog 13.0 and the pinned Xcelium 24.03-s004 receipt
 `00111000`, `10100011`). Run `python3 check.py` to reproduce the bounded
 profile.
 
+The current bounded receipt completes eight ordinary-E rows and agrees with
+both pinned simulator witnesses.
+
 The source shape also covers the large-block typed declaration family named
 `blk_defaults_typed_declaration` in the inbox wall packet.
