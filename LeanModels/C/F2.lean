@@ -6948,6 +6948,28 @@ theorem pairedAllocateBounded_address_misaligned_true
   simp [pairedAllocateBounded, allocateBounded, renamedPlacement, hsourceWithin,
     htargetWithin, htargetWithin', hsource, htarget, renameAllocationRequest] <;> decide
 
+theorem pairedAllocateBounded_address_overlap_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (base alignment limit : Nat)
+    (hsourceWithin : placementWithin base request.bytes.length limit = true)
+    (htargetWithin : placementWithin (resolve store.nextId)
+      (renameAllocationRequest resolve request).bytes.length limit = true)
+    (hsourceAligned : alignmentAllowed base alignment = true)
+    (htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true)
+    (hsource : placementAllowed store base request.bytes.length = false)
+    (htarget : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) (renameAllocationRequest resolve request).bytes.length = false) :
+    pairedAllocateBounded resolve store request (.address base) alignment limit = true := by
+  have htargetWithin' : placementWithin (resolve store.nextId)
+      request.bytes.length limit = true := by
+    simpa [renameAllocationRequest] using htargetWithin
+  have htarget' : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) request.bytes.length = false := by
+    simpa [renameAllocationRequest] using htarget
+  simp [pairedAllocateBounded, allocateBounded, renamedPlacement, hsourceWithin,
+    htargetWithin, htargetWithin', hsourceAligned, htargetAligned, hsource,
+    htarget, htarget', renameAllocationRequest] <;> decide
+
 theorem pairedAllocateBounded_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
