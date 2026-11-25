@@ -4303,6 +4303,35 @@ theorem pairedOffsetPointer_refusal_target
     pairedOffsetPointer resolve pointer elementSize delta bound = false := by
   cases fault <;> simp [pairedOffsetPointer, hsource, htarget]
 
+theorem pairedOffsetPointer_sound
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat)
+    (h : pairedOffsetPointer resolve pointer elementSize delta bound = true) :
+    (∃ source target,
+      offsetPointer pointer elementSize delta bound = .ok source ∧
+      offsetPointer (renamePointer resolve pointer) elementSize delta bound = .ok target ∧
+      target.address = (renamePointer resolve source).address) ∨
+    (∃ fault,
+      offsetPointer pointer elementSize delta bound = .error fault ∧
+      offsetPointer (renamePointer resolve pointer) elementSize delta bound = .error fault) := by
+  cases hs : offsetPointer pointer elementSize delta bound with
+  | ok source =>
+      cases ht : offsetPointer (renamePointer resolve pointer) elementSize delta bound with
+      | ok target =>
+          have haddr : ((renamePointer resolve source).address == target.address) = true := by
+            simpa [pairedOffsetPointer, hs, ht] using h
+          have hEq : (renamePointer resolve source).address = target.address := by
+            exact (beq_iff_eq.mp haddr)
+          exact Or.inl ⟨source, target, rfl, rfl, hEq.symm⟩
+      | error fault => simp [pairedOffsetPointer, hs, ht] at h
+  | error sourceFault =>
+      cases ht : offsetPointer (renamePointer resolve pointer) elementSize delta bound with
+      | ok target => simp [pairedOffsetPointer, hs, ht] at h
+      | error targetFault =>
+          cases sourceFault <;> cases targetFault <;>
+            simp [pairedOffsetPointer, hs, ht] at h ⊢
+          all_goals exact Or.inr ⟨_, rfl, rfl⟩
+
 def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) : Option (Store Tag State × Footprint) :=
   match placement with
