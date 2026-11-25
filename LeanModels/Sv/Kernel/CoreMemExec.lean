@@ -1540,8 +1540,11 @@ end
 
 def coreMemReactiveMemoryProcFor (memoryNames : List String) : PProcess → Bool
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
-  | .alwaysEvent _ body | .initial body =>
+      =>
       coreMemStmtTouchesNames memoryNames body || coreMemStmtHasAggregateWrite body
+  | .alwaysEvent events body =>
+      events.any (fun event => event.edge == .any) &&
+        (coreMemStmtTouchesNames memoryNames body || coreMemStmtHasAggregateWrite body)
   | _ => false
 
 -- The parser may retain a fixed unpacked cell as a declaration with `flatBase`
@@ -3826,7 +3829,7 @@ end
 
 def CoreMemDesign.execStmt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmt : PStmt) : CoreMemExec :=
-  E.execStmtFuel env elems st [] (1 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
+  E.execStmtFuel env elems st [] (4096 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
 
 /-! ## Slots, scalar E commit, and memory commit -/
 

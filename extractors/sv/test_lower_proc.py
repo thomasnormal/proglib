@@ -342,6 +342,21 @@ class LoopHeaders(Base):
             self.assertEqual(len(loops), 1, header)
             self.assertNotIn("symbolic_for_unrolled", loops[0], header)
 
+    def test_explicit_casts_in_literal_headers_stay_loud(self):
+        # IEEE 1800-2017 §6.24.1 makes size casts retain the operand's
+        # signedness.  The literal unroller has no width-aware cast evaluator,
+        # so every explicit cast in init, bound, or step is refused.
+        for header in (
+                "int i = 0; i < 4'(10); i++",
+                "int i = 0; i < 2'(5); i++",
+                "int i = 4'(12); i < 20; i++",
+                "int i = 0; i < signed'(4'b1010); i++",
+                "int i = 0; i < 4; i += 2'(3)"):
+            m = self.module("module t (output logic y); always_comb begin y = 1'b0;"
+                            " for (%s) y = 1'b1; end endmodule" % header)
+            self.assertIn("ForLoopStatement", sv_kinds(m), header)
+            self.assertIn("explicit cast in literal header", json.dumps(m), header)
+
     def test_two_loops_share_one_iterator(self):
         m = self.module("module t (input logic [3:0] a, output logic [3:0] y, z); integer i; always_comb begin y = '0; z = '0;"
                         " for (i = 0; i < 4; i = i + 1) y[i] = a[i]; for (i = 3; i >= 0; i--) z[i] = a[3-i]; end endmodule")

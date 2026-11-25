@@ -3028,7 +3028,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
             obtain ⟨rfl, rfl, rfl⟩ := hq
             obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ :=
               CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env
-                (1 + PStmt.need E.env f.body + PStmt.runtimeNeed E.env f.body)
+                (4096 + PStmt.need E.env f.body + PStmt.runtimeNeed E.env f.body)
                 st v1 a ma hc hmc hb (by omega) h1
             obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 before after rest hrest st1
               v2 b mb hc1 (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact h2)
@@ -3066,7 +3066,7 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
                 obtain ⟨rfl, rfl, rfl⟩ := hq
                 obtain ⟨st1, hs1, hv1, hc1, hm1, hr1⟩ :=
                   CoreMemDesign.execStmtFuel_V hnd h4 f.body E.env
-                    (1 + PStmt.need E.env f.body + PStmt.runtimeNeed E.env f.body)
+                    (4096 + PStmt.need E.env f.body + PStmt.runtimeNeed E.env f.body)
                     st v1 a ma hc hmc hb (by omega) h1
                 obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ := CoreMemDesign.runEdges_V hnd h4 before after rest hrest st1
                   v2 b mb hc1 (by rw [hm1]; exact hmc) (by rw [hv1, hm1]; exact h2)
