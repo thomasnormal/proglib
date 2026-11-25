@@ -1183,4 +1183,59 @@ theorem noisy_row_expand_process_family_exact
     (noisy_row_inner_family_actual env elems F i N clocks hInnerFuel hi
       (fun j => hInnerBound i j) (fun j => hInnerValue i j))
 
+theorem noisy_top_expand_actual
+    (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (clocks : List String)
+    (hFuel : N.toNat < F)
+    (hRowFuel : (N - 1).toNat < F)
+    (hBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hInnerBound : ∀ i j : Int,
+      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
+    (hInnerValue : ∀ i j : Int,
+      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N) :
+    expandListH
+        (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+        env elems F noisyMul.pdesign.generates =
+      .ok
+        ((List.flatMap
+          (fun i => List.flatMap
+            (fun j =>
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+                andInst andDesign).1)
+            (intRange 0 N.toNat)) (intRange 0 N.toNat)) ++
+          (GeneratedChildSegment.flatten
+            ((intRange 1 (N - 1).toNat).map fun i =>
+              { decls := (noisy_row_inner_segment env elems i N).1,
+                processes := instProcess2 (env.bindVal "i" i) elems rowLeft ::
+                  (noisy_row_inner_segment env elems i N).2 ++
+                  [instProcess2 (env.bindVal "i" i) elems rowRight] })).1 ++
+          [],
+         (List.flatMap
+          (fun i => List.flatMap
+            (fun j =>
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+                andInst andDesign).2)
+            (intRange 0 N.toNat)) (intRange 0 N.toNat)) ++
+          (GeneratedChildSegment.flatten
+            ((intRange 1 (N - 1).toNat).map fun i =>
+              { decls := (noisy_row_inner_segment env elems i N).1,
+                processes := instProcess2 (env.bindVal "i" i) elems rowLeft ::
+                  (noisy_row_inner_segment env elems i N).2 ++
+                  [instProcess2 (env.bindVal "i" i) elems rowRight] })).2 ++
+          (intRange 0 N.toNat).flatMap fun i =>
+            [instProcess2 (env.bindVal "i" i) elems outProc]) := by
+  apply noisy_top_generated_expand
+  · exact noisy_pp_expand_actual env elems F N clocks hFuel
+      hBound hValue hInnerBound hInnerValue
+  · exact noisy_row_expand_process_family_exact env elems F N clocks hRowFuel
+      hBound hValue hInnerBound hInnerValue hFuel
+  · exact noisy_out_expand_list_actual
+      (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+      env elems F N hFuel hBound hValue
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
