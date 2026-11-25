@@ -6399,6 +6399,40 @@ theorem allocate_unaddressable_result_footprint
   rcases hresult with ⟨rfl, rfl⟩
   rfl
 
+theorem allocate_empty_result_shape
+    (store : Store Tag State) (state : State) (placement : Placement)
+    (result : Store Tag State × Footprint)
+    (hresult : allocate store { bytes := [], state := state } placement = some result) :
+    match placement with
+    | .address base =>
+        result =
+          ({ allocations := store.allocations ++
+                [(store.nextId,
+                  { live := true, address := some base,
+                    bytes := [], state := state })],
+              nextId := store.nextId + 1 },
+            footprint .metadata (Region.mk store.nextId 0 0))
+    | .unaddressable =>
+        result =
+          ({ allocations := store.allocations ++
+                [(store.nextId,
+                  { live := true, address := none,
+                    bytes := [], state := state })],
+              nextId := store.nextId + 1 },
+            footprint .metadata (Region.mk store.nextId 0 0))
+    | .fail => False := by
+  cases placement with
+  | address base =>
+      simp [allocate] at hresult
+      rcases hresult with ⟨hallowed, rfl⟩
+      rfl
+  | unaddressable =>
+      simp [allocate] at hresult
+      rcases hresult with ⟨rfl, rfl⟩
+      rfl
+  | fail =>
+      simp [allocate] at hresult
+
 def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment : Nat) : Option (Store Tag State × Footprint) :=
   match placement with
