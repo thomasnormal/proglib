@@ -884,4 +884,56 @@ theorem noisy_bit_expand_segments
       (by simp) hBound hValue (by simpa using hFuel)
       hBody)
 
+theorem noisy_row_inner_family_actual
+    (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (i N : Int) (clocks : List String) (hFuel : N.toNat < F)
+    (hPrefix : 1 ≤ i)
+    (hBound : ∀ j : Int,
+      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
+    (hValue : ∀ j : Int,
+      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N) :
+    expandListH (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+      (env.bindVal "i" i) elems F
+      [.genFor (some "g_bit") "j" (.int 0)
+        (.binary .slt (.genvarRef "j") (.paramRef "N" none))
+        (.unary .inc (.genvarRef "j")) (some 4) rowInnerBody] =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange 0 N.toNat).map fun j =>
+          { decls :=
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst xorDesign).1 ++
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst xorDesign).1 ++
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst majDesign).1,
+            processes :=
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst xorDesign).2 ++
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst xorDesign).2 ++
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst majDesign).2 })) := by
+  apply noisy_bit_expand_segments
+    (cb := PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+    (env := env) (elems := elems) (F := F) (N := N) (i := i)
+    (hFuel := hFuel)
+    (f := fun j =>
+      ((flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst xorDesign).1 ++
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst xorDesign).1 ++
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst majDesign).1,
+       (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst xorDesign).2 ++
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst xorDesign).2 ++
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst majDesign).2))
+    hBound hValue
+    (by
+      intro j hj0 hjN
+      simpa using
+        (noisy_row_inner_expand_actual env elems F i j N clocks hFuel hPrefix))
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
