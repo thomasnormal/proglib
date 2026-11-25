@@ -366,12 +366,16 @@ The confluence theorem must therefore be parameterized:
 ```lean
 theorem terminal_observable_unique
     (g : Granularity)
+    (batch : InputBatch)
     (hguard : AdmittedConfluent E g)
-    (h₁ : SlotRun E g x₁ s t₁)
-    (h₂ : SlotRun E g x₂ s t₂)
-    (hsameInput : SameExternalBatch x₁ x₂) :
-    Observe E t₁ = Observe E t₂
+    (h₁ : BatchStep E g x₁ s batch t₁ o₁)
+    (h₂ : BatchStep E g x₂ s batch t₂ o₂) :
+    o₁ = o₂
 ```
+
+The common `batch` argument fixes the external input history. The two
+`XResolution` parameters remain independent, so the theorem includes the
+per-read resolution choices rather than confusing them with external events.
 
 The current `edgesV_order`, `EdgePhaseStep.two_nba_observable_diamond`,
 and `EdgePhaseTerminalPath.observable_confluent` are process- or cursor-level
