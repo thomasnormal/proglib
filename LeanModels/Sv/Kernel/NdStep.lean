@@ -525,8 +525,17 @@ def NdState.commit (E : CoreMemDesign) (s : NdState) : NdOutcome :=
 /-- **The step function.**  Total, no fuel.  `choice` selects among the
 runnable cursors; when none is runnable the only move is the NBA commit and
 the choice is not consulted. -/
+def CoreMemProc.ndClocked : CoreMemProc → Bool
+  | .edge _ | .event _ _ => true
+  | _ => false
+
+def CoreMemDesign.ndAdmitted (E : CoreMemDesign) : Bool :=
+  E.resolvedNets.isEmpty && E.readmemh.isEmpty && E.declInitializers.isEmpty &&
+    E.processes.toList.all CoreMemProc.ndClocked
+
 def ndStep (E : CoreMemDesign) (choice : Nat) (s : NdState) : NdOutcome :=
-  if s.settled then .disabled
+  if !E.ndAdmitted then .refused "the continuous-assignment and combinational regions are not in the choice-explicit relation yet"
+  else if s.settled then .disabled
   else if s.active.isEmpty then s.commit E
   else s.fire E choice
 
@@ -557,7 +566,8 @@ theorem Nd.Step.not_settled {E : CoreMemDesign} {s t : NdState} (h : Nd.Step E s
   obtain ⟨i, hi⟩ := h
   cases hs : s.settled with
   | false => rfl
-  | true => simp [ndStep, hs] at hi
+  | true =>
+      cases hA : E.ndAdmitted <;> simp [ndStep, hs, hA] at hi
 
 /-- A reachable refusal: some run from `s` reaches a state where some choice
 is refused. -/
@@ -568,17 +578,6 @@ def Nd.Refuses (E : CoreMemDesign) (s : NdState) (why : String) : Prop :=
 
 /-! Time-zero processes are kept out until their ordering is modeled by an
 explicit start-state relation. -/
-def CoreMemProc.ndClocked : CoreMemProc → Bool
-  | .edge _ | .event _ _ => true
-  | _ => false
-
-/-- The fragment of designs this relation speaks about. Every process is an
-edge or event process, no net is resolved by the continuous region, and the
-time-zero metadata is empty. -/
-def CoreMemDesign.ndAdmitted (E : CoreMemDesign) : Bool :=
-  E.resolvedNets.isEmpty && E.readmemh.isEmpty && E.declInitializers.isEmpty &&
-    E.processes.toList.all CoreMemProc.ndClocked
-
 /-- The state after the input row `entry` is applied to `st` (§4.5: the
 inputs change, the processes waiting on them become runnable). -/
 def NdState.begin (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) (o : Oracle) :
@@ -739,42 +738,45 @@ supply, before or after the step. -/
 theorem ndStep_oracle_irrelevant {E : CoreMemDesign} {s : NdState} {choice : Nat}
     (h : s.ReadsKnown E choice) (o' : Oracle) :
     ndStep E choice { s with oracle := o' } = (ndStep E choice s).withOracle o' := by
-  unfold ndStep
-  cases hs : s.settled with
-  | true => simp [NdOutcome.withOracle]
-  | false =>
-      cases ha : s.active.isEmpty with
-      | true =>
-          simp only [Bool.false_eq_true, ↓reduceIte, NdState.commit]
-          cases s.store.memory.commitNba s.memoryQ <;> simp [NdOutcome.withOracle]
-          split <;> simp [NdOutcome.withOracle]
-      | false =>
-          simp only [Bool.false_eq_true, ↓reduceIte, NdState.fire]
-          cases hp : pickAt choice s.active with
-          | none => simp [NdOutcome.withOracle]
-          | some r =>
-              obtain ⟨before, c, after⟩ := r
-              cases hw : c.work with
-              | nil => simp [hw, hs, NdOutcome.withOracle]
-              | cons head tail =>
-                  have hk : ∀ env cond yes no cv, head = .edgeStmt env (.ifStmt cond yes no) →
-                      E.evalExprLocals env E.elems s.store (some 1) c.locals cond = .ok cv →
-                      cv.bits.toList.all Logic.isKnown = true := by
-                    intro env cond yes no cv hhead hc
-                    exact h before c after env cond yes no tail cv hp (by rw [hw, hhead]) hc
-                  simp only [hw]
-                  rw [ndOpen_retag E s.store c.locals s.oracle o' head hk]
-                  cases head.ndOpen E s.store c.locals s.oracle with
-                  | timeout => simp [retag, NdOutcome.withOracle]
-                  | unsupported msg => simp [retag, NdOutcome.withOracle]
-                  | ok r =>
-                      obtain ⟨r, exposed, o1⟩ := r
-                      simp only [retag]
-                      by_cases hblock : head.isBlockingWrite = true
-                      · simp [hblock]
-                        split <;> simp [NdOutcome.withOracle]
-                      · simp [hblock]
-                        split <;> simp [NdOutcome.withOracle]
+  cases hA : E.ndAdmitted with
+  | false => simp [ndStep, hA, NdOutcome.withOracle]
+  | true =>
+    simp only [ndStep, hA, Bool.false_eq_true, ↓reduceIte]
+    cases hs : s.settled with
+    | true => simp [NdOutcome.withOracle]
+    | false =>
+        cases ha : s.active.isEmpty with
+        | true =>
+            simp only [Bool.false_eq_true, ↓reduceIte, NdState.commit]
+            cases s.store.memory.commitNba s.memoryQ <;> simp [NdOutcome.withOracle]
+            split <;> simp [NdOutcome.withOracle]
+        | false =>
+            simp only [Bool.false_eq_true, ↓reduceIte, NdState.fire]
+            cases hp : pickAt choice s.active with
+            | none => simp [NdOutcome.withOracle]
+            | some r =>
+                obtain ⟨before, c, after⟩ := r
+                cases hw : c.work with
+                | nil => simp [hw, hs, NdOutcome.withOracle]
+                | cons head tail =>
+                    have hk : ∀ env cond yes no cv, head = .edgeStmt env (.ifStmt cond yes no) →
+                        E.evalExprLocals env E.elems s.store (some 1) c.locals cond = .ok cv →
+                        cv.bits.toList.all Logic.isKnown = true := by
+                      intro env cond yes no cv hhead hc
+                      exact h before c after env cond yes no tail cv hp (by rw [hw, hhead]) hc
+                    simp only [hw]
+                    rw [ndOpen_retag E s.store c.locals s.oracle o' head hk]
+                    cases head.ndOpen E s.store c.locals s.oracle with
+                    | timeout => simp [retag, NdOutcome.withOracle]
+                    | unsupported msg => simp [retag, NdOutcome.withOracle]
+                    | ok r =>
+                        obtain ⟨r, exposed, o1⟩ := r
+                        simp only [retag]
+                        by_cases hblock : head.isBlockingWrite = true
+                        · simp [hblock]
+                          split <;> simp [NdOutcome.withOracle]
+                        · simp [hblock]
+                          split <;> simp [NdOutcome.withOracle]
 
 /-- L3, second half: a step that reads no unknown leaves the oracle as it
 was. -/
@@ -796,20 +798,23 @@ states.
 theorem ndStep_zero_not_disabled {E : CoreMemDesign} {s : NdState} (h : s.settled = false) :
     ndStep E 0 s ≠ .disabled := by
   intro hd
-  unfold ndStep at hd
-  simp only [h, Bool.false_eq_true, ↓reduceIte] at hd
-  cases ha : s.active with
-  | nil =>
-      simp only [ha, List.isEmpty_nil, ↓reduceIte, NdState.commit] at hd
-      cases hmem : s.store.memory.commitNba s.memoryQ with
-      | none => simp [hmem] at hd
-      | some memory =>
-          simp [hmem] at hd
-          split at hd <;> simp_all
-  | cons c rest =>
-      simp only [ha, List.isEmpty_cons, Bool.false_eq_true, ↓reduceIte, NdState.fire, pickAt] at hd
-      repeat' split at hd
-      all_goals simp at hd
+  cases hA : E.ndAdmitted with
+  | false => simp [ndStep, hA] at hd
+  | true =>
+    simp only [ndStep, hA, Bool.false_eq_true, ↓reduceIte] at hd
+    simp only [h, Bool.false_eq_true, ↓reduceIte] at hd
+    cases ha : s.active with
+    | nil =>
+        simp only [ha, List.isEmpty_nil, ↓reduceIte, NdState.commit] at hd
+        cases hmem : s.store.memory.commitNba s.memoryQ with
+        | none => simp [hmem] at hd
+        | some memory =>
+            simp [hmem] at hd
+            split at hd <;> simp_all
+    | cons c rest =>
+        simp only [ha, List.isEmpty_cons, Bool.false_eq_true, ↓reduceIte, NdState.fire, pickAt] at hd
+        repeat' split at hd
+        all_goals simp at hd
 
 /-! The same unknown decision can resolve differently at two reads. -/
 theorem ndOpenStmt_if_unknown_twice (E : CoreMemDesign) (st : CoreMemState) (locals : SvState)
