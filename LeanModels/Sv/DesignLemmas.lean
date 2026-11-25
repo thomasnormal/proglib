@@ -56,6 +56,10 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   mix generated child instances with ordinary processes; `GeneratedNode.segmentAt`
   and `generatedNodes_segmentAt_flatten_ok` preserve the order while folding
   the valuation-dependent segments.
+  `CombHier.assembleGeneratedAt` is the compositional bridge into the ordinary
+  `Design2` assembly path at one valuation, and
+  `CombHier.assembleGeneratedAt_of_segments` exposes its declaration/process
+  equations without a tactic or a generated-list unrolling.
   `CombHier.generatedChildRefs_genFor_singleton` composes one symbolic loop
   header with a child reference without selecting an iteration.
   `CombHier.generatedChildRefs_genFor_nested_singleton` composes two nested

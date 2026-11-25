@@ -1620,4 +1620,25 @@ theorem noisy_generated_source_flatten
   rw [noisy_generated_source_segments]
   rfl
 
+/-! The source-order receipt now enters the ordinary `Design2` assembly path.
+This is deliberately one valuation of the retained symbolic nodes: the
+generate bounds remain in `noisyTopSourceNodes`, while the assembly theorem
+only consumes the valuation-dependent child environments and prefixes. -/
+theorem noisy_generated_source_assemble
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int)
+    (decls idecls : List Decl) :
+    CombHier.assembleGeneratedAt noisyMul.pdesign
+        ((env.bindVal "i" i).bindVal "j" j) decls idecls elems
+        noisyTopSourceNodes noisyTopNodeChild =
+      .ok (noisyMul.pdesign.assembleH
+        ((env.bindVal "i" i).bindVal "j" j) decls
+        (idecls ++
+          (CombHier.GeneratedNode.flattenSegments
+            (noisyTopSourceNodes.map (noisyTopSourceNodeSegment env elems i j))).1)
+        elems
+        (CombHier.GeneratedNode.flattenSegments
+          (noisyTopSourceNodes.map (noisyTopSourceNodeSegment env elems i j))).2) := by
+  apply CombHier.assembleGeneratedAt_of_ok
+  exact noisy_generated_source_segments env elems i j
+
 end Examples.«system-verilog».sem2.noisy_mul_generate

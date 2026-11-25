@@ -1361,6 +1361,66 @@ theorem generatedNodes_segmentAt_flatten_ok
   rw [generatedNodes_segmentAt_mapM_ok hok]
   rfl
 
+/-! The generated-family bridge into the ordinary semantic design.  A
+generated source node is first read at one valuation, then its declaration
+and process segments are folded in lexical order, and only then are they
+passed to `PDesign.assembleH`.  Keeping this as a separate operation is
+important: it lets a hierarchy proof reason about generated children without
+turning the source family into module-level instances or choosing an
+iteration order in the semantics. -/
+
+def assembleGeneratedAt (d : PDesign) (env : IEnv)
+    (decls idecls : List Decl) (elems : List (String × Nat))
+    (nodes : List GeneratedNode)
+    (child : GeneratedChildRef → Except String Design2) : Except String Design2 := do
+  let segs ← nodes.mapM (fun n => n.segmentAt child env elems)
+  let generated := GeneratedNode.flattenSegments segs
+  return d.assembleH env decls (idecls ++ generated.1) elems generated.2
+
+theorem assembleGeneratedAt_of_ok
+    (d : PDesign) (env : IEnv) (decls idecls : List Decl)
+    (elems : List (String × Nat)) (nodes : List GeneratedNode)
+    (child : GeneratedChildRef → Except String Design2)
+    {segs : List (List Decl × List Process2)}
+    (hseg : nodes.mapM (fun n => n.segmentAt child env elems) = .ok segs) :
+    assembleGeneratedAt d env decls idecls elems nodes child =
+      .ok (d.assembleH env decls
+        (idecls ++ (GeneratedNode.flattenSegments segs).1)
+        elems (GeneratedNode.flattenSegments segs).2) := by
+  unfold assembleGeneratedAt
+  rw [hseg]
+  rfl
+
+theorem assembleGeneratedAt_of_segments
+    (d : PDesign) (env : IEnv) (decls idecls : List Decl)
+    (elems : List (String × Nat)) (nodes : List GeneratedNode)
+    (child : GeneratedChildRef → Except String Design2)
+    {seg : GeneratedNode → List Decl × List Process2}
+    (hok : ∀ n ∈ nodes, n.segmentAt child env elems = .ok (seg n)) :
+    assembleGeneratedAt d env decls idecls elems nodes child =
+      .ok (d.assembleH env decls
+        (idecls ++ (GeneratedNode.flattenSegments (nodes.map seg)).1)
+        elems (GeneratedNode.flattenSegments (nodes.map seg)).2) := by
+  apply assembleGeneratedAt_of_ok
+  exact generatedNodes_segmentAt_mapM_ok hok
+
+@[simp] theorem assembleGeneratedAt_processes
+    (d : PDesign) (env : IEnv) (decls idecls : List Decl)
+    (elems : List (String × Nat))
+    (generated : List Decl × List Process2) :
+    (d.assembleH env decls (idecls ++ generated.1) elems generated.2).processes.toList =
+      d.processes.map (instProcess2 (env.withDecls decls) elems) ++ generated.2 ++
+        d.others.map (fun kt => Process2.unsupported kt.1 kt.2) := by
+  simp [PDesign.assembleH]
+
+@[simp] theorem assembleGeneratedAt_decls
+    (d : PDesign) (env : IEnv) (decls idecls : List Decl)
+    (elems : List (String × Nat))
+    (generated : List Decl × List Process2) :
+    (d.assembleH env decls (idecls ++ generated.1) elems generated.2).decls.toList =
+      decls ++ idecls ++ generated.1 := by
+  simp [PDesign.assembleH, List.append_assoc]
+
 def generatedNodes (lib : List PDesign) (loops : List GeneratedLoop) :
     List GenItem → Except String (List GeneratedNode)
   | [] => .ok []
