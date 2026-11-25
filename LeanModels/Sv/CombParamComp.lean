@@ -269,7 +269,7 @@ theorem cf_bindLocal (env : IEnv) (lp : PLocalParam) (ds : List PDim) (rs : Opti
     simp only [evalIntTarget, hin, hi, ↓reduceIte, evalIntExact, Bool.not_true, Bool.false_eq_true, hev]
   unfold bindLocal
   rw [hty]
-  simp only [hdc, Gen2.except_ok_bind, ht, hi, ↓reduceIte]
+  simp only [Option.isNone_some, Bool.false_and, Bool.false_eq_true, hdc, Gen2.except_ok_bind, ht, hi, ↓reduceIte]
   split
   · rfl
   · rw [canonInt32_id hr]
