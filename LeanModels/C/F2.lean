@@ -8024,6 +8024,16 @@ theorem allocateBounded_unaddressable_success
     allocateBounded store request .unaddressable alignment limit = .ok result := by
   simp [allocateBounded, hresult]
 
+theorem allocateBounded_empty_unaddressable_success
+    (store : Store Tag State) (state : State)
+    (alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hresult : allocate store { bytes := [], state := state }
+      .unaddressable = some result) :
+    allocateBounded store { bytes := [], state := state }
+      .unaddressable alignment limit = .ok result := by
+  exact allocateBounded_unaddressable_success store
+    { bytes := [], state := state } alignment limit hresult
+
 theorem allocateBounded_unaddressable_result_counters
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (alignment limit : Nat) (result : Store Tag State × Footprint)
