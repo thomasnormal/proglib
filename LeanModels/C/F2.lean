@@ -3156,6 +3156,13 @@ theorem zeroTokenEqual_rename_of_equal (resolve : AllocId → Nat)
       (renameZeroTokenMetadata resolve right) = zeroTokenEqual left right := by
   simp [zeroTokenEqual, isZeroToken, renameZeroTokenMetadata, haddress]
 
+theorem pairedZeroTokenEqual_true_of_equal_address (resolve : AllocId → Nat)
+    (left right : AllocationMetadata Tag State TypeId)
+    (haddress : left.allocation.address = right.allocation.address) :
+    pairedZeroTokenEqual resolve left right = true := by
+  apply pairedZeroTokenEqual_success
+  exact zeroTokenEqual_rename_of_equal resolve left right haddress
+
 theorem pairedZeroTokenEqual_refusal (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId)
     (hneq : zeroTokenEqual (renameZeroTokenMetadata resolve left)
