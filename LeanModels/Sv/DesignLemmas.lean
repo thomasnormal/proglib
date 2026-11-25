@@ -22,6 +22,8 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   a generated body containing assignments and nested generate items.
   `generated_child_nested_with_processes` composes a process–nested-family–process
   row without lowering that source shape.
+  `GeneratedChildSegment.flatten_append` and `flatten_map_pair` keep the
+  final list algebra explicit for hand composition.
   `generated_child_pathPrefix_two` and `generated_child_prefix_two` expose the
   valuation-dependent lexical names, and `GenItem.expandH_inst`/`instExpandH_of`
   expose one child's flattened declarations and processes.
@@ -71,6 +73,17 @@ namespace GeneratedChildSegment
 
 def flatten (xs : List GeneratedChildSegment) : List Decl × List Process2 :=
   (xs.flatMap (·.decls), xs.flatMap (·.processes))
+
+@[simp] theorem flatten_append (xs ys : List GeneratedChildSegment) :
+    flatten (xs ++ ys) =
+      (xs.flatMap (·.decls) ++ ys.flatMap (·.decls),
+       xs.flatMap (·.processes) ++ ys.flatMap (·.processes)) := by
+  simp [flatten, List.flatMap_append]
+
+@[simp] theorem flatten_map_pair (xs : List (List Decl × List Process2)) :
+    flatten (xs.map fun x => { decls := x.1, processes := x.2 }) =
+      (xs.flatMap Prod.fst, xs.flatMap Prod.snd) := by
+  simp [flatten, List.flatMap_map]
 
 end GeneratedChildSegment
 
