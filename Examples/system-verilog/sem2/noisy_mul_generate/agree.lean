@@ -69,6 +69,22 @@ def outBody : List GenItem :=
   | .genFor _ _ _ _ _ _ body => body
   | _ => []
 
+def outProc : PProcess :=
+  .assignL (.bitSel "p" (.genvarRef "i"))
+    (.arrayElem "s" [.genvarRef "i", .int 0])
+
+theorem noisy_out_body_shape : outBody = [.process outProc] := by
+  rfl
+
+theorem noisy_out_body_expand
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (i : Int) :
+    expandListH cb (env.bindVal "i" i) elems F outBody =
+      .ok ([], [instProcess2 (env.bindVal "i" i) elems outProc]) := by
+  rw [noisy_out_body_shape]
+  simp [expandListH, expandList2, GenItem.listInstFree, GenItem.expand2_process,
+    GenItem.expandH_process]
+
 theorem noisy_out_expand_family
     (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
     (N : Int) (hFuel : N.toNat < F)
@@ -90,6 +106,55 @@ theorem noisy_out_expand_family
       (initE := .int 0) (bound := .paramRef "N" none) (rc := some 4)
       (body := outBody) (i0 := 0) (N := N) (f := f)
       (by simp) hBound hValue (by simpa using hFuel) hBody)
+
+theorem noisy_out_expand_actual
+    (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (clocks : List String) (hFuel : N.toNat < F)
+    (hBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N) :
+    outGen.expandH
+        (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+        env elems F =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange 0 N.toNat).map fun i =>
+          { decls := [],
+            processes := [instProcess2 (env.bindVal "i" i) elems outProc] })) := by
+  apply noisy_out_expand_family
+    (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+    env elems F N hFuel
+    (fun i => ([], [instProcess2 (env.bindVal "i" i) elems outProc]))
+    hBound hValue
+  intro i hi0 hiN
+  exact noisy_out_body_expand
+    (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+    env elems F i
+
+theorem noisy_out_expand_list_actual
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (hFuel : N.toNat < F)
+    (hBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N) :
+    expandListH cb env elems F [outGen] =
+      .ok ([], (intRange 0 N.toNat).flatMap fun i =>
+        [instProcess2 (env.bindVal "i" i) elems outProc]) := by
+  rw [expandListH_of_instFree (by decide)]
+  have hgen :
+      outGen.expand2 env elems F =
+        .ok ((intRange 0 N.toNat).flatMap fun i =>
+          [instProcess2 (env.bindVal "i" i) elems outProc]) := by
+    simpa [outGen, outBody, noisyMul.pdesign, noisy_out_body_shape, outProc] using
+      (GenItem.expand2_genFor_ascending_processes
+        (env := env) (elems := elems) (F := F)
+        (label := some "g_out") (g := "i")
+        (initE := .int 0) (e := .paramRef "N" none) (rc := some 4)
+        (ps := [outProc]) (i0 := 0) (N := N)
+        (by simp) hBound hValue (by simpa using hFuel))
+  rw [expandList2_singleton_ok hgen]
+  simp
 
 theorem noisy_top_generates_shape : noisyMul.pdesign.generates = [ppGen, rowGen, outGen] := by
   rfl
