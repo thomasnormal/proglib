@@ -8369,6 +8369,21 @@ theorem pairedAllocateBounded_both_success
     pairedAllocateBounded resolve store request placement alignment limit = true := by
   simp [pairedAllocateBounded, hsource, htarget]
 
+theorem pairedAllocateBounded_empty_address_both_success
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment limit : Nat)
+    (source target : Store Tag State × Footprint)
+    (hsource : allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .ok source)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId (.address base)) alignment limit =
+        .ok target) :
+    pairedAllocateBounded resolve store { bytes := [], state := state }
+      (.address base) alignment limit = true := by
+  exact pairedAllocateBounded_both_success resolve store
+    { bytes := [], state := state } (.address base) alignment limit hsource htarget
+
 theorem pairedAllocateBounded_matching_fault
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
