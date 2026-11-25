@@ -7300,3 +7300,21 @@ permutation to `EdgePhaseMemoryAdmission`. The proof also closes the existing
 memory terminal-path length-balance arithmetic without an axiom. The bridge
 keeps pairwise-disjoint footprint, per-cursor queue, and settle/commit
 premises explicit and does not implement the normative relation.
+
+## Master repair after the stale-constant and arrayBitSel changes — 2026-11-25
+
+Proofs, tactics and tests only; no executor or loader definition changes.
+`evalInt` and `evalGenGuard` refuse a stale constant (`IEnv.stale`) since
+d0bc2c5a9, which made two proof-side lemmas false as stated. `guard_eval`
+now takes `c.mentionsAny E.stale = false`; the generate-expansion and
+summary soundness lemmas above it take `env.stale = []`, which the comb
+tactics close by `rfl` on the computed environment (named goal `hst`).
+`nvalInt` (the clocked loop-bound side condition) also checks that the
+name is not stale. `PLhs.arrayBitSel` gets its cases in `PLhs.hasCall`
+(true: outside the clocked mirror profile, as `aggregateMember`),
+`PLhs.baseNames`, `PLhs.indexNames` and `PLhs.hren`. Two fixtures whose
+pinned refusal no longer occurs are re-pinned: `comb_mem` pins the
+loader's refusal of the string-parameter ROM, and
+`sem2/unpacked_bitselect_target` pins the values E now computes (no oracle
+result is claimed for that pin). `seq_cycle/valid_proof` raises the
+heartbeat budget of its `seq_mirror` to 2000000.
