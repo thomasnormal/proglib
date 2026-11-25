@@ -49,6 +49,17 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   `flattenInst` bridge once a child design and prefix are available.
   `CombHier.generatedChildRefs_genFor_singleton` composes one symbolic loop
   header with a child reference without selecting an iteration.
+* Memory-backed combinational designs are a separate boundary from `Design2`:
+  the hand-proof route needs four named bridges before a generated unpacked
+  array can be admitted.  The loader must preserve each generated element
+  target (rather than retaining `AssignmentExpression:target`); the ordinary
+  semantics then needs a cell-write equation for that target, a disjoint-cell
+  commutation equation for the generated family, a `matV`/memory-view equation
+  for the packed readback, and a settle/fixpoint theorem for the resulting
+  `CoreMemDesign`.  These are prerequisites for a memory-backed combinational
+  view, not alternate meanings of `Design2`; until the loader and those
+  bridges exist, `sv_structure` must refuse the route and no correctness
+  theorem is claimed.
 
 A hand proof should use these equations first and only then invoke a tactic as
 an optional plumbing layer.  No theorem in this index is bounded by an
