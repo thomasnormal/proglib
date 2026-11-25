@@ -2947,6 +2947,10 @@ theorem reallocZeroGNU17_shape :
     reallocZeroGNU17 = .freedNull := by
   rfl
 
+theorem reallocZeroGNU17_ne_refusedUndefined :
+    reallocZeroGNU17 ≠ .refusedUndefined := by
+  simp [reallocZeroGNU17]
+
 def reallocZeroAgrees (source target : ReallocZeroOutcome) : Bool :=
   if source = target then true else false
 
