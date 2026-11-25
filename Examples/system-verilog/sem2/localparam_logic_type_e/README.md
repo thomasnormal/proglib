@@ -6,3 +6,6 @@ Canonical functional rows match both pinned simulators. The clocked
 
 This is the clean-room `blk_localparam_logic_type` wall. The ordinary
 functional receipt remains separate from the clocked-profile refusal.
+
+The current receipt reports four matching source rows on Icarus Verilog 13.0
+and Xcelium 24.03-s004.
