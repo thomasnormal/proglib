@@ -12,8 +12,12 @@ load_design_sv2 eventControlWall
   from "Examples/system-verilog/sem2/event_control_wall/event_control_wall.sv.json"
 
 #guard match eventControlWall.pdesign.processes with
-  | [.unsupported "Clock:implicit"
-      "event-controlled process has no supported edge or implicit sensitivity semantics"] => true
+  | [.alwaysEvent [{ signal := "en", edge := .any }] _] => true
+  | _ => false
+
+#guard match eventControlWall.sem.processes.toList with
+  | [.unsupported "ProceduralBlockSymbol:Always"
+      "source-level event-controlled always is retained; the frozen process AST has no event-list constructor"] => true
   | _ => false
 
 #guard eventControlWall.pdesign.generates == []
