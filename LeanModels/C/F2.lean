@@ -8219,6 +8219,14 @@ theorem pairedAllocateBounded_unaddressable_true
   simp [pairedAllocateBounded, allocateBounded, allocate, renamedPlacement,
     renameAllocationRequest]
 
+theorem pairedAllocateBounded_empty_unaddressable_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment limit : Nat) :
+    pairedAllocateBounded resolve store { bytes := [], state := state }
+      .unaddressable alignment limit = true := by
+  exact pairedAllocateBounded_unaddressable_true resolve store
+    { bytes := [], state := state } alignment limit
+
 theorem pairedAllocateBounded_address_success_shape
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (base : Nat)
