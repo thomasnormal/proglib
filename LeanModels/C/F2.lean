@@ -8000,6 +8000,16 @@ theorem allocateBounded_unaddressable_result_counters
       rcases hresult with rfl
       exact allocate_unaddressable_result_counters store request allocationResult halloc
 
+theorem allocateBounded_empty_unaddressable_result_counters
+    (store : Store Tag State) (state : State)
+    (alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hresult : allocateBounded store { bytes := [], state := state }
+      .unaddressable alignment limit = .ok result) :
+    result.1.nextId = store.nextId + 1 ∧
+      result.1.allocations.length = store.allocations.length + 1 := by
+  exact allocateBounded_unaddressable_result_counters store
+    { bytes := [], state := state } alignment limit result hresult
+
 theorem allocateBounded_unaddressable_result_payload
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (alignment limit : Nat) (result : Store Tag State × Footprint)
