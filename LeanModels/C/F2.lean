@@ -7239,6 +7239,19 @@ theorem pairedAllocate_preserves_footprints
       rcases hresult with ⟨rfl, rfl⟩
       exact ⟨by rfl, by simp [renameAllocationRequest]⟩
 
+theorem pairedAllocate_empty_result_footprints
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (placement : Placement)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedAllocate resolve store { bytes := [], state := state }
+      placement = some result) :
+    result.1.2 = footprint .metadata (Region.mk store.nextId 0 0) ∧
+      result.2.2 = footprint .metadata
+        (Region.mk (renameStore resolve store).nextId 0 0) := by
+  exact pairedAllocate_preserves_footprints resolve store
+    { bytes := [], state := state } placement result hresult
+
 theorem pairedAllocate_address_success_shape
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (base : Nat)
