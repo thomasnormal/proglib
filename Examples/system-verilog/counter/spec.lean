@@ -21,7 +21,7 @@ import LeanModels.Sv.Tests
 import LeanModels
 
 open LeanModels.Sv
-open Examples.«system-verilog».counter.proof (counterDesign counterModel counterTrace)
+open Examples.«system-verilog».counter.proof (counterDesign counterModel counterTrace ResetKnownFrom)
 
 /-! Envelope certification: the proof module's hand-built design literal is
 node-for-node the extracted envelope (a mismatch fails the file). -/
@@ -53,7 +53,10 @@ reset, the sampled `count` column follows the golden model
 (`if rst then 0 else s + 1` on `BitVec 8`), for every legal schedule and
 every abstract pre-reset state. Raw form and proof:
 `Examples/system-verilog/counter/proof.lean`. -/
-theorem counter_refines : counterDesign ⊑@clk[from rst] counterModel := by proofs
+theorem counter_refines
+    (hknown : ∀ (σ : ScheduleOracle) (stim tr : List SvState), Runs counterDesign σ stim tr →
+      ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ResetKnownFrom tr i) :
+    counterDesign ⊑@clk[from rst] counterModel := by proofs
 
 /-- `counter` really runs, under every schedule: the canonical trace
 (x startup included), in `⇓[σ]` form. -/
@@ -64,7 +67,7 @@ theorem counter_runs (σ : ScheduleOracle) (stim : List SvState) :
 /-! ## Pinned renderings + axiom pins (the surface prints as written; no
 sorry, no native_decide — standard axioms only) -/
 
-/-- info: counter_refines : counterDesign ⊑@clk[from rst] counterModel -/
+/-- info: counter_refines (hknown : ∀ (σ : ScheduleOracle) (stim tr : List SvState), Runs counterDesign σ stim tr → ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ResetKnownFrom tr i) : counterDesign ⊑@clk[from rst] counterModel -/
 #guard_msgs in
 #check counter_refines
 

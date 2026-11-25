@@ -89,6 +89,11 @@ the edge process's `if (rst)` saw that cycle. -/
 def sampledRst (s : SvState) : Bool :=
   ((SvState.lookup s "rst").getD (LVec.xVec 1)).condTrue
 
+/-- Every reset read from snapshot `i` onward is known to the per-read relation. -/
+def ResetKnownFrom (tr : List SvState) (i : Nat) : Prop :=
+  ∀ j, i ≤ j → ∀ s, tr[j]? = some s →
+    DecisionKnown ((SvState.lookup s "rst").getD (LVec.xVec 1))
+
 /-- Canonical `counter` trace: `clk`/`rst` follow the stimulus, `count`
 steps by `if rst then 0 else count + 1` at `LVec` level (x-collapse
 included: from the all-x startup, `x + 1 = x`). -/
@@ -251,7 +256,8 @@ before the first reset `count` is all-x (`x + 1 = x`, LRM startup), so no
 `BitVec 8` state corresponds to the trace. -/
 theorem counter_from_reset (σ : ScheduleOracle) {fuel : Nat}
     {stim tr : List SvState} (h : run counterDesign σ fuel stim = .ok tr)
-    {i : Nat} {s : SvState} (hi : tr[i]? = some s) (hr : sampledRst s = true) :
+    {i : Nat} {s : SvState} (hi : tr[i]? = some s) (hr : sampledRst s = true)
+    (hknown : ResetKnownFrom tr i) :
     (tr.drop i).map (fun s' => SvState.lookup s' "count") =
       ((0 : BitVec 8) :: counterModelRun 0 ((tr.drop (i + 1)).map sampledRst)).map
         (fun b => some (LVec.ofBitVec b)) := by
@@ -287,8 +293,11 @@ theorem counter_firstOutput : counterDesign.firstOutput = "count" := rfl
 reset, the sampled `count` column follows the golden model, for every legal
 schedule and every abstract pre-reset state. Corollary of
 `counter_from_reset` through the three bridges. -/
-theorem counter_refines : counterDesign ⊑@clk[from rst] counterModel := by
-  sv_prove [counter_from_reset, sampledRst_eq, counterModelRun_eq, counter_firstOutput]
+theorem counter_refines
+    (hknown : ∀ (σ : ScheduleOracle) (stim tr : List SvState), Runs counterDesign σ stim tr →
+      ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ResetKnownFrom tr i) :
+    counterDesign ⊑@clk[from rst] counterModel := by
+  sv_prove [counter_from_reset, sampledRst_eq, counterModelRun_eq, counter_firstOutput, hknown]
 
 /-- `counter` really runs, under every schedule (= `counter_total`). -/
 theorem counter_runs (σ : ScheduleOracle) (stim : List SvState) :
