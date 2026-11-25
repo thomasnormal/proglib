@@ -7953,6 +7953,13 @@ theorem allocateBounded_failure_shape
     allocateBounded store request .fail alignment limit = .error .exhausted := by
   rfl
 
+theorem allocateBounded_empty_failure_shape
+    (store : Store Tag State) (state : State) (alignment limit : Nat) :
+    allocateBounded store { bytes := [], state := state }
+      .fail alignment limit = .error .exhausted := by
+  exact allocateBounded_failure_shape store
+    { bytes := [], state := state } alignment limit
+
 theorem allocateBounded_address_exhausted
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment limit : Nat)
