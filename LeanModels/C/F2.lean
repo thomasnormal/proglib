@@ -3377,6 +3377,26 @@ theorem pairedAllocateZeroSize_true
       resolve state placement = true := by
   exact pairedAllocateZeroSize_agrees resolve state placement
 
+theorem pairedAllocateZeroSize_shapes
+    {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
+    (placement : Placement) :
+    match placement with
+    | .fail =>
+        (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state .fail).1 = .null ∧
+          (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state .fail).1 = .null
+    | .address base =>
+        (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state (.address base)).1 =
+          .token { allocation := { live := true, address := some base, bytes := [], state := state }, locations := [] } ∧
+          (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state
+            (.address (resolve 0))).1 =
+          .token { allocation := { live := true, address := some (resolve 0), bytes := [], state := state }, locations := [] }
+    | .unaddressable =>
+        (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state .unaddressable).1 =
+          .token { allocation := { live := true, address := none, bytes := [], state := state }, locations := [] } ∧
+          (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state .unaddressable).1 =
+          .token { allocation := { live := true, address := none, bytes := [], state := state }, locations := [] } := by
+  cases placement <;> simp [allocateZeroSize]
+
 theorem pairedAllocateZeroSize_sound
     {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
     (placement : Placement) :
