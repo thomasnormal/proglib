@@ -581,11 +581,17 @@ exec E ch n c = .closed c' → SlotCloses E ch c c'
 ```
 
 for every limit `n` and every legal choice `ch`. The companion
-`progress_E0` theorem supplies a closed behaviour for every choice and input
-environment when the `Settles` admission holds. Thus this slice has an
-executor-to-schedule soundness bridge and a separate progress theorem. It has
-no converse completeness theorem for the executor, and its `exec` limit must
-not appear in user statements.
+`exec_complete` theorem states
+
+```lean
+SlotCloses E ch c c' → ∃ n, exec E ch n c = .closed c'
+```
+
+so every finite closed schedule path is reproduced by the test executor with
+some implementation limit. The `progress_E0` theorem supplies a closed
+behaviour for every choice and input environment when the `Settles` admission
+holds. Thus this slice has soundness, finite completeness, and a separate
+progress theorem. Its `exec` limit must not appear in user statements.
 
 This receipt is narrower than the relation designed here. E-core-0 uses the
 lowered `Stmt2` representation, process-atomic activation, and a

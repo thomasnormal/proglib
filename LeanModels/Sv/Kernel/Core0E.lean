@@ -682,6 +682,20 @@ theorem exec_sound {E : Elab} {ch : Choice} :
           exact ⟨.refl _, hs⟩
       | refused r => simp [hs] at h
 
+/-- **Finite executor completeness for the E-core-0 slice**: every finite
+closed schedule path is reproduced by the bounded test executor with enough
+steps. The bound is existential and stays in this implementation theorem.
+The fuel-free `SlotCloses` relation remains the semantic judgment. -/
+theorem exec_complete {E : Elab} {ch : Choice} {c c' : Config} :
+    SlotCloses E ch c c' → ∃ n, exec E ch n c = .closed c' := by
+  rintro ⟨hs, hclose⟩
+  induction hs with
+  | refl =>
+      exact ⟨1, by simp [exec, hclose]⟩
+  | @head c c₁ c₂ hstep htail ih =>
+      obtain ⟨n, hn⟩ := ih hclose
+      exact ⟨n + 1, by simp [exec, hstep, hn]⟩
+
 /-! ## Legality: the no-skip lemma -/
 
 /-- **No ready process is skipped, and none runs unless ready.** In a step from a
