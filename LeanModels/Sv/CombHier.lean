@@ -1208,6 +1208,26 @@ structure GeneratedChildRef where
   child : PDesign
 deriving Repr, Inhabited
 
+/-- Bind the genvars of a retained source path to one valuation.  The path is
+kept as a list of source headers; this operation only supplies the values for
+one semantic point and never enumerates the surrounding family. -/
+def GeneratedLoop.bindPath : List GeneratedLoop → List Int → IEnv → Except String IEnv
+  | [], [], env => .ok env
+  | loop :: loops, value :: values, env =>
+      GeneratedLoop.bindPath loops values (env.bindVal loop.genvar value)
+  | _, _, _ => .error "generated path valuation has the wrong arity"
+
+theorem GeneratedLoop.bindPath_nil (env : IEnv) :
+    GeneratedLoop.bindPath [] [] env = .ok env := by
+  rfl
+
+theorem GeneratedLoop.bindPath_cons
+    (loop : GeneratedLoop) (loops : List GeneratedLoop)
+    (value : Int) (values : List Int) (env : IEnv) :
+    GeneratedLoop.bindPath (loop :: loops) (value :: values) env =
+      GeneratedLoop.bindPath loops values (env.bindVal loop.genvar value) := by
+  rfl
+
 /-- The ordinary flattened segment of a generated child at one valuation.
 The operation is partial only on the source-shaped prefix computation; it does
 not choose a loop valuation or alter the child semantics. -/
@@ -1284,6 +1304,10 @@ inductive GeneratedNode where
   | child (ref : GeneratedChildRef)
 deriving Repr, Inhabited
 
+def GeneratedNode.loops : GeneratedNode → List GeneratedLoop
+  | .process loops _ => loops
+  | .child ref => ref.loops
+
 def GeneratedNode.segmentAt (child : GeneratedChildRef → Except String Design2)
     (env : IEnv) (elems : List (String × Nat)) : GeneratedNode →
     Except String (List Decl × List Process2)
@@ -1291,6 +1315,28 @@ def GeneratedNode.segmentAt (child : GeneratedChildRef → Except String Design2
   | .child r => do
       let d ← child r
       r.segmentAt d env elems
+
+/-- Read one retained generated node at one path valuation.  This is the
+source-shaped family contract used by hand proofs: the node's loop headers
+remain available in `node.loops`, while the semantic segment is read only
+after the caller supplies the corresponding values. -/
+def GeneratedNode.segmentAtPath
+    (child : GeneratedChildRef → Except String Design2)
+    (env : IEnv) (values : List Int) (elems : List (String × Nat))
+    (node : GeneratedNode) : Except String (List Decl × List Process2) := do
+  let bound ← GeneratedLoop.bindPath node.loops values env
+  node.segmentAt child bound elems
+
+theorem GeneratedNode.segmentAtPath_of_bind
+    {child : GeneratedChildRef → Except String Design2}
+    {env env' : IEnv} {values : List Int} {elems : List (String × Nat)}
+    {node : GeneratedNode} {seg : List Decl × List Process2}
+    (hbind : GeneratedLoop.bindPath node.loops values env = .ok env')
+    (hseg : node.segmentAt child env' elems = .ok seg) :
+    node.segmentAtPath child env values elems = .ok seg := by
+  unfold GeneratedNode.segmentAtPath
+  rw [hbind]
+  exact hseg
 
 @[simp] theorem GeneratedNode.segmentAt_process
     (child : GeneratedChildRef → Except String Design2)

@@ -56,6 +56,9 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   mix generated child instances with ordinary processes; `GeneratedNode.segmentAt`
   and `generatedNodes_segmentAt_flatten_ok` preserve the order while folding
   the valuation-dependent segments.
+  `CombHier.GeneratedLoop.bindPath` and `GeneratedNode.segmentAtPath` make the
+  one-path symbolic family contract explicit: a caller supplies genvar values,
+  then reads exactly that source node, without enumerating sibling iterations.
   `CombHier.assembleGeneratedAt` is the compositional bridge into the ordinary
   `Design2` assembly path at one valuation, and
   `CombHier.assembleGeneratedAt_of_segments` exposes its declaration/process
