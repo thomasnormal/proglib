@@ -5,12 +5,10 @@ if/else mux, with the gallery's two theorem shapes:
 
 * known select (`xsel_known`): an embedded `Bool` select settles `y` to
   `if sel then a else b`;
-* X-optimism (`xsel_x_else`): a `sel` of `x` — or `z`, the gallery's
-  "identical `Logic.lz` twin", folded in as the `v = lx ∨ v = lz`
-  hypothesis — takes the ELSE branch (`y = b`), per LRM §12.4 (zero, x, or
-  z is not-true). Simulation picks `b` outright; it does NOT merge `a`/`b`
-  bitwise. That this is provable is a feature: it is the truth about
-  simulation, stated honestly.
+* X-optimism (`xsel_x_else`) is retained only as an executor corollary with
+  an explicit `DecisionKnown` premise. The relational semantics owns the
+  unresolved-select outcomes, so this file no longer asserts a universal
+  result for `x` or `z`.
 
 `xsel` is the second comb-phase design after `adder`, and the first whose
 comb process is an `always_comb` *statement* (blocking assign under an
@@ -19,7 +17,8 @@ identical (one `combPass` computes `y := sel ? a : b`, the pass is
 idempotent, `combSettle_idem` — shared in
 `LeanModels/Sv/ToggleExample.lean` — closes the fixpoint in ≤ 2 passes);
 the per-pass symbolic execution case-splits on `sel.condTrue`, the §12.4
-truthiness the interpreter's `if` uses.
+truthiness the executor's `if` uses; unresolved selects are guarded at the
+surface theorem boundary.
 
 The rest is the house architecture (`Examples/system-verilog/adder/proof.lean`): one
 symbolic cycle, one induction over the stimulus, cross-fuel determinism
@@ -254,7 +253,8 @@ snapshot whose settled `sel` is a single `x` — or `z`, the identical twin —
 bit shows `y = b` (the ELSE branch), whatever `b` holds. -/
 theorem xsel_x_raw (σ : ScheduleOracle) {fuel : Nat} {stim tr : List SvState}
     (h : run xselDesign σ fuel stim = .ok tr) (v : Logic)
-    (hv : v = Logic.lx ∨ v = Logic.lz) :
+    (hv : v = Logic.lx ∨ v = Logic.lz)
+    (hknown : DecisionKnown (LVec.ofLogic v)) :
     ∀ (i : Nat) (st : SvState) (vb : LVec), tr[i]? = some st →
       SvState.lookup st "sel" = some (LVec.ofLogic v) →
       SvState.lookup st "b" = some vb →
@@ -289,7 +289,8 @@ theorem xsel_known (s : Bool) (a b : BitVec 8) :
 or `z` takes the ELSE branch — `y = b`, never a bitwise `a`/`b` merge
 (LRM §12.4: zero, x, or z is not-true). The `v = lx ∨ v = lz` hypothesis
 folds the gallery's `Logic.lz` twin into one statement. -/
-theorem xsel_x_else (v : Logic) (hv : v = Logic.lx ∨ v = Logic.lz) :
+theorem xsel_x_else (v : Logic) (hv : v = Logic.lx ∨ v = Logic.lz)
+    (hknown : DecisionKnown (LVec.ofLogic v)) :
     xselDesign ⊨ spec fun _stim tr =>
       ∀ (i : Nat) (st : SvState) (vb : LVec), tr[i]? = some st →
         SvState.lookup st "sel" = some (LVec.ofLogic v) →
