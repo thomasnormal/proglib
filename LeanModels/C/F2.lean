@@ -4149,6 +4149,32 @@ theorem pairedRecoverAddress_recovered_empty_refusal
     pairedRecoverAddress resolve address live = false := by
   simp [pairedRecoverAddress, hsource, htarget]
 
+theorem pairedRecoverAddress_sound
+    (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag))
+    (h : pairedRecoverAddress resolve address live = true) :
+    (∃ source target,
+      recoverAddress address live = .recovered source ∧
+      recoverAddress address (live.map (renameLiveRegion resolve)) = .recovered target) ∨
+    (∃ source target,
+      recoverAddress address live = .empty source ∧
+      recoverAddress address (live.map (renameLiveRegion resolve)) = .empty target) := by
+  cases hs : recoverAddress address live with
+  | recovered source =>
+      cases ht : recoverAddress address (live.map (renameLiveRegion resolve)) with
+      | recovered target => exact Or.inl ⟨source, target, rfl, rfl⟩
+      | empty target => simp [pairedRecoverAddress, hs, ht] at h
+      | ambiguousOnePastAdjacent => simp [pairedRecoverAddress, hs, ht] at h
+      | noLiveAllocation => simp [pairedRecoverAddress, hs, ht] at h
+  | empty source =>
+      cases ht : recoverAddress address (live.map (renameLiveRegion resolve)) with
+      | recovered target => simp [pairedRecoverAddress, hs, ht] at h
+      | empty target => exact Or.inr ⟨source, target, rfl, rfl⟩
+      | ambiguousOnePastAdjacent => simp [pairedRecoverAddress, hs, ht] at h
+      | noLiveAllocation => simp [pairedRecoverAddress, hs, ht] at h
+  | ambiguousOnePastAdjacent => simp [pairedRecoverAddress, hs] at h
+  | noLiveAllocation => simp [pairedRecoverAddress, hs] at h
+
 def offsetPointer (pointer : Pointer Tag) (elementSize : Nat) (delta : Int)
     (bound : Nat) : Except OffsetFault (Pointer Tag) :=
   if elementSize == 0 then .error .alignment
