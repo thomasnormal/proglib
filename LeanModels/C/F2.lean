@@ -6892,6 +6892,33 @@ theorem pairedAllocateAligned_empty_unaddressable_result_footprints
       state alignment target
       (by simpa [renameAllocationRequest] using htarget)⟩
 
+theorem pairedAllocateAligned_empty_unaddressable_result_payload
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment : Nat)
+    (source target : Store Tag State × Footprint)
+    (hsource : allocateAligned store { bytes := [], state := state }
+      .unaddressable alignment = some source)
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      .unaddressable alignment = some target) :
+    source.1 =
+        { allocations := store.allocations ++
+            [(store.nextId,
+              { live := true, address := none,
+                bytes := [], state := state })]
+          nextId := store.nextId + 1 } ∧
+      target.1 =
+        { allocations := (renameStore resolve store).allocations ++
+            [((renameStore resolve store).nextId,
+              { live := true, address := none,
+                bytes := [], state := state })]
+          nextId := (renameStore resolve store).nextId + 1 } := by
+  exact ⟨allocateAligned_empty_unaddressable_result_payload store state
+      alignment source hsource,
+    allocateAligned_empty_unaddressable_result_payload (renameStore resolve store)
+      state alignment target
+      (by simpa [renameAllocationRequest] using htarget)⟩
+
 theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
