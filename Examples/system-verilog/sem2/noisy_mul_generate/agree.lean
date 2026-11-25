@@ -760,6 +760,35 @@ theorem noisy_maj_child (env : IEnv) (F : Nat) (clocks : List String) :
   simp only [Res.ok_bind, PDesign.driverGuard, Design2.driverGuard_of_ok hok]
   simp [Design2.clockGuard, clockGuardProc, Process2.clock?, majDesign]
 
+def rowInnerLoops : List CombHier.GeneratedLoop :=
+  [{ label := some "g_row", genvar := "i", initE := .int 1,
+     bound := .paramRef "N" none, step := .unary .inc (.genvarRef "i"), rc := some 3 },
+   { label := some "g_bit", genvar := "j", initE := .int 0,
+     bound := .paramRef "N" none, step := .unary .inc (.genvarRef "j"), rc := some 4 }]
+
+theorem noisy_generated_row_inner_refs :
+    CombHier.generatedChildRefs noisyMul.plib []
+      [.genFor (some "g_row") "i" (.int 1) (.paramRef "N" none)
+        (.unary .inc (.genvarRef "i")) (some 3)
+        [.genFor (some "g_bit") "j" (.int 0) (.paramRef "N" none)
+          (.unary .inc (.genvarRef "j")) (some 4) rowInnerBody]] =
+      .ok [{ loops := rowInnerLoops, inst := xorInst, child := xorDef },
+           { loops := rowInnerLoops, inst := xorSInst, child := xorDef },
+           { loops := rowInnerLoops, inst := majInst, child := majDef }] := by
+  rw [noisy_row_inner_shape]
+  rw [show noisyMul.plib = andDef :: xorDef :: majDef :: [] from by rfl]
+  have hx : (andDef :: xorDef :: majDef :: []).find?
+      (fun x => x.name == xorInst.module) = some xorDef := by
+    simp [andDef, xorInst, xorDef]
+  have hs : (andDef :: xorDef :: majDef :: []).find?
+      (fun x => x.name == xorSInst.module) = some xorDef := by
+    simp [andDef, xorSInst, xorDef]
+  have hm : (andDef :: xorDef :: majDef :: []).find?
+      (fun x => x.name == majInst.module) = some majDef := by
+    simp [andDef, xorDef, majDef, majInst]
+  simp [rowInnerLoops, CombHier.generatedChildRefs, hx, hs, hm, Except.bind, Except.pure, pure, Functor.map, Except.map]
+  rfl
+
 theorem noisy_row_expand_process_family
     (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
     (N : Int) (hFuel : (N - 1).toNat < F)
