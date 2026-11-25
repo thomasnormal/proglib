@@ -6701,6 +6701,17 @@ theorem allocateAligned_unaddressable_preserves_wellFormed
         exact ⟨hentries.1, ih hentries.2⟩
   exact append_wf store.allocations hstore
 
+theorem allocateAligned_empty_unaddressable_preserves_wellFormed
+    (store : Store Tag State) (state : State) (alignment : Nat)
+    (result : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hresult : allocateAligned store { bytes := [], state := state }
+      .unaddressable alignment = some result) :
+    WellFormed result.1 := by
+  exact allocateAligned_unaddressable_preserves_wellFormed store
+    { bytes := [], state := state } alignment result hstore
+    (by simp [bytesWf]) hresult
+
 def renamedPlacement (resolve : AllocId → Nat) (id : AllocId) :
     Placement → Placement
   | .address _ => .address (resolve id)
