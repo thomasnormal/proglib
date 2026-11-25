@@ -1,5 +1,14 @@
 # [unreleased] — 2026-11-04 (an Sv landing builds the comb chain above it)
 
+## SVA `inside` item-side wildcard semantics — 2026-11-25
+
+The parser-native lowering of integral SVA `inside` membership now uses the
+IEEE 1800-2023 §11.4.13 wildcard-equality operator, retaining item-side x/z
+bits as wildcards. The `sva_inside_e` receipt uses `4'b0x01` and checks its
+four-bit shape in Lean. Icarus Verilog 13.0 does not implement this SVA
+construct, so no Icarus oracle is claimed. Xcelium 24.03-s004 accepts `0001`
+and `0011` and reports the assertion failure for `0010`.
+
 ## Relational memory confluence bridge — 2026-11-24
 
 The source-shaped fine-grained NBA phase now combines memory-queue permutation

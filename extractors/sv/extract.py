@@ -27512,7 +27512,10 @@ def _sva_pexpr(node):
                     "text": "empty inside set"}
         result = None
         for item in reversed(items):
-            eq = {"kind": "Binary", "op": "===", "left": subject,
+            # IEEE 1800-2023 §11.4.13 defines integral ``inside`` membership
+            # with wildcard equality. Item-side x/z bits are wildcards, so
+            # case equality would reject values that the source admits.
+            eq = {"kind": "Binary", "op": "==?", "left": subject,
                   "right": item}
             result = eq if result is None else {
                 "kind": "Binary", "op": "||", "left": eq, "right": result}

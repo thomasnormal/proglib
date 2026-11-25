@@ -10,7 +10,7 @@
   "source_files": [
     {
       "path": "Examples/system-verilog/sem2/sva_inside_e/sva_inside_e.sv",
-      "sha256": "4b4a36a795a08cfc62d26d73814060cc08c664c8efb173c020eb852848964316"
+      "sha256": "5e955d3c489812676041d97a7a8db75bd9ac027d93a7c7ce5f381a83d259b71a"
     }
   ],
   "packages": [],
@@ -104,7 +104,7 @@
             "name": "ap",
             "property_kind": "assert",
             "clock": "clk",
-            "text": "ap: assert property (@(posedge clk) a inside {4'b0001});",
+            "text": "ap: assert property (@(posedge clk) a inside {4'b0x01});",
             "ast": {
               "kind": "SvaCheck",
               "property_kind": "assert",
@@ -118,7 +118,7 @@
                     "kind": "SvaExpr",
                     "expr": {
                       "kind": "Binary",
-                      "op": "===",
+                      "op": "==?",
                       "left": {
                         "kind": "Ident",
                         "name": "a"
@@ -127,7 +127,7 @@
                         "kind": "Literal",
                         "span": null,
                         "width": 4,
-                        "bits": "0001"
+                        "bits": "0x01"
                       }
                     }
                   }
