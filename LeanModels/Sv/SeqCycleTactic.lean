@@ -635,21 +635,22 @@ def nvalOf (env : IEnv) (p : String) : Int :=
   | some (v, _, _) => v
   | none => 0
 
-/-- A typed `int` parameter: bound in `IEnv.nvals` at 32 bits signed and not in `IEnv.vals` (INT-class, read from
-`nvals`). -/
+/-- A typed `int` parameter: bound in `IEnv.nvals` at 32 bits signed, not in `IEnv.vals` (INT-class, read from
+`nvals`) and not stale (`IEnv.stale`: `evalInt` refuses a stale name, so its value is not the bound one). -/
 def nvalInt (env : IEnv) (p : String) : Bool :=
-  (env.vals.lookup p).isNone &&
+  ((env.vals.lookup p).isNone &&
     match env.nvals.lookup p with
     | some (_, 32, true) => true
-    | _ => false
+    | _ => false) && decide (p ∉ env.stale)
 
 /-- A typed `int` parameter as a loop bound, for a step of `+1`. -/
 theorem forValues2_up_nval {env : IEnv} {it p : String} {step : PExpr} {c : Cmp} (hc : c = .lt ∨ c = .le)
     (hstep : procStepDelta2 env it step = .ok 1) (h : nvalInt env p = true) (hne : p ≠ it) (s : Int) :
     forValues2 env it (.int s) (.binary c.op (.genvarRef it) (.paramRef p none)) step =
       .ok (intRange s (c.bound (nvalOf env p) - s).toNat) := by
-  simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none] at h
-  obtain ⟨hv, hn⟩ := h
+  simp only [nvalInt, Bool.and_eq_true, Option.isNone_iff_eq_none, decide_eq_true_eq] at h
+  obtain ⟨⟨hv, hn⟩, hs⟩ := h
+  have hsu : ∀ u, p ∉ (env.bindVal it u).stale := fun _ => hs
   have hlv : ∀ u, (env.bindVal it u).vals.lookup p = none := fun u => by rw [vals_lookup_bindVal_ne u hne, hv]
   have hnv : ∀ u, (env.bindVal it u).nvals = env.nvals := fun _ => rfl
   cases hl : env.nvals.lookup p with
@@ -661,8 +662,8 @@ theorem forValues2_up_nval {env : IEnv} {it p : String} {step : PExpr} {c : Cmp}
       refine forValues2_up_of hc hstep (fun u => ?_) (fun u => ?_) ?_ s
       · simp only [PExpr.isInt, hlv u, hnv u, Option.isSome_none, Bool.false_or]
         exact hn
-      · simp only [evalInt, hlv u, hnv u, hl]
-      · simp only [evalInt, hv, hl]
+      · simp only [evalInt, hlv u, hnv u, hl, hsu u, ↓reduceIte]
+      · simp only [evalInt, hv, hl, hs, ↓reduceIte]
 
 /-- `for (it = s; it < P; it++)` against a typed `int` parameter `P`. -/
 theorem forValues2_slt_nval {env : IEnv} {it p : String} (h : nvalInt env p = true) (hne : p ≠ it) (s : Int) :
