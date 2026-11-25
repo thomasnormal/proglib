@@ -95,6 +95,7 @@ def _root_.LeanModels.Sv.PLhs.baseNames : PLhs → List String
   | .partSel n _ _ => [n]
   | .arrayElem n _ => [n]
   | .arrayPart n _ _ _ _ => [n]
+  | .arrayBitSel n _ _ => [n]
   | .aggregateMember n _ => [n]
   | .concat parts => PLhs.baseNamesList parts
 
@@ -114,6 +115,7 @@ def _root_.LeanModels.Sv.PLhs.indexNames : PLhs → List String
   | .partSel _ a b => PExpr.sigNames a ++ PExpr.sigNames b
   | .arrayElem _ is => PExpr.sigNamesList is
   | .arrayPart _ is _ a b => PExpr.sigNamesList is ++ PExpr.sigNames a ++ PExpr.sigNames b
+  | .arrayBitSel _ is bit => PExpr.sigNamesList is ++ PExpr.sigNames bit
   | .aggregateMember _ path => path.foldl (fun acc step =>
       match step.2 with | some e => acc ++ PExpr.sigNames e | none => acc) []
   | .concat parts => PLhs.indexNamesList parts
@@ -3040,6 +3042,8 @@ theorem seq_instLhs2_in {env : IEnv} {elems : List (String × Nat)} (t : PLhs) {
   | arrayElem n is => exact Or.inl (seq_instLhsLeaf2_in _ (by simpa [instLhs2] using h))
   | arrayPart n is m a b => exact Or.inl (seq_instLhsLeaf2_in _ (by simpa [instLhs2] using h))
   | aggregateMember base path =>
+      exact False.elim (by simpa [instLhs2, instLhsLeaf2] using h)
+  | arrayBitSel n is bit =>
       exact False.elim (by simpa [instLhs2, instLhsLeaf2] using h)
 
 /-- A leaf resolves to its own name. -/

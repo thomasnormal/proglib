@@ -650,6 +650,7 @@ def _root_.LeanModels.Sv.PLhs.hasCall : PLhs → Bool
   | .arrayPart _ is _ a b => LeanModels.Sv.PExpr.hasFunctionCallList is || LeanModels.Sv.PExpr.hasFunctionCall a ||
       LeanModels.Sv.PExpr.hasFunctionCall b
   | .aggregateMember .. => true
+  | .arrayBitSel .. => true
   | .concat parts => PLhs.hasCallList parts
 
 /-- `hasCall` of a list of targets. -/
@@ -2442,6 +2443,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
             CoreMemDesign.issueScalarTarget, hws, CoreMemExec.fromQueue]
       | aggregateMember _ _ =>
           simp [PLhs.hasCall] at hbt
+      | arrayBitSel _ _ _ =>
+          simp [PLhs.hasCall] at hbt
   | .blockingAssign n e, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.not_eq_true'] at hb
@@ -2530,6 +2533,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
             hl, CoreMemDesign.evalExpr_eq hmc env (some w) e hb,
             CoreMemDesign.evalExpr_eq hmc env (some w) e hb, CoreMemDesign.evalExprLocals_eq_evalV hmc env E.elems (some w) e hb, hx, hs']
       | aggregateMember _ _ =>
+          simp [PLhs.hasCall] at hbt
+      | arrayBitSel _ _ _ =>
           simp [PLhs.hasCall] at hbt
   | .ifStmt c y n, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
