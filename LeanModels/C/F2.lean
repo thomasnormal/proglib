@@ -8744,6 +8744,28 @@ theorem pairedAllocateBounded_sound
             (placementFault_beq_iff sourceFault targetFault).mp hEqBool
           exact Or.inr ⟨sourceFault, rfl, by simpa [heq] using ht⟩
 
+theorem pairedAllocateBounded_empty_unaddressable_sound
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment limit : Nat)
+    (h : pairedAllocateBounded resolve store { bytes := [], state := state }
+      .unaddressable alignment limit = true) :
+    (∃ source target,
+      allocateBounded store { bytes := [], state := state }
+        .unaddressable alignment limit = .ok source ∧
+      allocateBounded (renameStore resolve store)
+        (renameAllocationRequest resolve { bytes := [], state := state })
+        (renamedPlacement resolve store.nextId .unaddressable) alignment limit =
+          .ok target) ∨
+    (∃ fault,
+      allocateBounded store { bytes := [], state := state }
+        .unaddressable alignment limit = .error fault ∧
+      allocateBounded (renameStore resolve store)
+        (renameAllocationRequest resolve { bytes := [], state := state })
+        (renamedPlacement resolve store.nextId .unaddressable) alignment limit =
+          .error fault) := by
+  exact pairedAllocateBounded_sound resolve store
+    { bytes := [], state := state } .unaddressable alignment limit h
+
 theorem pairedAllocateBounded_empty_address_sound
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (base alignment limit : Nat)
