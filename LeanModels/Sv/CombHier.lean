@@ -1623,7 +1623,7 @@ theorem GeneratedFamilyExpansion.assembleAt
       .ok (d.assembleH env decls (idecls ++ generated.1) elems generated.2) :=
   assembleGeneratedPathsAt_of_realization d env decls idecls elems paths child generated h.2
 
-theorem PDesign.instantiateH_of_generated_expansion
+theorem PDesign.instantiateH_of_expansion
     {d : PDesign} {lib : List PDesign} {args : List Int}
     {env : IEnv} {decls : List Decl} {elems : List (String × Nat)}
     {idecls : List Decl} {gens : List Process2}
@@ -1631,19 +1631,17 @@ theorem PDesign.instantiateH_of_generated_expansion
     (h1 : d.paramEnvH { int32 := true } args = .ok env)
     (h2 : buildDecls env d.decls = .ok decls)
     (h3 : buildElems env d.decls = .ok elems)
-    {paths : List (GeneratedNode × List Int)}
-    {child : GeneratedChildRef → Except String Design2}
-    (hgen : GeneratedFamilyExpansion
+    (hexpand : expandListH
       (PDesign.childRec lib.length lib { int32 := true }
         (PDesign.surfaceFuel args) (Decl.inputNames decls))
-      (env.withDecls decls) elems (PDesign.surfaceFuel args) d
-      paths child (idecls, gens))
+      (env.withDecls decls) elems (PDesign.surfaceFuel args) d.generates =
+      .ok (idecls, gens))
     (hok : driversOk d.declNames d.inputNames
       (d.assembleH env decls idecls elems gens).processes.toList = true) :
     d.instantiateH lib args (PDesign.surfaceFuel args) =
       .ok (d.assembleH env decls idecls elems gens) := by
   have hrec := PDesign.instantiateRec_of_ok (depth := lib.length)
-    (lib := lib) (envI := { int32 := true }) harity h1 h2 h3 hgen.1
+    (lib := lib) (envI := { int32 := true }) harity h1 h2 h3 hexpand
   exact PDesign.instantiateH_of_rec hrec hok
 
 
