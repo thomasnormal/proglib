@@ -6496,6 +6496,11 @@ theorem unaddressableToken_true
     unaddressableToken store id = true := by
   simp [unaddressableToken, hlookup, hlive, haddress]
 
+theorem unaddressableToken_empty_false
+    {Tag State : Type} (id : AllocId) :
+    unaddressableToken ({ allocations := [], nextId := 0 } : Store Tag State) id = false := by
+  rfl
+
 def pairedUnaddressableAllocation (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State) :
     Bool :=
