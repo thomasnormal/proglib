@@ -190,6 +190,12 @@ theorem noisy_hierarchy_refusal :
       .error (CombHier.itemRefusal ppGen) := by
   rfl
 
+theorem noisy_summary_refusal :
+    CombHier.summaryH noisyMul.pdesign noisyMul.plib =
+      .error
+        "an instance sits inside the generate loop `g_pp` (genvar `i`): v1 of the hierarchy summary reads module-level instances only (one instance per loop iteration would make the child's sites a generate family whose names carry the loop index, which the summary does not build yet); the structure of such a design can be proved by hand (`Examples/system-verilog/ripple_fa` is a worked by-hand proof)" := by
+  rfl
+
 theorem noisy_fault_row_index_affine_refusal :
     CombView.affOf? (.binary .mul (.genvarRef "i") (.paramRef "N" none)) = none := by
   rfl
