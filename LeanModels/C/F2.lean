@@ -3497,6 +3497,11 @@ theorem pairedFreePointer_sound (resolve : AllocId → Nat)
       cases hlive : metadata.allocation.live <;>
         simp [pairedFreePointer, freePointer, renameZeroTokenMetadata, hlive]
 
+theorem pairedFreePointer_true (resolve : AllocId → Nat)
+    (metadata : Option (AllocationMetadata Tag State TypeId)) :
+    pairedFreePointer resolve metadata = true := by
+  exact pairedFreePointer_sound resolve metadata
+
 theorem pairedFreePointer_agrees (resolve : AllocId → Nat)
     (metadata : Option (AllocationMetadata Tag State TypeId)) :
     freePointer metadata =
