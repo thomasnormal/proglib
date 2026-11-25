@@ -345,6 +345,25 @@ def CoreMemDesign.ndWakeList (E : CoreMemDesign) (before after : SvState)
 def CoreMemDesign.ndWake (E : CoreMemDesign) (before after : SvState) : List EdgeCursor :=
   E.ndWakeList before after E.processes.toList
 
+/-! A blocking write is not allowed to move an event source inside the
+Active region.  The wake base is the last settled view, so accepting such a
+move would let a later NBA transition compare against a stale value and lose
+an edge (§9.4.2). -/
+def CoreMemProc.ndEventSources : CoreMemProc → List String
+  | .edge p => p.clock :: p.reset.toList
+  | .event events _ => events.map (·.signal)
+  | _ => []
+
+def CoreMemDesign.ndEventSources (E : CoreMemDesign) : List String :=
+  E.processes.toList.flatMap CoreMemProc.ndEventSources
+
+def CoreMemDesign.ndEventSourceChanged (E : CoreMemDesign) (before after : SvState) : Bool :=
+  E.ndEventSources.any fun name => SvState.lookup before name != SvState.lookup after name
+
+def EdgeWork.isBlockingWrite : EdgeWork → Bool
+  | .edgeStmt _ (.blockingAssign _ _) | .edgeStmt _ (.blockingAssignL _ _) => true
+  | _ => false
+
 /-- Move `fire i`: the `i`-th runnable cursor executes one parser node. -/
 def NdState.fire (E : CoreMemDesign) (s : NdState) (i : Nat) : NdOutcome :=
   match pickAt i s.active with
@@ -358,8 +377,10 @@ def NdState.fire (E : CoreMemDesign) (s : NdState) (i : Nat) : NdOutcome :=
           | .unsupported why => .refused why
           | .ok (r, exposed, o') =>
               if E.processes.toList.any
-                  (CoreMemProc.firesIn (E.scalar.view s.store.scalar) (E.scalar.view r.state.scalar)) then
-                .refused "9.4.2: a blocking write changes a value a process waits on; waking inside the Active region is not modelled"
+                  (CoreMemProc.firesIn (E.scalar.view s.store.scalar) (E.scalar.view r.state.scalar)) ||
+                  (head.isBlockingWrite &&
+                    E.ndEventSourceChanged (E.scalar.view s.store.scalar) (E.scalar.view r.state.scalar)) then
+                .refused "9.4.2: a blocking write changes an event-source signal; intermediate update events are not modeled"
               else
                 .next { store := r.state
                         active := before ++ EdgeCursor.keep ⟨exposed ++ tail, r.locals⟩ ++ after
@@ -591,7 +612,11 @@ theorem ndStep_oracle_irrelevant {E : CoreMemDesign} {s : NdState} {choice : Nat
                   | ok r =>
                       obtain ⟨r, exposed, o1⟩ := r
                       simp only [retag]
-                      split <;> simp [NdOutcome.withOracle]
+                      by_cases hblock : head.isBlockingWrite = true
+                      · simp [hblock]
+                        split <;> simp [NdOutcome.withOracle]
+                      · simp [hblock]
+                        split <;> simp [NdOutcome.withOracle]
 
 /-- L3, second half: a step that reads no unknown leaves the oracle as it
 was. -/
