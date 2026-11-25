@@ -3397,6 +3397,19 @@ theorem pairedAllocateZeroSize_shapes
           .token { allocation := { live := true, address := none, bytes := [], state := state }, locations := [] } := by
   cases placement <;> simp [allocateZeroSize]
 
+theorem pairedAllocateZeroSize_footprints
+    {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
+    (placement : Placement) :
+    (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).2 =
+        footprint .metadata (Region.mk 0 0 0) ∧
+      (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state
+        (match placement with
+        | .address _ => .address (resolve 0)
+        | .unaddressable => .unaddressable
+        | .fail => .fail)).2 =
+        footprint .metadata (Region.mk 0 0 0) := by
+  cases placement <;> constructor <;> rfl
+
 theorem pairedAllocateZeroSize_sound
     {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
     (placement : Placement) :
