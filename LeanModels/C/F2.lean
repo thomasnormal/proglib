@@ -8429,6 +8429,64 @@ theorem pairedAllocateBounded_both_success
     pairedAllocateBounded resolve store request placement alignment limit = true := by
   simp [pairedAllocateBounded, hsource, htarget]
 
+theorem pairedAllocateBounded_preserves_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment limit : Nat) (source target : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hsourceBytes : bytesWf store.nextId request.bytes)
+    (htargetBytes : bytesWf (renameStore resolve store).nextId
+      (renameAllocationRequest resolve request).bytes)
+    (hsource : allocateBounded store request placement alignment limit = .ok source)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve request)
+      (renamedPlacement resolve store.nextId placement) alignment limit = .ok target) :
+    WellFormed source.1 ∧ WellFormed target.1 := by
+  cases placement with
+  | address base =>
+      have hsourceWithin : placementWithin base request.bytes.length limit = true := by
+        by_cases h : placementWithin base request.bytes.length limit = true
+        · exact h
+        · simp [allocateBounded, h] at hsource
+      have hsourceAligned : alignmentAllowed base alignment = true := by
+        by_cases h : alignmentAllowed base alignment = true
+        · exact h
+        · simp [allocateBounded, hsourceWithin, h] at hsource
+      have hsourceAllowed : placementAllowed store base request.bytes.length = true := by
+        by_cases h : placementAllowed store base request.bytes.length = true
+        · exact h
+        · simp [allocateBounded, hsourceWithin, hsourceAligned, h] at hsource
+      have htargetWithin : placementWithin (resolve store.nextId)
+          (renameAllocationRequest resolve request).bytes.length limit = true := by
+        by_cases h : placementWithin (resolve store.nextId)
+            (renameAllocationRequest resolve request).bytes.length limit = true
+        · exact h
+        · simp [allocateBounded, renamedPlacement, h] at htarget
+      have htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true := by
+        by_cases h : alignmentAllowed (resolve store.nextId) alignment = true
+        · exact h
+        · simp [allocateBounded, renamedPlacement, htargetWithin, h] at htarget
+      have htargetAllowed : placementAllowed (renameStore resolve store)
+          (resolve store.nextId) (renameAllocationRequest resolve request).bytes.length = true := by
+        by_cases h : placementAllowed (renameStore resolve store)
+            (resolve store.nextId) (renameAllocationRequest resolve request).bytes.length = true
+        · exact h
+        · simp [allocateBounded, renamedPlacement, htargetWithin, htargetAligned, h] at htarget
+      exact ⟨allocateBounded_address_preserves_wellFormed store request base alignment limit
+          source hstore hsourceBytes hsourceWithin hsourceAligned hsourceAllowed hsource,
+        allocateBounded_address_preserves_wellFormed (renameStore resolve store)
+          (renameAllocationRequest resolve request) (resolve store.nextId) alignment limit target
+          (renameStore_preserves_wellFormed resolve store hstore) htargetBytes htargetWithin
+          htargetAligned htargetAllowed htarget⟩
+  | unaddressable =>
+      exact ⟨allocateBounded_unaddressable_preserves_wellFormed store request alignment limit
+          source hstore hsourceBytes hsource,
+        allocateBounded_unaddressable_preserves_wellFormed (renameStore resolve store)
+          (renameAllocationRequest resolve request) alignment limit target
+          (renameStore_preserves_wellFormed resolve store hstore) htargetBytes htarget⟩
+  | fail =>
+      simp [allocateBounded] at hsource
+
 theorem pairedAllocateBounded_empty_address_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (base alignment limit : Nat)
