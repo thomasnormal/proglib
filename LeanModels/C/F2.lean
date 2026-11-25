@@ -1393,6 +1393,31 @@ theorem pairedTypedStoreLoadMetadataByte_refusal_target_load
     pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte = none := by
   simp [pairedTypedStoreLoadMetadataByte, htarget, hload]
 
+theorem pairedTypedStoreLoadMetadataByte_refusal
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (hrefusal :
+      typedStoreMetadataByte metadata offset typeId byte = none ∨
+      typedStoreMetadataByte (renameMetadata resolve id metadata) offset typeId
+        (renameByte resolve byte) = none ∨
+      (∃ sourceStore,
+        typedStoreMetadataByte metadata offset typeId byte = some sourceStore ∧
+        typedLoadMetadataByte sourceStore.1 offset typeId = none) ∨
+      (∃ targetStore,
+        typedStoreMetadataByte (renameMetadata resolve id metadata) offset typeId
+          (renameByte resolve byte) = some targetStore ∧
+        typedLoadMetadataByte targetStore.1 offset typeId = none)) :
+    pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte = none := by
+  rcases hrefusal with hsource | htarget | hsourceLoad | htargetLoad
+  · simp [pairedTypedStoreLoadMetadataByte, hsource]
+  · simp [pairedTypedStoreLoadMetadataByte, htarget]
+  · rcases hsourceLoad with ⟨sourceStore, hstore, hload⟩
+    simp [pairedTypedStoreLoadMetadataByte, hstore, hload]
+  · rcases htargetLoad with ⟨targetStore, hstore, hload⟩
+    simp [pairedTypedStoreLoadMetadataByte, hstore, hload]
+
 theorem pairedTypedStoreLoadMetadataByte_sound
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
