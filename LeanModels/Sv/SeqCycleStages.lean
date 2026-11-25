@@ -369,6 +369,59 @@ partial def exprUnsupportedProcess? (e : Lean.Expr) : MetaM (Option (String × S
   else
     pure none
 
+partial def exprUnsupportedSource? (e : Lean.Expr) : MetaM (Option (String × String)) := do
+  let e ← whnf e
+  if e.isAppOfArity ``PExpr.unsupported 2 then
+    match strLit? (e.getArg! 0), strLit? (e.getArg! 1) with
+    | some k, some t => pure (some (k, t))
+    | _, _ => pure none
+  else if e.isAppOfArity ``PStmt.unsupported 2 then
+    match strLit? (e.getArg! 0), strLit? (e.getArg! 1) with
+    | some k, some t => pure (some (k, t))
+    | _, _ => pure none
+  else if e.isAppOfArity ``PProcess.unsupported 2 then
+    match strLit? (e.getArg! 0), strLit? (e.getArg! 1) with
+    | some k, some t => pure (some (k, t))
+    | _, _ => pure none
+  else if e.isAppOfArity ``GenItem.unsupported 2 then
+    match strLit? (e.getArg! 0), strLit? (e.getArg! 1) with
+    | some k, some t => pure (some (k, t))
+    | _, _ => pure none
+  else
+    match e with
+    | .app f a =>
+        match ← exprUnsupportedSource? f with
+        | some x => pure (some x)
+        | none => exprUnsupportedSource? a
+    | .lam _ ty body _ | .forallE _ ty body _ =>
+        match ← exprUnsupportedSource? ty with
+        | some x => pure (some x)
+        | none => exprUnsupportedSource? body
+    | .letE _ ty value body _ =>
+        match ← exprUnsupportedSource? ty with
+        | some x => pure (some x)
+        | none =>
+          match ← exprUnsupportedSource? value with
+          | some x => pure (some x)
+          | none => exprUnsupportedSource? body
+    | .mdata _ body | .proj _ _ body => exprUnsupportedSource? body
+    | .const _ _ | .bvar _ | .fvar _ | .mvar _ | .lit _ | .sort _ => pure none
+
+partial def exprUnsupportedOther? (e : Lean.Expr) : MetaM (Option (String × String)) := do
+  let e ← whnf e
+  if e.isAppOfArity ``List.nil 1 then
+    pure none
+  else if e.isAppOfArity ``List.cons 3 then
+    let pair ← whnf (e.getArg! 1)
+    if pair.isAppOfArity ``Prod.mk 4 then
+      match strLit? (pair.getArg! 2), strLit? (pair.getArg! 3) with
+      | some k, some t => pure (some (k, t))
+      | _, _ => exprUnsupportedOther? (e.getArg! 2)
+    else
+      exprUnsupportedOther? (e.getArg! 2)
+  else
+    pure none
+
 /-- The instantiation's three outcomes for `r = X.e P…`: the `ok` goal with `hSeq : <normal form> = E` substituted
 away, the refused outcomes closed (or named). Returns the `ok` goal. -/
 def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
@@ -377,6 +430,12 @@ def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
   let pI := mkIdent pN
   let hI := mkIdent `hSeqInst
   let rS ← Term.exprToSyntax r
+  let source := mkConst pN
+  if let some (kind, text) ← exprUnsupportedSource? source then
+    throwError "{stage}: the source design contains an unsupported node `{kind}`: {text}"
+  let others := mkApp (mkConst ``PDesign.others) source
+  if let some (kind, text) ← exprUnsupportedOther? others then
+    throwError "{stage}: the source design contains an unsupported node `{kind}`: {text}"
   let procs := mkApp (mkConst ``PDesign.processes) (mkConst pN)
   if let some (kind, text) ← exprUnsupportedProcess? procs then
     throwError "{stage}: the design contains an unsupported process `{kind}`: {text}"
