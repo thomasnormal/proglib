@@ -329,6 +329,46 @@ def stuckReasons : List (Name × String) :=
 def stuckReason? (t : Lean.Expr) : Option String :=
   (stuckReasons.find? fun (n, _) => (t.find? (·.isConstOf n)).isSome).map (·.2)
 
+/-- Find the first loud source-shaped generate item without reducing the
+instantiation.  Generated indexed selects are retained this way by Slang;
+reporting their kind and text is both faster and more useful than letting the
+later `CoreMemProc.unsupported` profile check time out. -/
+partial def exprUnsupportedGenItem? (e : Lean.Expr) : MetaM (Option (String × String)) := do
+  let e ← whnf e
+  if e.isAppOfArity ``List.nil 1 then
+    pure none
+  else if e.isAppOfArity ``List.cons 3 then
+    match ← exprUnsupportedGenItem? (e.getArg! 1) with
+    | some x => pure (some x)
+    | none => exprUnsupportedGenItem? (e.getArg! 2)
+  else if e.isAppOfArity ``GenItem.unsupported 2 then
+    match strLit? (e.getArg! 0), strLit? (e.getArg! 1) with
+    | some k, some t => pure (some (k, t))
+    | _, _ => pure none
+  else if e.isAppOfArity ``GenItem.genFor 7 then
+    exprUnsupportedGenItem? (e.getArg! 7)
+  else if e.isAppOfArity ``GenItem.genIf 3 then
+    match ← exprUnsupportedGenItem? (e.getArg! 1) with
+    | some x => pure (some x)
+    | none => exprUnsupportedGenItem? (e.getArg! 2)
+  else
+    pure none
+
+partial def exprUnsupportedProcess? (e : Lean.Expr) : MetaM (Option (String × String)) := do
+  let e ← whnf e
+  if e.isAppOfArity ``List.nil 1 then
+    pure none
+  else if e.isAppOfArity ``List.cons 3 then
+    let p ← whnf (e.getArg! 1)
+    if p.isAppOfArity ``PProcess.unsupported 2 then
+      match strLit? (p.getArg! 0), strLit? (p.getArg! 1) with
+      | some k, some t => pure (some (k, t))
+      | _, _ => pure none
+    else
+      exprUnsupportedProcess? (e.getArg! 2)
+  else
+    pure none
+
 /-- The instantiation's three outcomes for `r = X.e P…`: the `ok` goal with `hSeq : <normal form> = E` substituted
 away, the refused outcomes closed (or named). Returns the `ok` goal. -/
 def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
@@ -337,6 +377,12 @@ def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
   let pI := mkIdent pN
   let hI := mkIdent `hSeqInst
   let rS ← Term.exprToSyntax r
+  let procs := mkApp (mkConst ``PDesign.processes) (mkConst pN)
+  if let some (kind, text) ← exprUnsupportedProcess? procs then
+    throwError "{stage}: the design contains an unsupported process `{kind}`: {text}"
+  let gens := mkApp (mkConst ``PDesign.generates) (mkConst pN)
+  if let some (kind, text) ← exprUnsupportedGenItem? gens then
+    throwError "{stage}: the design contains an unsupported generated process `{kind}`: {text}"
   -- a cached instantiation (`seq_mirror`): the family member IS its mirror, no instantiation pass
   if let some (mN, mEq, mDef) ← mirrorOf eN then
     let mS ← Term.exprToSyntax (mkAppN (mkConst mN) r.getAppArgs)
