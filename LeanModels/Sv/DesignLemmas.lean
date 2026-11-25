@@ -45,6 +45,8 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
 * `CombHier.generatedChildRefs` is the non-flattening hierarchy reader for a
   generate-only family: it retains symbolic loop headers, instance paths, and
   child designs, and refuses process/declaration/conditional siblings loudly.
+  `CombHier.GeneratedChildRef.segmentAt` is the direct valuation-to-
+  `flattenInst` bridge once a child design and prefix are available.
 
 A hand proof should use these equations first and only then invoke a tactic as
 an optional plumbing layer.  No theorem in this index is bounded by an

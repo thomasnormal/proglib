@@ -1208,6 +1208,22 @@ structure GeneratedChildRef where
   child : PDesign
 deriving Repr, Inhabited
 
+/-- The ordinary flattened segment of a generated child at one valuation.
+The operation is partial only on the source-shaped prefix computation; it does
+not choose a loop valuation or alter the child semantics. -/
+def GeneratedChildRef.segmentAt (r : GeneratedChildRef)
+    (child : Design2) (env : IEnv) (elems : List (String × Nat)) :
+    Except String (List Decl × List Process2) :=
+  match r.inst.prefix env with
+  | .error e => .error e
+  | .ok pfx => .ok (flattenInst env elems pfx r.inst child)
+
+theorem GeneratedChildRef.segmentAt_ok {r : GeneratedChildRef}
+    {child : Design2} {env : IEnv} {elems : List (String × Nat)} {pfx : String}
+    (hp : r.inst.prefix env = .ok pfx) :
+    r.segmentAt child env elems = .ok (flattenInst env elems pfx r.inst child) := by
+  simp [GeneratedChildRef.segmentAt, hp]
+
 /-- Read a generate-only family of child instances, preserving its nested
 headers and source order.  This is intentionally narrower than the eventual
 hierarchy summary: process/declaration/conditional siblings refuse loudly

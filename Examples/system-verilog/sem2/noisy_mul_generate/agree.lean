@@ -316,6 +316,7 @@ theorem noisy_generated_child_ref :
   · rfl
 
 
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
 
 namespace Examples.«system-verilog».sem2.noisy_mul_generate
@@ -324,6 +325,16 @@ def andEnv : IEnv := { int32 := true, dims := dimTable { int32 := true } andDef.
 
 theorem and_paramEnvH : andDef.paramEnvH { int32 := true } [] = .ok andEnv := by
   rfl
+
+theorem noisy_generated_child_segment :
+    CombHier.GeneratedChildRef.segmentAt
+        { loops := ppLoops, inst := andInst, child := andDef }
+        andDesign ((andEnv.bindVal "i" 0).bindVal "j" 0) [] =
+      .ok (flattenInst ((andEnv.bindVal "i" 0).bindVal "j" 0) []
+        "g_pp[0].g_pp_j[0].u_and." andInst andDesign) := by
+  apply CombHier.GeneratedChildRef.segmentAt_ok
+  exact andInst_prefix andEnv 0 0
+
 
 theorem and_decls : buildDecls andEnv andDef.decls = .ok andDesign.decls.toList := by
   simp [andDef, andDesign, andEnv, buildDecls, instDecl, PType.width_packed_nil]
