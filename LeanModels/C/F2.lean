@@ -2832,6 +2832,44 @@ theorem pairedReallocMetadata_preserves_wellFormed
           by simpa [renameMetadata] using hold.2⟩
       exact ⟨hold, htarget⟩
 
+theorem pairedReallocMetadata_preserves_lengths
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old request locations placement = some result) :
+    (match result.1.1 with
+    | .failed previous => previous.allocation.bytes.length = old.allocation.bytes.length
+    | .replaced fresh =>
+        fresh.allocation.bytes.length = request.bytes.length ∧
+          fresh.locations.length = locations.length) ∧
+    (match result.2.1 with
+    | .failed previous =>
+        previous.allocation.bytes.length =
+          (renameMetadata resolve 0 old).allocation.bytes.length
+    | .replaced fresh =>
+        fresh.allocation.bytes.length = (renameAllocationRequest resolve request).bytes.length ∧
+          fresh.locations.length = locations.length) := by
+  cases placement with
+  | address base =>
+      by_cases hsame : locations.length = request.bytes.length
+      · simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest, hsame] at hresult
+        rcases hresult with rfl
+        simp [renameAllocationRequest]
+      · simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest, hsame] at hresult
+  | unaddressable =>
+      by_cases hsame : locations.length = request.bytes.length
+      · simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest, hsame] at hresult
+        rcases hresult with rfl
+        simp [renameAllocationRequest]
+      · simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest, hsame] at hresult
+  | fail =>
+      simp [pairedReallocMetadata, reallocMetadata] at hresult
+      rcases hresult with rfl
+      simp [renameMetadata]
+
 theorem pairedReallocMetadata_refusal_source
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
