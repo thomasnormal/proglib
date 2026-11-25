@@ -69,6 +69,9 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   `arrayElemTarget_of_evalInt_eq`, and `fitExpr2_lit_env_irrel` are the
   environment-observational equations for mixed-depth packed selects and
   literal assignments.
+  `arrayElemRead_of_evalInt_eq`, `arraySelWidth_of_evalInt_eq`,
+  `fitExpr2_arrayElem_of_evalInt_eq`, and `bitSelTarget_genvar_irrel` extend
+  that equation to selected RHS values and constant bit-select targets.
   `CombHier.GeneratedNode.flattenSegments_append` and
   `generatedNodes_segmentAt_flatten_append_ok` compose adjacent source-order
   families without rebuilding or enumerating the surrounding generate bounds.
@@ -574,6 +577,52 @@ theorem arrayElemTarget_of_evalInt_eq
   unfold arrayElemTarget
   rw [arrayElemWindow_of_evalInt_eq env env' n is hdims h]
 
+/-- Value-position element selects have the same environment-observational
+equation as their target geometry. -/
+theorem arrayElemRead_of_evalInt_eq
+    (env env' : IEnv) (n : String) (is : List PExpr)
+    (hdims : env.dims.lookup n = env'.dims.lookup n)
+    (h : ∀ e, e ∈ is → evalInt env e = evalInt env' e) :
+    arrayElemRead env n is = arrayElemRead env' n is := by
+  unfold arrayElemRead
+  rw [arrayElemWindow_of_evalInt_eq env env' n is hdims h]
+
+/-- The self-width of an element select is stable under the same hypotheses.
+This is the width equation used by `fitExpr2` for a selected RHS. -/
+theorem arraySelWidth_of_evalInt_eq
+    (env env' : IEnv) (n : String) (is : List PExpr)
+    (hdims : env.dims.lookup n = env'.dims.lookup n)
+    (h : ∀ e, e ∈ is → evalInt env e = evalInt env' e) :
+    arraySelWidth env (.arrayElem n is) = arraySelWidth env' (.arrayElem n is) := by
+  unfold arraySelWidth
+  change (match arrayElemWindow env n is with
+    | .ok (_, w, _) => some w
+    | .error _ => none) =
+    (match arrayElemWindow env' n is with
+    | .ok (_, w, _) => some w
+    | .error _ => none)
+  rw [arrayElemWindow_of_evalInt_eq env env' n is hdims h]
+
+/-- `fitExpr2` preserves the environment-observational equation for a packed
+element-select, including its context-width decision. -/
+theorem fitExpr2_arrayElem_of_evalInt_eq
+    (env env' : IEnv) (elems : List (String × Nat)) (ctx : Option Nat)
+    (n : String) (is : List PExpr)
+    (hdims : env.dims.lookup n = env'.dims.lookup n)
+    (h : ∀ e, e ∈ is → evalInt env e = evalInt env' e) :
+    fitExpr2 env elems ctx (.arrayElem n is) =
+      fitExpr2 env' elems ctx (.arrayElem n is) := by
+  unfold fitExpr2
+  simp only [instExpr2]
+  cases ctx with
+  | none =>
+      rw [arrayElemRead_of_evalInt_eq env env' n is hdims h]
+  | some tw =>
+      simp only [rigidExpr]
+      simp only [selfWidth2]
+      rw [arraySelWidth_of_evalInt_eq env env' n is hdims h]
+      rw [arrayElemRead_of_evalInt_eq env env' n is hdims h]
+
 /-- A sized literal's `fitExpr2` result does not inspect the instantiation
 environment.  This closes the RHS side of mixed-depth continuous assignments
 after their target geometry has been related by `arrayElemTarget_of_evalInt_eq`.
@@ -584,5 +633,16 @@ theorem fitExpr2_lit_env_irrel
     fitExpr2 env elems ctx (.lit v) = fitExpr2 env' elems ctx (.lit v) := by
   unfold fitExpr2
   simp [rigidExpr, selfWidth2]
+
+/-- A constant bit-select target whose genvar has the same binding in two
+environments lowers identically.  This is the source-shaped companion to the
+packed element-select equation above. -/
+theorem bitSelTarget_genvar_irrel
+    (env env' : IEnv) (elems : List (String × Nat)) (n g : String) (v : Int)
+    (h : env.vals.lookup g = some v) (h' : env'.vals.lookup g = some v) :
+    instLhs2 env elems (.bitSel n (.genvarRef g)) =
+      instLhs2 env' elems (.bitSel n (.genvarRef g)) := by
+  unfold instLhs2 instLhsLeaf2 instIndex2
+  simp [h, h', evalInt, IEnv.bindVal, List.lookup, selfWidth2, instExpr2]
 
 end LeanModels.Sv

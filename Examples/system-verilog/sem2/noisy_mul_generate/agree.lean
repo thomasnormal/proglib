@@ -1643,6 +1643,52 @@ theorem noisy_row_left_process_bind_extra
       exact fitExpr2_lit_env_irrel (env.bindVal "i" i)
         ((env.bindVal "i" i).bindVal "j" j) elems (some p.2) ⟨#[Logic.l0]⟩
 
+theorem noisy_row_right_process_bind_extra
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    instProcess2 (env.bindVal "i" i) elems rowRight =
+      instProcess2 ((env.bindVal "i" i).bindVal "j" j) elems rowRight := by
+  simp only [instProcess2, rowRight]
+  rw [(noisy_row_lhs_bind_extra env elems i j).2]
+  generalize h : instLhs2 ((env.bindVal "i" i).bindVal "j" j) elems
+      (.arrayElem "s" [.genvarRef "i", .paramRef "N" none]) = r
+  cases r with
+  | error e => simp [h]
+  | ok p =>
+      simp [h]
+      exact fitExpr2_arrayElem_of_evalInt_eq
+        (env.bindVal "i" i) ((env.bindVal "i" i).bindVal "j" j)
+        elems (some p.2) "c" [.genvarRef "i", .paramRef "N" none]
+        (by rfl) (by
+          intro e he
+          simp only [List.mem_cons, List.mem_singleton] at he
+          rcases he with rfl | rfl | h
+          · simp [evalInt, IEnv.bindVal, List.lookup]
+          · rfl
+          · simp at h)
+
+theorem noisy_out_process_bind_extra
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    instProcess2 (env.bindVal "i" i) elems outProc =
+      instProcess2 ((env.bindVal "i" i).bindVal "j" j) elems outProc := by
+  simp only [instProcess2, outProc]
+  rw [bitSelTarget_genvar_irrel (env.bindVal "i" i) ((env.bindVal "i" i).bindVal "j" j) elems "p" "i" i (by simp) (by simp [IEnv.bindVal, List.lookup])]
+  generalize h : instLhs2 ((env.bindVal "i" i).bindVal "j" j) elems
+      (.bitSel "p" (.genvarRef "i")) = r
+  cases r with
+  | error e => simp [h]
+  | ok p =>
+      simp [h]
+      exact fitExpr2_arrayElem_of_evalInt_eq
+        (env.bindVal "i" i) ((env.bindVal "i" i).bindVal "j" j)
+        elems (some p.2) "s" [.genvarRef "i", .int 0]
+        (by rfl) (by
+          intro e he
+          simp only [List.mem_cons, List.mem_singleton] at he
+          rcases he with rfl | rfl | h
+          · simp [evalInt, IEnv.bindVal, List.lookup]
+          · rfl
+          · simp at h)
+
 theorem noisy_generated_source_segments
     (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
     noisyTopSourceNodes.mapM
