@@ -6609,6 +6609,18 @@ theorem allocateAligned_address_preserves_wellFormed
         exact ⟨hentries.1, ih hentries.2⟩
   exact append_wf store.allocations hstore
 
+theorem allocateAligned_empty_address_preserves_wellFormed
+    (store : Store Tag State) (state : State)
+    (base alignment : Nat) (result : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (haligned : alignmentAllowed base alignment = true)
+    (hresult : allocateAligned store { bytes := [], state := state }
+      (.address base) alignment = some result) :
+    WellFormed result.1 := by
+  exact allocateAligned_address_preserves_wellFormed store
+    { bytes := [], state := state } base alignment result hstore
+    (by simp [bytesWf]) haligned hresult
+
 theorem allocateAligned_unaddressable_result_counters
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (alignment : Nat) (result : Store Tag State × Footprint)
