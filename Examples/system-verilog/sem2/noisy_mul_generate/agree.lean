@@ -849,3 +849,39 @@ theorem noisy_row_expand_segments
       (by simp) hBound hValue hFuel hBody)
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
+
+namespace Examples.«system-verilog».sem2.noisy_mul_generate
+
+theorem noisy_bit_expand_segments
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N i : Int) (hFuel : N.toNat < F)
+    (f : Int → List Decl × List Process2)
+    (hBound : ∀ j : Int,
+      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
+    (hValue : ∀ j : Int,
+      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N)
+    (hBody : ∀ j : Int, 0 ≤ j → j < N →
+      expandListH cb ((env.bindVal "i" i).bindVal "j" j) elems F rowInnerBody =
+        .ok (f j)) :
+    expandListH cb (env.bindVal "i" i) elems F
+      [.genFor (some "g_bit") "j" (.int 0)
+        (.binary .slt (.genvarRef "j") (.paramRef "N" none))
+        (.unary .inc (.genvarRef "j")) (some 4) rowInnerBody] =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange 0 N.toNat).map fun j =>
+          { decls := (f j).1, processes := (f j).2 })) := by
+  apply expandListH_singleton_ok
+    (it := .genFor (some "g_bit") "j" (.int 0)
+      (.binary .slt (.genvarRef "j") (.paramRef "N" none))
+      (.unary .inc (.genvarRef "j")) (some 4) rowInnerBody)
+    (h := by simp [noisy_row_inner_instFree, GenItem.listInstFree, GenItem.instFree])
+  simpa [GeneratedChildSegment.flatten, List.flatMap_map] using
+    (generated_family_body_segments
+      (cb := cb) (env := env.bindVal "i" i) (elems := elems) (F := F)
+      (label := some "g_bit") (g := "j") (initE := .int 0)
+      (bound := .paramRef "N" none) (rc := some 4) (body := rowInnerBody)
+      (i0 := 0) (N := N) (f := f)
+      (by simp) hBound hValue (by simpa using hFuel)
+      hBody)
+
+end Examples.«system-verilog».sem2.noisy_mul_generate
