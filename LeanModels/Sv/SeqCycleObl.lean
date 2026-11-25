@@ -2191,7 +2191,7 @@ theorem CoreMemDesign.execV_forLoop_memoryLeafBody
     {it : String} {init condition step : PExpr} {body : PStmt} {values : List Int}
     (hshape : PStmt.memoryLeafB body = true)
     (hdecl : ∀ n ∈ body.writes, ∃ md, E.memDecl? n = some md)
-    (hvals : forValues2 env it init condition step = .ok values)
+    (hvals : forValues2Int32 env it init condition step = .ok values)
     (hbody : ∀ i, i ∈ values → ∃ mq,
       E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
       (∀ u ∈ mq, u.1 ∈ body.writes)) :
@@ -2251,7 +2251,7 @@ theorem CoreMemDesign.execV_forLoop_memoryLeafBody_of_success
   have hloop : PStmt.loopBodyB body = true := PStmt.memoryLeafB_loopBodyB body hshape
   have horig := h
   simp only [CoreMemDesign.execV, hloop, ↓reduceIte] at h
-  cases hvals : forValues2 env it init condition step with
+  cases hvals : forValues2Int32 env it init condition step with
   | timeout => simp [hvals] at h
   | unsupported msg => simp [hvals] at h
   | ok values =>
@@ -2301,7 +2301,7 @@ theorem CoreMemDesign.execV_if_forLoop_memoryLeafBody_of_success
   simp only [CoreMemDesign.execV, Res.bind_eq_ok] at h
   obtain ⟨cv, -, h⟩ := h
   split at h
-  · cases hvals : forValues2 env it init condition step with
+  · cases hvals : forValues2Int32 env it init condition step with
     | timeout => simp [hvals] at h
     | unsupported msg => simp [hvals] at h
     | ok values =>
@@ -2329,7 +2329,7 @@ theorem CoreMemDesign.execV_if_forLoop_memoryLeafBody
     (hdecl : ∀ n ∈ (PStmt.ifStmt guard (.forLoop it init condition step body) none).writes,
       ∃ md, E.memDecl? n = some md)
     {values : List Int}
-    (hvals : forValues2 env it init condition step = .ok values)
+    (hvals : forValues2Int32 env it init condition step = .ok values)
     (hbody : ∀ i, i ∈ values → ∃ mq,
       E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
       (∀ u ∈ mq, u.1 ∈ body.writes))
@@ -2360,7 +2360,7 @@ theorem CoreMemDesign.execV_if_forLoop_memoryLeafBody
 theorem CoreMemDesign.execV_forLoop_memory_records {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
     {it : String} {init condition step : PExpr} {body : PStmt} {values : List Int}
     (hloop : PStmt.loopBodyB body = true)
-    (hvals : forValues2 env it init condition step = .ok values)
+    (hvals : forValues2Int32 env it init condition step = .ok values)
     (hbody : ∀ i, ∃ mq, E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
       (∀ u ∈ mq, u.1 ∈ body.writes)) :
     ∃ mq, E.execV env v mv (.forLoop it init condition step body) = .ok (v, [], mq) ∧
@@ -2391,7 +2391,7 @@ theorem CoreMemDesign.execV_forLoop_memory_records_of_loopNbaMemory
     {E : CoreMemDesign} (env : IEnv) (v : SvState) (mv : MemV)
     {it : String} {init condition step : PExpr} {body : PStmt} {values : List Int}
     (hbodyP : PStmt.loopNbaMemory body = true)
-    (hvals : forValues2 env it init condition step = .ok values)
+    (hvals : forValues2Int32 env it init condition step = .ok values)
     (hbody : ∀ i, ∃ mq, E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
       (∀ u ∈ mq, u.1 ∈ body.writes)) :
     ∃ mq, E.execV env v mv (.forLoop it init condition step body) = .ok (v, [], mq) ∧

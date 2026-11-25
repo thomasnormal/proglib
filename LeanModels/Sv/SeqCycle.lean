@@ -1009,7 +1009,7 @@ theorem CoreMemDesign.execV_forLoop_memory {E : CoreMemDesign} (env : IEnv) (v :
     {it : String} {init condition step : PExpr} {body : PStmt} {values : List Int} (m : Int → MemQV)
     (hbody : ∀ i, E.execV (env.bindVal it i) v mv body = .ok (v, [], m i))
     (hloop : PStmt.loopBodyB body = true)
-    (hvals : forValues2 env it init condition step = .ok values) :
+    (hvals : forValues2Int32 env it init condition step = .ok values) :
     E.execV env v mv (.forLoop it init condition step body) =
       .ok (v, [], values.flatMap m) := by
   simp only [CoreMemDesign.execV, hloop, ↓reduceIte, hvals]
