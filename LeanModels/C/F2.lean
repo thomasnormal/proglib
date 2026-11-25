@@ -3182,6 +3182,16 @@ theorem pairedFreeMetadata_refusal_target
     pairedFreeMetadata resolve metadata = none := by
   simp [pairedFreeMetadata, htarget]
 
+theorem pairedFreeMetadata_refusal
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hrefusal : freeMetadata metadata = none ∨
+      freeMetadata (renameZeroTokenMetadata resolve metadata) = none) :
+    pairedFreeMetadata resolve metadata = none := by
+  rcases hrefusal with hsource | htarget
+  · simp [pairedFreeMetadata, hsource]
+  · simp [pairedFreeMetadata, htarget]
+
 theorem pairedFreeMetadata_footprints
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
