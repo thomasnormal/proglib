@@ -6606,6 +6606,29 @@ theorem pairedAllocateBounded_unaddressable_true
   simp [pairedAllocateBounded, allocateBounded, allocate, renamedPlacement,
     renameAllocationRequest]
 
+theorem pairedAllocateBounded_address_success_shape
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (base : Nat)
+    (alignment limit : Nat)
+    (hwithin : placementWithin base request.bytes.length limit = true)
+    (haligned : alignmentAllowed base alignment = true)
+    (htargetWithin : placementWithin (resolve store.nextId)
+      (renameAllocationRequest resolve request).bytes.length limit = true)
+    (htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true)
+    (hsource : placementAllowed store base request.bytes.length = true)
+    (htarget : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) (renameAllocationRequest resolve request).bytes.length = true) :
+    pairedAllocateBounded resolve store request (.address base) alignment limit = true := by
+  have htarget' : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) request.bytes.length = true := by
+    simpa [renameAllocationRequest] using htarget
+  have htargetWithin' : placementWithin (resolve store.nextId)
+      request.bytes.length limit = true := by
+    simpa [renameAllocationRequest] using htargetWithin
+  simp [pairedAllocateBounded, allocateBounded, renamedPlacement, hwithin, haligned,
+    htargetWithin, htargetWithin', htargetAligned, hsource, htarget, htarget', allocate,
+    renameAllocationRequest]
+
 theorem pairedAllocateBounded_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
