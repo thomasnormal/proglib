@@ -36,8 +36,22 @@ def rows(output):
             if line.startswith("ROW ")]
 
 
+def check_e0_refusal():
+    result = subprocess.run(
+        ["lake", "env", "lean", "--run", "harness/sv/runner_e0.lean",
+         str(SOURCE.with_suffix(".sv.json")), "harness/sv/cases2.json",
+         "preemptive_profile_blocking_refuse", "src"],
+        cwd=ROOT, text=True, stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT, timeout=180)
+    if result.returncode == 0 or "Schedule:preemptive" not in result.stdout:
+        raise RuntimeError("E-core-0 did not preserve Schedule:preemptive refusal:\n"
+                           + result.stdout)
+    print("E-core-0: Schedule:preemptive refusal preserved")
+
+
 def main():
     run(["lake", "env", "lean", str(HERE / "agree.lean")], ROOT)
+    check_e0_refusal()
     with tempfile.TemporaryDirectory(prefix="sv-preemptive-", dir=ROOT) as work:
         work = Path(work)
         tb = work / "tb.sv"

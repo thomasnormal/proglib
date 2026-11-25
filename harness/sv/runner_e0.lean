@@ -10,10 +10,12 @@ import Lean
 import LeanModels.Sv.Ingest2
 import LeanModels.Sv.Kernel.RunEArray
 import LeanModels.Sv.Kernel.Core0Entry
+import LeanModels.Sv.Kernel.CoreMemExec
 import LeanModels.Sv.HierarchyNode2
 
 open Lean (Json)
 open LeanModels.Sv
+open LeanModels.Sv.Kernel
 
 namespace SvHarnessE0
 
@@ -118,6 +120,13 @@ def main (argv : List String) : IO UInt32 := do
         match c.crossCheck with
         | [] => pure ()
         | msgs => .error s!"crossCheck REFUSED (module '{c.name}'): {String.intercalate " | " msgs}"
+      -- Keep E-core-0's parser-native admission boundary aligned with the
+      -- canonical source-shaped route.  Lowering a multi-write reactive body
+      -- before this check would erase the §4.7 suspension point and silently
+      -- admit a design whose intermediate write another process may observe.
+      match coreMemPreemptiveBlockingViolReport pd [] with
+      | none => pure ()
+      | some (kind, msg) => .error s!"{kind}: {msg}"
       let cj ← Json.parse casesText
       let fuel := (getFOpt cj "fuel").bind (·.getNat?.toOption) |>.getD 1000
       let case ← findCase (← getArrF cj "cases") caseName
