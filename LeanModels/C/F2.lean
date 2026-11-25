@@ -4209,6 +4209,18 @@ theorem freeMetadata_empty_result_footprint
   have hgeneral := freeMetadata_footprint_shape metadata result hresult
   simpa [hbytes] using hgeneral
 
+theorem freeMetadata_empty_preserves_lengths
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : freeMetadata metadata = some result) :
+    result.1.allocation.bytes.length = 0 ∧
+      result.1.locations.length = metadata.locations.length := by
+  have hpayload := freeMetadata_empty_preserves_payload metadata result hbytes hresult
+  have hlocations := freeMetadata_preserves_locations metadata result hresult
+  exact ⟨by simpa [hpayload.2] using List.length_nil,
+    congrArg List.length hlocations⟩
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
