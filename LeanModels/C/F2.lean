@@ -7242,6 +7242,31 @@ theorem pairedAllocate_address_success_shape
   simp [pairedAllocate, allocate, renamedPlacement, hsource, htarget,
     htarget', renameAllocationRequest]
 
+theorem pairedAllocate_empty_address_success_shape
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base : Nat)
+    (hsource : placementAllowed store base 0 = true)
+    (htarget : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) 0 = true) :
+    pairedAllocate resolve store { bytes := [], state := state } (.address base) =
+      some (
+        ({ allocations := store.allocations ++
+              [(store.nextId,
+                { live := true, address := some base,
+                  bytes := [], state := state })],
+            nextId := store.nextId + 1 },
+          footprint .metadata (Region.mk store.nextId 0 0)),
+        ({ allocations := (renameStore resolve store).allocations ++
+              [((renameStore resolve store).nextId,
+                { live := true, address := some (resolve store.nextId),
+                  bytes := [], state := state })],
+            nextId := (renameStore resolve store).nextId + 1 },
+          footprint .metadata
+            (Region.mk (renameStore resolve store).nextId 0 0))) := by
+  simpa [renameAllocationRequest] using
+    pairedAllocate_address_success_shape resolve store
+      { bytes := [], state := state } base hsource htarget
+
 theorem pairedAllocate_unaddressable_success_shape
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) :
