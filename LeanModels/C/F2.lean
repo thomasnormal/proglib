@@ -2836,6 +2836,12 @@ theorem allocateZeroSize_unaddressable_shape (state : State) :
       (.token { allocation := { live := true, address := none, bytes := [], state := state }, locations := [] },
         footprint .metadata (Region.mk 0 0 0)) := by
   rfl
+
+theorem allocateZeroSize_footprint (state : State) (placement : Placement) :
+    (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).2 =
+      footprint .metadata (Region.mk 0 0 0) := by
+  cases placement <;> rfl
+
 def renameZeroSizeOutcome (resolve : AllocId → Nat) :
     ZeroSizeOutcome Tag State TypeId → ZeroSizeOutcome Tag State TypeId
   | .null => .null
