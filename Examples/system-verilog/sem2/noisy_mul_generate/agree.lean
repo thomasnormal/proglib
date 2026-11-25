@@ -1588,6 +1588,61 @@ theorem noisy_top_source_paths_shape (i j : Int) :
       | .child ref => if ref.loops.length = 1 then [i] else [i, j])) := by
   rfl
 
+theorem noisy_row_targets_bind_extra
+    (env : IEnv) (i j : Int) :
+    arrayElemTarget (env.bindVal "i" i) "c"
+        [.genvarRef "i", .int 0] =
+      arrayElemTarget ((env.bindVal "i" i).bindVal "j" j) "c"
+        [.genvarRef "i", .int 0] ∧
+    arrayElemTarget (env.bindVal "i" i) "s"
+        [.genvarRef "i", .paramRef "N" none] =
+      arrayElemTarget ((env.bindVal "i" i).bindVal "j" j) "s"
+        [.genvarRef "i", .paramRef "N" none] := by
+  constructor
+  · apply arrayElemTarget_of_evalInt_eq
+    · rfl
+    · intro e he
+      simp only [List.mem_cons, List.mem_singleton] at he
+      rcases he with rfl | rfl | h
+      · simp [evalInt, IEnv.bindVal, List.lookup]
+      · rfl
+      · simp at h
+  · apply arrayElemTarget_of_evalInt_eq
+    · rfl
+    · intro e he
+      simp only [List.mem_cons, List.mem_singleton] at he
+      rcases he with rfl | rfl | h
+      · simp [evalInt, IEnv.bindVal, List.lookup]
+      · rfl
+      · simp at h
+
+theorem noisy_row_lhs_bind_extra
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    instLhs2 (env.bindVal "i" i) elems
+        (.arrayElem "c" [.genvarRef "i", .int 0]) =
+      instLhs2 ((env.bindVal "i" i).bindVal "j" j) elems
+        (.arrayElem "c" [.genvarRef "i", .int 0]) ∧
+    instLhs2 (env.bindVal "i" i) elems
+        (.arrayElem "s" [.genvarRef "i", .paramRef "N" none]) =
+      instLhs2 ((env.bindVal "i" i).bindVal "j" j) elems
+        (.arrayElem "s" [.genvarRef "i", .paramRef "N" none]) := by
+  simpa [instLhs2, instLhsLeaf2] using noisy_row_targets_bind_extra env i j
+
+theorem noisy_row_left_process_bind_extra
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    instProcess2 (env.bindVal "i" i) elems rowLeft =
+      instProcess2 ((env.bindVal "i" i).bindVal "j" j) elems rowLeft := by
+  simp only [instProcess2, rowLeft]
+  rw [(noisy_row_lhs_bind_extra env elems i j).1]
+  generalize h : instLhs2 ((env.bindVal "i" i).bindVal "j" j) elems
+      (.arrayElem "c" [.genvarRef "i", .int 0]) = r
+  cases r with
+  | error e => simp [h]
+  | ok p =>
+      simp [h]
+      exact fitExpr2_lit_env_irrel (env.bindVal "i" i)
+        ((env.bindVal "i" i).bindVal "j" j) elems (some p.2) ⟨#[Logic.l0]⟩
+
 theorem noisy_generated_source_segments
     (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
     noisyTopSourceNodes.mapM

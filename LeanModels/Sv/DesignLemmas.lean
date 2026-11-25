@@ -65,6 +65,10 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   equations without a tactic or a generated-list unrolling.
   `CombHier.assembleGeneratedPathsAt` is the mixed-depth variant for source
   bodies whose siblings sit under different enclosing generate paths.
+  `walkIndices_of_evalInt_eq`, `arrayElemWindow_of_evalInt_eq`,
+  `arrayElemTarget_of_evalInt_eq`, and `fitExpr2_lit_env_irrel` are the
+  environment-observational equations for mixed-depth packed selects and
+  literal assignments.
   `CombHier.GeneratedNode.flattenSegments_append` and
   `generatedNodes_segmentAt_flatten_append_ok` compose adjacent source-order
   families without rebuilding or enumerating the surrounding generate bounds.
@@ -515,5 +519,70 @@ theorem generated_child_prefix_two
     exact hG (beq_iff_eq.mp h)
   simp [PInst.prefix, hpath, PInst.pathPrefix, IEnv.bindVal, List.lookup,
     String.append_assoc, hbeq, Functor.map, Except.map]
+
+/-- Element-select geometry is independent of unrelated constant bindings.
+This is the environment-observational equation needed when a process under an
+outer generate loop is read beside a child under an additional inner loop:
+the dimensions are the same and every selected index evaluates the same. -/
+theorem walkIndices_of_evalInt_eq
+    (env env' : IEnv) (ds : List (Int × Int)) (is : List PExpr)
+    (h : ∀ e, e ∈ is → evalInt env e = evalInt env' e) :
+    walkIndices env ds is = walkIndices env' ds is := by
+  induction ds generalizing is with
+  | nil =>
+      cases is <;> rfl
+  | cons d ds ih =>
+      cases is with
+      | nil => rfl
+      | cons e es =>
+          simp only [walkIndices]
+          rw [show evalInt env e = evalInt env' e from h e (by simp)]
+          rw [ih (is := es) (fun e' he' => h e' (by simp [he']))]
+
+/-- Packed element-select geometry is stable under an irrelevant environment
+extension, provided the declaration's dimension lookup and all index values
+are stable. -/
+theorem arrayElemWindow_of_evalInt_eq
+    (env env' : IEnv) (n : String) (is : List PExpr)
+    (hdims : env.dims.lookup n = env'.dims.lookup n)
+    (h : ∀ e, e ∈ is → evalInt env e = evalInt env' e) :
+    arrayElemWindow env n is = arrayElemWindow env' n is := by
+  unfold arrayElemWindow arrayDims
+  cases hL : env.dims.lookup n with
+  | none =>
+      have hL' : env'.dims.lookup n = none := by rw [← hdims, hL]
+      simp [hL, hL']
+      rfl
+  | some ds =>
+      have hL' : env'.dims.lookup n = some ds := by rw [← hdims, hL]
+      simp only [hL, hL', Except.bind, Except.pure, pure]
+      change (do
+        let x ← walkIndices env ds is
+        Except.ok (x.1, dimsStride x.2.2, x.2.1)) =
+        (do
+        let x ← walkIndices env' ds is
+        Except.ok (x.1, dimsStride x.2.2, x.2.1))
+      rw [walkIndices_of_evalInt_eq env env' ds is h]
+
+/-- Target lowering preserves the same irrelevant-environment equation as the
+underlying element geometry. -/
+theorem arrayElemTarget_of_evalInt_eq
+    (env env' : IEnv) (n : String) (is : List PExpr)
+    (hdims : env.dims.lookup n = env'.dims.lookup n)
+    (h : ∀ e, e ∈ is → evalInt env e = evalInt env' e) :
+    arrayElemTarget env n is = arrayElemTarget env' n is := by
+  unfold arrayElemTarget
+  rw [arrayElemWindow_of_evalInt_eq env env' n is hdims h]
+
+/-- A sized literal's `fitExpr2` result does not inspect the instantiation
+environment.  This closes the RHS side of mixed-depth continuous assignments
+after their target geometry has been related by `arrayElemTarget_of_evalInt_eq`.
+-/
+theorem fitExpr2_lit_env_irrel
+    (env env' : IEnv) (elems : List (String × Nat)) (ctx : Option Nat)
+    (v : LVec) :
+    fitExpr2 env elems ctx (.lit v) = fitExpr2 env' elems ctx (.lit v) := by
+  unfold fitExpr2
+  simp [rigidExpr, selfWidth2]
 
 end LeanModels.Sv
