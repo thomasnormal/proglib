@@ -2919,6 +2919,23 @@ theorem pairedAllocateZeroSize_both_token
       resolve state placement = true := by
   cases placement <;> simp [pairedAllocateZeroSize, allocateZeroSize]
 
+theorem allocateZeroSize_token_wellFormed
+    {Tag State TypeId : Type} (state : State) (placement : Placement)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hresult : (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).1 =
+      .token metadata) :
+    metadata.wellFormed 0 := by
+  cases placement with
+  | fail => simp [allocateZeroSize] at hresult
+  | address base =>
+      simp [allocateZeroSize] at hresult
+      rcases hresult with rfl
+      simp [AllocationMetadata.wellFormed, bytesWf]
+  | unaddressable =>
+      simp [allocateZeroSize] at hresult
+      rcases hresult with rfl
+      simp [AllocationMetadata.wellFormed, bytesWf]
+
 inductive ReallocZeroOutcome where
   | freedNull
   | refusedUndefined
