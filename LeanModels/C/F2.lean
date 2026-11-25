@@ -6874,6 +6874,24 @@ theorem pairedAllocateAligned_empty_address_result_footprints
       (by simpa [renameAllocationRequest, renamedPlacement] using htargetAligned)
       (by simpa [renameAllocationRequest, renamedPlacement] using htarget)⟩
 
+theorem pairedAllocateAligned_empty_unaddressable_result_footprints
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment : Nat)
+    (source target : Store Tag State × Footprint)
+    (hsource : allocateAligned store { bytes := [], state := state }
+      .unaddressable alignment = some source)
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      .unaddressable alignment = some target) :
+    source.2 = footprint .metadata (Region.mk store.nextId 0 0) ∧
+      target.2 = footprint .metadata
+        (Region.mk (renameStore resolve store).nextId 0 0) := by
+  exact ⟨allocateAligned_empty_unaddressable_result_footprint store state
+      alignment source hsource,
+    allocateAligned_empty_unaddressable_result_footprint (renameStore resolve store)
+      state alignment target
+      (by simpa [renameAllocationRequest] using htarget)⟩
+
 theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
