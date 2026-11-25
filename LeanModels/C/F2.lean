@@ -4180,9 +4180,23 @@ theorem freePointer_live_shape
     freePointer (some metadata) = .freed := by
   simp [freePointer, hlive]
 
+theorem freePointer_empty_live_shape
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hlive : metadata.allocation.live = true)
+    (hbytes : metadata.allocation.bytes = []) :
+    freePointer (some metadata) = .freed := by
+  simp [freePointer, hlive]
+
 theorem freePointer_dead_shape
     (metadata : AllocationMetadata Tag State TypeId)
     (hdead : metadata.allocation.live = false) :
+    freePointer (some metadata) = .stalePointer := by
+  simp [freePointer, hdead]
+
+theorem freePointer_empty_dead_shape
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hdead : metadata.allocation.live = false)
+    (hbytes : metadata.allocation.bytes = []) :
     freePointer (some metadata) = .stalePointer := by
   simp [freePointer, hdead]
 
