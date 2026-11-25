@@ -197,6 +197,8 @@ theorem arstF_known (N : Nat) (v dt : SvState) (r0 r e : BitVec 1) (d q : BitVec
 /-- **The register's claim** about the samples of a run (pre and post of each cycle). -/
 def ArstClaim (N : Nat) (tr : List (SvState × SvState)) : Prop :=
   ∀ (c : Nat) (pc : SvState × SvState), tr[c]? = some pc →
+    DecisionKnown ((SvState.lookup pc.1 "rst_n").getD (LVec.xVec 1)) →
+    DecisionKnown ((SvState.lookup pc.1 "en").getD (LVec.xVec 1)) →
     -- a cycle that sees `rst_n = 0` shows `q = 0` after its edge
     (SvState.lookup pc.1 "rst_n" = some (LVec.ofNat 1 0) → SvState.lookup pc.2 "q" = some (LVec.ofNat N 0)) ∧
     -- asynchronous: when `rst_n` falls from 1 to 0, the pre sample (before the clock edge) already shows `q = 0`
@@ -240,7 +242,7 @@ theorem prev_cycle (N : Nat) (v : SvState) (ins : List SvState) (c : Nat) (pp : 
 
 /-- **The claim from the cycle function**, cycle by cycle. -/
 theorem arstClaim_of_runF (N : Nat) (v : SvState) (ins : List SvState) : ArstClaim N (runF (arstF N) v ins) := by
-  intro c pc hpc
+  intro c pc hpc _ _
   rw [runF_getElem?] at hpc
   cases hin : ins[c]? with
   | none => simp [hin] at hpc
