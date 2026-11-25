@@ -4745,6 +4745,23 @@ theorem pairedPointerEqual_equal_choice_unprovenanced
               | some p => simp [hright'] at hright
           | some p => simp [hleft'] at hleft
 
+theorem pairedPointerEqual_equal_choice_same_pointer
+    (resolve : AllocId → Nat) (left right : Pointer Tag)
+    (haddress : left.address = right.address)
+    (hprovenance : left.provenance = right.provenance) :
+    pairedPointerEqual resolve left right .equal = true := by
+  cases left with
+  | mk leftProvenance leftAddress =>
+      cases right with
+      | mk rightProvenance rightAddress =>
+          have haddress' : leftAddress = rightAddress := by simpa using haddress
+          have hprovenance' : leftProvenance = rightProvenance := by
+            simpa using hprovenance
+          cases haddress'
+          cases hprovenance'
+          exact pairedPointerEqual_self resolve
+            { provenance := leftProvenance, address := leftAddress } .equal
+
 theorem pairedPointerEqual_equal_choice_both_refused
     (resolve : AllocId → Nat) (left right : Pointer Tag)
     (hleft : (left.address == right.address) = false)
