@@ -1532,6 +1532,14 @@ theorem generatedPaths_segmentAtPath_mapM_ok
       rw [htail]
       rfl
 
+theorem mapM_append_ok {α β : Type} {f : α → Except String β}
+    {l₁ l₂ : List α} {g : α → β}
+    (h₁ : l₁.mapM f = .ok (l₁.map g))
+    (h₂ : l₂.mapM f = .ok (l₂.map g)) :
+    (l₁ ++ l₂).mapM f = .ok ((l₁ ++ l₂).map g) := by
+  simp [List.mapM_append, h₁, h₂]
+  rfl
+
 theorem assembleGeneratedPathsAt_of_segments
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
     (elems : List (String × Nat))
