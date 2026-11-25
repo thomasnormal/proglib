@@ -1358,6 +1358,20 @@ theorem noisy_top_generated_pairs_fst :
     noisyTopGeneratedPairs.map Prod.fst = noisyTopGeneratedRefs := by
   rfl
 
+theorem noisy_top_generated_segments_flatten_map
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    GeneratedChildSegment.flatten
+        (noisyTopGeneratedPairs.map fun r =>
+          let p := noisyTopGeneratedPairSegment env elems i j r
+          { decls := p.1, processes := p.2 }) =
+      (noisyTopGeneratedPairs.flatMap fun r =>
+        (noisyTopGeneratedPairSegment env elems i j r).1,
+       noisyTopGeneratedPairs.flatMap fun r =>
+        (noisyTopGeneratedPairSegment env elems i j r).2) := by
+  simpa [List.map_map, List.flatMap_map, Function.comp_def] using
+    (GeneratedChildSegment.flatten_map_pair
+      (noisyTopGeneratedPairs.map fun r => noisyTopGeneratedPairSegment env elems i j r))
+
 theorem noisy_top_child_instance_names_nodup :
     (noisyTopGeneratedRefs.map (fun r => r.inst.name)).Nodup := by
   decide
