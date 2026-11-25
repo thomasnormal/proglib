@@ -5658,6 +5658,46 @@ theorem pairedAllocateAligned_sound
       | none => simp [pairedAllocateAligned, hs, ht] at h
       | some target => exact Or.inl ⟨source, target, rfl, rfl⟩
 
+theorem pairedAllocateAligned_preserves_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment : Nat) (source target : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hsourceBytes : bytesWf store.nextId request.bytes)
+    (htargetBytes : bytesWf (renameStore resolve store).nextId
+      (renameAllocationRequest resolve request).bytes)
+    (hsource : allocateAligned store request placement alignment = some source)
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve request)
+      (renamedPlacement resolve store.nextId placement) alignment = some target) :
+    WellFormed source.1 ∧ WellFormed target.1 := by
+  cases placement with
+  | address base =>
+      have hsourceAligned : alignmentAllowed base alignment = true := by
+        by_cases h : alignmentAllowed base alignment = true
+        · exact h
+        · simp [allocateAligned, h] at hsource
+      have htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true := by
+        have htarget' := htarget
+        simp [allocateAligned, renamedPlacement] at htarget'
+        by_cases h : alignmentAllowed (resolve store.nextId) alignment = true
+        · exact h
+        · simp [h] at htarget'
+      exact ⟨allocateAligned_address_preserves_wellFormed store request base alignment
+          source hstore hsourceBytes hsourceAligned hsource,
+        allocateAligned_address_preserves_wellFormed (renameStore resolve store)
+          (renameAllocationRequest resolve request) (resolve store.nextId) alignment target
+          (renameStore_preserves_wellFormed resolve store hstore) htargetBytes
+          htargetAligned htarget⟩
+  | unaddressable =>
+      exact ⟨allocateAligned_unaddressable_preserves_wellFormed store request alignment
+          source hstore hsourceBytes hsource,
+        allocateAligned_unaddressable_preserves_wellFormed (renameStore resolve store)
+          (renameAllocationRequest resolve request) alignment target
+          (renameStore_preserves_wellFormed resolve store hstore) htargetBytes htarget⟩
+  | fail =>
+      simp [allocateAligned, allocate] at hsource
+
 theorem pairedAllocateAligned_refusal_source
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
