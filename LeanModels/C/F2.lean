@@ -1085,6 +1085,14 @@ def typedLoadMetadataByte [BEq TypeId]
   | .untyped => none
   | .padding | .indeterminate => none
 
+theorem typedLoadMetadataByte_empty_none
+    [BEq TypeId]
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId)
+    (hbytes : metadata.allocation.bytes = []) :
+    typedLoadMetadataByte metadata offset typeId = none := by
+  simp [typedLoadMetadataByte, hbytes]
+
 theorem typedLoadMetadataByte_outOfBounds
     [BEq TypeId]
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
