@@ -55,6 +55,13 @@ clock x policy remain outside the proved relation. The packet's NBA commit
 is atomic and its input-before-wake ordering is still an explicit design
 choice, so neither is treated as an IEEE-complete rule here.
 
+The draft admission predicate also checks only resolved nets and process
+kinds. It does not reject nonempty primitive, `$readmemh`, or declaration
+initializer metadata, although none of those regions is executed by
+`NdState.begin` or by the step function. Those fields need an explicit
+admission condition or a start-state rule before the packet can claim the
+documented refusal boundary.
+
 The relation's store is extensional. It contains declared scalar values,
 memory identities and addressed memory cells, aggregate cells, and the
 pending semantic queues needed by a slot. Executor caches such as compiled
