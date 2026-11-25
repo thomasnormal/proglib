@@ -1403,4 +1403,72 @@ theorem noisy_top_generated_segments_explicit
   rw [noisy_top_generated_segments]
   rfl
 
+def noisyTopGeneratedNodes : List CombHier.GeneratedNode :=
+  noisyTopGeneratedRefs.map CombHier.GeneratedNode.child
+
+def noisyTopNodeChild (r : CombHier.GeneratedChildRef) : Except String Design2 :=
+  if r.inst.name == andInst.name then
+    .ok andDesign
+  else if r.inst.name == xorInst.name then
+    .ok xorDesign
+  else if r.inst.name == xorSInst.name then
+    .ok xorDesign
+  else
+    .ok majDesign
+
+def noisyTopNodeDesign (r : CombHier.GeneratedChildRef) : Design2 :=
+  if r.inst.name == andInst.name then
+    andDesign
+  else if r.inst.name == xorInst.name then
+    xorDesign
+  else if r.inst.name == xorSInst.name then
+    xorDesign
+  else
+    majDesign
+
+def noisyTopNodeSegment
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    CombHier.GeneratedNode → List Decl × List Process2
+  | .child r =>
+      noisyTopGeneratedPairSegment env elems i j (r, noisyTopNodeDesign r)
+  | .process _ p => ([], [instProcess2 ((env.bindVal "i" i).bindVal "j" j) elems p])
+
+theorem noisy_top_generated_node_segments
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    noisyTopGeneratedNodes.mapM
+      (fun n => n.segmentAt noisyTopNodeChild
+        ((env.bindVal "i" i).bindVal "j" j) elems) =
+      .ok (noisyTopGeneratedNodes.map (noisyTopNodeSegment env elems i j)) := by
+  apply (CombHier.generatedNodes_segmentAt_mapM_ok
+    (ns := noisyTopGeneratedNodes)
+    (child := noisyTopNodeChild)
+    (env := (env.bindVal "i" i).bindVal "j" j)
+    (elems := elems)
+    (seg := noisyTopNodeSegment env elems i j))
+  intro n hn
+  simp only [noisyTopGeneratedNodes, List.mem_map] at hn
+  obtain ⟨r, hr, rfl⟩ := hn
+  simp only [noisyTopGeneratedRefs, List.mem_cons] at hr
+  rcases hr with rfl | hr
+  · apply CombHier.GeneratedNode.segmentAt_child
+    · simp [noisyTopNodeChild, andInst]
+    · simpa [noisyTopNodeSegment, noisyTopGeneratedPairSegment, noisyTopNodeChild]
+        using andInst_prefix env i j
+  rcases hr with rfl | hr
+  · apply CombHier.GeneratedNode.segmentAt_child
+    · simp [noisyTopNodeChild, xorInst, andInst]
+    · simpa [noisyTopNodeSegment, noisyTopGeneratedPairSegment, noisyTopNodeChild]
+        using xorInst_prefix env i j
+  rcases hr with rfl | hr
+  · apply CombHier.GeneratedNode.segmentAt_child
+    · simp [noisyTopNodeChild, xorSInst, andInst, xorInst]
+    · simpa [noisyTopNodeSegment, noisyTopGeneratedPairSegment, noisyTopNodeChild]
+        using xorS_prefix env i j
+  rcases hr with rfl | hr
+  · apply CombHier.GeneratedNode.segmentAt_child
+    · simp [noisyTopNodeChild, majInst, andInst, xorInst, xorSInst]
+    · simpa [noisyTopNodeSegment, noisyTopGeneratedPairSegment, noisyTopNodeChild]
+        using majInst_prefix env i j
+  simp at hr
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
