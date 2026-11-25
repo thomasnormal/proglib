@@ -1316,4 +1316,21 @@ theorem noisy_top_generated_segments
       (CombHier.GeneratedChildRef.segmentAt_ok (majInst_prefix env i j))
   simp at hr
 
+theorem noisy_top_generated_segments_explicit
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    noisyTopGeneratedPairs.mapM
+      (fun r => r.1.segmentAt r.2
+        ((env.bindVal "i" i).bindVal "j" j) elems) =
+      .ok [
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.") andInst andDesign,
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst xorDesign,
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst xorDesign,
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst majDesign] := by
+  rw [noisy_top_generated_segments]
+  rfl
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
