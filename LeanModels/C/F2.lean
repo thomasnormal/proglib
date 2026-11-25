@@ -3213,6 +3213,27 @@ theorem pairedReallocMetadata_preserves_payload
       rcases hresult with rfl
       simp
 
+theorem pairedReallocMetadata_empty_result_payload
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (state : State) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old { bytes := [], state := state }
+      [] placement = some result) :
+    (match result.1.1 with
+    | .failed previous => previous = old
+    | .replaced fresh =>
+        fresh.allocation.bytes = [] ∧ fresh.allocation.state = state ∧
+          fresh.locations = []) ∧
+    (match result.2.1 with
+    | .failed previous => previous = renameMetadata resolve 0 old
+    | .replaced fresh =>
+        fresh.allocation.bytes = [] ∧ fresh.allocation.state = state ∧
+          fresh.locations = []) := by
+  exact pairedReallocMetadata_preserves_payload resolve old
+    { bytes := [], state := state } [] placement result hresult
+
 theorem pairedReallocMetadata_preserves_liveness
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
