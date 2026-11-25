@@ -251,7 +251,9 @@ def SettledTrace
     (trace : List ObsState) : Prop :=
   TraceRun E g x init inputs trace
 
-def RefusalTrace (init : SlotState) (inputs : List InputBatch)
+def RefusalTrace
+    (E : CoreMemDesign) (g : Granularity) (x : XResolution)
+    (init : SlotState) (inputs : List InputBatch)
     (finish : SlotState) (reason : RelRefusal) : Prop := ...
 
 def SettledRun
@@ -266,7 +268,7 @@ def RefusedRun
     (init : SlotState) (inputs : List InputBatch)
     (reason : RelRefusal) : Prop :=
   ∃ finish, RefusedSlotRun E g x init finish reason ∧
-    RefusalTrace init inputs finish reason
+    RefusalTrace E g x init inputs finish reason
 
 def Diverges
     (step : α → α → Prop) (start : α) : Prop :=
