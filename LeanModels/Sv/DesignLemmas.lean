@@ -65,6 +65,8 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   equations without a tactic or a generated-list unrolling.
   `CombHier.assembleGeneratedPathsAt` is the mixed-depth variant for source
   bodies whose siblings sit under different enclosing generate paths.
+  `CombHier.generatedPaths_segmentAtPath_mapM_ok` is its source-order map
+  equation, with one explicit valuation list per retained node.
   `walkIndices_of_evalInt_eq`, `arrayElemWindow_of_evalInt_eq`,
   `arrayElemTarget_of_evalInt_eq`, and `fitExpr2_lit_env_irrel` are the
   environment-observational equations for mixed-depth packed selects and

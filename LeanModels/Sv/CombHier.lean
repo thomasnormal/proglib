@@ -1512,6 +1512,26 @@ theorem assembleGeneratedPathsAt_of_ok
   rw [hseg]
   rfl
 
+theorem generatedPaths_segmentAtPath_mapM_ok
+    {paths : List (GeneratedNode × List Int)}
+    {child : GeneratedChildRef → Except String Design2}
+    {env : IEnv} {elems : List (String × Nat)}
+    {seg : GeneratedNode × List Int → List Decl × List Process2}
+    (hok : ∀ p ∈ paths,
+      p.1.segmentAtPath child env p.2 elems = .ok (seg p)) :
+    paths.mapM (fun p => p.1.segmentAtPath child env p.2 elems) =
+      .ok (paths.map seg) := by
+  induction paths with
+  | nil => rfl
+  | cons p ps ih =>
+      simp only [List.mapM_cons]
+      rw [hok p (by simp)]
+      have htail : ps.mapM (fun p => p.1.segmentAtPath child env p.2 elems) =
+          .ok (ps.map seg) :=
+        ih (fun p hp => hok p (by simp [hp]))
+      rw [htail]
+      rfl
+
 theorem assembleGeneratedPathsAt_of_segments
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
     (elems : List (String × Nat))

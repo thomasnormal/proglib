@@ -1689,6 +1689,75 @@ theorem noisy_out_process_bind_extra
           · rfl
           · simp at h)
 
+def noisyTopSourcePathSegment
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    CombHier.GeneratedNode × List Int → List Decl × List Process2
+  | (node, _) => noisyTopSourceNodeSegment env elems i j node
+
+theorem noisy_generated_source_paths_segments
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    (noisyTopSourcePaths i j).mapM
+        (fun p => p.1.segmentAtPath noisyTopNodeChild env p.2 elems) =
+      .ok ((noisyTopSourcePaths i j).map
+        (noisyTopSourcePathSegment env elems i j)) := by
+  apply CombHier.generatedPaths_segmentAtPath_mapM_ok
+  intro p hp
+  simp only [noisyTopSourcePaths, List.mem_cons, List.not_mem_nil, or_false] at hp
+  rcases hp with rfl | rfl | rfl | rfl | rfl | rfl | rfl
+  · apply CombHier.GeneratedNode.segmentAtPath_of_bind
+    · rfl
+    · apply CombHier.GeneratedNode.segmentAt_child
+      · simp [noisyTopNodeChild, andInst]
+      · simpa [noisyTopNodeSegment, noisyTopGeneratedPairSegment] using
+          andInst_prefix env i j
+  · apply CombHier.GeneratedNode.segmentAtPath_of_bind
+    · rfl
+    · simp only [CombHier.GeneratedNode.segmentAt_process, noisyTopSourcePathSegment, noisyTopSourceNodeSegment, noisyTopNodeSegment, rowSourceLoop]
+      exact congrArg (fun p => Except.ok ([], [p])) (noisy_row_left_process_bind_extra env elems i j)
+  · apply CombHier.GeneratedNode.segmentAtPath_of_bind
+    · rfl
+    · apply CombHier.GeneratedNode.segmentAt_child
+      · simp [noisyTopNodeChild, xorInst, andInst]
+      · simpa [rowSourceLoop, bitSourceLoop, noisyTopNodeSegment, noisyTopGeneratedPairSegment] using
+          xorInst_prefix env i j
+  · apply CombHier.GeneratedNode.segmentAtPath_of_bind
+    · rfl
+    · apply CombHier.GeneratedNode.segmentAt_child
+      · simp [noisyTopNodeChild, xorSInst, andInst, xorInst]
+      · simpa [rowSourceLoop, bitSourceLoop, noisyTopNodeSegment, noisyTopGeneratedPairSegment] using
+          xorS_prefix env i j
+  · apply CombHier.GeneratedNode.segmentAtPath_of_bind
+    · rfl
+    · apply CombHier.GeneratedNode.segmentAt_child
+      · simp [noisyTopNodeChild, majInst, andInst, xorInst, xorSInst]
+      · simpa [rowSourceLoop, bitSourceLoop, noisyTopNodeSegment, noisyTopGeneratedPairSegment] using
+          majInst_prefix env i j
+  · apply CombHier.GeneratedNode.segmentAtPath_of_bind
+    · rfl
+    · simp only [CombHier.GeneratedNode.segmentAt_process, noisyTopSourcePathSegment, noisyTopSourceNodeSegment, noisyTopNodeSegment, rowSourceLoop]
+      exact congrArg (fun p => Except.ok ([], [p])) (noisy_row_right_process_bind_extra env elems i j)
+  · apply CombHier.GeneratedNode.segmentAtPath_of_bind
+    · rfl
+    · simp only [CombHier.GeneratedNode.segmentAt_process, noisyTopSourcePathSegment, noisyTopSourceNodeSegment, noisyTopNodeSegment, outSourceLoop]
+      exact congrArg (fun p => Except.ok ([], [p])) (noisy_out_process_bind_extra env elems i j)
+
+theorem noisy_generated_source_paths_assemble
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int)
+    (decls idecls : List Decl) :
+    CombHier.assembleGeneratedPathsAt noisyMul.pdesign env decls idecls elems
+        (noisyTopSourcePaths i j) noisyTopNodeChild =
+      .ok (noisyMul.pdesign.assembleH env decls
+        (idecls ++
+          (CombHier.GeneratedNode.flattenSegments
+            ((noisyTopSourcePaths i j).map
+              (noisyTopSourcePathSegment env elems i j))).1)
+        elems
+        (CombHier.GeneratedNode.flattenSegments
+          ((noisyTopSourcePaths i j).map
+            (noisyTopSourcePathSegment env elems i j))).2) := by
+  apply CombHier.assembleGeneratedPathsAt_of_ok
+  exact noisy_generated_source_paths_segments env elems i j
+
 theorem noisy_generated_source_segments
     (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
     noisyTopSourceNodes.mapM
