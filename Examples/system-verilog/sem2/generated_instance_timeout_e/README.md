@@ -7,3 +7,6 @@ loads and runs through the ordinary route under IEEE 1800-2023 §§23.3 and
 
 This is the clean-room `blk_generated_instance_timeout` shape, with two
 sequential child instances per generated lane and the same `mid[k]` wiring.
+
+The current receipt covers the generated two-stage child-instance timeout
+family from the wall packet. Four rows agree with both pinned simulators.
