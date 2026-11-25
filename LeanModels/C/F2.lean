@@ -6148,6 +6148,21 @@ theorem pairedAllocateMetadata_refusal_target
     pairedAllocateMetadata resolve id request locations placement = false := by
   simp [pairedAllocateMetadata, hsource, htarget]
 
+theorem pairedAllocateMetadata_refusal
+    (resolve : AllocId → Nat) (id : AllocId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (hrefusal : allocateMetadata request locations placement = none ∧
+      allocateMetadata (renameAllocationRequest resolve request) locations
+        (renamedPlacement resolve id placement) = some target ∨
+      allocateMetadata request locations placement = some source ∧
+      allocateMetadata (renameAllocationRequest resolve request) locations
+        (renamedPlacement resolve id placement) = none) :
+    pairedAllocateMetadata resolve id request locations placement = false := by
+  rcases hrefusal with ⟨hsource, htarget⟩ | ⟨hsource, htarget⟩
+  · simp [pairedAllocateMetadata, hsource, htarget]
+  · simp [pairedAllocateMetadata, hsource, htarget]
+
 #guard (allocate (Tag := Unit) (State := Unit)
   { allocations := [], nextId := 0 }
   { bytes := [Byte.uninitialized], state := () } (Placement.address 16)).isSome
