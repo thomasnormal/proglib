@@ -1155,6 +1155,16 @@ def pairedTypedLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     some (sourceResult, targetResult)
   else none
 
+theorem pairedTypedLoadMetadataByte_empty_none
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId)
+    (hbytes : metadata.allocation.bytes = []) :
+    pairedTypedLoadMetadataByte resolve id metadata offset typeId = none := by
+  simp [pairedTypedLoadMetadataByte, typedLoadMetadataByte,
+    renameMetadata, hbytes]
+
 theorem pairedTypedLoadMetadataByte_decompose
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
