@@ -4600,6 +4600,11 @@ theorem pairedAlignmentAllowed_both_allowed (resolve : AllocId → Nat)
     pairedAlignmentAllowed resolve id alignment = true := by
   simp [pairedAlignmentAllowed, hsource, htarget]
 
+theorem pairedAlignmentAllowed_zero
+    (resolve : AllocId → Nat) (id : Nat) :
+    pairedAlignmentAllowed resolve id 0 = true := by
+  simp [pairedAlignmentAllowed, alignmentAllowed]
+
 theorem pairedAlignmentAllowed_sound (resolve : AllocId → Nat)
     (id alignment : Nat)
     (h : pairedAlignmentAllowed resolve id alignment = true) :
