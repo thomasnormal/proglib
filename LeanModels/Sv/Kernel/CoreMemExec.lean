@@ -3548,6 +3548,153 @@ def CoreMemDesign.copyAggregateRoot (E : CoreMemDesign) (st : CoreMemState)
   | none, _ => .unsupported s!"23.2.2: aggregate output target '{target}' is undeclared"
   | _, none => .unsupported s!"23.2.2: aggregate output source '{source}' is undeclared"
 
+/-! Verbatim pre-arrayBitSel definition retained for the conservativity audit. -/
+def CoreMemDesign.settleAssignAtBeforeArrayBitSel (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
+    (st : CoreMemState) (view : SvState) (index : Nat) : List CoreMemProc →
+    Res (CoreMemState × SvState)
+  | [] => .ok (st, view)
+  | .primitive op target inputs :: rest =>
+      match target, inputs with
+      | .ident name, [left, right] => do
+          let width ← match E.scalarWidth? name with
+            | some w => .ok w
+            | none => .unsupported s!"28: primitive target '{name}' is undeclared"
+          let a ← E.evalExprLocals env elems st none view left
+          let b ← E.evalExprLocals env elems st none view right
+          let value := match op with
+            | "and" => evalBinOp .land a b
+            | "or" => evalBinOp .lor a b
+            | "xor" => evalBinOp .xor a b
+            | "xnor" => evalUnaryOp .bnot (evalBinOp .xor a b)
+            | _ => LVec.xVec width
+          let st' := E.setScalarState st name (value.resizeU width)
+          E.settleAssignAtBeforeArrayBitSel env elems st' (E.scalar.view st'.scalar) (index + 1) rest
+      | _, _ => .unsupported s!"28: unsupported primitive '{op}' arity or target"
+  | .assign target value :: rest => do
+      match target with
+      | .aggregateMember targetBase [] =>
+          match value with
+          | .aggregateMember sourceBase [] => do
+              let st' ← E.copyAggregateRoot st targetBase sourceBase
+              E.settleAssignAtBeforeArrayBitSel env elems st' view (index + 1) rest
+          | _ => .unsupported "23.2.2: aggregate output connection source is not a whole aggregate"
+      | .ident name =>
+          let width ← match E.scalarWidth? name with
+            | some w => .ok w
+            | none => .unsupported s!"10.3: continuous target '{name}' is undeclared"
+          let v ← E.evalScalarAssignAtView env elems st view (some width) index value
+          let resolved := if E.resolvedNets.contains name then
+              LVec.resolveDrivers [
+                (SvState.lookup view name).getD (LVec.replicate width .lz), v]
+            else v
+          let st' := E.setScalarState st name resolved
+          E.settleAssignAtBeforeArrayBitSel env elems st' (SvState.set view name resolved) (index + 1) rest
+      | .bitSel name select =>
+          let st' ← E.writeScalarBitAssign env elems st name select value
+          let view' := E.scalar.view st'.scalar
+          E.settleAssignAtBeforeArrayBitSel env elems st' view' (index + 1) rest
+      | .partSel name msb lsb =>
+          let width ← match E.scalarWidth? name with
+            | some w => .ok w
+            | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+          let hi ← E.evalIndex env elems st msb
+          let lo ← E.evalIndex env elems st lsb
+          let some hi := hi.toNat? | .unsupported "10.3: packed part-select bound is unknown"
+          let some lo := lo.toNat? | .unsupported "10.3: packed part-select bound is unknown"
+          if hi < lo || hi >= width then
+            .unsupported "10.3: packed part-select bounds are outside the scalar target"
+          else
+            let w := hi - lo + 1
+            let v ← E.evalScalarAssignAtView env elems st view (some w) index value
+            let st' ← E.writeScalarPartAssign env elems st name msb lsb v
+            let view' := E.scalar.view st'.scalar
+            E.settleAssignAtBeforeArrayBitSel env elems st' view' (index + 1) rest
+      | .arrayPart name [] .range msb lsb =>
+          let width ← match E.scalarWidth? name with
+            | some w => .ok w
+            | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+          let hi ← E.evalIndex env elems st msb
+          let lo ← E.evalIndex env elems st lsb
+          let some hi := hi.toNat? | .unsupported "10.3: packed part-select bound is unknown"
+          let some lo := lo.toNat? | .unsupported "10.3: packed part-select bound is unknown"
+          if hi < lo || hi >= width then
+            .unsupported "10.3: packed part-select bounds are outside the scalar target"
+          else
+            let w := hi - lo + 1
+            let v ← E.evalScalarAssignAtView env elems st view (some w) index value
+            let st' ← E.writeScalarPartAssign env elems st name msb lsb v
+            let view' := E.scalar.view st'.scalar
+            E.settleAssignAtBeforeArrayBitSel env elems st' view' (index + 1) rest
+      | .arrayPart name [] mode base widthExpr =>
+          let width ← match E.scalarWidth? name with
+            | some w => .ok w
+            | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+          let bv ← E.evalIndex env elems st base
+          let wv ← E.evalIndex env elems st widthExpr
+          let some b := bv.toNat? | .unsupported "10.3: indexed part-select base is unknown"
+          let some w := wv.toNat? | .unsupported "10.3: indexed part-select width is unknown"
+          if w == 0 then
+            .unsupported "10.3: indexed part-select has zero width"
+          else
+            let bounds := match mode with
+              | .up => if b + w - 1 < width then some (b, b + w - 1) else none
+              | .down => if b + 1 >= w && b < width then some (b - w + 1, b) else none
+              | .range => none
+            match bounds with
+            | none => .unsupported "10.3: indexed part-select bounds are outside the scalar target"
+            | some (lo, _) =>
+                let v ← E.evalScalarAssignAtView env elems st view (some w) index value
+                match E.scalar.resolve name with
+                | some x =>
+                    let old := st.scalar x
+                    let st' := E.setScalarState st name
+                      (old.bits.insertAt lo (v.resizeU w))
+                    let view' := E.scalar.view st'.scalar
+                    E.settleAssignAtBeforeArrayBitSel env elems st' view' (index + 1) rest
+                | none => .unsupported s!"10.3: scalar target '{name}' is undeclared"
+      | .arrayElem target [] =>
+          (match value with
+           | .arrayElem source [] =>
+               match E.copyMemoryAssign st target source with
+               | .ok st' => E.settleAssignAtBeforeArrayBitSel env elems st' view (index + 1) rest
+               | .timeout => .timeout
+               | .unsupported msg => .unsupported msg
+           | _ => .unsupported
+               "23.3.3: unpacked port connection actual is not a whole array")
+      | .arrayElem name [_] =>
+          match E.memDecl? name with
+          | none =>
+              -- Slang uses `ArraySel` for a packed bit-select written with
+              -- the source spelling `name[index]`.  When the declaration is
+              -- scalar storage, this is the same packed target handled by
+              -- the parser-native `.bitSel` arm above, not an unpacked
+              -- memory target.  Preserve the source node and dispatch to the
+              -- scalar four-state update instead of reporting a false §10.3
+              -- undeclared-memory refusal.
+              match E.scalarWidth? name with
+              | some _ =>
+                  let st' ← E.writeScalarBitAssign env elems st name (match target with
+                    | .arrayElem _ [ix] => ix
+                    | _ => .int 0) value
+                  let view' := E.scalar.view st'.scalar
+                  E.settleAssignAtBeforeArrayBitSel env elems st' view' (index + 1) rest
+              | none => .unsupported s!"10.3: continuous memory target '{name}' is undeclared"
+          | some md =>
+              let v ← E.evalExpr env elems st (some md.shape.elemWidth) value
+              let st' ← E.writeMemoryAssign env elems st target md v
+              E.settleAssignAtBeforeArrayBitSel env elems st' view (index + 1) rest
+      | _ => .unsupported "10.3: packed or multi-rank continuous memory target is outside this slice"
+  | .edge _ :: rest => E.settleAssignAtBeforeArrayBitSel env elems st view (index + 1) rest
+  | .initial _ :: rest => E.settleAssignAtBeforeArrayBitSel env elems st view (index + 1) rest
+  | .comb _ :: rest => E.settleAssignAtBeforeArrayBitSel env elems st view (index + 1) rest
+  | .implicit _ :: rest => E.settleAssignAtBeforeArrayBitSel env elems st view (index + 1) rest
+  | .event _ _ :: rest => E.settleAssignAtBeforeArrayBitSel env elems st view (index + 1) rest
+  | .latch _ :: rest => E.settleAssignAtBeforeArrayBitSel env elems st view (index + 1) rest
+  | .unsupported kind text :: _ =>
+      .unsupported s!"{kind}: {text}"
+
+
+
 def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (view : SvState) (index : Nat) : List CoreMemProc →
     Res (CoreMemState × SvState)
@@ -3599,7 +3746,7 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
               let arrayValue ← E.evalExpr env elems st (some md.shape.elemWidth)
                 (.arrayElem name [arrayIndex])
               let bit ← E.evalIndex env elems st bitIndex
-              let some position := bit.toNat? | .ok (st, view)
+              let some position := bit.toNat? | E.settleAssignAt env elems st view (index + 1) rest
               if position >= md.shape.elemWidth then
                 E.settleAssignAt env elems st view (index + 1) rest
               else
@@ -3707,6 +3854,187 @@ def CoreMemDesign.settleAssignAt (E : CoreMemDesign) (env : IEnv) (elems : List 
   | .latch _ :: rest => E.settleAssignAt env elems st view (index + 1) rest
   | .unsupported kind text :: _ =>
       .unsupported s!"{kind}: {text}"
+
+/-! The new array-bit-select arm is conservative for every process list that
+    does not contain such a target.  This compares the published definition
+    with the verbatim pre-arrayBitSel evaluator above, rather than proving a
+    wrapper around the new evaluator. -/
+def CoreMemProc.noArrayBitSelTarget : CoreMemProc → Prop
+  | .assign (.arrayBitSel _ _ _) _ => False
+  | _ => True
+
+def CoreMemProc.noArrayBitSelTargets : List CoreMemProc → Prop
+  | [] => True
+  | p :: rest => CoreMemProc.noArrayBitSelTarget p ∧
+      CoreMemProc.noArrayBitSelTargets rest
+
+theorem CoreMemDesign.settleAssignAt_eq_beforeArrayBitSel
+    (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
+    (st : CoreMemState) (view : SvState) (index : Nat) (procs : List CoreMemProc)
+    (h : CoreMemProc.noArrayBitSelTargets procs) :
+    E.settleAssignAt env elems st view index procs =
+      E.settleAssignAtBeforeArrayBitSel env elems st view index procs := by
+  induction procs generalizing st view index with
+  | nil => rfl
+  | cons p rest ih =>
+      cases p with
+      | edge q =>
+          simp_all [CoreMemProc.noArrayBitSelTargets,
+            CoreMemProc.noArrayBitSelTarget,
+            CoreMemDesign.settleAssignAt,
+            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+      | assign target value =>
+          cases target with
+          | ident name =>
+              simp_all [CoreMemProc.noArrayBitSelTargets,
+                CoreMemProc.noArrayBitSelTarget,
+                CoreMemDesign.settleAssignAt,
+                CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+          | bitSel name select =>
+              simp_all [CoreMemProc.noArrayBitSelTargets,
+                CoreMemProc.noArrayBitSelTarget,
+                CoreMemDesign.settleAssignAt,
+                CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+          | partSel name msb lsb =>
+              simp_all [CoreMemProc.noArrayBitSelTargets,
+                CoreMemProc.noArrayBitSelTarget,
+                CoreMemDesign.settleAssignAt,
+                CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+          | concat parts =>
+              simp_all [CoreMemProc.noArrayBitSelTargets,
+                CoreMemProc.noArrayBitSelTarget,
+                CoreMemDesign.settleAssignAt,
+                CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+          | arrayElem name indices =>
+              cases indices with
+              | nil =>
+                  simp_all [CoreMemProc.noArrayBitSelTargets,
+                    CoreMemProc.noArrayBitSelTarget,
+                    CoreMemDesign.settleAssignAt,
+                    CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+              | cons first tail =>
+                  cases tail with
+                  | nil =>
+                      simp_all [CoreMemProc.noArrayBitSelTargets,
+                        CoreMemProc.noArrayBitSelTarget,
+                        CoreMemDesign.settleAssignAt,
+                        CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+                  | cons second more =>
+                      simp_all [CoreMemProc.noArrayBitSelTargets,
+                        CoreMemProc.noArrayBitSelTarget,
+                        CoreMemDesign.settleAssignAt,
+                        CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+          | arrayBitSel name indices bit =>
+              simp_all [CoreMemProc.noArrayBitSelTargets,
+                CoreMemProc.noArrayBitSelTarget,
+                CoreMemDesign.settleAssignAt,
+                CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+          | arrayPart name indices mode a b =>
+              cases mode with
+              | range =>
+                  cases indices with
+                  | nil =>
+                      simp_all [CoreMemProc.noArrayBitSelTargets,
+                        CoreMemProc.noArrayBitSelTarget,
+                        CoreMemDesign.settleAssignAt,
+                        CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+                  | cons first tail =>
+                      cases tail with
+                      | nil =>
+                          simp_all [CoreMemProc.noArrayBitSelTargets,
+                            CoreMemProc.noArrayBitSelTarget,
+                            CoreMemDesign.settleAssignAt,
+                            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+                      | cons second more =>
+                          simp_all [CoreMemProc.noArrayBitSelTargets,
+                            CoreMemProc.noArrayBitSelTarget,
+                            CoreMemDesign.settleAssignAt,
+                            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+              | up =>
+                  cases indices with
+                  | nil =>
+                      simp_all [CoreMemProc.noArrayBitSelTargets,
+                        CoreMemProc.noArrayBitSelTarget,
+                        CoreMemDesign.settleAssignAt,
+                        CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+                  | cons first tail =>
+                      cases tail with
+                      | nil =>
+                          simp_all [CoreMemProc.noArrayBitSelTargets,
+                            CoreMemProc.noArrayBitSelTarget,
+                            CoreMemDesign.settleAssignAt,
+                            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+                      | cons second more =>
+                          simp_all [CoreMemProc.noArrayBitSelTargets,
+                            CoreMemProc.noArrayBitSelTarget,
+                            CoreMemDesign.settleAssignAt,
+                            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+              | down =>
+                  cases indices with
+                  | nil =>
+                      simp_all [CoreMemProc.noArrayBitSelTargets,
+                        CoreMemProc.noArrayBitSelTarget,
+                        CoreMemDesign.settleAssignAt,
+                        CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+                  | cons first tail =>
+                      cases tail with
+                      | nil =>
+                          simp_all [CoreMemProc.noArrayBitSelTargets,
+                            CoreMemProc.noArrayBitSelTarget,
+                            CoreMemDesign.settleAssignAt,
+                            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+                      | cons second more =>
+                          simp_all [CoreMemProc.noArrayBitSelTargets,
+                            CoreMemProc.noArrayBitSelTarget,
+                            CoreMemDesign.settleAssignAt,
+                            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+          | aggregateMember base path =>
+              cases path with
+              | nil =>
+                  simp_all [CoreMemProc.noArrayBitSelTargets,
+                    CoreMemProc.noArrayBitSelTarget,
+                    CoreMemDesign.settleAssignAt,
+                    CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+              | cons first tail =>
+                  simp_all [CoreMemProc.noArrayBitSelTargets,
+                    CoreMemProc.noArrayBitSelTarget,
+                    CoreMemDesign.settleAssignAt,
+                    CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+      | primitive op target inputs =>
+          simp_all [CoreMemProc.noArrayBitSelTargets,
+            CoreMemProc.noArrayBitSelTarget,
+            CoreMemDesign.settleAssignAt,
+            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+      | initial body =>
+          simp_all [CoreMemProc.noArrayBitSelTargets,
+            CoreMemProc.noArrayBitSelTarget,
+            CoreMemDesign.settleAssignAt,
+            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+      | comb body =>
+          simp_all [CoreMemProc.noArrayBitSelTargets,
+            CoreMemProc.noArrayBitSelTarget,
+            CoreMemDesign.settleAssignAt,
+            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+      | implicit body =>
+          simp_all [CoreMemProc.noArrayBitSelTargets,
+            CoreMemProc.noArrayBitSelTarget,
+            CoreMemDesign.settleAssignAt,
+            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+      | event events body =>
+          simp_all [CoreMemProc.noArrayBitSelTargets,
+            CoreMemProc.noArrayBitSelTarget,
+            CoreMemDesign.settleAssignAt,
+            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+      | latch body =>
+          simp_all [CoreMemProc.noArrayBitSelTargets,
+            CoreMemProc.noArrayBitSelTarget,
+            CoreMemDesign.settleAssignAt,
+            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
+      | unsupported kind text =>
+          simp_all [CoreMemProc.noArrayBitSelTargets,
+            CoreMemProc.noArrayBitSelTarget,
+            CoreMemDesign.settleAssignAt,
+            CoreMemDesign.settleAssignAtBeforeArrayBitSel]
 
 def CoreMemDesign.settleAssign (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (procs : List CoreMemProc) : Res CoreMemState :=
