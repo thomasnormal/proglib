@@ -5807,6 +5807,13 @@ theorem pairedAllocateAligned_fail_true
     pairedAllocateAligned resolve store request .fail alignment = true := by
   simp [pairedAllocateAligned, allocateAligned, allocate, renamedPlacement]
 
+theorem pairedAllocateAligned_unaddressable_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (alignment : Nat) :
+    pairedAllocateAligned resolve store request .unaddressable alignment = true := by
+  simp [pairedAllocateAligned, allocateAligned, allocate, renamedPlacement,
+    renameAllocationRequest]
+
 theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
