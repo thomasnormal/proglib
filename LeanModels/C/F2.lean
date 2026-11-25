@@ -5288,6 +5288,17 @@ theorem pairedPlacementWithin_refusal_target
     pairedPlacementWithin resolve id size limit base = false := by
   simp [pairedPlacementWithin, hsource, htarget]
 
+theorem pairedPlacementWithin_refusal
+    (resolve : AllocId → Nat) (id size limit base : Nat)
+    (hrefusal : placementWithin base size limit = false ∧
+      placementWithin (resolve id) size limit = true ∨
+      placementWithin base size limit = true ∧
+      placementWithin (resolve id) size limit = false) :
+    pairedPlacementWithin resolve id size limit base = false := by
+  rcases hrefusal with ⟨hsource, htarget⟩ | ⟨hsource, htarget⟩
+  · simp [pairedPlacementWithin, hsource, htarget]
+  · simp [pairedPlacementWithin, hsource, htarget]
+
 def placementWithinComposition (first second : AllocId → Nat)
     (id size limit base : Nat) : Bool :=
   placementWithin (first id) size limit == placementWithin (second id) size limit
