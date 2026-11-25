@@ -21,7 +21,7 @@ import LeanModels.Sv.Tests
 import LeanModels
 
 open LeanModels.Sv
-open Examples.«system-verilog».toggle.proof (toggleDesign toggleTrace toggleModel toggleModelRun)
+open Examples.«system-verilog».toggle.proof (toggleDesign toggleTrace toggleModel toggleModelRun ControlsKnownFrom)
 
 /-! Envelope certification: the proof module's hand-built design literal is
 node-for-node the extracted envelope (a mismatch fails the file). -/
@@ -61,7 +61,10 @@ two-input model; the M0 `RefinesFromReset` judgment fixes the model input
 to the sampled reset `Bool` alone, so the same content is stated through
 `⊨`/`spec` (see proof.lean's docstring). Raw form and proof:
 `Examples/system-verilog/toggle/proof.lean`. -/
-theorem toggle_refines_model :
+theorem toggle_refines_model
+    (hknown : ∀ (σ : ScheduleOracle) (fuel : Nat) (stim tr : List SvState),
+      Runs toggleDesign σ stim tr →
+      ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ControlsKnownFrom tr i) :
     toggleDesign ⊨ spec fun _stim tr =>
       ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true →
         ∀ q₀ : Bool,
@@ -84,7 +87,7 @@ theorem toggle_det : Deterministic toggleDesign := by proofs
 sorry, no native_decide — standard axioms only) -/
 
 /--
-info: toggle_refines_model :
+info: toggle_refines_model (hknown : ∀ (σ : ScheduleOracle) (fuel : Nat) (stim tr : List SvState), Runs toggleDesign σ stim tr → ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ControlsKnownFrom tr i) :
   toggleDesign ⊨
     spec fun _stim tr =>
       ∀ (i : Nat) (s : SvState),

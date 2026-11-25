@@ -115,6 +115,12 @@ def toggleTrace (c r e v : LVec) : List SvState → List SvState
     sampled [("clk", c), ("rst", r), ("en", e), ("q", v)] "en" = e.condTrue := by
   simp [sampled, SvState.lookup]
 
+/-- Every reset and enable read from snapshot `i` onward is known to the per-read relation. -/
+def ControlsKnownFrom (tr : List SvState) (i : Nat) : Prop :=
+  ∀ j, i ≤ j → ∀ s, tr[j]? = some s →
+    DecisionKnown ((SvState.lookup s "rst").getD (LVec.xVec 1)) ∧
+    DecisionKnown ((SvState.lookup s "en").getD (LVec.xVec 1))
+
 /-! ## The ∀σ canonical run (the per-design proof modules' threshold-fuel
 script) -/
 
@@ -266,7 +272,8 @@ schedule, fuel, and stimulus — from any trace snapshot `i` that sampled
 `~x = x`). -/
 theorem toggle_from_reset (σ : ScheduleOracle) {fuel : Nat}
     {stim tr : List SvState} (h : run toggleDesign σ fuel stim = .ok tr)
-    {i : Nat} {s : SvState} (hi : tr[i]? = some s) (hr : sampled s "rst" = true) :
+    {i : Nat} {s : SvState} (hi : tr[i]? = some s) (hr : sampled s "rst" = true)
+    (hknown : ControlsKnownFrom tr i) :
     (tr.drop i).map (fun s' => SvState.lookup s' "q") =
       (false :: toggleModelRun false ((tr.drop (i + 1)).map
           (fun s' => (sampled s' "rst", sampled s' "en")))).map
@@ -286,7 +293,10 @@ first reset nothing is claimed, and indeed `q` is x there). This is exactly
 `⊑@clk[from rst]`'s content generalized to a two-input model — the M0
 `RefinesFromReset` judgment cannot state it (its model input is the sampled
 reset `Bool` alone), so it is stated through `⊨`. -/
-theorem toggle_refines_model :
+theorem toggle_refines_model
+    (hknown : ∀ (σ : ScheduleOracle) (fuel : Nat) (stim tr : List SvState),
+      Runs toggleDesign σ stim tr →
+      ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ControlsKnownFrom tr i) :
     toggleDesign ⊨ spec fun _stim tr =>
       ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true →
         ∀ q₀ : Bool,
@@ -296,7 +306,8 @@ theorem toggle_refines_model :
               (fun b => some (LVec.ofBool b)) := by
   refine Models.of_run fun σ fuel stim tr hrun => ?_
   intro i s hi hr q₀
-  have hcol := toggle_from_reset σ hrun hi hr
+  have hknown' := hknown σ fuel stim tr hrun i s hi hr
+  have hcol := toggle_from_reset σ hrun hi hr hknown'
   obtain ⟨hlt, hs⟩ := List.getElem?_eq_some_iff.mp hi
   have hdrop : tr.drop i = s :: tr.drop (i + 1) := by
     rw [List.drop_eq_getElem_cons hlt, hs]
