@@ -1745,6 +1745,13 @@ def unionLoadMetadataByte
   if !location.initialized then none
   else some (byte, footprint .read { allocation := 0, offset := offset, width := 1 })
 
+theorem unionLoadMetadataByte_empty_none
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat)
+    (hbytes : metadata.allocation.bytes = []) :
+    unionLoadMetadataByte metadata offset = none := by
+  simp [unionLoadMetadataByte, hbytes]
+
 def pairedUnionLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat) :
