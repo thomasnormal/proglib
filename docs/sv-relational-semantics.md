@@ -566,6 +566,34 @@ whenever the two differ.
 
 ## Current bridge inventory
 
+### Existing combinational executor bridge
+
+The narrow schedule-quantified combinational bridge already present in
+`Kernel/Core0E.lean` is a concrete model for the first transport theorem. Its
+`SlotCloses` judgment is the fuel-free reflexive-transitive closure of the
+process-atomic `step` relation followed by an empty active list. The test
+executor `exec` chooses one legal `ScheduleOracle` ordering and is bounded
+only as an implementation instrument. The theorem
+`LeanModels.Sv.Kernel.exec_sound` states
+
+```lean
+exec E ch n c = .closed c' → SlotCloses E ch c c'
+```
+
+for every limit `n` and every legal choice `ch`. The companion
+`progress_E0` theorem supplies a closed behaviour for every choice and input
+environment when the `Settles` admission holds. Thus this slice has an
+executor-to-schedule soundness bridge and a separate progress theorem. It has
+no converse completeness theorem for the executor, and its `exec` limit must
+not appear in user statements.
+
+This receipt is narrower than the relation designed here. E-core-0 uses the
+lowered `Stmt2` representation, process-atomic activation, and a
+combinational flat-scope profile. It does not establish soundness for
+`CoreMemDesign.step`, parser-native `PStmt` loops, memories, edge regions,
+per-read `XResolution`, or statement-granular clause 4.7 preemption. Those
+remain separate transport obligations below.
+
 ### Frame-lemma audit
 
 The first diamond ingredients are present on the real evaluator. The
