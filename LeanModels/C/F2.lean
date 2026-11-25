@@ -4021,6 +4021,17 @@ theorem pairedFreeMetadata_marks_dead
           exact ⟨freeMetadata_marks_dead _ _ hs,
             freeMetadata_marks_dead _ _ ht⟩
 
+theorem pairedFreeMetadata_empty_marks_dead
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.allocation.live = false ∧
+      result.2.1.allocation.live = false := by
+  exact pairedFreeMetadata_marks_dead resolve metadata result hresult
+
 theorem pairedFreeMetadata_preserves_locations
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
