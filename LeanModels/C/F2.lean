@@ -4790,6 +4790,22 @@ theorem pairedOffsetPointer_refusal_target
     pairedOffsetPointer resolve pointer elementSize delta bound = false := by
   cases fault <;> simp [pairedOffsetPointer, hsource, htarget]
 
+theorem pairedOffsetPointer_refusal
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat)
+    (hrefusal :
+      (∃ fault target,
+        offsetPointer pointer elementSize delta bound = .error fault ∧
+        offsetPointer (renamePointer resolve pointer) elementSize delta bound = .ok target) ∨
+      (∃ source fault,
+        offsetPointer pointer elementSize delta bound = .ok source ∧
+        offsetPointer (renamePointer resolve pointer) elementSize delta bound = .error fault)) :
+    pairedOffsetPointer resolve pointer elementSize delta bound = false := by
+  rcases hrefusal with ⟨fault, target, hsource, htarget⟩ |
+    ⟨source, fault, hsource, htarget⟩
+  · cases fault <;> simp [pairedOffsetPointer, hsource, htarget]
+  · cases fault <;> simp [pairedOffsetPointer, hsource, htarget]
+
 theorem pairedOffsetPointer_sound
     (resolve : AllocId → Nat) (pointer : Pointer Tag)
     (elementSize : Nat) (delta : Int) (bound : Nat)
