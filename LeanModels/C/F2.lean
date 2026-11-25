@@ -4727,6 +4727,24 @@ theorem pairedPointerEqual_equal_choice_agrees
     pairedPointerEqual resolve left right .equal = true := by
   simp [pairedPointerEqual, pointerEqual, hleft, hright]
 
+theorem pairedPointerEqual_equal_choice_unprovenanced
+    (resolve : AllocId → Nat) (left right : Pointer Tag)
+    (hleft : left.provenance = none)
+    (hright : right.provenance = none) :
+    pairedPointerEqual resolve left right .equal = true := by
+  cases left with
+  | mk leftProvenance leftAddress =>
+      cases right with
+      | mk rightProvenance rightAddress =>
+          cases hleft' : leftProvenance with
+          | none =>
+              cases hright' : rightProvenance with
+              | none =>
+                  simp [pairedPointerEqual, pointerEqual, renamePointer,
+                    hleft', hright']
+              | some p => simp [hright'] at hright
+          | some p => simp [hleft'] at hleft
+
 theorem pairedPointerEqual_equal_choice_both_refused
     (resolve : AllocId → Nat) (left right : Pointer Tag)
     (hleft : (left.address == right.address) = false)
