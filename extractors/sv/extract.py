@@ -32731,11 +32731,30 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False, scope=None):
         # dimensions.
         if scope is None:
             scope = getattr(t, "parentScope", None) or _SYM.scope
-        if type_syntax is None or type(type_syntax).__name__ == "NamedTypeSyntax":
+        typedef_scope = None
+        if type_syntax is not None and type(type_syntax).__name__ == "ScopedNameSyntax":
+            kids = _syntax_children(type_syntax)
+            if len(kids) == 2:
+                try:
+                    pkg = _SYM.comp.getPackage(str(kids[0]).strip())
+                    if pkg is not None:
+                        scope = pkg
+                    else:
+                        print("DEBUG no pkg", str(kids[0]), file=sys.stderr)
+                except Exception:
+                    pass
+        if type_syntax is None or type(type_syntax).__name__ in ("NamedTypeSyntax", "ScopedNameSyntax"):
             target = getattr(t, "targetType", None)
             target_syntax = getattr(target, "typeSyntax", None)
             if target_syntax is not None:
                 type_syntax = target_syntax
+                # Dimensions in a typedef target are written in the
+                # typedef's declaring scope.  Re-enter that scope while
+                # converting the recovered source syntax so unqualified
+                # package parameters resolve where IEEE 1800 declares them.
+                typedef_scope = getattr(target, "parentScope", None)
+                if typedef_scope is not None:
+                    scope = typedef_scope
         ct = t.canonicalType
         if type(ct).__name__ == "EnumType":
             if t.isSigned:
@@ -33019,7 +33038,21 @@ def convert_port_sym(sm, m):
     array_ports = _convert_fixed_array_port_sym(sm, m, direction, isym)
     if array_ports is not None:
         return array_ports
-    tsyn = _decl_type_syntax(isym) if isym is not None else None
+    tsyn = _decl_type_syntax(m) if m is not None else None
+    if tsyn is None and m is not None:
+        parent = getattr(getattr(m, "syntax", None), "parent", None)
+        if parent is not None:
+            def find_type_syntax(node):
+                if node.kind == SyntaxKind.ScopedName:
+                    return node
+                for child in _syntax_children(node):
+                    found = find_type_syntax(child)
+                    if found is not None:
+                        return found
+                return None
+            tsyn = find_type_syntax(parent)
+    if tsyn is None and isym is not None:
+        tsyn = _decl_type_syntax(isym)
     dtype, reason = _dtype_sym(
         sm, m.type, tsyn, allow_signed=True,
         scope=getattr(isym or m, "parentScope", None) or _SYM.scope)
