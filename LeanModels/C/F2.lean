@@ -3209,6 +3209,36 @@ theorem pairedReallocMetadata_footprints
       rcases hresult with rfl
       simp [renameMetadata]
 
+theorem pairedReallocMetadata_empty_result_footprints
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (state : State) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old { bytes := [], state := state }
+      [] placement = some result) :
+    (match result.1.1 with
+    | .failed _ => result.1.2 = footprint .metadata
+        (Region.mk 0 0 old.allocation.bytes.length)
+    | .replaced _ => result.1.2 = footprint .metadata (Region.mk 0 0 0)) ∧
+    (match result.2.1 with
+    | .failed _ => result.2.2 = footprint .metadata
+        (Region.mk 0 0 (renameMetadata resolve 0 old).allocation.bytes.length)
+    | .replaced _ => result.2.2 = footprint .metadata (Region.mk 0 0 0)) := by
+  cases placement with
+  | address base =>
+      simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest] at hresult
+      rcases hresult with rfl
+      simp
+  | unaddressable =>
+      simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest] at hresult
+      rcases hresult with rfl
+      simp
+  | fail =>
+      simp [pairedReallocMetadata, reallocMetadata] at hresult
+      rcases hresult with rfl
+      simp [renameMetadata]
+
 theorem pairedReallocMetadata_preserves_payload
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
