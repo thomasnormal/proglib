@@ -6963,6 +6963,32 @@ theorem storeByte_footprint
       rcases hresult with ⟨_, _, hEq⟩
       exact congrArg (fun pair => pair.2) hEq.symm
 
+theorem pairedStoreByte_preserves_store_counts
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedStoreByte resolve store id offset byte = some result) :
+    result.1.1.nextId = store.nextId ∧
+      result.2.1.nextId = (renameStore resolve store).nextId ∧
+      result.1.1.allocations.length = store.allocations.length ∧
+      result.2.1.allocations.length = (renameStore resolve store).allocations.length := by
+  cases hs : storeByte store id offset byte with
+  | none => simp [pairedStoreByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : storeByte (renameStore resolve store) id offset
+          (renameByte resolve byte) with
+      | none => simp [pairedStoreByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedStoreByte, hs, ht] at hresult
+          rcases hresult with rfl
+          exact ⟨storeByte_preserves_nextId store id offset byte sourceResult hs,
+            storeByte_preserves_nextId (renameStore resolve store) id offset
+              (renameByte resolve byte) targetResult ht,
+            storeByte_preserves_allocation_count store id offset byte sourceResult hs,
+            storeByte_preserves_allocation_count (renameStore resolve store) id offset
+              (renameByte resolve byte) targetResult ht⟩
+
 theorem loadByte_footprint
     (store : Store Tag State) (id offset : Nat)
     (result : Byte Tag × Footprint)
