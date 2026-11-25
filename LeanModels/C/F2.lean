@@ -8279,6 +8279,17 @@ theorem pairedAllocateBounded_address_exhausted_true
   simp [pairedAllocateBounded, allocateBounded, renamedPlacement, hsource,
     htarget, htarget', renameAllocationRequest] <;> decide
 
+theorem pairedAllocateBounded_empty_address_exhausted_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment limit : Nat)
+    (hsource : placementWithin base 0 limit = false)
+    (htarget : placementWithin (resolve store.nextId) 0 limit = false) :
+    pairedAllocateBounded resolve store { bytes := [], state := state }
+      (.address base) alignment limit = true := by
+  simpa [renameAllocationRequest] using
+    pairedAllocateBounded_address_exhausted_true resolve store
+      { bytes := [], state := state } base alignment limit hsource htarget
+
 theorem pairedAllocateBounded_address_misaligned_true
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (base alignment limit : Nat)
