@@ -6841,6 +6841,21 @@ theorem pairedAllocateAligned_preserves_wellFormed
   | fail =>
       simp [allocateAligned, allocate] at hsource
 
+theorem pairedAllocateAligned_empty_result_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (placement : Placement) (alignment : Nat)
+    (source target : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hsource : allocateAligned store { bytes := [], state := state }
+      placement alignment = some source)
+    (htarget : allocateAligned (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId placement) alignment = some target) :
+    WellFormed source.1 ∧ WellFormed target.1 := by
+  exact pairedAllocateAligned_preserves_wellFormed resolve store
+    { bytes := [], state := state } placement alignment source target hstore
+    (by simp [bytesWf]) (by simp [bytesWf, renameAllocationRequest]) hsource htarget
+
 theorem pairedAllocateAligned_refusal_source
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
