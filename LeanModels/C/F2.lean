@@ -7156,6 +7156,19 @@ theorem pairedAllocate_preserves_wellFormed
               (renameStore_preserves_wellFormed resolve store hsourceStore)
               htargetBytes ht⟩
 
+theorem pairedAllocate_empty_result_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (placement : Placement)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hstore : WellFormed store)
+    (hresult : pairedAllocate resolve store { bytes := [], state := state }
+      placement = some result) :
+    WellFormed result.1.1 ∧ WellFormed result.2.1 := by
+  exact pairedAllocate_preserves_wellFormed resolve store
+    { bytes := [], state := state } placement result hstore
+    (by simp [bytesWf]) (by simp [bytesWf, renameAllocationRequest]) hresult
+
 theorem pairedAllocate_preserves_counts
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
