@@ -316,11 +316,14 @@ theorem rz_cycle (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (
 the write equation, the low slot writing nothing, the read equation before and after the edge. -/
 def RzClaim (W N : Nat) (tr : List ((SvState × MemV) × (SvState × MemV))) : Prop :=
   ∀ (c : Nat) (pc : (SvState × MemV) × (SvState × MemV)), tr[c]? = some pc →
-    -- the reset: a cycle whose `rst` reads 1 leaves every element 0
-    ((lk pc.1.1 "rst").condTrue = true → ∀ k : Int, 0 ≤ k → k < (N : Int) → pc.2.2 "mem" k = LVec.ofBitVec 0#W) ∧
-    -- the write equation otherwise: the edge writes `wd` at the resolved address when `we` reads 1
-    ((lk pc.1.1 "rst").condTrue = false → pc.2.2 = (if (lk pc.1.1 "we").condTrue then
-      memWrite pc.1.2 "mem" (rzIdx N (lk pc.1.1 "wa")) (lk pc.1.1 "wd") else pc.1.2)) ∧
+    -- known reset decisions expose the reset equation; unknown reset reads remain set-valued
+    (DecisionKnown (lk pc.1.1 "rst") →
+      ((lk pc.1.1 "rst").condTrue = true → ∀ k : Int, 0 ≤ k → k < (N : Int) →
+        pc.2.2 "mem" k = LVec.ofBitVec 0#W)) ∧
+    -- known reset and write-enable decisions expose the write equation
+    (DecisionKnown (lk pc.1.1 "rst") → DecisionKnown (lk pc.1.1 "we") →
+      ((lk pc.1.1 "rst").condTrue = false → pc.2.2 = (if (lk pc.1.1 "we").condTrue then
+        memWrite pc.1.2 "mem" (rzIdx N (lk pc.1.1 "wa")) (lk pc.1.1 "wd") else pc.1.2))) ∧
     -- the low slot writes nothing: the cycle starts from the previous cycle's memory
     (∀ pp, tr[c - 1]? = some pp → 1 ≤ c → pc.1.2 = pp.2.2) ∧
     -- the read equation, before and after the edge
@@ -352,11 +355,11 @@ theorem rzClaim_of_runF (W N : Nat) (σ : SvState × MemV) (ins : List SvState) 
       simp only [hin, Option.map_some, Option.some.injEq] at hpc
       subst hpc
       refine ⟨?_, ?_, ?_, ?_, ?_⟩
-      · intro hr k hk0 hkN
+      · intro _ hr k hk0 hkN
         simp only [rzF, lk, view, SvState.lookup] at hr ⊢
         simp at hr
         simp [hr, clearM, hk0, hkN]
-      · intro hr
+      · intro _ _ hr
         simp only [rzF, lk, view, SvState.lookup] at hr ⊢
         simp at hr
         simp [hr]
@@ -374,10 +377,11 @@ theorem rzIdx_ofBitVec {N : Nat} (a : BitVec 5) (h : a.toNat < N) :
 sample shows 0. -/
 theorem rz_read_after_reset {W N : Nat} {tr : List ((SvState × MemV) × (SvState × MemV))} (h : RzClaim W N tr)
     {c : Nat} {pc pc' : (SvState × MemV) × (SvState × MemV)} (hc : tr[c]? = some pc) (hc' : tr[c + 1]? = some pc')
+    (hrstKnown : DecisionKnown (lk pc.1.1 "rst"))
     (hrst : (lk pc.1.1 "rst").condTrue = true) {a : BitVec 5} (hN : a.toNat < N)
     (hra : lk pc'.1.1 "ra" = LVec.ofBitVec a) : lk pc'.1.1 "rd" = LVec.ofBitVec 0#W := by
-  obtain ⟨hz, -, -, -, -⟩ := h c pc hc
-  obtain ⟨-, -, hlow, hrd, -⟩ := h (c + 1) pc' hc'
+  obtain ⟨hz, -, -, -, -⟩ := h c pc hc hrstKnown
+  obtain ⟨-, -, hlow, hrd, -⟩ := h (c + 1) pc' hc' hrstKnown
   rw [hrd, hra, hlow pc (by simpa using hc) (by omega), rzIdx_ofBitVec a hN]
   exact hz hrst (a.toNat : Int) (by omega) (by omega)
 
@@ -409,9 +413,11 @@ theorem rz_runs (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h
 stimulus, after a cycle whose `rst` reads 1 a read of a known address `a < N` in the next cycle's pre sample shows 0. -/
 theorem rz_runs_reset (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N ≤ 4000) :
     SeqRunsM (rz.e W N) "clk" fun tr => ∀ (c : Nat) (pc pc' : (SvState × MemV) × (SvState × MemV)) (a : BitVec 5),
-      tr[c]? = some pc → tr[c + 1]? = some pc' → (lk pc.1.1 "rst").condTrue = true → a.toNat < N →
+      tr[c]? = some pc → tr[c + 1]? = some pc' → DecisionKnown (lk pc.1.1 "rst") →
+      (lk pc.1.1 "rst").condTrue = true → a.toNat < N →
       lk pc'.1.1 "ra" = LVec.ofBitVec a → lk pc'.1.1 "rd" = LVec.ofBitVec 0#W :=
-  (rz_runs W N hW1 hW2 h1 h2).mono fun _ h _ _ _ _ hc hc' hrst hN hra => rz_read_after_reset h hc hc' hrst hN hra
+  (rz_runs W N hW1 hW2 h1 h2).mono fun _ h _ _ _ _ hc hc' hrstKnown hrst hN hra =>
+    rz_read_after_reset h hc hc' hrstKnown hrst hN hra
 
 #print axioms rz_structure
 #print axioms rz_ports
