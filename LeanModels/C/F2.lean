@@ -1933,6 +1933,48 @@ theorem pairedStoreUnionLoadMetadataByte_refusal
   · rcases htargetLoad with ⟨targetStore, hstore, hload⟩
     simp [pairedStoreUnionLoadMetadataByte, hstore, hload]
 
+theorem pairedStoreUnionLoadMetadataByte_refusal_source_store
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (hsource : storeMetadataByte metadata offset byte = none) :
+    pairedStoreUnionLoadMetadataByte resolve id metadata offset byte = none := by
+  simp [pairedStoreUnionLoadMetadataByte, hsource]
+
+theorem pairedStoreUnionLoadMetadataByte_refusal_target_store
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (htarget : storeMetadataByte (renameMetadata resolve id metadata) offset
+      (renameByte resolve byte) = none) :
+    pairedStoreUnionLoadMetadataByte resolve id metadata offset byte = none := by
+  simp [pairedStoreUnionLoadMetadataByte, htarget]
+
+theorem pairedStoreUnionLoadMetadataByte_refusal_source_load
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (sourceStore : AllocationMetadata Tag State TypeId × Footprint)
+    (hstore : storeMetadataByte metadata offset byte = some sourceStore)
+    (hload : unionLoadMetadataByte sourceStore.1 offset = none) :
+    pairedStoreUnionLoadMetadataByte resolve id metadata offset byte = none := by
+  simp [pairedStoreUnionLoadMetadataByte, hstore, hload]
+
+theorem pairedStoreUnionLoadMetadataByte_refusal_target_load
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (targetStore : AllocationMetadata Tag State TypeId × Footprint)
+    (htarget : storeMetadataByte (renameMetadata resolve id metadata) offset
+      (renameByte resolve byte) = some targetStore)
+    (hload : unionLoadMetadataByte targetStore.1 offset = none) :
+    pairedStoreUnionLoadMetadataByte resolve id metadata offset byte = none := by
+  simp [pairedStoreUnionLoadMetadataByte, htarget, hload]
+
 theorem pairedStoreUnionLoadMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
