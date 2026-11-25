@@ -6241,6 +6241,21 @@ theorem pairedStoreByte_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedStoreByte_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (hsource : storeByte store id offset byte = none) :
+    pairedStoreByte resolve store id offset byte = none := by
+  simp [pairedStoreByte, hsource]
+
+theorem pairedStoreByte_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (htarget : storeByte (renameStore resolve store) id offset
+      (renameByte resolve byte) = none) :
+    pairedStoreByte resolve store id offset byte = none := by
+  simp [pairedStoreByte, htarget]
+
 theorem pairedStoreRepresentationLoadMetadataByte_sound
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
@@ -6390,6 +6405,20 @@ theorem pairedLoadByte_decompose
           have hpair : (sourceResult, targetResult) = result := by
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
+
+theorem pairedLoadByte_refusal_source
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (hsource : loadByte store id offset = none) :
+    pairedLoadByte resolve store id offset = none := by
+  simp [pairedLoadByte, hsource]
+
+theorem pairedLoadByte_refusal_target
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (htarget : loadByte (renameStore resolve store) id offset = none) :
+    pairedLoadByte resolve store id offset = none := by
+  simp [pairedLoadByte, htarget]
 
 theorem pairedLoadByte_value_correspondence
     (resolve : AllocId → Nat) (store : Store Tag State)
