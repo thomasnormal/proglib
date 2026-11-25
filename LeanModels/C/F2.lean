@@ -4178,6 +4178,17 @@ theorem pairedFreeMetadata_empty_preserves_lengths
     by simpa [htargetBytes] using hgeneral.2.2.1,
     hgeneral.2.2.2⟩
 
+theorem pairedFreeMetadata_empty_preserves_locations
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.locations = metadata.locations ∧
+      result.2.1.locations = (renameZeroTokenMetadata resolve metadata).locations := by
+  exact pairedFreeMetadata_preserves_locations resolve metadata result hresult
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
