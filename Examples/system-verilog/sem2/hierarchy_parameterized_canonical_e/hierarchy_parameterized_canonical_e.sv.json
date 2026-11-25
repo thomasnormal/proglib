@@ -904,7 +904,8 @@
               },
               "width": 4,
               "name": "a"
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],
