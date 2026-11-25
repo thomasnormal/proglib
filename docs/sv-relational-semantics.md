@@ -844,14 +844,21 @@ the relation's `CombRun` and its settle theorem:
 theorem Models2_to_RelComb
     (hmodel : Models2 d P)
     (hterm : Terminates2 d)
-    (htransport : CombExecutorIncluded E d) :
+    (hcomplete : CombExecutorComplete E d) :
     RelCombModels E P
 
 theorem RelComb_to_Models2
     (hrel : RelCombModels E P)
-    (hcomplete : CombExecutorComplete E d) :
+    (hsound : CombExecutorIncluded E d)
+    (hterm : Terminates2 d) :
     Models2 d P
 ```
+
+The combinational adapters use the same directions as the sequential ones.
+`CombExecutorComplete` reproduces every finite relational run in the
+executor, while `CombExecutorIncluded` maps a successful executor run into a
+relational run. `Terminates2` supplies the non-vacuity needed by the adapter
+whose source is only a relational safety statement.
 
 The `Models2` and `SeqRuns*` adapters carry explicit known-decision,
 coherence, and input-width hypotheses. Existing statements that use
