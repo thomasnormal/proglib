@@ -872,6 +872,18 @@ theorem rEdge {E : Elab1} (hP : EdgeProfile E) (ch : Choice) {s : Store} (hT : E
       · simp only [hs1]
         rw [hview, ← hcomm, hq]
 
+/-- The admitted E-core-1 edge witness can be transported to the executable
+bounded runner without changing its canonical pre-edge NBA observation. -/
+theorem rEdge_exec1 {E : Elab1} (hP : EdgeProfile E) (ch : Choice) {s : Store}
+    (hT : E.base.Typed s) {act : List ProcId} (hnd : act.Nodup)
+    (hr : ∀ p ∈ act, p < E.procs.size) (k : Nat) :
+    ∃ n c',
+      exec1 E ch n { store := s, active := act, nba := [], k := k } = .closed c' ∧
+      E.base.view c'.store = commitNba2 (E.base.view s) (E.queue s act) := by
+  obtain ⟨c', hcl, hview⟩ := rEdge hP ch hT hnd hr k
+  obtain ⟨n, hn⟩ := exec1_complete hcl
+  exact ⟨n, c', hn, hview⟩
+
 /-! ## Fixtures: an asynchronously reset counter, and an NBA swap -/
 
 namespace Core1Smoke
