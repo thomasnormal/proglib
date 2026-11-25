@@ -5212,6 +5212,24 @@ theorem pairedOffsetPointer_zero_delta
         Nat.not_lt.mpr htarget
       simp [pairedOffsetPointer, offsetPointer, hsource', htarget']
 
+theorem pairedOffsetPointer_success_nonnegative_unprovenanced
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat)
+    (hprovenance : pointer.provenance = none)
+    (hsize : elementSize ≠ 0) (hdelta : 0 ≤ delta)
+    (hsourceBound : pointer.address + Int.natAbs delta * elementSize ≤ bound)
+    (htargetBound : (renamePointer resolve pointer).address +
+      Int.natAbs delta * elementSize ≤ bound) :
+    pairedOffsetPointer resolve pointer elementSize delta bound = true := by
+  cases pointer with
+  | mk provenance address =>
+      have hneg : ¬ delta < 0 := by omega
+      have hbound : ¬ bound < address + Int.natAbs delta * elementSize :=
+        Nat.not_lt.mpr hsourceBound
+      cases hprov : provenance with
+      | none => simp [renamePointer, pairedOffsetPointer, offsetPointer, hsize, hneg, hbound, hprov]
+      | some p => simp [hprov] at hprovenance
+
 theorem pairedOffsetPointer_both_success [BEq Tag]
     (resolve : AllocId → Nat) (pointer : Pointer Tag)
     (elementSize : Nat) (delta : Int) (bound : Nat)
