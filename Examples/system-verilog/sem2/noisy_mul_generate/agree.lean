@@ -64,6 +64,33 @@ def rowBody : List GenItem :=
 
 def outGen : GenItem := noisyMul.pdesign.generates[2]!
 
+def outBody : List GenItem :=
+  match outGen with
+  | .genFor _ _ _ _ _ _ body => body
+  | _ => []
+
+theorem noisy_out_expand_family
+    (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (hFuel : N.toNat < F)
+    (f : Int → List Decl × List Process2)
+    (hBound : ∀ i : Int,
+      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hValue : ∀ i : Int,
+      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hBody : ∀ i : Int, 0 ≤ i → i < N →
+      expandListH cb (env.bindVal "i" i) elems F outBody = .ok (f i)) :
+    outGen.expandH cb env elems F =
+      .ok (GeneratedChildSegment.flatten
+        ((intRange 0 N.toNat).map fun i =>
+          { decls := (f i).1, processes := (f i).2 })) := by
+  simpa [outGen, outBody, noisyMul.pdesign] using
+    (generated_family_body_segments
+      (cb := cb) (env := env) (elems := elems) (F := F)
+      (label := some "g_out") (g := "i")
+      (initE := .int 0) (bound := .paramRef "N" none) (rc := some 4)
+      (body := outBody) (i0 := 0) (N := N) (f := f)
+      (by simp) hBound hValue (by simpa using hFuel) hBody)
+
 theorem noisy_top_generates_shape : noisyMul.pdesign.generates = [ppGen, rowGen, outGen] := by
   rfl
 
