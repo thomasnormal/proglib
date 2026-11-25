@@ -696,6 +696,15 @@ theorem exec_complete {E : Elab} {ch : Choice} {c c' : Config} :
       obtain ⟨n, hn⟩ := ih hclose
       exact ⟨n + 1, by simp [exec, hstep, hn]⟩
 
+/-- The bounded executor's successful results characterize the fuel-free
+closed-slot judgment. Fuel remains existential and implementation-only. -/
+theorem exec_closed_iff_slotCloses {E : Elab} {ch : Choice} {c c' : Config} :
+    (∃ n, exec E ch n c = .closed c') ↔ SlotCloses E ch c c' := by
+  constructor
+  · rintro ⟨n, h⟩
+    exact exec_sound h
+  · exact exec_complete
+
 /-! ## Legality: the no-skip lemma -/
 
 /-- **No ready process is skipped, and none runs unless ready.** In a step from a

@@ -3,7 +3,7 @@
 The scratch-safe command
 
 ```text
-TMPDIR=/scratch/thomas-ahle/gate/ls-sv3/tmp python3 tools/sv_extractor_speed.py
+TMPDIR="${TMPDIR:-scratch}" python3 tools/sv_extractor_speed.py
 ```
 
 measured the parser-shaped package and generate hierarchy at 0.397s, 0.411s,

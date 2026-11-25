@@ -591,7 +591,10 @@ so every finite closed schedule path is reproduced by the test executor with
 some implementation limit. The `progress_E0` theorem supplies a closed
 behaviour for every choice and input environment when the `Settles` admission
 holds. Thus this slice has soundness, finite completeness, and a separate
-progress theorem. Its `exec` limit must not appear in user statements.
+progress theorem. The combined characterization is exposed by
+`exec_closed_iff_slotCloses`; it is an implementation equivalence for this
+lowered slice, not a definition of the parser-native relation. Its `exec`
+limit must not appear in user statements.
 
 This receipt is narrower than the relation designed here. E-core-0 uses the
 lowered `Stmt2` representation, process-atomic activation, and a
