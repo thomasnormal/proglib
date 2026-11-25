@@ -3848,6 +3848,14 @@ theorem pairedFreeMetadata_dead_refusal
     pairedFreeMetadata resolve metadata = none := by
   simp [pairedFreeMetadata, freeMetadata, hdead, renameZeroTokenMetadata]
 
+theorem pairedFreeMetadata_empty_dead_refusal
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hdead : metadata.allocation.live = false)
+    (hbytes : metadata.allocation.bytes = []) :
+    pairedFreeMetadata resolve metadata = none := by
+  simp [pairedFreeMetadata, freeMetadata, hdead, hbytes, renameZeroTokenMetadata]
+
 theorem pairedFreeMetadata_decompose
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
