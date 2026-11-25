@@ -73420,6 +73420,7 @@
       "name": "untyped_localparam_exact",
       "example": "sem2/untyped_localparam_exact",
       "top": "untyped_localparam_exact",
+      "refusal": "Constant:untyped-width",
       "signals": [
         "k",
         "a",
@@ -73437,26 +73438,7 @@
       "stimulus": [
         {}
       ],
-      "measured": "2026-11-22: IEEE 1800-2023 §6.20.2 self-determined untyped constants. Rows cover multiply/divide, power, left and right shifts, unary minus, concatenation, explicit signed keyword, range-only declaration, and width-observed concatenation at N=10000 and N=8. Xcelium is the oracle for Icarus lossless-width deviation.",
-      "oracle_disagreement": {
-        "id": "icarus-lossless-untyped-width",
-        "sim": "iverilog",
-        "declared": "2026-11-21",
-        "reference": "IEEE 1800-2023 §6.20.2 and §§11.6, 11.8 require the final value self-determined type and width. Xcelium follows the standard; Icarus 13.0 retains lossless intermediate widths.",
-        "observed": "Icarus Verilog 13.0 retains lossless intermediate width for the WIDE concatenation. Xcelium and the exact model follow final-value width.",
-        "retirement_condition": "When Icarus uses the final-value width for untyped parameter and localparam expressions, retire this declaration.",
-        "source_sha256": "c7717c6501ad6292878bd0deb0a225465a76343f3fee962370135a6fa76c4541",
-        "envelope_sha256": "774a3efd580366d4e338e859deb9f51e673311f0e97b2ed9940e148dea30fddc",
-        "case_sha256": "749f10b4c6a4fbd66c98927abc2f9c96d4db59130f78d322b10d44b47f901a75",
-        "testbench_sha256": "dec97c68002001724d1f9f98f408b3da51a02700b18ed2c201972488270c095b",
-        "sigma": "src",
-        "sim_trace": [
-          "CYCLE 0 k=00000000000000000010011100010000 a=00000000000000000000001010000111 u=00000000000000000000000000000110 p=00000000000000000000000100000000 ls=00000000000000000000000000000100 rs=00000000000000000000000001000000 neg=00000000000000000000000011111011 cat=00000000000000000000000010100101 signed_kw=11111111111111111111111111111000 range_only=00000000000000000000000000001111 observed=00000000000000000010011100010001 observed_w=00000000000000000001111000000110"
-        ],
-        "lean_trace": [
-          "CYCLE 0 k=00000000000000000000010110000010 a=11111111111111111111110101110111 u=00000000000000000000000000000110 p=00000000000000000000000100000000 ls=00000000000000000000000000000100 rs=00000000000000000000000001000000 neg=00000000000000000000000011111011 cat=00000000000000000000000010100101 signed_kw=11111111111111111111111111111000 range_only=00000000000000000000000000001111 observed=00000000000000000010011100010001 observed_w=00000000000000000000111100000110"
-        ]
-      },
+      "measured": "2026-11-25: restored loud Constant:untyped-width admission for this mixed-width family while the exact final-value evaluator remains audit-gated. check.py records two rows on Icarus Verilog 13.0 and Xcelium 24.03-s004, including signed keyword, range-only, shifts, power, concatenation, and observed width.",
       "params": {
         "N": 10000
       }
@@ -73465,6 +73447,7 @@
       "name": "untyped_localparam_exact_n8",
       "example": "sem2/untyped_localparam_exact",
       "top": "untyped_localparam_exact",
+      "refusal": "Constant:untyped-width",
       "signals": [
         "k",
         "a",
@@ -73482,26 +73465,7 @@
       "stimulus": [
         {}
       ],
-      "measured": "2026-11-22: IEEE 1800-2023 §6.20.2 self-determined untyped constants. Rows cover multiply/divide, power, left and right shifts, unary minus, concatenation, explicit signed keyword, range-only declaration, and width-observed concatenation at N=10000 and N=8. Xcelium is the oracle for Icarus lossless-width deviation.",
-      "oracle_disagreement": {
-        "id": "icarus-lossless-untyped-width-n8",
-        "sim": "iverilog",
-        "declared": "2026-11-21",
-        "reference": "IEEE 1800-2023 §6.20.2 and §§11.6, 11.8 require the final value self-determined type and width. Xcelium follows the standard; Icarus 13.0 retains lossless intermediate widths.",
-        "observed": "Icarus Verilog 13.0 retains lossless intermediate width for the WIDE concatenation. Xcelium and the exact model follow final-value width.",
-        "retirement_condition": "When Icarus uses the final-value width for untyped parameter and localparam expressions, retire this declaration.",
-        "source_sha256": "c7717c6501ad6292878bd0deb0a225465a76343f3fee962370135a6fa76c4541",
-        "envelope_sha256": "774a3efd580366d4e338e859deb9f51e673311f0e97b2ed9940e148dea30fddc",
-        "case_sha256": "40de2f1382d1928cb70bcc503872dcc292e21a2aec6ed4c5cc1bbb3449c72cf5",
-        "testbench_sha256": "3bc2b0373ea87a23b1564e92534523c0bf4a36b728f932afc8cbf0daae808d5d",
-        "sigma": "src",
-        "sim_trace": [
-          "CYCLE 0 k=00000000000000000000000000001000 a=00000000000000000000001010001111 u=00000000000000000000000000000110 p=00000000000000000000000100000000 ls=00000000000000000000000000000100 rs=00000000000000000000000001000000 neg=00000000000000000000000011111011 cat=00000000000000000000000010100101 signed_kw=11111111111111111111111111111000 range_only=00000000000000000000000000001111 observed=00000000000000000000000000001001 observed_w=00000000000000000001111000000110"
-        ],
-        "lean_trace": [
-          "CYCLE 0 k=00000000000000000000000000001000 a=11111111111111111111110101111111 u=00000000000000000000000000000110 p=00000000000000000000000100000000 ls=00000000000000000000000000000100 rs=00000000000000000000000001000000 neg=00000000000000000000000011111011 cat=00000000000000000000000010100101 signed_kw=11111111111111111111111111111000 range_only=00000000000000000000000000001111 observed=00000000000000000000000000001001 observed_w=00000000000000000000111100000110"
-        ]
-      },
+      "measured": "2026-11-25: restored loud Constant:untyped-width admission for this mixed-width family while the exact final-value evaluator remains audit-gated. check.py records two rows on Icarus Verilog 13.0 and Xcelium 24.03-s004, including signed keyword, range-only, shifts, power, concatenation, and observed width.",
       "params": {
         "N": 8
       }

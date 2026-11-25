@@ -1928,9 +1928,11 @@ def evalInt (env : IEnv) : PExpr → Except String Int
       match env.vals.lookup n with
       | some v => .ok v
       | none =>
-          match env.nvals.lookup n with
-          | some (v, _, _) => .ok v
-          | none => .error s!"unbound parameter '{n}'"
+          if n ∈ env.stale then .error "Constant:override-type — constant expression depends on an overridden untyped parameter"
+          else
+            match env.nvals.lookup n with
+            | some (v, _, _) => .ok v
+            | none => .error s!"unbound parameter '{n}'"
   | .paramRef n (some p) =>
       match env.packageFVal p n with
       | some (v, _, _) =>
@@ -2262,7 +2264,9 @@ whose comparison width exceeds 32 bits must go through `evalAt`; forcing them
 through `guard32` changes the selected generate branch (`fold_cgrow`, where
 `U` is 33 or 40 bits). -/
 def evalGenGuard (env : IEnv) (e : PExpr) : Except String Int :=
-  match ctype env e with
+  if !env.stale.isEmpty && e.mentionsAny env.stale then
+    .error "Constant:override-type — generate condition depends on an overridden untyped parameter"
+  else match ctype env e with
   | .ok ty =>
       match evalAt env ty e with
       | .ok v => .ok v
@@ -2286,6 +2290,10 @@ private def wideGenerateEnv : IEnv :=
 #guard (evalGenGuard wideGenerateEnv
     (.binary (.m0 .eq)
       (.binary (.m0 .add) (.paramRef "U" none) (.int 1)) (.int 1))).toOption == some 0
+
+private def staleGenerateEnv : IEnv :=
+  { nvals := [("L", (4294967295, 32, false))], stale := ["L"] }
+#guard (evalGenGuard staleGenerateEnv (.paramRef "L" none) matches .error _)
 
 /-! ## Package constants -/
 
@@ -2969,6 +2977,8 @@ value converted to the declared type (`canonInt` — what SV does with an
 override that does not fit). -/
 def bindParams (env : IEnv) : List PParam → List Int → Except String IEnv
   | p :: ps, v :: vs => do
+      if p.type?.isNone && p.signed? == some false then
+        throw "Constant:untyped-unsigned — IEEE 1800-2023 §6.20.2 leaves unsigned no-range parameters implementation-defined"
       if p.hasAggregateDefault env then
         -- An aggregate parameter is not an integer binder.  Preserve its
         -- absence from the integer environment so a forwarded reference
@@ -3112,7 +3122,7 @@ IEEE 1800-2023 §6.20.2 gives an untyped parameter the type and range of its
 final assigned value.  The expression is evaluated at its own §11.6/§11.8
 type, including the 32-bit signed `int` type of an INT-class expression.
 Xcelium is the oracle where Icarus' historical lossless-width mode differs. -/
-def evalUntyped (env : IEnv) (e : PExpr) : Except String Int := do
+def evalUntypedExact (env : IEnv) (e : PExpr) : Except String Int := do
   match e with
   | .functionCall n args => return ← evalConstFunctionCall env n args
   | _ => pure ()
@@ -3137,6 +3147,32 @@ def evalUntypedLegacy (env : IEnv) (e : PExpr) : Except String Int := do
     let v' ← evalAt env (w + 64, s) (e.shiftBarriers env)
     if v' == v then .ok v else .error (untypedWrapMsg w v v')
 
+/-- Whether a constant tree contains a literal wider than the guaranteed
+32-bit minimum for an unsized based literal (§5.7.1). The envelope does not
+retain the source's sized/unsized spelling, so the conservative admission
+boundary refuses every such literal rather than choosing a tool width. -/
+def PExpr.hasWideLiteral : PExpr → Bool
+  | .lit v => 32 < v.width
+  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a
+  | .sysCall _ a | .reduce _ a | .cast _ a => a.hasWideLiteral
+  | .binary _ l r | .bitSel l r | .repl l r => l.hasWideLiteral || r.hasWideLiteral
+  | .partSel b m l | .ternary b m l => b.hasWideLiteral || m.hasWideLiteral || l.hasWideLiteral
+  | .concat _ | .arrayElem _ _ => false
+  | .arrayPart _ _ _ a b => a.hasWideLiteral || b.hasWideLiteral
+  | .functionCall _ _ => false
+  | .aggregateMember .. | .packageAggElem .. | .ident _ | .genvarRef _ | .enumRef ..
+  | .paramRef .. | .int _ | .fill _ | .typeBits .. | .unsupported .. => false
+
+/-! Public untyped admission remains loud wherever the implementation-defined
+width or an overridden type could change the result. The exact evaluator is
+kept separately for cases whose source retains a portable final type. -/
+def evalUntyped (env : IEnv) (e : PExpr) : Except String Int :=
+  if !env.stale.isEmpty && e.mentionsAny env.stale then
+    .error "Constant:override-type — constant expression depends on an overridden untyped parameter"
+  else if e.hasWideLiteral then
+    .error "Constant:untyped-width — unsized based literal wider than 32 bits has implementation-defined width (IEEE 1800-2023 §5.7.1)"
+  else evalUntypedLegacy env e
+
 /- The old and exact evaluators deliberately disagree on these boundary cases.
 These rows make the dropped conservativity claim explicit while retaining the
 old evaluator verbatim for audit comparison.  No unconditional theorem is
@@ -3145,15 +3181,38 @@ claimed because the INT-class 32-bit boundary changes the defined value. -/
     (.unary (.m0 .neg) (.paramRef "N" none)) with
   | .ok v => v == 2147483648
   | _ => false)
-#guard (match evalUntyped { vals := [("N", -2147483648)] }
+#guard (match evalUntypedExact { vals := [("N", -2147483648)] }
     (.unary (.m0 .neg) (.paramRef "N" none)) with
   | .ok v => v == -2147483648
   | _ => false)
 #guard (match evalUntypedLegacy {} (.int 4294967296) with
   | .ok v => v == 4294967296
   | _ => false)
-#guard (match evalUntyped {} (.int 4294967296) with
+#guard (match evalUntypedExact {} (.int 4294967296) with
   | .ok v => v == 0
+  | _ => false)
+
+/- These are explicit regressions against the verbatim pre-exact evaluator.
+   The INT-class expression is now evaluated at its required 32-bit signed
+   type, so the old unbounded values at the 2^31/2^32 boundaries are not
+   conservativity claims.  Keeping both sides here prevents the old result
+   from being accidentally reintroduced while documenting the deliberate
+   §6.20.2 change. -/
+#guard (match evalUntypedLegacy { vals := [("N", 4294967296)] }
+    (.binary .div (.paramRef "N" none) (.int 2)) with
+  | .ok v => v == 2147483648
+  | _ => false)
+#guard (match evalUntypedExact { vals := [("N", 4294967296)] }
+    (.binary .div (.paramRef "N" none) (.int 2)) with
+  | .ok v => v == 0
+  | _ => false)
+#guard (match evalUntypedLegacy { vals := [("N", -2147483648)] }
+    (.unary (.m0 .neg) (.paramRef "N" none)) with
+  | .ok v => v == 2147483648
+  | _ => false)
+#guard (match evalUntypedExact { vals := [("N", -2147483648)] }
+    (.unary (.m0 .neg) (.paramRef "N" none)) with
+  | .ok v => v == -2147483648
   | _ => false)
 
 /- Negative and oversized shifts in the historical untyped constant tier stay
@@ -3163,7 +3222,8 @@ claimed because the INT-class 32-bit boundary changes the defined value. -/
 #guard (evalUntyped ({} : IEnv)
     (.binary .ashr (.int (-8)) (.int (-1)))) matches .error _
 #guard (evalUntyped ({} : IEnv)
-    (.binary .ashr (.int (-8)) (.int 40))) matches .ok _
+    (.binary .ashr (.int (-8)) (.int 40))) matches .error _
+#guard (evalUntyped ({} : IEnv) (.lit (LVec.ofNat 33 1))) matches .error _
 
 /-- **The initializer of an INT-class TARGET** (round 4 folds): an
 `integer` or `int` localparam, or an `integer`/`int` parameter's default — an
@@ -3335,6 +3395,8 @@ declared width at THESE parameters by `evalAssign`: slang sized the tree
 to the DEFAULT point's width only); an untyped one takes the type of its
 expression (INT class to `vals`, anything else to `nvals` at its `ctype`). -/
 def bindLocal (env : IEnv) (lp : PLocalParam) : Except String IEnv := do
+  if lp.type?.isNone && lp.signed?.isSome then
+    throw "Constant:untyped-signing — IEEE 1800-2023 §6.20.2 leaves no-range localparam signing implementation-defined"
   match lp.type? with
   | none =>
       -- Round 5 folds: loud where its own-type value wraps (`evalUntyped`).
@@ -4028,7 +4090,7 @@ private def pGenSel : PDesign :=
 -- The untyped twin `localparam KM1 = K - 1` is loud (round 6 over-refusal).
 #guard (pGenSel.instantiate [8, 3] matches .ok _)
 #guard ({ pGenSel with localParams := [{ name := "KM1", expr := km1Expr, resolved? := some 2 }] }
-  |>.instantiate [8, 3]) matches .ok _
+  |>.instantiate [8, 3]) matches .unsupported _
 
 -- Instantiation at the defaults: exactly one surviving assign, `y = a + 2#8`.
 #guard pGenSel.instantiate [8, 3] ==
@@ -4157,18 +4219,15 @@ private def lpUntyped : PLocalParam :=
 #guard (match bindLocal (wrapEnv 1 0 0) lpTyped with
   | .ok e => e.nvals.lookup "L" == some (0, 3, false)
   | .error _ => false)
-#guard (match bindLocal (wrapEnv 0 0 0) lpUntyped with
-  | .ok e => e.nvals.lookup "L" == some (7, 3, false)
-  | .error _ => false)
-#guard (match bindLocal (wrapEnv 1 0 0) lpUntyped with
-  | .ok e => e.nvals.lookup "L" == some (0, 3, false)
-  | .error _ => false)
+#guard (bindLocal (wrapEnv 0 0 0) lpUntyped matches .error _)
+#guard (bindLocal (wrapEnv 1 0 0) lpUntyped matches .error _)
 
 private def lpSignedKeyword : PLocalParam :=
   { name := "LS", expr := .lit (LVec.ofNat 4 8), signed? := some true }
-#guard (match bindLocal {} lpSignedKeyword with
-  | .ok e => e.nvals.lookup "LS" == some (-8, 4, true)
-  | .error _ => false)
+#guard (bindLocal {} lpSignedKeyword matches .error _)
+private def pUnsignedKeyword : PParam :=
+  { name := "PU", default? := some (.int 1), signed? := some false }
+#guard (bindParams {} [pUnsignedKeyword] [1] matches .error _)
 
 /-! ### Constant contexts across parameter points (round 3 repair)
 
@@ -4334,13 +4393,13 @@ private def pMS : List PParam :=
 private def sbEnv (v : Int) : IEnv := { nvals := [("SB", (v, 8, false))] }
 private def yExpr : PExpr :=
   .binary (.m0 .add) (.paramRef "SB" none) (.resize 8 (.lit (.ofNat 1 1)))
-#guard (match bindLocal (sbEnv 255) { name := "Y", expr := yExpr } with | .ok e => e.nvals.lookup "Y" == some (0, 8, false) | .error _ => false)
-#guard (match bindLocal (sbEnv 5) { name := "Y", expr := yExpr } with | .ok e => e.nvals.lookup "Y" == some (6, 8, false) | .error _ => false)
-#guard okIs (PParam.evalDefault (sbEnv 255) { name := "Q" } yExpr) 0
-#guard okIs (PParam.evalDefault (sbEnv 5) { name := "Q" } yExpr) 6
-#guard okIs (evalUntyped (sbEnv 255) (.binary .shl (.paramRef "SB" none) (.int 4))) 240
-#guard okIs (evalUntyped (sbEnv 255) (.binary .div yExpr (.lit (.ofNat 2 2)))) 0
-#guard okIs (evalUntyped { vals := [("N", 2147483647)] }
+#guard (bindLocal (sbEnv 255) { name := "Y", expr := yExpr } matches .error _)
+#guard (bindLocal (sbEnv 5) { name := "Y", expr := yExpr } matches .error _)
+#guard (PParam.evalDefault (sbEnv 255) { name := "Q" } yExpr matches .error _)
+#guard (PParam.evalDefault (sbEnv 5) { name := "Q" } yExpr matches .error _)
+#guard okIs (evalUntypedExact (sbEnv 255) (.binary .shl (.paramRef "SB" none) (.int 4))) 240
+#guard okIs (evalUntypedExact (sbEnv 255) (.binary .div yExpr (.lit (.ofNat 2 2)))) 0
+#guard okIs (evalUntypedExact { vals := [("N", 2147483647)] }
   (.binary (.m0 .add) (.paramRef "N" none) (.int 1))) (-2147483648)
 
 /-! ### Constant widths after the §6.20.2 untyped rule
@@ -4380,11 +4439,11 @@ private def pPY : PParam := { name := "PY", type? := some byteTy, signed? := som
 -- Untyped widths: `2 ** SB` (non-INT, a value beyond 64 extra bits at SB =
 -- 100), `N + 1` (INT, 33 bits in Icarus) and `2 ** N` (INT, 42 bits in
 -- Icarus at N = 40) are loud; `SB >> 1`, `SB == 8'd5` are not.
-#guard okIs (evalUntyped (sbEnv 100) (.binary .pow (.int 2) (.paramRef "SB" none))) 0
-#guard okIs (evalUntyped { vals := [("N", 5)] } (.binary (.m0 .add) (.paramRef "N" none) (.int 1))) 6
-#guard okIs (evalUntyped { vals := [("N", 8)] } (.binary .pow (.int 2) (.paramRef "N" none))) 256
-#guard okIs (evalUntyped (sbEnv 6) (.binary .shr (.paramRef "SB" none) (.int 1))) 3
-#guard okIs (evalUntyped (sbEnv 5) (.binary (.m0 .eq) (.paramRef "SB" none) (lit8 5))) 1
+#guard okIs (evalUntypedExact (sbEnv 100) (.binary .pow (.int 2) (.paramRef "SB" none))) 0
+#guard okIs (evalUntypedExact { vals := [("N", 5)] } (.binary (.m0 .add) (.paramRef "N" none) (.int 1))) 6
+#guard okIs (evalUntypedExact { vals := [("N", 8)] } (.binary .pow (.int 2) (.paramRef "N" none))) 256
+#guard okIs (evalUntypedExact (sbEnv 6) (.binary .shr (.paramRef "SB" none) (.int 1))) 3
+#guard okIs (evalUntypedExact (sbEnv 5) (.binary (.m0 .eq) (.paramRef "SB" none) (lit8 5))) 1
 
 /-! ### Left shifts and the `Squash2` own-width gate
 
@@ -4397,15 +4456,15 @@ not at the 16-bit context (round 6's). -/
 
 private def nEnv (n : Int) : IEnv := { vals := [("N", n)] }
 private def oneShlN : PExpr := .binary .shl (.int 1) (.paramRef "N" none)
-#guard okIs (evalUntyped (nEnv 8) oneShlN) 256
-#guard okIs (evalUntyped (nEnv 40) oneShlN) 0
-#guard okIs (evalUntyped (nEnv 8) (.binary .ashl (.int 1) (.paramRef "N" none))) 256
-#guard isLoud (evalUntyped (nEnv 8) (.binary (.m0 (.shl false)) (.int 1) (.paramRef "N" none)))
-#guard okIs (evalUntyped (nEnv 8) (.binary (.m0 .or) oneShlN (.int 1))) 257
-#guard okIs (evalUntyped (nEnv 8) (.binary .div oneShlN (.int 2))) 128
-#guard okIs (evalUntyped (nEnv 8) (.binary (.m0 .div) oneShlN (.int 2))) 128
-#guard isLoud (evalUntyped (nEnv 8) (.binary (.m0 (.pow false false)) (.int 2) (.paramRef "N" none)))
-#guard okIs (evalUntyped (nEnv 8) (.binary .shr (.int 256) (.paramRef "N" none))) 1
+#guard okIs (evalUntypedExact (nEnv 8) oneShlN) 256
+#guard okIs (evalUntypedExact (nEnv 40) oneShlN) 0
+#guard okIs (evalUntypedExact (nEnv 8) (.binary .ashl (.int 1) (.paramRef "N" none))) 256
+#guard isLoud (evalUntypedExact (nEnv 8) (.binary (.m0 (.shl false)) (.int 1) (.paramRef "N" none)))
+#guard okIs (evalUntypedExact (nEnv 8) (.binary (.m0 .or) oneShlN (.int 1))) 257
+#guard okIs (evalUntypedExact (nEnv 8) (.binary .div oneShlN (.int 2))) 128
+#guard okIs (evalUntypedExact (nEnv 8) (.binary (.m0 .div) oneShlN (.int 2))) 128
+#guard isLoud (evalUntypedExact (nEnv 8) (.binary (.m0 (.pow false false)) (.int 2) (.paramRef "N" none)))
+#guard okIs (evalUntypedExact (nEnv 8) (.binary .shr (.int 256) (.paramRef "N" none))) 1
 private def sqDiv : PExpr := .binary .div (.resize 32 (.lit (.ofNat 4 8))) uPlus1
 private def lpSqD : PLocalParam :=
   { name := "H1", expr := .resize 16 (.squash2 32 sqDiv), type? := some shortTy, signed? := some true }

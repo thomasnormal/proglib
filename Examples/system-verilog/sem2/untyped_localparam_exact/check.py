@@ -37,4 +37,4 @@ with tempfile.TemporaryDirectory() as d:
     else:
         print("Xcelium 24.03-s004: unavailable")
     print("Icarus observed-width departure is declared in cases2.json")
-    print("E: exact self-determined values match Xcelium at both parameter points")
+    print("E: Constant:untyped-width refusal is recorded for this mixed-width family pending audit acceptance of the exact evaluator")
