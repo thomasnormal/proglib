@@ -220,7 +220,7 @@
                   "end_line": 5,
                   "end_col": 30
                 },
-                "name": "stage",
+                "name": "g.stage",
                 "width": {
                   "kind": "PackedType",
                   "packed": [
