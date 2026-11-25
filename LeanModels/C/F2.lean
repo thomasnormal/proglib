@@ -8487,6 +8487,22 @@ theorem pairedAllocateBounded_preserves_wellFormed
   | fail =>
       simp [allocateBounded] at hsource
 
+theorem pairedAllocateBounded_empty_unaddressable_preserves_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment limit : Nat)
+    (source target : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hsource : allocateBounded store { bytes := [], state := state }
+      .unaddressable alignment limit = .ok source)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId .unaddressable) alignment limit =
+        .ok target) :
+    WellFormed source.1 ∧ WellFormed target.1 := by
+  exact pairedAllocateBounded_preserves_wellFormed resolve store
+    { bytes := [], state := state } .unaddressable alignment limit source target
+    hstore (by simp [bytesWf]) (by simp [bytesWf, renameAllocationRequest]) hsource htarget
+
 theorem pairedAllocateBounded_empty_address_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (base alignment limit : Nat)
