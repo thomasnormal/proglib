@@ -18,7 +18,7 @@ load_design_sv2 blocking_local_always_ff_step11
       body.size == 5 &&
       match body[0]? with
       | some (LeanModels.Sv.Stmt2.unsupported "LocalDecl"
-          "block-local declaration requires scoped procedural storage") => true
+          "static procedural declaration is retained for the memory route") => true
       | _ => false
   | _ => false
 #guard blocking_local_always_ff_step11.sem.hasUnsupported
