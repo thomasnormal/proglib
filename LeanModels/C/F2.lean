@@ -5198,6 +5198,20 @@ theorem pairedOffsetPointer_zero_element_size
     pairedOffsetPointer resolve pointer 0 delta bound = true := by
   simp [pairedOffsetPointer, offsetPointer]
 
+theorem pairedOffsetPointer_zero_delta
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize bound : Nat)
+    (hsource : pointer.address ≤ bound)
+    (htarget : (renamePointer resolve pointer).address ≤ bound) :
+    pairedOffsetPointer resolve pointer elementSize 0 bound = true := by
+  cases hsize : elementSize with
+  | zero => simp [pairedOffsetPointer, offsetPointer, hsize]
+  | succ n =>
+      have hsource' : ¬ bound < pointer.address := Nat.not_lt.mpr hsource
+      have htarget' : ¬ bound < (renamePointer resolve pointer).address :=
+        Nat.not_lt.mpr htarget
+      simp [pairedOffsetPointer, offsetPointer, hsource', htarget']
+
 theorem pairedOffsetPointer_both_success [BEq Tag]
     (resolve : AllocId → Nat) (pointer : Pointer Tag)
     (elementSize : Nat) (delta : Int) (bound : Nat)
