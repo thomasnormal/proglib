@@ -5814,6 +5814,14 @@ theorem pairedAllocateAligned_unaddressable_true
   simp [pairedAllocateAligned, allocateAligned, allocate, renamedPlacement,
     renameAllocationRequest]
 
+theorem pairedAllocateAligned_address_misaligned_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (base alignment : Nat)
+    (hsource : alignmentAllowed base alignment = false)
+    (htarget : alignmentAllowed (resolve store.nextId) alignment = false) :
+    pairedAllocateAligned resolve store request (.address base) alignment = true := by
+  simp [pairedAllocateAligned, allocateAligned, renamedPlacement, hsource, htarget]
+
 theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
