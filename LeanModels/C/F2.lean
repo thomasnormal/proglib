@@ -2933,6 +2933,11 @@ theorem reallocZeroGNU17_shape :
 def reallocZeroAgrees (source target : ReallocZeroOutcome) : Bool :=
   if source = target then true else false
 
+theorem reallocZeroAgrees_refusal (source target : ReallocZeroOutcome)
+    (hneq : source ≠ target) :
+    reallocZeroAgrees source target = false := by
+  simp [reallocZeroAgrees, hneq]
+
 def pairedReallocZero (_resolve : AllocId → Nat) : Bool :=
   reallocZeroAgrees reallocZeroGNU17 reallocZeroGNU17
 
