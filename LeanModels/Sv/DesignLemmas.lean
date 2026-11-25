@@ -30,6 +30,10 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
 * `CombHier.instantiateHDAlias2_twin` is the bridge when a module-level
   hierarchy has a flat twin; its hypotheses are the named parameter, width,
   fragment, and child-environment obligations.
+* `CombHier.hierInsts_refuses_genFor` records the exact source-shaped boundary
+  for a generated child family: it refuses before child lookup, so a hand
+  proof can switch to `generated_child_nested_family` without pretending that
+  the hierarchy summary already covers valuation-dependent instance names.
 
 A hand proof should use these equations first and only then invoke a tactic as
 an optional plumbing layer.  No theorem in this index is bounded by an
