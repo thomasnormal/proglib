@@ -4253,6 +4253,17 @@ theorem alignmentComposition_refusal_second (first second : AllocId → Nat)
     alignmentComposition first second id alignment = false := by
   simp [alignmentComposition, hfirst, hsecond]
 
+theorem alignmentComposition_refusal (first second : AllocId → Nat)
+    (id alignment : Nat)
+    (hrefusal : alignmentAllowed (first id) alignment = false ∧
+      alignmentAllowed (second id) alignment = true ∨
+      alignmentAllowed (first id) alignment = true ∧
+      alignmentAllowed (second id) alignment = false) :
+    alignmentComposition first second id alignment = false := by
+  rcases hrefusal with ⟨hfirst, hsecond⟩ | ⟨hfirst, hsecond⟩
+  · simp [alignmentComposition, hfirst, hsecond]
+  · simp [alignmentComposition, hfirst, hsecond]
+
 theorem alignmentComposition_sound (first second : AllocId → Nat)
     (id alignment : Nat)
     (h : alignmentComposition first second id alignment = true) :
