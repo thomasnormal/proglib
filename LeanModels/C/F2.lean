@@ -7197,6 +7197,20 @@ theorem pairedAllocate_preserves_counts
       rcases hresult with ⟨rfl, rfl⟩
       exact ⟨by simp, by simp, by simp, by simp⟩
 
+theorem pairedAllocate_empty_result_counts
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (placement : Placement)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedAllocate resolve store { bytes := [], state := state }
+      placement = some result) :
+    result.1.1.nextId = store.nextId + 1 ∧
+      result.2.1.nextId = (renameStore resolve store).nextId + 1 ∧
+      result.1.1.allocations.length = store.allocations.length + 1 ∧
+      result.2.1.allocations.length = (renameStore resolve store).allocations.length + 1 := by
+  exact pairedAllocate_preserves_counts resolve store
+    { bytes := [], state := state } placement result hresult
+
 theorem pairedAllocate_preserves_footprints
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
