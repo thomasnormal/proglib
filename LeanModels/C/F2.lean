@@ -6980,6 +6980,15 @@ theorem pairedLifetimeLookup_refusal_target
     pairedLifetimeLookup resolve store id = false := by
   simp [pairedLifetimeLookup, htarget]
 
+theorem pairedLifetimeLookup_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (hrefusal : endLifetime store id = none ∨
+      endLifetime (renameStore resolve store) id = none) :
+    pairedLifetimeLookup resolve store id = false := by
+  rcases hrefusal with hsource | htarget
+  · simp [pairedLifetimeLookup, hsource]
+  · simp [pairedLifetimeLookup, htarget]
+
 def pairedStaleLoad (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) : Bool :=
   match endLifetime store id, endLifetime (renameStore resolve store) id with
