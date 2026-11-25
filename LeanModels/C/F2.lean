@@ -4692,6 +4692,11 @@ theorem alignmentComposition_sound (first second : AllocId → Nat)
     alignmentAllowed (first id) alignment = alignmentAllowed (second id) alignment := by
   simpa [alignmentComposition] using h
 
+theorem alignmentComposition_zero
+    (first second : AllocId → Nat) (id : Nat) :
+    alignmentComposition first second id 0 = true := by
+  simp [alignmentComposition, alignmentAllowed]
+
 theorem zeroAlignmentRefused (base : Nat) :
     alignmentAllowed base 0 = false := by
   simp [alignmentAllowed]
