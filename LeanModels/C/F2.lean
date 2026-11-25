@@ -4221,6 +4221,18 @@ theorem freeMetadata_empty_preserves_lengths
   exact ⟨by simpa [hpayload.2] using List.length_nil,
     congrArg List.length hlocations⟩
 
+theorem pairedFreeMetadata_empty_result_wellFormed
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hmetadata : metadata.wellFormed 0)
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.wellFormed 0 ∧ result.2.1.wellFormed 0 := by
+  exact pairedFreeMetadata_preserves_wellFormed_from_source
+    resolve metadata result hmetadata hresult
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
