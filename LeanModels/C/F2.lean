@@ -3125,6 +3125,20 @@ theorem pairedReallocMetadata_empty_address_result_footprints
   rcases hresult with rfl
   exact ⟨rfl, rfl⟩
 
+theorem pairedReallocMetadata_empty_unaddressable_result_footprints
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (state : State)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hresult : pairedReallocMetadata resolve old { bytes := [], state := state }
+      [] .unaddressable = some result) :
+    result.1.2 = footprint .metadata (Region.mk 0 0 0) ∧
+      result.2.2 = footprint .metadata (Region.mk 0 0 0) := by
+  simp [pairedReallocMetadata, reallocMetadata, renameAllocationRequest] at hresult
+  rcases hresult with rfl
+  exact ⟨rfl, rfl⟩
+
 theorem pairedReallocMetadata_footprints
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
