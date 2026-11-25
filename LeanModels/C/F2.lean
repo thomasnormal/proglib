@@ -7979,6 +7979,16 @@ theorem allocateBounded_address_misaligned
       .error .misaligned := by
   simp [allocateBounded, hwithin, hrejected]
 
+theorem allocateBounded_empty_address_misaligned
+    (store : Store Tag State) (state : State)
+    (base alignment limit : Nat)
+    (hwithin : placementWithin base 0 limit = true)
+    (hrejected : alignmentAllowed base alignment = false) :
+    allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .error .misaligned := by
+  exact allocateBounded_address_misaligned store
+    { bytes := [], state := state } base alignment limit hwithin hrejected
+
 theorem allocateBounded_address_overlap
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment limit : Nat)
