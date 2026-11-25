@@ -177,7 +177,7 @@ end
 
 def oldExecStmt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmt : PStmt) : CoreMemExec :=
-  oldStmtFuel E env elems st [] 4096 stmt
+  oldStmtFuel E env elems st [] (1 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
 -- END MERGE-BASE
 
 /-! ## Old (merge base) against new (tip), at the same fuel -/
@@ -292,13 +292,13 @@ theorem audit_old_new (fuel : Nat) :
             exact RC_bind (ihStmt E (env.bindVal iterator i) elems st locals body) (fun a =>
               RC_bind (ihLoop E env elems a.state a.locals rest body iterator) (fun b => RC_refl _))
 
-/-! ## The entry points: old `execStmt` (fixed 4096) against new `execStmt` (4096 + need + runtimeNeed) -/
+/-! ## The entry points: old and new executors at the structural entry budget -/
 
 theorem audit_execStmt_conservative (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmt : PStmt) :
     RC (oldExecStmt E env elems st stmt) (E.execStmt env elems st stmt) := by
   unfold oldExecStmt CoreMemDesign.execStmt
-  exact RC_le ((audit_old_new 4096).1 E env elems st [] stmt)
+  exact RC_le ((audit_old_new (1 + PStmt.need env stmt + PStmt.runtimeNeed env stmt)).1 E env elems st [] stmt)
     (coreMemFuelMono_stmt (by omega) E env elems st [] stmt)
 
 /-- The decided reading: an old value is the new value unless the new route refuses. -/
