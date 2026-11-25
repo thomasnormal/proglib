@@ -7,3 +7,6 @@ source-shaped ANSI ports.
 
 Eight known and four-state input rows match canonical E, Icarus Verilog 13.0,
 and Xcelium 24.03-s004.
+
+The current receipt reports eight matching ordinary/source rows, including
+the four-state inputs.
