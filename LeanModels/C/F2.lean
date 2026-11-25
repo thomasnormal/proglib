@@ -5331,6 +5331,17 @@ theorem placementWithinComposition_refusal_second
     placementWithinComposition first second id size limit base = false := by
   simp [placementWithinComposition, hfirst, hsecond]
 
+theorem placementWithinComposition_refusal
+    (first second : AllocId → Nat) (id size limit base : Nat)
+    (hrefusal : placementWithin (first id) size limit = false ∧
+      placementWithin (second id) size limit = true ∨
+      placementWithin (first id) size limit = true ∧
+      placementWithin (second id) size limit = false) :
+    placementWithinComposition first second id size limit base = false := by
+  rcases hrefusal with ⟨hfirst, hsecond⟩ | ⟨hfirst, hsecond⟩
+  · simp [placementWithinComposition, hfirst, hsecond]
+  · simp [placementWithinComposition, hfirst, hsecond]
+
 theorem placementWithin_zero (base limit : Nat) :
     placementWithin base 0 limit = (base ≤ limit) := by
   simp [placementWithin]
