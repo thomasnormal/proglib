@@ -50,6 +50,8 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   `flattenInst` bridge once a child design and prefix are available.
   `CombHier.generatedChildRefs_segmentAt_mapM_ok` composes those
   valuation-dependent segments in source order without choosing an iteration.
+  `CombHier.generatedChildRefPairs_segmentAt_mapM_ok` is the heterogeneous
+  variant when each retained reference carries its own child `Design2`.
   `CombHier.generatedChildRefs_genFor_singleton` composes one symbolic loop
   header with a child reference without selecting an iteration.
   `CombHier.generatedChildRefs_genFor_nested_singleton` composes two nested

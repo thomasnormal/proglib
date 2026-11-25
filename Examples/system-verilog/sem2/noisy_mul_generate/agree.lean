@@ -789,6 +789,29 @@ theorem noisy_generated_row_inner_refs :
   simp [rowInnerLoops, CombHier.generatedChildRefs, hx, hs, hm, Except.bind, Except.pure, pure, Functor.map, Except.map]
   rfl
 
+theorem noisy_generated_row_inner_segments
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    ([{ loops := rowInnerLoops, inst := xorInst, child := xorDef },
+      { loops := rowInnerLoops, inst := xorSInst, child := xorDef },
+      { loops := rowInnerLoops, inst := majInst, child := majDef }] :
+        List CombHier.GeneratedChildRef).mapM
+      (fun r => r.segmentAt
+        (if r.inst.name == xorInst.name then xorDesign
+         else if r.inst.name == majInst.name then majDesign else xorDesign)
+        ((env.bindVal "i" i).bindVal "j" j) elems) =
+      .ok [
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.") xorInst xorDesign,
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.") xorSInst xorDesign,
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.") majInst majDesign] := by
+  simp only [List.mapM_cons]
+  rw [CombHier.GeneratedChildRef.segmentAt_ok (xorInst_prefix env i j)]
+  rw [CombHier.GeneratedChildRef.segmentAt_ok (xorS_prefix env i j)]
+  rw [CombHier.GeneratedChildRef.segmentAt_ok (majInst_prefix env i j)]
+  rfl
+
 theorem noisy_row_expand_process_family
     (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (F : Nat)
     (N : Int) (hFuel : (N - 1).toNat < F)

@@ -1249,6 +1249,31 @@ theorem generatedChildRefs_segmentAt_mapM_ok
       rw [htail]
       rfl
 
+/-- The same ordered composition rule when each retained reference carries the
+  `Design2` produced for that child.  This is the convenient hand-proof form
+  for a heterogeneous generated family (for example xor/xor/majority gates)
+  before the family is flattened into one ordinary design. -/
+theorem generatedChildRefPairs_segmentAt_mapM_ok
+    {rs : List (GeneratedChildRef × Design2)}
+    {env : GeneratedChildRef → IEnv}
+    {elems : List (String × Nat)}
+    {seg : GeneratedChildRef × Design2 → List Decl × List Process2}
+    (hok : ∀ r ∈ rs,
+      r.1.segmentAt r.2 (env r.1) elems = .ok (seg r)) :
+    rs.mapM (fun r => r.1.segmentAt r.2 (env r.1) elems) =
+      .ok (rs.map seg) := by
+  induction rs with
+  | nil => rfl
+  | cons r rs ih =>
+      simp only [List.mapM_cons]
+      rw [hok r (by simp)]
+      have htail :
+          rs.mapM (fun r => r.1.segmentAt r.2 (env r.1) elems) =
+            .ok (rs.map seg) :=
+        ih (fun r' hr' => hok r' (by simp [hr']))
+      rw [htail]
+      rfl
+
 /-- Read a generate-only family of child instances, preserving its nested
 headers and source order.  This is intentionally narrower than the eventual
 hierarchy summary: process/declaration/conditional siblings refuse loudly
