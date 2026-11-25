@@ -11,3 +11,6 @@ and non-NBA loop bodies loud.
 
 The source and testbench are checked against Icarus Verilog 13.0 and the
 readiness-gated Xcelium row set by `check.py`.
+
+This receipt covers the source-shaped reset-loop memory family in the
+remaining real-block wall queue.
