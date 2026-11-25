@@ -4200,6 +4200,15 @@ theorem freeMetadata_empty_preserves_payload
   have hgeneral := freeMetadata_preserves_payload metadata result hresult
   exact ⟨hgeneral.1, by simpa [hbytes] using hgeneral.2.1, hgeneral.2.2⟩
 
+theorem freeMetadata_empty_result_footprint
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : freeMetadata metadata = some result) :
+    result.2 = footprint .metadata (Region.mk 0 0 0) := by
+  have hgeneral := freeMetadata_footprint_shape metadata result hresult
+  simpa [hbytes] using hgeneral
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
