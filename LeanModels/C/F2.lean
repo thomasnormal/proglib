@@ -5081,7 +5081,11 @@ inductive PlacementFault where
   | exhausted
   | overlap
   | misaligned
-deriving Repr, BEq
+deriving Repr, BEq, DecidableEq
+
+theorem placementFault_beq_iff (left right : PlacementFault) :
+    (left == right) = true ↔ left = right := by
+  cases left <;> cases right <;> decide
 
 
 def allocateBounded (store : Store Tag State) (request : AllocationRequest Tag State)
@@ -5371,6 +5375,36 @@ theorem pairedAllocateBounded_matching_fault
       (renamedPlacement resolve store.nextId placement) alignment limit = .error fault) :
     pairedAllocateBounded resolve store request placement alignment limit = true := by
   cases fault <;> simp [pairedAllocateBounded, hsource, htarget] <;> rfl
+
+theorem pairedAllocateBounded_sound
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment limit : Nat)
+    (h : pairedAllocateBounded resolve store request placement alignment limit = true) :
+    (∃ source target,
+      allocateBounded store request placement alignment limit = .ok source ∧
+      allocateBounded (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) alignment limit = .ok target) ∨
+    (∃ fault,
+      allocateBounded store request placement alignment limit = .error fault ∧
+      allocateBounded (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) alignment limit = .error fault) := by
+  cases hs : allocateBounded store request placement alignment limit with
+  | ok source =>
+      cases ht : allocateBounded (renameStore resolve store) (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment limit with
+      | ok target => exact Or.inl ⟨source, target, rfl, rfl⟩
+      | error targetFault => simp [pairedAllocateBounded, hs, ht] at h
+  | error sourceFault =>
+      cases ht : allocateBounded (renameStore resolve store) (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment limit with
+      | ok target => simp [pairedAllocateBounded, hs, ht] at h
+      | error targetFault =>
+          have hEqBool : (sourceFault == targetFault) = true := by
+            simpa [pairedAllocateBounded, hs, ht] using h
+          have heq : sourceFault = targetFault :=
+            (placementFault_beq_iff sourceFault targetFault).mp hEqBool
+          exact Or.inr ⟨sourceFault, rfl, by simpa [heq] using ht⟩
 
 def allocateMetadata (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement) :
