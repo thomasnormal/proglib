@@ -20,3 +20,6 @@ python3 extractors/sv/extract.py --top generated_array_nested_canonical_e \
   -o Examples/system-verilog/sem2/generated_array_nested_canonical_e/generated_array_nested_canonical_e.sv.json \
   Examples/system-verilog/sem2/generated_array_nested_canonical_e/generated_array_nested_canonical_e.sv
 ```
+
+This receipt covers the retained nested generated-array select family named
+`genvar_unpacked_chain` in the wall packet.
