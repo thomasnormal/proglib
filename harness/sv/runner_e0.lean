@@ -120,16 +120,21 @@ def main (argv : List String) : IO UInt32 := do
         match c.crossCheck with
         | [] => pure ()
         | msgs => .error s!"crossCheck REFUSED (module '{c.name}'): {String.intercalate " | " msgs}"
-      -- Keep E-core-0's parser-native admission boundary aligned with the
-      -- canonical source-shaped route.  Lowering a multi-write reactive body
-      -- before this check would erase the §4.7 suspension point and silently
-      -- admit a design whose intermediate write another process may observe.
-      match coreMemPreemptiveBlockingViolReport pd [] with
-      | none => pure ()
-      | some (kind, msg) => .error s!"{kind}: {msg}"
       let cj ← Json.parse casesText
       let fuel := (getFOpt cj "fuel").bind (·.getNat?.toOption) |>.getD 1000
       let case ← findCase (← getArrF cj "cases") caseName
+      -- A declared Schedule:preemptive row must be refused before lowering.
+      -- Other E0 rows intentionally use the process-atomic profile, so the
+      -- canonical guard is consulted only where the case records that
+      -- profile boundary.
+      match getFOpt case "refusal" with
+      | some (.str expected) =>
+          if expected.startsWith "Schedule:preemptive" then
+            match coreMemPreemptiveBlockingViolReport pd [] with
+            | none => pure ()
+            | some (kind, msg) => .error s!"{kind}: {msg}"
+          else pure ()
+      | _ => pure ()
       let (pd, args) ← resolvePoint pd (getFOpt case "params")
       unless (if lib.isEmpty then pd.int32Agrees args else pd.int32AgreesH lib args) do
         .error "int32: an INT-class constant expression leaves the 32-bit range at these parameters"

@@ -3012,6 +3012,7 @@
       "name": "t2_combw",
       "example": "sem2/probes",
       "top": "t2_combw",
+      "refusal": "10.4.1",
       "signals": [
         "i",
         "base",
