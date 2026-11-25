@@ -6095,6 +6095,13 @@ theorem PlacementAgreement.agreesAt_sound
     agreement.left id = agreement.right id := by
   simpa [PlacementAgreement.agreesAt] using h
 
+theorem PlacementAgreement.agrees_of_agreesAt
+    (agreement : PlacementAgreement)
+    (h : ∀ id, agreement.agreesAt id = true) :
+    agreement.agrees := by
+  intro id
+  exact agreement.agreesAt_sound id (h id)
+
 theorem PlacementAgreement.agreesAt_refusal
     (agreement : PlacementAgreement) (id : AllocId)
     (h : agreement.left id ≠ agreement.right id) :
