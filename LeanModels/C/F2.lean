@@ -8059,6 +8059,20 @@ theorem allocateBounded_address_result_counters
   rcases hresult with ⟨rfl, rfl⟩
   simp
 
+theorem allocateBounded_empty_address_result_counters
+    (store : Store Tag State) (state : State)
+    (base alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hwithin : placementWithin base 0 limit = true)
+    (haligned : alignmentAllowed base alignment = true)
+    (hallowed : placementAllowed store base 0 = true)
+    (hresult : allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .ok result) :
+    result.1.nextId = store.nextId + 1 ∧
+      result.1.allocations.length = store.allocations.length + 1 := by
+  exact allocateBounded_address_result_counters store
+    { bytes := [], state := state } base alignment limit result
+    hwithin haligned hallowed hresult
+
 theorem allocateBounded_address_result_footprint
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment limit : Nat) (result : Store Tag State × Footprint)
