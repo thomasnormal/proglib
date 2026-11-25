@@ -206,8 +206,10 @@ def main (argv : List String) : IO UInt32 := do
         | [] => pure ()
         | msgs => .error s!"crossCheck REFUSED (module '{c.name}'): {String.intercalate " | " msgs}"
       let cj ← Json.parse casesText
-      let fuel := (getFOpt cj "fuel").bind (·.getNat?.toOption) |>.getD 1000
       let case ← findCase (← getArrF cj "cases") caseName
+      let fuel := (getFOpt case "fuel").bind (·.getNat?.toOption)
+        |>.orElse (fun _ => (getFOpt cj "fuel").bind (·.getNat?.toOption))
+        |>.getD 1000
       let (pd, args) ← resolvePoint pd (getFOpt case "params")
       -- Exact 32-bit `int` constants must give the design the unbounded
       -- fast path gives (`PDesign.int32Agrees`): otherwise the proof-facing
