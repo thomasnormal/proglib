@@ -3719,6 +3719,15 @@ theorem freeMetadata_live_shape
         footprint .metadata (Region.mk 0 0 metadata.allocation.bytes.length)) := by
   simp [freeMetadata, hlive]
 
+theorem freeMetadata_empty_live_shape
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hlive : metadata.allocation.live = true)
+    (hbytes : metadata.allocation.bytes = []) :
+    freeMetadata metadata =
+      some ({ metadata with allocation := { metadata.allocation with live := false } },
+        footprint .metadata (Region.mk 0 0 0)) := by
+  simp [freeMetadata, hlive, hbytes]
+
 theorem freeMetadata_dead_refusal
     (metadata : AllocationMetadata Tag State TypeId)
     (hdead : metadata.allocation.live = false) :
