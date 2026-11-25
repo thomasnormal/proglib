@@ -5857,6 +5857,42 @@ theorem pairedStoreByte_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedStoreRepresentationLoadMetadataByte_sound
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice)
+    (result : (((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint))))
+    (hresult : pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice =
+      some result) :
+    ∃ sourceStore sourceLoad targetStore targetLoad,
+      result = ((sourceStore, sourceLoad), (targetStore, targetLoad)) ∧
+      storeMetadataByte metadata offset byte = some sourceStore ∧
+      storeMetadataByte (renameMetadata resolve id metadata) offset (renameByte resolve byte) =
+        some targetStore ∧
+      representationLoadMetadataByte sourceStore.1 offset choice = some sourceLoad ∧
+      representationLoadMetadataByte targetStore.1 offset choice = some targetLoad := by
+  cases hs : storeMetadataByte metadata offset byte with
+  | none => simp [pairedStoreRepresentationLoadMetadataByte, hs] at hresult
+  | some sourceStore =>
+      cases ht : storeMetadataByte (renameMetadata resolve id metadata) offset
+          (renameByte resolve byte) with
+      | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht] at hresult
+      | some targetStore =>
+          cases hsl : representationLoadMetadataByte sourceStore.1 offset choice with
+          | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl] at hresult
+          | some sourceLoad =>
+              cases htl : representationLoadMetadataByte targetStore.1 offset choice with
+              | none => simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl, htl] at hresult
+              | some targetLoad =>
+                  simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl, htl] at hresult
+                  exact ⟨sourceStore, sourceLoad, targetStore, targetLoad,
+                    hresult.symm, by simpa using hs, by simpa using ht,
+                    by simpa using hsl, by simpa using htl⟩
+
 theorem pairedStoreByte_operational_results
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) (byte : Byte Tag)
