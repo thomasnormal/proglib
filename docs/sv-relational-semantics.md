@@ -222,6 +222,20 @@ def Run
     (init : SlotState) (inputs : List InputBatch)
     (trace : List ObsState) : Prop := ...
 
+def BatchStep
+    (E : CoreMemDesign) (g : Granularity) (x : XResolution)
+    (start : SlotState) (batch : InputBatch)
+    (finish : SlotState) (observation : ObsState) : Prop := ...
+
+inductive TraceRun
+    (E : CoreMemDesign) (g : Granularity) (x : XResolution) :
+    SlotState → List InputBatch → List ObsState → Prop where
+  | nil {s} : TraceRun E g x s [] []
+  | cons {s mid batch rest obs trace} :
+      BatchStep E g x s batch mid obs →
+      TraceRun E g x mid rest trace →
+      TraceRun E g x s (batch :: rest) (obs :: trace)
+
 def ObserveTrace (finish : SlotState) (inputs : List InputBatch)
     (trace : List ObsState) : Prop := ...
 
