@@ -6816,6 +6816,16 @@ theorem pairedAllocateAligned_empty_address_true
     hsourceAligned, htargetAligned, hsourcePlacement, htargetPlacement,
     renameAllocationRequest]
 
+theorem pairedAllocateAligned_empty_address_misaligned_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment : Nat)
+    (hsource : alignmentAllowed base alignment = false)
+    (htarget : alignmentAllowed (resolve store.nextId) alignment = false) :
+    pairedAllocateAligned resolve store { bytes := [], state := state }
+      (.address base) alignment = true := by
+  exact pairedAllocateAligned_address_misaligned_true resolve store
+    { bytes := [], state := state } base alignment hsource htarget
+
 theorem pairedAllocateAligned_empty_address_result_payload
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (base alignment : Nat)
