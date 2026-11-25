@@ -1482,4 +1482,11 @@ theorem noisy_top_generated_node_flatten
   rw [noisy_top_generated_node_segments]
   rfl
 
+theorem noisy_generated_node_process_segment
+    (env : IEnv) (elems : List (String × Nat)) (i : Int) :
+    CombHier.GeneratedNode.segmentAt noisyTopNodeChild
+        (env.bindVal "i" i) elems (.process [outLoop] outProc) =
+      .ok ([], [instProcess2 (env.bindVal "i" i) elems outProc]) := by
+  rw [CombHier.GeneratedNode.segmentAt_process]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
