@@ -3861,6 +3861,14 @@ theorem pairedPointerEqual_equal_choice_refusal_right
     pairedPointerEqual resolve left right .equal = false := by
   simp [pairedPointerEqual, pointerEqual, hleft, hright]
 
+theorem pairedPointerEqual_sound
+    (resolve : AllocId → Nat) (left right : Pointer Tag)
+    (choice : EqualityChoice)
+    (h : pairedPointerEqual resolve left right choice = true) :
+    pointerEqual (renamePointer resolve left) (renamePointer resolve right) choice =
+      pointerEqual left right choice := by
+  simpa [pairedPointerEqual] using h
+
 inductive OffsetFault where
   | outOfBounds
   | alignment
