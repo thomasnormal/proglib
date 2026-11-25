@@ -462,6 +462,23 @@ absence of zero-time divergence are explicit hypotheses of liveness claims.
 Module contracts compose through the macrostep refinement theorem and never
 silently replace the reference relation.
 
+The derived one-batch judgment is the user-facing `Step` relation between
+observable states:
+
+```lean
+def Step
+    (E : CoreMemDesign) (g : Granularity) (x : XResolution)
+    (input : InputBatch) (before after : ObsState) : Prop := ...
+```
+
+Its definition existentially supplies the settled slot states and applies
+`SettledSlotRun` to that one batch, with `before` and `after` obtained through
+the declared observation projection. The relation still quantifies over every
+legal event order and per-read resolution through its `SlotRun` premise. A
+finite input history uses the inductive `TraceRun` relation above, which is the
+stream-level composition of these batch steps. The executor bridge below is an
+implementation characterization of `Step`, never its definition.
+
 The cheap first bridge is an implementation relation, not the meaning:
 
 ```lean
