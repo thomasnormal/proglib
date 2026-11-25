@@ -3758,6 +3758,14 @@ theorem freeMetadata_marks_dead
         simpa [freeMetadata, hlive] using hresult)
       simpa using (congrArg (fun pair => pair.1.allocation.live) hpair).symm
 
+theorem freeMetadata_empty_marks_dead
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : freeMetadata metadata = some result) :
+    result.1.allocation.live = false := by
+  exact freeMetadata_marks_dead metadata result hresult
+
 theorem freeMetadata_footprint_shape
     (metadata : AllocationMetadata Tag State TypeId)
     (result : AllocationMetadata Tag State TypeId × Footprint)
