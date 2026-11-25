@@ -811,7 +811,7 @@ def RelSeqRunsOn {α}
     (P : α → List ObsState → Prop) : Prop :=
   ∀ init, AdmissibleInit E init →
   ∀ a, Ok a → ValidInputs (rowsOf a) →
-  ∀ x trace, Run E g x (Initial E init) (rowsOf a) trace →
+  ∀ x trace, SettledRun E g x (Initial E init) (rowsOf a) trace →
     P a trace
 
 theorem SeqRunsOn_to_RelSeqRunsOn
@@ -833,9 +833,9 @@ successful-run witness because a relational safety statement alone does not
 establish that the executor produces a result.
 
 The analogous `RelSeqRunsM` and `RelSeqRunsI` preserve memory views and
-multi-clock instants. `SeqRunsOn` currently uses `runCoreMemRows` and a
-fixed-budget `CoreMemDesign.step`, so it stays an executor compatibility
-surface until both adapters exist.
+multi-clock instants while retaining the settled-run premise. `SeqRunsOn`
+currently uses `runCoreMemRows` and a fixed-budget `CoreMemDesign.step`, so it
+stays an executor compatibility surface until both adapters exist.
 
 For the combinational judgment, transport `Models2` and `Runs2` through
 the relation's `CombRun` and its settle theorem:
