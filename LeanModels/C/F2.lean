@@ -4924,6 +4924,28 @@ theorem pairedAllocate_decompose
           simp [pairedAllocate, hs, ht] at hresult
           exact ⟨sourceResult, targetResult, hresult.symm⟩
 
+theorem pairedAllocate_sound
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hresult : pairedAllocate resolve store request placement = some result) :
+    ∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      allocate store request placement = some sourceResult ∧
+      allocate (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) = some targetResult := by
+  cases hs : allocate store request placement with
+  | none => simp [pairedAllocate, hs] at hresult
+  | some sourceResult =>
+      cases ht : allocate (renameStore resolve store) (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) with
+      | none => simp [pairedAllocate, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedAllocate, hs, ht] at hresult
+          exact ⟨sourceResult, targetResult, hresult.symm,
+            by simpa using hs, by simpa using ht⟩
+
 theorem pairedAllocate_preserves_wellFormed
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
