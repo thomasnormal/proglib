@@ -3803,6 +3803,22 @@ theorem freeMetadata_preserves_wellFormed
   · rw [hlocations, hpayload.2.1]
     exact hmetadata.2
 
+theorem freeMetadata_empty_preserves_wellFormed
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hmetadata : metadata.wellFormed 0)
+    (hlive : metadata.allocation.live = true)
+    (hbytes : metadata.allocation.bytes = []) :
+    ∃ result,
+      freeMetadata metadata = some result ∧ result.1.wellFormed 0 := by
+  refine ⟨({ metadata with allocation := { metadata.allocation with live := false } },
+    footprint .metadata (Region.mk 0 0 0)), ?_, ?_⟩
+  · simp [freeMetadata, hlive, hbytes]
+  · have hloc : metadata.locations.length = 0 := by
+      rw [hmetadata.2, hbytes]
+      rfl
+    have hlocations : metadata.locations = [] := List.eq_nil_of_length_eq_zero hloc
+    simp [AllocationMetadata.wellFormed, bytesWf, hbytes, hlocations]
+
 def pairedFreeMetadata (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
     Option ((AllocationMetadata Tag State TypeId × Footprint) ×
