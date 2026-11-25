@@ -5219,6 +5219,21 @@ theorem pairedAllocateAligned_refusal_target
     pairedAllocateAligned resolve store request placement alignment = false := by
   simp [pairedAllocateAligned, hsource, htarget]
 
+theorem pairedAllocateAligned_refusal
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment : Nat)
+    (hrefusal : allocateAligned store request placement alignment = none ∧
+      allocateAligned (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) alignment = some target ∨
+      allocateAligned store request placement alignment = some source ∧
+      allocateAligned (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) alignment = none) :
+    pairedAllocateAligned resolve store request placement alignment = false := by
+  rcases hrefusal with ⟨hsource, htarget⟩ | ⟨hsource, htarget⟩
+  · simp [pairedAllocateAligned, hsource, htarget]
+  · simp [pairedAllocateAligned, hsource, htarget]
+
 def placementWithin (base size limit : Nat) : Bool :=
   base ≤ limit && size ≤ limit - base
 
