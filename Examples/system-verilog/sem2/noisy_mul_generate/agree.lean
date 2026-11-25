@@ -1471,4 +1471,15 @@ theorem noisy_top_generated_node_segments
         using majInst_prefix env i j
   simp at hr
 
+theorem noisy_top_generated_node_flatten
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    Except.map CombHier.GeneratedNode.flattenSegments
+      (noisyTopGeneratedNodes.mapM
+        (fun n => n.segmentAt noisyTopNodeChild
+          ((env.bindVal "i" i).bindVal "j" j) elems)) =
+      .ok (CombHier.GeneratedNode.flattenSegments
+        (noisyTopGeneratedNodes.map (noisyTopNodeSegment env elems i j))) := by
+  rw [noisy_top_generated_node_segments]
+  rfl
+
 end Examples.«system-verilog».sem2.noisy_mul_generate

@@ -1329,6 +1329,38 @@ theorem generatedNodes_segmentAt_mapM_ok
       rw [htail]
       rfl
 
+/-! The summary-facing fold for a source-ordered generated-node family.  The
+  node list is already in lexical order; this theorem only concatenates the
+  per-node declaration and process segments and does not choose loop values. -/
+
+def GeneratedNode.flattenSegments : List (List Decl × List Process2) → List Decl × List Process2
+  | [] => ([], [])
+  | (ds, ps) :: rest =>
+      let tail := GeneratedNode.flattenSegments rest
+      (ds ++ tail.1, ps ++ tail.2)
+
+theorem GeneratedNode.flattenSegments_map
+    (xs : List (List Decl × List Process2)) :
+    GeneratedNode.flattenSegments xs =
+      (xs.flatMap Prod.fst, xs.flatMap Prod.snd) := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih =>
+      rcases x with ⟨ds, ps⟩
+      simp [GeneratedNode.flattenSegments, ih, List.flatMap]
+
+theorem generatedNodes_segmentAt_flatten_ok
+    {ns : List GeneratedNode}
+    {child : GeneratedChildRef → Except String Design2}
+    {env : IEnv} {elems : List (String × Nat)}
+    {seg : GeneratedNode → List Decl × List Process2}
+    (hok : ∀ n ∈ ns, n.segmentAt child env elems = .ok (seg n)) :
+    Except.map GeneratedNode.flattenSegments
+        (ns.mapM (fun n => n.segmentAt child env elems)) =
+      .ok (GeneratedNode.flattenSegments (ns.map seg)) := by
+  rw [generatedNodes_segmentAt_mapM_ok hok]
+  rfl
+
 def generatedNodes (lib : List PDesign) (loops : List GeneratedLoop) :
     List GenItem → Except String (List GeneratedNode)
   | [] => .ok []
