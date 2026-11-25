@@ -6433,6 +6433,30 @@ theorem allocate_empty_result_shape
   | fail =>
       simp [allocate] at hresult
 
+theorem allocate_empty_result_counters
+    (store : Store Tag State) (state : State) (placement : Placement)
+    (result : Store Tag State × Footprint)
+    (hresult : allocate store { bytes := [], state := state } placement = some result) :
+    match placement with
+    | .address _ =>
+        result.1.nextId = store.nextId + 1 ∧
+          result.1.allocations.length = store.allocations.length + 1
+    | .unaddressable =>
+        result.1.nextId = store.nextId + 1 ∧
+          result.1.allocations.length = store.allocations.length + 1
+    | .fail => False := by
+  cases placement with
+  | address base =>
+      simp [allocate] at hresult
+      rcases hresult with ⟨_, rfl⟩
+      simp
+  | unaddressable =>
+      simp [allocate] at hresult
+      rcases hresult with ⟨rfl, rfl⟩
+      simp
+  | fail =>
+      simp [allocate] at hresult
+
 def allocateAligned (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment : Nat) : Option (Store Tag State × Footprint) :=
   match placement with
