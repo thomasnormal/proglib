@@ -4210,6 +4210,17 @@ theorem pairedAlignmentAllowed_refusal_target (resolve : AllocId → Nat)
     pairedAlignmentAllowed resolve id alignment = false := by
   simp [pairedAlignmentAllowed, hsource, htarget]
 
+theorem pairedAlignmentAllowed_refusal (resolve : AllocId → Nat)
+    (id alignment : Nat)
+    (hrefusal : alignmentAllowed id alignment = false ∧
+      alignmentAllowed (resolve id) alignment = true ∨
+      alignmentAllowed id alignment = true ∧
+      alignmentAllowed (resolve id) alignment = false) :
+    pairedAlignmentAllowed resolve id alignment = false := by
+  rcases hrefusal with ⟨hsource, htarget⟩ | ⟨hsource, htarget⟩
+  · simp [pairedAlignmentAllowed, hsource, htarget]
+  · simp [pairedAlignmentAllowed, hsource, htarget]
+
 def alignmentComposition (first second : AllocId → Nat)
     (id alignment : Nat) : Bool :=
   alignmentAllowed (first id) alignment == alignmentAllowed (second id) alignment
