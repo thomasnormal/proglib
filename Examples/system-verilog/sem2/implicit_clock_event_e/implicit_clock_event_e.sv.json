@@ -82,15 +82,50 @@
         "decls": [],
         "processes": [
           {
-            "kind": "Unsupported",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 2,
               "col": 3,
               "end_line": 2,
               "end_col": 27
             },
-            "sv_kind": "SignalEventControl:None_",
-            "text": "always_ff @(clk) q <= d;"
+            "events": [
+              {
+                "signal": "clk",
+                "edge": "any"
+              }
+            ],
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 2,
+                "col": 20,
+                "end_line": 2,
+                "end_col": 27
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 2,
+                  "col": 20,
+                  "end_line": 2,
+                  "end_col": 21
+                },
+                "width": 1,
+                "name": "q"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 2,
+                  "col": 25,
+                  "end_line": 2,
+                  "end_col": 26
+                },
+                "width": 1,
+                "name": "d"
+              }
+            }
           }
         ],
         "generates": [],
