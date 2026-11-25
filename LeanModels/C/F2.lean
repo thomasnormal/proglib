@@ -8112,6 +8112,23 @@ theorem allocateBounded_empty_unaddressable_result_footprint
   exact allocateBounded_unaddressable_result_footprint store
     { bytes := [], state := state } alignment limit result hresult
 
+theorem allocateBounded_empty_unaddressable_result_shape
+    (store : Store Tag State) (state : State)
+    (alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hresult : allocateBounded store { bytes := [], state := state }
+      .unaddressable alignment limit = .ok result) :
+    result.1 =
+        { allocations := store.allocations ++
+            [(store.nextId,
+              { live := true, address := none,
+                bytes := [], state := state })]
+          nextId := store.nextId + 1 } ∧
+      result.2 = footprint .metadata (Region.mk store.nextId 0 0) := by
+  exact ⟨allocateBounded_empty_unaddressable_result_payload store state
+      alignment limit result hresult,
+    allocateBounded_empty_unaddressable_result_footprint store state
+      alignment limit result hresult⟩
+
 theorem allocateBounded_unaddressable_preserves_wellFormed
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (alignment limit : Nat) (result : Store Tag State × Footprint)
