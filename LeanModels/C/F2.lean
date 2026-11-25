@@ -4921,6 +4921,12 @@ theorem renameReplayFixture_events
       fixture.events.map (renameReplayEvent resolve) := by
   rfl
 
+theorem renameReplayFixture_placements
+    (resolve : AllocId → Nat) (fixture : ReplayFixture) :
+    (renameReplayFixture resolve fixture).placements =
+      fixture.placements.map (renameReplayPlacement resolve) := by
+  rfl
+
 theorem renameReplayFixture_placement_count
     (resolve : AllocId → Nat) (fixture : ReplayFixture) :
     (renameReplayFixture resolve fixture).placements.length = fixture.placements.length := by
