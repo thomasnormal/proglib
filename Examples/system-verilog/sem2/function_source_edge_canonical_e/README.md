@@ -27,3 +27,6 @@ The checker also records the default extractor route. It keeps the call's
 source location and marks the existing inline representation explicitly. The
 `--retain-proc-rewrites` envelope used by the E receipt retains the parser
 `FunctionCall` node, so the two front-end modes cannot silently be conflated.
+
+The current receipt confirms eight matching source rows on both pinned
+simulators and the ordinary source-call boundary.
