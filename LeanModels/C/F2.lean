@@ -1940,6 +1940,16 @@ def pairedStoreUnionLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     some ((sourceStore, sourceLoad), (targetStore, targetLoad))
   else none
 
+theorem pairedStoreUnionLoadMetadataByte_empty_none
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (hbytes : metadata.allocation.bytes = []) :
+    pairedStoreUnionLoadMetadataByte resolve id metadata offset byte = none := by
+  simp [pairedStoreUnionLoadMetadataByte, storeMetadataByte,
+    unionLoadMetadataByte, renameMetadata, hbytes]
+
 theorem pairedStoreUnionLoadMetadataByte_decompose
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
