@@ -11,3 +11,6 @@ all eight rows in Icarus Verilog 13.0 and the pinned Xcelium 24.03-s004 receipt
 (`10000011`, `10000000`, `10111101`, `01111111`, `xxxxxxxx`, `zzzzzzzz`,
 `00111000`, `10100011`). Run `python3 check.py` to reproduce the bounded
 profile.
+
+The source shape also covers the large-block typed declaration family named
+`blk_defaults_typed_declaration` in the inbox wall packet.
