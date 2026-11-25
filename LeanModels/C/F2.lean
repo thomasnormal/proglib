@@ -4233,6 +4233,15 @@ theorem pairedFreeMetadata_empty_result_wellFormed
   exact pairedFreeMetadata_preserves_wellFormed_from_source
     resolve metadata result hmetadata hresult
 
+theorem freeMetadata_empty_result_wellFormed
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hmetadata : metadata.wellFormed 0)
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : freeMetadata metadata = some result) :
+    result.1.wellFormed 0 := by
+  exact freeMetadata_preserves_wellFormed metadata result hmetadata hresult
+
 inductive FreeOutcome where
   | nullSuccess
   | freed
