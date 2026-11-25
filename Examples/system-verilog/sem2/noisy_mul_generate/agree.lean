@@ -80,6 +80,14 @@ theorem noisy_fault_row_major_index_in_range
     i * N + j < N * N := by
   exact rowMajor_lt hi hj
 
+theorem noisy_fault_full_adder_index_in_range
+    {N i j q : Nat} (hN : 1 ≤ N) (hi : 1 ≤ i) (hiN : i < N)
+    (hj : j < N) (hq : q < 3) :
+    (N + 3 * (i - 1) + q) * N + j < (4 * N - 3) * N := by
+  apply rowMajor_lt (rows := 4 * N - 3) (cols := N)
+  · omega
+  · exact hj
+
 theorem noisy_fault_row_index_affine_supported :
     CombView.affOf?
         (.binary (.m0 .sub)
