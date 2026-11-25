@@ -2379,12 +2379,6 @@ theorem memcpySnapshot_success_nonoverlap
     memcpySnapshot source destination bytes = some bytes := by
   simp [memcpySnapshot, hnonoverlap, copySnapshot]
 
-theorem memcpySnapshot_refusal_overlap
-    (source destination : Region) (bytes : List (Byte Tag))
-    (hoverlap : regionsOverlap source destination bytes.length = true) :
-    memcpySnapshot source destination bytes = none := by
-  simp [memcpySnapshot, hoverlap]
-
 def memmoveSnapshot (_source _destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag)) := some bytes
 
