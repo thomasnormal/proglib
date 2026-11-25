@@ -6168,6 +6168,15 @@ def placementAgreementOfStores (left right : Store Tag State)
     right := placementOf right
     exposed := exposed }
 
+theorem placementAgreementOfStores_empty_agrees
+    {Tag State : Type} (exposed : AllocId → Bool) :
+    (placementAgreementOfStores
+      ({ allocations := [], nextId := 0 } : Store Tag State)
+      ({ allocations := [], nextId := 0 } : Store Tag State)
+      exposed).agrees := by
+  intro id
+  rfl
+
 def exposedPlacementAgreement (resolve : AllocId → Nat)
     (store : Store Tag State) (exposed : AllocId → Bool) : PlacementAgreement :=
   { left := placementOf store
