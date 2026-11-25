@@ -1512,6 +1512,30 @@ theorem pairedUnionLoadMetadataByte_decompose
           simp [pairedUnionLoadMetadataByte, hs, ht] at hresult
           exact ⟨sourceResult, targetResult, hresult.2.symm⟩
 
+theorem pairedUnionLoadMetadataByte_sound
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedUnionLoadMetadataByte resolve id metadata offset = some result) :
+    ∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      unionLoadMetadataByte metadata offset = some sourceResult ∧
+      unionLoadMetadataByte (renameMetadata resolve id metadata) offset = some targetResult ∧
+      (targetResult.1 == renameByte resolve sourceResult.1) = true ∧
+      (targetResult.2 == sourceResult.2) = true := by
+  cases hs : unionLoadMetadataByte metadata offset with
+  | none => simp [pairedUnionLoadMetadataByte, hs] at hresult
+  | some sourceResult =>
+      cases ht : unionLoadMetadataByte (renameMetadata resolve id metadata) offset with
+      | none => simp [pairedUnionLoadMetadataByte, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedUnionLoadMetadataByte, hs, ht] at hresult
+          rcases hresult with ⟨hcondition, hpair⟩
+          exact ⟨sourceResult, targetResult, hpair.symm,
+            by simpa using hs, by simpa using ht,
+            hcondition.1, hcondition.2⟩
+
 theorem pairedUnionLoadMetadataByte_refusal
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
