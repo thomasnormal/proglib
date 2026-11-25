@@ -3882,6 +3882,13 @@ def representationLoadMetadataByte
   | _, _ => some (byte,
       footprint .read { allocation := 0, offset := offset, width := 1 })
 
+theorem representationLoadMetadataByte_empty_none
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice)
+    (hbytes : metadata.allocation.bytes = []) :
+    representationLoadMetadataByte metadata offset choice = none := by
+  simp [representationLoadMetadataByte, hbytes]
+
 theorem representationLoadMetadataByte_success
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (choice : RepresentationChoice) (byte : Byte Tag)
