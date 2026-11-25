@@ -1,4 +1,5 @@
 import LeanModels.Sv.Ingest2
+import LeanModels.Sv.Kernel.XResolve
 import LeanModels.Sv.SeqCycleStages
 
 /-!
