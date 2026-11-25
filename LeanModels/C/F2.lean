@@ -6035,6 +6035,13 @@ theorem placementWithinComposition_both_allowed
     placementWithinComposition first second id size limit base = true := by
   simp [placementWithinComposition, hfirst, hsecond]
 
+theorem placementWithinComposition_zero
+    (first second : AllocId → Nat) (id limit : Nat)
+    (hfirst : first id ≤ limit)
+    (hsecond : second id ≤ limit) :
+    placementWithinComposition first second id 0 limit 0 = true := by
+  simp [placementWithinComposition, placementWithin, hfirst, hsecond]
+
 theorem placementWithinComposition_both_refused
     (first second : AllocId → Nat) (id size limit base : Nat)
     (hfirst : placementWithin (first id) size limit = false)
