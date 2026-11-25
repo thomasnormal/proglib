@@ -8255,6 +8255,26 @@ theorem allocateBounded_empty_address_result_payload
     { bytes := [], state := state } base alignment limit result
     hwithin haligned hallowed hresult
 
+theorem allocateBounded_empty_address_result_shape
+    (store : Store Tag State) (state : State)
+    (base alignment limit : Nat) (result : Store Tag State × Footprint)
+    (hwithin : placementWithin base 0 limit = true)
+    (haligned : alignmentAllowed base alignment = true)
+    (hallowed : placementAllowed store base 0 = true)
+    (hresult : allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .ok result) :
+    result.1 =
+        { allocations := store.allocations ++
+            [(store.nextId,
+              { live := true, address := some base,
+                bytes := [], state := state })]
+          nextId := store.nextId + 1 } ∧
+      result.2 = footprint .metadata (Region.mk store.nextId 0 0) := by
+  exact ⟨allocateBounded_empty_address_result_payload store state
+      base alignment limit result hwithin haligned hallowed hresult,
+    allocateBounded_empty_address_result_footprint store state
+      base alignment limit result hwithin haligned hallowed hresult⟩
+
 theorem allocateBounded_address_preserves_wellFormed
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment limit : Nat) (result : Store Tag State × Footprint)
