@@ -6526,6 +6526,17 @@ theorem allocateAligned_address_result_counters
     simp
   · simp [hallowed] at hresult
 
+theorem allocateAligned_empty_address_result_counters
+    (store : Store Tag State) (state : State)
+    (base alignment : Nat) (result : Store Tag State × Footprint)
+    (haligned : alignmentAllowed base alignment = true)
+    (hresult : allocateAligned store { bytes := [], state := state }
+      (.address base) alignment = some result) :
+    result.1.nextId = store.nextId + 1 ∧
+      result.1.allocations.length = store.allocations.length + 1 := by
+  exact allocateAligned_address_result_counters store
+    { bytes := [], state := state } base alignment result haligned hresult
+
 theorem allocateAligned_address_result_footprint
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment : Nat) (result : Store Tag State × Footprint)
