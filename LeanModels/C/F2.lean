@@ -5801,6 +5801,12 @@ def pairedAllocateAligned (resolve : AllocId → Nat)
   | none, none => true
   | _, _ => false
 
+theorem pairedAllocateAligned_fail_true
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (alignment : Nat) :
+    pairedAllocateAligned resolve store request .fail alignment = true := by
+  simp [pairedAllocateAligned, allocateAligned, allocate, renamedPlacement]
+
 theorem pairedAllocateAligned_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
