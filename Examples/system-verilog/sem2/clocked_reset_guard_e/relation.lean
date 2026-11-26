@@ -1,5 +1,5 @@
 import LeanModels.Sv.Ingest2
-import LeanModels.Sv.Kernel.NdSound
+import LeanModels.Sv.Kernel.NdFootprint
 
 /-!
 # An async-reset flop is in the fragment of the executor soundness theorem
@@ -47,6 +47,11 @@ theorem E_nbaClocked : E.NbaClocked :=
     fourState := by decide
     edgeBase := by rfl }
 
+/-- The design also passes the design-level non-interference test
+(`CoreMemDesign.NdFootprint`, `NdFootprint.lean`): a body with an `if` and an
+asynchronous reset.  The `Bool` test is decided by the kernel. -/
+theorem E_footprint : E.NdFootprint := { ok := by decide, edgeBase := by rfl }
+
 /-- `step_sound` on this design: from a typed store with `clk` and `rst_n`
 known, an executor result with `clk` and `rst_n` known is the end of a settled
 run of the relation under the executor's choices. -/
@@ -65,6 +70,7 @@ theorem flop_rows_sound (rows : List SvState) (st : CoreMemState) (out : List Co
   runCoreMemRows_sound E_nbaClocked rows st out hT hk hrows h hout
 
 #print axioms E_nbaClocked
+#print axioms E_footprint
 #print axioms flop_step_sound
 #print axioms flop_rows_sound
 
