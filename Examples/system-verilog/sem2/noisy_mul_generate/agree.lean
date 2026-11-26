@@ -2690,4 +2690,37 @@ theorem noisy_elems (N : Int) :
     noisyElems, List.lookup, Gen2.except_ok_bind, Except.bind, Except.map, Except.pure,
     pure, bind]
 
+theorem noisy_env_N_lookup (N : Int)
+    (hCanon : canonInt 32 true N = N) :
+    (noisyEnv N).nvals.lookup "N" = some (N, 32, true) := by
+  simp [noisyEnv, noisyScope, hCanon, List.lookup]
+
+theorem noisy_bound (N i : Int)
+    (hCanon : canonInt 32 true N = N) :
+    PExpr.isInt (((noisyEnv N).withDecls (noisyDeclsRaw N)).bindVal "i" i)
+      (.paramRef "N" none) = true := by
+  simp [PExpr.isInt, IEnv.bindVal, noisyEnv, noisyScope, noisyDeclsRaw,
+    List.lookup, hCanon]
+
+theorem noisy_value (N i : Int)
+    (hCanon : canonInt 32 true N = N) :
+    evalInt (((noisyEnv N).withDecls (noisyDeclsRaw N)).bindVal "i" i)
+      (.paramRef "N" none) = .ok N := by
+  simp [evalInt, IEnv.bindVal, noisyEnv, noisyScope, noisyDeclsRaw,
+    List.lookup, hCanon]
+
+theorem noisy_inner_bound (N i j : Int)
+    (hCanon : canonInt 32 true N = N) :
+    PExpr.isInt ((((noisyEnv N).withDecls (noisyDeclsRaw N)).bindVal "i" i).bindVal "j" j)
+      (.paramRef "N" none) = true := by
+  simp [PExpr.isInt, IEnv.bindVal, noisyEnv, noisyScope, noisyDeclsRaw,
+    List.lookup, hCanon]
+
+theorem noisy_inner_value (N i j : Int)
+    (hCanon : canonInt 32 true N = N) :
+    evalInt ((((noisyEnv N).withDecls (noisyDeclsRaw N)).bindVal "i" i).bindVal "j" j)
+      (.paramRef "N" none) = .ok N := by
+  simp [evalInt, IEnv.bindVal, noisyEnv, noisyScope, noisyDeclsRaw,
+    List.lookup, hCanon]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
