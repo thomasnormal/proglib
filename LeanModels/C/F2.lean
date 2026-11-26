@@ -2559,6 +2559,10 @@ theorem pairedMemmoveFootprint_sound (source destination : Region) (width : Nat)
     pairedMemmoveFootprint source destination width = true := by
   simp [pairedMemmoveFootprint, copyFootprint]
 
+theorem pairedMemmoveFootprint_contract (source destination : Region) (width : Nat) :
+    pairedMemmoveFootprint source destination width = true := by
+  exact pairedMemmoveFootprint_sound source destination width
+
 structure AllocationRequest (Tag State : Type) where
   bytes : List (Byte Tag)
   state : State
