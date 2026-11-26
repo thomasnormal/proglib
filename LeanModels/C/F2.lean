@@ -9662,7 +9662,8 @@ theorem pairedAllocateMetadata_empty_sound {Tag TypeId : Type}
       { bytes := [], state := state } [] placement = true) :
     (∃ source target,
       allocateMetadata (Tag := Tag) (TypeId := TypeId)
-          { bytes := [], state := state } [] placement = some source ∧
+          { bytes := [], state := state } [] placement =
+            some (source : AllocationMetadata Tag State TypeId × Footprint) ∧
       allocateMetadata (Tag := Tag) (TypeId := TypeId)
           (renameAllocationRequest resolve { bytes := [], state := state }) []
         (renamedPlacement resolve id placement) = some target) ∨
@@ -9708,6 +9709,31 @@ theorem pairedAllocateMetadata_refusal
   rcases hrefusal with ⟨hsource, htarget⟩ | ⟨hsource, htarget⟩
   · simp [pairedAllocateMetadata, hsource, htarget]
   · simp [pairedAllocateMetadata, hsource, htarget]
+
+theorem pairedAllocateMetadata_empty_refusal {Tag TypeId : Type}
+    (resolve : AllocId → Nat) (id : AllocId)
+    (state : State) (placement : Placement)
+    (hrefusal :
+      (∃ source target : AllocationMetadata Tag State TypeId × Footprint,
+        allocateMetadata (Tag := Tag) (TypeId := TypeId)
+            { bytes := [], state := state } [] placement = none ∧
+          allocateMetadata (Tag := Tag) (TypeId := TypeId)
+            (renameAllocationRequest resolve { bytes := [], state := state }) []
+            (renamedPlacement resolve id placement) = some target) ∨
+      (∃ source target : AllocationMetadata Tag State TypeId × Footprint,
+        allocateMetadata (Tag := Tag) (TypeId := TypeId)
+            { bytes := [], state := state } [] placement = some source ∧
+          allocateMetadata (Tag := Tag) (TypeId := TypeId)
+            (renameAllocationRequest resolve { bytes := [], state := state }) []
+            (renamedPlacement resolve id placement) = none)) :
+    pairedAllocateMetadata (Tag := Tag) (TypeId := TypeId) resolve id
+      { bytes := [], state := state } [] placement = false := by
+  rcases hrefusal with ⟨source, target, hsource, htarget⟩ |
+    ⟨source, target, hsource, htarget⟩
+  · exact pairedAllocateMetadata_refusal_target resolve id
+      { bytes := [], state := state } [] placement hsource htarget
+  · exact pairedAllocateMetadata_refusal_source resolve id
+      { bytes := [], state := state } [] placement hsource htarget
 
 #guard (allocate (Tag := Unit) (State := Unit)
   { allocations := [], nextId := 0 }
