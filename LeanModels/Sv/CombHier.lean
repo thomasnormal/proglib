@@ -1675,6 +1675,34 @@ theorem PDesign.instantiateH_of_expansion
     (lib := lib) (envI := { int32 := true }) harity h1 h2 h3 hexpand
   exact PDesign.instantiateH_of_rec hrec hok
 
+/-- A source-shaped generated-family expansion is sufficient for the ordinary
+hierarchical instantiation result.  The realization component is retained by
+the relation for hand proofs and source-order accounting; the executable
+instantiator consumes the expansion component and the same driver certificate.
+-/
+theorem PDesign.instantiateH_of_generated_expansion
+    {d : PDesign} {lib : List PDesign} {args : List Int}
+    {env : IEnv} {decls : List Decl} {elems : List (String × Nat)}
+    {paths : List (GeneratedNode × List Int)}
+    {child : GeneratedChildRef → Except String Design2}
+    {generated : List Decl × List Process2}
+    (harity : args.length = d.params.length)
+    (h1 : d.paramEnvH { int32 := true } args = .ok env)
+    (h2 : buildDecls env d.decls = .ok decls)
+    (h3 : buildElems env d.decls = .ok elems)
+    (hexpand : GeneratedFamilyExpansion
+      (PDesign.childRec lib.length lib { int32 := true }
+        (PDesign.surfaceFuel args) (Decl.inputNames decls))
+      (env.withDecls decls) elems (PDesign.surfaceFuel args) d paths child generated)
+    (hok : driversOk d.declNames d.inputNames
+      (d.assembleH env decls generated.1 elems generated.2).processes.toList = true) :
+    d.instantiateH lib args (PDesign.surfaceFuel args) =
+      .ok (d.assembleH env decls generated.1 elems generated.2) := by
+  apply PDesign.instantiateH_of_expansion harity h1 h2 h3
+    (idecls := generated.1) (gens := generated.2)
+  · simpa using hexpand.1
+  · exact hok
+
 
 @[simp] theorem assembleGeneratedAt_processes
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
