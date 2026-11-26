@@ -3911,6 +3911,60 @@ theorem noisy_pp_path_driverWins_at
       ("g_pp[" ++ toString (i : Int) ++ "].g_pp_j[" ++
         toString (j : Int) ++ "].u_and.") names ha hb hc hf hy hp hd)
 
+theorem noisy_pp_path_driverWins_actual
+    (N i j : Nat) (hN : 1 ≤ N) (hCanon : canonInt 32 true (N : Int) = N)
+    (hi : i < N) (hj : j < N) :
+    driverWins noisyMul.pdesign.declNames
+      (noisyFullFamilySegment (noisyEnv (N : Int)) (noisyElems (N : Int))
+        (.child { loops := ppSourceLoops, inst := andInst, child := andDef },
+          [i, j])).2 =
+      [("pp", some (i * N + j, 1))] := by
+  have hnot (x y q z : String) (hz : z ∈
+      ["a", "b", "f", "p", "pp", "s", "c", "t"]) :
+      ("g_pp[" ++ x ++ "].g_pp_j[" ++ y ++ "].u_and." ++ q) ≠ z := by
+    intro h
+    have hl := congrArg String.length h
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hz
+    rcases hz with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+    all_goals simp [String.length] at hl
+  have hnotMem (x y q : String) :
+      ("g_pp[" ++ x ++ "].g_pp_j[" ++ y ++ "].u_and." ++ q) ∉
+        ["a", "b", "f", "p", "pp", "s", "c", "t"] := by
+    intro hm
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+    rcases hm with h | h | h | h | h | h | h | h <;>
+      exact (hnot x y q _ (by simp)) h
+  apply noisy_pp_path_driverWins_at hN hi hj
+    (env := noisyEnv (N : Int)) (elems := noisyElems (N : Int))
+    (names := noisyMul.pdesign.declNames)
+  · apply Bool.eq_false_iff.mpr
+    intro h
+    have hm := List.contains_iff_mem.mp h
+    change _ ∈ ["a", "b", "f", "p", "pp", "s", "c", "t"] at hm
+    exact hnotMem (toString (i : Int)) (toString (j : Int)) "a" hm
+  · apply Bool.eq_false_iff.mpr
+    intro h
+    have hm := List.contains_iff_mem.mp h
+    change _ ∈ ["a", "b", "f", "p", "pp", "s", "c", "t"] at hm
+    exact hnotMem (toString (i : Int)) (toString (j : Int)) "b" hm
+  · apply Bool.eq_false_iff.mpr
+    intro h
+    have hm := List.contains_iff_mem.mp h
+    change _ ∈ ["a", "b", "f", "p", "pp", "s", "c", "t"] at hm
+    exact hnotMem (toString (i : Int)) (toString (j : Int)) "c" hm
+  · apply Bool.eq_false_iff.mpr
+    intro h
+    have hm := List.contains_iff_mem.mp h
+    change _ ∈ ["a", "b", "f", "p", "pp", "s", "c", "t"] at hm
+    exact hnotMem (toString (i : Int)) (toString (j : Int)) "f" hm
+  · apply Bool.eq_false_iff.mpr
+    intro h
+    have hm := List.contains_iff_mem.mp h
+    change _ ∈ ["a", "b", "f", "p", "pp", "s", "c", "t"] at hm
+    exact hnotMem (toString (i : Int)) (toString (j : Int)) "y" hm
+  · simp [PDesign.declNames, PDesign.declSig, CombView.Summary.declNames, noisyMul.pdesign]
+  · exact noisy_dims_pp (N : Int) hCanon
+
 theorem noisy_out_paths_driverWins
     (N : Nat) (env : IEnv) (elems : List (String × Nat))
     (names : List String)
