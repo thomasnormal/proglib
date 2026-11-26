@@ -448,6 +448,14 @@ theorem renameStore_idempotent (resolve : AllocId → Nat) (store : Store Tag St
       simp [renameStore, renameAllocation, renameByte_idempotent,
         optionResolve_idempotent, optionResolve_comp_direct]
 
+theorem renameStore_contract (resolve : AllocId → Nat) (store : Store Tag State) :
+    (renameStore resolve store).nextId = store.nextId ∧
+      (renameStore resolve store).allocations.length = store.allocations.length ∧
+      renameStore resolve (renameStore resolve store) = renameStore resolve store := by
+  exact ⟨renameStore_nextId resolve store,
+    renameStore_allocation_count resolve store,
+    renameStore_idempotent resolve store⟩
+
 theorem renameStore_comp (first second : AllocId → Nat) (store : Store Tag State) :
     renameStore second (renameStore first store) = renameStore second store := by
   cases store with
