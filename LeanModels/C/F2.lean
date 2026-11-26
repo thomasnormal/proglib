@@ -541,6 +541,15 @@ theorem renameByte_renaming_contract
     renameByte_preserves_provenance resolve byte,
     renameByte_idempotent resolve byte⟩
 
+theorem renameByte_composition_contract
+    (first second : AllocId → Nat) (byte : Byte Tag) :
+    renameByte second (renameByte first byte) = renameByte second byte ∧
+      byteFragment (renameByte second (renameByte first byte)) = byteFragment byte ∧
+      byteProvenance (renameByte second (renameByte first byte)) = byteProvenance byte := by
+  exact ⟨renameByte_comp first second byte,
+    by rw [renameByte_comp]; exact renameByte_preserves_fragment second byte,
+    by rw [renameByte_comp]; exact renameByte_preserves_provenance second byte⟩
+
 theorem optionResolve_idempotent (resolve : AllocId → Nat)
     (address : Option Nat) :
     Option.map (fun _ => resolve 0) (Option.map (fun _ => resolve 0) address) =
