@@ -287,6 +287,8 @@ LeanModels
 
 LeanModels.Sv.Scheduler
 LeanModels.Sv.Kernel.CoreMemResume
+LeanModels.Sv.Kernel.NdStep
+Examples/system-verilog/sem2/ndstep_rows/rows.lean
 Examples/system-verilog/sem2/plain_internal_edge_e/agree.lean
 Examples/system-verilog/sem2/memory_edge_blocking_canonical_e/agree.lean
 Examples/system-verilog/sem2/child_instance_e/agree.lean
