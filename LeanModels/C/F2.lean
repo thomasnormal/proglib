@@ -4822,6 +4822,20 @@ theorem zeroTokenEqual_contract
   · intro h
     simp [zeroTokenEqual, h.1, h.2.1, h.2.2]
 
+theorem zeroTokenEqual_failure_contract
+    (left right : AllocationMetadata Tag State TypeId) :
+    zeroTokenEqual left right = false ↔
+      isZeroToken left = false ∨
+      isZeroToken right = false ∨
+      left.allocation.address ≠ right.allocation.address := by
+  by_cases hleft : isZeroToken left = true
+  · by_cases hright : isZeroToken right = true
+    · by_cases haddress : left.allocation.address = right.allocation.address
+      · simp [zeroTokenEqual, hleft, hright, haddress]
+      · simp [zeroTokenEqual, hleft, hright, haddress]
+    · simp [zeroTokenEqual, hleft, hright]
+  · simp [zeroTokenEqual, hleft]
+
 def zeroTokenFreeable (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   isZeroToken metadata
 
