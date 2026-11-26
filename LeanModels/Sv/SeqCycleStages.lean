@@ -463,6 +463,7 @@ def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
   let pI := mkIdent pN
   let hI := mkIdent `hSeqInst
   let rS ← Term.exprToSyntax r
+  let concrete := r.getAppArgs.toList.drop 1 |>.all (fun a => a.isLit)
   let source := mkConst pN
   if let some (kind, text) ← exprUnsupportedSource? source then
     throwError "{stage}: the source design contains an unsupported node `{kind}`: {text}"
@@ -490,7 +491,10 @@ def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
   for g in [gTo, gUn] do
     setGoals [g]
     try
-      evalTactic (← `(tactic| sv_seq_inst [$eI:ident, $pI:ident] at $hI:ident))
+      if concrete then
+        evalTactic (← `(tactic| sv_seq_inst_fast [$eI:ident, $pI:ident] at $hI:ident))
+      else
+        evalTactic (← `(tactic| sv_seq_inst [$eI:ident, $pI:ident] at $hI:ident))
     catch _ => pure ()
     unless (← getGoals).isEmpty do
       let h ← (← getMainGoal).withContext do getLocalDeclFromUserName `hSeqInst
@@ -503,7 +507,10 @@ def runInst (stage : String) (r : Lean.Expr) : TacticM Unit := do
       throwError "{stage}: the route does not instantiate this design at these parameters; its outcome: {ht}"
   setGoals [gOk]
   try
-    evalTactic (← `(tactic| sv_seq_inst [$eI:ident, $pI:ident] at $hI:ident))
+    if concrete then
+      evalTactic (← `(tactic| sv_seq_inst_fast [$eI:ident, $pI:ident] at $hI:ident))
+    else
+      evalTactic (← `(tactic| sv_seq_inst [$eI:ident, $pI:ident] at $hI:ident))
   catch e =>
     throwError "{stage}: the instantiation does not normalize at these parameters (the clocked stages read the flat entry `X.e`; a module hierarchy is the later slice T9):\n{e.toMessageData}"
   evalTactic (← `(tactic| subst $hI:ident))

@@ -779,8 +779,8 @@ end LeanModels.Sv
 
 open LeanModels.Sv LeanModels.Sv.Kernel in
 /-- The instantiation pass: the route's `do` block evaluated through its definitions' equation lemmas. -/
-macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
-  `(tactic| simp (config := {maxSteps := 4000000, decide := true}) [-LeanModels.Sv.Res.bind_eq_ok,
+macro "sv_seq_inst_pass_cfg" d:ident " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
+  `(tactic| simp (config := {maxSteps := 4000000, decide := $d}) [-LeanModels.Sv.Res.bind_eq_ok,
       LeanModels.Sv.bindParamsRes,
       LeanModels.Sv.bindPackageParams, LeanModels.Sv.bindPackageEnums, LeanModels.Sv.bindLocals,
       LeanModels.Sv.bindEnums, LeanModels.Sv.typedParamWidthsE, LeanModels.Sv.Kernel.coreMemGeneratedDeclsList,
@@ -887,6 +887,9 @@ macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ide
       LeanModels.Sv.Kernel.coreMemSignalNamesList,
       $ls,*] at $h:ident)
 
+macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
+  `(tactic| sv_seq_inst_pass_cfg true [$ls,*] at $h:ident)
+
 /-- The arithmetic pass: side conditions on the parameters, by `omega` from the context. -/
 macro "sv_seq_arith_pass" " at " h:ident : tactic =>
   `(tactic| simp (disch := omega) only [LeanModels.Sv.CombView.canonInt32_of_bounds,
@@ -897,7 +900,7 @@ macro "sv_seq_arith_pass" " at " h:ident : tactic =>
 conditional generate construct) and the route's generate expansion of a conditional arm. Run only on an instantiation
 the first pass leaves short of its normal form, so a design without these constructs costs what it did. -/
 macro "sv_seq_inst_pass2" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
-  `(tactic| sv_seq_inst_pass [$ls,*, LeanModels.Sv.evalSized, LeanModels.Sv.ctype,
+  `(tactic| sv_seq_inst_pass_cfg true [$ls,*, LeanModels.Sv.evalSized, LeanModels.Sv.ctype,
       LeanModels.Sv.PExpr.pushedTarget, LeanModels.Sv.SymBinOp.constClass, LeanModels.Sv.Kernel.seqE_evalAt_int,
       LeanModels.Sv.Kernel.seqE_evalAt_param, LeanModels.Sv.Kernel.seqE_evalAt_sub,
       LeanModels.Sv.Kernel.seqE_evalAt_add, LeanModels.Sv.Kernel.seqE_evalAt_mul,
@@ -945,6 +948,20 @@ macro "sv_seq_inst" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : 
     (try sv_seq_arith_pass at $h:ident)
     -- short of the normal form: the sized constant expressions and the conditional generate constructs (a condition,
     -- decided by the arithmetic pass, opens the chosen arm to the next round)
+    repeat (
+      fail_if_success (sv_seq_inst_done $h:ident)
+      sv_seq_inst_pass2 [$ls,*] at $h:ident
+      (try sv_seq_arith_pass2 at $h:ident))))
+
+/-- Concrete-parameter instantiation.  The admission predicates are already closed at concrete arguments, so avoid
+the expensive `simp` decision procedure in the first pass; the follow-up pass retains it for sized constants and
+conditional generate arms. -/
+macro "sv_seq_inst_fast" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
+  `(tactic| (
+    simp only [LeanModels.Sv.Kernel.PDesign.instantiateE2, LeanModels.Sv.Kernel.PDesign.instantiateCoreMem,
+      LeanModels.Sv.Kernel.PDesign.instantiateCoreMemFrom, $ls,*] at $h:ident
+    sv_seq_inst_pass_cfg false [$ls,*] at $h:ident
+    (try sv_seq_arith_pass at $h:ident)
     repeat (
       fail_if_success (sv_seq_inst_done $h:ident)
       sv_seq_inst_pass2 [$ls,*] at $h:ident
