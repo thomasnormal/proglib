@@ -869,9 +869,16 @@ from the first elaborated generate entry, such as `g[0].t`. During source-
 shaped expansion IEEE 1800-2023 §§27.4-27.6 require each active instance to
 own its lexical name, so the canonical memory route substitutes the active
 genvar in the structured name before uniqueness and process checks. -/
-def coreMemGeneratedName (scope : CoreMemScope) (name : String) : String :=
-  let name := scope.genvars.foldl (fun acc (g, v) =>
+def coreMemSubstName (scope : CoreMemScope) (name : String) : String :=
+  scope.genvars.foldl (fun acc (g, v) =>
     acc.replace ("[$genvar:" ++ g ++ "]") ("[" ++ toString v ++ "]")) name
+
+@[simp] theorem coreMemSubstName_empty (name : String) :
+    coreMemSubstName ({ } : CoreMemScope) name = name := by
+  rfl
+
+def coreMemGeneratedName (scope : CoreMemScope) (name : String) : String :=
+  let name := coreMemSubstName scope name
   match scope.genLabels with
   | [] => name
   | labels =>
