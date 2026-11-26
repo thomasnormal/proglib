@@ -9611,6 +9611,26 @@ theorem pairedAllocateMetadata_empty_address_result_shape {Tag TypeId : Type}
             footprint .metadata (Region.mk 0 0 0)) := by
   simp [allocateMetadata, renameAllocationRequest, renamedPlacement]
 
+theorem pairedAllocateMetadata_empty_unaddressable_result_shape {Tag TypeId : Type}
+    (resolve : AllocId → Nat) (id : AllocId)
+    (state : State) :
+    allocateMetadata (Tag := Tag) (TypeId := TypeId)
+        { bytes := [], state := state } [] .unaddressable =
+      some ({ allocation :=
+                { live := true, address := none,
+                  bytes := [], state := state },
+              locations := [] },
+            footprint .metadata (Region.mk 0 0 0)) ∧
+    allocateMetadata (Tag := Tag) (TypeId := TypeId)
+        (renameAllocationRequest resolve { bytes := [], state := state }) []
+        (renamedPlacement resolve id .unaddressable) =
+      some ({ allocation :=
+                { live := true, address := none,
+                  bytes := [], state := state },
+              locations := [] },
+            footprint .metadata (Region.mk 0 0 0)) := by
+  simp [allocateMetadata, renameAllocationRequest, renamedPlacement]
+
 theorem pairedAllocateMetadata_sound
     (resolve : AllocId → Nat) (id : AllocId)
     (request : AllocationRequest Tag State)
