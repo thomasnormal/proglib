@@ -3298,6 +3298,16 @@ theorem memcpySnapshot_contract
     simp [memcpySnapshot, hnonoverlap, copySnapshot] at hresult
     exact ⟨hnonoverlap, hresult.symm⟩
 
+theorem memcpySnapshot_failure_contract
+    (source destination : Region) (bytes : List (Byte Tag)) :
+    memcpySnapshot source destination bytes = none ↔
+      regionsOverlap source destination bytes.length = true := by
+  by_cases hoverlap : regionsOverlap source destination bytes.length = true
+  · simp [memcpySnapshot, hoverlap]
+  · have hnonoverlap : regionsOverlap source destination bytes.length = false := by
+      exact Bool.eq_false_iff.mpr hoverlap
+    simp [memcpySnapshot, hoverlap, hnonoverlap, copySnapshot]
+
 def memmoveSnapshot (_source _destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag)) := some bytes
 
