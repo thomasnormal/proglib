@@ -6329,6 +6329,14 @@ theorem renameReplayPlacement_shape
       (renameReplayPlacement resolve placement).exposed = placement.exposed := by
   exact ⟨rfl, rfl, rfl, rfl⟩
 
+theorem renameReplayPlacement_contract
+    (resolve : AllocId → Nat) (placement : ReplayPlacement) :
+    (renameReplayPlacement resolve placement).allocation = placement.allocation ∧
+      (renameReplayPlacement resolve placement).base = resolve placement.allocation ∧
+      (renameReplayPlacement resolve placement).size = placement.size ∧
+      (renameReplayPlacement resolve placement).exposed = placement.exposed := by
+  exact renameReplayPlacement_shape resolve placement
+
 def renameReplayFixture (resolve : AllocId → Nat)
     (fixture : ReplayFixture) : ReplayFixture :=
   { fixture with
