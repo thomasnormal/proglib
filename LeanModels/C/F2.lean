@@ -12118,6 +12118,29 @@ theorem pairedEndLifetime_contract
   · exact pairedEndLifetime_preserves_wellFormed resolve store id result
       hstore hsourceBytes htargetBytes hresult
 
+theorem pairedLifetimeLookup_contract
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
+    (pairedLifetimeLookup resolve store id = true ∧
+      ∃ source target,
+        endLifetime store id = some source ∧
+        endLifetime (renameStore resolve store) id = some target) ∨
+    (pairedLifetimeLookup resolve store id = false ∧
+      (endLifetime store id = none ∨
+        endLifetime (renameStore resolve store) id = none)) := by
+  by_cases h : pairedLifetimeLookup resolve store id = true
+  · exact Or.inl ⟨h, pairedLifetimeLookup_sound resolve store id h⟩
+  · have hfalse : pairedLifetimeLookup resolve store id = false := by
+      apply Bool.eq_false_iff.mpr
+      exact h
+    refine Or.inr ⟨hfalse, ?_⟩
+    cases hs : endLifetime store id with
+    | none => simp
+    | some sourceResult =>
+        cases ht : endLifetime (renameStore resolve store) id with
+        | none => simp
+        | some targetResult =>
+            simp [pairedLifetimeLookup, hs, ht] at h
+
 #guard true
 #guard (footprint .read { allocation := 1, offset := 0, width := 1 }).accesses.length == 1
 
