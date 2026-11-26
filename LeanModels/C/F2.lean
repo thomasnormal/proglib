@@ -6348,6 +6348,20 @@ theorem renameReplayFixture_event_count
     (renameReplayFixture resolve fixture).events.length = fixture.events.length := by
   simp [renameReplayFixture, renameReplayEvents]
 
+theorem renameReplayFixture_contract
+    (resolve : AllocId → Nat) (fixture : ReplayFixture) :
+    (renameReplayFixture resolve fixture).sourceHash = fixture.sourceHash ∧
+      (renameReplayFixture resolve fixture).compilerVersion = fixture.compilerVersion ∧
+      (renameReplayFixture resolve fixture).targetTriple = fixture.targetTriple ∧
+      (renameReplayFixture resolve fixture).ending = fixture.ending ∧
+      (renameReplayFixture resolve fixture).placements.length = fixture.placements.length ∧
+      (renameReplayFixture resolve fixture).events.length = fixture.events.length := by
+  rcases renameReplayFixture_preserves_metadata resolve fixture with
+    ⟨hsource, hcompiler, htriple, hending⟩
+  exact ⟨hsource, hcompiler, htriple, hending,
+    renameReplayFixture_placement_count resolve fixture,
+    renameReplayFixture_event_count resolve fixture⟩
+
 def ReplayFixture.wellFormed (fixture : ReplayFixture) : Prop :=
   fixture.sourceHash ≠ "" ∧ fixture.compilerVersion ≠ "" ∧
     fixture.targetTriple ≠ "" ∧
