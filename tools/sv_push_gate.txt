@@ -330,3 +330,4 @@ LeanModels.Sv.Kernel.NdConfluence
 Examples/system-verilog/sem2/simultaneous_nba/relation.lean
 Examples/system-verilog/sem2/simultaneous_nba/step_rows.lean
 Examples/system-verilog/sem2/clocked_reset_guard_e/relation.lean
+LeanModels.Sv.Kernel.NdFootprint
