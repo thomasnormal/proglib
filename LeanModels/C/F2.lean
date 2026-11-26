@@ -6648,6 +6648,13 @@ theorem renameOffsetResult_kind_preserved
     | _, _ => False := by
   cases result <;> simp [renameOffsetResult]
 
+theorem renameOffsetResult_contract
+    (resolve : AllocId → Nat) (result : Except OffsetFault (Pointer Tag)) :
+    match result with
+    | .error fault => renameOffsetResult resolve result = .error fault
+    | .ok pointer => renameOffsetResult resolve result = .ok (renamePointer resolve pointer) := by
+  cases result <;> rfl
+
 theorem renameOffsetResult_comp
     (first second : AllocId → Nat)
     (result : Except OffsetFault (Pointer Tag)) :
