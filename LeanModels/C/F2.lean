@@ -5005,6 +5005,13 @@ theorem pairedZeroTokenEqual_contract (resolve : AllocId → Nat)
         (renameZeroTokenMetadata resolve right) = zeroTokenEqual left right := by
   simp [pairedZeroTokenEqual, beq_iff_eq]
 
+theorem pairedZeroTokenEqual_failure_contract (resolve : AllocId → Nat)
+    (left right : AllocationMetadata Tag State TypeId) :
+    pairedZeroTokenEqual resolve left right = false ↔
+      zeroTokenEqual (renameZeroTokenMetadata resolve left)
+        (renameZeroTokenMetadata resolve right) ≠ zeroTokenEqual left right := by
+  simp [pairedZeroTokenEqual, beq_iff_eq]
+
 theorem zeroTokenEqual_rename_of_equal (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId)
     (haddress : left.allocation.address = right.allocation.address) :
