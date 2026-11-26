@@ -57,8 +57,24 @@ def check(fixture, source=None):
         return "events must be a list"
     forbidden = {"address", "allocation", "base", "pointer_id"}
     for event in fixture["events"]:
-        if isinstance(event, dict) and forbidden.intersection(event):
+        if not isinstance(event, dict):
+            return "events must contain objects"
+        if forbidden.intersection(event):
             return "observable event exposes placement identity"
+        kind = event.get("kind")
+        if kind == "io":
+            if (not isinstance(event.get("operation"), str) or
+                    not isinstance(event.get("channel"), str) or
+                    not isinstance(event.get("data"), str)):
+                return "io event has malformed fields"
+        elif kind in {"volatileRead", "volatileWrite"}:
+            data = event.get("data")
+            if (not isinstance(data, list) or
+                    any(not isinstance(byte, int) or not 0 <= byte <= 255
+                        for byte in data)):
+                return "volatile event has malformed bytes"
+        else:
+            return "unknown event kind"
     for placement in placements:
         if not isinstance(placement.get("exposed"), bool):
             return "placement exposure flag is not boolean"
@@ -98,6 +114,9 @@ def main():
         bad_ub = dict(good, ending={"kind": "ub", "clause_operand": {"clause": "6.5"}})
         bad_exhaustion = dict(good, ending={"kind": "exhausted"})
         bad_removal = dict(good, allocation_removal={"null_folded": True, "free_null": False})
+        bad_event = dict(good, events=[{"kind": "io", "channel": "stdout"}])
+        bad_event_kind = dict(good, events=[{"kind": "clock", "data": "x"}])
+        bad_volatile = dict(good, events=[{"kind": "volatileRead", "data": [256]}])
         first = {"allocation": 1, "base": 16, "size": 8, "exposed": False}
         second = {"allocation": 2, "base": 32, "size": 8, "exposed": True}
         separated = dict(good, placements=[second, first])
@@ -111,6 +130,9 @@ def main():
         assert check(bad_ub) == "UB ending lacks cited clause and operand"
         assert check(bad_exhaustion) == "exhaustion ending lacks complete observable prefix"
         assert check(bad_removal) == "removed allocation null branch lacks free(NULL) step"
+        assert check(bad_event) == "io event has malformed fields"
+        assert check(bad_event_kind) == "unknown event kind"
+        assert check(bad_volatile) == "volatile event has malformed bytes"
         assert check(separated) is None
         assert check(adjacent) is None
         assert check(overlapping) == "placements overlap"
