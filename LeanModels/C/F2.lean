@@ -8480,6 +8480,22 @@ theorem renameBoundedResult_empty_address_preserves_wellFormed
   simp [renameBoundedResult]
   exact renameStore_preserves_wellFormed resolve result.1 hsourceWf
 
+theorem renameBoundedResult_empty_unaddressable_preserves_wellFormed
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment limit : Nat)
+    (result : Store Tag State × Footprint)
+    (hstore : WellFormed store)
+    (hbytes : bytesWf (Tag := Tag) store.nextId [])
+    (hresult : allocateBounded store { bytes := [], state := state }
+      .unaddressable alignment limit = .ok result) :
+    match renameBoundedResult resolve (.ok result) with
+    | .ok (target, _) => WellFormed target
+    | .error _ => False := by
+  have hsourceWf := allocateBounded_empty_unaddressable_preserves_wellFormed
+    store state alignment limit result hstore hbytes hresult
+  simp [renameBoundedResult]
+  exact renameStore_preserves_wellFormed resolve result.1 hsourceWf
+
 def pairedAllocateBounded (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment limit : Nat) : Bool :=
