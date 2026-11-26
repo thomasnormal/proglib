@@ -7341,6 +7341,12 @@ theorem pairedPlacementWithin_refusal
   · simp [pairedPlacementWithin, hsource, htarget]
   · simp [pairedPlacementWithin, hsource, htarget]
 
+theorem pairedPlacementWithin_contract
+    (resolve : AllocId → Nat) (id size limit base : Nat) :
+    pairedPlacementWithin resolve id size limit base = true ↔
+      placementWithin base size limit = placementWithin (resolve id) size limit := by
+  simp [pairedPlacementWithin, beq_iff_eq]
+
 def placementWithinComposition (first second : AllocId → Nat)
     (id size limit base : Nat) : Bool :=
   placementWithin (first id) size limit == placementWithin (second id) size limit
