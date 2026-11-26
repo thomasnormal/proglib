@@ -2074,6 +2074,29 @@ theorem unionLoadMetadataByte_footprint
               simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized] at hresult
               exact congrArg (fun pair => pair.2) hresult.symm
 
+theorem unionLoadMetadataByte_contract
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (result : Byte Tag × Footprint)
+    (hresult : unionLoadMetadataByte metadata offset = some result) :
+    ∃ (byte : Byte Tag) (location : LocationState TypeId),
+      metadata.allocation.bytes[offset]? = some byte ∧
+      metadata.locations[offset]? = some location ∧
+      location.initialized = true ∧
+      result.1 = byte ∧
+      result.2 = footprint .read { allocation := 0, offset := offset, width := 1 } := by
+  cases hbyte : metadata.allocation.bytes[offset]? with
+  | none => simp [unionLoadMetadataByte, hbyte] at hresult
+  | some byte =>
+      cases hlocation : metadata.locations[offset]? with
+      | none => simp [unionLoadMetadataByte, hbyte, hlocation] at hresult
+      | some location =>
+          cases hinitialized : location.initialized with
+          | false => simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized] at hresult
+          | true =>
+              simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized] at hresult
+              rcases hresult with rfl
+              exact ⟨byte, location, rfl, rfl, hinitialized, rfl, rfl⟩
+
 theorem unionLoadMetadataByte_uninitialized_refusal
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (byte : Byte Tag)
