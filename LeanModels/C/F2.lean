@@ -8748,6 +8748,24 @@ theorem pairedAllocateBounded_preserves_counts
   | fail =>
       simp [allocateBounded] at hsource
 
+theorem pairedAllocateBounded_empty_address_result_counts
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment limit : Nat)
+    (source target : Store Tag State × Footprint)
+    (hsource : allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .ok source)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId (.address base)) alignment limit =
+        .ok target) :
+    source.1.nextId = store.nextId + 1 ∧
+      source.1.allocations.length = store.allocations.length + 1 ∧
+      target.1.nextId = (renameStore resolve store).nextId + 1 ∧
+      target.1.allocations.length = (renameStore resolve store).allocations.length + 1 := by
+  exact pairedAllocateBounded_preserves_counts resolve store
+    { bytes := [], state := state } (.address base) alignment limit source target
+    hsource htarget
+
 theorem pairedAllocateBounded_empty_unaddressable_result_counts
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (alignment limit : Nat)
