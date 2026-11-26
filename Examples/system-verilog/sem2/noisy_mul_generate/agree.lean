@@ -3200,4 +3200,39 @@ theorem noisy_maj_conn_driverWins
     simp [hl x hx]
   simp [ha', hb', hc', hf', hy', hlf]
 
+theorem noisy_row_major_cell_windows_disjoint
+    {N i₁ j₁ i₂ j₂ : Nat} (hN : 1 ≤ N)
+    (hi₁ : i₁ < N) (hj₁ : j₁ < N)
+    (hi₂ : i₂ < N) (hj₂ : j₂ < N)
+    (hneq : i₁ ≠ i₂ ∨ j₁ ≠ j₂) :
+    DrvWin.overlaps
+      ("pp", some (i₁ * N + j₁, 1))
+      ("pp", some (i₂ * N + j₂, 1)) = false := by
+  have hidx : i₁ * N + j₁ ≠ i₂ * N + j₂ := by
+    intro heq
+    by_cases hir : i₁ = i₂
+    · rcases hneq with h | h
+      · exact (h hir).elim
+      · subst i₂
+        omega
+    · rcases Nat.lt_or_gt_of_ne hir with hlt | hgt
+      · have htop : i₁ * N + j₁ < (i₁ + 1) * N := by
+          simp [Nat.add_mul]
+          omega
+        have hrow : (i₁ + 1) * N ≤ i₂ * N := by
+          exact Nat.mul_le_mul_right N (Nat.succ_le_of_lt hlt)
+        omega
+      · have htop : i₂ * N + j₂ < (i₂ + 1) * N := by
+          simp [Nat.add_mul]
+          omega
+        have hrow : (i₂ + 1) * N ≤ i₁ * N := by
+          exact Nat.mul_le_mul_right N (Nat.succ_le_of_lt hgt)
+        omega
+  by_cases hlt : i₁ * N + j₁ < i₂ * N + j₂
+  · simp [DrvWin.overlaps]
+    omega
+  · have hgt : i₂ * N + j₂ < i₁ * N + j₁ := by omega
+    simp [DrvWin.overlaps]
+    omega
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
