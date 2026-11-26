@@ -3206,6 +3206,14 @@ theorem copySnapshot_contract
     exact ⟨hlength, hresult.symm⟩
   · simp [copySnapshot, hsame] at hresult
 
+theorem copySnapshot_failure_contract
+    (source destination : List (Byte Tag)) :
+    copySnapshot source destination = none ↔
+      source.length ≠ destination.length := by
+  by_cases hsame : source.length = destination.length
+  · simp [copySnapshot, hsame]
+  · simp [copySnapshot, hsame]
+
 def copyFootprint (source destination : Region) (width : Nat) : Footprint :=
   { accesses := [(AccessKind.read, { source with width := width }),
                  (AccessKind.write, { destination with width := width })] }
