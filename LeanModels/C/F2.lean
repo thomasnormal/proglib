@@ -48,6 +48,11 @@ theorem pointerByte_zero_address (fragment : Nat) :
     pointerByte 0 fragment = 0 := by
   simp [pointerByte]
 
+theorem pointerByte_lt_256 (address fragment : Nat) :
+    (pointerByte address fragment).toNat < 256 := by
+  have h := UInt8.toNat_lt (pointerByte address fragment)
+  omega
+
 def renamePointer (resolve : AllocId → Nat) (pointer : Pointer Tag) : Pointer Tag :=
   { pointer with
     address := match pointer.provenance with
