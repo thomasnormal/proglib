@@ -8684,6 +8684,70 @@ theorem pairedAllocateBounded_preserves_wellFormed
   | fail =>
       simp [allocateBounded] at hsource
 
+theorem pairedAllocateBounded_preserves_counts
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment limit : Nat) (source target : Store Tag State × Footprint)
+    (hsource : allocateBounded store request placement alignment limit = .ok source)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve request)
+      (renamedPlacement resolve store.nextId placement) alignment limit = .ok target) :
+    source.1.nextId = store.nextId + 1 ∧
+      source.1.allocations.length = store.allocations.length + 1 ∧
+      target.1.nextId = (renameStore resolve store).nextId + 1 ∧
+      target.1.allocations.length = (renameStore resolve store).allocations.length + 1 := by
+  cases placement with
+  | address base =>
+      have hsourceWithin : placementWithin base request.bytes.length limit = true := by
+        by_cases h : placementWithin base request.bytes.length limit = true
+        · exact h
+        · simp [allocateBounded, h] at hsource
+      have hsourceAligned : alignmentAllowed base alignment = true := by
+        by_cases h : alignmentAllowed base alignment = true
+        · exact h
+        · simp [allocateBounded, hsourceWithin, h] at hsource
+      have hsourceAllowed : placementAllowed store base request.bytes.length = true := by
+        by_cases h : placementAllowed store base request.bytes.length = true
+        · exact h
+        · simp [allocateBounded, hsourceWithin, hsourceAligned, h] at hsource
+      have htargetWithin : placementWithin (resolve store.nextId)
+          (renameAllocationRequest resolve request).bytes.length limit = true := by
+        by_cases h : placementWithin (resolve store.nextId)
+            (renameAllocationRequest resolve request).bytes.length limit = true
+        · exact h
+        · simp [allocateBounded, renamedPlacement, h] at htarget
+      have htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true := by
+        by_cases h : alignmentAllowed (resolve store.nextId) alignment = true
+        · exact h
+        · simp [allocateBounded, renamedPlacement, htargetWithin, h] at htarget
+      have htargetAllowed : placementAllowed (renameStore resolve store)
+          (resolve store.nextId) (renameAllocationRequest resolve request).bytes.length = true := by
+        by_cases h : placementAllowed (renameStore resolve store)
+            (resolve store.nextId) (renameAllocationRequest resolve request).bytes.length = true
+        · exact h
+        · simp [allocateBounded, renamedPlacement, htargetWithin, htargetAligned, h] at htarget
+      have hsourceCounts := allocateBounded_address_result_counters store request
+        base alignment limit source hsourceWithin hsourceAligned hsourceAllowed hsource
+      have htargetCounts := allocateBounded_address_result_counters
+        (renameStore resolve store) (renameAllocationRequest resolve request)
+        (resolve store.nextId) alignment limit target
+        (by simpa [renameAllocationRequest] using htargetWithin)
+        (by simpa [renameAllocationRequest] using htargetAligned)
+        (by simpa [renameAllocationRequest] using htargetAllowed)
+        (by simpa [renamedPlacement] using htarget)
+      exact ⟨hsourceCounts.1, hsourceCounts.2,
+        htargetCounts.1, htargetCounts.2⟩
+  | unaddressable =>
+      have hsourceCounts := allocateBounded_unaddressable_result_counters
+        store request alignment limit source hsource
+      have htargetCounts := allocateBounded_unaddressable_result_counters
+        (renameStore resolve store) (renameAllocationRequest resolve request)
+        alignment limit target (by simpa [renamedPlacement] using htarget)
+      exact ⟨hsourceCounts.1, hsourceCounts.2,
+        htargetCounts.1, htargetCounts.2⟩
+  | fail =>
+      simp [allocateBounded] at hsource
+
 theorem pairedAllocateBounded_empty_unaddressable_preserves_wellFormed
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (alignment limit : Nat)
