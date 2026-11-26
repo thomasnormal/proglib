@@ -8529,6 +8529,25 @@ theorem renameBoundedResult_empty_address_result_shape
     store state base alignment limit result hwithin haligned hallowed hresult
   simp [renameBoundedResult, hfootprint]
 
+theorem renameBoundedResult_empty_unaddressable_result_payload
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment limit : Nat)
+    (result : Store Tag State × Footprint)
+    (hresult : allocateBounded store { bytes := [], state := state }
+      .unaddressable alignment limit = .ok result) :
+    match renameBoundedResult resolve (.ok result) with
+    | .ok (target, _) =>
+        target = renameStore resolve
+          { allocations := store.allocations ++
+              [(store.nextId,
+                { live := true, address := none,
+                  bytes := [], state := state })]
+            nextId := store.nextId + 1 }
+    | .error _ => False := by
+  have hpayload := allocateBounded_empty_unaddressable_result_payload
+    store state alignment limit result hresult
+  simp [renameBoundedResult, hpayload]
+
 theorem renameBoundedResult_empty_address_result_payload
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (base alignment limit : Nat)
