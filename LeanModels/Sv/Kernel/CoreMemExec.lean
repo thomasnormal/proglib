@@ -903,11 +903,16 @@ def coreMemDirectGeneratedDeclNames : List GenItem → List String
   | _ :: rest => coreMemDirectGeneratedDeclNames rest
 
 def coreMemScopeEnv (env : IEnv) (scope : CoreMemScope) : IEnv :=
-  let env := scope.localParams.reverse.foldl
+  let env' := scope.localParams.reverse.foldl
     (fun e (n, v) => e.bindVal n v) env
-  let env := scope.localNParams.reverse.foldl
-    (fun e (n, (v, w, s)) => e.bindNVal n v w s) env
-  scope.genvars.reverse.foldl (fun e (n, v) => e.bindVal n v) env
+  let env' := scope.localNParams.reverse.foldl
+    (fun e (n, (v, w, s)) => e.bindNVal n v w s) env'
+  let env' := scope.genvars.reverse.foldl (fun e (n, v) => e.bindVal n v) env'
+  -- Record how many leading bindings belong to generate scopes, so that a
+  -- module function called here is evaluated in the module scope
+  -- (`IEnv.declEnv`, IEEE 1800-2023 §13.4.3).
+  { env' with scopedVals := env.scopedVals + scope.localParams.length + scope.genvars.length,
+              scopedNVals := env.scopedNVals + scope.localNParams.length }
 
 /-! Evaluate a generate-local parameter in the active lexical scope.  The
 canonical memory executor carries integer constants across generated

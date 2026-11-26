@@ -111,7 +111,9 @@
               ],
               "width": 64
             },
-            "package": "rec"
+            "package": "rec",
+            "resolved_bits": "0000000000000000000000000000011100000000000000000000000000001001",
+            "resolved_signed": false
           }
         ],
         "types": [],

@@ -22,8 +22,9 @@ private def bin (w n : Nat) : String := (LVec.ofNat w n).toBinString
 
 /-! The loader's own differential: every `resolved` value the parser gives
 (parameters, localparams, declared widths, generate counts and, since this
-round, the package constants) agrees, and 37 values were compared. -/
-#guard pceLeaf.pdesign.crossCheckFull == ([], 37)
+round, the package constants, x and z bits included) agrees, and 42 values
+were compared. -/
+#guard pceLeaf.pdesign.crossCheckFull == ([], 42)
 #guard pceLeaf.pdesign.defaultArgs == .ok [4]
 #guard pceLeaf.pdesign.localParams.map (fun l => (l.name, l.resolved?)) == [("K", some 8)]
 
@@ -74,7 +75,7 @@ the reason, and this module, which does not read it, loads. -/
       pceLeaf.pdesign.enums with
     | .ok e => packageParamRefusals e pceLeaf.pdesign.packageParams
     | _ => []) ==
-  ["package parameter 'pce_cfg::F5' is not bound: constant function 'pce_cfg::fact': function 'pce_cfg::fact': the call chain is longer than the number of functions (a recursive constant function is not modelled)"]
+  ["package parameter 'pce_cfg::F5' is not bound: constant function 'pce_cfg::fact': function 'pce_cfg::fact' calls itself, directly or through other functions: a recursive constant function is not modelled"]
 
 /-! The generate-local constant is computed per instance by a module function
 called with the genvar (`PARAM ... GK0 2 GK1 3`): `q[g]` reads `a[GK]`. -/

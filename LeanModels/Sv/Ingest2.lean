@@ -271,8 +271,18 @@ private def parseLogicBit : String → Except String Logic
 default-elaborated metadata and are **ignored** (the binding symbolic
 widths live on declarations; `Param.lean` computes its own). `partial`
 because the recursion is over the `Json` tree — ingestion is executable
-code only, no theorems mention the parser. -/
-partial def parsePExpr (j : Json) : Except String PExpr := do
+code only, no theorems mention the parser.
+
+`constPos` marks a constant position (a parameter
+or localparam value, a dimension bound, a generate header, a statement of a
+function body): there an explicit size cast (`"explicit": true` on a
+conversion node, IEEE 1800-2023 §6.24.1) is kept as the cast it is, a call of
+`sizeCastName`, which the constant evaluator gives its meaning at every
+parameter point.  In a value position the conversion node is kept as before
+(the value tier honours it only where it matches the context, and is loud
+otherwise). -/
+partial def parsePExprWith (constPos : Bool) (j : Json) : Except String PExpr := do
+  let parsePExpr := parsePExprWith constPos
   let kind ← getKind j
   withCtx kind do
     -- Slang's extractor may attach this marker when it has already folded a
@@ -321,10 +331,14 @@ partial def parsePExpr (j : Json) : Except String PExpr := do
           (← parsePExpr (← getField j "then")) (← parsePExpr (← getField j "else"))
     | "Concat" =>
         return .concat (← (← (← getField j "parts").getArr?).toList.mapM parsePExpr)
-    | "Resize" =>
-        return .resize (← getNatField j "width") (← parsePExpr (← getField j "operand"))
-    | "SignedResize" =>
-        return .signedResize (← getNatField j "width") (← parsePExpr (← getField j "operand"))
+    | "Resize" | "SignedResize" =>
+        let w ← getNatField j "width"
+        let a ← parsePExpr (← getField j "operand")
+        let explicit := (getOptField j "explicit").bind (·.getBool?.toOption) |>.getD false
+        if constPos && explicit then
+          return .functionCall sizeCastName [.int (Int.ofNat w), a]
+        else if kind == "Resize" then return .resize w a
+        else return .signedResize w a
     | "Squash2" =>
         -- 4-state → 2-state squash (2-state parameter/localparam types,
         -- e.g. `parameter int unsigned`): value-preserving in the constant
@@ -388,6 +402,12 @@ partial def parsePExpr (j : Json) : Except String PExpr := do
         let (svKind, text) ← parseUnsupportedFields j
         return .unsupported svKind text
     | other => throw s!"unknown expression kind {other.quote} (schema mismatch — see docs/sv-envelope-schema.md)"
+
+/-- An expression in a value position. -/
+def parsePExpr (j : Json) : Except String PExpr := parsePExprWith false j
+
+/-- An expression in a constant position (`parsePExprWith`). -/
+def parseConstPExpr (j : Json) : Except String PExpr := parsePExprWith true j
 
 /-! ## Structured concurrent assertions -/
 
@@ -540,7 +560,7 @@ def parsePSvaCheck (j : Json) : Except String PSvaCheck := do
 /-! ## Types -/
 
 private def parsePDim (j : Json) : Except String PDim := do
-  return { msb := ← parsePExpr (← getField j "msb"), lsb := ← parsePExpr (← getField j "lsb") }
+  return { msb := ← parseConstPExpr (← getField j "msb"), lsb := ← parseConstPExpr (← getField j "lsb") }
 
 /-- A declared type: `PackedType` (symbolic bounds; `packed: null` =
 unrecoverable — the `resolved` width survives as metadata) or `TypeRef`. -/
@@ -738,13 +758,13 @@ partial def parsePFnStmt (j : Json) : Except String PFnStmt := do
     | "FnDecl" =>
         let init ← match getOptField j "init" with
           | none | some Json.null => pure none
-          | some ij => pure (some (← parsePExpr ij))
+          | some ij => pure (some (← parseConstPExpr ij))
         let flag (name : String) : Bool :=
           (getOptField j name).bind (·.getBool?.toOption) |>.getD false
         return .decl (← getStrField j "name") (← parsePType (← getField j "type"))
           (flag "signed") (flag "two_state") init
     | "FnAssign" =>
-        let value ← parsePExpr (← getField j "value")
+        let value ← parseConstPExpr (← getField j "value")
         match ← parseTargetL (← getField j "target") with
         | .error k => return .unsupported k "assignment target outside the constant-function tier"
         | .ok lhs => return .assign lhs value
@@ -758,7 +778,7 @@ partial def parsePFnStmt (j : Json) : Except String PFnStmt := do
         let elseS ← match getOptField j "else" with
           | none | some Json.null => pure none
           | some ej => pure (some (← parsePFnStmt ej))
-        return .ifStmt (← parsePExpr (← getField j "cond")) (← parsePFnStmt (← getField j "then")) elseS
+        return .ifStmt (← parseConstPExpr (← getField j "cond")) (← parsePFnStmt (← getField j "then")) elseS
     | "FnCase" =>
         let items ← (← (← getField j "items").getArr?).toList.mapM fun ij => do
           let pats ← (← (← getField ij "patterns").getArr?).toList.mapM parsePExpr
@@ -766,10 +786,10 @@ partial def parsePFnStmt (j : Json) : Except String PFnStmt := do
         let dflt ← match getOptField j "default" with
           | none | some Json.null => pure none
           | some dj => pure (some (← parsePFnStmt dj))
-        return .caseStmt (← parsePExpr (← getField j "subject")) items dflt
+        return .caseStmt (← parseConstPExpr (← getField j "subject")) items dflt
     | "FnFor" =>
         return .forLoop (← (← (← getField j "init").getArr?).toList.mapM parsePFnStmt)
-          (← parsePExpr (← getField j "cond"))
+          (← parseConstPExpr (← getField j "cond"))
           (← (← (← getField j "step").getArr?).toList.mapM parsePFnStmt)
           (← parsePFnStmt (← getField j "body"))
     | "FnBlock" =>
@@ -777,7 +797,7 @@ partial def parsePFnStmt (j : Json) : Except String PFnStmt := do
     | "FnReturn" =>
         match getOptField j "value" with
         | none | some Json.null => return .ret none
-        | some vj => return .ret (some (← parsePExpr vj))
+        | some vj => return .ret (some (← parseConstPExpr vj))
     | "Unsupported" =>
         let (svKind, text) ← parseUnsupportedFields j
         return .unsupported svKind text
@@ -1018,14 +1038,14 @@ partial def parseGenItem (j : Json) : Except String GenItem := do
     | "GenerateFor" =>
         let label := getOptStr j "label"
         let genvar ← getStrField j "genvar"
-        let init ← parsePExpr (← getField j "init")
-        let bound ← parsePExpr (← getField j "bound")
-        let step ← parsePExpr (← getField j "step")
+        let init ← parseConstPExpr (← getField j "init")
+        let bound ← parseConstPExpr (← getField j "bound")
+        let step ← parseConstPExpr (← getField j "step")
         let rc? := getOptNat j "resolved_count"
         let body ← (← (← getField j "body").getArr?).toList.mapM parseGenItem
         return .genFor label genvar init bound step rc? body
     | "GenerateIf" =>
-        let cond ← parsePExpr (← getField j "cond")
+        let cond ← parseConstPExpr (← getField j "cond")
         let thenB ← (← (← getField j "then").getArr?).toList.mapM parseGenItem
         let elseB ← match getOptField j "else" with
           | none => pure []
@@ -1054,7 +1074,7 @@ partial def parseGenItem (j : Json) : Except String GenItem := do
         -- recovering a value from source text.
         let name ← getStrField j "name"
         let expr ← withCtx s!"generate-local parameter '{name}'"
-          (parsePExpr (← getField j "expr"))
+          (parseConstPExpr (← getField j "expr"))
         let type? ← match getOptField j "type" with
           | none => pure none
           | some tj => pure (some (← withCtx s!"generate-local parameter '{name}' type"
@@ -1135,7 +1155,7 @@ def parseModule2 (j : Json) : Except String PDesign :=
       let pname ← getStrField qj "name"
       let defaultVal ← match getOptField qj "default" with
         | none => pure none
-        | some dj => pure (some (← withCtx s!"package parameter '{pkg}::{pname}' default" (parsePExpr dj)))
+        | some dj => pure (some (← withCtx s!"package parameter '{pkg}::{pname}' default" (parseConstPExpr dj)))
       let typeVal ← match getOptField qj "type" with
         | none => pure none
         | some tj => pure (some (← withCtx s!"package parameter '{pkg}::{pname}' type" (parsePType tj)))
@@ -1149,11 +1169,14 @@ def parseModule2 (j : Json) : Except String PDesign :=
         | some dj => do
             let rows ← (← dj.getArr?).toList.mapM fun row => do
               (← row.getArr?).toList.mapM fun fj => do
-                pure (← getStrField fj "name", ← parsePExpr (← getField fj "value"))
+                pure (← getStrField fj "name", ← parseConstPExpr (← getField fj "value"))
             pure (some rows)
       let isString := (getOptField qj "string").bind (·.getBool?.toOption) |>.getD false
+      let resolvedBits := getOptStr qj "resolved_bits"
+      let resolvedSigned := (getOptField qj "resolved_signed").bind (·.getBool?.toOption)
       let pp : PParam := PParam.mk pname defaultVal (getOptInt qj "resolved")
         typeVal signedVal false aggregateVal aggregateDefaultVal isString unsupportedVal
+        resolvedBits resolvedSigned
       packageParams := packageParams ++ [(pkg, pp)]
     for pj in (← (← getField j "params").getArr?) do
       match ← getKind pj with
@@ -1161,7 +1184,7 @@ def parseModule2 (j : Json) : Except String PDesign :=
           let pname ← getStrField pj "name"
           let default? ← match getOptField pj "default" with
             | none => pure none
-            | some dj => pure (some (← withCtx s!"parameter '{pname}' default" (parsePExpr dj)))
+            | some dj => pure (some (← withCtx s!"parameter '{pname}' default" (parseConstPExpr dj)))
           let type? ← match getOptField pj "type" with
             | none => pure none
             | some tj => pure (some (← withCtx s!"parameter '{pname}' type" (parsePType tj)))
@@ -1171,7 +1194,7 @@ def parseModule2 (j : Json) : Except String PDesign :=
             [{ name := pname, default?, resolved? := getOptInt pj "resolved", type?, signed?, isString }]
       | "LocalParam" =>
           let pname ← getStrField pj "name"
-          let expr ← withCtx s!"localparam '{pname}'" (parsePExpr (← getField pj "expr"))
+          let expr ← withCtx s!"localparam '{pname}'" (parseConstPExpr (← getField pj "expr"))
           let type? ← match getOptField pj "type" with
             | none => pure none
             | some tj => pure (some (← withCtx s!"localparam '{pname}' type" (parsePType tj)))

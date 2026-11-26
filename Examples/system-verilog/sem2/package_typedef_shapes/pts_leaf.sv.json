@@ -307,7 +307,9 @@
               "value": 4,
               "resolved_width": 32
             },
-            "package": "pts_base"
+            "package": "pts_base",
+            "resolved_bits": "00000000000000000000000000000100",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -362,7 +364,9 @@
               "value": 3,
               "resolved_width": 32
             },
-            "package": "pts_base"
+            "package": "pts_base",
+            "resolved_bits": "00000000000000000000000000000011",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -417,7 +421,9 @@
               "value": 4,
               "resolved_width": 32
             },
-            "package": "pts_cfg"
+            "package": "pts_cfg",
+            "resolved_bits": "00000000000000000000000000000100",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -472,7 +478,9 @@
               "value": 2,
               "resolved_width": 32
             },
-            "package": "pts_cfg"
+            "package": "pts_cfg",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -503,7 +511,9 @@
               "width": 4,
               "bits": "1001"
             },
-            "package": "pts_cfg"
+            "package": "pts_cfg",
+            "resolved_bits": "1001",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -641,7 +651,9 @@
                 }
               ]
             },
-            "package": "pts_cfg"
+            "package": "pts_cfg",
+            "resolved_bits": "00000001000000100000001100000100",
+            "resolved_signed": false
           }
         ],
         "types": [],

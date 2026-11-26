@@ -4457,3 +4457,6 @@ change is listed here under **Changed** or **Removed**.
 - sv: keep constant-function bodies as written in the envelope; the extractor no longer turns a procedural body into a conditional expression.
 - sv: convert typedef dimensions in the scope that declares them, by walking the parser's type tree.
 - sv: add oracle rows for package constants, constant functions and package typedef shapes.
+- sv: read a select index of a constant-function variable as the offset the extractor writes; evaluate a module function's body in its declaring scope when a generate scope calls it; honour explicit size casts in constant positions; read signed package constants as signed in `evalInt`.
+- sv: compare package constants with the parser bit for bit, with width and signedness; refuse a struct-pattern member whose width differs at a parameter point.
+- sv: evaluate constant-function calls in dimension bounds and other integer constant positions again; record a function's real lifetime in the envelope.

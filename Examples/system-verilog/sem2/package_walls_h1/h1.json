@@ -158,7 +158,9 @@
               "assignment_pattern_lowered": true,
               "source_pattern": "StructuredAssignmentPatternExpression"
             },
-            "package": "rec"
+            "package": "rec",
+            "resolved_bits": "00000000000010100000000000001100",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -228,7 +230,9 @@
               "assignment_pattern_lowered": true,
               "source_pattern": "StructuredAssignmentPatternExpression"
             },
-            "package": "rec"
+            "package": "rec",
+            "resolved_bits": "00000000000010010000000000001011",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -283,7 +287,9 @@
               "value": 1,
               "resolved_width": 32
             },
-            "package": "rec"
+            "package": "rec",
+            "resolved_bits": "00000000000000000000000000000001",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -341,7 +347,9 @@
               ],
               "width": 32
             },
-            "package": "rec"
+            "package": "rec",
+            "resolved_bits": "00000000000010100000000000001100",
+            "resolved_signed": false
           }
         ],
         "types": [],

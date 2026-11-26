@@ -1,0 +1,267 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "pcr_unset",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/package_const_repairs/pcr_unset.sv",
+      "sha256": "0d4e41894ae607cc430b1f79a528a51fc2e98ec96345f387280592cd08c82823"
+    }
+  ],
+  "packages": [
+    "pcr_u"
+  ],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 7,
+          "col": 1,
+          "end_line": 9,
+          "end_col": 10
+        },
+        "name": "pcr_unset",
+        "imports": [],
+        "params": [],
+        "package_params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 5,
+              "col": 26,
+              "end_line": 5,
+              "end_col": 45
+            },
+            "name": "UNSET",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 21,
+                      "end_line": 5,
+                      "end_col": 22
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 23,
+                      "end_line": 5,
+                      "end_col": 24
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "resolved": "xxxx",
+            "string": false,
+            "default": {
+              "kind": "FunctionCall",
+              "span": {
+                "line": 5,
+                "col": 34,
+                "end_line": 5,
+                "end_col": 45
+              },
+              "name": "pcr_u::unset",
+              "args": [
+                {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 5,
+                    "col": 40,
+                    "end_line": 5,
+                    "end_col": 44
+                  },
+                  "width": 1,
+                  "bits": "0"
+                }
+              ],
+              "width": 4
+            },
+            "package": "pcr_u",
+            "resolved_bits": "xxxx",
+            "resolved_signed": false
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 7,
+              "col": 38,
+              "end_line": 7,
+              "end_col": 39
+            },
+            "name": "o",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 33,
+                      "end_line": 7,
+                      "end_col": 34
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 7,
+                      "col": 35,
+                      "end_line": 7,
+                      "end_col": 36
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            }
+          }
+        ],
+        "decls": [],
+        "functions": [
+          {
+            "kind": "Function",
+            "span": {
+              "line": 3,
+              "col": 3,
+              "end_line": 4,
+              "end_col": 14
+            },
+            "name": "pcr_u::unset",
+            "automatic": true,
+            "return_type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 29,
+                      "end_line": 3,
+                      "end_col": 30
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 31,
+                      "end_line": 3,
+                      "end_col": 32
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "signed": false,
+            "formals": [
+              {
+                "kind": "Var",
+                "span": {
+                  "line": 3,
+                  "col": 52,
+                  "end_line": 3,
+                  "end_col": 53
+                },
+                "name": "a",
+                "width": {
+                  "kind": "PackedType",
+                  "packed": [],
+                  "resolved": 1
+                },
+                "dir": "in",
+                "init": null,
+                "signed": false
+              }
+            ],
+            "body": {
+              "kind": "Unsupported",
+              "span": {
+                "line": 3,
+                "col": 3,
+                "end_line": 4,
+                "end_col": 14
+              },
+              "sv_kind": "SubroutineSymbol:body",
+              "text": "the function body is not one return expression; its statements are retained for constant evaluation"
+            },
+            "package": "pcr_u",
+            "stmts": [],
+            "return_two_state": false
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 8,
+              "col": 10,
+              "end_line": 8,
+              "end_col": 26
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 8,
+                "col": 10,
+                "end_line": 8,
+                "end_col": 11
+              },
+              "width": 4,
+              "name": "o"
+            },
+            "value": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 8,
+                "col": 14,
+                "end_line": 8,
+                "end_col": 26
+              },
+              "name": "UNSET",
+              "from_package": "pcr_u"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

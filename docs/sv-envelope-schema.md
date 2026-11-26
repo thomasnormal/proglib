@@ -3953,3 +3953,50 @@ compares each bound constant with the entry's `resolved` value.
 A packed-struct assignment pattern is still emitted as a `Concat` whose
 operands are conversions to the member widths (an ingestion rewrite that is
 not retired yet: the node needs its own constructor on the Lean side).
+
+### Repair round (2026-11-26)
+
+| where | field | meaning |
+|---|---|---|
+| `Function` | `automatic` | slang's lifetime of the function (`defaultLifetime`): `false` for a static function. A constant call treats both alike (IEEE 1800-2023 §13.4.3: an elaboration-time call keeps no state); a static local WITH an initializer is an `Unsupported` statement |
+| `Resize` / `SignedResize` | `explicit` (optional, `true`) | the node is an explicit size cast `w'(e)` or `type'(e)` whose target is fixed (§6.24.1). In a constant position the loader pads or truncates the self-determined operand to `width` at every parameter point; an unmarked conversion keeps its meaning (the context conversion of the default point). A cast whose size is an expression or a type name is not marked |
+| `Cast` | — | also emitted for an explicit cast that changes only the signedness (`unsigned'(e)`, `signed'(e)`) |
+| `Resize` | `assignment_pattern_member` (optional) | in a constant position, the member width of a packed-struct pattern member whose expression is not a literal: the loader refuses a parameter point where the expression's own width differs |
+| `package_params[]` | `resolved_bits`, `resolved_signed` | slang's own value bit for bit (MSB first over `0 1 x z`; its length is the width) and its signedness. The loader's differential compares bits, width and signedness |
+
+Select indices of function variables: the extractor owns the translation of a
+label to an offset. A literal label of a range that is not `[m:0]` is written
+as the bit (or element) offset from the least significant end; a computed
+label of such a range is an `Unsupported` node. The loader reads every select
+index of a function variable as an offset and never translates it again.
+
+A module function is retained for constant calls only when it is declared
+directly in the module body; the loader evaluates its body in the module
+scope. A call of a function declared inside a generate block stays an
+`Unsupported` node.
+
+Why packed dimensions are converted from syntax nodes. slang's semantic tree
+keeps only the EVALUATED range of a packed dimension
+(`PackedArrayType.range`, two integers at the default point); the bound
+expressions, which a parametric width needs, exist only as syntax, and
+pyslang 11 does not expose slang's expression binder for a syntax node. So
+`_type_packed_dims` walks the semantic type tree (aliases, packed arrays,
+leaf types) and takes from syntax only the bound expressions of each level,
+converted by the extractor's syntax converter. Names in a bound are resolved
+by slang itself (`Scope.lookupName`) in the scope that declares that level.
+What this can get wrong, and the refusal for each case:
+
+* a name the scope lookup does not find, or finds as something other than a
+  parameter, genvar, enum member or type: an `Unsupported` node
+  (`Syntax:Identifier:…`), refused by the loader where the width is needed;
+* a bound that is not a simple `[msb:lsb]` range, or a level whose syntax
+  does not give as many ranges as the type has: the walk returns nothing and
+  the declaration keeps `packed: null` (refused: "unrecoverable packed
+  dimensions");
+* a lookup that finds a different declaration than slang's binder would
+  (the lookup has no source position, so a name declared later in the scope,
+  or one that is visible only through a wildcard import the binder would
+  resolve differently): not detected by the extractor. At the default point
+  the loader compares the product of the evaluated dimensions with slang's
+  own width of the declaration (`resolved`) and refuses a difference; a wrong
+  lookup that gives the same total width at the default point is not caught.

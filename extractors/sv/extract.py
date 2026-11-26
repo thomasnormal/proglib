@@ -8805,7 +8805,71 @@ def _convert_real_integral_cast(sm, expr):
         return None
 
 
+def _cast_size_is_fixed(expr):
+    """Whether an explicit cast names its target by a literal size (`8'(e)`)
+    or by a keyword type (`int'(e)`, `signed'(e)`): the target is then the
+    same at every parameter point.  A size expression or a type name may
+    depend on a parameter, so slang's width for it is the default point's."""
+    try:
+        syntax = expr.syntax
+        # slang hands an inner cast the parenthesized operand of the outer one.
+        while str(syntax.kind).split(".")[-1] == "ParenthesizedExpression":
+            syntax = syntax.expression
+        left = syntax.left
+        kind = str(left.kind).split(".")[-1]
+        if kind == "IntegerLiteralExpression":
+            return True
+        return kind.endswith("Type") and kind != "NamedType"
+    except Exception:
+        return False
+
+
 def _convert_integral_cast(sm, expr):
+    """An explicit cast (IEEE 1800-2023 §6.24.1), kept as the cast it is.
+
+    The conversion itself is `_convert_integral_cast_node`.  Two facts of the
+    source are then recorded on its node instead of being lost:
+
+    * a cast that changes only the signedness (`unsigned'(e)`, `signed'(e)`,
+      a same-width type cast) is a `Cast` node around its operand: the
+      operand alone would keep its own signedness;
+    * a size-changing cast whose target is fixed (`_cast_size_is_fixed`) is
+      marked `explicit`: its width is the cast's, at every parameter point,
+      unlike an implicit conversion, whose width is the default point's
+      context.  The loader's constant evaluator pads or truncates the
+      self-determined operand to that width."""
+    node = _convert_integral_cast_node(sm, expr)
+    if _SYM is None or not isinstance(node, dict) or node.get("kind") == "Unsupported":
+        return node
+    try:
+        source_width = int(expr.operand.type.bitWidth)
+        target_width = int(expr.type.bitWidth)
+        source_signed = bool(expr.operand.type.isSigned)
+        target_signed = bool(expr.type.isSigned)
+    except Exception:
+        return node
+    if source_width == target_width:
+        if source_signed != target_signed:
+            return {"kind": "Cast", "span": node_span(sm, expr), "width": target_width,
+                    "signed": target_signed, "operand": node}
+        return node
+    if not _cast_size_is_fixed(expr):
+        return node
+    if node.get("kind") in ("Resize", "SignedResize") and node.get("width") == target_width:
+        node = dict(node)
+        node["explicit"] = True
+    elif (node.get("kind") == "Squash2"
+          and isinstance(node.get("operand"), dict)
+          and node["operand"].get("kind") in ("Resize", "SignedResize")
+          and node["operand"].get("width") == target_width):
+        node = dict(node)
+        inner = dict(node["operand"])
+        inner["explicit"] = True
+        node["operand"] = inner
+    return node
+
+
+def _convert_integral_cast_node(sm, expr):
     """Integral casts resize using the operand's self-determined signedness.
     In symbolic mode, admit only a literal unsigned sized cast; parameter-
     named widths and signed/type casts remain loud until their per-point rules
@@ -11283,6 +11347,19 @@ def _convert_packed_pattern(sm, expression):
               and width_of(part) is None):
             part = dict(part)
             part["width"] = int(expected_width)
+        if (_SYM is not None and _SYM_CONST_CTX > 0 and kind == "PackedStructType"
+                and part is not None
+                and part.get("kind") not in ("Unsupported", "Literal", "Int", "Fill", "Resize",
+                                             "SignedResize", "Squash2", "Concat")):
+            # A member of a packed-struct pattern is assigned to the member
+            # (§10.9.2), whose width is fixed.  In a constant position the
+            # member's expression may be wider or narrower at another
+            # parameter point; record the member width on it, so that the
+            # loader refuses such a point instead of reading the expression at
+            # its own width.  (The pattern itself is still emitted as a
+            # concatenation: the assignment-pattern node is not retired.)
+            part = {"kind": "Resize", "span": part.get("span"), "width": int(expected_width),
+                    "operand": part, "assignment_pattern_member": True}
         parts.append(part)
     if (not _case_expression_ok(parts)
             or [width_of(part) for part in parts] != expected):
@@ -13702,11 +13779,34 @@ def _sym_function_name(subroutine):
     return name
 
 
+def _sym_module_level_function(subroutine):
+    """Whether a function is declared directly in a module body.  The loader
+    evaluates a module function's body in the module scope; a function
+    declared inside a generate block reads that block's constants, which the
+    loader's function table does not record, so its constant call stays an
+    Unsupported node."""
+    try:
+        instance = subroutine.parentScope.containingInstance
+        return subroutine.lexicalPath == instance.lexicalPath + "." + subroutine.name
+    except Exception:
+        return False
+
+
 def _sym_fn_expr(sm, e):
     """An expression of a function body; None when it does not convert."""
     if e is None:
         return None
     node = convert_expr(sm, e)
+    if (node is None or node.get("kind") == "Unsupported") and _SYM is not None and _SYM.symctx:
+        # The symbolic-position converter refuses some conversions of a
+        # variable (a signed formal returned at a wider type) that the plain
+        # converter keeps as the conversion node they are.
+        saved = _SYM.symctx
+        _SYM.symctx = False
+        try:
+            node = convert_expr(sm, e)
+        finally:
+            _SYM.symctx = saved
     if node is None or node.get("kind") == "Unsupported":
         return None
     return node
@@ -13746,9 +13846,12 @@ def _sym_fn_expr_stmt(sm, e, bindings, where):
 def _sym_fn_local(sm, sym, bindings, where):
     """A local variable declaration of a function body, with its declared
     type; the variable is bound so that later references are Ident nodes."""
-    if str(getattr(sym, "lifetime", "")).split(".")[-1] == "Static":
-        return unsupported(sm, where, "VariableDeclStatement:static",
-                           "a static variable in a function body is not converted")
+    if (str(getattr(sym, "lifetime", "")).split(".")[-1] == "Static"
+            and getattr(sym, "initializer", None) is not None):
+        # A static variable's initializer runs once, before any call; the
+        # reference simulators disagree on its effect in a constant call.
+        return unsupported(sm, where, "VariableDeclStatement:static-initializer",
+                           "a static variable with an initializer in a function body is not converted")
     dtype, reason = _dtype_sym(
         sm, sym.type, _decl_type_syntax(sym), allow_signed=True,
         scope=getattr(sym, "parentScope", None) or _SYM.scope)
@@ -13928,6 +14031,7 @@ def _convert_sym_call_expr(sm, e):
                 }
         if (_SYM_CONST_CTX > 0 and subroutine is not None
                 and getattr(parent_scope, "containingInstance", None) is not None
+                and _sym_module_level_function(subroutine)
                 and str(getattr(subroutine, "subroutineKind", "")).split(".")[-1] == "Function"):
             # A module function called in a constant expression is a constant
             # function call (§13.4.3).  Keep the call node; the declaration
@@ -37332,9 +37436,12 @@ def _sym_function_node(sm, subroutine):
     try:
         if str(getattr(subroutine, "subroutineKind", "")).split(".")[-1] != "Function":
             return unsupported(sm, subroutine, "SubroutineSymbol:kind")
-        if not bool(getattr(subroutine, "isAutomatic", True)):
-            return unsupported(sm, subroutine, "SubroutineSymbol:static",
-                               "static function storage is outside the E function profile")
+        # slang's own lifetime of the function (`defaultLifetime`).  A constant
+        # call keeps no state between elaboration-time calls (§13.4.3), so a
+        # static function is evaluated like an automatic one there.  The
+        # run-time function rung reads only `body`, the one return
+        # expression, which has no variable whose lifetime could show.
+        automatic = str(getattr(subroutine, "defaultLifetime", "")).split(".")[-1] != "Static"
         formals = list(getattr(subroutine, "arguments", []))
         if any(str(getattr(f, "direction", "")).split(".")[-1] != "In"
                for f in formals):
@@ -37451,7 +37558,7 @@ def _sym_function_node(sm, subroutine):
                                "the function body is not one return expression; "
                                "its statements are retained for constant evaluation")
         node = {"kind": "Function", "span": sym_span(sm, subroutine),
-                "name": function_name, "automatic": True,
+                "name": function_name, "automatic": automatic,
                 "return_type": dtype, "signed": bool(getattr(subroutine.returnType, "isSigned", False)),
                 "formals": formal_nodes, "body": body}
         if "::" in function_name:
@@ -37675,6 +37782,17 @@ def _sym_package_params(sm):
                                  "default": None, "resolved": None,
                                  "string": False, "package": package.name,
                                  "unsupported": "PackageParameter:unconvertible"}
+                try:
+                    value = member.value.value
+                    if type(value).__name__ == "SVInt" and isinstance(entry, dict):
+                        # slang's own value, bit for bit (x and z included),
+                        # with its width (the string's length) and signedness:
+                        # the loader's differential compares all three.
+                        entry = dict(entry)
+                        entry["resolved_bits"] = svint_bits(value).lower()
+                        entry["resolved_signed"] = bool(member.type.isSigned)
+                except Exception:
+                    pass
                 result.append(entry)
     return result
 

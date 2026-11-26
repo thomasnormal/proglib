@@ -367,3 +367,5 @@ Examples/system-verilog/sem2/package_walls_h4/agree.lean
 Examples/system-verilog/sem2/package_walls_r1/agree.lean
 Examples/system-verilog/sem2/package_const_eval/agree.lean
 Examples/system-verilog/sem2/package_typedef_shapes/agree.lean
+Examples/system-verilog/sem2/package_const_repairs/agree.lean
+Examples/system-verilog/sem2/package_function_width_e/agree.lean
