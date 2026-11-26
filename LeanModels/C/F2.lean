@@ -11775,6 +11775,27 @@ theorem endLifetime_success_payload
           refine ⟨allocation, rfl, ?_⟩
           simpa [hlive] using congrArg (fun pair => pair.1) hresult.symm
 
+theorem endLifetime_result_contract
+    (store : Store Tag State) (id : AllocId)
+    (result : Store Tag State × Footprint)
+    (hresult : endLifetime store id = some result) :
+    ∃ allocation,
+      lookup store id = some allocation ∧
+      allocation.live = true ∧
+      result = ({ store with allocations := store.allocations.map (fun entry =>
+        if entry.1 == id then
+          (id, { allocation with live := false })
+        else entry) },
+        footprint .metadata (Region.mk id 0 allocation.bytes.length)) := by
+  cases hlookup : lookup store id with
+  | none => simp [endLifetime, hlookup] at hresult
+  | some allocation =>
+      cases hlive : allocation.live with
+      | false => simp [endLifetime, hlookup, hlive] at hresult
+      | true =>
+          refine ⟨allocation, rfl, hlive, ?_⟩
+          simpa [endLifetime, hlookup, hlive] using hresult.symm
+
 def pairedEndLifetime (resolve : AllocId → Nat) (store : Store Tag State)
     (id : AllocId) :
     Option ((Store Tag State × Footprint) × (Store Tag State × Footprint)) := do
