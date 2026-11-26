@@ -6650,6 +6650,11 @@ inductive ReplayEnding where
   | refused (name : String)
 deriving Repr, BEq
 
+structure ReplayObservation where
+  stdout : String
+  ending : ReplayEnding
+deriving Repr, BEq
+
 structure ReplayFixture where
   sourceHash : String
   compilerVersion : String
@@ -6698,6 +6703,10 @@ def renameReplayFixture (resolve : AllocId → Nat)
   { fixture with
     placements := fixture.placements.map (renameReplayPlacement resolve)
     events := renameReplayEvents resolve fixture.events }
+
+def replayObservation (fixture : ReplayFixture) : ReplayObservation :=
+  { stdout := replayStdout fixture.events
+    ending := fixture.ending }
 
 theorem renameReplayFixture_preserves_metadata
     (resolve : AllocId → Nat) (fixture : ReplayFixture) :
@@ -6752,6 +6761,15 @@ theorem renameReplayFixture_preserves_stdout
       replayStdout fixture.events := by
   simpa [renameReplayFixture] using
     renameReplayEvents_preserves_stdout resolve fixture.events
+
+theorem renameReplayFixture_preserves_observation
+    (resolve : AllocId → Nat) (fixture : ReplayFixture) :
+    replayObservation (renameReplayFixture resolve fixture) =
+      replayObservation fixture := by
+  cases fixture with
+  | mk sourceHash compilerVersion targetTriple placements events ending =>
+      simp [replayObservation, renameReplayFixture, replayStdout,
+        renameReplayEvents_identity]
 
 theorem renameReplayFixture_contract
     (resolve : AllocId → Nat) (fixture : ReplayFixture) :
