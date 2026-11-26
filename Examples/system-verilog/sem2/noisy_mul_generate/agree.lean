@@ -3024,4 +3024,180 @@ theorem noisy_arrayElemTarget_rect_of_range
       ((i * (N + 1) + j : Nat) : Int) := by simp
   rw [hidx, Int.toNat_natCast]
 
+
+
+
+
+theorem test_noisy_and_conn_driverWins
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String) (l : Lhs2) (w : Nat)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hc : names.contains (pfx ++ "c") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "pp" = true)
+    (hl : ∀ x ∈ l.drvWins, x.1 ∈ names)
+    (hq : instLhs2 env elems (.arrayElem "pp" [.genvarRef "i", .genvarRef "j"]) = .ok (l, w)) :
+    driverWins names
+      (andDesign.decls.toList.flatMap (connProcs env elems pfx andInst.conns)) = l.drvWins := by
+  simp [driverWins, andDesign, andInst, connProcs, PConn.port, List.find?,
+    Process2.drvWins, Lhs2.drvWins, portInOk, PExpr.portSafe, portOut,
+    ha, hb, hf, hy, hp, hq]
+  have ha' : ¬ (pfx ++ "a") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [ha] at ht
+    cases ht
+  have hb' : ¬ (pfx ++ "b") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hb] at ht
+    cases ht
+  have hf' : ¬ (pfx ++ "f") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hf] at ht
+    cases ht
+  have hy' : ¬ (pfx ++ "y") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hy] at ht
+    cases ht
+  have hlf : List.filter (fun w => decide (w.fst ∈ names)) l.drvWins = l.drvWins := by
+    apply List.filter_eq_self.mpr
+    intro x hx
+    simp [hl x hx]
+  simp [ha', hb', hf', hy', hlf]
+theorem noisy_xor_conn_driverWins
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String) (l : Lhs2) (w : Nat)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "t" = true)
+    (hl : ∀ x ∈ l.drvWins, x.1 ∈ names)
+    (hq : instLhs2 env elems (.arrayElem "t" [.genvarRef "i", .genvarRef "j"]) = .ok (l, w)) :
+    driverWins names
+      (xorDesign.decls.toList.flatMap (connProcs env elems pfx xorInst.conns)) = l.drvWins := by
+  simp [driverWins, xorDesign, xorInst, connProcs, PConn.port, List.find?,
+    Process2.drvWins, Lhs2.drvWins, portInOk, PExpr.portSafe, portOut,
+    ha, hb, hf, hy, hp, hq]
+  have ha' : ¬ (pfx ++ "a") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [ha] at ht
+    cases ht
+  have hb' : ¬ (pfx ++ "b") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hb] at ht
+    cases ht
+  have hf' : ¬ (pfx ++ "f") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hf] at ht
+    cases ht
+  have hy' : ¬ (pfx ++ "y") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hy] at ht
+    cases ht
+  have hlf : List.filter (fun w => decide (w.fst ∈ names)) l.drvWins = l.drvWins := by
+    apply List.filter_eq_self.mpr
+    intro x hx
+    simp [hl x hx]
+  simp [ha', hb', hf', hy', hlf]
+
+theorem noisy_xorS_conn_driverWins
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String) (l : Lhs2) (w : Nat)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "s" = true)
+    (hl : ∀ x ∈ l.drvWins, x.1 ∈ names)
+    (hq : instLhs2 env elems (.arrayElem "s" [.genvarRef "i", .genvarRef "j"]) = .ok (l, w)) :
+    driverWins names
+      (xorDesign.decls.toList.flatMap (connProcs env elems pfx xorSInst.conns)) = l.drvWins := by
+  simp [driverWins, xorDesign, xorSInst, connProcs, PConn.port, List.find?,
+    Process2.drvWins, Lhs2.drvWins, portInOk, PExpr.portSafe, portOut,
+    ha, hb, hf, hy, hp, hq]
+  have ha' : ¬ (pfx ++ "a") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [ha] at ht
+    cases ht
+  have hb' : ¬ (pfx ++ "b") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hb] at ht
+    cases ht
+  have hf' : ¬ (pfx ++ "f") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hf] at ht
+    cases ht
+  have hy' : ¬ (pfx ++ "y") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hy] at ht
+    cases ht
+  have hlf : List.filter (fun w => decide (w.fst ∈ names)) l.drvWins = l.drvWins := by
+    apply List.filter_eq_self.mpr
+    intro x hx
+    simp [hl x hx]
+  simp [ha', hb', hf', hy', hlf]
+
+theorem noisy_maj_conn_driverWins
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String) (l : Lhs2) (w : Nat)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hc : names.contains (pfx ++ "c") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "c" = true)
+    (hl : ∀ x ∈ l.drvWins, x.1 ∈ names)
+    (hq : instLhs2 env elems
+      (.arrayElem "c" [.genvarRef "i",
+        .binary (.m0 .add) (.genvarRef "j") (.int 1)]) = .ok (l, w)) :
+    driverWins names
+      (majDesign.decls.toList.flatMap (connProcs env elems pfx majInst.conns)) = l.drvWins := by
+  simp [driverWins, majDesign, majInst, connProcs, PConn.port, List.find?,
+    Process2.drvWins, Lhs2.drvWins, portInOk, PExpr.portSafe, portOut,
+    ha, hb, hc, hf, hy, hp, hq]
+  have ha' : ¬ (pfx ++ "a") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [ha] at ht
+    cases ht
+  have hb' : ¬ (pfx ++ "b") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hb] at ht
+    cases ht
+  have hf' : ¬ (pfx ++ "f") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hf] at ht
+    cases ht
+  have hc' : ¬ (pfx ++ "c") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hc] at ht
+    cases ht
+  have hy' : ¬ (pfx ++ "y") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hy] at ht
+    cases ht
+  have hlf : List.filter (fun w => decide (w.fst ∈ names)) l.drvWins = l.drvWins := by
+    apply List.filter_eq_self.mpr
+    intro x hx
+    simp [hl x hx]
+  simp [ha', hb', hc', hf', hy', hlf]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
