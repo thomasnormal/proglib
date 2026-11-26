@@ -333,3 +333,4 @@ Examples/system-verilog/sem2/clocked_reset_guard_e/relation.lean
 LeanModels.Sv.Kernel.NdFootprint
 LeanModels.Sv.Kernel.NdTrace
 Examples/system-verilog/sem2/simultaneous_nba/footprint.lean
+Examples/system-verilog/sem2/nd_counter/relation.lean
