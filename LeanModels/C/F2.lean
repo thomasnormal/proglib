@@ -6073,6 +6073,13 @@ theorem alignmentComposition_sound (first second : AllocId → Nat)
     alignmentAllowed (first id) alignment = alignmentAllowed (second id) alignment := by
   simpa [alignmentComposition] using h
 
+theorem alignmentComposition_contract (first second : AllocId → Nat)
+    (id alignment : Nat) :
+    alignmentComposition first second id alignment = true ↔
+      alignmentAllowed (first id) alignment =
+        alignmentAllowed (second id) alignment := by
+  simp [alignmentComposition, beq_iff_eq]
+
 theorem alignmentComposition_zero
     (first second : AllocId → Nat) (id : Nat) :
     alignmentComposition first second id 0 = true := by
