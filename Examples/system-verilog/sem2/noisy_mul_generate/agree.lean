@@ -2788,4 +2788,91 @@ theorem noisy_static_procWrites (env : IEnv) (decls : List Decl)
   · exact noisy_instProcess2_assignL_procWrites _ _ _ _
   · exact noisy_instProcess2_assignL_procWrites _ _ _ _
 
+theorem noisy_and_conn_procWrites (env : IEnv) (elems : List (String × Nat))
+    (pfx : String) :
+    (andDesign.decls.toList.flatMap (connProcs env elems pfx andInst.conns)).flatMap
+      Process2.procWrites = [] := by
+  rw [List.flatMap_assoc]
+  apply List.flatMap_eq_nil_iff.mpr
+  intro dc hdc
+  simp only [andDesign] at hdc
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hdc
+  rcases hdc with rfl | rfl | rfl | rfl
+  · simp [andInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [andInst, andDesign, portInOk, PExpr.portSafe, portOut]
+  · simp [andInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [andInst, andDesign, portInOk, PExpr.portSafe, portOut]
+  · simp [andInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [andInst, andDesign, portInOk, PExpr.portSafe, portOut]
+  · cases hq : instLhs2 env elems (.arrayElem "pp" [.genvarRef "i", .genvarRef "j"]) with
+    | error e =>
+        simp [andInst, connProcs, PConn.port, List.find?, Process2.procWrites,
+          Process2.procWins, portInOk, PExpr.portSafe, portOut, hq]
+    | ok p =>
+        simp [andInst, connProcs, PConn.port, List.find?, Process2.procWrites,
+          Process2.procWins, portInOk, PExpr.portSafe, portOut, hq]
+
+
+
+theorem noisy_xor_conn_procWrites (env : IEnv) (elems : List (String × Nat))
+    (pfx : String) :
+    (xorDesign.decls.toList.flatMap (connProcs env elems pfx xorInst.conns)).flatMap
+      Process2.procWrites = [] := by
+  rw [List.flatMap_assoc]
+  apply List.flatMap_eq_nil_iff.mpr
+  intro dc hdc
+  simp only [xorDesign] at hdc
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hdc
+  rcases hdc with rfl | rfl | rfl | rfl
+  · simp [xorInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [xorInst, xorDesign, portInOk, PExpr.portSafe, portOut]
+  · simp [xorInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [xorInst, xorDesign, portInOk, PExpr.portSafe, portOut]
+  · simp [xorInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [xorInst, xorDesign, portInOk, PExpr.portSafe, portOut]
+  · cases hq : instLhs2 env elems (.arrayElem "t" [.genvarRef "i", .genvarRef "j"]) with
+    | error e =>
+        simp [xorInst, connProcs, PConn.port, List.find?, Process2.procWrites,
+          Process2.procWins, portInOk, PExpr.portSafe, portOut, hq]
+    | ok p =>
+        simp [xorInst, connProcs, PConn.port, List.find?, Process2.procWrites,
+          Process2.procWins, portInOk, PExpr.portSafe, portOut, hq]
+
+theorem noisy_maj_conn_procWrites (env : IEnv) (elems : List (String × Nat))
+    (pfx : String) :
+    (majDesign.decls.toList.flatMap (connProcs env elems pfx majInst.conns)).flatMap
+      Process2.procWrites = [] := by
+  rw [List.flatMap_assoc]
+  apply List.flatMap_eq_nil_iff.mpr
+  intro dc hdc
+  simp only [majDesign] at hdc
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hdc
+  rcases hdc with rfl | rfl | rfl | rfl | rfl
+  · simp [majInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [majInst, majDesign, portInOk, PExpr.portSafe, portOut]
+  · simp [majInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [majInst, majDesign, portInOk, PExpr.portSafe, portOut]
+  · simp [majInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [majInst, majDesign, portInOk, PExpr.portSafe, portOut]
+  · simp [majInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [majInst, majDesign, portInOk, PExpr.portSafe, portOut]
+  · cases hq : instLhs2 env elems
+        (.arrayElem "c" [.genvarRef "i", .binary (.m0 .add) (.genvarRef "j") (.int 1)]) with
+    | error e =>
+        simp [majInst, connProcs, PConn.port, List.find?, Process2.procWrites,
+          Process2.procWins, portInOk, PExpr.portSafe, portOut, hq]
+    | ok p =>
+        simp [majInst, connProcs, PConn.port, List.find?, Process2.procWrites,
+          Process2.procWins, portInOk, PExpr.portSafe, portOut, hq]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
