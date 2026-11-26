@@ -2092,4 +2092,147 @@ theorem noisyRowChildPaths_flatten
     noisyTopGeneratedPairSegment, noisyTopNodeDesign, noisyTopNodeChild,
     xorInst, xorSInst, majInst, andInst]
 
+
+theorem noisy_top_expand_family_actual
+    (env : IEnv) (elems : List (String × Nat)) (F : Nat)
+    (N : Int) (clocks : List String)
+    (hFuel : N.toNat < F) (hRowFuel : (N - 1).toNat < F)
+    (hBound : ∀ i : Int, PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
+    (hValue : ∀ i : Int, evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hInnerBound : ∀ i j : Int, PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
+    (hInnerValue : ∀ i j : Int, evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N) :
+    expandListH (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
+      env elems F noisyMul.pdesign.generates =
+      .ok (CombHier.GeneratedNode.flattenSegments
+        ((noisyFullFamilyPaths N).map (noisyFullFamilySegment env elems))) := by
+  rw [noisy_top_expand_actual env elems F N clocks hFuel hRowFuel hBound hValue hInnerBound hInnerValue]
+  have hseg : ∀ (i j : Int),
+      noisyFullFamilySegment env elems
+          (.child { loops := ppSourceLoops, inst := andInst, child := andDef }, [i, j]) =
+        flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.") andInst andDesign := by
+    intro i j
+    simp [noisyFullFamilySegment, noisyTopNodeSegment, noisyTopGeneratedPairSegment, andInst]
+  have hpp :
+      ((List.flatMap
+          (fun i => List.flatMap
+            (fun j =>
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+                andInst andDesign).1)
+            (intRange 0 N.toNat)) (intRange 0 N.toNat),
+       List.flatMap
+          (fun i => List.flatMap
+            (fun j =>
+              (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+                ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+                andInst andDesign).2)
+            (intRange 0 N.toNat)) (intRange 0 N.toNat))) =
+      CombHier.GeneratedNode.flattenSegments
+        (List.flatMap (fun i =>
+          (noisyPpPaths N i).map (noisyFullFamilySegment env elems))
+          (intRange 0 N.toNat)) := by
+    simp only [CombHier.GeneratedNode.flattenSegments_map]
+    simp only [noisyPpPaths, List.map_map, Function.comp_apply]
+    simp [hseg, Function.comp_def, List.flatMap_map, List.flatMap_assoc]
+  have hchild_each : ∀ i : Int,
+      CombHier.GeneratedNode.flattenSegments
+          ((noisyRowChildPaths N i).map (noisyFullFamilySegment env elems)) =
+        noisy_row_inner_segment env elems i N := by
+    intro i
+    exact noisyRowChildPaths_flatten env elems N i
+  have hchild_fst : ∀ i : Int,
+      (noisyRowChildPaths N i).flatMap
+          (fun p => (noisyFullFamilySegment env elems p).1) =
+        (noisy_row_inner_segment env elems i N).1 := by
+    intro i
+    have h := congrArg Prod.fst (hchild_each i)
+    simpa [CombHier.GeneratedNode.flattenSegments_map, List.flatMap_map] using h
+  have hchild_snd : ∀ i : Int,
+      (noisyRowChildPaths N i).flatMap
+          (fun p => (noisyFullFamilySegment env elems p).2) =
+        (noisy_row_inner_segment env elems i N).2 := by
+    intro i
+    have h := congrArg Prod.snd (hchild_each i)
+    simpa [CombHier.GeneratedNode.flattenSegments_map, List.flatMap_map] using h
+  have hrow_each : ∀ i : Int,
+      CombHier.GeneratedNode.flattenSegments
+          ((noisyRowPaths N i).map (noisyFullFamilySegment env elems)) =
+        ((noisy_row_inner_segment env elems i N).1,
+         [instProcess2 (env.bindVal "i" i) elems rowLeft] ++
+           (noisy_row_inner_segment env elems i N).2 ++
+           [instProcess2 (env.bindVal "i" i) elems rowRight]) := by
+    intro i
+    rw [noisyRowPaths_flatten, hchild_fst i, hchild_snd i]
+  have hrow :
+      GeneratedChildSegment.flatten
+        ((intRange 1 (N - 1).toNat).map fun i =>
+          { decls := (noisy_row_inner_segment env elems i N).1,
+            processes := instProcess2 (env.bindVal "i" i) elems rowLeft ::
+              (noisy_row_inner_segment env elems i N).2 ++
+              [instProcess2 (env.bindVal "i" i) elems rowRight] }) =
+      CombHier.GeneratedNode.flattenSegments
+        (List.flatMap (fun i => (noisyRowPaths N i).map (noisyFullFamilySegment env elems))
+          (intRange 1 (N - 1).toNat)) := by
+    rw [CombHier.GeneratedNode.flattenSegments_flatMap]
+    have hmap :
+        (intRange 1 (N - 1).toNat).map
+            (fun i => CombHier.GeneratedNode.flattenSegments
+              ((noisyRowPaths N i).map (noisyFullFamilySegment env elems))) =
+          (intRange 1 (N - 1).toNat).map (fun i =>
+            ((noisy_row_inner_segment env elems i N).1,
+             [instProcess2 (env.bindVal "i" i) elems rowLeft] ++
+               (noisy_row_inner_segment env elems i N).2 ++
+               [instProcess2 (env.bindVal "i" i) elems rowRight])) := by
+      apply List.map_congr_left
+      intro i hi
+      exact hrow_each i
+    rw [hmap]
+    simp [GeneratedChildSegment.flatten, CombHier.GeneratedNode.flattenSegments_map,
+      List.flatMap_map, List.flatMap_assoc, List.append_assoc]
+  have hout :
+      ([], (intRange 0 N.toNat).flatMap fun i =>
+        [instProcess2 (env.bindVal "i" i) elems outProc]) =
+      CombHier.GeneratedNode.flattenSegments
+        ((noisyOutPaths N).map (noisyFullFamilySegment env elems)) := by
+    simp only [CombHier.GeneratedNode.flattenSegments_map]
+    simp [noisyOutPaths, noisyFullFamilySegment, List.flatMap_map]
+  have hpp_fst :
+      (List.flatMap (fun i => List.flatMap (fun j =>
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.") andInst andDesign).1)
+        (intRange 0 N.toNat)) (intRange 0 N.toNat)) =
+      (CombHier.GeneratedNode.flattenSegments
+        (List.flatMap (fun i => (noisyPpPaths N i).map (noisyFullFamilySegment env elems))
+          (intRange 0 N.toNat))).1 := by
+    simpa using congrArg Prod.fst hpp
+  have hpp_snd :
+      (List.flatMap (fun i => List.flatMap (fun j =>
+        (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems
+          ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.") andInst andDesign).2)
+        (intRange 0 N.toNat)) (intRange 0 N.toNat)) =
+      (CombHier.GeneratedNode.flattenSegments
+        (List.flatMap (fun i => (noisyPpPaths N i).map (noisyFullFamilySegment env elems))
+          (intRange 0 N.toNat))).2 := by
+    simpa using congrArg Prod.snd hpp
+  have hrow_fst := congrArg Prod.fst hrow
+  have hrow_snd := congrArg Prod.snd hrow
+  have hout_snd := congrArg Prod.snd hout
+  have hout_snd' :
+      (intRange 0 N.toNat).flatMap (fun i =>
+        [instProcess2 (env.bindVal "i" i) elems outProc]) =
+      (CombHier.GeneratedNode.flattenSegments
+        ((noisyOutPaths N).map (noisyFullFamilySegment env elems))).2 := by
+    simpa using hout_snd
+  have hout_full_decl :
+      (CombHier.GeneratedNode.flattenSegments
+        ((noisyOutPaths N).map (noisyFullFamilySegment env elems))).1 = [] := by
+    rw [CombHier.GeneratedNode.flattenSegments_map]
+    simp [noisyOutPaths, noisyFullFamilySegment, Function.comp_def,
+      List.flatMap_map]
+  unfold noisyFullFamilyPaths
+  simp only [List.map_append, CombHier.GeneratedNode.flattenSegments_append,
+    List.map_flatMap]
+  rw [hpp_fst, hrow_fst, hpp_snd, hrow_snd, hout_snd', hout_full_decl]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
