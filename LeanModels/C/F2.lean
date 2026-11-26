@@ -491,6 +491,18 @@ theorem renameFootprint_access_count (resolve : AllocId → Nat)
     (renameFootprint resolve footprint).accesses.length = footprint.accesses.length := by
   simp [renameFootprint]
 
+theorem renameFootprint_contract (resolve : AllocId → Nat)
+    (footprint : Footprint) :
+    (renameFootprint resolve footprint).accesses =
+        footprint.accesses.map (fun access =>
+          (access.1, renameRegion resolve access.2)) ∧
+      (renameFootprint resolve footprint).accesses.length =
+        footprint.accesses.length ∧
+      renameFootprint resolve (renameFootprint resolve footprint) =
+        renameFootprint resolve footprint := by
+  exact ⟨rfl, renameFootprint_access_count resolve footprint,
+    renameFootprint_comp resolve resolve footprint⟩
+
 structure HookRequest where
   choice : HookChoice
   footprint : Footprint
