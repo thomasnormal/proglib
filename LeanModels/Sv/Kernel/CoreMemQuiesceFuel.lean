@@ -158,4 +158,23 @@ theorem edgeQuiesce_mono {limit limit' : Nat} (h : limit ≤ limit')
                   Bool.false_eq_true, ↓reduceIte] at hr ⊢
                 exact hr
 
+/-! The top-level step carries the event-slot limit through the same
+successful-result monotonicity seam.  Inner statement and quiescence calls
+remain the existing trusted route, while this theorem makes the outer fuel
+parameter available to the fuel-free relation bridge. -/
+
+theorem stepFuel_mono {limit limit' : Nat} (h : limit ≤ limit')
+    (E : CoreMemDesign) (st : CoreMemState) (entry : SvState)
+    (result : CoreMemState)
+    (hr : E.stepFuel limit st entry = .ok result) :
+    E.stepFuel limit' st entry = .ok result := by
+  unfold CoreMemDesign.stepFuel at hr ⊢
+  cases hp : E.prepareStep st entry with
+  | timeout => simp [hp] at hr
+  | unsupported msg => simp [hp] at hr
+  | ok triple =>
+      obtain ⟨pre, before, after⟩ := triple
+      simp only [hp, Res.ok_bind] at hr ⊢
+      exact edgeQuiesce_mono h E pre before after pre result hr
+
 end LeanModels.Sv.Kernel
