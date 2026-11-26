@@ -4072,6 +4072,15 @@ theorem zeroTokenFreeable_refusal
   · cases h : metadata.allocation.live <;>
       simp [zeroTokenFreeable, isZeroToken, h, hbytes]
 
+theorem zeroTokenFreeable_contract
+    (metadata : AllocationMetadata Tag State TypeId) :
+    zeroTokenFreeable metadata = true ↔
+      metadata.allocation.live = true ∧ metadata.allocation.bytes = [] := by
+  constructor
+  · exact zeroTokenFreeable_sound metadata
+  · intro h
+    simp [zeroTokenFreeable, isZeroToken, h.1, h.2]
+
 def renameZeroTokenMetadata (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
     AllocationMetadata Tag State TypeId :=
