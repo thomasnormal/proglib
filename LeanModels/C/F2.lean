@@ -7460,6 +7460,25 @@ def allocate (store : Store Tag State) (request : AllocationRequest Tag State)
               nextId := id + 1 },
             footprint .metadata (Region.mk id 0 request.bytes.length))
 
+theorem allocate_result_contract
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (result : Store Tag State × Footprint) :
+    allocate store request placement = some result ↔
+      match placement with
+      | .fail => False
+      | .address base =>
+          placementAllowed store base request.bytes.length = true ∧
+          allocate store request (.address base) = some result
+      | .unaddressable =>
+          allocate store request .unaddressable = some result := by
+  cases placement with
+  | fail => simp [allocate]
+  | address base =>
+      by_cases hallowed : placementAllowed store base request.bytes.length = true <;>
+        simp [allocate, hallowed]
+  | unaddressable =>
+      simp [allocate]
+
 theorem allocate_preserves_wellFormed
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (result : Store Tag State × Footprint)
