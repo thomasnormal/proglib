@@ -106,6 +106,21 @@ theorem renamePointer_comp (first second : AllocId → Nat) (pointer : Pointer T
   cases pointer with
   | mk provenance address => cases provenance <;> rfl
 
+theorem renamePointer_renaming_contract
+    (resolve : AllocId → Nat) (pointer : Pointer Tag) :
+    (renamePointer resolve pointer).provenance = pointer.provenance ∧
+      ((renamePointer resolve pointer).address =
+        match pointer.provenance with
+        | none => pointer.address
+        | some provenance => resolve provenance.allocation) ∧
+      renamePointer resolve (renamePointer resolve pointer) =
+        renamePointer resolve pointer := by
+  constructor
+  · exact renamePointer_provenance resolve pointer
+  constructor
+  · exact renamePointer_address resolve pointer
+  · exact renamePointer_idempotent resolve pointer
+
 theorem renameByte_preserves_fragment (resolve : AllocId → Nat) (byte : Byte Tag) :
     byteFragment (renameByte resolve byte) = byteFragment byte := by
   cases byte with
