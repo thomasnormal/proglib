@@ -11270,6 +11270,50 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedStoreLoadByte_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : StoreLoadPair Tag State)
+    (hsourceStore : WellFormed store)
+    (hsourceBytes : bytesWf id (listSet
+      ((lookup store id).map (fun allocation => allocation.bytes) |>.getD [])
+      offset byte))
+    (htargetBytes : bytesWf id (listSet
+      ((lookup (renameStore resolve store) id).map
+        (fun allocation => allocation.bytes) |>.getD [])
+      offset (renameByte resolve byte)))
+    (hresult : pairedStoreLoadByte resolve store id offset byte = some result) :
+    (∃ stores sourceLoad targetLoad,
+      result.sourceStore = stores.1 ∧
+      result.targetStore = stores.2 ∧
+      result.sourceLoad = sourceLoad ∧
+      result.targetLoad = targetLoad ∧
+      pairedStoreByte resolve store id offset byte = some stores ∧
+      loadByte stores.1.1 id offset = some sourceLoad ∧
+      loadByte stores.2.1 id offset = some targetLoad) ∧
+      (result.sourceStore.2 = footprint .write
+          { allocation := id, offset := offset, width := 1 } ∧
+        result.targetStore.2 = footprint .write
+          { allocation := id, offset := offset, width := 1 } ∧
+        result.sourceLoad.2 = footprint .read
+          { allocation := id, offset := offset, width := 1 } ∧
+        result.targetLoad.2 = footprint .read
+          { allocation := id, offset := offset, width := 1 }) ∧
+      (result.sourceStore.1.nextId = store.nextId ∧
+        result.targetStore.1.nextId = (renameStore resolve store).nextId ∧
+        result.sourceStore.1.allocations.length = store.allocations.length ∧
+        result.targetStore.1.allocations.length =
+          (renameStore resolve store).allocations.length) ∧
+      (WellFormed result.sourceStore.1 ∧ WellFormed result.targetStore.1) := by
+  constructor
+  · exact pairedStoreLoadByte_sound resolve store id offset byte result hresult
+  constructor
+  · exact pairedStoreLoadByte_footprints resolve store id offset byte result hresult
+  constructor
+  · exact pairedStoreLoadByte_preserves_store_counts resolve store id offset byte result hresult
+  · exact pairedStoreLoadByte_preserves_wellFormed resolve store id offset byte result
+      hsourceStore hsourceBytes htargetBytes hresult
+
 theorem pairedLoadByte_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat)
