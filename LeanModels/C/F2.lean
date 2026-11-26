@@ -11297,6 +11297,17 @@ theorem pairedUnaddressableAllocation_contract
     exact Or.inl ⟨source, target, hsource, htarget, hwfSource, hwfTarget⟩
   · exact Or.inr hfailure
 
+theorem pairedCopySnapshot_contract [BEq Tag]
+    (resolve : AllocId → Nat)
+    (source destination : List (Byte Tag))
+    (result : List (Byte Tag) × List (Byte Tag))
+    (hresult : pairedCopySnapshot resolve source destination = some result) :
+    (∃ sourceResult targetResult, result = (sourceResult, targetResult)) ∧
+      result.2 = result.1.map (renameByte resolve) := by
+  constructor
+  · exact pairedCopySnapshot_decompose resolve source destination result hresult
+  · exact pairedCopySnapshot_byte_correspondence resolve source destination result hresult
+
 theorem pairedFreePointer_contract
     (resolve : AllocId → Nat)
     (metadata : Option (AllocationMetadata Tag State TypeId)) :
