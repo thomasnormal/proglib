@@ -1363,30 +1363,6 @@ theorem noisy_top_expand_actual
       (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
       env elems F N hFuel hBound hValue
 
-theorem noisy_top_expand_family_actual
-    (env : IEnv) (elems : List (String × Nat)) (F : Nat)
-    (N : Int) (clocks : List String)
-    (hFuel : N.toNat < F)
-    (hRowFuel : (N - 1).toNat < F)
-    (hBound : ∀ i : Int,
-      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
-    (hValue : ∀ i : Int,
-      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
-    (hInnerBound : ∀ i j : Int,
-      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
-    (hInnerValue : ∀ i j : Int,
-      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N) :
-    expandListH
-        (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
-        env elems F noisyMul.pdesign.generates =
-      .ok (CombHier.GeneratedNode.flattenSegments
-        (noisyFullFamilyPaths N).map (noisyFullFamilySegment env elems)) := by
-  rw [noisy_top_expand_actual env elems F N clocks hFuel hRowFuel
-    hBound hValue hInnerBound hInnerValue]
-  simp [noisyFullFamilyPaths, noisyFullFamilySegment, noisyTopNodeSegment,
-    noisyTopGeneratedPairSegment, GeneratedChildSegment.flatten,
-    List.flatMap_map, List.map_map, Function.comp_def, List.append_assoc]
-
 def noisyTopGeneratedRefs : List CombHier.GeneratedChildRef :=
   [{ loops := ppLoops, inst := andInst, child := andDef },
    { loops := rowInnerLoops, inst := xorInst, child := xorDef },
@@ -2065,28 +2041,5 @@ theorem noisyFullFamily_segments
   simpa only [List.map_append, List.append_assoc] using
     (CombHier.mapM_append_ok_of_ok hpp
       (CombHier.mapM_append_ok_of_ok hrow hout))
-
-theorem noisy_generated_family_expansion
-    (env : IEnv) (elems : List (String × Nat)) (F : Nat)
-    (N : Int) (clocks : List String)
-    (hFuel : N.toNat < F)
-    (hRowFuel : (N - 1).toNat < F)
-    (hBound : ∀ i : Int,
-      PExpr.isInt (env.bindVal "i" i) (.paramRef "N" none) = true)
-    (hValue : ∀ i : Int,
-      evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
-    (hInnerBound : ∀ i j : Int,
-      PExpr.isInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = true)
-    (hInnerValue : ∀ i j : Int,
-      evalInt ((env.bindVal "i" i).bindVal "j" j) (.paramRef "N" none) = .ok N) :
-    CombHier.GeneratedFamilyExpansion
-      (PDesign.childRec 1 noisyMul.plib { int32 := true } F clocks)
-      env elems F noisyMul.pdesign (noisyFullFamilyPaths N) noisyTopNodeChild
-      (CombHier.GeneratedNode.flattenSegments
-        ((noisyFullFamilyPaths N).map (noisyFullFamilySegment env elems))) := by
-  refine ⟨noisy_top_expand_family_actual env elems F N clocks hFuel hRowFuel
-    hBound hValue hInnerBound hInnerValue, ?_⟩
-  refine ⟨(noisyFullFamilyPaths N).map (noisyFullFamilySegment env elems),
-    noisyFullFamily_segments env elems N, rfl⟩
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
