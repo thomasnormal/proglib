@@ -4,12 +4,35 @@
 import argparse
 import hashlib
 import json
+import os
 import re
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 
 PIN = "clang version 21.1.8"
+
+
+def pinned_clang():
+    requested = os.environ.get("LEAN_C_CLANG", "clang")
+    executable = (requested if os.path.basename(requested) != requested
+                  else shutil.which(requested))
+    if not executable or not os.path.exists(executable):
+        raise SystemExit("f2_replay_check: pinned Clang executable is unavailable")
+    version = subprocess.run([executable, "--version"], capture_output=True,
+                             text=True)
+    first = version.stdout.splitlines()[0] if version.stdout else ""
+    if version.returncode != 0 or not first.startswith(PIN):
+        raise SystemExit("f2_replay_check: expected %s, got %s" %
+                         (PIN, first or "<none>"))
+    return executable
+
+
+def expected_stdout(events):
+    return "".join(event.get("data", "") for event in events
+                    if event.get("kind") == "io" and
+                    event.get("channel") == "stdout").encode()
 
 
 def check(fixture, source=None):
@@ -98,6 +121,7 @@ def main():
         parser.error("fixture is required unless --self-test is used")
     fixture = json.loads(args.fixture.read_text())
     fixtures = fixture if isinstance(fixture, list) else [fixture]
+    clang = pinned_clang() if args.native else None
     for item in fixtures:
         error = check(item, args.source)
         if error:
@@ -108,7 +132,7 @@ def main():
                 outcomes = []
                 for opt in ("-O0", "-O2"):
                     binary = Path(tmp) / opt[1:]
-                    build = subprocess.run(["clang", "-std=gnu17", opt,
+                    build = subprocess.run([clang, "-std=gnu17", opt,
                                             str(source), "-o", str(binary)],
                                            capture_output=True, text=True)
                     if build.returncode:
@@ -117,13 +141,15 @@ def main():
                     outcomes.append((run.returncode, run.stdout))
                 if outcomes[0] != outcomes[1]:
                     raise SystemExit("f2_replay_check: O0/O2 outcome mismatch")
+                if run.stdout != expected_stdout(item["events"]):
+                    raise SystemExit("f2_replay_check: stdout event mismatch")
                 ending = item["ending"]
                 if ending.get("kind") == "exit" and outcomes[0][0] != ending["status"]:
                     raise SystemExit("f2_replay_check: exit status mismatch")
                 if args.sanitizer:
                     binary = Path(tmp) / "sanitized"
                     build = subprocess.run(
-                        ["clang", "-std=gnu17", "-O0", "-fsanitize=undefined,address",
+                        [clang, "-std=gnu17", "-O0", "-fsanitize=undefined,address",
                          "-fno-sanitize-recover=all", str(source), "-o", str(binary)],
                         capture_output=True, text=True)
                     if build.returncode:
