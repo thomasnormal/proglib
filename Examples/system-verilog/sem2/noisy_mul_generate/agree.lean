@@ -4320,4 +4320,39 @@ theorem noisy_row_child_generated_driverWins_pairwise_paths
   rw [hrows]
   exact hdis
 
+theorem noisy_row_left_driverWins_at
+    {N i : Nat} (hN : 1 ≤ N) (hi : i < N)
+    (env : IEnv) (elems : List (String × Nat)) (names : List String)
+    (hc : names.contains "c" = true)
+    (hd : env.dims.lookup "c" = some [((N : Int) - 1, 0), ((N : Int), 0)]) :
+    driverWins names [instProcess2 (env.bindVal "i" i) elems rowLeft] =
+      [("c", some (i * (N + 1), 1))] := by
+  have hq := noisy_arrayElemTarget_rect_of_range
+    (env := env.bindVal "i" i) (elems := elems) (n := "c")
+    (N := N) (i := i) (j := 0)
+    (ie := .genvarRef "i") (je := .int 0) hN hi (by omega) hd
+    (evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup]))
+    (evalInt_int 0)
+  have hcm : "c" ∈ names := List.contains_iff_mem.mp hc
+  simp [instProcess2, rowLeft, driverWins, Process2.drvWins, Lhs2.drvWins,
+    hq, hcm]
+
+theorem noisy_row_right_driverWins_at
+    {N i : Nat} (hN : 1 ≤ N) (hi : i < N)
+    (env : IEnv) (elems : List (String × Nat)) (names : List String)
+    (hs : names.contains "s" = true)
+    (hNval : evalInt (env.bindVal "i" i) (.paramRef "N" none) = .ok N)
+    (hd : env.dims.lookup "s" = some [((N : Int) - 1, 0), ((N : Int), 0)]) :
+    driverWins names [instProcess2 (env.bindVal "i" i) elems rowRight] =
+      [("s", some (i * (N + 1) + N, 1))] := by
+  have hq := noisy_arrayElemTarget_rect_of_range
+    (env := env.bindVal "i" i) (elems := elems) (n := "s")
+    (N := N) (i := i) (j := N)
+    (ie := .genvarRef "i") (je := .paramRef "N" none) hN hi (by omega) hd
+    (evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup]))
+    (by exact hNval)
+  have hsm : "s" ∈ names := List.contains_iff_mem.mp hs
+  simp [instProcess2, rowRight, driverWins, Process2.drvWins, Lhs2.drvWins,
+    hq, hsm]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
