@@ -2991,4 +2991,37 @@ theorem noisy_maj_flatten_procWrites (env : IEnv) (elems : List (String × Nat))
 
 
 
+
+theorem noisy_arrayElemTarget_sq_of_range
+    {env : IEnv} {elems : List (String × Nat)} {n : String}
+    {N i j : Nat} {ie je : PExpr}
+    (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (hd : env.dims.lookup n = some [((N : Int) - 1, 0), ((N : Int) - 1, 0)])
+    (hie : evalInt env ie = .ok (i : Int))
+    (hje : evalInt env je = .ok (j : Int)) :
+    instLhs2 env elems (.arrayElem n [ie, je]) =
+      .ok (.slice n (i * N + j) 1, 1) := by
+  rw [instLhs2_arrayElem, arrayElemTarget_of_inRange
+    (arrayElemWindow_desc0_2 hd (by omega) (by omega) hie (by omega) (by omega)
+      hje (by omega) (by omega))]
+  have hNint : (N : Int) - 1 + 1 = (N : Int) := by omega
+  rw [hNint, ← Int.natCast_mul, ← Int.natCast_add, Int.toNat_natCast]
+
+
+theorem noisy_arrayElemTarget_rect_of_range
+    {env : IEnv} {elems : List (String × Nat)} {n : String}
+    {N i j : Nat} {ie je : PExpr}
+    (hN : 1 ≤ N) (hi : i < N) (hj : j ≤ N)
+    (hd : env.dims.lookup n = some [((N : Int) - 1, 0), ((N : Int), 0)])
+    (hie : evalInt env ie = .ok (i : Int))
+    (hje : evalInt env je = .ok (j : Int)) :
+    instLhs2 env elems (.arrayElem n [ie, je]) =
+      .ok (.slice n (i * (N + 1) + j) 1, 1) := by
+  rw [instLhs2_arrayElem, arrayElemTarget_of_inRange
+    (arrayElemWindow_desc0_2 hd (by omega) (by omega) hie (by omega) (by omega)
+      hje (by omega) (by omega))]
+  have hidx : (i : Int) * ((N : Int) + 1) + (j : Int) =
+      ((i * (N + 1) + j : Nat) : Int) := by simp
+  rw [hidx, Int.toNat_natCast]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
