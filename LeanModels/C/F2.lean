@@ -3218,6 +3218,14 @@ theorem copyFootprint_access_count
     (copyFootprint source destination width).accesses.length = 2 := by
   rfl
 
+theorem copyFootprint_contract
+    (source destination : Region) (width : Nat) :
+    copyFootprint source destination width =
+        { accesses := [(AccessKind.read, { source with width := width }),
+                       (AccessKind.write, { destination with width := width })] } ∧
+      (copyFootprint source destination width).accesses.length = 2 := by
+  exact ⟨rfl, copyFootprint_access_count source destination width⟩
+
 theorem pairedCopyFootprint_sound (source destination : Region) (width : Nat) :
     pairedCopyFootprint source destination width = true := by
   simp [pairedCopyFootprint, copyFootprint]
