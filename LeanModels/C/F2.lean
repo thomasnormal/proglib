@@ -173,6 +173,27 @@ theorem renameValue_idempotent (resolve : AllocId → Nat) (value : Value Tag) :
     simp only [List.map_cons]
     rw [headIh, tailIh]
 
+theorem renameValue_comp
+    (first second : AllocId → Nat) (value : Value Tag) :
+    renameValue second (renameValue first value) = renameValue second value := by
+  refine Value.rec
+    (motive_1 := fun value =>
+      renameValue second (renameValue first value) = renameValue second value)
+    (motive_2 := fun members =>
+      (members.map (renameValue first)).map (renameValue second) =
+        members.map (renameValue second))
+    (scalar := ?_) (pointer := ?_) (aggregate := ?_) (nil := ?_) (cons := ?_) value
+  · intro bytes
+    simp [renameValue]
+  · intro pointer
+    simp [renameValue, renamePointer_comp]
+  · intro members ih
+    simp [renameValue, ih]
+  · simp
+  · intro head tail headIh tailIh
+    simp only [List.map_cons]
+    rw [headIh, tailIh]
+
 theorem encodeValue_rename (resolve : AllocId → Nat) (value : Value Tag) :
     encodeValue (renameValue resolve value) =
       (encodeValue value).map (renameByte resolve) := by
