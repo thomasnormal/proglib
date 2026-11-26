@@ -13667,6 +13667,26 @@ def _convert_sym_call_expr(sm, e):
     bit_query = _convert_sym_bit_query(sm, e)
     if bit_query is not None:
         return bit_query
+    # Package functions stay source-shaped.  Their declarations are retained
+    # in the package-function table and the constant tier evaluates the call
+    # against that declaration.  Inlining here would turn an exact §13.4 call
+    # into a lowered expression and the loader would have to reject the marker.
+    if not getattr(e, "isSystemCall", False):
+        subroutine = getattr(e, "subroutine", None)
+        parent_scope = getattr(subroutine, "parentScope", None)
+        if (subroutine is not None
+                and getattr(parent_scope, "containingInstance", None) is None):
+            args = [convert_expr(sm, arg) for arg in list(e.arguments)]
+            if all(arg is not None and arg.get("kind") != "Unsupported"
+                   for arg in args):
+                return {
+                    "kind": "FunctionCall",
+                    "span": node_span(sm, e),
+                    "name": getattr(subroutine, "name", None)
+                            or getattr(e, "subroutineName", ""),
+                    "args": args,
+                    "width": e.type.bitWidth,
+                }
     inline = None if getattr(e, "isSystemCall", False) else _sym_inline_function_call(sm, e)
     if inline is not None:
         bindings, payload = inline

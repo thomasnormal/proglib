@@ -2338,6 +2338,12 @@ private def packageConstVec (env : IEnv) : PExpr → Except String LVec
       match env.enumMember ty mem pkg with
       | some value => .ok value
       | none => .error s!"unknown enum member {ty}::{mem}"
+  | .functionCall name args =>
+      -- Package constant initializers are constant-function calls (§13.4).
+      -- `evalAt` deliberately keeps source-shaped calls loud for ordinary
+      -- signal expressions, so route this elaboration-time case through the
+      -- same declaration-aware evaluator used by `evalInt`.
+      (evalConstFunctionCall env name args).map (LVec.ofInt 32)
   | e =>
       match evalAt env (32, true) e with
       | .ok v => .ok (LVec.ofInt 32 v)
