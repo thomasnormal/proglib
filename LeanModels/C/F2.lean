@@ -8495,6 +8495,16 @@ theorem exposedPlacementAgreement_empty_agrees
   intro id
   rfl
 
+theorem placementAgreementOfStores_rename_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (exposed : AllocId → Bool) :
+    placementAgreementOfStores store (renameStore resolve store) exposed =
+      exposedPlacementAgreement resolve store exposed := by
+  simp only [placementAgreementOfStores, exposedPlacementAgreement]
+  congr
+  funext id
+  exact placementOf_renameStore resolve store id
+
 def pairedAllocate (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement) :
     Option ((Store Tag State × Footprint) × (Store Tag State × Footprint)) := do
