@@ -11270,6 +11270,30 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedAllocateAligned_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment : Nat) (hstore : WellFormed store)
+    (hsourceBytes : bytesWf store.nextId request.bytes)
+    (htargetBytes : bytesWf (renameStore resolve store).nextId
+      (renameAllocationRequest resolve request).bytes)
+    (h : pairedAllocateAligned resolve store request placement alignment = true) :
+    (∃ source target,
+      allocateAligned store request placement alignment = some source ∧
+      allocateAligned (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) alignment = some target ∧
+      WellFormed source.1 ∧ WellFormed target.1) ∨
+    (allocateAligned store request placement alignment = none ∧
+      allocateAligned (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) alignment = none) := by
+  rcases pairedAllocateAligned_sound resolve store request placement alignment h with
+    hsuccess | hfailure
+  · rcases hsuccess with ⟨source, target, hsource, htarget⟩
+    have hwf := pairedAllocateAligned_preserves_wellFormed resolve store request placement
+      alignment source target hstore hsourceBytes htargetBytes hsource htarget
+    exact Or.inl ⟨source, target, hsource, htarget, hwf.1, hwf.2⟩
+  · exact Or.inr hfailure
+
 theorem pairedAllocate_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
