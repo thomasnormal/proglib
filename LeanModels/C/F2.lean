@@ -484,6 +484,11 @@ def footprintAgrees (left right : Footprint) : Prop := left = right
 def footprint (kind : AccessKind) (region : Region) : Footprint :=
   { accesses := [(kind, region)] }
 
+theorem footprint_contract (kind : AccessKind) (region : Region) :
+    footprint kind region = { accesses := [(kind, region)] } ∧
+      (footprint kind region).accesses.length = 1 := by
+  exact ⟨rfl, by simp [footprint]⟩
+
 def setLocation (locations : LocationStore TypeId) (allocation offset : Nat)
     (state : LocationState TypeId) : Option (LocationStore TypeId) :=
   if locations.any (fun entry => entry.1 == allocation && entry.2.1 == offset) then
