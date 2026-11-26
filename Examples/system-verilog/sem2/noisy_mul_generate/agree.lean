@@ -3638,4 +3638,54 @@ theorem noisy_pp_child_driverWins_pairwise
   rw [hnorm]
   exact noisy_pp_family_windows_pairwise N hN
 
+theorem noisy_generated_family_driverWins_flat
+    (rows cols : Nat) (signal : String)
+    (off : Nat → Nat → Nat)
+    (family : Nat → Nat → List Process2)
+    (names : List String)
+    (hwin : ∀ i j : Nat, i < rows → j < cols →
+      driverWins names (family i j) = [(signal, some (off i j, 1))]) :
+    driverWins names
+        ((List.range rows).flatMap (fun i =>
+          (List.range cols).flatMap (fun j => family i j))) =
+      (List.range rows).flatMap (fun i =>
+        (List.range cols).flatMap (fun j => [(signal, some (off i j, 1))])) := by
+  have flatMap_congr : ∀ (l : List Nat) (f g : Nat → List DrvWin),
+      (∀ x ∈ l, f x = g x) → l.flatMap f = l.flatMap g := by
+    intro l
+    induction l with
+    | nil => simp
+    | cons x xs ih =>
+        intro f g h
+        simp only [List.flatMap_cons]
+        rw [h x (by simp)]
+        exact congrArg (fun z => g x ++ z) (ih f g (by
+          intro y hy
+          exact h y (by simp [hy])))
+  rw [driverWins_flatMap]
+  apply flatMap_congr
+  intro i hi
+  rw [driverWins_flatMap]
+  apply flatMap_congr
+  intro j hj
+  exact hwin i j (List.mem_range.mp hi) (List.mem_range.mp hj)
+
+theorem noisy_generated_family_driverWins_pairwise
+    (rows cols : Nat) (signal : String)
+    (off : Nat → Nat → Nat)
+    (family : Nat → Nat → List Process2)
+    (names : List String)
+    (hwin : ∀ i j : Nat, i < rows → j < cols →
+      driverWins names (family i j) = [(signal, some (off i j, 1))])
+    (hdis : List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      ((List.range rows).flatMap (fun i =>
+        (List.range cols).flatMap (fun j =>
+          [(signal, some (off i j, 1))])))) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names
+        ((List.range rows).flatMap (fun i =>
+          (List.range cols).flatMap (fun j => family i j)))) := by
+  rw [noisy_generated_family_driverWins_flat rows cols signal off family names hwin]
+  exact hdis
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
