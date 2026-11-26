@@ -11315,6 +11315,29 @@ theorem pairedAllocateFailure_contract
         (renamedPlacement resolve store.nextId placement) = none := by
   exact pairedAllocateFailure_sound resolve store request placement h
 
+theorem pairedAllocateZeroSize_contract
+    {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
+    (placement : Placement) :
+    pairedAllocateZeroSize (Tag := Tag) (State := State) (TypeId := TypeId)
+        resolve state placement = true ∧
+      (((allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).1 = .null ∧
+        (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state
+          (match placement with
+          | .address _ => .address (resolve 0)
+          | .unaddressable => .unaddressable
+          | .fail => .fail)).1 = .null) ∨
+       (∃ source target,
+        (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement).1 = .token source ∧
+        (allocateZeroSize (Tag := Tag) (TypeId := TypeId) state
+          (match placement with
+          | .address _ => .address (resolve 0)
+          | .unaddressable => .unaddressable
+          | .fail => .fail)).1 = .token target ∧
+        source.wellFormed 0 ∧ target.wellFormed 0)) := by
+  constructor
+  · exact pairedAllocateZeroSize_true resolve state placement
+  · exact pairedAllocateZeroSize_sound_wellFormed resolve state placement
+
 theorem pairedAllocateAligned_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
