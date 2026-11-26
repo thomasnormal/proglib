@@ -1314,6 +1314,55 @@ inductive GeneratedSite where
   | child (ref : GeneratedChildRef)
 deriving Repr, Inhabited
 
+/-! A generated loop is the source-shaped counterpart of `CombView.Hdr`.  The
+reader keeps the original expressions, but profile obligations are stated on
+`Hdr`/`TFam`; this conversion is the explicit bridge between the two layers.
+It only recognizes the generate-for form used by the summary (`g++` and an
+affine bound/start), and refuses every other step or expression. -/
+
+def GeneratedLoop.toHdr? (l : GeneratedLoop) : Option Hdr := do
+  let bound ← affOf? l.bound
+  let st ← match l.initE with
+    | .int c => pure (none, c)
+    | e =>
+        let a ← affOf? e
+        pure (some (e, a), 0)
+  match l.step with
+  | .unary .inc (.genvarRef g) =>
+      if g == l.genvar then
+        some
+          { lbl := l.label, g := l.genvar, c0 := st.2, bound := bound,
+            bndE := l.bound, gs := [], qn := none, st := st.1 }
+      else none
+  | _ => none
+
+def GeneratedLoop.blockName : List GeneratedLoop → String
+  | [] => "plain"
+  | loops => (loops.getLast?.map (fun l => l.label.getD "genblk")).getD "genblk"
+
+/-! A generated process site can now be consumed by the ordinary `LSite`
+obligations.  The enclosing headers remain symbolic; only their already
+recognized affine forms are converted.  Child references intentionally refuse
+here: they need a child summary, not a process `TSite`. -/
+
+def GeneratedSite.toLSite? : GeneratedSite → Option LSite
+  | .process loops _ site => do
+      let hdrs ← loops.mapM GeneratedLoop.toHdr?
+      some { hdrs := hdrs, blk := GeneratedLoop.blockName loops, site := site }
+  | .child _ => none
+
+theorem GeneratedSite.toLSite?_process_of_headers
+    {loops : List GeneratedLoop} {pos : Nat} {site : TSite} {hdrs : List Hdr}
+    (hh : loops.mapM GeneratedLoop.toHdr? = some hdrs) :
+    (GeneratedSite.process loops pos site).toLSite? =
+      some { hdrs := hdrs, blk := GeneratedLoop.blockName loops, site := site } := by
+  simp [GeneratedSite.toLSite?, hh]
+
+theorem GeneratedSite.toLSite?_child
+    {r : GeneratedChildRef} :
+    (GeneratedSite.child r).toLSite? = none := by
+  rfl
+
 def GeneratedSite.loops : GeneratedSite → List GeneratedLoop
   | .process loops _ _ => loops
   | .child ref => ref.loops
