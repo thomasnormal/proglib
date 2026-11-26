@@ -7326,3 +7326,8 @@ threads activation locals through `execStmtFuel` and routes statements through
 `evalExprLocals`. The later `ad78507fb` commit only raises the heartbeat
 ceiling. The ARRAYBITSEL audit and the relational work are downstream of this
 change and are not the source of the slowdown.
+
+A direct recheck on the current tip completes the same proof in 140.6 seconds.
+Historical pre/post timing is not claimed because both isolated historical
+checkouts stop at the inherited `SeqCycleStep` proof failure. The attribution
+therefore rests on the source diff and the repaired-tip measurement above.
