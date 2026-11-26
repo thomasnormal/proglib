@@ -2475,6 +2475,7 @@ private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → 
           | some (.typeRef _ _ _) | some (.unrecoverable _) =>
               .unsupported s!"ParamRef:package: package parameter '{pkg}::{p.name}' has an unsupported type"
 
+mutual
 private def packageExprReady (knownPackages : List String) (env : IEnv) : PExpr → Bool
     | .paramRef name (some pkg) =>
         !knownPackages.contains pkg ||
@@ -2497,7 +2498,27 @@ private def packageExprReady (knownPackages : List String) (env : IEnv) : PExpr 
         packageExprReady knownPackages env base &&
         packageExprReady knownPackages env msb &&
         packageExprReady knownPackages env lsb
+    | .concat parts =>
+        packageExprReadyList knownPackages env parts
+    | .functionCall _ args =>
+        packageExprReadyList knownPackages env args
+    | .arrayElem _ indices =>
+        packageExprReadyList knownPackages env indices
+    | .arrayPart _ indices _ a b =>
+        packageExprReadyList knownPackages env indices &&
+        packageExprReady knownPackages env a &&
+        packageExprReady knownPackages env b
+    | .packageAggElem _ _ index =>
+        packageExprReady knownPackages env index
     | _ => true
+
+private def packageExprReadyList (knownPackages : List String) (env : IEnv) :
+    List PExpr → Bool
+    | [] => true
+    | e :: es =>
+        packageExprReady knownPackages env e &&
+        packageExprReadyList knownPackages env es
+end
 
 private def packageParamReady (knownPackages : List String) (env : IEnv) (p : PParam) : Bool :=
   match p.default? with
@@ -2508,12 +2529,12 @@ private def packageParamReady (knownPackages : List String) (env : IEnv) (p : PP
 order can place a package that references another package before its
 dependency. A direct unavailable package reference is deferred for one pass,
 while a cycle remains a loud refusal. -/
-private def bindPackageParamsFuel (fuel : Nat) (env : IEnv) (ps : List (String × PParam)) : Res IEnv :=
+private def bindPackageParamsFuel (fuel : Nat) (knownPackages : List String)
+    (env : IEnv) (ps : List (String × PParam)) : Res IEnv :=
   match fuel with
   | 0 =>
     .unsupported "package parameter dependency cycle or unavailable package reference"
   | fuel + 1 =>
-    let knownPackages := ps.map (·.1)
     let ready := ps.filter (packageParamReady knownPackages env ·.2)
     let deferred := ps.filter (fun item => !(packageParamReady knownPackages env item.2))
     if deferred.isEmpty then
@@ -2522,7 +2543,7 @@ private def bindPackageParamsFuel (fuel : Nat) (env : IEnv) (ps : List (String �
       .unsupported "package parameter dependency cycle or unavailable package reference"
     else
       match bindPackageParamsInOrder env ready with
-      | .ok env' => bindPackageParamsFuel fuel env' deferred
+      | .ok env' => bindPackageParamsFuel fuel knownPackages env' deferred
       | .timeout => .timeout
       | .unsupported msg => .unsupported msg
 termination_by structural fuel
@@ -2531,7 +2552,7 @@ termination_by structural fuel
 instantiation tactic uses this equation when it unfolds the public binder. -/
 def bindPackageParams (env : IEnv) : List (String × PParam) → Res IEnv
   | [] => .ok env
-  | ps@(_ :: _) => bindPackageParamsFuel (ps.length + 1) env ps
+  | ps@(_ :: _) => bindPackageParamsFuel (ps.length + 1) (ps.map (·.1)) env ps
 
 -- The symbolic parameter stage reduces this case with an open environment.
 example (env : IEnv) : bindPackageParams env [] = .ok env := by rfl

@@ -1,0 +1,619 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "leaf",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/package_walls_h2/h2_ready_pkg.sv",
+      "sha256": "e5b0e8b24ff78b5e71274aa891322978ed5a9e61e0f05428d069d1f8323dd202"
+    },
+    {
+      "path": "Examples/system-verilog/sem2/package_walls_h2/leaf_plain.sv",
+      "sha256": "c8da4f98d85b77389cb1dad1aec325f2b7ce3a70ed32c125b5100335b44a6951"
+    }
+  ],
+  "packages": [
+    "base",
+    "cfg"
+  ],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 6,
+          "end_col": 10
+        },
+        "name": "leaf",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 2,
+              "col": 38,
+              "end_line": 2,
+              "end_col": 43
+            },
+            "name": "W",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 38,
+                      "end_line": 2,
+                      "end_col": 43
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 38,
+                      "end_line": 2,
+                      "end_col": 43
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 2,
+                "col": 42,
+                "end_line": 2,
+                "end_col": 43
+              },
+              "value": 4,
+              "resolved_width": 32
+            },
+            "resolved": 4,
+            "string": false,
+            "signed": false
+          }
+        ],
+        "package_params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 2,
+              "col": 27,
+              "end_line": 2,
+              "end_col": 32
+            },
+            "name": "U",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 27,
+                      "end_line": 2,
+                      "end_col": 32
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 27,
+                      "end_line": 2,
+                      "end_col": 32
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "resolved": 4,
+            "string": false,
+            "signed": false,
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 2,
+                "col": 31,
+                "end_line": 2,
+                "end_col": 32
+              },
+              "value": 4,
+              "resolved_width": 32
+            },
+            "package": "base"
+          },
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 8,
+              "col": 27,
+              "end_line": 8,
+              "end_col": 38
+            },
+            "name": "D",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 27,
+                      "end_line": 8,
+                      "end_col": 38
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 27,
+                      "end_line": 8,
+                      "end_col": 38
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "resolved": 4,
+            "string": false,
+            "signed": false,
+            "default": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 8,
+                "col": 31,
+                "end_line": 8,
+                "end_col": 38
+              },
+              "name": "U",
+              "from_package": "base"
+            },
+            "package": "cfg"
+          },
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 9,
+              "col": 27,
+              "end_line": 9,
+              "end_col": 43
+            },
+            "name": "M",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 9,
+                      "col": 27,
+                      "end_line": 9,
+                      "end_col": 43
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 9,
+                      "col": 27,
+                      "end_line": 9,
+                      "end_col": 43
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "resolved": 4,
+            "string": false,
+            "signed": false,
+            "default": {
+              "kind": "FunctionCall",
+              "span": {
+                "line": 9,
+                "col": 31,
+                "end_line": 9,
+                "end_col": 43
+              },
+              "name": "bigger",
+              "args": [
+                {
+                  "kind": "ParamRef",
+                  "span": {
+                    "line": 9,
+                    "col": 38,
+                    "end_line": 9,
+                    "end_col": 39
+                  },
+                  "name": "D",
+                  "from_package": "cfg"
+                },
+                {
+                  "kind": "Int",
+                  "span": {
+                    "line": 9,
+                    "col": 41,
+                    "end_line": 9,
+                    "end_col": 42
+                  },
+                  "value": 2,
+                  "resolved_width": 32
+                }
+              ],
+              "width": 32
+            },
+            "package": "cfg"
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 24,
+              "end_line": 3,
+              "end_col": 25
+            },
+            "name": "i",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 3,
+                      "col": 17,
+                      "end_line": 3,
+                      "end_col": 20
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 3,
+                        "col": 17,
+                        "end_line": 3,
+                        "end_col": 18
+                      },
+                      "name": "W"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 3,
+                        "col": 19,
+                        "end_line": 3,
+                        "end_col": 20
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 21,
+                      "end_line": 3,
+                      "end_col": 22
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 24,
+              "end_line": 4,
+              "end_col": 25
+            },
+            "name": "o",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 4,
+                      "col": 17,
+                      "end_line": 4,
+                      "end_col": 20
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 4,
+                        "col": 17,
+                        "end_line": 4,
+                        "end_col": 18
+                      },
+                      "name": "W"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 4,
+                        "col": 19,
+                        "end_line": 4,
+                        "end_col": 20
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 4,
+                      "col": 21,
+                      "end_line": 4,
+                      "end_col": 22
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            }
+          }
+        ],
+        "decls": [],
+        "functions": [
+          {
+            "kind": "Function",
+            "span": {
+              "line": 5,
+              "col": 3,
+              "end_line": 7,
+              "end_col": 14
+            },
+            "name": "bigger",
+            "automatic": true,
+            "return_type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "signed": false,
+            "formals": [
+              {
+                "kind": "Var",
+                "span": {
+                  "line": 5,
+                  "col": 61,
+                  "end_line": 5,
+                  "end_col": 62
+                },
+                "name": "a",
+                "width": {
+                  "kind": "PackedType",
+                  "packed": [
+                    {
+                      "msb": {
+                        "kind": "Int",
+                        "span": null,
+                        "value": 31,
+                        "resolved_width": null
+                      },
+                      "lsb": {
+                        "kind": "Int",
+                        "span": null,
+                        "value": 0,
+                        "resolved_width": null
+                      }
+                    }
+                  ],
+                  "resolved": 32
+                },
+                "dir": "in",
+                "init": null,
+                "signed": false
+              },
+              {
+                "kind": "Var",
+                "span": {
+                  "line": 5,
+                  "col": 83,
+                  "end_line": 5,
+                  "end_col": 84
+                },
+                "name": "b",
+                "width": {
+                  "kind": "PackedType",
+                  "packed": [
+                    {
+                      "msb": {
+                        "kind": "Int",
+                        "span": null,
+                        "value": 31,
+                        "resolved_width": null
+                      },
+                      "lsb": {
+                        "kind": "Int",
+                        "span": null,
+                        "value": 0,
+                        "resolved_width": null
+                      }
+                    }
+                  ],
+                  "resolved": 32
+                },
+                "dir": "in",
+                "init": null,
+                "signed": false
+              }
+            ],
+            "body": {
+              "kind": "Ternary",
+              "span": {
+                "line": 6,
+                "col": 12,
+                "end_line": 6,
+                "end_col": 27
+              },
+              "width": 32,
+              "cond": {
+                "kind": "Binary",
+                "span": {
+                  "line": 6,
+                  "col": 13,
+                  "end_line": 6,
+                  "end_col": 18
+                },
+                "width": 1,
+                "op": ">",
+                "left": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 5,
+                    "col": 61,
+                    "end_line": 5,
+                    "end_col": 62
+                  },
+                  "width": 32,
+                  "name": "a"
+                },
+                "right": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 5,
+                    "col": 83,
+                    "end_line": 5,
+                    "end_col": 84
+                  },
+                  "width": 32,
+                  "name": "b"
+                }
+              },
+              "then": {
+                "kind": "Ident",
+                "span": {
+                  "line": 5,
+                  "col": 61,
+                  "end_line": 5,
+                  "end_col": 62
+                },
+                "width": 32,
+                "name": "a"
+              },
+              "else": {
+                "kind": "Ident",
+                "span": {
+                  "line": 5,
+                  "col": 83,
+                  "end_line": 5,
+                  "end_col": 84
+                },
+                "width": 32,
+                "name": "b"
+              }
+            }
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 5,
+              "col": 10,
+              "end_line": 5,
+              "end_col": 15
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 5,
+                "col": 10,
+                "end_line": 5,
+                "end_col": 11
+              },
+              "width": 4,
+              "name": "o"
+            },
+            "value": {
+              "kind": "Ident",
+              "span": {
+                "line": 5,
+                "col": 14,
+                "end_line": 5,
+                "end_col": 15
+              },
+              "width": 4,
+              "name": "i"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
