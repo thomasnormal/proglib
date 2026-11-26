@@ -4582,6 +4582,15 @@ def renameZeroTokenMetadata (resolve : AllocId → Nat)
     allocation := { metadata.allocation with
       address := metadata.allocation.address.map (fun _ => resolve 0) } }
 
+theorem renameZeroSizeOutcome_contract
+    (resolve : AllocId → Nat)
+    (outcome : ZeroSizeOutcome Tag State TypeId) :
+    renameZeroSizeOutcome resolve outcome =
+      match outcome with
+      | .null => .null
+      | .token metadata => .token (renameZeroTokenMetadata resolve metadata) := by
+  cases outcome <;> rfl
+
 theorem renameZeroTokenMetadata_preserves_payload
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
