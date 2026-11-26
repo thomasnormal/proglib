@@ -106,7 +106,7 @@ example (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqDesignI (prf.e N) := by
   sv_structure
 
 /--
-error: sv_structure: process 0 (a continuous assign) drives `y`, a net with several continuous drivers: the clocked views do not model the §6.6 driver resolution (`resolvedNets`), refused
+error: sv_structure: the source design contains an unsupported node `NetSymbol:net-z`: y
 -/
 #guard_msgs (whitespace := lax) in
 example : SeqDesignI rn.e := by
@@ -224,7 +224,7 @@ example (N : Nat) (h1 : 1 ≤ N) (h2 : N ≤ 4000) : SeqDesign (fbk.e N) "clk" :
   sv_structure
 
 /--
-error: sv_structure: process 0 (an edge process) holds a statement ingestion kept unconverted (WhileLoopStatement), refused
+error: sv_structure: the source design contains an unsupported node `WhileLoopStatement`: while (n[7]) n = n << 1;
 -/
 #guard_msgs (whitespace := lax) in
 example : SeqDesign whl.e "clk" := by
