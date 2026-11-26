@@ -1,14 +1,15 @@
 import LeanModels.Sv.Kernel.CoreMemFuel
 import LeanModels.Sv.Mono2
-/-! loopfuel-audit3, C5 (an audit check outside the repository; `lake env lean` in the tree under test).
+/-! Loop-fuel conservativity (the audit check is also reproduced in-tree).
 
 The question C5 asks: wherever the OLD fixed-fuel semantics (the merge base) gives a decided answer, does the NEW
 one (the tip) give the same answer? The tree's `coreMemFuelMono` relates the tip's executor to ITSELF at two fuels;
-the old executor is no longer in the tree. So this file restores it: the block between the `-- BEGIN MERGE-BASE`
+this file keeps a renamed copy of the merge-base executor. The block between the `-- BEGIN MERGE-BASE`
 and `-- END MERGE-BASE` markers below is the merge base's `execStmtFuel`/`execStmtsFuel`/`execLoopValuesFuel` mutual
-block and its `execStmt` entry (c45535fea, LeanModels/Sv/Kernel/CoreMemExec.lean), copied by `sed` with only the
-names changed (`old*`). It differs from the tip's block in exactly one line: the loop arm reads `forValues2`
-(unchecked) where the tip reads `forValues2Int32`.
+block and its `execStmt` entry at merge base `03579f0c7`, copied by `sed` with only the names changed (`old*`).
+The copied block has the merge-base entry budget `4096`; the tip entry adds `PStmt.need` and
+`PStmt.runtimeNeed`. Inside the mutual block, the only semantic difference is that the loop arm reads
+`forValues2` (unchecked) where the tip reads `forValues2Int32`.
 
 Statement proved (`audit_execStmt_conservative`): for every design, environment, element table, state and statement,
 `RC (old execStmt) (new execStmt)`, where `RC x y` says: `x` timed out, or `y = x`, or `y` is a refusal
@@ -226,7 +227,7 @@ end
 
 def oldExecStmt (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmt : PStmt) : CoreMemExec :=
-  oldStmtFuel E env elems st [] (4096 + PStmt.need env stmt + PStmt.runtimeNeed env stmt) stmt
+  oldStmtFuel E env elems st [] 4096 stmt
 -- END MERGE-BASE
 
 /-! ## Old (merge base) against new (tip), at the same fuel -/
@@ -341,14 +342,18 @@ theorem audit_old_new (fuel : Nat) :
             exact RC_bind (ihStmt E (env.bindVal iterator i) elems st locals body) (fun a =>
               RC_bind (ihLoop E env elems a.state a.locals rest body iterator) (fun b => RC_refl _))
 
-/-! ## The entry points: old and new executors at the structural entry budget -/
+/-! ## The entry points: merge-base entry against the structural tip entry
+
+The copied old executor keeps the merge-base entry budget of 4096. The tip
+entry allocates the statement's structural and runtime need in addition to
+that budget. -/
 
 theorem audit_execStmt_conservative (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
     (st : CoreMemState) (stmt : PStmt) :
     RC (oldExecStmt E env elems st stmt) (E.execStmt env elems st stmt) := by
   unfold oldExecStmt CoreMemDesign.execStmt
-  exact RC_le ((audit_old_new (4096 + PStmt.need env stmt + PStmt.runtimeNeed env stmt)).1 E env elems st [] stmt)
-    (Res.le_refl _)
+  exact RC_le ((audit_old_new 4096).1 E env elems st [] stmt)
+    (coreMemFuelMono_stmt (by omega) E env elems st [] stmt)
 
 /-- The decided reading: an old value is the new value unless the new route refuses. -/
 theorem audit_execStmt_ok (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
