@@ -11270,6 +11270,34 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedUnionLoadMetadataByte_contract
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedUnionLoadMetadataByte resolve id metadata offset = some result) :
+    (∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      unionLoadMetadataByte metadata offset = some sourceResult ∧
+      unionLoadMetadataByte (renameMetadata resolve id metadata) offset =
+        some targetResult ∧
+      (targetResult.1 == renameByte resolve sourceResult.1) = true ∧
+      (targetResult.2 == sourceResult.2) = true) ∧
+      ((result.2.1 == renameByte resolve result.1.1) = true ∧
+        (result.2.2 == result.1.2) = true) ∧
+      (result.1.2 = footprint .read
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.2.2 = footprint .read
+          { allocation := 0, offset := offset, width := 1 }) := by
+  constructor
+  · exact pairedUnionLoadMetadataByte_sound resolve id metadata offset result hresult
+  constructor
+  · obtain ⟨sourceResult, targetResult, hpair, hsource, htarget, hbyte, hfootprint⟩ :=
+      pairedUnionLoadMetadataByte_sound resolve id metadata offset result hresult
+    rcases hpair with rfl
+    exact ⟨hbyte, hfootprint⟩
+  · exact pairedUnionLoadMetadataByte_footprints resolve id metadata offset result hresult
+
 theorem pairedStoreUnionLoadMetadataByte_contract
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
