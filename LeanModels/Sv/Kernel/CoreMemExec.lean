@@ -851,11 +851,44 @@ and generate-local parameters are kept separately so a genvar has the
 shadowing priority required by IEEE 1800 section 27.4. -/
 structure CoreMemScope where
   genvars : List (String × Int) := []
+  /-- Generate-block labels paired with the active instance index. -/
+  genLabels : List (String × Int) := []
+  /-- Names declared directly by the active generate body.  References to
+  module-level signals keep their module scope, while these names receive
+  the active generate-instance prefix. -/
+  generatedDecls : List String := []
   localParams : List (String × Int) := []
   /-- Non-INT generate-local constants retain their declared width and
   signedness while their lexical scope is substituted. -/
   localNParams : List (String × (Int × Nat × Bool)) := []
 deriving Repr, Inhabited
+
+/-- Replace the template iteration index in a generated declaration name with
+the active instance's index. Slang's symbolic envelope names declarations
+from the first elaborated generate entry, such as `g[0].t`. During source-
+shaped expansion IEEE 1800-2023 §§27.4-27.6 require each active instance to
+own its lexical name, so the canonical memory route substitutes the active
+genvar in the structured name before uniqueness and process checks. -/
+def coreMemGeneratedName (scope : CoreMemScope) (name : String) : String :=
+  let name := scope.genvars.foldl (fun acc (g, v) =>
+    acc.replace ("[$genvar:" ++ g ++ "]") ("[" ++ toString v ++ "]")) name
+  match scope.genLabels with
+  | [] => name
+  | labels =>
+      if !scope.generatedDecls.contains name then name
+      else if labels.any (fun (g, _) => name.startsWith (g ++ "[")) then
+        labels.foldl (fun acc (g, v) =>
+          acc.replace (g ++ "[0]") (g ++ "[" ++ toString v ++ "]")) name
+      else labels.reverse.foldl
+        (fun acc (g, v) => g ++ "[" ++ toString v ++ "]." ++ acc) name
+
+def coreMemScopedName (scope : CoreMemScope) (name : String) : String :=
+  coreMemGeneratedName scope name
+
+def coreMemDirectGeneratedDeclNames : List GenItem → List String
+  | [] => []
+  | .decl d :: rest => d.name :: coreMemDirectGeneratedDeclNames rest
+  | _ :: rest => coreMemDirectGeneratedDeclNames rest
 
 def coreMemScopeEnv (env : IEnv) (scope : CoreMemScope) : IEnv :=
   let env := scope.localParams.reverse.foldl
@@ -863,20 +896,6 @@ def coreMemScopeEnv (env : IEnv) (scope : CoreMemScope) : IEnv :=
   let env := scope.localNParams.reverse.foldl
     (fun e (n, (v, w, s)) => e.bindNVal n v w s) env
   scope.genvars.reverse.foldl (fun e (n, v) => e.bindVal n v) env
-
-/-- Materialize a parser-generated hierarchical name at one generate
-instance.  The extractor keeps a source-shaped marker such as
-`g[$genvar:k].t` in the template because the first elaborated instance is
-only a template.  The marker is metadata produced from Slang's hierarchy,
-not source text, and is replaced using the lexical genvar bindings already
-carried by the canonical generate expansion. -/
-def coreMemSubstName (scope : CoreMemScope) (name : String) : String :=
-  scope.genvars.foldl (fun acc (g, v) =>
-    acc.replace ("[$genvar:" ++ g ++ "]") ("[" ++ toString v ++ "]")) name
-
-@[simp] theorem coreMemSubstName_empty (name : String) :
-    coreMemSubstName ({ } : CoreMemScope) name = name := by
-  rfl
 
 /-! Evaluate a generate-local parameter in the active lexical scope.  The
 canonical memory executor carries integer constants across generated
@@ -911,6 +930,7 @@ def coreMemSubstExpr (scope : CoreMemScope) : PExpr → PExpr
               if s then .signedResize w (.lit (.ofInt w v))
               else .lit (.ofInt w v)
           | none => .paramRef n none
+  | .ident n => .ident (coreMemScopedName scope n)
   | .unary op a => .unary op (coreMemSubstExpr scope a)
   | .binary op a b => .binary op (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .ternary c a b => .ternary (coreMemSubstExpr scope c) (coreMemSubstExpr scope a)
@@ -926,24 +946,24 @@ def coreMemSubstExpr (scope : CoreMemScope) : PExpr → PExpr
   | .repl a b => .repl (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .reduce op a => .reduce op (coreMemSubstExpr scope a)
   | .cast s a => .cast s (coreMemSubstExpr scope a)
-  | .ident n => .ident (coreMemSubstName scope n)
-  | .arrayElem n xs => .arrayElem (coreMemSubstName scope n) (xs.map (coreMemSubstExpr scope))
-  | .arrayPart n xs mode a b => .arrayPart (coreMemSubstName scope n) (xs.map (coreMemSubstExpr scope)) mode
+  | .arrayElem n xs => .arrayElem (coreMemScopedName scope n) (xs.map (coreMemSubstExpr scope))
+  | .arrayPart n xs mode a b => .arrayPart (coreMemScopedName scope n) (xs.map (coreMemSubstExpr scope)) mode
       (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .functionCall n xs => .functionCall n (xs.map (coreMemSubstExpr scope))
   | e => e
 
 def coreMemSubstLhs (scope : CoreMemScope) : PLhs → PLhs
-  | .bitSel n i => .bitSel (coreMemSubstName scope n) (coreMemSubstExpr scope i)
-  | .partSel n a b => .partSel (coreMemSubstName scope n) (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+  | .ident n => .ident (coreMemScopedName scope n)
+  | .bitSel n i => .bitSel (coreMemScopedName scope n) (coreMemSubstExpr scope i)
+  | .partSel n a b => .partSel (coreMemScopedName scope n) (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .concat xs => .concat (xs.map (coreMemSubstLhs scope))
-  | .arrayElem n xs => .arrayElem (coreMemSubstName scope n) (xs.map (coreMemSubstExpr scope))
-  | .arrayBitSel n xs bit => .arrayBitSel (coreMemSubstName scope n) (xs.map (coreMemSubstExpr scope)) (coreMemSubstExpr scope bit)
-  | .arrayPart n xs mode a b => .arrayPart (coreMemSubstName scope n) (xs.map (coreMemSubstExpr scope)) mode
+  | .arrayElem n xs => .arrayElem (coreMemScopedName scope n) (xs.map (coreMemSubstExpr scope))
+  | .arrayBitSel n xs bit => .arrayBitSel (coreMemScopedName scope n) (xs.map (coreMemSubstExpr scope)) (coreMemSubstExpr scope bit)
+  | .arrayPart n xs mode a b => .arrayPart (coreMemScopedName scope n) (xs.map (coreMemSubstExpr scope)) mode
       (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
-  | .aggregateMember n path => .aggregateMember (coreMemSubstName scope n)
+  | .aggregateMember n path => .aggregateMember (coreMemScopedName scope n)
       (path.map fun (field, ix) => (field, ix.map (coreMemSubstExpr scope)))
-  | .ident n => .ident (coreMemSubstName scope n)
+  | l => l
 
 def coreMemSubstDim (scope : CoreMemScope) (d : PDim) : PDim :=
   { msb := coreMemSubstExpr scope d.msb, lsb := coreMemSubstExpr scope d.lsb }
@@ -954,7 +974,8 @@ def coreMemSubstType (scope : CoreMemScope) : PType → PType
   | .unrecoverable resolved => .unrecoverable resolved
 
 def coreMemSubstDecl (scope : CoreMemScope) (d : PDecl) : PDecl :=
-  { name := coreMemSubstName scope d.name, type := coreMemSubstType scope d.type,
+  let name := coreMemScopedName { scope with generatedDecls := d.name :: scope.generatedDecls } d.name
+  { name := name, type := coreMemSubstType scope d.type,
     unpackedDims := d.unpackedDims.map (coreMemSubstDim scope),
     isSigned := d.isSigned, twoState := d.twoState, isInput := d.isInput,
     isOutput := d.isOutput, isNet := d.isNet,
@@ -963,8 +984,8 @@ def coreMemSubstDecl (scope : CoreMemScope) (d : PDecl) : PDecl :=
 
 mutual
 def coreMemSubstStmt (scope : CoreMemScope) : PStmt → PStmt
-  | .blockingAssign n e => .blockingAssign (coreMemSubstName scope n) (coreMemSubstExpr scope e)
-  | .nbaAssign n e => .nbaAssign (coreMemSubstName scope n) (coreMemSubstExpr scope e)
+  | .blockingAssign n e => .blockingAssign (coreMemScopedName scope n) (coreMemSubstExpr scope e)
+  | .nbaAssign n e => .nbaAssign (coreMemScopedName scope n) (coreMemSubstExpr scope e)
   | .ifStmt c t e => .ifStmt (coreMemSubstExpr scope c) (coreMemSubstStmt scope t)
       (coreMemSubstStmtOpt scope e)
   | .block xs => .block (coreMemSubstStmtList scope xs)
@@ -999,18 +1020,16 @@ def coreMemSubstCaseItems (scope : CoreMemScope) :
 termination_by structural xs => xs
 
 def coreMemSubstProcess (scope : CoreMemScope) : PProcess → PProcess
-  | .alwaysFF c b => .alwaysFF (coreMemSubstName scope c) (coreMemSubstStmt scope b)
-  | .alwaysFFNegedge c b => .alwaysFFNegedge (coreMemSubstName scope c) (coreMemSubstStmt scope b)
-  | .alwaysPlain c b => .alwaysPlain (coreMemSubstName scope c) (coreMemSubstStmt scope b)
+  | .alwaysFF c b => .alwaysFF (coreMemScopedName scope c) (coreMemSubstStmt scope b)
+  | .alwaysFFNegedge c b => .alwaysFFNegedge (coreMemScopedName scope c) (coreMemSubstStmt scope b)
+  | .alwaysPlain c b => .alwaysPlain (coreMemScopedName scope c) (coreMemSubstStmt scope b)
   | .alwaysComb b => .alwaysComb (coreMemSubstStmt scope b)
   | .alwaysLatch b => .alwaysLatch (coreMemSubstStmt scope b)
   | .alwaysImplicit b => .alwaysImplicit (coreMemSubstStmt scope b)
-  | .alwaysEvent events b => .alwaysEvent (events.map fun e =>
-      { e with signal := coreMemSubstName scope e.signal }) (coreMemSubstStmt scope b)
-  | .assign n e => .assign (coreMemSubstName scope n) (coreMemSubstExpr scope e)
+  | .alwaysEvent events b => .alwaysEvent (events.map fun e => { e with signal := coreMemScopedName scope e.signal }) (coreMemSubstStmt scope b)
+  | .assign n e => .assign (coreMemScopedName scope n) (coreMemSubstExpr scope e)
   | .assignL l e => .assignL (coreMemSubstLhs scope l) (coreMemSubstExpr scope e)
-  | .alwaysFFR c r b h => .alwaysFFR (coreMemSubstName scope c)
-      (coreMemSubstName scope r) (coreMemSubstStmt scope b) h
+  | .alwaysFFR c r b h => .alwaysFFR (coreMemScopedName scope c) (coreMemScopedName scope r) (coreMemSubstStmt scope b) h
   | .initial b => .initial (coreMemSubstStmt scope b)
   | p => p
 end
@@ -1047,13 +1066,18 @@ def coreMemGeneratedDeclsItem (env : IEnv) (iterFuel : Nat)
             do
               let (ds, _) ← coreMemGeneratedDeclsList env iterFuel scope elseB
               pure ds
-  | .genFor _label g initE bound step _rc body =>
+  | .genFor label g initE bound step _rc body =>
       let env' := coreMemBindVals env scope
       match evalInt env' initE, stepDelta g step with
       | .ok i0, .ok δ => do
           let vs ← genvarSeq env' g bound δ iterFuel i0
           vs.foldlM (init := []) fun acc v => do
-            let scope' := { scope with genvars := (g, v) :: scope.genvars }
+            let labelName : String := label.getD ""
+            let labels := (labelName, v) :: scope.genLabels
+            let scope0 := { scope with genvars := (g, v) :: scope.genvars }
+            let scope1 := { scope0 with genLabels := labels }
+            let scope' := { scope1 with generatedDecls :=
+              coreMemDirectGeneratedDeclNames body ++ scope.generatedDecls }
             let (ds, _) ← coreMemGeneratedDeclsList env iterFuel scope' body
             .ok (acc ++ ds)
       | .error e, _ => .unsupported s!"generate for: {e}"
@@ -1096,13 +1120,18 @@ def coreMemExpandItem (env : IEnv) (iterFuel : Nat) (scope : CoreMemScope) :
             do
               let (ps, _) ← coreMemExpandList env iterFuel scope elseB
               pure ps
-  | .genFor _label g initE bound step _rc body =>
+  | .genFor label g initE bound step _rc body =>
       let env' := coreMemBindVals env scope
       match evalInt env' initE, stepDelta g step with
       | .ok i0, .ok δ => do
           let vs ← genvarSeq env' g bound δ iterFuel i0
           vs.foldlM (init := []) fun acc v => do
-            let scope' := { scope with genvars := (g, v) :: scope.genvars }
+            let labelName : String := label.getD ""
+            let labels := (labelName, v) :: scope.genLabels
+            let scope0 := { scope with genvars := (g, v) :: scope.genvars }
+            let scope1 := { scope0 with genLabels := labels }
+            let scope' := { scope1 with generatedDecls :=
+              coreMemDirectGeneratedDeclNames body ++ scope.generatedDecls }
             let (ps, _) ← coreMemExpandList env iterFuel scope' body
             .ok (acc ++ ps)
       | .error e, _ => .unsupported s!"generate for: {e}"
