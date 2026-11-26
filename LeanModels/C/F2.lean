@@ -8711,6 +8711,13 @@ def exposedPlacementAgreement (resolve : AllocId → Nat)
     right := fun id => (placementOf store id).map (fun _ => resolve id)
     exposed := exposed }
 
+theorem exposedPlacementAgreement_agreesAt_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (exposed : AllocId → Bool) (id : AllocId) :
+    (exposedPlacementAgreement resolve store exposed).agreesAt id = true ↔
+      placementOf store id = (placementOf store id).map (fun _ => resolve id) := by
+  simp [exposedPlacementAgreement, PlacementAgreement.agreesAt, beq_iff_eq]
+
 theorem exposedPlacementAgreement_empty_agrees
     {Tag State : Type} (resolve : AllocId → Nat)
     (exposed : AllocId → Bool) :
