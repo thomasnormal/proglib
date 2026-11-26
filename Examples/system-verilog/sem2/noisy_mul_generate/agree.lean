@@ -3460,6 +3460,28 @@ theorem noisy_and_conn_driverWins_at
     exact List.contains_iff_mem.mp hp
   · simpa using hq
 
+theorem noisy_xor_conn_driverWins_at
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "t" = true)
+    (hd : env.dims.lookup "t" = some [((N : Int) - 1, 0), ((N : Int) - 1, 0)]) :
+    driverWins names
+      (xorDesign.decls.toList.flatMap
+        (connProcs ((env.bindVal "i" i).bindVal "j" j) elems pfx xorInst.conns)) =
+      [("t", some (i * N + j, 1))] := by
+  have hq := noisy_arrayElemTarget_sq_genvar (env := env) (elems := elems)
+    (n := "t") hN hi hj hd
+  apply noisy_xor_conn_driverWins ((env.bindVal "i" i).bindVal "j" j)
+    elems pfx names (.slice "t" (i * N + j) 1) 1 ha hb hf hy hp
+  · simp [Lhs2.drvWins]
+    exact List.contains_iff_mem.mp hp
+  · simpa using hq
+
 theorem noisy_arrayElemTarget_rect_genvar
     {env : IEnv} {elems : List (String × Nat)} {n : String}
     {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j ≤ N)
@@ -3472,5 +3494,64 @@ theorem noisy_arrayElemTarget_rect_genvar
   · simpa [IEnv.bindVal] using hd
   · exact evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup])
   · exact evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup])
+
+theorem noisy_xorS_conn_driverWins_at
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j ≤ N)
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "s" = true)
+    (hd : env.dims.lookup "s" = some [((N : Int) - 1, 0), ((N : Int), 0)]) :
+    driverWins names
+      (xorDesign.decls.toList.flatMap
+        (connProcs ((env.bindVal "i" i).bindVal "j" j) elems pfx xorSInst.conns)) =
+      [("s", some (i * (N + 1) + j, 1))] := by
+  have hq := noisy_arrayElemTarget_rect_genvar (env := env) (elems := elems)
+    (n := "s") hN hi hj hd
+  apply noisy_xorS_conn_driverWins ((env.bindVal "i" i).bindVal "j" j)
+    elems pfx names (.slice "s" (i * (N + 1) + j) 1) 1 ha hb hf hy hp
+  · simp [Lhs2.drvWins]
+    exact List.contains_iff_mem.mp hp
+  · simpa using hq
+
+theorem noisy_maj_conn_driverWins_at
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hc : names.contains (pfx ++ "c") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "c" = true)
+    (hd : env.dims.lookup "c" = some [((N : Int) - 1, 0), ((N : Int), 0)]) :
+    driverWins names
+      (majDesign.decls.toList.flatMap
+        (connProcs ((env.bindVal "i" i).bindVal "j" j) elems pfx majInst.conns)) =
+      [("c", some (i * (N + 1) + (j + 1), 1))] := by
+  have hq := noisy_arrayElemTarget_rect_of_range
+    (env := (env.bindVal "i" i).bindVal "j" j) (elems := elems)
+    (n := "c") (N := N) (i := i) (j := j + 1)
+    (ie := .genvarRef "i")
+    (je := .binary (.m0 .add) (.genvarRef "j") (.int 1))
+    hN hi (by omega) hd
+    (evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup]))
+    (by
+      have hjv : evalInt ((env.bindVal "i" i).bindVal "j" j)
+          (.genvarRef "j") = .ok (j : Int) :=
+        evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup])
+      rw [evalInt_add_of rfl rfl
+        hjv (evalInt_int 1)]
+      simp)
+  apply noisy_maj_conn_driverWins ((env.bindVal "i" i).bindVal "j" j)
+    elems pfx names (.slice "c" (i * (N + 1) + (j + 1)) 1) 1 ha hb hc hf hy hp
+  · simp [Lhs2.drvWins]
+    exact List.contains_iff_mem.mp hp
+  · simpa using hq
+
+
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
