@@ -44,6 +44,10 @@ theorem pointerByte_zero_fragment (address : Nat) :
     pointerByte address 0 = UInt8.ofNat (address % 256) := by
   simp [pointerByte]
 
+theorem pointerByte_zero_address (fragment : Nat) :
+    pointerByte 0 fragment = 0 := by
+  simp [pointerByte]
+
 def renamePointer (resolve : AllocId → Nat) (pointer : Pointer Tag) : Pointer Tag :=
   { pointer with
     address := match pointer.provenance with
