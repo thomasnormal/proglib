@@ -767,7 +767,7 @@ def CoreMemDesign.fastStepCanonical (E : CoreMemDesign) (st : CoreMemState)
 theorem CoreMemDesign.fastStepCanonical_eq_step
     (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) :
     E.fastStepCanonical st entry = E.step st entry := by
-  simp [CoreMemDesign.fastStepCanonical, CoreMemDesign.step,
+  simp [CoreMemDesign.fastStepCanonical, CoreMemDesign.step, CoreMemDesign.stepFuel,
     E.edgeQuiesceFast_eq_edgeQuiesce]
 
 /-! A row driver for the whole-cycle fast route.  The empty-input shortcut is
