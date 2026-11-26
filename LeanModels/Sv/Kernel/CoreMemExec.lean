@@ -915,7 +915,7 @@ source-shaped nodes and preserves the declared width and signedness of a
 non-INT constant. IEEE 1800-2023 §§6.20.2 and 27.4. -/
 def coreMemBindLocalParam (env : IEnv) (scope : CoreMemScope) (p : PLocalParam) :
     Res CoreMemScope :=
-  match bindLocal (coreMemScopeEnv env scope) p with
+  match bindLocalC (coreMemScopeEnv env scope) p with
   | .error e => .unsupported
       s!"GenerateDecl:LocalParam: generate-local parameter '{p.name}': {e}"
   | .ok env' =>

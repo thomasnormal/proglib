@@ -94,6 +94,7 @@ deriving instance Lean.ToExpr for EnumVal
 deriving instance Lean.ToExpr for PEnumMember
 deriving instance Lean.ToExpr for PEnumType
 deriving instance Lean.ToExpr for PDecl
+deriving instance Lean.ToExpr for PFnStmt
 deriving instance Lean.ToExpr for PFunction
 deriving instance Lean.ToExpr for PReadmemh
 deriving instance Lean.ToExpr for PCellRef
@@ -726,6 +727,62 @@ partial def parsePStmt (j : Json) : Except String PStmt := do
         return .unsupported svKind text
     | other => throw s!"unknown statement kind {other.quote}"
 
+/-- A statement of a function body (`Function.stmts`), node for node.  A
+kind this decoder does not know is a schema mismatch; a statement the
+extractor could not convert arrives as `Unsupported` and stays loud when the
+constant evaluator reaches it. -/
+partial def parsePFnStmt (j : Json) : Except String PFnStmt := do
+  let kind ← getKind j
+  withCtx kind do
+    match kind with
+    | "FnDecl" =>
+        let init ← match getOptField j "init" with
+          | none | some Json.null => pure none
+          | some ij => pure (some (← parsePExpr ij))
+        let flag (name : String) : Bool :=
+          (getOptField j name).bind (·.getBool?.toOption) |>.getD false
+        return .decl (← getStrField j "name") (← parsePType (← getField j "type"))
+          (flag "signed") (flag "two_state") init
+    | "FnAssign" =>
+        let value ← parsePExpr (← getField j "value")
+        match ← parseTargetL (← getField j "target") with
+        | .error k => return .unsupported k "assignment target outside the constant-function tier"
+        | .ok lhs => return .assign lhs value
+    | "FnIncDec" =>
+        let inc ← match ← getStrField j "op" with
+          | "++" => pure true
+          | "--" => pure false
+          | op => throw s!"unknown increment operator {op.quote}"
+        return .incDec (← getStrField j "name") inc
+    | "FnIf" =>
+        let elseS ← match getOptField j "else" with
+          | none | some Json.null => pure none
+          | some ej => pure (some (← parsePFnStmt ej))
+        return .ifStmt (← parsePExpr (← getField j "cond")) (← parsePFnStmt (← getField j "then")) elseS
+    | "FnCase" =>
+        let items ← (← (← getField j "items").getArr?).toList.mapM fun ij => do
+          let pats ← (← (← getField ij "patterns").getArr?).toList.mapM parsePExpr
+          pure (pats, ← parsePFnStmt (← getField ij "body"))
+        let dflt ← match getOptField j "default" with
+          | none | some Json.null => pure none
+          | some dj => pure (some (← parsePFnStmt dj))
+        return .caseStmt (← parsePExpr (← getField j "subject")) items dflt
+    | "FnFor" =>
+        return .forLoop (← (← (← getField j "init").getArr?).toList.mapM parsePFnStmt)
+          (← parsePExpr (← getField j "cond"))
+          (← (← (← getField j "step").getArr?).toList.mapM parsePFnStmt)
+          (← parsePFnStmt (← getField j "body"))
+    | "FnBlock" =>
+        return .block (← (← (← getField j "stmts").getArr?).toList.mapM parsePFnStmt)
+    | "FnReturn" =>
+        match getOptField j "value" with
+        | none | some Json.null => return .ret none
+        | some vj => return .ret (some (← parsePExpr vj))
+    | "Unsupported" =>
+        let (svKind, text) ← parseUnsupportedFields j
+        return .unsupported svKind text
+    | other => throw s!"unknown function statement kind {other.quote}"
+
 def parsePProcess (j : Json) : Except String PProcess := do
   let kind ← getKind j
   withCtx kind do
@@ -1161,7 +1218,15 @@ def parseModule2 (j : Json) : Except String PDesign :=
       let returnType ← withCtx s!"function '{fname}' return type" (parsePType (← getField fj "return_type"))
       let formals ← (← (← getField fj "formals").getArr?).toList.mapM parsePDecl
       let body ← withCtx s!"function '{fname}' body" (parsePExpr (← getField fj "body"))
-      functions := functions ++ [{ name := fname, formals, returnType, body, isSigned, automatic }]
+      let stmts ← match getOptField fj "stmts" with
+        | none | some Json.null => pure none
+        | some sj => withCtx s!"function '{fname}' statements" do
+            pure (some (← (← sj.getArr?).toList.mapM parsePFnStmt))
+      let returnTwoState := (getOptField fj "return_two_state").bind (·.getBool?.toOption) |>.getD false
+      let fromPackage := (getOptStr fj "package").isSome
+      functions := functions ++
+        [{ name := fname, formals, returnType, body, isSigned, automatic, stmts, returnTwoState,
+           fromPackage }]
     for pj in (← (← getField j "processes").getArr?) do
       processes := processes ++ [← parsePProcess pj]
     for pj in (← match getOptField j "primitives" with

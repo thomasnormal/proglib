@@ -147,9 +147,15 @@ enforces arity).
 * **Generate-local declarations** are outside this slice (they need
   per-instance name scoping) — they arrive as loud items. Neither smoke
   envelope contains one.
-* **Package-scoped `ParamRef`** values for scalar signed `int` package
-  parameters are retained in `PDesign.packageParams`; typed non-INT package
-  values remain loud at use (`ParamRef:package`).
+* **Package constants** (`PDesign.packageParams`) are bound before the
+  module parameters, in dependency order, each at its declared width and
+  signedness with its x/z bits (`bindPackageParams`, "Constant functions and
+  package constants" below).  A constant that cannot be evaluated is left
+  unbound with its reason, and a `ParamRef` to it is loud at use
+  (`ParamRef:package`).
+* **Constant functions** (IEEE 1800-2023 §13.4.3) are executed as written
+  (`PFunction.stmts`, `execFnStmt`), in package constants, parameter defaults,
+  localparams and generate-local parameters.
 * `instantiate` is **fueled only where unbounded**: the genvar iteration
   (`genvarSeq`, fuel exhausted = `.timeout`); everything else is
   structural recursion. Bad parameters (arity, failing localparam/width/
@@ -480,19 +486,6 @@ structure PDecl where
   aggregate? : Option PAggType := none
 deriving Repr, BEq, Inhabited
 
-/-! A narrow source-shaped function declaration.  The first E function rung
-admits automatic input-only functions with one return expression; locals,
-side effects, recursion and non-input formals remain loud at ingestion. -/
-structure PFunction where
-  name : String
-  formals : List PDecl
-  returnType : PType
-  body : PExpr
-  /-- Signedness of the function's integral return type. -/
-  isSigned : Bool := false
-  automatic : Bool := true
-deriving Repr, BEq, Inhabited
-
 /-- A literal-file `$readmemh` task retained as module metadata.  The
 statement surface stays frozen; the memory adapter consumes this typed record
 instead of reparsing an Unsupported message. -/
@@ -536,6 +529,50 @@ def PLhs.name : PLhs → String
   | .aggregateMember n _ => n
   | .concat (part :: _) => part.name
   | .concat [] => ""
+
+/-- A statement of a function body, as the source writes it (IEEE 1800-2023
+§13.4, §12).  It is a separate type from `PStmt` because a function body has
+`return` and typed local declarations, which the process statements do not
+have; the constant evaluator (`execFnStmt`) gives each node its meaning. -/
+inductive PFnStmt where
+  /-- A local variable declaration with its declared type. -/
+  | decl (name : String) (type : PType) (isSigned : Bool) (twoState : Bool) (init : Option PExpr)
+  /-- A blocking assignment. -/
+  | assign (target : PLhs) (value : PExpr)
+  /-- `x++` / `x--` as a statement (§11.4.2). -/
+  | incDec (target : String) (inc : Bool)
+  | ifStmt (cond : PExpr) (thenS : PFnStmt) (elseS : Option PFnStmt)
+  /-- A plain `case` (§12.5): items in source order, each with its expressions. -/
+  | caseStmt (subject : PExpr) (items : List (List PExpr × PFnStmt)) (default? : Option PFnStmt)
+  /-- `for (init; cond; step) body` (§12.7.1). -/
+  | forLoop (init : List PFnStmt) (cond : PExpr) (step : List PFnStmt) (body : PFnStmt)
+  | block (body : List PFnStmt)
+  /-- `return e;` or `return;` (§13.4.1). -/
+  | ret (value : Option PExpr)
+  | unsupported (svKind : String) (text : String)
+deriving Repr, BEq, Inhabited
+
+/-! A source-shaped function declaration.  `body` is the one return
+expression of the E function rung (automatic input-only functions; a body the
+extractor cannot give as one expression is an `unsupported` node there).
+`stmts` is the body as written; the constant evaluator executes it. -/
+structure PFunction where
+  name : String
+  formals : List PDecl
+  returnType : PType
+  body : PExpr
+  /-- Signedness of the function's integral return type. -/
+  isSigned : Bool := false
+  automatic : Bool := true
+  /-- The body as written (absent in an envelope older than this field: the
+  body is then `return body;`). -/
+  stmts : Option (List PFnStmt) := none
+  /-- The return type is 2-state (the result variable starts at 0, §6.8). -/
+  returnTwoState : Bool := false
+  /-- Declared in a package: its types have one point, so the widths the
+  frontend recorded in its body are exact (`evalVec`'s `exact`). -/
+  fromPackage : Bool := false
+deriving Repr, BEq, Inhabited
 
 /-- Statements: the M0 shapes over `PExpr` (identifier targets), plus the
 semantic tier's select-target assignments (`…L`) and `case` (plain /
@@ -1800,51 +1837,6 @@ that target's signed `integer` would change (`evalSized`). -/
 def assignFitMsg (w f : Nat) (v : Int) : String :=
   s!"Constant:assignment-context — a constant assigned to a {f}-bit target (a genvar initializer) is {w} bits wide at these parameters and its value {v} is not a 32-bit signed integer: IEEE 1800-2023 §27.4 and slang convert a genvar initializer to its `integer` (truncated and read signed), Icarus 12.0 and Yosys 0.53 keep the value whole (measured) — refused"
 
-/-! Pure source-shaped constant functions are evaluated after their input
-formals have been bound with the formal's declared width and signedness.
-The body is then sent through the same `ctype`/`evalAt` evaluator; nested
-calls remain loud until their own declaration is admitted. -/
-def substConst (bs : List (String × (Int × Nat × Bool))) : PExpr → PExpr
-  | .ident n =>
-      match bs.lookup n with
-      | some (v, w, s) => .cast s (.lit (LVec.ofInt w v))
-      | none => .ident n
-  | .unary o a => .unary o (substConst bs a)
-  | .binary o l r => .binary o (substConst bs l) (substConst bs r)
-  | .ternary c t e => .ternary (substConst bs c) (substConst bs t) (substConst bs e)
-  | .resize w a => .resize w (substConst bs a)
-  | .signedResize w a => .signedResize w (substConst bs a)
-  | .squash2 w a => .squash2 w (substConst bs a)
-  | .sysCall f a => .sysCall f (substConst bs a)
-  | .bitSel a i => .bitSel (substConst bs a) (substConst bs i)
-  | .partSel a m l => .partSel (substConst bs a) (substConst bs m) (substConst bs l)
-  | .repl n a => .repl (substConst bs n) (substConst bs a)
-  | .cast s a => .cast s (substConst bs a)
-  | .concat xs => .concat (xs.map (substConst bs))
-  | .functionCall n xs => .functionCall n (xs.map (substConst bs))
-  | e => e
-
-def evalConstFunctionCall (env : IEnv) (name : String) (args : List PExpr) : Except String Int :=
-  match env.functions.find? (fun f => f.name == name) with
-  | none => .error s!"function '{name}' in a constant context"
-  | some f =>
-      if !f.automatic then
-        .error s!"function '{name}' has static storage in a constant context"
-      else if f.formals.length != args.length then
-        .error s!"function '{name}' argument count mismatch"
-      else do
-        let bindings ← f.formals.zip args |>.mapM fun (formal, actual) => do
-          let (aw, as) ← ctype env actual
-          let av ← evalAt env (aw, as) actual
-          let fw := match formal.type with
-            | .packed _ (some w) | .typeRef _ _ (some w) => w
-            | .packed _ none | .typeRef _ _ none | .unrecoverable _ => 32
-          .ok (formal.name, (convertConst aw fw formal.isSigned av, fw, formal.isSigned))
-        let rw := match f.returnType with
-          | .packed _ (some w) | .typeRef _ _ (some w) => w
-          | .packed _ none | .typeRef _ _ none | .unrecoverable _ => 32
-        evalAt env (rw, f.isSigned) (substConst bindings f.body)
-
 /-- **Width-exact constant evaluation** (round 4 folds): the value of `e`
 at its OWN type at THESE parameters (`ctype` then `evalAt`) — `evalInt`'s
 regime for every expression outside the INT class, the reading of every
@@ -1900,21 +1892,6 @@ def evalAssign (env : IEnv) (w : Nat) (e : PExpr) : Except String Int :=
       | .l0 => .ok (canonInt w false 0)
       | .l1 => .ok (canonInt w false ((2 : Int) ^ w - 1))
       | .lx | .lz => .error "x/z literal in a constant context"
-  | .functionCall n args => do
-      let v ← evalConstFunctionCall env n args
-      .ok (canonInt w true v)
-  | .squash2 targetWidth (.functionCall n args) => do
-      -- A source cast to the 2-state width can wrap a pure constant
-      -- function call (the extractor retains this node for an `int` return).
-      -- Evaluate the call at its declaration, then apply the explicit target
-      -- width; sending it through `evalAt` would hit the generic call refusal.
-      let v ← evalConstFunctionCall env n args
-      .ok (canonInt (if targetWidth == 0 then w else targetWidth) false v)
-  | e@(.resize targetWidth (.functionCall n args))
-  | e@(.signedResize targetWidth (.functionCall n args)) => do
-      let v ← evalConstFunctionCall env n args
-      .ok (canonInt (if targetWidth == 0 then w else targetWidth)
-        (match e with | .signedResize _ _ => true | _ => false) v)
   | _ => do
       let (we, se) ← ctype env e
       evalAt env (max w we, se) e
@@ -1935,7 +1912,9 @@ def evalInt (env : IEnv) : PExpr → Except String Int
       | some n => .ok (n : Int)
       | none => .error "x/z literal in a constant context"
   | .ident n => .error s!"signal '{n}' in a constant context"
-  | .functionCall n args => evalConstFunctionCall env n args
+  -- A call is evaluated by the constant-function evaluator before the
+  -- expression it stands in (`constCalls`); one that reaches here is loud.
+  | .functionCall n _ => .error s!"function '{n}' in a constant context"
   | .paramRef n none =>
       match env.vals.lookup n with
       | some v => .ok v
@@ -2307,258 +2286,6 @@ private def staleGenerateEnv : IEnv :=
   { nvals := [("L", (4294967295, 32, false))], stale := ["L"] }
 #guard (evalGenGuard staleGenerateEnv (.paramRef "L" none) matches .error _)
 
-/-! ## Package constants -/
-
-private def packageDimsWidth (env : IEnv) : List PDim → Except String Nat
-  | [] => .ok 1
-  | d :: rest => do
-      let m ← evalInt env d.msb
-      let l ← evalInt env d.lsb
-      let w ← packageDimsWidth env rest
-      .ok (((m - l).natAbs + 1) * w)
-
-mutual
-private def packageConstVec (env : IEnv) : PExpr → Except String LVec
-  | .lit v => .ok v
-  | .int v => .ok (LVec.ofInt 32 v)
-  | .resize w e => (packageConstVec env e).map (fun v => v.resizeU w)
-  | .signedResize w e => (packageConstVec env e).map (fun v => v.resizeSigned w)
-  | .concat es => do
-      let vs ← packageConstVecList env es
-      .ok (LVec.concatMany vs.toArray)
-  | .paramRef n (some pkg) =>
-      match env.packageFVal pkg n with
-      | some (v, _, _) => .ok v
-      | none =>
-          match env.packageVal pkg n with
-          | some v => .ok (LVec.ofInt 32 v)
-          | none =>
-              match env.packageNVal pkg n with
-              | some (v, w, _) => .ok (LVec.ofInt w v)
-              | none => .error s!"package parameter '{pkg}::{n}' is unavailable"
-  | .enumRef ty mem pkg =>
-      match env.enumMember ty mem pkg with
-      | some value => .ok value
-      | none => .error s!"unknown enum member {ty}::{mem}"
-  | .functionCall name args =>
-      -- Package constant initializers are constant-function calls (§13.4).
-      -- `evalAt` deliberately keeps source-shaped calls loud for ordinary
-      -- signal expressions, so route this elaboration-time case through the
-      -- same declaration-aware evaluator used by `evalInt`.
-      match env.functions.find? (fun f => f.name == name) with
-      | some f =>
-          match f.returnType with
-          | .packed _ (some w) | .typeRef _ _ (some w) =>
-              if w > 32 then
-                .error "wide package constant function result requires width-exact evaluation"
-              else (evalConstFunctionCall env name args).map (LVec.ofInt 32)
-          | _ => (evalConstFunctionCall env name args).map (LVec.ofInt 32)
-      | none => .error s!"function '{name}' in a constant context"
-  | e =>
-      match evalAt env (32, true) e with
-      | .ok v => .ok (LVec.ofInt 32 v)
-      | .error err => .error err
-
-private def packageConstVecList (env : IEnv) : List PExpr → Except String (List LVec)
-  | [] => .ok []
-  | e :: es => do
-      let v ← packageConstVec env e
-      let vs ← packageConstVecList env es
-      .ok (v :: vs)
-end
-
-private def packageAggIndices (env : IEnv) (msb lsb : PExpr) : Except String (Int × Int) := do
-  pure (← evalInt env msb, ← evalInt env lsb)
-
-private def packageAggElement (env : IEnv) (row : List (String × PExpr)) : Except String LVec := do
-  let values ← packageConstVecList env (row.map (·.2))
-  if values.isEmpty then
-    .error "package aggregate struct pattern has no fields"
-  else
-    .ok (LVec.concatMany values.toArray)
-
-private def bindPackageAggregate (env : IEnv) (pkg : String) (p : PParam) : Res IEnv :=
-  match p.aggregate?, p.aggregateDefault? with
-  | some (.array msb lsb elem), some rows => do
-      let (m, l) ← match packageAggIndices env msb lsb with
-        | .ok bounds => .ok bounds
-        | .error e => .unsupported s!"package parameter '{pkg}::{p.name}': {e}"
-      let expected := (m - l).natAbs + 1
-      if rows.length != expected then
-        .unsupported s!"package parameter '{pkg}::{p.name}': assignment pattern array count mismatch"
-      else
-        match rows.mapM (packageAggElement env) with
-        | .error e => .unsupported s!"package parameter '{pkg}::{p.name}': {e}"
-        | .ok values => .ok (env.bindPackageAgg pkg p.name
-            { msb := m, lsb := l, elements := values })
-  | some _, _ => .unsupported s!"package parameter '{pkg}::{p.name}': aggregate default shape is unsupported"
-  | none, _ => .unsupported s!"package parameter '{pkg}::{p.name}': aggregate metadata is missing"
-
-/-- Bind the narrow package-parameter slice retained by the symbolic
-envelope. Package parameters are elaboration constants, never top-level
-override binders; their defaults are evaluated in declaration order. -/
-private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → Res IEnv
-  | [] => .ok env
-  | (pkg, p) :: rest =>
-      if p.isString || p.unsupported?.isSome then
-        bindPackageParamsInOrder env rest
-      else if p.aggregate?.isSome then
-        match bindPackageAggregate env pkg p with
-        | .ok env' => bindPackageParamsInOrder env' rest
-        | .unsupported msg => .unsupported msg
-        | .timeout => .timeout
-      else
-      match p.default? with
-      | none => .unsupported s!"package parameter '{pkg}::{p.name}' has no default"
-      | some e =>
-          match p.type? with
-          | none =>
-              match packageConstVec env e with
-              | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
-              | .ok raw =>
-                  if raw.width > 32 then
-                    .unsupported s!"package parameter '{pkg}::{p.name}': wide package constant requires width-exact evaluation"
-                  else
-                  let w := raw.width
-                  let env' := env.bindPackageFVal pkg p.name raw w false
-                  match raw.toNat? with
-                  | some v => bindPackageParamsInOrder (env'.bindPackageVal pkg p.name v) rest
-                  | none => bindPackageParamsInOrder env' rest
-          | some (.packed dims _) =>
-              match packageDimsWidth env dims with
-              | .ok w =>
-                  if w > 32 then
-                    .unsupported s!"package parameter '{pkg}::{p.name}': wide package constant requires width-exact evaluation"
-                  else
-                  let s := p.signed?.getD (w == 32)
-                  let e := match e with
-                    | .fill b => .lit (LVec.replicate w b)
-                    | other => other
-                  match packageConstVec env e with
-                  | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
-                  | .ok raw =>
-                      if raw.width > 32 then
-                        .unsupported s!"package parameter '{pkg}::{p.name}': wide package constant requires width-exact evaluation"
-                      else
-                      let value := if s then raw.resizeSigned w else raw.resizeU w
-                      let env' := env.bindPackageFVal pkg p.name value w s
-                      match value.toNat? with
-                      | none => bindPackageParamsInOrder env' rest
-                      | some n =>
-                          let v := canonInt w s n
-                          if w == 32 && s then
-                            bindPackageParamsInOrder (env'.bindPackageVal pkg p.name v) rest
-                          else
-                            bindPackageParamsInOrder (env'.bindPackageNVal pkg p.name v w s) rest
-              | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
-          | some (.typeRef _ _ (some w)) =>
-              if w > 32 then
-                .unsupported s!"package parameter '{pkg}::{p.name}': wide package constant requires width-exact evaluation"
-              else
-              let s := p.signed?.getD (w == 32)
-              let value : Except String LVec := match packageConstVec env e with
-                | .error err => .error err
-                | .ok raw => .ok (if s then raw.resizeSigned w else raw.resizeU w)
-              match value with
-              | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
-              | .ok value =>
-                  if value.width > 32 then
-                    .unsupported s!"package parameter '{pkg}::{p.name}': wide package constant requires width-exact evaluation"
-                  else
-                  let env' := env.bindPackageFVal pkg p.name value w s
-                  match value.toNat? with
-                  | none => bindPackageParamsInOrder env' rest
-                  | some n =>
-                      let v := canonInt w s n
-                      if w == 32 && s then
-                        bindPackageParamsInOrder (env'.bindPackageVal pkg p.name v) rest
-                      else
-                        bindPackageParamsInOrder (env'.bindPackageNVal pkg p.name v w s) rest
-          | some (.typeRef _ _ _) | some (.unrecoverable _) =>
-              .unsupported s!"ParamRef:package: package parameter '{pkg}::{p.name}' has an unsupported type"
-
-mutual
-private def packageExprReady (knownPackages : List String) (env : IEnv) : PExpr → Bool
-    | .paramRef name (some pkg) =>
-        !knownPackages.contains pkg ||
-        (env.packageFVal pkg name).isSome ||
-        (env.packageVal pkg name).isSome ||
-        (env.packageNVal pkg name).isSome
-    | .unary _ arg | .sysCall _ arg | .cast _ arg | .reduce _ arg =>
-        packageExprReady knownPackages env arg
-    | .binary _ left right =>
-        packageExprReady knownPackages env left && packageExprReady knownPackages env right
-    | .ternary cond thenE elseE =>
-        packageExprReady knownPackages env cond &&
-        packageExprReady knownPackages env thenE &&
-        packageExprReady knownPackages env elseE
-    | .resize _ arg | .signedResize _ arg | .squash2 _ arg =>
-        packageExprReady knownPackages env arg
-    | .bitSel base index | .repl base index =>
-        packageExprReady knownPackages env base && packageExprReady knownPackages env index
-    | .partSel base msb lsb =>
-        packageExprReady knownPackages env base &&
-        packageExprReady knownPackages env msb &&
-        packageExprReady knownPackages env lsb
-    | .concat parts =>
-        packageExprReadyList knownPackages env parts
-    | .functionCall _ args =>
-        packageExprReadyList knownPackages env args
-    | .arrayElem _ indices =>
-        packageExprReadyList knownPackages env indices
-    | .arrayPart _ indices _ a b =>
-        packageExprReadyList knownPackages env indices &&
-        packageExprReady knownPackages env a &&
-        packageExprReady knownPackages env b
-    | .packageAggElem _ _ index =>
-        packageExprReady knownPackages env index
-    | _ => true
-
-private def packageExprReadyList (knownPackages : List String) (env : IEnv) :
-    List PExpr → Bool
-    | [] => true
-    | e :: es =>
-        packageExprReady knownPackages env e &&
-        packageExprReadyList knownPackages env es
-end
-
-private def packageParamReady (knownPackages : List String) (env : IEnv) (p : PParam) : Bool :=
-  match p.default? with
-  | some e => packageExprReady knownPackages env e
-  | none => true
-
-/-- Bind package parameters in dependency order. Slang's compilation-unit
-order can place a package that references another package before its
-dependency. A direct unavailable package reference is deferred for one pass,
-while a cycle remains a loud refusal. -/
-private def bindPackageParamsFuel (fuel : Nat) (knownPackages : List String)
-    (env : IEnv) (ps : List (String × PParam)) : Res IEnv :=
-  match fuel with
-  | 0 =>
-    .unsupported "package parameter dependency cycle or unavailable package reference"
-  | fuel + 1 =>
-    let ready := ps.filter (packageParamReady knownPackages env ·.2)
-    let deferred := ps.filter (fun item => !(packageParamReady knownPackages env item.2))
-    if deferred.isEmpty then
-      bindPackageParamsInOrder env ps
-    else if ready.isEmpty then
-      .unsupported "package parameter dependency cycle or unavailable package reference"
-    else
-      match bindPackageParamsInOrder env ready with
-      | .ok env' => bindPackageParamsFuel fuel knownPackages env' deferred
-      | .timeout => .timeout
-      | .unsupported msg => .unsupported msg
-termination_by structural fuel
-
-/-- A module without package parameters needs no dependency pass. The clocked
-instantiation tactic uses this equation when it unfolds the public binder. -/
-def bindPackageParams (env : IEnv) : List (String × PParam) → Res IEnv
-  | [] => .ok env
-  | ps@(_ :: _) => bindPackageParamsFuel (ps.length + 1) (ps.map (·.1)) env ps
-
--- The symbolic parameter stage reduces this case with an open environment.
-example (env : IEnv) : bindPackageParams env [] = .ok env := by rfl
-
 /-! ## Widths -/
 
 /-- Width of one packed dimension: `|msb - lsb| + 1`. -/
@@ -2583,6 +2310,949 @@ def PType.width (env : IEnv) : PType → Except String Nat
       | some w => .ok w
       | none => .error s!"unknown type '{n}'"
   | .unrecoverable _ => .error "unrecoverable packed dimensions"
+
+/-! ## Constant functions and package constants
+
+One constant evaluator serves package constants, module parameter defaults,
+localparams and generate-local parameters.
+
+* **Expressions** get their meaning from `ctype`/`evalAt` (IEEE 1800-2023
+  §11.6, §11.8), the width-exact evaluator above, at ANY width: a value is a
+  mathematical integer canonical for its propagated type.  `evalVec` is its
+  four-state extension: where `evalAt` answers, `evalVec` is that answer; where
+  `evalAt` refuses because a bit is x or z, `evalVec` MOVES the bits exactly
+  (literals, package constants, concatenation, replication, selects, `?:`
+  with a known condition, conversions).  An operator applied to an x/z
+  operand stays a loud refusal: it is not modelled, never approximated.
+* **Assignment patterns.**  The envelope still carries an assignment pattern
+  for a packed struct (§10.9.2) as a concatenation whose operands are
+  conversions to the member widths (an ingestion rewrite that is NOT retired
+  here: the node needs its own `PExpr` constructor).  `ctype`/`evalAt` read a
+  conversion as transparent (its width is the default point's), which is
+  wrong for such an operand, so `evalVec` never hands an expression with a
+  converted concatenation operand to `evalAt`: it converts each such operand
+  to its written width (`evalPart`).  That width is exact in a package, which
+  has one point; in a module function a converted operand whose width
+  differs from its operand's is refused.
+* **Constant functions** (§13.4.3) are kept as written (`PFnStmt`) and are
+  executed statement by statement (`execFnStmt`): automatic variables, blocking
+  assignments, `if`, `case`, `for`, `return`.  A call is evaluated before the
+  expression it stands in (`PExpr.elabConst`): constant functions have no side
+  effects, so the order is unobservable; the one difference from §11.3.5
+  short-circuiting is a refusal where a call in an unevaluated operand would
+  itself refuse.
+* **Termination without fuel in the meaning.**  A call chain is bounded by the
+  number of declared functions (`constCallAt` counts down from it): a longer
+  chain repeats a function, and recursion is refused.  A `for` loop has an
+  elaboration budget (`fnLoopBudget` iterations); exceeding it is a refusal,
+  never a value.
+* **Package constants** are bound in dependency order (`pkgRounds`), read from
+  every reference of the initializer and of the functions it calls.  A cycle
+  is refused.  A constant this tool cannot evaluate is recorded with its reason
+  and left unbound: the approved parser has accepted the package, so the
+  refusal is a limit of this tool and concerns only a design that reads the
+  constant (§26.3: a package item is referenced through `pkg::name` or an
+  import).  A read of it refuses loudly, as does every constant that depends
+  on it. -/
+
+/-- A reference a constant expression depends on. -/
+inductive ConstDep where
+  | const (pkg name : String)
+  | call (name : String)
+deriving Repr, BEq, Inhabited
+
+def ConstDep.isCall : ConstDep → Bool
+  | .call _ => true
+  | .const .. => false
+
+mutual
+/-- Every package constant and every function a constant expression names,
+at any depth.  Each expression kind has its own case. -/
+def PExpr.constDeps : PExpr → List ConstDep
+  | .lit _ => []
+  | .ident _ => []
+  | .paramRef _ none => []
+  | .paramRef n (some p) => [.const p n]
+  | .genvarRef _ => []
+  | .enumRef .. => []
+  | .int _ => []
+  | .fill _ => []
+  | .unary _ a => a.constDeps
+  | .binary _ l r => l.constDeps ++ r.constDeps
+  | .ternary c t e => c.constDeps ++ t.constDeps ++ e.constDeps
+  | .concat ps => PExpr.constDepsList ps
+  | .resize _ a => a.constDeps
+  | .signedResize _ a => a.constDeps
+  | .squash2 _ a => a.constDeps
+  | .sysCall _ a => a.constDeps
+  | .typeBits .. => []
+  | .bitSel b i => b.constDeps ++ i.constDeps
+  | .partSel b m l => b.constDeps ++ m.constDeps ++ l.constDeps
+  | .repl n a => n.constDeps ++ a.constDeps
+  | .reduce _ a => a.constDeps
+  | .cast _ a => a.constDeps
+  | .arrayElem _ is => PExpr.constDepsList is
+  | .arrayPart _ is _ a b => PExpr.constDepsList is ++ a.constDeps ++ b.constDeps
+  -- A member path of an unpacked aggregate is a signal read: the constant
+  -- tier refuses the node itself, so it has no constant dependencies.
+  | .aggregateMember .. => []
+  | .packageAggElem pkg n i => .const pkg n :: i.constDeps
+  | .functionCall n args => .call n :: PExpr.constDepsList args
+  | .unsupported .. => []
+
+def PExpr.constDepsList : List PExpr → List ConstDep
+  | [] => []
+  | e :: es => e.constDeps ++ PExpr.constDepsList es
+end
+
+/-- Whether a constant expression contains a function call. -/
+def PExpr.hasCall (e : PExpr) : Bool := e.constDeps.any ConstDep.isCall
+
+/-- A variable of a constant-function activation: its bits at the declared
+width, its declared signedness and its packed ranges, outermost first, as
+evaluated at its declaration (`[]`: one range `[width-1:0]`). -/
+structure CVar where
+  v : LVec
+  signed : Bool
+  dims : List (Int × Int) := []
+
+/-- The local variables of one constant-function activation.  The first
+match wins, so an inner declaration shadows an outer one. -/
+abbrev CLocals := List (String × CVar)
+
+/-- Overwrite the bits of the innermost variable named `n`. -/
+def localsSet : CLocals → String → LVec → CLocals
+  | [], _, _ => []
+  | (m, x) :: rest, n, v =>
+      if m == n then (m, { x with v := v }) :: rest else (m, x) :: localsSet rest n v
+
+/-- **The window of a select on a variable's first packed dimension**
+(§7.4.1, §11.5.1): labels `a` and `b` (equal for a bit or element select; the
+left and right bound of a part select) become a bit offset and a width, by
+the declared range (descending or ascending, any base) and the width of one
+element (the product of the inner dimensions).  Out-of-range labels, which
+read x in the LRM, and a part select against the declared direction, are
+refused.  Returns the inner dimensions too. -/
+def selWindow (width : Nat) (dims : List (Int × Int)) (a b : Int) :
+    Except String (Nat × Nat × List (Int × Int)) :=
+  let ds := if dims.isEmpty then [((width : Int) - 1, 0)] else dims
+  match ds with
+  | [] => .error "internal: no packed dimension"
+  | (l, r) :: rest =>
+      let size : Int := ((l - r).natAbs + 1 : Nat)
+      let elemW := rest.foldl (fun acc d => acc * ((d.1 - d.2).natAbs + 1)) 1
+      let off (i : Int) : Int := if r ≤ l then i - r else r - i
+      if (r ≤ l && a < b) || (l < r && b < a) then
+        .error "part select against the declared direction of the range"
+      else
+        let lo := min (off a) (off b)
+        let hi := max (off a) (off b)
+        if lo < 0 || size ≤ hi then .error "constant select of a function variable out of range (reads x)"
+        else .ok (lo.toNat * elemW, (hi - lo + 1).toNat * elemW, rest)
+
+/-- The value a select of a local variable reads.  The result is a plain
+vector: a further select reads its labels as offsets from bit 0, which is
+exact only when at most one inner dimension is left and it is `[m:0]`; any
+other shape is a loud node. -/
+def localSelect (x : CVar) (a b : Int) : Except String PExpr := do
+  let (lo, w, rest) ← selWindow x.v.width x.dims a b
+  match rest with
+  | [] => .ok (.lit (x.v.extract lo w))
+  | [(m, 0)] =>
+      if 0 ≤ m && a == b then .ok (.lit (x.v.extract lo w))
+      else .ok (.unsupported "Select:local-dimensions" "a select of a function variable that leaves a packed range other than one element [m:0]")
+  | _ => .ok (.unsupported "Select:local-dimensions" "a select of a function variable that leaves a packed range other than one element [m:0]")
+
+/-- The local variable a select reads directly (`v`, or `v` under the
+frontend's declared-signed marker). -/
+def localBase (σ : CLocals) : PExpr → Option CVar
+  | .ident n => σ.lookup n
+  | .cast _ (.ident n) => σ.lookup n
+  | _ => none
+
+mutual
+/-- **Close a constant expression** over the local variables `σ` of a
+function activation and over its constant-function calls (§13.4.3, §11.2):
+
+* a reference to a local variable becomes its current value, with the
+  variable's width and signedness;
+* a select of a local variable reads the window its declared range gives
+  (`localSelect`);
+* a call, innermost first, becomes the value `call` gives it, at the return
+  width and signedness.  `call` receives `exact` (see `evalVec`), the
+  callee's name and the actual arguments, already closed.
+
+Every other node is kept.  With no locals this evaluates the calls of an
+expression (`constCalls`). -/
+def PExpr.elabConst (env : IEnv) (exact : Bool)
+    (call : Bool → String → List PExpr → Except String (LVec × Bool)) (σ : CLocals) :
+    PExpr → Except String PExpr
+  | .ident n =>
+      match σ.lookup n with
+      | some x => .ok (.cast x.signed (.lit x.v))
+      | none => .ok (.ident n)
+  | .functionCall n args => do
+      let args' ← PExpr.elabConstList env exact call σ args
+      let (v, s) ← call exact n args'
+      .ok (.cast s (.lit v))
+  | .bitSel b i => do
+      let i' ← i.elabConst env exact call σ
+      match localBase σ b with
+      | some x => do
+          let iv ← evalAt env (← ctype env i') i'
+          localSelect x iv iv
+      | none => do .ok (.bitSel (← b.elabConst env exact call σ) i')
+  | .partSel b m l => do
+      let m' ← m.elabConst env exact call σ
+      let l' ← l.elabConst env exact call σ
+      match localBase σ b with
+      | some x => do
+          let mv ← evalAt env (← ctype env m') m'
+          let lv ← evalAt env (← ctype env l') l'
+          localSelect x mv lv
+      | none => do .ok (.partSel (← b.elabConst env exact call σ) m' l')
+  | .lit v => .ok (.lit v)
+  | .paramRef n p => .ok (.paramRef n p)
+  | .genvarRef n => .ok (.genvarRef n)
+  | .enumRef t m p => .ok (.enumRef t m p)
+  | .int v => .ok (.int v)
+  | .fill b => .ok (.fill b)
+  | .unary o a => do .ok (.unary o (← a.elabConst env exact call σ))
+  | .binary o l r => do
+      .ok (.binary o (← l.elabConst env exact call σ) (← r.elabConst env exact call σ))
+  | .ternary c t e => do
+      .ok (.ternary (← c.elabConst env exact call σ) (← t.elabConst env exact call σ)
+        (← e.elabConst env exact call σ))
+  | .concat ps => do .ok (.concat (← PExpr.elabConstList env exact call σ ps))
+  | .resize w a => do .ok (.resize w (← a.elabConst env exact call σ))
+  | .signedResize w a => do .ok (.signedResize w (← a.elabConst env exact call σ))
+  | .squash2 w a => do .ok (.squash2 w (← a.elabConst env exact call σ))
+  | .sysCall f a => do .ok (.sysCall f (← a.elabConst env exact call σ))
+  | .typeBits n w => .ok (.typeBits n w)
+  | .repl n a => do
+      .ok (.repl (← n.elabConst env exact call σ) (← a.elabConst env exact call σ))
+  | .reduce o a => do .ok (.reduce o (← a.elabConst env exact call σ))
+  | .cast s a => do .ok (.cast s (← a.elabConst env exact call σ))
+  | .arrayElem n is => do .ok (.arrayElem n (← PExpr.elabConstList env exact call σ is))
+  | .arrayPart n is mode a b => do
+      .ok (.arrayPart n (← PExpr.elabConstList env exact call σ is) mode
+        (← a.elabConst env exact call σ) (← b.elabConst env exact call σ))
+  | .aggregateMember n path => .ok (.aggregateMember n path)
+  | .packageAggElem pkg n i => do .ok (.packageAggElem pkg n (← i.elabConst env exact call σ))
+  | .unsupported k t => .ok (.unsupported k t)
+
+def PExpr.elabConstList (env : IEnv) (exact : Bool)
+    (call : Bool → String → List PExpr → Except String (LVec × Bool)) (σ : CLocals) :
+    List PExpr → Except String (List PExpr)
+  | [] => .ok []
+  | e :: es => do
+      let e' ← e.elabConst env exact call σ
+      let es' ← PExpr.elabConstList env exact call σ es
+      .ok (e' :: es')
+end
+
+/-- Bits of a value at the propagated type `ty` (§11.8.2), the four-state
+twin of `convertConst`: extended with the sign bit only when the propagated
+type is signed, else with zeros, or truncated.  x and z bits are carried. -/
+def convertVec (ty : Nat × Bool) (v : LVec) : LVec :=
+  if ty.2 then v.resizeSigned ty.1 else v.resizeU ty.1
+
+/-- `n` copies of `v`, as one vector (§11.4.12.1). -/
+def replVec : Nat → LVec → LVec
+  | 0, _ => ⟨#[]⟩
+  | n + 1, v => ⟨v.bits ++ (replVec n v).bits⟩
+
+/-- The unsigned integer of a vector whose bits are all known. -/
+def knownVec (v : LVec) : Except String Int :=
+  match v.toNat? with
+  | some n => .ok (n : Int)
+  | none => .error "x/z in a constant condition, bound or count: not modelled"
+
+/-- A conversion node (the frontend's width-changing conversions). -/
+def PExpr.isConversion : PExpr → Bool
+  | .resize .. | .signedResize .. | .squash2 .. => true
+  | _ => false
+
+mutual
+/-- Whether some concatenation in `e` has a conversion as an operand: the
+shape the envelope gives an assignment pattern for a packed struct. -/
+def PExpr.hasConvertedPart : PExpr → Bool
+  | .concat ps => ps.any PExpr.isConversion || PExpr.hasConvertedPartList ps
+  | .unary _ a | .resize _ a | .signedResize _ a | .squash2 _ a | .sysCall _ a
+  | .reduce _ a | .cast _ a => a.hasConvertedPart
+  | .binary _ l r | .bitSel l r | .repl l r => l.hasConvertedPart || r.hasConvertedPart
+  | .ternary c t e | .partSel c t e =>
+      c.hasConvertedPart || t.hasConvertedPart || e.hasConvertedPart
+  | .functionCall _ args => PExpr.hasConvertedPartList args
+  | .arrayElem _ is => PExpr.hasConvertedPartList is
+  | .arrayPart _ is _ a b =>
+      PExpr.hasConvertedPartList is || a.hasConvertedPart || b.hasConvertedPart
+  | .packageAggElem _ _ i => i.hasConvertedPart
+  | .lit _ | .ident _ | .paramRef .. | .genvarRef _ | .enumRef .. | .int _ | .fill _
+  | .typeBits .. | .aggregateMember .. | .unsupported .. => false
+
+def PExpr.hasConvertedPartList : List PExpr → Bool
+  | [] => false
+  | e :: es => e.hasConvertedPart || PExpr.hasConvertedPartList es
+end
+
+/-- The refusal of a converted concatenation operand outside a package. -/
+def convPartMsg : String :=
+  "a conversion to a width other than its operand's, as a concatenation operand outside a package: its recorded width is the default point's"
+
+/-- The refusal of an operator over an assignment pattern. -/
+def convertedPartMsg : String :=
+  "an operator over a concatenation with converted operands (an assignment pattern) is not modelled"
+
+mutual
+/-- **The four-state constant evaluator.**  `mode = some ty` gives the value
+at the propagated type `ty` (`evalVec`): `evalAt`'s value where it answers;
+otherwise the exact movement of bits through the nodes that only move bits,
+with `evalAt`'s refusal for every other node.  `mode = none` gives a
+self-determined operand at its own width (`evalPart`: a concatenation
+operand, the base of a select, a replicated value).
+
+A conversion node as a self-determined operand is the conversion to the
+width it writes (§10.9.2: a member of an assignment pattern is evaluated as
+an assignment to the member; §6.24.1 for a size cast): the operand as
+assigned to that many bits.  `exact` says the widths the frontend wrote are
+the widths at THIS point (a package, which has no parameters); outside a
+package a conversion whose width differs from its operand's is refused. -/
+def evalVecM (env : IEnv) (exact : Bool) (mode : Option (Nat × Bool)) (e : PExpr) :
+    Except String LVec :=
+  match mode, e with
+  | none, .concat ps => do
+      let vs ← evalPartList env exact ps
+      .ok (LVec.concatMany vs.toArray)
+  -- An unbased unsized literal fills the width it is converted to (§5.7.1).
+  | none, .resize w (.fill b) | none, .signedResize w (.fill b) => .ok (LVec.replicate w b)
+  | none, .squash2 w (.fill b) => .ok (LVec.replicate w b).toTwoState
+  | none, .resize w a | none, .signedResize w a => do
+      let (wa, sa) ← ctype env a
+      if !exact && wa != w then .error convPartMsg
+      else do
+        let v ← evalVecM env exact (some (max w wa, sa)) a
+        .ok (v.resizeU w)
+  | none, .squash2 w a => do
+      let (wa, sa) ← ctype env a
+      if !exact && wa != w then .error convPartMsg
+      else do
+        let v ← evalVecM env exact (some (max w wa, sa)) a
+        .ok (v.resizeU w).toTwoState
+  | mode, e => do
+      let ty ← match mode with
+        | some ty => pure ty
+        | none => ctype env e
+      match (if e.hasConvertedPart then .error convertedPartMsg else evalAt env ty e) with
+      | .ok v => .ok (LVec.ofInt ty.1 v)
+      | .error msg =>
+          match e with
+          | .lit v => .ok (convertVec ty v)
+          | .fill b => .ok (LVec.replicate ty.1 b)
+          | .paramRef n (some p) =>
+              match env.packageFVal p n with
+              | some (v, _, _) => .ok (convertVec ty v)
+              | none => .error msg
+          | .enumRef tn mem pkg =>
+              match env.enumMember tn mem pkg with
+              | some v => .ok (convertVec ty v)
+              | none => .error msg
+          | .ternary c t el => do
+              -- §11.4.11 merges the arms under an x/z condition; that merge
+              -- is not modelled, so the condition must be known.
+              let cv ← knownVec (← evalVecM env exact none c)
+              if cv != 0 then evalVecM env exact (some ty) t else evalVecM env exact (some ty) el
+          | .resize _ a => do
+              let (wa, sa) ← ctype env a
+              if a.ctxPropagates && decide (wa < ty.1) then do
+                let x ← evalVecM env exact (some (ty.1, sa)) a
+                .ok (x.resizeU ty.1)
+              else do
+                let x ← evalVecM env exact (some (wa, sa)) a
+                .ok (x.resizeU ty.1)
+          | .signedResize _ a => do
+              let (wa, sa) ← ctype env a
+              if a.ctxPropagates && decide (wa < ty.1) then do
+                let x ← evalVecM env exact (some (ty.1, sa)) a
+                .ok (x.resizeU ty.1)
+              else do
+                let x ← evalVecM env exact (some (wa, sa)) a
+                .ok (convertVec ty x)
+          | .squash2 _ a => do
+              -- 4-state to 2-state (§6.11.2): an x or z bit becomes 0.
+              let (wa, sa) ← ctype env a
+              if a.ctxPropagates && decide (wa < ty.1) then do
+                let x ← evalVecM env exact (some (ty.1, sa)) a
+                .ok (x.toTwoState.resizeU ty.1)
+              else do
+                let x ← evalVecM env exact (some (wa, sa)) a
+                .ok (convertVec ty x.toTwoState)
+          | .cast _ a => do
+              let (wa, sa) ← ctype env a
+              let x ← evalVecM env exact (some (wa, sa)) a
+              .ok (convertVec ty x)
+          | .bitSel base idx => do
+              paramSelectOk env base
+              let bv ← evalVecM env exact none base
+              let i ← knownVec (← evalVecM env exact none idx)
+              if (bv.width : Int) ≤ i then
+                .error "constant bit select out of range (reads x)"
+              else .ok (convertVec ty (bv.extract i.toNat 1))
+          | .partSel base m l => do
+              paramSelectOk env base
+              let bv ← evalVecM env exact none base
+              let mv ← knownVec (← evalVecM env exact none m)
+              let lv ← knownVec (← evalVecM env exact none l)
+              if mv < lv || (bv.width : Int) ≤ mv then
+                .error "constant part select out of range (reads x)"
+              else .ok (convertVec ty (bv.extract lv.toNat ((mv - lv).toNat + 1)))
+          | .concat ps => do
+              let vs ← evalPartList env exact ps
+              let v := LVec.concatMany vs.toArray
+              if v.width == 0 then .error "empty concatenation in a constant context"
+              else .ok (convertVec ty v)
+          | .repl count arg => do
+              let n ← knownVec (← evalVecM env exact none count)
+              let v ← evalVecM env exact none arg
+              if n == 0 then .error "empty replication in a constant context"
+              else .ok (convertVec ty (replVec n.toNat v))
+          | _ => .error msg
+
+/-- The operands of a concatenation, each at its own width. -/
+def evalPartList (env : IEnv) (exact : Bool) : List PExpr → Except String (List LVec)
+  | [] => .ok []
+  | p :: ps => do
+      let v ← evalVecM env exact none p
+      let rest ← evalPartList env exact ps
+      .ok (v :: rest)
+end
+
+/-- **Four-state value at a propagated type** `ty` (§11.8.2). -/
+def evalVec (env : IEnv) (exact : Bool) (ty : Nat × Bool) (e : PExpr) : Except String LVec :=
+  evalVecM env exact (some ty) e
+
+/-- **A self-determined operand**, four-state, at its own width. -/
+def evalPart (env : IEnv) (exact : Bool) (e : PExpr) : Except String LVec :=
+  evalVecM env exact none e
+
+/-- **An assignment-like context, four-state** (§10.8, §11.8.1): the bits a
+`w`-bit target receives from `e`.  `e` is evaluated at `max w (its own
+width)` with its own signedness, then truncated to the target; an unbased
+unsized literal fills the target (§5.7.1).  The four-state twin of
+`evalAssign`. -/
+def assignVec (env : IEnv) (exact : Bool) (w : Nat) : PExpr → Except String LVec
+  | .fill b => .ok (LVec.replicate w b)
+  | e =>
+      if e.hasConvertedPart then do
+        -- An assignment pattern is unsigned and has its own exact width.
+        let v ← evalPart env exact e
+        .ok (v.resizeU w)
+      else do
+        let (we, se) ← ctype env e
+        let v ← evalVec env exact (max w we, se) e
+        .ok (v.resizeU w)
+
+/-- Width of a type named in a constant function or a package constant:
+packed dimensions evaluated here; an enum by its base; a typedef declared in
+a package by its recorded width (a package has no parameters to override, so
+that width is the same at every point).  A typedef declared in a module is
+refused: its recorded width is the default point's. -/
+def constTypeWidth (env : IEnv) : PType → Except String Nat
+  | .packed dims _ => dimsWidth env dims
+  | .typeRef n pkg r =>
+      match env.enumWidth n pkg with
+      | some w => .ok w
+      | none =>
+          match pkg, r with
+          | some _, some w => .ok w
+          | _, _ => .error s!"type '{n}': its width at these parameters is not retained (only an enum, or a typedef declared in a package)"
+  | .unrecoverable _ => .error "unrecoverable packed dimensions"
+
+/-- The packed ranges of a type named in a constant function, evaluated
+here; `[]` (one range `[width-1:0]`) for a type that is not a list of packed
+dimensions. -/
+def constTypeDims (env : IEnv) : PType → Except String (List (Int × Int))
+  | .packed dims _ => dims.mapM fun d => do pure ((← evalInt env d.msb), (← evalInt env d.lsb))
+  | .typeRef .. => .ok []
+  | .unrecoverable _ => .ok []
+
+/-- Elaboration budget of one constant-function `for` loop. -/
+def fnLoopBudget : Nat := 65536
+
+/-- How a statement of a constant function ends: it falls through with the
+variables it leaves, or the function returns a value. -/
+inductive FnFlow where
+  | normal (σ : CLocals)
+  | returned (v : LVec)
+
+/-- A `for` loop (§12.7.1): test, body, step, at most `fnLoopBudget` times.
+The count is an elaboration budget whose exhaustion is a refusal. -/
+def fnLoop (cond : CLocals → Except String Bool)
+    (body step : CLocals → Except String FnFlow) : Nat → CLocals → Except String FnFlow
+  | 0, _ => .error s!"a constant-function loop runs more than {fnLoopBudget} iterations (elaboration budget)"
+  | n + 1, σ => do
+      if !(← cond σ) then return .normal σ
+      match ← body σ with
+      | .returned v => return .returned v
+      | .normal σ1 =>
+          match ← step σ1 with
+          | .returned v => return .returned v
+          | .normal σ2 => fnLoop cond body step n σ2
+
+/-- What a constant-function activation evaluates against: the constants in
+scope, how to evaluate a nested call, and the function's own result variable
+(§13.4.1: the function name is an implicit variable of the return type). -/
+structure FnCtx where
+  env : IEnv
+  /-- The function is declared in a package (`evalVec`'s `exact`). -/
+  exact : Bool
+  call : Bool → String → List PExpr → Except String (LVec × Bool)
+  retName : String
+  retWidth : Nat
+
+/-- An expression of the body, with the local variables read and the calls
+evaluated. -/
+def FnCtx.expr (c : FnCtx) (σ : CLocals) (e : PExpr) : Except String PExpr :=
+  e.elabConst c.env c.exact c.call σ
+
+/-- The bits a `w`-bit variable receives from `e`. -/
+def FnCtx.assign (c : FnCtx) (σ : CLocals) (w : Nat) (e : PExpr) : Except String LVec := do
+  assignVec c.env c.exact w (← c.expr σ e)
+
+/-- A self-determined integer (a select bound). -/
+def FnCtx.int (c : FnCtx) (σ : CLocals) (e : PExpr) : Except String Int := do
+  let e' ← c.expr σ e
+  evalAt c.env (← ctype c.env e') e'
+
+/-- The condition of an `if` or a loop (§12.4): taken exactly when the value
+has a 1 bit; 0, x and z are not taken. -/
+def FnCtx.cond (c : FnCtx) (σ : CLocals) (e : PExpr) : Except String Bool := do
+  let e' ← c.expr σ e
+  let v ← evalVec c.env c.exact (← ctype c.env e') e'
+  .ok v.condTrue
+
+/-- Every pattern expression of a `case` (they size the comparison, §12.5.1). -/
+def fnCasePatterns : List (List PExpr × PFnStmt) → List PExpr
+  | [] => []
+  | (pats, _) :: rest => pats ++ fnCasePatterns rest
+
+mutual
+/-- **One statement of a constant function** (§13.4.3, §12). -/
+def execFnStmt (c : FnCtx) (σ : CLocals) : PFnStmt → Except String FnFlow
+  | .decl name ty s two init => do
+      -- §6.8: an uninitialized variable starts at x (4-state) or 0 (2-state).
+      let w ← constTypeWidth c.env ty
+      let dims ← constTypeDims c.env ty
+      let v ← match init with
+        | some e => c.assign σ w e
+        | none => pure (if two then LVec.replicate w .l0 else LVec.xVec w)
+      return .normal ((name, { v := v, signed := s, dims := dims }) :: σ)
+  | .assign target value =>
+      match target with
+      | .ident n =>
+          match σ.lookup n with
+          | none => .error s!"assignment to '{n}', which is not a variable of the constant function (§13.4.3)"
+          | some x => do
+              let v ← c.assign σ x.v.width value
+              return .normal (localsSet σ n v)
+      | .bitSel n idx =>
+          match σ.lookup n with
+          | none => .error s!"assignment to '{n}', which is not a variable of the constant function (§13.4.3)"
+          | some x => do
+              let i ← c.int σ idx
+              let (lo, w, _) ← selWindow x.v.width x.dims i i
+              let v ← c.assign σ w value
+              return .normal (localsSet σ n (x.v.insertAt lo v))
+      | .partSel n msb lsb =>
+          match σ.lookup n with
+          | none => .error s!"assignment to '{n}', which is not a variable of the constant function (§13.4.3)"
+          | some x => do
+              let m ← c.int σ msb
+              let l ← c.int σ lsb
+              let (lo, w, _) ← selWindow x.v.width x.dims m l
+              let v ← c.assign σ w value
+              return .normal (localsSet σ n (x.v.insertAt lo v))
+      | _ => .error "assignment target outside the constant-function tier"
+  | .incDec n inc =>
+      -- §11.4.2: `i++` is `i = i + 1`; an x or z bit makes the result x.
+      match σ.lookup n with
+      | none => .error s!"assignment to '{n}', which is not a variable of the constant function (§13.4.3)"
+      | some x =>
+          let v := match x.v.toNat? with
+            | some k => LVec.ofInt x.v.width ((k : Int) + (if inc then 1 else -1))
+            | none => LVec.xVec x.v.width
+          .ok (.normal (localsSet σ n v))
+  | .ifStmt cnd t el => do
+      if ← c.cond σ cnd then execFnStmt c σ t
+      else
+        match el with
+        | some s => execFnStmt c σ s
+        | none => return .normal σ
+  | .caseStmt subj items dflt => do
+      -- §12.5.1: the case expression and every item expression are sized to
+      -- the widest of them (signed only if all are), then compared bit for
+      -- bit, x and z included.
+      let se ← c.expr σ subj
+      let pes ← (fnCasePatterns items).mapM (c.expr σ)
+      let tys ← (se :: pes).mapM (ctype c.env)
+      let ty : Nat × Bool := (tys.foldl (fun w t => max w t.1) 0, tys.all (·.2))
+      let sv ← evalVec c.env c.exact ty se
+      match ← execFnItems c σ sv ty items with
+      | some flow => return flow
+      | none =>
+          match dflt with
+          | some s => execFnStmt c σ s
+          | none => return .normal σ
+  | .forLoop init cnd step body => do
+      match ← execFnStmts c σ init with
+      | .returned v => return .returned v
+      | .normal σ1 =>
+          match ← fnLoop (fun s => c.cond s cnd) (fun s => execFnStmt c s body)
+              (fun s => execFnStmts c s step) fnLoopBudget σ1 with
+          | .returned v => return .returned v
+          -- The loop variable's scope ends with the loop.
+          | .normal σ2 => return .normal (σ2.drop (σ2.length - σ.length))
+  | .block ss => do
+      match ← execFnStmts c σ ss with
+      | .returned v => return .returned v
+      -- Variables declared in the block go out of scope at its end.
+      | .normal σ' => return .normal (σ'.drop (σ'.length - σ.length))
+  | .ret (some e) => do
+      -- §13.4.1: `return e` assigns `e` to the result and ends the function.
+      return .returned (← c.assign σ c.retWidth e)
+  | .ret none =>
+      match σ.lookup c.retName with
+      | some x => .ok (.returned x.v)
+      | none => .error "internal: the function result variable is not in scope"
+  | .unsupported k _ => .error s!"statement '{k}' in a constant function is not modelled"
+
+def execFnStmts (c : FnCtx) (σ : CLocals) : List PFnStmt → Except String FnFlow
+  | [] => .ok (.normal σ)
+  | s :: rest => do
+      match ← execFnStmt c σ s with
+      | .returned v => return .returned v
+      | .normal σ' => execFnStmts c σ' rest
+
+/-- The first `case` item with a matching expression, in source order. -/
+def execFnItems (c : FnCtx) (σ : CLocals) (sv : LVec) (ty : Nat × Bool) :
+    List (List PExpr × PFnStmt) → Except String (Option FnFlow)
+  | [] => .ok none
+  | (pats, body) :: rest => do
+      let hit ← pats.anyM fun p => do
+        let pv ← evalVec c.env c.exact ty (← c.expr σ p)
+        pure (pv == sv)
+      if hit then return some (← execFnStmt c σ body)
+      else execFnItems c σ sv ty rest
+end
+
+/-- Bind the formals to the actuals, each as if by assignment (§13.5).  The
+actuals are the caller's expressions, so `exact` is the caller's. -/
+def bindFormals (env : IEnv) (exact : Bool) : List PDecl → List PExpr → Except String CLocals
+  | f :: fs, a :: as => do
+      let w ← constTypeWidth env f.type
+      let dims ← constTypeDims env f.type
+      let v ← assignVec env exact w a
+      let rest ← bindFormals env exact fs as
+      .ok ((f.name, { v := v, signed := f.isSigned, dims := dims }) :: rest)
+  | _, _ => .ok []
+
+/-- **A constant function call** (§13.4.3): the result at the return width,
+with the return type's signedness.  `d` counts the calls still allowed on
+this chain; it starts at the number of declared functions (`constCalls`), so
+it reaches 0 only on a chain that repeats a function.  `exact` is the
+caller's (for the actual arguments); the body is evaluated with the callee's
+own (`PFunction.fromPackage`). -/
+def constCallAt (d : Nat) (env : IEnv) (exact : Bool) (name : String) (args : List PExpr) :
+    Except String (LVec × Bool) :=
+  match env.functions.find? (fun f => f.name == name) with
+  | none => .error s!"function '{name}' in a constant context"
+  | some f =>
+      match d with
+      | 0 =>
+          .error s!"function '{name}': the call chain is longer than the number of functions (a recursive constant function is not modelled)"
+      | d + 1 =>
+          if !f.automatic then
+            .error s!"function '{name}' has static storage in a constant context"
+          else if f.formals.length != args.length then
+            .error s!"function '{name}' argument count mismatch"
+          else
+            (do
+              let σ ← bindFormals env exact f.formals args
+              let rw ← constTypeWidth env f.returnType
+              let rdims ← constTypeDims env f.returnType
+              let init := if f.returnTwoState then LVec.replicate rw .l0 else LVec.xVec rw
+              let c : FnCtx :=
+                { env := env, exact := f.fromPackage, call := constCallAt d env,
+                  retName := f.name, retWidth := rw }
+              let stmts := match f.stmts with
+                | some ss => ss
+                | none => [PFnStmt.ret (some f.body)]
+              let result : CVar := { v := init, signed := f.isSigned, dims := rdims }
+              match ← execFnStmts c ((f.name, result) :: σ) stmts with
+              | .returned v => pure (v, f.isSigned)
+              | .normal σ' =>
+                  match σ'.lookup f.name with
+                  | some x => pure (x.v, f.isSigned)
+                  | none => throw "internal: the function result variable is not in scope"
+            : Except String (LVec × Bool)).mapError fun m =>
+              -- One prefix, the innermost refused function of the chain.
+              if m.startsWith "constant function " then m else s!"constant function '{name}': {m}"
+
+/-- Evaluate every constant-function call of `e` in `env`.  `exact` as in
+`evalVec`: the expression is a package's. -/
+def constCalls (env : IEnv) (e : PExpr) (exact : Bool := false) : Except String PExpr :=
+  e.elabConst env exact (constCallAt env.functions.length env) []
+
+/-- A constant expression with calls, evaluated by `use` after its calls;
+`msg` (the refusal of the call-free reading) when it has none. -/
+def withConstCalls {α : Type} (env : IEnv) (e : PExpr) (msg : String)
+    (use : PExpr → Except String α) : Except String α :=
+  if e.hasCall then do
+    let e' ← constCalls env e
+    use e'
+  else .error msg
+
+/-! ### Package constants -/
+
+private def packageDimsWidth (env : IEnv) : List PDim → Except String Nat
+  | [] => .ok 1
+  | d :: rest => do
+      let m ← evalInt env d.msb
+      let l ← evalInt env d.lsb
+      let w ← packageDimsWidth env rest
+      .ok (((m - l).natAbs + 1) * w)
+
+/-- **The value of a package constant** (§6.20.2, §6.20.4), four-state, at its
+declared width and signedness; an untyped one takes its initializer's type. -/
+def packageConstValue (env : IEnv) (p : PParam) : Except String (LVec × Nat × Bool) :=
+  match p.default? with
+  | none => .error "it has no default"
+  | some e0 => do
+      let e ← constCalls env e0 true
+      match p.type? with
+      | none =>
+          if e.hasConvertedPart then .error convertedPartMsg
+          else do
+            let (w, s) ← ctype env e
+            let v ← evalVec env true (w, s) e
+            .ok (v, w, s)
+      | some (.packed dims _) => do
+          let w ← packageDimsWidth env dims
+          let v ← assignVec env true w e
+          .ok (v, w, p.signed?.getD (w == 32))
+      | some (.typeRef _ _ (some w)) => do
+          let v ← assignVec env true w e
+          .ok (v, w, p.signed?.getD (w == 32))
+      | some (.typeRef _ _ none) | some (.unrecoverable _) =>
+          .error "ParamRef:package: its type is not retained"
+
+/-- Bind a package constant: its four-state value always; its integer view
+(`packageVals` for a 32-bit signed one, `packageNvals` otherwise) when every
+bit is known. -/
+def IEnv.bindPackageConst (env : IEnv) (pkg n : String) (v : LVec) (w : Nat) (s : Bool) : IEnv :=
+  let env' := env.bindPackageFVal pkg n v w s
+  match v.toNat? with
+  | none => env'
+  | some k =>
+      let c := canonInt w s k
+      if w == 32 && s then env'.bindPackageVal pkg n c else env'.bindPackageNVal pkg n c w s
+
+private def packageAggIndices (env : IEnv) (msb lsb : PExpr) : Except String (Int × Int) := do
+  pure (← evalInt env msb, ← evalInt env lsb)
+
+private def packageAggElement (env : IEnv) (row : List (String × PExpr)) : Except String LVec := do
+  let values ← evalPartList env true (← (row.map (·.2)).mapM fun e => constCalls env e true)
+  if values.isEmpty then
+    .error "package aggregate struct pattern has no fields"
+  else
+    .ok (LVec.concatMany values.toArray)
+
+private def bindPackageAggregate (env : IEnv) (pkg : String) (p : PParam) : Except String IEnv :=
+  match p.aggregate?, p.aggregateDefault? with
+  | some (.array msb lsb elem), some rows => do
+      let _ := elem
+      let (m, l) ← packageAggIndices env msb lsb
+      let expected := (m - l).natAbs + 1
+      if rows.length != expected then
+        .error "assignment pattern array count mismatch"
+      else do
+        let values ← rows.mapM (packageAggElement env)
+        .ok (env.bindPackageAgg pkg p.name { msb := m, lsb := l, elements := values })
+  | some _, _ => .error "aggregate default shape is unsupported"
+  | none, _ => .error "aggregate metadata is missing"
+
+/-- The constant dependencies of a function declaration: its types, and its
+body as written. -/
+def PType.constDeps : PType → List ConstDep
+  | .packed dims _ => dims.flatMap fun d => d.msb.constDeps ++ d.lsb.constDeps
+  | .typeRef .. => []
+  | .unrecoverable _ => []
+
+/-- The index expressions of an assignment target.  A concatenation target
+is refused by the executor, so it contributes none. -/
+def PLhs.constDeps : PLhs → List ConstDep
+  | .ident _ => []
+  | .bitSel _ i => i.constDeps
+  | .partSel _ m l => m.constDeps ++ l.constDeps
+  | .concat _ => []
+  | .arrayElem _ is => PExpr.constDepsList is
+  | .arrayBitSel _ is b => PExpr.constDepsList is ++ b.constDeps
+  | .arrayPart _ is _ a b => PExpr.constDepsList is ++ a.constDeps ++ b.constDeps
+  | .aggregateMember .. => []
+
+mutual
+def PFnStmt.constDeps : PFnStmt → List ConstDep
+  | .decl _ ty _ _ init =>
+      ty.constDeps ++ (match init with | some e => e.constDeps | none => [])
+  | .assign t v => t.constDeps ++ v.constDeps
+  | .incDec .. => []
+  | .ifStmt c t el =>
+      c.constDeps ++ t.constDeps ++ (match el with | some s => s.constDeps | none => [])
+  | .caseStmt subj items dflt =>
+      subj.constDeps ++ PFnStmt.constDepsItems items ++
+        (match dflt with | some s => s.constDeps | none => [])
+  | .forLoop init c step body =>
+      PFnStmt.constDepsList init ++ c.constDeps ++ PFnStmt.constDepsList step ++ body.constDeps
+  | .block ss => PFnStmt.constDepsList ss
+  | .ret (some e) => e.constDeps
+  | .ret none => []
+  | .unsupported .. => []
+
+def PFnStmt.constDepsList : List PFnStmt → List ConstDep
+  | [] => []
+  | s :: rest => s.constDeps ++ PFnStmt.constDepsList rest
+
+def PFnStmt.constDepsItems : List (List PExpr × PFnStmt) → List ConstDep
+  | [] => []
+  | (pats, body) :: rest =>
+      PExpr.constDepsList pats ++ body.constDeps ++ PFnStmt.constDepsItems rest
+end
+
+def PFunction.constDeps (f : PFunction) : List ConstDep :=
+  f.returnType.constDeps ++ f.formals.flatMap (·.type.constDeps) ++
+    (match f.stmts with
+     | some ss => PFnStmt.constDepsList ss
+     | none => f.body.constDeps)
+
+/-- The dependencies of the functions `names`, and of every function they
+call; the count bounds the chain as in `constCallAt`. -/
+def fnConstDepsAt (fs : List PFunction) : Nat → List String → List ConstDep
+  | 0, _ => []
+  | d + 1, names =>
+      names.flatMap fun n =>
+        match fs.find? (fun f => f.name == n) with
+        | none => []
+        | some f =>
+            let ds := f.constDeps
+            ds ++ fnConstDepsAt fs d (ds.filterMap fun
+              | .call m => some m
+              | .const .. => none)
+
+/-- **Every package constant the value of `p` reads**: the references of its
+initializer and of its type, and those of every function the initializer
+calls, directly or not. -/
+def packageParamDeps (fs : List PFunction) (p : PParam) : List (String × String) :=
+  let ds := (match p.default? with | some e => e.constDeps | none => []) ++
+    (match p.type? with | some ty => ty.constDeps | none => []) ++
+    (match p.aggregateDefault? with
+     | some rows => rows.flatMap fun row => row.flatMap fun (_, e) => e.constDeps
+     | none => [])
+  let all := ds ++ fnConstDepsAt fs fs.length (ds.filterMap fun
+    | .call m => some m
+    | .const .. => none)
+  all.filterMap fun
+    | .const pkg n => some (pkg, n)
+    | .call _ => none
+
+/-- The package binder's state: the environment, the constants already
+decided, and the ones refused with their reasons (most recent first). -/
+structure PkgState where
+  env : IEnv
+  done : List (String × String) := []
+  refused : List ((String × String) × String) := []
+
+/-- Decide one package constant, if every constant it reads is decided:
+bind its value, or record why it is not bound.  `none` defers it. -/
+def PkgState.step (known : List (String × String)) (st : PkgState) (pkg : String)
+    (p : PParam) : Option PkgState :=
+  let key := (pkg, p.name)
+  let deps := packageParamDeps st.env.functions p
+  if !(deps.all fun d => !known.contains d || st.done.contains d) then none
+  else
+    let refuse (msg : String) : PkgState :=
+      { st with done := key :: st.done, refused := (key, msg) :: st.refused }
+    if p.isString then some { st with done := key :: st.done }
+    else
+      match p.unsupported? with
+      | some msg => some (refuse msg)
+      | none =>
+          match deps.find? (fun d => (st.refused.lookup d).isSome) with
+          | some (q, m) => some (refuse s!"it reads '{q}::{m}', which is not bound")
+          | none =>
+              if p.aggregate?.isSome then
+                match bindPackageAggregate st.env pkg p with
+                | .ok env' => some { st with env := env', done := key :: st.done }
+                | .error msg => some (refuse msg)
+              else
+                match packageConstValue st.env p with
+                | .ok (v, w, s) =>
+                    some { st with env := st.env.bindPackageConst pkg p.name v w s,
+                                   done := key :: st.done }
+                | .error msg => some (refuse msg)
+
+/-- One pass in declaration order; the environment grows within the pass. -/
+def pkgRound (known : List (String × String)) :
+    PkgState → List (String × PParam) → PkgState × List (String × PParam)
+  | st, [] => (st, [])
+  | st, (pkg, p) :: rest =>
+      match st.step known pkg p with
+      | some st' => pkgRound known st' rest
+      | none =>
+          let (st', deferred) := pkgRound known st rest
+          (st', (pkg, p) :: deferred)
+
+/-- The constants of a dependency cycle are refused (§6.20.2: a parameter
+cannot be defined in terms of itself). -/
+def pkgCycle (st : PkgState) (rest : List (String × PParam)) : PkgState :=
+  let names := ", ".intercalate (rest.map fun (pkg, p) => s!"{pkg}::{p.name}")
+  rest.foldl (fun st (pkg, p) =>
+    { st with done := (pkg, p.name) :: st.done,
+              refused := ((pkg, p.name), s!"package constant dependency cycle among: {names}")
+                :: st.refused }) st
+
+/-- **Bind the package constants in dependency order.**  Each pass decides
+every constant whose dependencies are decided; a pass that decides none has
+found a cycle.  The count is the number of constants still undecided, which
+every other pass lowers, so it never runs out first. -/
+def pkgRounds (known : List (String × String)) :
+    Nat → PkgState → List (String × PParam) → PkgState
+  | _, st, [] => st
+  | 0, st, rest => pkgCycle st rest
+  | n + 1, st, rest =>
+      let (st', deferred) := pkgRound known st rest
+      if deferred.length == rest.length then pkgCycle st' deferred
+      else pkgRounds known n st' deferred
+
+def bindPackageParamsState (env : IEnv) (ps : List (String × PParam)) : PkgState :=
+  pkgRounds (ps.map fun (pkg, p) => (pkg, p.name)) ps.length { env := env } ps
+
+/-- Bind the package constants (elaboration constants, never override
+binders).  A constant that cannot be evaluated is left unbound, so that only
+a design that reads it is refused (`packageParamRefusals` lists the reasons).
+A module without package parameters needs no pass: the clocked instantiation
+tactic uses that equation when it unfolds the public binder. -/
+def bindPackageParams (env : IEnv) : List (String × PParam) → Res IEnv
+  | [] => .ok env
+  | ps@(_ :: _) => .ok (bindPackageParamsState env ps).env
+
+-- The symbolic parameter stage reduces this case with an open environment.
+example (env : IEnv) : bindPackageParams env [] = .ok env := by rfl
+
+/-- Why each unbound package constant is unbound, in declaration order of
+the decisions. -/
+def packageParamRefusals (env : IEnv) (ps : List (String × PParam)) : List String :=
+  (bindPackageParamsState env ps).refused.reverse.map fun ((pkg, n), m) =>
+    s!"package parameter '{pkg}::{n}' is not bound: {m}"
 
 /-! ## Value tier: self-determined widths and `instExpr` -/
 
@@ -3210,9 +3880,6 @@ final assigned value.  The expression is evaluated at its own §11.6/§11.8
 type, including the 32-bit signed `int` type of an INT-class expression.
 Xcelium is the oracle where Icarus' historical lossless-width mode differs. -/
 def evalUntypedExact (env : IEnv) (e : PExpr) : Except String Int := do
-  match e with
-  | .functionCall n args => return ← evalConstFunctionCall env n args
-  | _ => pure ()
   let ty ← ctype env e
   evalAt env ty e
 
@@ -3223,9 +3890,6 @@ conservativity theorem is stated here.  For example, the old evaluator reads
 `-2147483648 / -1` and a 33-bit INT-class literal differently from the exact
 final-value evaluator required by §§6.20.2, 11.6, and 11.8. -/
 def evalUntypedLegacy (env : IEnv) (e : PExpr) : Except String Int := do
-  match e with
-  | .functionCall n args => return ← evalConstFunctionCall env n args
-  | _ => pure ()
   if e.icarusWidens env then throw untypedWidthMsg
   let v ← evalInt env e
   if e.isInt env then .ok v
@@ -3414,6 +4078,23 @@ def bindPackageEnums (env : IEnv) : List PEnumType → Res IEnv
             bindPackageEnums { env with enums := (enumKey et.name et.pkg, w) :: env.enums,
                                          members := ms ++ env.members } rest
 
+/-- A parameter's default value (`PParam.evalDefault`).  A default that
+calls a constant function is evaluated after its calls (`constCalls`). -/
+def defaultValAt (env : IEnv) (p : PParam) (e : PExpr) : Except String Int :=
+  match p.evalDefault env e with
+  | .ok v => .ok v
+  | .error msg => withConstCalls env e msg fun e' => p.evalDefault env e'
+
+/-- The type of an untyped parameter at its default
+(`PParam.defaultConstType`), with the same treatment of calls. -/
+def defaultTypeAt (env : IEnv) (p : PParam) (e : PExpr) :
+    Except String (Option (Nat × Bool)) :=
+  match p.defaultConstType env with
+  | .ok ty => .ok ty
+  | .error msg =>
+      withConstCalls env e msg fun e' =>
+        ({ p with default? := some e' } : PParam).defaultConstType env
+
 /-- **A partially overridden parameter point** `#(.P(v), …)`: `given[i] =
 some v` overrides the i-th parameter with the integer `v`; `none` (or a
 missing entry) keeps its default, evaluated in declaration order (each
@@ -3453,8 +4134,8 @@ where
                     -- recognizes the retained default and preserves it.
                     pure (p, 0)
                   else
-                    let v ← (p.evalDefault env e).mapError fun m => s!"parameter '{p.name}' default: {m}"
-                    match ← (p.defaultConstType env).mapError
+                    let v ← (defaultValAt env p e).mapError fun m => s!"parameter '{p.name}' default: {m}"
+                    match ← (defaultTypeAt env p e).mapError
                         (fun m => s!"parameter '{p.name}' default type: {m}") with
                     | none => pure (p, v)
                     | some (w, s) => pure (p.retype w s, v)
@@ -3519,13 +4200,29 @@ def bindLocal (env : IEnv) (lp : PLocalParam) : Except String IEnv := do
           let v' ← if lp.expr.isInt env then evalInt env lp.expr else evalAssign env w lp.expr
           .ok ((env.withPDims lp.name lp.type?).bindNVal lp.name (canonInt w s v') w s)
 
+/-- A localparam whose value calls a constant function (§13.4.3), reached
+when `bindLocal` refuses the expression as written (`msg`): the calls are
+evaluated first (`constCalls`), then `bindLocal` binds the result.  Without a
+call the refusal stands. -/
+def bindLocalCalls (env : IEnv) (lp : PLocalParam) (msg : String) : Except String IEnv :=
+  withConstCalls env lp.expr msg fun e => bindLocal env { lp with expr := e }
+
+/-- `bindLocal`, with constant-function calls (`bindLocalCalls`). -/
+def bindLocalC (env : IEnv) (lp : PLocalParam) : Except String IEnv :=
+  match bindLocal env lp with
+  | .ok env' => .ok env'
+  | .error e => bindLocalCalls env lp e
+
 /-- Bind localparams in declaration order (each sees the parameters and
 all earlier localparams). -/
 def bindLocals (env : IEnv) : List PLocalParam → Res IEnv
   | [] => .ok env
   | lp :: rest =>
       match bindLocal env lp with
-      | .error e => .unsupported s!"localparam '{lp.name}': {e}"
+      | .error e =>
+          match bindLocalCalls env lp e with
+          | .error e' => .unsupported s!"localparam '{lp.name}': {e'}"
+          | .ok env' => bindLocals env' rest
       | .ok env' => bindLocals env' rest
 
 private def enumMemberVals (ty : String) (pkg : Option String) (w : Nat) :
@@ -3740,7 +4437,7 @@ where
         match p.default? with
         | none => .unsupported s!"parameter '{p.name}' has no default"
         | some e =>
-            match p.evalDefault env e with
+            match defaultValAt env p e with
             | .error err => .unsupported s!"parameter '{p.name}' default: {err}"
             | .ok v =>
                 -- The default converted to the declared type, bound the way
@@ -3757,7 +4454,7 @@ where
 private def checkLocals (env : IEnv) : List PLocalParam → List String × IEnv
   | [] => ([], env)
   | lp :: rest =>
-      match bindLocal env lp with
+      match bindLocalC env lp with
       | .error e => ([s!"localparam '{lp.name}': {e}"], env)
       | .ok env' =>
           let v := match env'.vals.lookup lp.name, env'.nvals.lookup lp.name with
@@ -3770,6 +4467,35 @@ private def checkLocals (env : IEnv) : List PLocalParam → List String × IEnv
                 if r == v then tail.1
                 else s!"localparam '{lp.name}': ours {v} ≠ resolved {r}" :: tail.1
             | none => tail.1, tail.2)
+
+/-- Compare every bound package constant with the parser's own `resolved`
+value.  A constant with an x or z bit has no integer to compare. -/
+def checkPackageParams (env : IEnv) : List (String × PParam) → List String
+  | [] => []
+  | (pkg, p) :: rest =>
+      let tail := checkPackageParams env rest
+      match p.resolved?, env.packageFVal pkg p.name with
+      | some r, some (v, w, s) =>
+          match v.toNat? with
+          | some k =>
+              if canonInt w s k == r then tail
+              else s!"package parameter '{pkg}::{p.name}': ours {canonInt w s k} ≠ resolved {r}" :: tail
+          | none => s!"package parameter '{pkg}::{p.name}': ours has x/z bits, resolved {r}" :: tail
+      | _, _ => tail
+
+/-- How many package constants `checkPackageParams` compares. -/
+def comparablePackageParams (env : IEnv) (ps : List (String × PParam)) : Nat :=
+  (ps.filter fun (pkg, p) =>
+    p.resolved?.isSome && (env.packageFVal pkg p.name).isSome).length
+
+/-- A refusal is reported with the package constants that are not bound and
+why: a read of one of them is the usual cause. -/
+def packageNotes (d : PDesign) (msgs : List String) : List String :=
+  if msgs.isEmpty then []
+  else
+    msgs ++ match bindPackageEnums { int32 := true, functions := d.functions } d.enums with
+      | .ok e => packageParamRefusals e d.packageParams
+      | .unsupported _ | .timeout => []
 
 private def PType.resolved? : PType → Option Nat
   | .packed _ r => r
@@ -3858,15 +4584,17 @@ def PDesign.crossCheck (d₀ : PDesign) : List String :=
           | _ => {}
         | _ => {}
       let env0 : IEnv := (bindParams envP d.params args).toOption.getD envP
+      let pkgMsgs := checkPackageParams envP d.packageParams
       let (localMsgs, env1) := checkLocals env0 d.localParams
-      match bindEnums env1 d.enums with
-      | .ok env2 =>
-          paramMsgs ++ localMsgs ++ checkDecls env2 d.decls
-            ++ checkGenerates
-                { env2 with widths := declWidths env2 d.decls } (PDesign.surfaceFuel args)
-                d.generates
-      | .timeout => paramMsgs ++ localMsgs ++ ["enums: timeout"]
-      | .unsupported e => paramMsgs ++ localMsgs ++ [s!"enums: {e}"]
+      let restMsgs := match bindEnums env1 d.enums with
+        | .ok env2 =>
+            paramMsgs ++ localMsgs ++ checkDecls env2 d.decls
+              ++ checkGenerates
+                  { env2 with widths := declWidths env2 d.decls } (PDesign.surfaceFuel args)
+                  d.generates
+        | .timeout => paramMsgs ++ localMsgs ++ ["enums: timeout"]
+        | .unsupported e => paramMsgs ++ localMsgs ++ [s!"enums: {e}"]
+      packageNotes d (pkgMsgs ++ restMsgs)
 where
   /-- Continue the differential checks after a defaults error.  A failed
   package or parameter binding must not hide independent localparam,
@@ -3889,7 +4617,7 @@ where
     let genMsgs := checkGenerates
       { env2 with widths := declWidths env2 d.decls }
       (PDesign.surfaceFuel []) d.generates
-    head :: (localMsgs ++ declMsgs ++ genMsgs)
+    packageNotes d (head :: (checkPackageParams envP d.packageParams ++ localMsgs ++ declMsgs ++ genMsgs))
 
   declWidths (env : IEnv) (decls : List PDecl) : List (String × Nat) :=
     match buildDecls env decls with
@@ -3928,7 +4656,13 @@ that "clean" and "compared nothing" stop being the same value.
 every existing `#guard … == []` keeps its meaning; the loader
 (`load_design_sv2`) is what consumes the count and refuses **VACUOUS**. -/
 def PDesign.crossCheckFull (d : PDesign) : List String × Nat :=
-  (d.crossCheck, comparableCount d)
+  (d.crossCheck, comparableCount d +
+    match bindPackageEnums { int32 := true, functions := d.functions } d.enums with
+    | .ok e =>
+        match bindPackageParams e d.packageParams with
+        | .ok envP => comparablePackageParams envP d.packageParams
+        | .unsupported _ | .timeout => 0
+    | .unsupported _ | .timeout => 0)
 
 /-! ## Starter lemmas 1: instantiation preserves the declaration surface
 
@@ -4608,5 +5342,165 @@ private def guardSignedExpr : PExpr :=
   .binary (.m0 .ne) (.binary (.m0 .and)
     (.binary (.m0 .sub) (.paramRef "N" none) (.int 6)) (.int 1)) (.int 0)
 #guard (evalGenGuard guardSignedEnv guardSignedExpr).toOption == some 1
+
+/-! ### Constant functions and package constants: unit rows
+
+Hand-built rows for `evalVec`, `constCallAt` and the package binder. The
+source-level rows, with the reference simulator's values, are in
+`Examples/system-verilog/sem2/package_const_eval/`. -/
+
+private def litB (s : String) : PExpr := .lit (LVec.lit s)
+private def vecIs (r : Except String LVec) (s : String) : Bool :=
+  match r with
+  | .ok v => v.toBinString == s
+  | .error _ => false
+private def refuses {α : Type} (r : Except String α) (part : String) : Bool :=
+  match r with
+  | .ok _ => false
+  | .error m => (m.splitOn part).length > 1
+
+-- `evalVec` is `evalAt` wherever `evalAt` answers (here at 65 bits, signed and unsigned).
+#guard ((evalVec {} true (65, false) (.binary (.m0 .add) (litB "1111") (litB "0001"))).toOption.map (·.toNat?)) ==
+  ((evalAt {} (65, false) (.binary (.m0 .add) (litB "1111") (litB "0001"))).toOption.map (fun v => some v.toNat))
+#guard vecIs (evalVec {} true (6, true) (.cast true (litB "10"))) "111110"
+#guard vecIs (evalVec {} true (6, false) (.cast true (litB "10"))) "000010"
+-- x and z bits move through literals, concatenation, replication, selects and conversions.
+#guard vecIs (evalVec {} true (8, false) (litB "1x0z")) "00001x0z"
+#guard vecIs (evalVec {} true (8, false) (.concat [litB "1x", litB "0z", litB "01", litB "zx"])) "1x0z01zx"
+#guard vecIs (evalVec {} true (4, false) (.partSel (litB "1x0z01zx") (.int 5) (.int 2))) "0z01"
+#guard vecIs (evalVec {} true (1, false) (.bitSel (litB "1x0z") (.int 2))) "x"
+#guard vecIs (evalVec {} true (6, false) (.repl (.int 3) (litB "z1"))) "z1z1z1"
+#guard vecIs (evalVec {} true (6, true) (.cast true (litB "x1"))) "xxxxx1"
+#guard vecIs (evalVec {} true (4, false) (.squash2 4 (litB "1x0z"))) "1000"
+#guard vecIs (evalVec {} true (4, false) (.ternary (litB "1") (litB "x01z") (litB "0000"))) "x01z"
+#guard vecIs (assignVec {} true 5 (.fill .lx)) "xxxxx"
+#guard vecIs (assignVec {} true 3 (litB "1x0z1")) "0z1"
+-- An operator on an x/z operand, and an x condition, are refused, not approximated.
+#guard refuses (evalVec {} true (4, false) (.binary (.m0 .add) (litB "1x0z") (litB "0001"))) "x/z"
+#guard refuses (evalVec {} true (4, false) (.ternary (litB "x") (litB "0001") (litB "0010"))) "x/z"
+-- An assignment pattern arrives as a concatenation of conversions to the member widths: each
+-- operand is assigned to its member (truncated, or extended by its own sign), in a package.
+#guard vecIs (evalPart {} true (.concat [.resize 4 (litB "10101100"), .signedResize 4 (.cast true (litB "10")),
+    .resize 2 (.fill .lx)])) "11001110xx"
+#guard vecIs (assignVec {} true 12 (.concat [.resize 4 (litB "10101100"), litB "0001"])) "000011000001"
+-- Outside a package that width is the default point's: refused where it differs from the operand's.
+#guard refuses (evalPart {} false (.concat [.resize 4 (litB "10101100"), litB "0001"])) "outside a package"
+#guard vecIs (evalPart {} false (.concat [.resize 8 (litB "10101100"), litB "0001"])) "101011000001"
+#guard refuses (evalVec {} true (16, false)
+    (.binary (.m0 .add) (.concat [.resize 4 (litB "10101100"), litB "0001"]) (litB "1"))) "assignment pattern"
+-- A select of a function variable reads the window its declared range gives.
+#guard (selWindow 16 [(1, 0), (7, 0)] 1 1).toOption == some (8, 8, [(7, 0)])
+#guard (selWindow 8 [(7, 4)] 5 5).toOption == some (1, 1, [])
+#guard (selWindow 8 [(0, 7)] 0 1).toOption == some (6, 2, [])
+#guard (selWindow 8 [(7, 4)] 3 3).toOption == none
+#guard (selWindow 8 [(7, 0)] 2 5).toOption == none
+
+private def u32 : PType := .packed [⟨.int 31, .int 0⟩] (some 32)
+private def fIn (n : String) : PDecl := { name := n, type := u32, isInput := true }
+/-- `sum(n)`: a local, a `for` loop, `return`. -/
+private def fnSum : PFunction :=
+  { name := "sum", formals := [fIn "n"], returnType := u32, body := .unsupported "body" "",
+    stmts := some
+      [ .decl "t" u32 false true none,
+        .forLoop [.decl "i" u32 false true (some (.int 0))]
+          (.binary (.m0 .lt) (.ident "i") (.ident "n")) [.incDec "i" true]
+          (.block [.assign (.ident "t") (.binary (.m0 .add) (.ident "t") (.ident "i"))]),
+        .ret (some (.ident "t")) ] }
+/-- A loop that never ends. -/
+private def fnSpin : PFunction :=
+  { name := "spin", formals := [], returnType := u32, body := .unsupported "body" "",
+    stmts := some [.forLoop [] (.int 1) [] (.block []), .ret (some (.int 0))] }
+/-- `rec(n) = rec(n)`. -/
+private def fnRec : PFunction :=
+  { name := "rec", formals := [fIn "n"], returnType := u32,
+    body := .functionCall "rec" [.ident "n"] }
+/-- A `case` with an x item, the result assigned to the function name, no `return`. -/
+private def fnCase : PFunction :=
+  { name := "dec", formals := [{ name := "s", type := .packed [⟨.int 1, .int 0⟩] (some 2) }],
+    returnType := .packed [⟨.int 3, .int 0⟩] (some 4), body := .unsupported "body" "",
+    stmts := some
+      [ .caseStmt (.ident "s")
+          [([litB "00"], .assign (.ident "dec") (litB "0001")),
+           ([litB "1x"], .assign (.ident "dec") (litB "0100"))]
+          (some (.assign (.ident "dec") (litB "1000"))) ] }
+/-- A table `[3:0][7:0]` filled element by element, then one element read back. -/
+private def fnTab : PFunction :=
+  { name := "tab", formals := [fIn "k"], returnType := .packed [⟨.int 7, .int 0⟩] (some 8),
+    body := .unsupported "body" "",
+    stmts := some
+      [ .decl "t" (.packed [⟨.int 3, .int 0⟩, ⟨.int 7, .int 0⟩] (some 32)) false false none,
+        .assign (.ident "t") (.fill .l0),
+        .forLoop [.decl "i" u32 false true (some (.int 0))]
+          (.binary (.m0 .lt) (.ident "i") (.resize 32 (.int 4))) [.incDec "i" true]
+          (.assign (.bitSel "t" (.ident "i"))
+            (.binary (.m0 .add) (.ident "i") (litB "00010000"))),
+        .ret (some (.bitSel (.ident "t") (.ident "k"))) ] }
+private def fnEnv : IEnv := { functions := [fnSum, fnSpin, fnRec, fnCase, fnTab] }
+private def callIs (e : PExpr) (s : String) : Bool :=
+  match constCalls fnEnv e with
+  | .ok (.cast _ (.lit v)) => v.toBinString == s
+  | _ => false
+
+#guard callIs (.functionCall "sum" [.int 5]) "00000000000000000000000000001010"
+#guard refuses (constCalls fnEnv (.functionCall "spin" [])) "elaboration budget"
+#guard refuses (constCalls fnEnv (.functionCall "rec" [.int 1])) "recursive constant function"
+#guard refuses (constCalls fnEnv (.functionCall "nope" [])) "function 'nope' in a constant context"
+#guard callIs (.functionCall "dec" [litB "00"]) "0001"
+-- §12.5.1: a `case` compares bit for bit, so `2'b1x` matches only `2'b1x`.
+#guard callIs (.functionCall "dec" [litB "1x"]) "0100"
+#guard callIs (.functionCall "dec" [litB "10"]) "1000"
+#guard callIs (.functionCall "tab" [.int 2]) "00010010"
+#guard refuses (constCalls fnEnv (.functionCall "tab" [.int 4])) "out of range"
+-- A nested call inside arithmetic, through `bindLocalC`.
+private def lpCalls : PLocalParam :=
+  { name := "K", expr := PExpr.binary (.m0 .add) (.functionCall "sum" [.functionCall "sum" [.int 3]]) (.int 1),
+    type? := some u32, signed? := some false }
+#guard ((bindLocalC fnEnv lpCalls).toOption.map (·.nvals.lookup "K")) == some (some (4, 32, false))
+#guard !(PExpr.hasCall (.binary (.m0 .add) (.int 1) (.paramRef "N" none)))
+
+private def pkgP (n : String) (e : PExpr) (ty : Option PType := some u32) : String × PParam :=
+  ("p", { name := n, default? := some e, type? := ty, signed? := some false })
+private def pkgRef (n : String) : PExpr := .paramRef n (some "p")
+private def pkgVal (ps : List (String × PParam)) (n : String) : Option (String × Nat × Bool) :=
+  ((bindPackageParamsState { functions := [fnSum, fnRec] } ps).env.packageFVal "p" n).map
+    fun (v, w, s) => (v.toBinString, w, s)
+
+-- Dependency order, whatever the declaration order: C reads B (through a call), B reads A.
+private def pkgChain : List (String × PParam) :=
+  [pkgP "C" (.functionCall "sum" [pkgRef "B"]), pkgP "B" (.binary (.m0 .add) (pkgRef "A") (.int 1)),
+   pkgP "A" (.int 3)]
+#guard pkgVal pkgChain "C" == some ("00000000000000000000000000000110", 32, false)
+#guard packageParamRefusals { functions := [fnSum, fnRec] } pkgChain == []
+-- A cycle is refused, by name; a constant outside it is bound.
+private def pkgLoop : List (String × PParam) :=
+  [pkgP "X" (pkgRef "Y"), pkgP "Y" (pkgRef "X"), pkgP "Z" (.int 1)]
+#guard pkgVal pkgLoop "X" == none && pkgVal pkgLoop "Z" != none
+#guard packageParamRefusals {} pkgLoop ==
+  ["package parameter 'p::X' is not bound: package constant dependency cycle among: p::X, p::Y",
+   "package parameter 'p::Y' is not bound: package constant dependency cycle among: p::X, p::Y"]
+-- A constant that cannot be evaluated is left unbound with its reason, and so is its reader.
+private def pkgBad : List (String × PParam) :=
+  [pkgP "R" (.functionCall "rec" [.int 1]), pkgP "S" (pkgRef "R"), pkgP "T" (.int 2)]
+#guard pkgVal pkgBad "R" == none && pkgVal pkgBad "S" == none && pkgVal pkgBad "T" != none
+#guard (packageParamRefusals { functions := [fnSum, fnRec] } pkgBad).length == 2
+-- Width-exact at the declared type: 65 bits unsigned, 33 bits signed, an x/z literal, an untyped int.
+private def pkgWide : List (String × PParam) :=
+  [("p", { name := "W", default? := some (.binary .shl (.resize 65 (.int 1)) (.int 64)),
+           type? := some (.packed [⟨.int 64, .int 0⟩] (some 65)), signed? := some false }),
+   ("p", { name := "N", default? := some (.unary (.m0 .neg) (.int 2)),
+           type? := some (.packed [⟨.int 32, .int 0⟩] (some 33)), signed? := some true }),
+   pkgP "X" (litB "1x0z") (some (.packed [⟨.int 7, .int 0⟩] (some 8))),
+   pkgP "U" (.int (-1)) none]
+#guard pkgVal pkgWide "W" == some ("1" ++ "".pushn '0' 64, 65, false)
+#guard pkgVal pkgWide "N" == some ("".pushn '1' 32 ++ "0", 33, true)
+#guard pkgVal pkgWide "X" == some ("00001x0z", 8, false)
+#guard pkgVal pkgWide "U" == some ("".pushn '1' 32, 32, true)
+#guard ((bindPackageParamsState {} pkgWide).env.packageVal "p" "U") == some (-1)
+-- The package table joins the differential: a `resolved` that disagrees is reported.
+#guard checkPackageParams (bindPackageParamsState {} pkgWide).env
+    [("p", { name := "U", resolved? := some (-1) }), ("p", { name := "N", resolved? := some 5 })] ==
+  ["package parameter 'p::N': ours -2 ≠ resolved 5"]
+-- A 2-state member keeps no x: `'x` converted to a 2-state width is 0 (§6.11.2).
+#guard vecIs (evalPart {} true (.concat [.squash2 2 (.fill .lx), .resize 2 (.fill .lx), litB "1"])) "00xx1"
 
 end LeanModels.Sv
