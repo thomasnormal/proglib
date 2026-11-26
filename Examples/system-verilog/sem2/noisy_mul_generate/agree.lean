@@ -4916,6 +4916,53 @@ def noisyRowWinsAll (N : Nat) : List DrvWin :=
 def noisyOutWinsAll (N : Nat) : List DrvWin :=
   (List.range N).map (fun i => ("p", some (i, 1)))
 
+theorem noisy_pp_family_driverWins_actual
+    (N : Nat) (hN : 1 ≤ N) (hCanon : canonInt 32 true (N : Int) = N) :
+    driverWins noisyMul.pdesign.declNames
+        ((intRange 0 (N : Int).toNat).flatMap (fun i =>
+          (noisyPpPaths (N : Int) i).flatMap
+            (fun p =>
+              (noisyFullFamilySegment (noisyEnv (N : Int)) (noisyElems (N : Int)) p).2))) =
+      noisyPpWinsAll N := by
+  have hpaths := noisy_pp_paths_driverWins
+    (N := N) (env := noisyEnv (N : Int))
+    (elems := noisyElems (N : Int))
+    (names := noisyMul.pdesign.declNames)
+    (hwin := by
+      intro i hi j hj
+      have hi0 : 0 ≤ i := by
+        rw [mem_intRange] at hi
+        omega
+      have hj0 : 0 ≤ j := by
+        rw [mem_intRange] at hj
+        omega
+      have hiN : i.toNat < N := by
+        rw [mem_intRange] at hi
+        rw [← Int.toNat_of_nonneg hi0]
+        omega
+      have hjN : j.toNat < N := by
+        rw [mem_intRange] at hj
+        rw [← Int.toNat_of_nonneg hj0]
+        omega
+      simpa [Int.toNat_of_nonneg hi0, Int.toNat_of_nonneg hj0] using
+        (noisy_pp_path_driverWins_actual N i.toNat j.toNat hN hCanon hiN hjN))
+  have hbridge :
+      (intRange 0 (N : Int).toNat).flatMap (fun i =>
+        (intRange 0 (N : Int).toNat).flatMap (fun j =>
+          [("pp", some (i.toNat * N + j.toNat, 1))])) =
+      noisyPpWinsAll N := by
+    have hsingleton : ∀ (l : List Nat) (f : Nat → DrvWin),
+        l.flatMap (fun j => [f j]) = l.map f := by
+      intro l f
+      induction l with
+      | nil => rfl
+      | cons j js ih => simp [ih]
+    simpa [intRange_zero, noisyPpWinsAll, List.flatMap_map, List.map_map,
+      Int.toNat_natCast, hsingleton]
+  rw [hbridge] at hpaths
+  exact hpaths
+
+
 theorem noisy_static_pp_disjoint (N : Nat) :
     ∀ a ∈ noisyStaticWins N, ∀ b ∈ noisyPpWinsAll N, a.overlaps b = false := by
   intro a ha b hb
