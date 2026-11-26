@@ -37165,17 +37165,17 @@ def _sym_package_params(sm):
                         result.append(node)
                         continue
                     if ptype.get("kind") == "TypeRef":
-                        if not isinstance(ptype.get("resolved"), int) or not (
-                                1 <= ptype["resolved"] <= 256):
+                        if not isinstance(ptype.get("resolved"), int) or \
+                                ptype["resolved"] < 1:
                             continue
                     elif (ptype.get("kind") != "PackedType"
                           or not isinstance(ptype.get("resolved"), int)
-                          or not (1 <= ptype["resolved"] <= 256)):
+                          or ptype["resolved"] < 1):
                         continue
-                    # The package table is a fixed-width slice.  A bound that
-                    # contains a parameter would be the default-point shape
-                    # and must stay loud until package width metadata is
-                    # carried per point.
+                    # The package table retains fixed-width values at their
+                    # declared width.  A bound that contains a parameter is
+                    # still loud until package width metadata is carried per
+                    # point, while wide aggregates remain exact values.
                     if ptype.get("kind") == "PackedType" and ptype.get("packed") is None:
                         node = dict(node)
                         node["unsupported"] = "PackageParameter:type"
