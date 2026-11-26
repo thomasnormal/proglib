@@ -11270,6 +11270,15 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedAllocateFailure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (h : pairedAllocateFailure resolve store request placement = true) :
+    allocate store request placement = none ∧
+      allocate (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) = none := by
+  exact pairedAllocateFailure_sound resolve store request placement h
+
 theorem pairedAllocateAligned_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
