@@ -349,6 +349,37 @@ theorem driversOk_of_continuous {names inputs : List String} {ps : List Process2
   refine ⟨hdis, fun w hw => ⟨hin w hw, by simp [hvs]⟩, by simp [hpw], ?_⟩
   exact procExclusiveOk_iff.mp (procExclusiveOk_of_procWins_nil hnil)
 
+/-- **The one-driver rule for a continuous split**: compose two source-shaped
+process families after proving each family has no procedural writes, has
+pairwise-disjoint windows, and avoids the input ports.  The cross-window
+condition is kept explicit so a generated family can be discharged by
+index arithmetic without exposing the representation of `driversOk`. -/
+theorem driversOk_of_continuous_split
+    (names inputs : List String) (static generated : List Process2)
+    (hStaticWrites : static.flatMap Process2.procWrites = [])
+    (hGeneratedWrites : generated.flatMap Process2.procWrites = [])
+    (hStaticPair : (driverWins names static).Pairwise
+      (fun a b => a.overlaps b = false))
+    (hGeneratedPair : (driverWins names generated).Pairwise
+      (fun a b => a.overlaps b = false))
+    (hCross : ∀ a ∈ driverWins names static, ∀ b ∈ driverWins names generated,
+      a.overlaps b = false)
+    (hStaticInputs : ∀ w ∈ driverWins names static,
+      inputs.contains w.1 = false)
+    (hGeneratedInputs : ∀ w ∈ driverWins names generated,
+      inputs.contains w.1 = false) :
+    driversOk names inputs (static ++ generated) = true := by
+  apply driversOk_of_continuous
+  · simp [hStaticWrites, hGeneratedWrites]
+  · rw [driverWins_append]
+    rw [List.pairwise_append]
+    exact ⟨hStaticPair, hGeneratedPair, hCross⟩
+  · intro w hw
+    rw [driverWins_append] at hw
+    rcases List.mem_append.mp hw with hw | hw
+    · exact hStaticInputs w hw
+    · exact hGeneratedInputs w hw
+
 /-- A design passing the one-driver rule is its own guard. -/
 theorem Design2.driverGuard_of_ok {names inputs : List String} {m : Design2}
     (h : driversOk names inputs m.processes.toList = true) :

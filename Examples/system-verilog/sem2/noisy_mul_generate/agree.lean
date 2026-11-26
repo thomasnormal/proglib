@@ -1,6 +1,7 @@
 import LeanModels.Sv.Ingest2
 import LeanModels.Sv.DesignLemmas
 import LeanModels.Sv.CombHier
+import LeanModels.Sv.Hier2Gen
 import LeanModels.Sv.CombProcTactic
 open LeanModels.Sv
 open LeanModels.Sv.Kernel
@@ -5024,15 +5025,9 @@ theorem noisy_driversOk_of_continuous_split
     (hGeneratedInputs : ∀ w ∈ driverWins names generated,
       inputs.contains w.1 = false) :
     driversOk names inputs (static ++ generated) = true := by
-  apply driversOk_of_continuous
-  · simp [hStaticWrites, hGeneratedWrites]
-  · rw [driverWins_append]
-    exact noisy_pairwise_append_driverWins _ _ hStaticPair hGeneratedPair hCross
-  · intro w hw
-    rw [driverWins_append] at hw
-    rcases List.mem_append.mp hw with hw | hw
-    · exact hStaticInputs w hw
-    · exact hGeneratedInputs w hw
+  exact LeanModels.Sv.driversOk_of_continuous_split names inputs static generated
+    hStaticWrites hGeneratedWrites hStaticPair hGeneratedPair hCross
+    hStaticInputs hGeneratedInputs
 
 theorem noisy_generated_pairwise_of_parts
     (names : List String) (pp row out : List Process2)
