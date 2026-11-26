@@ -10,28 +10,24 @@ open LeanModels.Sv.Kernel
 load_design_sv2 prefixAdder from
   "Examples/system-verilog/sem2/prefix_adder_unpacked_array/prefix_adder_unpacked_array.sv.json"
 
-/-! The current loader's measured boundary for this clean-room source is
-precise but still open.  The unpacked declaration is flattened to scalar
-names, while the generated element assignments remain packed `PLhs.bitSel`
-targets.  The native `MemState` combinational theorem cannot apply until the
-loader preserves the unpacked declaration and maps generated element writes to
-that memory identity (or the canonical profile admits the retained bit-select
-form with equivalent cell equations).  The reusable memory equations and a
-hand-built two-cell receipt are in `mem_lemmas.lean`; they do not claim a
-correctness theorem for this loaded envelope. -/
+/-! The retained source-shaped route keeps the unpacked declaration as a
+native `MemShape` and each generated packed-element assignment as an
+`arrayBitSel`.  The reusable memory equations and a hand-built two-cell
+receipt are in `mem_lemmas.lean`; the memory-backed settled-value theorem and
+its thin tactic wrapper remain the next wall. -/
 
 #guard match prefixAdder.e 4 with
-  | .ok d => d.memories.toList.isEmpty
+  | .ok d => d.memories.toList.map (fun m => m.source.name) == ["mem"]
   | _ => false
 
 #guard match prefixAdder.e 4 with
-  | .ok d => d.scalar.decls.toList.any (fun x => x.name == "mem[0]")
+  | .ok d => d.scalar.decls.toList.map (fun x => x.name) == ["a", "y"]
   | _ => false
 
 #guard match prefixAdder.e 4 with
   | .ok d => d.processes.toList.any (fun p =>
       match p with
-      | .assign (.bitSel "mem[0]" (.int 0))
+      | .assign (.arrayBitSel "mem" [.int 0] (.int 0))
           (.bitSel (.ident "a") (.int 0)) => true
       | _ => false)
   | _ => false
@@ -39,7 +35,7 @@ correctness theorem for this loaded envelope. -/
 #guard match prefixAdder.e 4 with
   | .ok d => d.processes.toList.any (fun p =>
       match p with
-      | .assign (.bitSel _ _) _ => true
+      | .assign (.arrayBitSel _ [_] _) _ => true
       | _ => false)
   | _ => false
 

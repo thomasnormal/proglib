@@ -54,7 +54,8 @@ def main():
     generated = HERE / "prefix_adder_unpacked_array.sv.json"
     with tempfile.NamedTemporaryFile(suffix=".json") as temp:
         run(["python3", "extractors/sv/extract.py", "--top",
-             "prefix_adder_unpacked_array", "-o", temp.name,
+             "prefix_adder_unpacked_array", "--retain-proc-rewrites",
+             "-o", temp.name,
              str((HERE / "prefix_adder_unpacked_array.sv").relative_to(ROOT))])
         if Path(temp.name).read_bytes() != generated.read_bytes():
             raise RuntimeError("extractor envelope is not reproducible")
