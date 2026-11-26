@@ -2564,6 +2564,27 @@ theorem mergeByte_preserves_pointer_fragment
       some fragment := by
   simp [mergeByte, byteProvenance, byteFragment]
 
+theorem mergeByte_contract
+    (old : Byte Tag) (mask value choice : UInt8) :
+    match old with
+    | .uninitialized =>
+        mergeByte old mask value choice =
+            .value
+              (UInt8.ofNat
+                ((choice.toNat &&& Nat.xor mask.toNat 255) |||
+                  (value.toNat &&& mask.toNat))) none none ∧
+          byteProvenance (mergeByte old mask value choice) = none ∧
+          byteFragment (mergeByte old mask value choice) = none
+    | .value bits provenance fragment =>
+        mergeByte old mask value choice =
+            .value
+              (UInt8.ofNat
+                ((bits.toNat &&& Nat.xor mask.toNat 255) |||
+                  (value.toNat &&& mask.toNat))) provenance fragment ∧
+          byteProvenance (mergeByte old mask value choice) = provenance ∧
+          byteFragment (mergeByte old mask value choice) = fragment := by
+  cases old <;> simp [mergeByte, byteProvenance, byteFragment]
+
 def pairedMergeByte [BEq Tag] (resolve : AllocId → Nat) (old : Byte Tag)
     (mask value choice : UInt8) : Option (Byte Tag × Byte Tag) :=
   let source := mergeByte old mask value choice
