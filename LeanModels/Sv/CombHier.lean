@@ -1876,6 +1876,46 @@ theorem PDesign.GeneratedProfileCertificate.transport
   rw [PDesign.instantiateHDAlias2_of_generated_summary summary harity h1 h2 h3 halias]
   exact ⟨certificate.comb, certificate.acyclic⟩
 
+theorem PDesign.GeneratedProfileCertificate.comb
+    {d : PDesign} {lib : List PDesign} {args : List Int}
+    {env : IEnv} {decls : List Decl} {elems : List (String × Nat)}
+    {paths : List (GeneratedNode × List Int)}
+    {child : GeneratedChildRef → Except String Design2}
+    {generated : List Decl × List Process2}
+    {summary : GeneratedHierarchySummary
+      (PDesign.childRec lib.length lib { int32 := true }
+        (PDesign.surfaceFuel args) (Decl.inputNames decls))
+      (env.withDecls decls) decls elems (PDesign.surfaceFuel args) d paths child generated}
+    (certificate : GeneratedProfileCertificate summary)
+    (harity : args.length = d.params.length)
+    (h1 : d.paramEnvH { int32 := true } args = .ok env)
+    (h2 : buildDecls env d.decls = .ok decls)
+    (h3 : buildElems env d.decls = .ok elems)
+    (halias : (d.assembleH env decls generated.1 elems generated.2).aliasGuard =
+      d.assembleH env decls generated.1 elems generated.2) :
+    CombDesign (d.instantiateHDAlias2 lib args) := by
+  exact (PDesign.GeneratedProfileCertificate.transport certificate harity h1 h2 h3 halias).1
+
+theorem PDesign.GeneratedProfileCertificate.acyclic
+    {d : PDesign} {lib : List PDesign} {args : List Int}
+    {env : IEnv} {decls : List Decl} {elems : List (String × Nat)}
+    {paths : List (GeneratedNode × List Int)}
+    {child : GeneratedChildRef → Except String Design2}
+    {generated : List Decl × List Process2}
+    {summary : GeneratedHierarchySummary
+      (PDesign.childRec lib.length lib { int32 := true }
+        (PDesign.surfaceFuel args) (Decl.inputNames decls))
+      (env.withDecls decls) decls elems (PDesign.surfaceFuel args) d paths child generated}
+    (certificate : GeneratedProfileCertificate summary)
+    (harity : args.length = d.params.length)
+    (h1 : d.paramEnvH { int32 := true } args = .ok env)
+    (h2 : buildDecls env d.decls = .ok decls)
+    (h3 : buildElems env d.decls = .ok elems)
+    (halias : (d.assembleH env decls generated.1 elems generated.2).aliasGuard =
+      d.assembleH env decls generated.1 elems generated.2) :
+    Acyclic (d.instantiateHDAlias2 lib args) := by
+  exact (PDesign.GeneratedProfileCertificate.transport certificate harity h1 h2 h3 halias).2
+
 
 @[simp] theorem assembleGeneratedAt_processes
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
