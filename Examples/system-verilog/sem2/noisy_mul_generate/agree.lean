@@ -4961,4 +4961,25 @@ theorem noisy_generated_row_out_disjoint (N : Nat) :
   rcases ha with rfl | rfl | rfl <;>
     exact noisy_different_signal_windows_disjoint (by decide)
 
+theorem noisy_generated_pairwise_of_expected
+    (N : Nat) (hN : 1 ≤ N) (names : List String)
+    (pp row out : List Process2)
+    (hpp : driverWins names pp = noisyPpWinsAll N)
+    (hrow : driverWins names row = noisyRowWinsAll N)
+    (hout : driverWins names out = noisyOutWinsAll N) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names (pp ++ row ++ out)) := by
+  apply noisy_generated_pairwise_of_parts
+    (names := names) (pp := pp) (row := row) (out := out)
+    (ppWins := noisyPpWinsAll N)
+    (rowWins := noisyRowWinsAll N)
+    (outWins := noisyOutWinsAll N)
+    (hpp := hpp) (hrow := hrow) (hout := hout)
+  · exact noisy_pp_family_windows_pairwise N hN
+  · exact noisy_row_three_signal_windows_pairwise N hN
+  · exact noisy_output_family_windows_pairwise N
+  · exact noisy_generated_pp_row_disjoint N
+  · exact noisy_generated_pp_out_disjoint N
+  · exact noisy_generated_row_out_disjoint N
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
