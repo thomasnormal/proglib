@@ -4598,6 +4598,33 @@ theorem noisy_driversOk_of_continuous_split
     · exact hStaticInputs w hw
     · exact hGeneratedInputs w hw
 
+theorem noisy_generated_pairwise_of_parts
+    (names : List String) (pp row out : List Process2)
+    (ppWins rowWins outWins : List DrvWin)
+    (hpp : driverWins names pp = ppWins)
+    (hrow : driverWins names row = rowWins)
+    (hout : driverWins names out = outWins)
+    (hppPair : List.Pairwise (fun a b : DrvWin => a.overlaps b = false) ppWins)
+    (hrowPair : List.Pairwise (fun a b : DrvWin => a.overlaps b = false) rowWins)
+    (houtPair : List.Pairwise (fun a b : DrvWin => a.overlaps b = false) outWins)
+    (hppRow : ∀ a ∈ ppWins, ∀ b ∈ rowWins, a.overlaps b = false)
+    (hppOut : ∀ a ∈ ppWins, ∀ b ∈ outWins, a.overlaps b = false)
+    (hrowOut : ∀ a ∈ rowWins, ∀ b ∈ outWins, a.overlaps b = false) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names (pp ++ row ++ out)) := by
+  have hleft : List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (ppWins ++ rowWins) :=
+    noisy_pairwise_append_driverWins ppWins rowWins hppPair hrowPair hppRow
+  have hleftOut : ∀ a ∈ ppWins ++ rowWins, ∀ b ∈ outWins,
+      a.overlaps b = false := by
+    intro a ha b hb
+    rcases List.mem_append.mp ha with ha | ha
+    · exact hppOut a ha b hb
+    · exact hrowOut a ha b hb
+  rw [driverWins_append, driverWins_append, hpp, hrow, hout]
+  exact noisy_pairwise_append_driverWins (ppWins ++ rowWins) outWins
+    hleft houtPair hleftOut
+
 theorem noisy_out_driverWins_at_of_target
     (env : IEnv) (elems : List (String × Nat)) (i : Int)
     (names : List String)
