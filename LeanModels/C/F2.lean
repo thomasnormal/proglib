@@ -6092,6 +6092,28 @@ theorem pairedRepresentationLoadMetadataByte_refusal_target
     pairedRepresentationLoadMetadataByte resolve id metadata offset choice = none := by
   simp [pairedRepresentationLoadMetadataByte, htarget]
 
+theorem pairedRepresentationLoadMetadataByte_failure_contract
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice) :
+    pairedRepresentationLoadMetadataByte resolve id metadata offset choice = none ↔
+      representationLoadMetadataByte metadata offset choice = none ∨
+        representationLoadMetadataByte (renameMetadata resolve id metadata)
+          offset choice = none := by
+  constructor
+  · intro hnone
+    cases hs : representationLoadMetadataByte metadata offset choice with
+    | none => exact Or.inl rfl
+    | some sourceResult =>
+        cases ht : representationLoadMetadataByte (renameMetadata resolve id metadata)
+            offset choice with
+        | none => exact Or.inr rfl
+        | some targetResult =>
+            simp [pairedRepresentationLoadMetadataByte, hs, ht] at hnone
+  · rintro (hsource | htarget)
+    · simp [pairedRepresentationLoadMetadataByte, hsource]
+    · simp [pairedRepresentationLoadMetadataByte, htarget]
+
 theorem pairedRepresentationLoadMetadataByte_footprints
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
