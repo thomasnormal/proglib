@@ -4865,6 +4865,18 @@ theorem zeroTokenFreeable_contract
   · intro h
     simp [zeroTokenFreeable, isZeroToken, h.1, h.2]
 
+theorem zeroTokenFreeable_failure_contract
+    (metadata : AllocationMetadata Tag State TypeId) :
+    zeroTokenFreeable metadata = false ↔
+      metadata.allocation.live = false ∨ metadata.allocation.bytes ≠ [] := by
+  by_cases hlive : metadata.allocation.live = true
+  · by_cases hbytes : metadata.allocation.bytes = []
+    · simp [zeroTokenFreeable, isZeroToken, hlive, hbytes]
+    · simp [zeroTokenFreeable, isZeroToken, hlive, hbytes]
+  · have hdead : metadata.allocation.live = false := by
+      exact Bool.eq_false_iff.mpr hlive
+    simp [zeroTokenFreeable, isZeroToken, hlive, hdead]
+
 def renameZeroTokenMetadata (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
     AllocationMetadata Tag State TypeId :=
