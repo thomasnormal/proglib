@@ -160,6 +160,45 @@ def flatten (xs : List GeneratedChildSegment) : List Decl × List Process2 :=
 
 end GeneratedChildSegment
 
+namespace GeneratedChildSegment
+
+/-- Turn one ordinary declaration/process pair into a generated-family segment. -/
+def ofPair (q : List Decl × List Process2) : GeneratedChildSegment :=
+  { decls := q.1, processes := q.2 }
+
+/-- Flattening commutes with a symbolic outer family whose body is itself a
+list of ordinary declaration/process pairs.  This is the list-level equation
+used when a generated row has several child instances per iteration: it
+groups each iteration first or concatenates all child pairs first, with the
+same result and no enumeration of the family bound. -/
+theorem flatten_flatMap_ofPair {α : Type} (xs : List α)
+    (f : α → List (List Decl × List Process2)) :
+    GeneratedChildSegment.flatten ((xs.flatMap f).map ofPair) =
+      GeneratedChildSegment.flatten
+        (xs.map (fun x => ofPair (GeneratedChildSegment.flatten ((f x).map ofPair)))) := by
+  unfold ofPair
+  rw [GeneratedChildSegment.flatten_map_pair]
+  simp [GeneratedChildSegment.flatten, List.flatMap_assoc, List.flatMap_map]
+
+end GeneratedChildSegment
+
+namespace CombHier
+
+/-- Flattening a symbolic outer family can be grouped per iteration. -/
+theorem GeneratedNode.flattenSegments_flatMap {α : Type} (xs : List α)
+    (f : α → List (List Decl × List Process2)) :
+    GeneratedNode.flattenSegments (xs.flatMap f) =
+      GeneratedNode.flattenSegments
+        (xs.map (fun x => GeneratedNode.flattenSegments (f x))) := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih =>
+    rw [List.flatMap_cons, GeneratedNode.flattenSegments_append]
+    simp [GeneratedNode.flattenSegments, ih]
+
+end CombHier
+
+
 /-- One ascending generate family whose body is a single generated child.
 The equation keeps the source loop symbolic and exposes the child's ordinary
 `flattenInst` at each genvar value; no loop is unrolled by this lemma. -/
