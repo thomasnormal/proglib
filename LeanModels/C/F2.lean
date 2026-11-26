@@ -1044,6 +1044,15 @@ theorem storeMetadataByte_outOfBounds
     storeMetadataByte metadata offset byte = none := by
   simp [storeMetadataByte, hout]
 
+theorem storeMetadataByte_failure_contract
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (byte : Byte Tag) :
+    storeMetadataByte metadata offset byte = none ↔
+      metadata.allocation.bytes.length ≤ offset := by
+  by_cases hout : metadata.allocation.bytes.length ≤ offset
+  · simp [storeMetadataByte, hout]
+  · simp [storeMetadataByte, hout]
+
 theorem storeMetadataByte_preserves_locations
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (byte : Byte Tag) (result : AllocationMetadata Tag State TypeId × Footprint)
