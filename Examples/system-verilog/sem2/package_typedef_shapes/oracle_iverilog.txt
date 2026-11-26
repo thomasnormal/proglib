@@ -1,0 +1,5 @@
+# iverilog -g2012 pts_pkg.sv pts_leaf.sv pts_tb.sv; vvp   (Icarus Verilog 13.0)
+BITS a 4 b 4 c 4 d 6 e 4 v 4 w 6 mem[0] 3
+PARAM P 2 K 5 K2 9 SEL_INIT 9 PAIRS 01020304
+ROW 1010 1001 0110 101100 0011 | 1111 1001 1111 101100 0011 00001001 100
+ROW 1x0z x01z z1x0 1x0z10 0zx1 | 1x0x x01z x1x1 1x0z10 0zx1 00001001 z10

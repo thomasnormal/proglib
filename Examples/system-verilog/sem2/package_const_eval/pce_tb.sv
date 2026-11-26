@@ -1,0 +1,47 @@
+module pce_tb;
+  logic [3:0] i;
+  logic [7:0] a;
+  wire [3:0] o;
+  wire [1:0] q;
+  wire [31:0] hi, fb;
+  wire [7:0] xz;
+  pce_leaf dut(.i(i), .a(a), .o(o), .q(q), .hi(hi), .xz(xz), .fb(fb));
+  initial begin
+    $display("CONST pce_base::B1 %b", pce_base::B1);
+    $display("CONST pce_base::W32 %b", pce_base::W32);
+    $display("CONST pce_base::S32 %b", pce_base::S32);
+    $display("CONST pce_base::W33 %b", pce_base::W33);
+    $display("CONST pce_base::W64 %b", pce_base::W64);
+    $display("CONST pce_base::W65 %b", pce_base::W65);
+    $display("CONST pce_base::S65 %b", pce_base::S65);
+    $display("CONST pce_base::XZ8 %b", pce_base::XZ8);
+    $display("CONST pce_base::PAIR %b", pce_base::PAIR);
+    $display("HEX pce_base::WIDE %h", pce_base::WIDE);
+    $display("CONST pce_base::WX[1087:1080] %b", pce_base::WX[1087:1080]);
+    $display("HEX pce_base::WX[1079:0] %h", pce_base::WX[1079:0]);
+    $display("CONST pce_cfg::UNITS %b", pce_cfg::UNITS);
+    $display("CONST pce_cfg::UNIT_W %b", pce_cfg::UNIT_W);
+    $display("CONST pce_cfg::M3 %b", pce_cfg::M3);
+    $display("CONST pce_cfg::POW2 %b", pce_cfg::POW2);
+    $display("HEX pce_cfg::PICK1 %h", pce_cfg::PICK1);
+    $display("HEX pce_cfg::PICK3 %h", pce_cfg::PICK3);
+    $display("CONST pce_cfg::P64 %b", pce_cfg::P64);
+    $display("CONST pce_cfg::ONES %b", pce_cfg::ONES);
+    $display("CONST pce_cfg::DEC2 %b", pce_cfg::DEC2);
+    $display("CONST pce_cfg::DEC3 %b", pce_cfg::DEC3);
+    $display("CONST pce_cfg::XZF %b", pce_cfg::XZF);
+    $display("CONST pce_cfg::XZSEL %b", pce_cfg::XZSEL);
+    $display("CONST pce_cfg::XZCAT %b", pce_cfg::XZCAT);
+    $display("CONST pce_cfg::SX65 %b", pce_cfg::SX65);
+    $display("CONST pce_cfg::ZX65 %b", pce_cfg::ZX65);
+    $display("CONST pce_cfg::SUM33 %b", pce_cfg::SUM33);
+    $display("CONST pce_cfg::CARRY33 %b", pce_cfg::CARRY33);
+    $display("CONST pce_cfg::PHI %b", pce_cfg::PHI);
+    $display("CONST pce_cfg::WFB %b", pce_cfg::WFB);
+    $display("CONST pce_cfg::F5 %b", pce_cfg::F5);
+    $display("PARAM W %0d K %0d GK0 %0d GK1 %0d", dut.W, dut.K, dut.gen[0].GK, dut.gen[1].GK);
+    i = 4'b1010; a = 8'b0000_0100; #1 $display("ROW %b %b %b %b %b %b %b", i, a, o, q, hi, xz, fb);
+    i = 4'b1x0z; a = 8'b0000_1x00; #1 $display("ROW %b %b %b %b %b %b %b", i, a, o, q, hi, xz, fb);
+    $finish;
+  end
+endmodule

@@ -361,3 +361,9 @@ Examples/system-verilog/sem2/time_zero_event_assign_e/agree.lean
 
 Examples/system-verilog/sem2/function_local_array_refuse/agree.lean
 Examples/system-verilog/sem2/unsized_xz_ternary_mem/agree.lean
+Examples/system-verilog/sem2/package_walls_h2/agree.lean
+Examples/system-verilog/sem2/package_walls_h1/agree.lean
+Examples/system-verilog/sem2/package_walls_h4/agree.lean
+Examples/system-verilog/sem2/package_walls_r1/agree.lean
+Examples/system-verilog/sem2/package_const_eval/agree.lean
+Examples/system-verilog/sem2/package_typedef_shapes/agree.lean

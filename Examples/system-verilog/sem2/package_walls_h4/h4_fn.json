@@ -84,7 +84,7 @@
                 "end_line": 5,
                 "end_col": 42
               },
-              "name": "pack2",
+              "name": "rec::pack2",
               "args": [
                 {
                   "kind": "Int",
@@ -168,7 +168,7 @@
               "end_line": 4,
               "end_col": 14
             },
-            "name": "pack2",
+            "name": "rec::pack2",
             "automatic": true,
             "return_type": {
               "kind": "PackedType",
@@ -302,7 +302,54 @@
                   "name": "lo"
                 }
               ]
-            }
+            },
+            "package": "rec",
+            "stmts": [
+              {
+                "kind": "FnReturn",
+                "span": {
+                  "line": 3,
+                  "col": 5,
+                  "end_line": 3,
+                  "end_col": 21
+                },
+                "value": {
+                  "kind": "Concat",
+                  "span": {
+                    "line": 3,
+                    "col": 12,
+                    "end_line": 3,
+                    "end_col": 20
+                  },
+                  "width": 64,
+                  "parts": [
+                    {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 2,
+                        "col": 60,
+                        "end_line": 2,
+                        "end_col": 62
+                      },
+                      "width": 32,
+                      "name": "hi"
+                    },
+                    {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 2,
+                        "col": 83,
+                        "end_line": 2,
+                        "end_col": 85
+                      },
+                      "width": 32,
+                      "name": "lo"
+                    }
+                  ]
+                }
+              }
+            ],
+            "return_two_state": false
           }
         ],
         "processes": [

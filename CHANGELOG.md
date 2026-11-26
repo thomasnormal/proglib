@@ -4452,3 +4452,8 @@ change is listed here under **Changed** or **Removed**.
 - sv: package admitted NBA progress, uniqueness, and canonical-view confluence.
 - sv: instantiate admitted NBA confluence on shift-register, counter, and case-process envelopes.
 - sv: route the retained blocking cursor diamond through the named parser-native evaluator frame lemmas and scalar-write commutation.
+- sv: evaluate package constants with one width-exact four-state constant evaluator, bind them in dependency order, leave a constant the loader cannot evaluate unbound instead of refusing every module, and compare bound package constants with the parser's values.
+- sv: execute constant functions as written (locals, blocking assignments, `if`, `case`, `for`, `return`), nested and inside expressions, in package constants, parameter defaults, localparams and generate-local parameters.
+- sv: keep constant-function bodies as written in the envelope; the extractor no longer turns a procedural body into a conditional expression.
+- sv: convert typedef dimensions in the scope that declares them, by walking the parser's type tree.
+- sv: add oracle rows for package constants, constant functions and package typedef shapes.

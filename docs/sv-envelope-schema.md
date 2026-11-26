@@ -3911,3 +3911,45 @@ array name as a scalar. See [residual two-state named values](sv-namedvalue-2sta
 `Enum:invalid-compilation` remains an explicit unsupported declaration when an
 enum contains an X/Z value on a two-state base or duplicate enumeration value.
 The envelope does not squash, renumber or drop invalid members; see [invalid enums](sv-invalid-enums.md).
+
+## Constant functions as written, package constants (2026-11-26)
+
+A `Function` node of the symbolic envelope's `functions` table carries, beside
+the one-expression `body` of the run-time function rung:
+
+| field | meaning |
+|---|---|
+| `name` | a module function's own name; a package function is `pkg::name` (two packages, or a package and the module, may declare the same name). A `FunctionCall` node names its callee the same way |
+| `package` | the declaring package's name (absent for a module function) |
+| `stmts` | the body as written: a list of function statements, node for node |
+| `return_two_state` | the return type is 2-state (the result variable starts at 0 instead of x, IEEE 1800-2023 §6.8) |
+| `body` | the one return expression where the body is one; otherwise an `Unsupported` node (`SubroutineSymbol:body`). The extractor does not turn a procedural body into an expression |
+
+Function statements (IEEE 1800-2023 §13.4, §12); `Unsupported` marks a
+statement the extractor does not convert, and is a refusal only when a
+constant evaluation reaches it:
+
+| kind | fields |
+|---|---|
+| `FnDecl` | `name`, `type` (a declared type), `signed`, `two_state`, `init` (expression or `null`) |
+| `FnAssign` | `target` (an `Ident`, `BitSel` or `PartSel` of a local variable, the formals, or the function name), `value` |
+| `FnIncDec` | `name`, `op` (`++` or `--`) |
+| `FnIf` | `cond`, `then`, `else` (statement or `null`) |
+| `FnCase` | `subject`, `items` (each `patterns`, `body`), `default` (statement or `null`); a plain `case` only |
+| `FnFor` | `init` (statements), `cond`, `step` (statements), `body` |
+| `FnBlock` | `stmts` |
+| `FnReturn` | `value` (expression or `null`) |
+
+A module function is retained in `functions` when a constant expression calls
+it (a parameter default, a localparam, a generate-local localparam, or the
+body of another constant function); the call is then a `FunctionCall` node.
+
+Every parameter of every package of the compilation has a `package_params`
+entry. One the extractor cannot represent stays in the table with an
+`unsupported` reason: the loader leaves it unbound, and only a design that
+reads it is refused. The loader binds the table in dependency order and
+compares each bound constant with the entry's `resolved` value.
+
+A packed-struct assignment pattern is still emitted as a `Concat` whose
+operands are conversions to the member widths (an ingestion rewrite that is
+not retired yet: the node needs its own constructor on the Lean side).
