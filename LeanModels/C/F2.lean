@@ -6363,6 +6363,15 @@ theorem renameReplayFixture_placements
       fixture.placements.map (renameReplayPlacement resolve) := by
   rfl
 
+theorem renameReplayFixture_placements_contract
+    (resolve : AllocId → Nat) (fixture : ReplayFixture) :
+    (renameReplayFixture resolve fixture).placements =
+        fixture.placements.map (renameReplayPlacement resolve) ∧
+      (renameReplayFixture resolve fixture).placements.length =
+        fixture.placements.length := by
+  exact ⟨renameReplayFixture_placements resolve fixture,
+    by simp [renameReplayFixture, renameReplayPlacement]⟩
+
 theorem renameReplayFixture_placement_count
     (resolve : AllocId → Nat) (fixture : ReplayFixture) :
     (renameReplayFixture resolve fixture).placements.length = fixture.placements.length := by
