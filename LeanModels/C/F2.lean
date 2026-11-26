@@ -12188,6 +12188,56 @@ theorem pairedStaleLoad_contract
                 | none =>
                     simp [pairedStaleLoad, hs, ht, hloadSource, hloadTarget] at h
 
+theorem pairedStaleStore_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag) :
+    (pairedStaleStore resolve store id offset byte = true ∧
+      ∃ sourceResult targetResult,
+        endLifetime store id = some sourceResult ∧
+        endLifetime (renameStore resolve store) id = some targetResult ∧
+        storeByte sourceResult.1 id offset byte = none ∧
+        storeByte targetResult.1 id offset (renameByte resolve byte) = none) ∨
+    (pairedStaleStore resolve store id offset byte = false ∧
+      (endLifetime store id = none ∨
+        endLifetime (renameStore resolve store) id = none ∨
+        (∃ (sourceResult targetResult : Store Tag State × Footprint)
+            (sourceStore : Store Tag State × Footprint),
+          endLifetime store id = some sourceResult ∧
+          endLifetime (renameStore resolve store) id = some targetResult ∧
+          storeByte sourceResult.1 id offset byte = some sourceStore) ∨
+        (∃ (sourceResult targetResult : Store Tag State × Footprint)
+            (targetStore : Store Tag State × Footprint),
+          endLifetime store id = some sourceResult ∧
+          endLifetime (renameStore resolve store) id = some targetResult ∧
+          storeByte sourceResult.1 id offset byte = none ∧
+          storeByte targetResult.1 id offset (renameByte resolve byte) =
+            some targetStore))) := by
+  by_cases h : pairedStaleStore resolve store id offset byte = true
+  · exact Or.inl ⟨h, pairedStaleStore_sound resolve store id offset byte h⟩
+  · have hfalse : pairedStaleStore resolve store id offset byte = false := by
+      apply Bool.eq_false_iff.mpr
+      exact h
+    refine Or.inr ⟨hfalse, ?_⟩
+    cases hs : endLifetime store id with
+    | none => simp
+    | some sourceResult =>
+        cases ht : endLifetime (renameStore resolve store) id with
+        | none => simp
+        | some targetResult =>
+            cases hstoreSource : storeByte sourceResult.1 id offset byte with
+            | some sourceStore =>
+                exact Or.inr (Or.inr (Or.inl ⟨sourceResult, targetResult,
+                  sourceStore, rfl, rfl, hstoreSource⟩))
+            | none =>
+                cases hstoreTarget : storeByte targetResult.1 id offset
+                    (renameByte resolve byte) with
+                | some targetStore =>
+                    exact Or.inr (Or.inr (Or.inr ⟨sourceResult, targetResult,
+                      targetStore, rfl, rfl, hstoreSource, hstoreTarget⟩))
+                | none =>
+                    simp [pairedStaleStore, hs, ht, hstoreSource,
+                      hstoreTarget] at h
+
 #guard true
 #guard (footprint .read { allocation := 1, offset := 0, width := 1 }).accesses.length == 1
 
