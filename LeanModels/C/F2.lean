@@ -11308,6 +11308,28 @@ theorem pairedCopySnapshot_contract [BEq Tag]
   · exact pairedCopySnapshot_decompose resolve source destination result hresult
   · exact pairedCopySnapshot_byte_correspondence resolve source destination result hresult
 
+theorem pairedMergeByte_contract [BEq Tag]
+    (resolve : AllocId → Nat) (old : Byte Tag)
+    (mask value choice : UInt8) :
+    ((mergeByte (renameByte resolve old) mask value choice ==
+        renameByte resolve (mergeByte old mask value choice)) = true ∧
+      pairedMergeByte resolve old mask value choice =
+        some (mergeByte old mask value choice,
+          mergeByte (renameByte resolve old) mask value choice)) ∨
+    ((mergeByte (renameByte resolve old) mask value choice ==
+        renameByte resolve (mergeByte old mask value choice)) = false ∧
+      pairedMergeByte resolve old mask value choice = none) := by
+  by_cases hguard : (mergeByte (renameByte resolve old) mask value choice ==
+      renameByte resolve (mergeByte old mask value choice)) = true
+  · exact Or.inl ⟨hguard,
+      pairedMergeByte_success resolve old mask value choice hguard⟩
+  · have hguard' : (mergeByte (renameByte resolve old) mask value choice ==
+      renameByte resolve (mergeByte old mask value choice)) = false := by
+      apply Bool.eq_false_iff.mpr
+      exact hguard
+    exact Or.inr ⟨hguard',
+      pairedMergeByte_refusal resolve old mask value choice hguard'⟩
+
 theorem pairedMemmoveSnapshot_contract [BEq Tag]
     (resolve : AllocId → Nat) (source destination : Region)
     (bytes : List (Byte Tag))
