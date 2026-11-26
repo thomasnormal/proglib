@@ -276,6 +276,14 @@ theorem encodePointer_rename (resolve : AllocId → Nat) (pointer : Pointer Tag)
   | mk provenance address =>
       cases provenance <;> simp [encodePointer, renamePointer, renameByte, pointerByte]
 
+theorem encodePointer_rename_contract
+    (resolve : AllocId → Nat) (pointer : Pointer Tag) :
+    encodePointer (renamePointer resolve pointer) =
+        (encodePointer pointer).map (renameByte resolve) ∧
+      (encodePointer (renamePointer resolve pointer)).length = 8 := by
+  exact ⟨encodePointer_rename resolve pointer,
+    by simp [encodePointer]⟩
+
 structure Allocation (Tag State : Type) where
   live : Bool
   address : Option Nat
