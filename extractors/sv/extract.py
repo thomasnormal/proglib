@@ -32884,6 +32884,104 @@ def _syntax_unpacked_dims(sm, declarator, scope=None):
 
 # --- symbolic declarations -------------------------------------------------
 
+def _syntax_range_dims(sm, holder, scope):
+    """The packed ranges written on one syntax node, in source order: the
+    VariableDimension children of a keyword type (`logic [a:b][c:d]`) or the
+    ElementSelect selectors of a type name (`pkg::t [a:b]`).  Each bound is
+    converted in `scope`.  [] when the node writes none, None when one is not
+    a simple `[msb:lsb]` range."""
+    dims = []
+    for c in _syntax_children(holder):
+        if c.kind == SyntaxKind.VariableDimension:
+            spec = None
+            for child in _syntax_children(c):
+                if child.kind == SyntaxKind.RangeDimensionSpecifier:
+                    spec = child
+                    break
+            if spec is None:
+                return None
+            sel = _syntax_children(spec)
+        elif c.kind == SyntaxKind.ElementSelect:
+            sel = _syntax_children(c)
+        else:
+            continue
+        if len(sel) != 1 or sel[0].kind != SyntaxKind.SimpleRangeSelect:
+            return None
+        lr = _syntax_children(sel[0])
+        if len(lr) != 2:
+            return None
+        with _SymPos():
+            dims.append({
+                "msb": _syntax_expr(sm, lr[0], scope),
+                "lsb": _syntax_expr(sm, lr[1], scope),
+            })
+    return dims
+
+
+def _type_packed_dims(sm, t, type_syntax, scope, depth=0):
+    """The packed dimensions of a declared type, outermost first, each bound
+    converted in the scope that DECLARES it (IEEE 1800-2023 §6.18: a typedef
+    is elaborated where it is declared, §7.4.1 packed arrays).
+
+    This walks slang's own type tree, not source text: a type alias descends
+    into its target type with the alias's declaring scope; a packed array
+    takes the ranges its syntax node writes (a keyword type's dimensions, or
+    the dimensions after a type name) and continues with its element type.
+    It covers a typedef of a parameter-width vector, a chain of typedefs
+    across packages, a packed array of a typedef, and a typedef of such an
+    array, as the type of a port, a variable, a parameter or a local.
+
+    None when a level is irregular: the caller keeps its loud path."""
+    if depth > 32 or t is None:
+        return None
+    name = type(t).__name__
+    if name == "TypeAliasType":
+        target = getattr(t, "targetType", None)
+        if target is None:
+            return None
+        return _type_packed_dims(
+            sm, target.type, getattr(target, "typeSyntax", None),
+            getattr(t, "parentScope", None) or scope, depth + 1)
+    if name == "PackedArrayType":
+        if type_syntax is None:
+            return None
+        holder = type_syntax
+        if type_syntax.kind == SyntaxKind.NamedType:
+            holder = type_syntax.name
+            while holder.kind == SyntaxKind.ScopedName:
+                holder = holder.right
+        here = _syntax_range_dims(sm, holder, scope)
+        if not here:
+            return None
+        element = t
+        for _ in here:
+            if type(element).__name__ != "PackedArrayType":
+                return None
+            element = element.elementType
+        rest = _type_packed_dims(sm, element, None, scope, depth + 1)
+        if rest is None:
+            return None
+        return here + rest
+    if name == "ScalarType":
+        return []
+    canonical = t.canonicalType
+    cname = type(canonical).__name__
+    if cname in ("PackedStructType", "PackedUnionType"):
+        if getattr(canonical, "isTagged", False) or _sym_aggregate_point_dependent(canonical):
+            return None
+    elif cname not in ("EnumType", "PredefinedIntegerType"):
+        return None
+    # A fixed-width leaf (a packed struct or union whose layout does not
+    # depend on a parameter, an enum, `int`): one range of its width.
+    width = int(canonical.bitWidth)
+    if width <= 0:
+        return None
+    return [{"msb": {"kind": "Int", "span": None, "value": width - 1,
+                     "resolved_width": None},
+             "lsb": {"kind": "Int", "span": None, "value": 0,
+                     "resolved_width": None}}]
+
+
 def _dtype_sym(sm, t, type_syntax, allow_signed=False, scope=None):
     """(dtype-node, None) or (None, reason-tag) for a declared type in
     symbolic mode: TypeRef for enums, PackedType (symbolic dims primary,
@@ -32897,6 +32995,7 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False, scope=None):
         # dimensions.
         if scope is None:
             scope = getattr(t, "parentScope", None) or _SYM.scope
+        declared_syntax, declared_scope = type_syntax, scope
         typedef_scope = None
         if type_syntax is not None and type(type_syntax).__name__ == "ScopedNameSyntax":
             kids = _syntax_children(type_syntax)
@@ -32918,7 +33017,10 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False, scope=None):
                 # typedef's declaring scope.  Re-enter that scope while
                 # converting the recovered source syntax so unqualified
                 # package parameters resolve where IEEE 1800 declares them.
-                typedef_scope = getattr(target, "parentScope", None)
+                # The alias symbol, not its DeclaredType, carries the scope.
+                typedef_scope = (getattr(t, "parentScope", None)
+                                 if type(t).__name__ == "TypeAliasType"
+                                 else getattr(target, "parentScope", None))
                 if typedef_scope is not None:
                     scope = typedef_scope
         ct = t.canonicalType
@@ -32975,6 +33077,12 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False, scope=None):
                 ndims += 1
                 cur = cur.elementType.canonicalType
             if type(cur).__name__ != "ScalarType":
+                # A packed array whose element is not a bit (a packed struct,
+                # an enum): the type tree gives its dimensions.
+                walked = _type_packed_dims(sm, t, declared_syntax, declared_scope)
+                if walked:
+                    return {"kind": "PackedType", "packed": walked,
+                            "resolved": ct.bitWidth}, None
                 return None, "type"
             packed = None
             # WP-PROC N1 (2026-11-01): a typeless / implicit-type declaration
@@ -33014,6 +33122,12 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False, scope=None):
                         current = current.elementType.canonicalType
                     if len(ranges) == ndims:
                         packed = ranges
+            if packed is None:
+                # Typedef shapes whose bounds depend on a parameter: walk the
+                # type tree, each bound in its declaring scope.
+                walked = _type_packed_dims(sm, t, declared_syntax, declared_scope)
+                if walked is not None and len(walked) == ndims:
+                    packed = walked
             return {
                 "kind": "PackedType",
                 "packed": packed,
@@ -33205,6 +33319,11 @@ def convert_port_sym(sm, m):
     if array_ports is not None:
         return array_ports
     tsyn = _decl_type_syntax(m) if m is not None else None
+    if tsyn is None and isym is not None:
+        # slang links the port's internal symbol to the syntax of its declared
+        # type; no search of the port header is needed, and a package name
+        # inside a dimension cannot be mistaken for the type.
+        tsyn = _decl_type_syntax(isym)
     if tsyn is None and m is not None:
         parent = getattr(getattr(m, "syntax", None), "parent", None)
         if parent is not None:
@@ -34067,6 +34186,20 @@ def _convert_unpacked_decl_sym(sm, m, direction=None, isym=None):
         if shape is None:
             return None
         _dimensions, leaf_type = shape
+        # The element type as DECLARED (a typedef stays a typedef), reached
+        # through the unpacked dimensions of the declared type: its packed
+        # dimensions are then converted in the typedef's own scope.
+        declared_leaf = m.type
+        while type(declared_leaf).__name__ == "FixedSizeUnpackedArrayType":
+            declared_leaf = declared_leaf.elementType
+        try:
+            if (type(declared_leaf).__name__ == "TypeAliasType"
+                    and int(declared_leaf.canonicalType.bitWidth) == int(leaf_type.bitWidth)
+                    and type(declared_leaf.canonicalType).__name__
+                    == type(leaf_type.canonicalType).__name__):
+                leaf_type = declared_leaf
+        except Exception:
+            pass
         syntax = _decl_type_syntax(symbol) or _decl_type_syntax(m)
         dtype, reason = _dtype_sym(
             sm, leaf_type, syntax, allow_signed=True,
