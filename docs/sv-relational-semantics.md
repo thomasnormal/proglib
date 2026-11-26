@@ -56,7 +56,35 @@ variant is `Nd.EventSettles.invariant`. `ndStep_oracle_irrelevant` and
 `ndStep_oracle_unchanged` provide the knownness interface. These theorems are
 about the one step function and do not introduce a second semantic stack.
 
-Executor soundness, race-free uniqueness, confluence, and acceptance examples
-are subsequent T2-T4 work. They must state their admitted-fragment
-hypotheses visibly and must quantify over every legal scheduling and oracle
-choice.
+Because the step refuses x/z on a clock or event expression, `NdState.begin`
+refuses from a power-on store whose clocks are x. Until the owner decides how
+the first known clock value is modelled, the theorems below are about a start
+store whose control signals are known, the named hypothesis
+`CoreMemDesign.ControlsKnown`.
+
+Executor soundness is `CoreMemDesign.step_sound` and its row-list form
+`runCoreMemRows_sound` in
+[`LeanModels/Sv/Kernel/NdSound.lean`](../LeanModels/Sv/Kernel/NdSound.lean).
+On the syntactic fragment `CoreMemDesign.NbaClocked`, from a typed start store
+with known controls, a result of the executor's slot function is the end of a
+settled run of the relation under the executor's own choices: the first
+runnable cursor to completion and the all-zero oracle. This is soundness for
+those choices. It is not completeness. `Nd.Trace` is the multi-row closure
+with the oracle threaded from row to row.
+
+The footprint lemma is in
+[`LeanModels/Sv/Kernel/NdConfluence.lean`](../LeanModels/Sv/Kernel/NdConfluence.lean).
+`Nd.NonInterfering` is the condition on the cursors woken by one event: each
+alone leaves the store unchanged and reads no unknown at a decision, their
+nonblocking updates are pairwise disjoint, and none targets a clock or event
+source. From it `Nd.settled_view` and `Nd.EventSettles.view_unique` derive
+that every settled outcome has one scalar view, and `Nd.exists_settled` that
+one exists. Uniqueness is of the observable scalar view, not of the whole
+machine state.
+
+The acceptance example is
+[`simultaneous_nba/relation.lean`](../Examples/system-verilog/sem2/simultaneous_nba/relation.lean):
+`swap_only`, `swap_exists`, `swap_unique`, the executor agreement
+`swap_executor`, and `if_condition_x_read_twice_can_differ`. The two-flop
+synchroniser, x read twice in one expression and the FIFO for every depth are
+still open.

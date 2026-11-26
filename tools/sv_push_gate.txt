@@ -322,3 +322,9 @@ Examples/system-verilog/sem2/comb_chain_unpacked/agree.lean
 Examples/system-verilog/sem2/struct_port_assign_e/agree.lean
 
 Examples/system-verilog/sem2/generated_unpacked_fifo_e/agree.lean
+
+LeanModels.Sv.Kernel.NdSound
+LeanModels.Sv.Kernel.NdConfluence
+Examples/system-verilog/sem2/simultaneous_nba/relation.lean
+Examples/system-verilog/sem2/simultaneous_nba/step_rows.lean
+Examples/system-verilog/sem2/clocked_reset_guard_e/relation.lean

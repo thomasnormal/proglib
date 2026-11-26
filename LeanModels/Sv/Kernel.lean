@@ -9,6 +9,7 @@ import LeanModels.Sv.Kernel.Aggregate
 import LeanModels.Sv.Kernel.AggregateBridge
 import LeanModels.Sv.Kernel.XResolve
 import LeanModels.Sv.Kernel.RelSem
+import LeanModels.Sv.Kernel.NdConfluence
 import LeanModels.Sv.Kernel.MemElab
 import LeanModels.Sv.Kernel.MemE
 import LeanModels.Sv.Kernel.MemEResolve
@@ -22,7 +23,9 @@ every module of it:
 
 * `Core0ObsWin` (with `Core0WinTerm`, `Core0Win`, `Core0Obs`, `Core0Proc`, `Core0Comb`, `Core0`);
 * `Core1Disc`, `Core1Elab` and `Core1Obs` (with `Core1Edge`);
-* `Comb2Fuel` (the `always_comb` statement fuel of D-X1f, not under `Kernel/` but WS1's).
+* `Comb2Fuel` (the `always_comb` statement fuel of D-X1f, not under `Kernel/` but WS1's);
+* `NdConfluence` (with `NdSound` and `NdStep`: the choice-explicit relation, executor soundness on its
+  fragment, and the footprint lemma).
 
 It is imported by no existing module and is listed in `tools/check_sv_chain.sh`'s library group.
 -/
