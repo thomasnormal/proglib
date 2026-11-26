@@ -2413,7 +2413,30 @@ def _storage_name(symbol):
             if prefix and path.startswith(prefix):
                 relative = path[len(prefix):]
                 if "." in relative:
-                    return relative
+                    # The first elaborated generate-for entry is the template
+                    # used for the symbolic body.  Keep its hierarchical
+                    # block label, but replace each concrete index with an
+                    # explicit genvar marker.  CoreMem elaboration resolves
+                    # that marker for every generated instance, so a source
+                    # declaration such as `logic t` remains distinct at
+                    # `g[0].t`, `g[1].t`, ... without sampling the default
+                    # iteration.  This is parser metadata, not source text.
+                    parts = relative.split(".")
+                    genvars = list(getattr(_SYM, "genvars", ()))
+                    used = 0
+                    symbolic = []
+                    for part in parts[:-1]:
+                        match = re.fullmatch(
+                            r"([A-Za-z_][A-Za-z0-9_$]*)(?:\[(-?\d+)\])?", part)
+                        if match is not None and match.group(2) is not None \
+                                and used < len(genvars):
+                            symbolic.append(
+                                f"{match.group(1)}[$genvar:{genvars[used]}]")
+                            used += 1
+                        else:
+                            symbolic.append(part)
+                    symbolic.append(parts[-1])
+                    return ".".join(symbolic)
         except Exception:
             pass
         return name

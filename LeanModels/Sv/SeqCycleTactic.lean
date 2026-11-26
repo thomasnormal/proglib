@@ -697,6 +697,7 @@ macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ide
   `(tactic| simp (config := {maxSteps := 4000000, decide := true}) [LeanModels.Sv.bindParamsRes,
       LeanModels.Sv.bindPackageParams, LeanModels.Sv.bindPackageEnums, LeanModels.Sv.bindLocals,
       LeanModels.Sv.bindEnums, LeanModels.Sv.typedParamWidthsE, LeanModels.Sv.Kernel.coreMemGeneratedDeclsList,
+      LeanModels.Sv.Kernel.coreMemSubstDecl, LeanModels.Sv.Kernel.coreMemSubstName,
       LeanModels.Sv.Kernel.coreMemDeclInitializers,
       LeanModels.Sv.Kernel.coreMemLocalDeclsProc, LeanModels.Sv.Kernel.coreMemLocalDeclsStmt,
       LeanModels.Sv.Kernel.coreMemLocalDeclsList, LeanModels.Sv.Kernel.coreMemLocalDeclsCase,

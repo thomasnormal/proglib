@@ -864,6 +864,20 @@ def coreMemScopeEnv (env : IEnv) (scope : CoreMemScope) : IEnv :=
     (fun e (n, (v, w, s)) => e.bindNVal n v w s) env
   scope.genvars.reverse.foldl (fun e (n, v) => e.bindVal n v) env
 
+/-- Materialize a parser-generated hierarchical name at one generate
+instance.  The extractor keeps a source-shaped marker such as
+`g[$genvar:k].t` in the template because the first elaborated instance is
+only a template.  The marker is metadata produced from Slang's hierarchy,
+not source text, and is replaced using the lexical genvar bindings already
+carried by the canonical generate expansion. -/
+def coreMemSubstName (scope : CoreMemScope) (name : String) : String :=
+  scope.genvars.foldl (fun acc (g, v) =>
+    acc.replace ("[$genvar:" ++ g ++ "]") ("[" ++ toString v ++ "]")) name
+
+@[simp] theorem coreMemSubstName_empty (name : String) :
+    coreMemSubstName ({ } : CoreMemScope) name = name := by
+  rfl
+
 /-! Evaluate a generate-local parameter in the active lexical scope.  The
 canonical memory executor carries integer constants across generated
 source-shaped nodes and preserves the declared width and signedness of a
@@ -912,21 +926,24 @@ def coreMemSubstExpr (scope : CoreMemScope) : PExpr → PExpr
   | .repl a b => .repl (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .reduce op a => .reduce op (coreMemSubstExpr scope a)
   | .cast s a => .cast s (coreMemSubstExpr scope a)
-  | .arrayElem n xs => .arrayElem n (xs.map (coreMemSubstExpr scope))
-  | .arrayPart n xs mode a b => .arrayPart n (xs.map (coreMemSubstExpr scope)) mode
+  | .ident n => .ident (coreMemSubstName scope n)
+  | .arrayElem n xs => .arrayElem (coreMemSubstName scope n) (xs.map (coreMemSubstExpr scope))
+  | .arrayPart n xs mode a b => .arrayPart (coreMemSubstName scope n) (xs.map (coreMemSubstExpr scope)) mode
       (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .functionCall n xs => .functionCall n (xs.map (coreMemSubstExpr scope))
   | e => e
 
 def coreMemSubstLhs (scope : CoreMemScope) : PLhs → PLhs
-  | .bitSel n i => .bitSel n (coreMemSubstExpr scope i)
-  | .partSel n a b => .partSel n (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+  | .bitSel n i => .bitSel (coreMemSubstName scope n) (coreMemSubstExpr scope i)
+  | .partSel n a b => .partSel (coreMemSubstName scope n) (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .concat xs => .concat (xs.map (coreMemSubstLhs scope))
-  | .arrayElem n xs => .arrayElem n (xs.map (coreMemSubstExpr scope))
-  | .arrayBitSel n xs bit => .arrayBitSel n (xs.map (coreMemSubstExpr scope)) (coreMemSubstExpr scope bit)
-  | .arrayPart n xs mode a b => .arrayPart n (xs.map (coreMemSubstExpr scope)) mode
+  | .arrayElem n xs => .arrayElem (coreMemSubstName scope n) (xs.map (coreMemSubstExpr scope))
+  | .arrayBitSel n xs bit => .arrayBitSel (coreMemSubstName scope n) (xs.map (coreMemSubstExpr scope)) (coreMemSubstExpr scope bit)
+  | .arrayPart n xs mode a b => .arrayPart (coreMemSubstName scope n) (xs.map (coreMemSubstExpr scope)) mode
       (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
-  | l => l
+  | .aggregateMember n path => .aggregateMember (coreMemSubstName scope n)
+      (path.map fun (field, ix) => (field, ix.map (coreMemSubstExpr scope)))
+  | .ident n => .ident (coreMemSubstName scope n)
 
 def coreMemSubstDim (scope : CoreMemScope) (d : PDim) : PDim :=
   { msb := coreMemSubstExpr scope d.msb, lsb := coreMemSubstExpr scope d.lsb }
@@ -937,7 +954,7 @@ def coreMemSubstType (scope : CoreMemScope) : PType → PType
   | .unrecoverable resolved => .unrecoverable resolved
 
 def coreMemSubstDecl (scope : CoreMemScope) (d : PDecl) : PDecl :=
-  { name := d.name, type := coreMemSubstType scope d.type,
+  { name := coreMemSubstName scope d.name, type := coreMemSubstType scope d.type,
     unpackedDims := d.unpackedDims.map (coreMemSubstDim scope),
     isSigned := d.isSigned, twoState := d.twoState, isInput := d.isInput,
     isOutput := d.isOutput, isNet := d.isNet,
@@ -946,8 +963,8 @@ def coreMemSubstDecl (scope : CoreMemScope) (d : PDecl) : PDecl :=
 
 mutual
 def coreMemSubstStmt (scope : CoreMemScope) : PStmt → PStmt
-  | .blockingAssign n e => .blockingAssign n (coreMemSubstExpr scope e)
-  | .nbaAssign n e => .nbaAssign n (coreMemSubstExpr scope e)
+  | .blockingAssign n e => .blockingAssign (coreMemSubstName scope n) (coreMemSubstExpr scope e)
+  | .nbaAssign n e => .nbaAssign (coreMemSubstName scope n) (coreMemSubstExpr scope e)
   | .ifStmt c t e => .ifStmt (coreMemSubstExpr scope c) (coreMemSubstStmt scope t)
       (coreMemSubstStmtOpt scope e)
   | .block xs => .block (coreMemSubstStmtList scope xs)
@@ -982,16 +999,18 @@ def coreMemSubstCaseItems (scope : CoreMemScope) :
 termination_by structural xs => xs
 
 def coreMemSubstProcess (scope : CoreMemScope) : PProcess → PProcess
-  | .alwaysFF c b => .alwaysFF c (coreMemSubstStmt scope b)
-  | .alwaysFFNegedge c b => .alwaysFFNegedge c (coreMemSubstStmt scope b)
-  | .alwaysPlain c b => .alwaysPlain c (coreMemSubstStmt scope b)
+  | .alwaysFF c b => .alwaysFF (coreMemSubstName scope c) (coreMemSubstStmt scope b)
+  | .alwaysFFNegedge c b => .alwaysFFNegedge (coreMemSubstName scope c) (coreMemSubstStmt scope b)
+  | .alwaysPlain c b => .alwaysPlain (coreMemSubstName scope c) (coreMemSubstStmt scope b)
   | .alwaysComb b => .alwaysComb (coreMemSubstStmt scope b)
   | .alwaysLatch b => .alwaysLatch (coreMemSubstStmt scope b)
   | .alwaysImplicit b => .alwaysImplicit (coreMemSubstStmt scope b)
-  | .alwaysEvent events b => .alwaysEvent events (coreMemSubstStmt scope b)
-  | .assign n e => .assign n (coreMemSubstExpr scope e)
+  | .alwaysEvent events b => .alwaysEvent (events.map fun e =>
+      { e with signal := coreMemSubstName scope e.signal }) (coreMemSubstStmt scope b)
+  | .assign n e => .assign (coreMemSubstName scope n) (coreMemSubstExpr scope e)
   | .assignL l e => .assignL (coreMemSubstLhs scope l) (coreMemSubstExpr scope e)
-  | .alwaysFFR c r b h => .alwaysFFR c r (coreMemSubstStmt scope b) h
+  | .alwaysFFR c r b h => .alwaysFFR (coreMemSubstName scope c)
+      (coreMemSubstName scope r) (coreMemSubstStmt scope b) h
   | .initial b => .initial (coreMemSubstStmt scope b)
   | p => p
 end
