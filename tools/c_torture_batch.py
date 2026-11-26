@@ -59,21 +59,24 @@ def _static_row(entry: dict) -> tuple[str, str, str]:
     return "", "", ""
 
 
-def _refresh_stale(entry: dict) -> bool:
+def _refresh_stale(entry: dict) -> tuple[bool, str]:
     """Regenerate one stale envelope from the pinned external source cache."""
     envelope_name = entry.get("envelope")
     name = entry.get("name")
     if not envelope_name or not name:
-        return False
+        return False, "manifest has no envelope or test name"
     envelope = Path(envelope_name)
     source = envelope.parent.parent / "src" / name
     if not source.is_file():
-        return False
+        return False, "source is unavailable for envelope refresh"
     result = subprocess.run(
         [sys.executable, str(EXTRACTOR), str(source), "--source-name",
          "%s/%s" % (SUBDIR, name), "-o", str(envelope)],
         cwd=ROOT, capture_output=True, text=True, check=False)
-    return result.returncode == 0
+    if result.returncode == 0:
+        return True, ""
+    detail = _compact(result.stderr) or _compact(result.stdout)
+    return False, detail or "extractor refused without a diagnostic"
 
 
 def _canonicalize_envelope(entry: dict, manifest: Path) -> None:
@@ -124,8 +127,13 @@ def run(manifest: Path, runner: str, fuel: int, timeout: float) -> int:
             continue
         _canonicalize_envelope(entry, manifest)
         static = _static_row(entry)
-        if static[1] == "not-ingested" and _refresh_stale(entry):
-            static = _static_row(entry)
+        if static[1] == "not-ingested":
+            refreshed, refresh_detail = _refresh_stale(entry)
+            if refreshed:
+                static = _static_row(entry)
+            elif refresh_detail:
+                static = (static[0], static[1],
+                          "%s; refresh failed: %s" % (static[2], refresh_detail))
         if static[0]:
             print("\t".join(static), flush=True)
             continue
@@ -236,11 +244,12 @@ def self_test() -> int:
             stale_entry = {'name': 'refresh.c', 'status': 'parsed',
                             'sha256': hashlib.sha256(source.read_bytes()).hexdigest(), 'envelope': str(envelope)}
             before = _static_row(stale_entry)
-            refreshed = _refresh_stale(stale_entry)
+            refreshed, refresh_detail = _refresh_stale(stale_entry)
             after = _static_row(stale_entry)
         finally:
             globals()['EXTRACTOR'] = old_extractor
-        if before[1] != 'not-ingested' or not refreshed or after != ('', '', ''):
+        if (before[1] != 'not-ingested' or not refreshed or refresh_detail or
+                after != ('', '', '')):
             print("c_torture_batch --self-test: stale envelope was not refreshed", file=sys.stderr)
             return 1
 
