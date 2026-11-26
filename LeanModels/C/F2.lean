@@ -217,6 +217,31 @@ theorem decodePointer_first_fragment_refusal [BEq Tag]
     decodePointer (first :: rest) = none := by
   simp [decodePointer, hfirst]
 
+theorem decodePointer_success_contract [BEq Tag]
+    (bytes : List (Byte Tag)) (result : Pointer Tag)
+    (hresult : decodePointer bytes = some result) :
+    bytes.length = 8 ∧
+      ∃ bits provenance,
+        bytes.head? = some (.value bits provenance (some 0)) := by
+  have hlength : bytes.length = 8 := by
+    by_cases hlength : bytes.length = 8
+    · exact hlength
+    · simp [decodePointer, hlength] at hresult
+  constructor
+  · exact hlength
+  · cases bytes with
+    | nil => simp at hlength
+    | cons first rest =>
+        cases first with
+        | uninitialized => simp [decodePointer] at hresult
+        | value bits provenance fragment =>
+            cases fragment with
+            | none => simp [decodePointer] at hresult
+            | some fragment =>
+                cases fragment with
+                | zero => exact ⟨bits, provenance, rfl⟩
+                | succ fragment => simp [decodePointer] at hresult
+
 theorem encodePointer_rename (resolve : AllocId → Nat) (pointer : Pointer Tag) :
     encodePointer (renamePointer resolve pointer) =
       (encodePointer pointer).map (renameByte resolve) := by
