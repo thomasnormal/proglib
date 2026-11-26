@@ -4355,4 +4355,22 @@ theorem noisy_row_right_driverWins_at
   simp [instProcess2, rowRight, driverWins, Process2.drvWins, Lhs2.drvWins,
     hq, hsm]
 
+theorem noisy_row_boundary_family_driverWins_pairwise
+    (names : List String) (left right : Process2) (children : List Process2)
+    (leftWin rightWin : DrvWin) (childWins : List DrvWin)
+    (hleft : driverWins names [left] = [leftWin])
+    (hright : driverWins names [right] = [rightWin])
+    (hchildren : driverWins names children = childWins)
+    (hdis : List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (leftWin :: childWins ++ [rightWin])) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names (left :: children ++ [right])) := by
+  have hwhole : driverWins names (left :: children ++ [right]) =
+      leftWin :: childWins ++ [rightWin] := by
+    rw [show left :: children ++ [right] = [left] ++ children ++ [right] by simp]
+    rw [driverWins_append, driverWins_append, hleft, hchildren, hright]
+    simp [List.append_assoc]
+  rw [hwhole]
+  exact hdis
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
