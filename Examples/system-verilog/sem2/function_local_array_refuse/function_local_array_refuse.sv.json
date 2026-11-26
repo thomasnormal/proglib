@@ -1,0 +1,178 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "function_local_array",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/function_local_array_refuse/function_local_array_refuse.sv",
+      "sha256": "608ebf881cfad0c8005bf9b3ec7f3c9f7c6383929fa72ce980db8fb90a3d44b3"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 20,
+          "end_col": 10
+        },
+        "name": "function_local_array",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 21,
+              "end_line": 2,
+              "end_col": 22
+            },
+            "name": "x",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 16,
+                      "end_line": 2,
+                      "end_col": 17
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 18,
+                      "end_line": 2,
+                      "end_col": 19
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 22,
+              "end_line": 3,
+              "end_col": 23
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 17,
+                      "end_line": 3,
+                      "end_col": 18
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 19,
+                      "end_line": 3,
+                      "end_col": 20
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysComb",
+            "span": {
+              "line": 19,
+              "col": 3,
+              "end_line": 19,
+              "end_col": 29
+            },
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 19,
+                "col": 15,
+                "end_line": 19,
+                "end_col": 29
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 19,
+                  "col": 15,
+                  "end_line": 19,
+                  "end_col": 16
+                },
+                "width": 8,
+                "name": "y"
+              },
+              "value": {
+                "kind": "Unsupported",
+                "span": {
+                  "line": 19,
+                  "col": 19,
+                  "end_line": 19,
+                  "end_col": 28
+                },
+                "sv_kind": "CallExpression",
+                "text": "decode(x)"
+              }
+            }
+          }
+        ],
+        "generates": [],
+        "others": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 5,
+              "col": 3,
+              "end_line": 18,
+              "end_col": 14
+            },
+            "sv_kind": "SubroutineSymbol:Subroutine",
+            "text": "function automatic logic [7:0] decode(input logic [7:0] node);\n    logic [7:0] key [0:7];\n    begin\n      key[0] = 8'ha5;\n      key[1] = 8'h3c;\n      key[2] = 8'hf0;\n      key[3] = 8'h17;\n      key[4]"
+          }
+        ]
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
