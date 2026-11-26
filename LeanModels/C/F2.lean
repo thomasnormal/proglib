@@ -766,6 +766,29 @@ theorem storeMetadataByte_preserves_wellFormed
   unfold AllocationMetadata.wellFormed
   exact ⟨hbytes, by simpa [listSet_length] using hlocations⟩
 
+theorem storeMetadataByte_contract
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (byte : Byte Tag) (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : storeMetadataByte metadata offset byte = some result)
+    (hbytes : bytesWf 0 (listSet metadata.allocation.bytes offset byte))
+    (hlocations : metadata.locations.length = metadata.allocation.bytes.length) :
+    result.1.allocation.bytes = listSet metadata.allocation.bytes offset byte ∧
+      result.1.locations = metadata.locations ∧
+      result.2 = footprint .write { allocation := 0, offset := offset, width := 1 } ∧
+      result.1.allocation.live = metadata.allocation.live ∧
+      result.1.allocation.address = metadata.allocation.address ∧
+      result.1.allocation.state = metadata.allocation.state ∧
+      result.1.allocation.bytes.length = metadata.allocation.bytes.length ∧
+      result.1.wellFormed 0 := by
+  rcases storeMetadataByte_success_shape metadata offset byte result hresult with
+    ⟨hbytes', hlocations', hfootprint⟩
+  rcases storeMetadataByte_preserves_payload metadata offset byte result hresult with
+    ⟨hlive, haddress, hstate⟩
+  exact ⟨hbytes', hlocations', hfootprint, hlive, haddress, hstate,
+    storeMetadataByte_preserves_byte_length metadata offset byte result hresult,
+    storeMetadataByte_preserves_wellFormed metadata offset byte result hresult
+      hbytes hlocations⟩
+
 def typedStoreMetadataByte (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
     Option (AllocationMetadata Tag State TypeId × Footprint) :=
