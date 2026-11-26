@@ -6314,6 +6314,46 @@ theorem pairedStoreRepresentationLoadMetadataByte_refusal_target_load
     pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice = none := by
   simp [pairedStoreRepresentationLoadMetadataByte, htarget, hload]
 
+theorem pairedStoreRepresentationLoadMetadataByte_failure_contract
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice) :
+    pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice = none ↔
+      storeMetadataByte metadata offset byte = none ∨
+      storeMetadataByte (renameMetadata resolve id metadata)
+        offset (renameByte resolve byte) = none ∨
+      (∃ sourceStore,
+        storeMetadataByte metadata offset byte = some sourceStore ∧
+        representationLoadMetadataByte sourceStore.1 offset choice = none) ∨
+      (∃ targetStore,
+        storeMetadataByte (renameMetadata resolve id metadata) offset
+          (renameByte resolve byte) = some targetStore ∧
+        representationLoadMetadataByte targetStore.1 offset choice = none) := by
+  constructor
+  · intro hnone
+    cases hs : storeMetadataByte metadata offset byte with
+    | none => exact Or.inl rfl
+    | some sourceStore =>
+        cases ht : storeMetadataByte (renameMetadata resolve id metadata) offset
+            (renameByte resolve byte) with
+        | none => exact Or.inr (Or.inl rfl)
+        | some targetStore =>
+            cases hsl : representationLoadMetadataByte sourceStore.1 offset choice with
+            | none => exact Or.inr (Or.inr (Or.inl ⟨sourceStore, rfl, hsl⟩))
+            | some sourceLoad =>
+                cases htl : representationLoadMetadataByte targetStore.1 offset choice with
+                | none => exact Or.inr (Or.inr (Or.inr ⟨targetStore, rfl, htl⟩))
+                | some targetLoad =>
+                    simp [pairedStoreRepresentationLoadMetadataByte, hs, ht, hsl, htl] at hnone
+  · rintro (hsource | htarget | hsourceLoad | htargetLoad)
+    · simp [pairedStoreRepresentationLoadMetadataByte, hsource]
+    · simp [pairedStoreRepresentationLoadMetadataByte, htarget]
+    · rcases hsourceLoad with ⟨sourceStore, hstore, hload⟩
+      simp [pairedStoreRepresentationLoadMetadataByte, hstore, hload]
+    · rcases htargetLoad with ⟨targetStore, hstore, hload⟩
+      simp [pairedStoreRepresentationLoadMetadataByte, hstore, hload]
+
 theorem pairedStoreRepresentationLoadMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
