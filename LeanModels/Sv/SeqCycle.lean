@@ -695,6 +695,23 @@ termination_by structural xs => xs
 
 end
 
+/-! The clocked view has a deliberately narrow procedural-loop header profile.
+The executor can evaluate more headers, including descending and non-unit
+steps, but those forms are outside this view's closed-form write equation.
+Keep this check on the parser AST so an unsupported header is refused at the
+profile boundary instead of being silently admitted by `edgeOkB`. -/
+
+def _root_.LeanModels.Sv.PStmt.loopHeaderOkB (iterator : String)
+    (init condition step : PExpr) : Bool :=
+  match init, condition, step with
+  | .int _, .binary op (.genvarRef g) (.paramRef _ none),
+      .unary .inc (.genvarRef g') =>
+      (g == iterator) && (g' == iterator) && (op == .slt || op == .sle)
+  | .int _, .binary op (.genvarRef g) (.paramRef _ none),
+      .binary (.m0 .add) (.genvarRef g') (.int 1) =>
+      (g == iterator) && (g' == iterator) && (op == .slt || op == .sle)
+  | _, _, _ => false
+
 mutual
 
 /-- An edge body the view-level executor mirrors: blocking and nonblocking writes (whole signals, selects,
@@ -713,7 +730,8 @@ def _root_.LeanModels.Sv.PStmt.edgeOkB : PStmt → Bool
       !LeanModels.Sv.PExpr.hasFunctionCall s && PStmt.itemsEdgeOkB items && PStmt.optEdgeOkB d
   | .localDecl .. => false
   | .automaticDecl .. => false
-  | .forLoop _ _ _ _ body => PStmt.edgeOkB body && PStmt.loopBodyB body
+  | .forLoop iterator init condition step body =>
+      PStmt.loopHeaderOkB iterator init condition step && PStmt.edgeOkB body && PStmt.loopBodyB body
   | .unsupported .. => false
 termination_by structural s => s
 
@@ -2600,7 +2618,8 @@ theorem CoreMemDesign.execStmtFuel_V {E : CoreMemDesign}
   | .forLoop it init cond step body, env, fuel, st, v', q, mq, hc, hmc, hb, hf, hv => by
       obtain ⟨f, rfl⟩ : ∃ f, fuel = f + 1 := ⟨fuel - 1, by simp [PStmt.need] at hf; omega⟩
       simp only [PStmt.edgeOkB, Bool.and_eq_true] at hb
-      obtain ⟨hbe, hlf⟩ := hb
+      have hbe : body.edgeOkB = true := hb.1.2
+      have hlf : body.loopBodyB = true := hb.2
       simp only [PStmt.need] at hf
       simp only [CoreMemDesign.execV, hlf, ↓reduceIte] at hv
       cases hvals : forValues2Int32 env it init cond step with
