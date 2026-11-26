@@ -504,6 +504,16 @@ def renameAllocationValue (resolve : AllocId → Nat) (id : AllocId)
     address := allocation.address.map (fun _ => resolve id)
     bytes := allocation.bytes.map (renameByte resolve) }
 
+theorem renameAllocationValue_contract (resolve : AllocId → Nat)
+    (id : AllocId) (allocation : Allocation Tag State) :
+    (renameAllocationValue resolve id allocation).live = allocation.live ∧
+      (renameAllocationValue resolve id allocation).state = allocation.state ∧
+      (renameAllocationValue resolve id allocation).address =
+        allocation.address.map (fun _ => resolve id) ∧
+      (renameAllocationValue resolve id allocation).bytes =
+        allocation.bytes.map (renameByte resolve) := by
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
 theorem renameAllocation_value (resolve : AllocId → Nat)
     (entry : AllocId × Allocation Tag State) :
     (renameAllocation resolve entry).2 =
