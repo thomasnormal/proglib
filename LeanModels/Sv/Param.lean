@@ -2343,7 +2343,15 @@ private def packageConstVec (env : IEnv) : PExpr → Except String LVec
       -- `evalAt` deliberately keeps source-shaped calls loud for ordinary
       -- signal expressions, so route this elaboration-time case through the
       -- same declaration-aware evaluator used by `evalInt`.
-      (evalConstFunctionCall env name args).map (LVec.ofInt 32)
+      match env.functions.find? (fun f => f.name == name) with
+      | some f =>
+          match f.returnType with
+          | .packed _ (some w) | .typeRef _ _ (some w) =>
+              if w > 32 then
+                .error "wide package constant function result requires width-exact evaluation"
+              else (evalConstFunctionCall env name args).map (LVec.ofInt 32)
+          | _ => (evalConstFunctionCall env name args).map (LVec.ofInt 32)
+      | none => .error s!"function '{name}' in a constant context"
   | e =>
       match evalAt env (32, true) e with
       | .ok v => .ok (LVec.ofInt 32 v)
@@ -2406,6 +2414,9 @@ private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → 
               match packageConstVec env e with
               | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
               | .ok raw =>
+                  if raw.width > 32 then
+                    .unsupported s!"package parameter '{pkg}::{p.name}': wide package constant requires width-exact evaluation"
+                  else
                   let w := raw.width
                   let env' := env.bindPackageFVal pkg p.name raw w false
                   match raw.toNat? with
@@ -2414,6 +2425,9 @@ private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → 
           | some (.packed dims _) =>
               match packageDimsWidth env dims with
               | .ok w =>
+                  if w > 32 then
+                    .unsupported s!"package parameter '{pkg}::{p.name}': wide package constant requires width-exact evaluation"
+                  else
                   let s := p.signed?.getD (w == 32)
                   let e := match e with
                     | .fill b => .lit (LVec.replicate w b)
@@ -2421,6 +2435,9 @@ private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → 
                   match packageConstVec env e with
                   | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
                   | .ok raw =>
+                      if raw.width > 32 then
+                        .unsupported s!"package parameter '{pkg}::{p.name}': wide package constant requires width-exact evaluation"
+                      else
                       let value := if s then raw.resizeSigned w else raw.resizeU w
                       let env' := env.bindPackageFVal pkg p.name value w s
                       match value.toNat? with
@@ -2433,6 +2450,9 @@ private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → 
                             bindPackageParamsInOrder (env'.bindPackageNVal pkg p.name v w s) rest
               | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
           | some (.typeRef _ _ (some w)) =>
+              if w > 32 then
+                .unsupported s!"package parameter '{pkg}::{p.name}': wide package constant requires width-exact evaluation"
+              else
               let s := p.signed?.getD (w == 32)
               let value : Except String LVec := match packageConstVec env e with
                 | .error err => .error err
@@ -2440,6 +2460,9 @@ private def bindPackageParamsInOrder (env : IEnv) : List (String × PParam) → 
               match value with
               | .error err => .unsupported s!"package parameter '{pkg}::{p.name}': {err}"
               | .ok value =>
+                  if value.width > 32 then
+                    .unsupported s!"package parameter '{pkg}::{p.name}': wide package constant requires width-exact evaluation"
+                  else
                   let env' := env.bindPackageFVal pkg p.name value w s
                   match value.toNat? with
                   | none => bindPackageParamsInOrder env' rest
