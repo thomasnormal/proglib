@@ -2078,4 +2078,18 @@ theorem noisyOutPaths_flatten
   rw [CombHier.GeneratedNode.flattenSegments_map]
   simp [noisyOutPaths, noisyFullFamilySegment, List.flatMap_map]
 
+theorem noisyRowChildPaths_flatten
+    (env : IEnv) (elems : List (String × Nat)) (N i : Int) :
+    CombHier.GeneratedNode.flattenSegments
+        ((noisyRowChildPaths N i).map (noisyFullFamilySegment env elems)) =
+      noisy_row_inner_segment env elems i N := by
+  rw [CombHier.GeneratedNode.flattenSegments_map]
+  unfold noisy_row_inner_segment
+  simp only [GeneratedChildSegment.flatten, noisyRowChildPaths, noisyFullFamilySegment,
+    List.flatMap_map, List.map_map]
+  rw [List.flatMap_assoc, List.flatMap_assoc]
+  simp [List.flatMap, List.append_assoc, noisyTopNodeSegment,
+    noisyTopGeneratedPairSegment, noisyTopNodeDesign, noisyTopNodeChild,
+    xorInst, xorSInst, majInst, andInst]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
