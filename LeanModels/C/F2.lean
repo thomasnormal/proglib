@@ -11270,6 +11270,55 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedFreeMetadata_contract
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hmetadata : metadata.wellFormed 0)
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    (∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      freeMetadata metadata = some sourceResult ∧
+      freeMetadata (renameZeroTokenMetadata resolve metadata) = some targetResult) ∧
+      (result.1.2 = footprint .metadata
+          (Region.mk 0 0 metadata.allocation.bytes.length) ∧
+        result.2.2 = footprint .metadata
+          (Region.mk 0 0 metadata.allocation.bytes.length)) ∧
+      (result.1.1.allocation.live = false ∧ result.2.1.allocation.live = false) ∧
+      (result.1.1.locations = metadata.locations ∧
+        result.2.1.locations = (renameZeroTokenMetadata resolve metadata).locations) ∧
+      (result.1.1.allocation.bytes.length = metadata.allocation.bytes.length ∧
+        result.1.1.locations.length = metadata.locations.length ∧
+        result.2.1.allocation.bytes.length =
+          (renameZeroTokenMetadata resolve metadata).allocation.bytes.length ∧
+        result.2.1.locations.length =
+          (renameZeroTokenMetadata resolve metadata).locations.length) ∧
+      (result.1.1.allocation.address = metadata.allocation.address ∧
+        result.1.1.allocation.bytes = metadata.allocation.bytes ∧
+        result.1.1.allocation.state = metadata.allocation.state ∧
+        result.2.1.allocation.address =
+          (renameZeroTokenMetadata resolve metadata).allocation.address ∧
+        result.2.1.allocation.bytes =
+          (renameZeroTokenMetadata resolve metadata).allocation.bytes ∧
+        result.2.1.allocation.state =
+          (renameZeroTokenMetadata resolve metadata).allocation.state) ∧
+      (result.1.1.wellFormed 0 ∧ result.2.1.wellFormed 0) := by
+  constructor
+  · exact pairedFreeMetadata_sound resolve metadata result hresult
+  constructor
+  · simpa only using pairedFreeMetadata_footprints resolve metadata result hresult
+  constructor
+  · exact pairedFreeMetadata_marks_dead resolve metadata result hresult
+  constructor
+  · exact pairedFreeMetadata_preserves_locations resolve metadata result hresult
+  constructor
+  · exact pairedFreeMetadata_preserves_lengths resolve metadata result hresult
+  constructor
+  · exact pairedFreeMetadata_preserves_payload resolve metadata result hresult
+  · exact pairedFreeMetadata_preserves_wellFormed_from_source resolve metadata result
+      hmetadata hresult
+
 theorem pairedReallocMetadata_contract
     (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
