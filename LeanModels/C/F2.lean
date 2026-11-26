@@ -6299,6 +6299,18 @@ theorem renameReplayEvents_contract
   exact ⟨renameReplayEvents_identity resolve events,
     by simp [renameReplayEvents]⟩
 
+theorem renameReplayEvents_idempotent
+    (resolve : AllocId → Nat) (events : List ReplayEvent) :
+    renameReplayEvents resolve (renameReplayEvents resolve events) =
+      renameReplayEvents resolve events := by
+  rw [renameReplayEvents_identity resolve (renameReplayEvents resolve events)]
+
+theorem renameReplayEvents_comp
+    (first second : AllocId → Nat) (events : List ReplayEvent) :
+    renameReplayEvents second (renameReplayEvents first events) =
+      renameReplayEvents second events := by
+  rw [renameReplayEvents_identity first events]
+
 inductive ReplayEnding where
   | exit (status : Int)
   | signal (number : Nat)
