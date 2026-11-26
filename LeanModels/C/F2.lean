@@ -1158,6 +1158,15 @@ theorem typedStoreMetadataByte_outOfBounds
     typedStoreMetadataByte metadata offset typeId byte = none := by
   simp [typedStoreMetadataByte, hout]
 
+theorem typedStoreMetadataByte_failure_contract
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag) :
+    typedStoreMetadataByte metadata offset typeId byte = none ↔
+      metadata.allocation.bytes.length ≤ offset := by
+  by_cases hout : metadata.allocation.bytes.length ≤ offset
+  · simp [typedStoreMetadataByte, hout]
+  · simp [typedStoreMetadataByte, hout]
+
 theorem typedStoreMetadataByte_preserves_length
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (typeId : TypeId) (byte : Byte Tag)
