@@ -213,6 +213,16 @@ def provenanceEqual [BEq Tag] : Option (Provenance Tag) →
   | some left, some right => left.allocation == right.allocation && left.tag == right.tag
   | _, _ => false
 
+theorem provenanceEqual_contract [BEq Tag]
+    (left right : Option (Provenance Tag)) :
+    match left, right with
+    | none, none => provenanceEqual left right = true
+    | some left, some right =>
+        provenanceEqual (some left) (some right) =
+          (left.allocation == right.allocation && left.tag == right.tag)
+    | _, _ => provenanceEqual left right = false := by
+  cases left <;> cases right <;> rfl
+
 def decodePointer [BEq Tag] (bytes : List (Byte Tag)) : Option (Pointer Tag) := do
   if bytes.length != 8 then none
   let first ← bytes.head?
