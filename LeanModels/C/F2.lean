@@ -4260,6 +4260,27 @@ theorem freeMetadata_preserves_wellFormed
   · rw [hlocations, hpayload.2.1]
     exact hmetadata.2
 
+theorem freeMetadata_contract
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hmetadata : metadata.wellFormed 0)
+    (hresult : freeMetadata metadata = some result) :
+    result.1.allocation.live = false ∧
+      result.1.locations = metadata.locations ∧
+      result.1.allocation.address = metadata.allocation.address ∧
+      result.1.allocation.bytes = metadata.allocation.bytes ∧
+      result.1.allocation.state = metadata.allocation.state ∧
+      result.2 = footprint .metadata
+        (Region.mk 0 0 metadata.allocation.bytes.length) ∧
+      result.1.wellFormed 0 := by
+  exact ⟨freeMetadata_marks_dead metadata result hresult,
+    freeMetadata_preserves_locations metadata result hresult,
+    (freeMetadata_preserves_payload metadata result hresult).1,
+    (freeMetadata_preserves_payload metadata result hresult).2.1,
+    (freeMetadata_preserves_payload metadata result hresult).2.2,
+    freeMetadata_footprint_shape metadata result hresult,
+    freeMetadata_preserves_wellFormed metadata result hmetadata hresult⟩
+
 theorem freeMetadata_empty_preserves_wellFormed
     (metadata : AllocationMetadata Tag State TypeId)
     (hmetadata : metadata.wellFormed 0)
