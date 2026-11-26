@@ -4600,6 +4600,33 @@ theorem noisy_row_right_driverWins_at
   simp [instProcess2, rowRight, driverWins, Process2.drvWins, Lhs2.drvWins,
     hq, hsm]
 
+theorem noisy_row_left_driverWins_actual
+    (N i : Nat) (hN : 1 ≤ N) (hi : i < N)
+    (hCanon : canonInt 32 true (N : Int) = N) :
+    driverWins noisyMul.pdesign.declNames
+      [instProcess2 ((noisyEnv (N : Int)).bindVal "i" (i : Int))
+        (noisyElems (N : Int)) rowLeft] =
+      [("c", some (i * (N + 1), 1))] := by
+  apply noisy_row_left_driverWins_at hN hi
+    (env := noisyEnv (N : Int)) (elems := noisyElems (N : Int))
+    (names := noisyMul.pdesign.declNames)
+  · simp [PDesign.declNames, PDesign.declSig, noisyMul.pdesign]
+  · exact noisy_dims_c (N : Int) hCanon
+
+theorem noisy_row_right_driverWins_actual
+    (N i : Nat) (hN : 1 ≤ N) (hi : i < N)
+    (hCanon : canonInt 32 true (N : Int) = N) :
+    driverWins noisyMul.pdesign.declNames
+      [instProcess2 ((noisyEnv (N : Int)).bindVal "i" (i : Int))
+        (noisyElems (N : Int)) rowRight] =
+      [("s", some (i * (N + 1) + N, 1))] := by
+  apply noisy_row_right_driverWins_at hN hi
+    (env := noisyEnv (N : Int)) (elems := noisyElems (N : Int))
+    (names := noisyMul.pdesign.declNames)
+  · simp [PDesign.declNames, PDesign.declSig, noisyMul.pdesign]
+  · exact noisy_value (N : Int) (i : Int) hCanon
+  · exact noisy_dims_s (N : Int) hCanon
+
 theorem noisy_row_boundary_family_driverWins_pairwise
     (names : List String) (left right : Process2) (children : List Process2)
     (leftWin rightWin : DrvWin) (childWins : List DrvWin)
