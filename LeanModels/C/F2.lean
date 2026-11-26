@@ -11270,6 +11270,41 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedEndLifetime_contract
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hstore : WellFormed store)
+    (hsourceBytes : bytesWf id ((lookup store id).map
+      (fun allocation => allocation.bytes) |>.getD []))
+    (htargetBytes : bytesWf id ((lookup (renameStore resolve store) id).map
+      (fun allocation => allocation.bytes) |>.getD []))
+    (hresult : pairedEndLifetime resolve store id = some result) :
+    (∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      endLifetime store id = some sourceResult ∧
+      endLifetime (renameStore resolve store) id = some targetResult) ∧
+      (result.1.2 = footprint .metadata (Region.mk id 0
+        ((lookup store id).map
+          (fun allocation => allocation.bytes.length) |>.getD 0)) ∧
+        result.2.2 = footprint .metadata (Region.mk id 0
+          ((lookup (renameStore resolve store) id).map
+            (fun allocation => allocation.bytes.length) |>.getD 0))) ∧
+      (result.1.1.nextId = store.nextId ∧
+        result.2.1.nextId = (renameStore resolve store).nextId ∧
+        result.1.1.allocations.length = store.allocations.length ∧
+        result.2.1.allocations.length =
+          (renameStore resolve store).allocations.length) ∧
+      (WellFormed result.1.1 ∧ WellFormed result.2.1) := by
+  constructor
+  · exact pairedEndLifetime_sound resolve store id result hresult
+  constructor
+  · exact pairedEndLifetime_footprints resolve store id result hresult
+  constructor
+  · exact pairedEndLifetime_preserves_store_counts resolve store id result hresult
+  · exact pairedEndLifetime_preserves_wellFormed resolve store id result
+      hstore hsourceBytes htargetBytes hresult
+
 #guard true
 #guard (footprint .read { allocation := 1, offset := 0, width := 1 }).accesses.length == 1
 
