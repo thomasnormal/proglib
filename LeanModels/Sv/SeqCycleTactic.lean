@@ -780,7 +780,8 @@ end LeanModels.Sv
 open LeanModels.Sv LeanModels.Sv.Kernel in
 /-- The instantiation pass: the route's `do` block evaluated through its definitions' equation lemmas. -/
 macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
-  `(tactic| simp (config := {maxSteps := 4000000, decide := true}) [LeanModels.Sv.bindParamsRes,
+  `(tactic| simp (config := {maxSteps := 4000000, decide := true}) [-LeanModels.Sv.Res.bind_eq_ok,
+      LeanModels.Sv.bindParamsRes,
       LeanModels.Sv.bindPackageParams, LeanModels.Sv.bindPackageEnums, LeanModels.Sv.bindLocals,
       LeanModels.Sv.bindEnums, LeanModels.Sv.typedParamWidthsE, LeanModels.Sv.Kernel.coreMemGeneratedDeclsList,
       LeanModels.Sv.Kernel.coreMemSubstDecl, LeanModels.Sv.Kernel.coreMemSubstName,
