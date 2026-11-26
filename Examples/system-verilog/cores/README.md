@@ -1071,6 +1071,13 @@ match all seven rows, with x for the unresolved bit selections.  The gated
 probe is `darkriscv/walls/selects_probe.lean`, with its simulator checker in
 `darkriscv/walls/selects_check.py`.
 
+The source-shaped `darkriscv/walls/initial_memory.sv` receipt covers the
+time-zero initializer at `W=8, DEPTH=2` and `W=32, DEPTH=32`.  Canonical E,
+Icarus Verilog 13.0, and Xcelium 24.03-s004 match both initialized output
+rows.  The gated probes are `darkriscv/walls/initial_memory_probe.lean` and
+`darkriscv/walls/initial_memory_canonical_probe.lean`, with the simulator
+checker in `darkriscv/walls/initial_memory_check.py`.
+
 ## 2026-11-20 DarkRISCV system-function expression wall
 
 The repository-local clean-room fixture `darkriscv/walls/function_call_expression.sv`
