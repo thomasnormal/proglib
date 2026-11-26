@@ -630,6 +630,15 @@ theorem renameAllocation_contract (resolve : AllocId → Nat)
     renameAllocation_fields resolve entry |>.1,
     renameAllocation_fields resolve entry |>.2⟩
 
+theorem renameAllocation_size_contract (resolve : AllocId → Nat)
+    (entry : AllocId × Allocation Tag State) :
+    (renameAllocation resolve entry).2.bytes.length = entry.2.bytes.length ∧
+      (renameAllocation resolve entry).2.live = entry.2.live ∧
+      (renameAllocation resolve entry).2.state = entry.2.state := by
+  exact ⟨renameAllocation_byte_count resolve entry,
+    renameAllocation_preserves_liveness resolve entry,
+    renameAllocation_preserves_state resolve entry⟩
+
 theorem renameStore_idempotent (resolve : AllocId → Nat) (store : Store Tag State) :
     renameStore resolve (renameStore resolve store) = renameStore resolve store := by
   cases store with
