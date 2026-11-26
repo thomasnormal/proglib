@@ -1735,6 +1735,31 @@ theorem PDesign.instantiateH_of_generated_summary
   exact PDesign.instantiateH_of_generated_expansion harity h1 h2 h3
     summary.expansion summary.drivers
 
+/-! The generated-family bridge at the user-facing hierarchical semantic tier.
+The summary theorem above proves the ordinary hierarchical instantiation; this
+corollary transports it through the alias guard, with the no-procedural-flow
+side condition left explicit for callers that use `CombDesign`. -/
+theorem PDesign.instantiateHDAlias2_of_generated_summary
+    {d : PDesign} {lib : List PDesign} {args : List Int}
+    {env : IEnv} {decls : List Decl} {elems : List (String × Nat)}
+    {paths : List (GeneratedNode × List Int)}
+    {child : GeneratedChildRef → Except String Design2}
+    {generated : List Decl × List Process2}
+    (summary : GeneratedHierarchySummary
+      (PDesign.childRec lib.length lib { int32 := true }
+        (PDesign.surfaceFuel args) (Decl.inputNames decls))
+      (env.withDecls decls) decls elems (PDesign.surfaceFuel args) d paths child generated)
+    (harity : args.length = d.params.length)
+    (h1 : d.paramEnvH { int32 := true } args = .ok env)
+    (h2 : buildDecls env d.decls = .ok decls)
+    (h3 : buildElems env d.decls = .ok elems)
+    (halias : (d.assembleH env decls generated.1 elems generated.2).aliasGuard =
+      d.assembleH env decls generated.1 elems generated.2) :
+    d.instantiateHDAlias2 lib args = d.assembleH env decls generated.1 elems generated.2 := by
+  unfold PDesign.instantiateHDAlias2 PDesign.instantiateHD2
+  rw [PDesign.instantiateH_of_generated_summary summary harity h1 h2 h3]
+  exact halias
+
 
 @[simp] theorem assembleGeneratedAt_processes
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
