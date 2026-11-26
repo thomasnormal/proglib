@@ -4405,6 +4405,31 @@ theorem pairedReallocMetadata_refusal
   · simp [pairedReallocMetadata, hsource]
   · simp [pairedReallocMetadata, htarget]
 
+theorem pairedReallocMetadata_failure_contract
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement) :
+    pairedReallocMetadata resolve old request locations placement = none ↔
+      reallocMetadata old request locations placement = none ∨
+        reallocMetadata (renameMetadata resolve 0 old)
+          (renameAllocationRequest resolve request) locations
+          (match placement with
+          | .address _ => .address (resolve 0)
+          | .unaddressable => .unaddressable
+          | .fail => .fail) = none := by
+  cases placement with
+  | fail =>
+      simp [pairedReallocMetadata, reallocMetadata]
+  | address base =>
+      by_cases hsame : locations.length = request.bytes.length
+      · simp [pairedReallocMetadata, reallocMetadata, hsame]
+      · simp [pairedReallocMetadata, reallocMetadata, hsame]
+  | unaddressable =>
+      by_cases hsame : locations.length = request.bytes.length
+      · simp [pairedReallocMetadata, reallocMetadata, hsame]
+      · simp [pairedReallocMetadata, reallocMetadata, hsame]
+
 inductive ZeroSizeOutcome (Tag State TypeId : Type) where
   | null
   | token (metadata : AllocationMetadata Tag State TypeId)
