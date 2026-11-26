@@ -532,6 +532,15 @@ theorem renameByte_comp (first second : AllocId → Nat) (byte : Byte Tag) :
   | value bits provenance fragment =>
       cases provenance <;> cases fragment <;> rfl
 
+theorem renameByte_renaming_contract
+    (resolve : AllocId → Nat) (byte : Byte Tag) :
+    byteFragment (renameByte resolve byte) = byteFragment byte ∧
+      byteProvenance (renameByte resolve byte) = byteProvenance byte ∧
+      renameByte resolve (renameByte resolve byte) = renameByte resolve byte := by
+  exact ⟨renameByte_preserves_fragment resolve byte,
+    renameByte_preserves_provenance resolve byte,
+    renameByte_idempotent resolve byte⟩
+
 theorem optionResolve_idempotent (resolve : AllocId → Nat)
     (address : Option Nat) :
     Option.map (fun _ => resolve 0) (Option.map (fun _ => resolve 0) address) =
