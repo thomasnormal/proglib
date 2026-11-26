@@ -2741,4 +2741,27 @@ theorem noisy_inner_value (N i j : Int)
   simp [evalInt, IEnv.bindVal, noisyEnv, noisyScope, noisyDeclsRaw,
     List.lookup, hCanon]
 
+theorem noisy_instantiateH_of_generated_expansion
+    {N : Int} {env : IEnv} {decls : List Decl} {elems : List (String × Nat)}
+    {idecls : List Decl} {gens : List Process2}
+    (h1 : noisyMul.pdesign.paramEnvH { int32 := true } [N] = .ok env)
+    (h2 : buildDecls env noisyMul.pdesign.decls = .ok decls)
+    (h3 : buildElems env noisyMul.pdesign.decls = .ok elems)
+    (hexpand : CombHier.GeneratedFamilyExpansion
+      (PDesign.childRec 3 noisyMul.plib { int32 := true }
+        (PDesign.surfaceFuel [N]) (Decl.inputNames decls))
+      (env.withDecls decls) elems (PDesign.surfaceFuel [N]) noisyMul.pdesign
+      (noisyFullFamilyPaths N) noisyTopNodeChild (idecls, gens))
+    (hok : driversOk noisyMul.pdesign.declNames noisyMul.pdesign.inputNames
+      (noisyMul.pdesign.assembleH env decls idecls elems gens).processes.toList = true) :
+    noisyMul.pdesign.instantiateH noisyMul.plib [N] (PDesign.surfaceFuel [N]) =
+      .ok (noisyMul.pdesign.assembleH env decls idecls elems gens) := by
+  apply CombHier.PDesign.instantiateH_of_expansion
+  · rfl
+  · exact h1
+  · exact h2
+  · exact h3
+  · exact hexpand.1
+  · exact hok
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
