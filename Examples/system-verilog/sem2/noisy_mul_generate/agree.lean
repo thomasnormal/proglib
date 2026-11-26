@@ -3847,6 +3847,61 @@ theorem noisy_pp_child_driverWins_pairwise
   rw [hnorm]
   exact noisy_pp_family_windows_pairwise N hN
 
+theorem noisy_pp_paths_driverWins
+    (N : Nat) (env : IEnv) (elems : List (String × Nat))
+    (names : List String)
+    (hwin : ∀ i ∈ intRange 0 (N : Int).toNat,
+      ∀ j ∈ intRange 0 (N : Int).toNat,
+        driverWins names
+          ((noisyFullFamilySegment env elems
+            (.child { loops := ppSourceLoops, inst := andInst, child := andDef },
+              [i, j])).2) =
+          [("pp", some (i.toNat * N + j.toNat, 1))]) :
+    driverWins names
+        ((intRange 0 (N : Int).toNat).flatMap (fun i =>
+          (noisyPpPaths N i).flatMap
+            (fun p => (noisyFullFamilySegment env elems p).2))) =
+      (intRange 0 (N : Int).toNat).flatMap (fun i =>
+        (intRange 0 (N : Int).toNat).flatMap (fun j =>
+          [("pp", some (i.toNat * N + j.toNat, 1))])) := by
+  rw [driverWins_flatMap]
+  apply CombView.flatMap_congr'
+  intro i hi
+  have hshape :
+      (noisyPpPaths N i).flatMap
+          (fun p => (noisyFullFamilySegment env elems p).2) =
+        (intRange 0 (N : Int).toNat).flatMap (fun j =>
+          (noisyFullFamilySegment env elems
+            (.child { loops := ppSourceLoops, inst := andInst, child := andDef },
+              [i, j])).2) := by
+    simp only [noisyPpPaths]
+    induction (intRange 0 (N : Int).toNat) with
+    | nil => rfl
+    | cons j js ih =>
+        simp only [List.map_cons, List.flatMap_cons]
+        rw [ih]
+  rw [hshape, driverWins_flatMap]
+  apply CombView.flatMap_congr'
+  intro j hj
+  exact hwin i hi j hj
+
+theorem noisy_out_paths_driverWins
+    (N : Nat) (env : IEnv) (elems : List (String × Nat))
+    (names : List String)
+    (hwin : ∀ i ∈ intRange 0 (N : Int).toNat,
+      driverWins names [instProcess2 (env.bindVal "i" i) elems outProc] =
+        [("p", some (i.toNat, 1))]) :
+    driverWins names
+        ((noisyOutPaths N).flatMap
+          (fun p => (noisyFullFamilySegment env elems p).2)) =
+      (intRange 0 (N : Int).toNat).flatMap (fun i =>
+        [("p", some (i.toNat, 1))]) := by
+  simp only [noisyOutPaths, List.flatMap_map]
+  rw [driverWins_flatMap]
+  apply CombView.flatMap_congr'
+  intro i hi
+  exact hwin i hi
+
 theorem noisy_generated_family_driverWins_flat
     (rows cols : Nat) (signal : String)
     (off : Nat → Nat → Nat)
@@ -4319,6 +4374,106 @@ theorem noisy_row_child_generated_driverWins_pairwise_paths
     exact hrow i hi
   rw [hrows]
   exact hdis
+
+theorem noisy_row_child_generated_driverWins_paths
+    (N : Nat) (hN : 1 ≤ N) (env : IEnv) (elems : List (String × Nat))
+    (names : List String)
+    (cell : Int → Int → List DrvWin)
+    (hwin : ∀ i ∈ intRange 1 ((N : Int) - 1).toNat,
+      ∀ j ∈ intRange 0 (N : Int).toNat,
+        driverWins names (noisyRowChildCellProcs env elems i j) = cell i j) :
+    driverWins names
+        ((intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+          (noisyRowChildPaths N i).flatMap
+            (fun p => (noisyFullFamilySegment env elems p).2))) =
+      (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+        (intRange 0 (N : Int).toNat).flatMap (fun j => cell i j)) := by
+  have hrow : ∀ i ∈ intRange 1 ((N : Int) - 1).toNat,
+      driverWins names
+        ((noisyRowChildPaths N i).flatMap
+          (fun p => (noisyFullFamilySegment env elems p).2)) =
+        (intRange 0 (N : Int).toNat).flatMap (fun j => cell i j) := by
+    intro i hi
+    rw [noisy_row_child_paths_processes env elems N i]
+    rw [driverWins_flatMap]
+    apply CombView.flatMap_congr'
+    intro j hj
+    exact hwin i hi j hj
+  rw [driverWins_flatMap]
+  apply CombView.flatMap_congr'
+  intro i hi
+  exact hrow i hi
+
+theorem noisy_row_family_driverWins
+    {α : Type} (rows : List α) (names : List String)
+    (left right : α → Process2) (children : α → List Process2)
+    (leftWin rightWin : α → DrvWin) (childWins : α → List DrvWin)
+    (hleft : ∀ i ∈ rows, driverWins names [left i] = [leftWin i])
+    (hright : ∀ i ∈ rows, driverWins names [right i] = [rightWin i])
+    (hchildren : ∀ i ∈ rows, driverWins names (children i) = childWins i) :
+    driverWins names
+        (rows.flatMap (fun i => left i :: children i ++ [right i])) =
+      rows.flatMap (fun i => [leftWin i] ++ childWins i ++ [rightWin i]) := by
+  rw [driverWins_flatMap]
+  apply CombView.flatMap_congr'
+  intro i hi
+  rw [show left i :: children i ++ [right i] = [left i] ++ children i ++ [right i] by simp]
+  rw [driverWins_append, driverWins_append, hleft i hi, hchildren i hi, hright i hi]
+
+theorem noisy_row_paths_driverWins
+    (N : Nat) (env : IEnv) (elems : List (String × Nat))
+    (names : List String)
+    (cell : Int → Int → List DrvWin)
+    (hleft : ∀ i ∈ intRange 1 ((N : Int) - 1).toNat,
+      driverWins names [instProcess2 (env.bindVal "i" i) elems rowLeft] =
+        [("c", some (i.toNat * (N + 1), 1))])
+    (hright : ∀ i ∈ intRange 1 ((N : Int) - 1).toNat,
+      driverWins names [instProcess2 (env.bindVal "i" i) elems rowRight] =
+        [("s", some (i.toNat * (N + 1) + N, 1))])
+    (hchildren : ∀ i ∈ intRange 1 ((N : Int) - 1).toNat,
+      driverWins names
+          ((noisyRowChildPaths N i).flatMap
+            (fun p => (noisyFullFamilySegment env elems p).2)) =
+        (intRange 0 (N : Int).toNat).flatMap (fun j => cell i j)) :
+    driverWins names
+        ((intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+          (noisyRowPaths N i).flatMap
+            (fun p => (noisyFullFamilySegment env elems p).2))) =
+      (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+        [("c", some (i.toNat * (N + 1), 1))] ++
+          (intRange 0 (N : Int).toNat).flatMap (fun j => cell i j) ++
+          [("s", some (i.toNat * (N + 1) + N, 1))]) := by
+  have hshape :
+      (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+          (noisyRowPaths N i).flatMap
+            (fun p => (noisyFullFamilySegment env elems p).2)) =
+        (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+          instProcess2 (env.bindVal "i" i) elems rowLeft ::
+            (noisyRowChildPaths N i).flatMap
+              (fun p => (noisyFullFamilySegment env elems p).2) ++
+            [instProcess2 (env.bindVal "i" i) elems rowRight]) := by
+    apply CombView.flatMap_congr'
+    intro i hi
+    simp only [noisyRowPaths, List.flatMap_cons, List.flatMap_append,
+      List.flatMap_singleton]
+    rw [noisy_row_child_paths_processes env elems N i]
+    rfl
+  rw [hshape]
+  apply noisy_row_family_driverWins
+    (rows := intRange 1 ((N : Int) - 1).toNat)
+    (names := names)
+    (left := fun i => instProcess2 (env.bindVal "i" i) elems rowLeft)
+    (right := fun i => instProcess2 (env.bindVal "i" i) elems rowRight)
+    (children := fun i =>
+      (noisyRowChildPaths N i).flatMap
+        (fun p => (noisyFullFamilySegment env elems p).2))
+    (leftWin := fun i => ("c", some (i.toNat * (N + 1), 1)))
+    (rightWin := fun i => ("s", some (i.toNat * (N + 1) + N, 1)))
+    (childWins := fun i =>
+      (intRange 0 (N : Int).toNat).flatMap (fun j => cell i j))
+  · exact hleft
+  · exact hright
+  · exact hchildren
 
 theorem noisy_row_left_driverWins_at
     {N i : Nat} (hN : 1 ≤ N) (hi : i < N)
