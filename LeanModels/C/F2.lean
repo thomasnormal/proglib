@@ -6243,6 +6243,27 @@ def placementAllowed (store : Store Tag State) (base size : Nat) : Bool :=
         !intervalOverlap base size otherBase allocation.bytes.length
     | _, _ => true
 
+theorem placementAllowed_result_contract
+    (store : Store Tag State) (base size : Nat) :
+    placementAllowed store base size = true ↔
+      ∀ entry ∈ store.allocations,
+        match entry.2.live, entry.2.address with
+        | true, some otherBase =>
+            intervalOverlap base size otherBase entry.2.bytes.length = false
+        | _, _ => True := by
+  simp only [placementAllowed, List.all_eq_true]
+  constructor
+  · intro h entry hmem
+    have hentry := h entry hmem
+    cases hstate : entry.2.live <;> cases haddress : entry.2.address <;>
+      simp [hstate, haddress] at hentry ⊢
+    exact hentry
+  · intro h entry hmem
+    have hentry := h entry hmem
+    cases hstate : entry.2.live <;> cases haddress : entry.2.address <;>
+      simp [hstate, haddress] at hentry ⊢
+    exact hentry
+
 theorem placementAllowed_empty
     (base size : Nat) :
     placementAllowed ({ allocations := [], nextId := 0 } : Store Tag State)
