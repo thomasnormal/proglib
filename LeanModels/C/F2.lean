@@ -451,6 +451,20 @@ theorem listSet_preserves_at_of_ne (values : List α) (offset : Nat) (value : α
   | cons head rest ih =>
       cases offset <;> cases index <;> simp_all [listSet, ih]
 
+theorem listSet_out_of_bounds (values : List α) (offset : Nat) (value : α)
+    (hout : values.length ≤ offset) :
+    listSet values offset value = values := by
+  induction values generalizing offset with
+  | nil => rfl
+  | cons head rest ih =>
+      cases offset with
+      | zero => simp at hout
+      | succ offset =>
+          simp only [listSet]
+          congr 1
+          apply ih
+          exact Nat.le_of_succ_le_succ hout
+
 structure Region where
   allocation : AllocId
   offset : Nat
