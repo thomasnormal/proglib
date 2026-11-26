@@ -26,6 +26,7 @@ error: sv_structure: this design instantiates modules, and the hierarchy summary
 example (N : Nat) : CombDesign (noisyMul.sem N) := by
   sv_structure
 end Examples.«system-verilog».sem2.noisy_mul_generate
+
 #check generated_child_family
 #check generated_child_family_segments
 #check generated_family_body_segments
@@ -5609,5 +5610,255 @@ theorem noisy_generated_pairwise_of_expected
   · exact noisy_generated_pp_row_full_disjoint N
   · exact noisy_generated_pp_out_disjoint N
   · exact noisy_generated_row_full_out_disjoint N
+
+theorem noisy_pp_procWrite_of_mem
+    (N : Nat) (env : IEnv) (elems : List (String × Nat)) (p : Process2)
+    (hp : p ∈
+      (intRange 0 (N : Int).toNat).flatMap (fun i =>
+        (noisyPpPaths (N : Int) i).flatMap
+          (fun p => (noisyFullFamilySegment env elems p).2))) :
+    Process2.procWrites p = [] := by
+  simp only [List.mem_flatMap] at hp
+  obtain ⟨i, hi, pth, hpth, hp⟩ := hp
+  simp only [noisyPpPaths, List.mem_map] at hpth
+  obtain ⟨j, hj, rfl⟩ := hpth
+  have hproc := noisy_and_flatten_procWrites
+    ((env.bindVal "i" i).bindVal "j" j) elems
+    ("g_pp[" ++ toString i ++ "].g_pp_j[" ++ toString j ++ "].u_and.")
+  rw [List.flatMap_eq_nil_iff] at hproc
+  apply hproc
+  simpa [noisyFullFamilySegment, noisyTopNodeSegment,
+    noisyTopGeneratedPairSegment, noisyTopNodeChild] using hp
+
+theorem noisy_row_procWrite_of_mem
+    (N : Nat) (env : IEnv) (elems : List (String × Nat)) (p : Process2)
+    (hp : p ∈
+      (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+        (noisyRowPaths (N : Int) i).flatMap
+          (fun p => (noisyFullFamilySegment env elems p).2))) :
+    Process2.procWrites p = [] := by
+  simp only [List.mem_flatMap] at hp
+  obtain ⟨i, hi, pth, hpth, hp⟩ := hp
+  simp only [noisyRowPaths, List.mem_append, List.mem_cons, List.not_mem_nil,
+    or_false] at hpth
+  rcases hpth with hleft | hrest
+  · rcases hleft with hleft | hchild
+    · subst pth
+      have hpeq : p = instProcess2 (env.bindVal "i" i) elems rowLeft := by
+        simpa [noisyFullFamilySegment] using hp
+      subst p
+      exact noisy_instProcess2_assignL_procWrites _ _ _ _
+    · simp only [noisyRowChildPaths, List.mem_flatMap, List.mem_cons,
+        List.not_mem_nil, or_false] at hchild
+      obtain ⟨j, hj, hpath⟩ := hchild
+      rcases hpath with hpath | hpath | hpath
+      · subst pth
+        have hproc := noisy_xor_flatten_procWrites
+            ((env.bindVal "i" i).bindVal "j" j) elems
+            ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t.")
+        rw [List.flatMap_eq_nil_iff] at hproc
+        apply hproc
+        simpa [noisyFullFamilySegment, noisyTopNodeSegment,
+          noisyTopGeneratedPairSegment, noisyTopNodeChild,
+          andInst, xorInst, xorSInst, majInst] using hp
+      · subst pth
+        have hproc := noisy_xorS_flatten_procWrites
+            ((env.bindVal "i" i).bindVal "j" j) elems
+            ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s.")
+        rw [List.flatMap_eq_nil_iff] at hproc
+        apply hproc
+        simpa [noisyFullFamilySegment, noisyTopNodeSegment,
+          noisyTopGeneratedPairSegment, noisyTopNodeChild,
+          andInst, xorInst, xorSInst, majInst] using hp
+      · subst pth
+        have hproc := noisy_maj_flatten_procWrites
+            ((env.bindVal "i" i).bindVal "j" j) elems
+            ("g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c.")
+        rw [List.flatMap_eq_nil_iff] at hproc
+        apply hproc
+        simpa [noisyFullFamilySegment, noisyTopNodeSegment,
+          noisyTopGeneratedPairSegment, noisyTopNodeChild,
+          andInst, xorInst, xorSInst, majInst] using hp
+  · subst pth
+    have hpeq : p = instProcess2 (env.bindVal "i" i) elems rowRight := by
+      simpa [noisyFullFamilySegment] using hp
+    subst p
+    exact noisy_instProcess2_assignL_procWrites _ _ _ _
+
+def noisyPpProcs (N : Nat) (env : IEnv) (elems : List (String × Nat)) : List Process2 :=
+  (intRange 0 (N : Int).toNat).flatMap (fun i =>
+    (noisyPpPaths (N : Int) i).flatMap
+      (fun p => (noisyFullFamilySegment env elems p).2))
+
+def noisyRowProcs (N : Nat) (env : IEnv) (elems : List (String × Nat)) : List Process2 :=
+  (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+    (noisyRowPaths (N : Int) i).flatMap
+      (fun p => (noisyFullFamilySegment env elems p).2))
+
+def noisyOutProcs (N : Nat) (env : IEnv) (elems : List (String × Nat)) : List Process2 :=
+  (noisyOutPaths (N : Int)).flatMap
+    (fun p => (noisyFullFamilySegment env elems p).2)
+
+def noisyGeneratedProcs (N : Nat) (env : IEnv) (elems : List (String × Nat)) : List Process2 :=
+  noisyPpProcs N env elems ++ noisyRowProcs N env elems ++ noisyOutProcs N env elems
+
+theorem noisy_out_procWrite_of_mem
+    (N : Nat) (env : IEnv) (elems : List (String × Nat)) (p : Process2)
+    (hp : p ∈ noisyOutProcs N env elems) :
+    Process2.procWrites p = [] := by
+  simp only [noisyOutProcs, List.mem_flatMap] at hp
+  obtain ⟨pth, hpth, hp⟩ := hp
+  simp [noisyOutPaths] at hpth
+  obtain ⟨i, hi, rfl⟩ := hpth
+  have hpeq : p = instProcess2 (env.bindVal "i" i) elems outProc := by
+    simpa [noisyFullFamilySegment] using hp
+  subst p
+  exact noisy_instProcess2_assignL_procWrites _ _ _ _
+
+theorem noisy_pp_procWrites
+    (N : Nat) (env : IEnv) (elems : List (String × Nat)) :
+    (noisyPpProcs N env elems).flatMap Process2.procWrites = [] := by
+  rw [List.flatMap_eq_nil_iff]
+  intro p hp
+  apply noisy_pp_procWrite_of_mem N env elems p
+  exact hp
+
+theorem noisy_row_procWrites
+    (N : Nat) (env : IEnv) (elems : List (String × Nat)) :
+    (noisyRowProcs N env elems).flatMap Process2.procWrites = [] := by
+  rw [List.flatMap_eq_nil_iff]
+  intro p hp
+  apply noisy_row_procWrite_of_mem N env elems p
+  exact hp
+
+theorem noisy_out_procWrites
+    (N : Nat) (env : IEnv) (elems : List (String × Nat)) :
+    (noisyOutProcs N env elems).flatMap Process2.procWrites = [] := by
+  rw [List.flatMap_eq_nil_iff]
+  intro p hp
+  apply noisy_out_procWrite_of_mem N env elems p
+  exact hp
+
+theorem noisy_generated_procWrites
+    (N : Nat) (env : IEnv) (elems : List (String × Nat)) :
+    (noisyGeneratedProcs N env elems).flatMap Process2.procWrites = [] := by
+  unfold noisyGeneratedProcs
+  rw [List.flatMap_append, List.flatMap_append,
+    noisy_pp_procWrites, noisy_row_procWrites, noisy_out_procWrites]
+  simp
+
+theorem noisy_generated_procs_eq
+    (N : Nat) (env : IEnv) (elems : List (String × Nat)) :
+    (noisyFullFamilyPaths (N : Int)).flatMap
+        (fun p => (noisyFullFamilySegment env elems p).2) =
+      noisyGeneratedProcs N env elems := by
+  have flatMap_flatMap : ∀ {α β γ : Type}
+      (xs : List α) (f : α → List β) (g : β → List γ),
+      (xs.flatMap f).flatMap g = xs.flatMap (fun x => (f x).flatMap g) := by
+    intro α β γ xs f g
+    induction xs with
+    | nil => rfl
+    | cons x xs ih => simp [ih]
+  simp [noisyGeneratedProcs, noisyPpProcs, noisyRowProcs, noisyOutProcs,
+    noisyFullFamilyPaths, List.flatMap_append, flatMap_flatMap,
+    List.append_assoc]
+
+theorem noisy_static_windows_pairwise (N : Nat) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (noisyStaticWins N) := by
+  simp [noisyStaticWins, DrvWin.overlaps, List.pairwise_cons]
+
+theorem noisy_generated_driversOk_actual
+    (N : Nat) (hN : 1 ≤ N)
+    (hCanon : canonInt 32 true (N : Int) = N) :
+    driversOk noisyMul.pdesign.declNames noisyMul.pdesign.inputNames
+      (noisyStaticProcs (noisyEnv (N : Int)) (noisyDeclsRaw (N : Int))
+        (noisyElems (N : Int)) ++
+       noisyGeneratedProcs N (noisyEnv (N : Int)) (noisyElems (N : Int))) = true := by
+  have htargets := noisy_static_targets_actual N hN hCanon
+  rcases htargets with ⟨hS, hC, hT, hP⟩
+  have hstatic := noisy_static_driverWins N
+    (noisyEnv (N : Int)) (noisyDeclsRaw (N : Int)) (noisyElems (N : Int))
+    hS hC hT hP
+  have hstatic' :
+      driverWins noisyMul.pdesign.declNames
+        (noisyStaticProcs (noisyEnv (N : Int)) (noisyDeclsRaw (N : Int))
+          (noisyElems (N : Int))) = noisyStaticWins N := by
+    simpa [PDesign.declNames, PDesign.declSig, CombView.Summary.declNames,
+      noisyMul.pdesign, noisyStaticWins] using hstatic
+  have hpp := noisy_pp_family_driverWins_actual N hN hCanon
+  have hrow := noisy_row_family_driverWins_actual N hN hCanon
+  have hout := noisy_out_family_driverWins_actual N hCanon
+  have hpp' :
+      driverWins noisyMul.pdesign.declNames
+        (noisyPpProcs N (noisyEnv (N : Int)) (noisyElems (N : Int))) =
+        noisyPpWinsAll N := by
+    simpa [noisyPpProcs] using hpp
+  have hrow' :
+      driverWins noisyMul.pdesign.declNames
+        (noisyRowProcs N (noisyEnv (N : Int)) (noisyElems (N : Int))) =
+        noisyRowWinsAllFull N := by
+    simpa [noisyRowProcs] using hrow
+  have hout' :
+      driverWins noisyMul.pdesign.declNames
+        (noisyOutProcs N (noisyEnv (N : Int)) (noisyElems (N : Int))) =
+        noisyOutWinsAll N := by
+    simpa [noisyOutProcs] using hout
+  have hgenerated :
+      driverWins noisyMul.pdesign.declNames
+        (noisyGeneratedProcs N (noisyEnv (N : Int)) (noisyElems (N : Int))) =
+        noisyPpWinsAll N ++ noisyRowWinsAllFull N ++ noisyOutWinsAll N := by
+    unfold noisyGeneratedProcs
+    exact noisy_generated_family_driverWins_append
+      (names := noisyMul.pdesign.declNames)
+      (pp := noisyPpProcs N (noisyEnv (N : Int)) (noisyElems (N : Int)))
+      (row := noisyRowProcs N (noisyEnv (N : Int)) (noisyElems (N : Int)))
+      (out := noisyOutProcs N (noisyEnv (N : Int)) (noisyElems (N : Int)))
+      (ppWins := noisyPpWinsAll N) (rowWins := noisyRowWinsAllFull N)
+      (outWins := noisyOutWinsAll N) hpp' hrow' hout'
+  apply noisy_driversOk_of_continuous_split
+    (names := noisyMul.pdesign.declNames)
+    (inputs := noisyMul.pdesign.inputNames)
+    (static := noisyStaticProcs (noisyEnv (N : Int)) (noisyDeclsRaw (N : Int))
+      (noisyElems (N : Int)))
+    (generated := noisyGeneratedProcs N (noisyEnv (N : Int)) (noisyElems (N : Int)))
+  · exact noisy_static_procWrites _ _ _
+  · exact noisy_generated_procWrites _ _ _
+  · rw [hstatic']
+    exact noisy_static_windows_pairwise N
+  · rw [hgenerated]
+    have hpgen := noisy_generated_pairwise_of_expected N hN
+      noisyMul.pdesign.declNames
+      (noisyPpProcs N (noisyEnv (N : Int)) (noisyElems (N : Int)))
+      (noisyRowProcs N (noisyEnv (N : Int)) (noisyElems (N : Int)))
+      (noisyOutProcs N (noisyEnv (N : Int)) (noisyElems (N : Int)))
+      hpp' hrow' hout'
+    have hpgen' : List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+        (driverWins noisyMul.pdesign.declNames
+          (noisyGeneratedProcs N (noisyEnv (N : Int)) (noisyElems (N : Int)))) := by
+      simpa [noisyGeneratedProcs] using hpgen
+    rw [hgenerated] at hpgen'
+    exact hpgen'
+  · rw [hstatic', hgenerated]
+    intro a ha b hb
+    rcases List.mem_append.mp hb with hb | hb
+    · rcases List.mem_append.mp hb with hb | hb
+      · exact noisy_static_pp_disjoint N a ha b hb
+      · exact noisy_static_row_full_disjoint N hN a ha b hb
+    · exact noisy_static_out_disjoint N a ha b hb
+  · rw [hstatic']
+    have hinputs : noisyMul.pdesign.inputNames = ["a", "b", "f"] := by rfl
+    rw [hinputs]
+    intro w hw
+    simp only [noisyStaticWins, List.mem_cons, List.mem_singleton,
+      List.not_mem_nil, or_false] at hw
+    rcases hw with rfl | rfl | rfl | rfl <;> simp
+  · rw [hgenerated]
+    have hinputs : noisyMul.pdesign.inputNames = ["a", "b", "f"] := by rfl
+    rw [hinputs]
+    intro w hw
+    simp_all [noisyPpWinsAll, noisyRowWinsAllFull, noisyOutWinsAll,
+      List.mem_append, List.mem_flatMap, List.mem_map, List.mem_range]
+    grind
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
