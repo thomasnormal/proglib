@@ -2528,6 +2528,21 @@ theorem mergeBytes_rejects_mask_choice_mismatch
     mergeBytes old values masks choices = none := by
   simp [mergeBytes, hmismatch]
 
+theorem mergeBytes_contract
+    (old : List (Byte Tag)) (values masks choices : List UInt8)
+    (result : List (Byte Tag))
+    (hresult : mergeBytes old values masks choices = some result) :
+    old.length = values.length ∧
+      values.length = masks.length ∧
+      masks.length = choices.length ∧
+      result = List.zipWith (fun oldByte entry =>
+        mergeByte oldByte entry.1.1 entry.1.2 entry.2)
+        old (List.zipWith (fun value mask => (value, mask)) values masks
+          |>.zip choices) := by
+  simp [mergeBytes] at hresult
+  rcases hresult with ⟨hconditions, hEq⟩
+  exact ⟨hconditions.1.1, hconditions.1.2, hconditions.2, hEq.symm⟩
+
 theorem mergeFootprint_access_count
     (allocation offset width : Nat) :
     (mergeFootprint allocation offset width).accesses.length = 1 := by
