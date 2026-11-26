@@ -77,6 +77,13 @@ relation.
 Open owner questions are scheduling granularity, x on clocks and event
 controls, inputs-first ordering within a row, atomicity of NBA commit, the
 ternary and memory-index x rule, and the elaboration budget boundary.
+
+A consequence of refusing x/z on a control value: `NdState.begin` refuses
+from a power-on store whose clocks are x, so the relation has no run from
+`E.initial` for a clocked design.  Until the owner decides how the first
+known clock value is modelled, every statement over this relation is about a
+start store whose control signals are known; the theorems name that
+hypothesis (`CoreMemDesign.ControlsKnown`, `NdSound.lean`).
 -/
 
 namespace LeanModels.Sv.Kernel
@@ -292,7 +299,11 @@ def CoreMemExecResult.idle (st : CoreMemState) (locals : SvState) : CoreMemExecR
 /-! ## One parser node, with the unknown read opened -/
 
 /-- Execute one leaf statement with the existing executor.  `execStmtFuel`
-does not recurse on these statements; see `NdSound.execStmtFuel_leaf`. -/
+does not recurse on these statements, so the fuel literal `1` is not a bound.
+That is proved for the two whole-signal nonblocking leaves
+(`execStmtFuel_nbaAssign_fuel`, `execStmtFuel_nbaAssignIdent_fuel` in
+`NdSound.lean`); for the blocking and declaration leaves it holds by reading
+`execStmtFuel` and is not yet a lemma. -/
 def ndLeaf (E : CoreMemDesign) (st : CoreMemState) (locals : SvState) (o : Oracle)
     (env : IEnv) (stmt : PStmt) : Res (CoreMemExecResult × List EdgeWork × Oracle) :=
   match E.execStmtFuel env E.elems st locals 1 stmt with
@@ -622,6 +633,22 @@ length of the run or on the number of NBA rounds. -/
 def Nd.EventSettles (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) (o : Oracle)
     (t : NdState) : Prop :=
   ∃ s₀, NdState.begin E st entry o = .next s₀ ∧ Nd.Run E s₀ t ∧ t.settled = true
+
+/-- **Several input rows.**  `Nd.Trace E st o rows out o'`: from the store
+`st` and the oracle `o` the rows are taken one at a time.  Each row leads to a
+settled state by `Nd.EventSettles`; the next row starts from that state's
+store and from the oracle that state left.  `out` lists the stores of the
+settled states and `o'` is the oracle after the last row.  The oracle is
+threaded: an answer consumed in one row is not offered again in a later one.
+There is no bound on the number of rows or on the length of any run. -/
+inductive Nd.Trace (E : CoreMemDesign) :
+    CoreMemState → Oracle → List SvState → List CoreMemState → Oracle → Prop where
+  | nil (st : CoreMemState) (o : Oracle) : Nd.Trace E st o [] [] o
+  | cons {st : CoreMemState} {o o' : Oracle} {row : SvState} {t : NdState}
+      {rest : List SvState} {out : List CoreMemState}
+      (hrow : Nd.EventSettles E st row o t)
+      (htail : Nd.Trace E t.store t.oracle rest out o') :
+      Nd.Trace E st o (row :: rest) (t.store :: out) o'
 
 /-! ## L1: invariants -/
 
