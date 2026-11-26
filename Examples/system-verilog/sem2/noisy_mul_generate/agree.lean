@@ -4932,4 +4932,33 @@ theorem noisy_static_out_disjoint (N : Nat) :
   · have hnot : ¬ N < i + 1 := by omega
     simp [DrvWin.overlaps, hnot]
 
+theorem noisy_generated_pp_row_disjoint (N : Nat) :
+    ∀ a ∈ noisyPpWinsAll N, ∀ b ∈ noisyRowWinsAll N, a.overlaps b = false := by
+  intro a ha b hb
+  simp only [noisyPpWinsAll, List.mem_flatMap, List.mem_map, List.mem_range] at ha
+  simp only [noisyRowWinsAll, List.mem_flatMap, List.mem_cons, List.not_mem_nil, or_false] at hb
+  obtain ⟨i, hi, j, hj, rfl⟩ := ha
+  obtain ⟨i', hi', j', hj', hb⟩ := hb
+  rcases hb with rfl | rfl | rfl <;>
+    exact noisy_different_signal_windows_disjoint (by decide)
+
+theorem noisy_generated_pp_out_disjoint (N : Nat) :
+    ∀ a ∈ noisyPpWinsAll N, ∀ b ∈ noisyOutWinsAll N, a.overlaps b = false := by
+  intro a ha b hb
+  simp only [noisyPpWinsAll, List.mem_flatMap, List.mem_map, List.mem_range] at ha
+  simp only [noisyOutWinsAll, List.mem_map, List.mem_range] at hb
+  obtain ⟨i, hi, j, hj, rfl⟩ := ha
+  obtain ⟨k, hk, rfl⟩ := hb
+  exact noisy_different_signal_windows_disjoint (by decide)
+
+theorem noisy_generated_row_out_disjoint (N : Nat) :
+    ∀ a ∈ noisyRowWinsAll N, ∀ b ∈ noisyOutWinsAll N, a.overlaps b = false := by
+  intro a ha b hb
+  simp only [noisyRowWinsAll, List.mem_flatMap, List.mem_cons, List.not_mem_nil, or_false] at ha
+  simp only [noisyOutWinsAll, List.mem_map, List.mem_range] at hb
+  obtain ⟨i, hi, j, hj, ha⟩ := ha
+  obtain ⟨k, hk, rfl⟩ := hb
+  rcases ha with rfl | rfl | rfl <;>
+    exact noisy_different_signal_windows_disjoint (by decide)
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
