@@ -8,9 +8,9 @@ hand-built blocking-write race. Rows R14-R17 and R23 check the named refusal
 messages. Rows R19-R22 check the two oracle branches and the existing
 four-state ternary and operand-merge boundaries.
 
-R18 remains an executable `#eval` gap row. An equality observer inside a write
-index currently reaches the leaf evaluator. The next queue item adds the
-missing target-index observer walk and turns this row into a named refusal.
+R18 now checks that an equality observer inside a write index is refused before
+the leaf evaluator. R24 and R25 check the binary `casez` and `casex` observer
+forms, with the named IEEE 1800 §12.5.4 refusal.
 
 `check.py` runs the source-shaped arm witnesses through Icarus Verilog 13.0
 and Xcelium 24.03-s004 when available. Both simulators match eight rows. The

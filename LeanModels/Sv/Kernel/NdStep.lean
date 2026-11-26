@@ -324,6 +324,8 @@ def ndXObserver? : PExpr → Option String
       | .m0 .caseNe => some "12.4: case inequality '!==' is outside per-read x semantics"
       | .m0 .wildEq => some "12.5.4: wildcard equality '==?' is outside per-read x semantics"
       | .m0 .wildNe => some "12.5.4: wildcard inequality '!=?' is outside per-read x semantics"
+      | .m0 .casez => some "12.5.4: casez is outside per-read x semantics"
+      | .m0 .casex => some "12.5.4: casex is outside per-read x semantics"
       | _ => (ndXObserver? left).or (ndXObserver? right)
   | .unary _ arg | .resize _ arg | .signedResize _ arg | .squash2 _ arg
   | .sysCall _ arg | .reduce _ arg | .cast _ arg => ndXObserver? arg
@@ -357,27 +359,31 @@ def ndIndexExprs : PLhs → List PExpr
   | .arrayPart _ indices _ a b => indices ++ [a, b]
   | .aggregateMember _ path => path.filterMap (fun (_, index) => index)
 
-def CoreMemDesign.ndCheckIndexExprs (E : CoreMemDesign) (env : IEnv)
-    (st : CoreMemState) (locals : SvState) : List PExpr → Res Unit
-  | [] => .ok ()
-  | index :: rest =>
-      match E.evalIndexLocals env E.elems st locals index with
-      | .timeout => .timeout
-      | .unsupported msg => .unsupported msg
-      | .ok value =>
-          if value.bits.toList.all Logic.isKnown then
-            E.ndCheckIndexExprs env st locals rest
-          else
-            .unsupported "11.5.1: unknown write index is outside per-read x semantics"
-
-def CoreMemDesign.ndCheckTarget (E : CoreMemDesign) (env : IEnv)
-    (st : CoreMemState) (locals : SvState) (target : PLhs) : Res Unit :=
-  E.ndCheckIndexExprs env st locals (ndIndexExprs target)
-
 def CoreMemDesign.ndCheckExpr (E : CoreMemDesign) (expr : PExpr) : Res Unit :=
   match ndXObserver? expr with
   | none => .ok ()
   | some msg => .unsupported msg
+
+def CoreMemDesign.ndCheckIndexExprs (E : CoreMemDesign) (env : IEnv)
+    (st : CoreMemState) (locals : SvState) : List PExpr → Res Unit
+  | [] => .ok ()
+  | index :: rest =>
+      match E.ndCheckExpr index with
+      | .timeout => .timeout
+      | .unsupported msg => .unsupported msg
+      | .ok () =>
+          match E.evalIndexLocals env E.elems st locals index with
+          | .timeout => .timeout
+          | .unsupported msg => .unsupported msg
+          | .ok value =>
+              if value.bits.toList.all Logic.isKnown then
+                E.ndCheckIndexExprs env st locals rest
+              else
+                .unsupported "11.5.1: unknown write index is outside per-read x semantics"
+
+def CoreMemDesign.ndCheckTarget (E : CoreMemDesign) (env : IEnv)
+    (st : CoreMemState) (locals : SvState) (target : PLhs) : Res Unit :=
+  E.ndCheckIndexExprs env st locals (ndIndexExprs target)
 
 def CoreMemDesign.ndCheckOptionalExpr (E : CoreMemDesign) : Option PExpr → Res Unit
   | none => .ok ()

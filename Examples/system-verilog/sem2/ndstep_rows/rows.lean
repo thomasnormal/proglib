@@ -106,10 +106,21 @@ def allOneXor : NdState :=
     (.bitSel "a" (.ident "b")) (.int 1)]]) [0])
   "11.5.1: unknown write index is outside per-read x semantics"
 
-/-! R18 is retained as an executable gap row until the target-index observer
-walk is added.  It currently reaches the leaf evaluator. -/
-#eval outcomeTag (runC (mk st01 [cur [.blockingAssignL
+/-! R18: an observer nested in a write-target index is refused before the
+leaf evaluator can collapse it. -/
+#guard refused (runC (mk st01 [cur [.blockingAssignL
   (.bitSel "a" (.binary .ceq (.ident "b") (.ident "b"))) (.int 1)]]) [0])
+  "12.4: case equality '===' is outside per-read x semantics"
+
+/-! R24 and R25: binary casez/casex observers are refused by name. -/
+#guard refused (runC (mk st0 [cur [.ifStmt
+    (.binary (.m0 .casez) (.ident "a") (.ident "b"))
+    (.nbaAssign "b" (.int 1)) none]]) [0])
+  "12.5.4: casez is outside per-read x semantics"
+#guard refused (runC (mk st0 [cur [.ifStmt
+    (.binary (.m0 .casex) (.ident "a") (.ident "b"))
+    (.nbaAssign "b" (.int 1)) none]]) [0])
+  "12.5.4: casex is outside per-read x semantics"
 
 /-! R19 and R20: the oracle selects opposite branches at an unknown `if`. -/
 #guard match runC (mk st0 [cur [.ifStmt (.ident "a")
