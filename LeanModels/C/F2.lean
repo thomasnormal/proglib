@@ -11468,6 +11468,28 @@ theorem loadByte_success_value
               rcases hresult with ⟨rfl, rfl⟩
               exact ⟨allocation, rfl, hlive, hbyte⟩
 
+theorem loadByte_result_contract
+    (store : Store Tag State) (id offset : Nat)
+    (result : Byte Tag × Footprint)
+    (hresult : loadByte store id offset = some result) :
+    ∃ allocation byte,
+      lookup store id = some allocation ∧
+      allocation.live = true ∧
+      allocation.bytes[offset]? = some byte ∧
+      result = (byte, footprint .read
+        { allocation := id, offset := offset, width := 1 }) := by
+  cases hlookup : lookup store id with
+  | none => simp [loadByte, hlookup] at hresult
+  | some allocation =>
+      cases hlive : allocation.live with
+      | false => simp [loadByte, hlookup, hlive] at hresult
+      | true =>
+          cases hbyte : allocation.bytes[offset]? with
+          | none => simp [loadByte, hlookup, hlive, hbyte] at hresult
+          | some byte =>
+              refine ⟨allocation, byte, rfl, hlive, hbyte, ?_⟩
+              simpa [loadByte, hlookup, hlive, hbyte] using hresult.symm
+
 def loadTransitionCorresponds (resolve : AllocId → Nat)
     (source target : Store Tag State)
     (sourceResult targetResult : Byte Tag × Footprint) : Prop :=
