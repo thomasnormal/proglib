@@ -4394,4 +4394,14 @@ theorem noisy_out_driverWins_at_of_target
   simp [instProcess2, outProc, driverWins, Process2.drvWins, Lhs2.drvWins,
     hq, hpm]
 
+theorem noisy_out_target_of_elem
+    (env : IEnv) (elems : List (String × Nat)) (i : Int)
+    (helem : elems.lookup "p" = some 1)
+    (hinonneg : 0 ≤ i)
+    (hi : (env.bindVal "i" i).vals.lookup "i" = some i) :
+    instLhs2 (env.bindVal "i" i) elems
+      (.bitSel "p" (.genvarRef "i")) = .ok (.slice "p" i.toNat 1, 1) := by
+  simp [instLhs2, instLhsLeaf2, instIndex2, helem, evalInt,
+    IEnv.bindVal, List.lookup, hi, hinonneg]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
