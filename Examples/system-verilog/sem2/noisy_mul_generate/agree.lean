@@ -2695,6 +2695,10 @@ theorem noisy_env_N_lookup (N : Int)
     (noisyEnv N).nvals.lookup "N" = some (N, 32, true) := by
   simp [noisyEnv, noisyScope, hCanon, List.lookup]
 
+theorem noisy_canonN (N : Nat) (hR : (N : Int) < 2147483648) :
+    canonInt 32 true (N : Int) = N := by
+  exact CombView.canonInt32_of_range ⟨by omega, hR⟩
+
 theorem noisy_bound (N i : Int)
     (hCanon : canonInt 32 true N = N) :
     PExpr.isInt (((noisyEnv N).withDecls (noisyDeclsRaw N)).bindVal "i" i)
