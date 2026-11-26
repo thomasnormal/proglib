@@ -30360,6 +30360,38 @@ def _subroutine_is_referenced(scope, subroutine):
     return referenced
 
 
+def _referenced_subroutine_ids(scope):
+    """Collect elaborated call targets with one walk of ``scope``.
+
+    Package-function admission used to call ``_subroutine_is_referenced`` once
+    per declaration.  On a generate-heavy design that repeated the complete
+    elaborated-tree walk for every package function.  Slang resolves each call
+    to its target symbol, so the target identities are sufficient and preserve
+    the same scope-sensitive test.  ``None`` keeps the old loud fallback when
+    traversal itself fails.
+    """
+    referenced = {}
+
+    def inspect(node):
+        if type(node).__name__ != "CallExpression":
+            return
+        try:
+            target = getattr(node, "subroutine", None)
+        except Exception:
+            return
+        if target is not None:
+            # Keep the wrapper alive.  Some pyslang releases create a fresh
+            # Python proxy when a resolved target is read from a call node,
+            # so comparing bare integer ids after the walk is insufficient.
+            referenced[id(target)] = target
+
+    try:
+        scope.visit(inspect)
+    except Exception:
+        return None
+    return tuple(referenced.values())
+
+
 def _subroutine_is_referenced_in_functional_members(scope, subroutine):
     """Whether a module function is called by executable source.
 
@@ -37198,6 +37230,7 @@ def _sym_package_functions(sm, module=None):
                     for value in node:
                         collect_calls(value)
             collect_calls(module)
+        referenced_targets = _referenced_subroutine_ids(root)
         for unit in _SYM.comp.getCompilationUnits():
             for package in unit:
                 if str(getattr(package, "kind", "")).split(".")[-1] != "Package":
@@ -37206,8 +37239,11 @@ def _sym_package_functions(sm, module=None):
                     if (str(getattr(member, "kind", "")).split(".")[-1]
                             != "Subroutine"):
                         continue
-                    if (not _subroutine_is_referenced(root, member)
-                            and member.name not in called_names):
+                    referenced = (referenced_targets is None
+                                  or any(target is member
+                                         for target in referenced_targets)
+                                  or member.name in called_names)
+                    if not referenced:
                         continue
                     packages.add(package.name)
                     retained = _sym_function_node(sm, member)
