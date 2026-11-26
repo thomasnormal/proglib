@@ -1304,6 +1304,54 @@ inductive GeneratedNode where
   | child (ref : GeneratedChildRef)
 deriving Repr, Inhabited
 
+/-! A source-shaped recognizer for mixed generated bodies.  Unlike `Summary`,
+this reader deliberately keeps child instances as child references: a child
+can contribute a valuation-dependent `Design2` segment, so treating it as a
+module-level site would silently change the hierarchy. -/
+
+inductive GeneratedSite where
+  | process (loops : List GeneratedLoop) (pos : Nat) (site : TSite)
+  | child (ref : GeneratedChildRef)
+deriving Repr, Inhabited
+
+def GeneratedSite.loops : GeneratedSite → List GeneratedLoop
+  | .process loops _ _ => loops
+  | .child ref => ref.loops
+
+def generatedSitesAt (decls : List DeclT) (pos : Nat) : List GeneratedNode →
+    Except String (List GeneratedSite)
+  | [] => .ok []
+  | .process loops p :: rest => do
+      let site ← siteOf? decls pos p
+      let tail ← generatedSitesAt decls (pos + 1) rest
+      .ok (.process loops pos site :: tail)
+  | .child ref :: rest => do
+      let tail ← generatedSitesAt decls pos rest
+      .ok (.child ref :: tail)
+
+def generatedSites (decls : List DeclT) (nodes : List GeneratedNode) :
+    Except String (List GeneratedSite) :=
+  generatedSitesAt decls 0 nodes
+
+theorem generatedSitesAt_process
+    {decls : List DeclT} {pos : Nat} {loops : List GeneratedLoop} {p : PProcess}
+    {rest : List GeneratedNode} {site : TSite} {tail : List GeneratedSite}
+    (hs : siteOf? decls pos p = .ok site)
+    (ht : generatedSitesAt decls (pos + 1) rest = .ok tail) :
+    generatedSitesAt decls pos (.process loops p :: rest) =
+      .ok (.process loops pos site :: tail) := by
+  rw [generatedSitesAt, hs, ht]
+  rfl
+
+theorem generatedSitesAt_child
+    {decls : List DeclT} {pos : Nat} {ref : GeneratedChildRef}
+    {rest : List GeneratedNode} {tail : List GeneratedSite}
+    (ht : generatedSitesAt decls pos rest = .ok tail) :
+    generatedSitesAt decls pos (.child ref :: rest) =
+      .ok (.child ref :: tail) := by
+  rw [generatedSitesAt, ht]
+  rfl
+
 def GeneratedNode.loops : GeneratedNode → List GeneratedLoop
   | .process loops _ => loops
   | .child ref => ref.loops
