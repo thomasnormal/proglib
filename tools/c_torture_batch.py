@@ -17,11 +17,15 @@ import hashlib
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
+
+from c_corpus_fetch import ORACLE_TESTS_COMPILER
 
 ROOT = Path(__file__).resolve().parent.parent
 EXTRACTOR = ROOT / "extractors" / "c" / "extract.py"
 SUBDIR = "gcc/testsuite/gcc.c-torture/execute"
+PIN = ROOT / "docs" / "c-torture-pin.json"
 
 
 def _why(entry: dict) -> str:
@@ -79,7 +83,7 @@ def _refresh_stale(entry: dict) -> tuple[bool, str]:
     return False, detail or "extractor refused without a diagnostic"
 
 
-def _canonicalize_envelope(entry: dict, manifest: Path) -> None:
+def _canonicalize_envelope(entry: dict, manifest: Path) -> bool:
     """Use the manifest's cache root when a copied manifest has stale paths.
 
     Manifests are portable receipts, but their envelope field historically
@@ -89,7 +93,7 @@ def _canonicalize_envelope(entry: dict, manifest: Path) -> None:
     """
     name = entry.get("name")
     if not name or not entry.get("envelope"):
-        return
+        return False
     expected = manifest.parent / "env" / (name[:-2] + ".json")
     current = Path(entry["envelope"])
     source = manifest.parent / "src" / name
@@ -99,6 +103,37 @@ def _canonicalize_envelope(entry: dict, manifest: Path) -> None:
     # approved source cache.
     if (expected.exists() or source.is_file()) and current != expected:
         entry["envelope"] = str(expected)
+        return True
+    return False
+
+
+def _augment_pinned_metadata(tests: list[dict]) -> bool:
+    """Restore pinned oracle metadata missing from an older manifest.
+
+    A replay manifest is an external receipt and may predate a metadata-only
+    pin update.  The test name is already the manifest's stable identity, so
+    the committed pin is the only approved source for filling this field.
+    Return whether any entry changed so the runner can receive an augmented
+    manifest without mutating the receipt on disk.
+    """
+    try:
+        pinned = dict(json.loads(PIN.read_text()).get("oracle_tests_compiler", {}))
+    except (OSError, json.JSONDecodeError):
+        pinned = {}
+    # The code table is the current source of truth used when a manifest is
+    # generated.  Keep old copied manifests replayable even when their pin
+    # receipt predates a metadata-only classification.
+    pinned.update(ORACLE_TESTS_COMPILER)
+    changed = False
+    for entry in tests:
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("name")
+        if (isinstance(name, str) and name in pinned and
+                not entry.get("oracle_tests_compiler")):
+            entry["oracle_tests_compiler"] = pinned[name]
+            changed = True
+    return changed
 
 
 def _parse_child(name: str, stdout: str) -> tuple[str, str, str] | None:
@@ -121,44 +156,62 @@ def run(manifest: Path, runner: str, fuel: int, timeout: float) -> int:
         print("c_torture_batch: manifest has no tests array", file=sys.stderr)
         return 2
 
-    for entry in tests:
-        if not isinstance(entry, dict):
-            print("\t".join(("", "runner-error", "manifest test is not an object")))
-            continue
-        _canonicalize_envelope(entry, manifest)
-        static = _static_row(entry)
-        if static[1] == "not-ingested":
-            refreshed, refresh_detail = _refresh_stale(entry)
-            if refreshed:
-                static = _static_row(entry)
-            elif refresh_detail:
-                static = (static[0], static[1],
-                          "%s; refresh failed: %s" % (static[2], refresh_detail))
-        if static[0]:
-            print("\t".join(static), flush=True)
-            continue
-        name = str(entry.get("name") or "")
-        try:
-            proc = subprocess.run(
-                [runner, "--only", name, str(manifest), str(fuel)],
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                check=False,
-            )
-        except subprocess.TimeoutExpired:
-            print(f"{name}\trunner-error\twall-clock kill after {timeout:g}s", flush=True)
-            continue
-        except OSError as exc:
-            print(f"{name}\trunner-error\t{_compact(str(exc))}", flush=True)
-            continue
+    canonicalized = any(
+        isinstance(entry, dict) and _canonicalize_envelope(entry, manifest)
+        for entry in tests)
+    augmented = _augment_pinned_metadata(tests)
+    runner_manifest = manifest
+    temporary_manifest = None
+    if canonicalized or augmented:
+        temporary_manifest = tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=manifest.parent,
+            prefix=".c-torture-batch-", suffix=".json", delete=False)
+        json.dump(data, temporary_manifest, indent=1)
+        temporary_manifest.write("\n")
+        temporary_manifest.close()
+        runner_manifest = Path(temporary_manifest.name)
 
-        row = _parse_child(name, proc.stdout)
-        if row is None:
-            detail = _compact(proc.stderr) or "runner produced no row"
-            print(f"{name}\trunner-error\t{detail}", flush=True)
-        else:
-            print("\t".join(row), flush=True)
+    try:
+        for entry in tests:
+            if not isinstance(entry, dict):
+                print("\t".join(("", "runner-error", "manifest test is not an object")))
+                continue
+            static = _static_row(entry)
+            if static[1] == "not-ingested":
+                refreshed, refresh_detail = _refresh_stale(entry)
+                if refreshed:
+                    static = _static_row(entry)
+                elif refresh_detail:
+                    static = (static[0], static[1],
+                              "%s; refresh failed: %s" % (static[2], refresh_detail))
+            if static[0]:
+                print("\t".join(static), flush=True)
+                continue
+            name = str(entry.get("name") or "")
+            try:
+                proc = subprocess.run(
+                    [runner, "--only", name, str(runner_manifest), str(fuel)],
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    check=False,
+                )
+            except subprocess.TimeoutExpired:
+                print(f"{name}\trunner-error\twall-clock kill after {timeout:g}s", flush=True)
+                continue
+            except OSError as exc:
+                print(f"{name}\trunner-error\t{_compact(str(exc))}", flush=True)
+                continue
+
+            row = _parse_child(name, proc.stdout)
+            if row is None:
+                detail = _compact(proc.stderr) or "runner produced no row"
+                print(f"{name}\trunner-error\t{detail}", flush=True)
+            else:
+                print("\t".join(row), flush=True)
+    finally:
+        if temporary_manifest is not None:
+            Path(temporary_manifest.name).unlink(missing_ok=True)
     return 0
 
 
@@ -267,6 +320,14 @@ def self_test() -> int:
         _canonicalize_envelope(copied_entry, copied / "manifest.json")
         if copied_entry["envelope"] != str(copied_env):
             print("c_torture_batch --self-test: stale absolute envelope path was not relocated",
+                  file=sys.stderr)
+            return 1
+
+        metadata_entry = {"name": "20230630-2.c"}
+        if (not _augment_pinned_metadata([metadata_entry]) or
+                metadata_entry.get("oracle_tests_compiler", {}).get("symbol") !=
+                "scalar_storage_order"):
+            print("c_torture_batch --self-test: pinned oracle metadata was not restored",
                   file=sys.stderr)
             return 1
     print("c_torture_batch --self-test: ok")
