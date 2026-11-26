@@ -9658,6 +9658,51 @@ theorem pairedAllocateMetadata_empty_unaddressable_result_shape {Tag TypeId : Ty
             footprint .metadata (Region.mk 0 0 0)) := by
   simp [allocateMetadata, renameAllocationRequest, renamedPlacement]
 
+theorem pairedAllocateMetadata_empty_result_shape {Tag TypeId : Type}
+    (resolve : AllocId → Nat) (id : AllocId)
+    (state : State) (placement : Placement) :
+    match placement with
+    | .address base =>
+        allocateMetadata (Tag := Tag) (TypeId := TypeId)
+            { bytes := [], state := state } [] (.address base) =
+          some ({ allocation :=
+                    { live := true, address := some base,
+                      bytes := [], state := state },
+                  locations := [] },
+                footprint .metadata (Region.mk 0 0 0)) ∧
+        allocateMetadata (Tag := Tag) (TypeId := TypeId)
+            (renameAllocationRequest resolve { bytes := [], state := state }) []
+            (renamedPlacement resolve id (.address base)) =
+          some ({ allocation :=
+                    { live := true, address := some (resolve id),
+                      bytes := [], state := state },
+                  locations := [] },
+                footprint .metadata (Region.mk 0 0 0))
+    | .unaddressable =>
+        allocateMetadata (Tag := Tag) (TypeId := TypeId)
+            { bytes := [], state := state } [] .unaddressable =
+          some ({ allocation :=
+                    { live := true, address := none,
+                      bytes := [], state := state },
+                  locations := [] },
+                footprint .metadata (Region.mk 0 0 0)) ∧
+        allocateMetadata (Tag := Tag) (TypeId := TypeId)
+            (renameAllocationRequest resolve { bytes := [], state := state }) []
+            (renamedPlacement resolve id .unaddressable) =
+          some ({ allocation :=
+                    { live := true, address := none,
+                      bytes := [], state := state },
+                  locations := [] },
+                footprint .metadata (Region.mk 0 0 0))
+    | .fail =>
+        allocateMetadata (Tag := Tag) (TypeId := TypeId)
+            { bytes := [], state := state } [] .fail = none ∧
+        allocateMetadata (Tag := Tag) (TypeId := TypeId)
+            (renameAllocationRequest resolve { bytes := [], state := state }) []
+            (renamedPlacement resolve id .fail) = none := by
+  cases placement <;>
+    simp [allocateMetadata, renameAllocationRequest, renamedPlacement]
+
 theorem pairedAllocateMetadata_sound
     (resolve : AllocId → Nat) (id : AllocId)
     (request : AllocationRequest Tag State)
