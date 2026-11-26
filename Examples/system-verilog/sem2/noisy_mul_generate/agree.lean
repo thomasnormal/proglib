@@ -3276,10 +3276,11 @@ theorem noisy_different_signal_windows_disjoint
     DrvWin.overlaps (a, x) (b, y) = false := by
   simp [DrvWin.overlaps, hne]
 
-theorem noisy_pp_family_windows_pairwise (N : Nat) (hN : 1 ≤ N) :
+theorem noisy_square_family_windows_pairwise (N : Nat) (hN : 1 ≤ N)
+    (signal : String) :
     List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
       ((List.range N).flatMap (fun i =>
-        (List.range N).map (fun j => ("pp", some (i * N + j, 1))))) := by
+        (List.range N).map (fun j => (signal, some (i * N + j, 1))))) := by
   rw [List.pairwise_flatMap]
   refine ⟨?_, ?_⟩
   · intro i hi
@@ -3289,6 +3290,7 @@ theorem noisy_pp_family_windows_pairwise (N : Nat) (hN : 1 ≤ N) :
     have hidx : i * N + j < i * N + k := by omega
     simp [DrvWin.overlaps]
     omega
+
   · refine List.pairwise_lt_range.imp ?_
     intro i k hik x hx y hy
     simp only [List.mem_map, List.mem_range] at hx hy
@@ -3299,6 +3301,40 @@ theorem noisy_pp_family_windows_pairwise (N : Nat) (hN : 1 ≤ N) :
       omega
     have hrow : (i + 1) * N ≤ k * N := by
       exact Nat.mul_le_mul_right N (Nat.succ_le_of_lt hik)
+    simp [DrvWin.overlaps]
+    omega
+
+theorem noisy_pp_family_windows_pairwise (N : Nat) (hN : 1 ≤ N) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      ((List.range N).flatMap (fun i =>
+        (List.range N).map (fun j => ("pp", some (i * N + j, 1))))) := by
+  simpa using noisy_square_family_windows_pairwise N hN "pp"
+
+theorem noisy_rect_family_windows_pairwise (N : Nat) (hN : 1 ≤ N)
+    (signal : String) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      ((List.range N).flatMap (fun i =>
+        (List.range (N + 1)).map (fun j =>
+          (signal, some (i * (N + 1) + j, 1))))) := by
+  rw [List.pairwise_flatMap]
+  refine ⟨?_, ?_⟩
+  · intro i hi
+    rw [List.pairwise_map]
+    refine List.pairwise_lt_range.imp ?_
+    intro j k hjk
+    have hidx : i * (N + 1) + j < i * (N + 1) + k := by omega
+    simp [DrvWin.overlaps]
+    omega
+  · refine List.pairwise_lt_range.imp ?_
+    intro i k hik x hx y hy
+    simp only [List.mem_map, List.mem_range] at hx hy
+    obtain ⟨j, hj, rfl⟩ := hx
+    obtain ⟨l, hl, rfl⟩ := hy
+    have htop : i * (N + 1) + j < (i + 1) * (N + 1) := by
+      simp [Nat.add_mul]
+      omega
+    have hrow : (i + 1) * (N + 1) ≤ k * (N + 1) := by
+      exact Nat.mul_le_mul_right (N + 1) (Nat.succ_le_of_lt hik)
     simp [DrvWin.overlaps]
     omega
 
