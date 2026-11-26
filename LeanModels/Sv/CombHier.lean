@@ -1336,6 +1336,10 @@ def GeneratedLoop.toHdr? (l : GeneratedLoop) : Option Hdr := do
       else none
   | _ => none
 
+/-! The summary's `LSite.blk` is the innermost enclosing block.  Label
+qualification for reused labels is a property of the whole generate tree, so
+the source-shaped reader keeps that policy at the caller; this helper is the
+unambiguous innermost-label case used by the generated-family bridge. -/
 def GeneratedLoop.blockName : List GeneratedLoop → String
   | [] => "plain"
   | loops => (loops.getLast?.map (fun l => l.label.getD "genblk")).getD "genblk"
