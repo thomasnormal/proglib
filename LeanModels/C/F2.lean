@@ -7689,6 +7689,27 @@ theorem allocateAligned_failure_shape
     allocateAligned store request .fail alignment = none := by
   rfl
 
+theorem allocateAligned_result_contract
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (alignment : Nat)
+    (result : Store Tag State × Footprint) :
+    allocateAligned store request placement alignment = some result ↔
+      match placement with
+      | .address base =>
+          alignmentAllowed base alignment = true ∧
+            allocate store request (.address base) = some result
+      | .unaddressable =>
+          allocate store request .unaddressable = some result
+      | .fail => False := by
+  cases placement with
+  | address base =>
+      by_cases haligned : alignmentAllowed base alignment = true <;>
+        simp [allocateAligned, haligned]
+  | unaddressable =>
+      simp [allocateAligned]
+  | fail =>
+      simp [allocateAligned, allocate_failure_shape]
+
 theorem allocateAligned_rejects_misaligned
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment : Nat)
