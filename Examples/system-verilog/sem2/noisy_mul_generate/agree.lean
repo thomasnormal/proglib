@@ -4373,4 +4373,13 @@ theorem noisy_row_boundary_family_driverWins_pairwise
   rw [hwhole]
   exact hdis
 
+theorem noisy_pairwise_append_driverWins
+    (left right : List DrvWin)
+    (hleft : List.Pairwise (fun a b : DrvWin => a.overlaps b = false) left)
+    (hright : List.Pairwise (fun a b : DrvWin => a.overlaps b = false) right)
+    (hcross : ∀ a ∈ left, ∀ b ∈ right, a.overlaps b = false) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false) (left ++ right) := by
+  rw [List.pairwise_append]
+  exact ⟨hleft, hright, hcross⟩
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
