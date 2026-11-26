@@ -868,6 +868,11 @@ theorem renameResult_contract {Tag State F : Type}
     | _, _ => False := by
   cases result <;> simp [renameResult]
 
+theorem renameResult_composition_contract {Tag State F : Type}
+    (first second : AllocId → Nat) (result : Result Tag State F (Byte Tag)) :
+    renameResult second (renameResult first result) = renameResult second result := by
+  exact renameResult_comp first second result
+
 def lookup (store : Store Tag State) (id : AllocId) : Option (Allocation Tag State) :=
   store.allocations.find? (fun entry => entry.1 == id) |>.map (·.2)
 
