@@ -8395,6 +8395,20 @@ theorem renameBoundedResult_preserves_footprint
       cases value with
       | mk store footprint => simp [renameBoundedResult]
 
+theorem renameBoundedResult_empty_unaddressable_result_footprint
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment limit : Nat)
+    (result : Store Tag State × Footprint)
+    (hresult : allocateBounded store { bytes := [], state := state }
+      .unaddressable alignment limit = .ok result) :
+    match renameBoundedResult resolve (.ok result) with
+    | .ok (_, fp) =>
+        fp = footprint .metadata (Region.mk store.nextId 0 0)
+    | .error _ => False := by
+  have hfootprint := allocateBounded_empty_unaddressable_result_footprint
+    store state alignment limit result hresult
+  simp [renameBoundedResult, hfootprint]
+
 def pairedAllocateBounded (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment limit : Nat) : Bool :=
