@@ -5329,6 +5329,18 @@ theorem pairedFreeMetadata_refusal
   · simp [pairedFreeMetadata, hsource]
   · simp [pairedFreeMetadata, htarget]
 
+theorem pairedFreeMetadata_failure_contract
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    pairedFreeMetadata resolve metadata = none ↔
+      freeMetadata metadata = none ∨
+        freeMetadata (renameZeroTokenMetadata resolve metadata) = none := by
+  cases hlive : metadata.allocation.live with
+  | false =>
+      simp [pairedFreeMetadata, freeMetadata, hlive, renameZeroTokenMetadata]
+  | true =>
+      simp [pairedFreeMetadata, freeMetadata, hlive, renameZeroTokenMetadata]
+
 theorem pairedFreeMetadata_footprints
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
