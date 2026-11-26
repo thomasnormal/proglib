@@ -11270,6 +11270,28 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedRepresentationLoadMetadataByte_contract
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (choice : RepresentationChoice)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedRepresentationLoadMetadataByte resolve id metadata offset choice =
+      some result) :
+    (∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      representationLoadMetadataByte metadata offset choice = some sourceResult ∧
+      representationLoadMetadataByte (renameMetadata resolve id metadata) offset choice =
+        some targetResult) ∧
+      (result.1.2 = footprint .read
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.2.2 = footprint .read
+          { allocation := 0, offset := offset, width := 1 }) := by
+  constructor
+  · exact pairedRepresentationLoadMetadataByte_sound resolve id metadata offset choice result
+      hresult
+  · exact pairedRepresentationLoadMetadataByte_footprints resolve id metadata offset choice result
+      hresult
+
 theorem pairedTypedLoadMetadataByte_contract
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
