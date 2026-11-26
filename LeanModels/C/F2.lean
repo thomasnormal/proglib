@@ -8371,6 +8371,13 @@ theorem placementWithinComposition_refusal
   · simp [placementWithinComposition, hfirst, hsecond]
   · simp [placementWithinComposition, hfirst, hsecond]
 
+theorem placementWithinComposition_contract
+    (first second : AllocId → Nat) (id size limit base : Nat) :
+    placementWithinComposition first second id size limit base = true ↔
+      placementWithin (first id) size limit =
+        placementWithin (second id) size limit := by
+  simp [placementWithinComposition, beq_iff_eq]
+
 theorem placementWithin_zero (base limit : Nat) :
     placementWithin base 0 limit = (base ≤ limit) := by
   simp [placementWithin]
