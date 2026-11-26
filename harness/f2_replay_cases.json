@@ -3,7 +3,7 @@
     "source_file": "harness/f2_replay_fixture.c",
     "source_hash": "2df254cbfacabff5cdab3654e62f04ca159c168012b970316d2519d3aac46def",
     "compiler_version": "clang version 21.1.8",
-    "target_triple": "x86_64-linux-gnu",
+    "target_triple": "x86_64-conda-linux-gnu",
     "placements": [
       {"allocation": 3, "base": 96, "size": 8, "exposed": true}
     ],

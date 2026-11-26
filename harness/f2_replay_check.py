@@ -26,7 +26,12 @@ def pinned_clang():
     if version.returncode != 0 or not first.startswith(PIN):
         raise SystemExit("f2_replay_check: expected %s, got %s" %
                          (PIN, first or "<none>"))
-    return executable
+    target = subprocess.run([executable, "-dumpmachine"], capture_output=True,
+                            text=True)
+    triple = target.stdout.strip()
+    if target.returncode != 0 or not triple:
+        raise SystemExit("f2_replay_check: pinned Clang target triple is unavailable")
+    return executable, triple
 
 
 def expected_stdout(events):
@@ -143,12 +148,14 @@ def main():
         parser.error("fixture is required unless --self-test is used")
     fixture = json.loads(args.fixture.read_text())
     fixtures = fixture if isinstance(fixture, list) else [fixture]
-    clang = pinned_clang() if args.native else None
+    clang, triple = pinned_clang() if args.native else (None, None)
     for item in fixtures:
         error = check(item, args.source)
         if error:
             raise SystemExit("f2_replay_check: " + error)
         if args.native:
+            if item["target_triple"] != triple:
+                raise SystemExit("f2_replay_check: target triple mismatch")
             source = args.source or Path(item.get("source_file", ""))
             with tempfile.TemporaryDirectory(prefix="f2-replay-") as tmp:
                 outcomes = []
