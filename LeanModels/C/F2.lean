@@ -11270,6 +11270,47 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedAllocateBounded_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment limit : Nat)
+    (hstore : WellFormed store)
+    (hsourceBytes : bytesWf store.nextId request.bytes)
+    (htargetBytes : bytesWf (renameStore resolve store).nextId
+      (renameAllocationRequest resolve request).bytes)
+    (h : pairedAllocateBounded resolve store request placement alignment limit = true) :
+    (∃ source target,
+      allocateBounded store request placement alignment limit = .ok source ∧
+      allocateBounded (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) alignment limit = .ok target ∧
+      (WellFormed source.1 ∧ WellFormed target.1) ∧
+      (source.1.nextId = store.nextId + 1 ∧
+        source.1.allocations.length = store.allocations.length + 1 ∧
+        target.1.nextId = (renameStore resolve store).nextId + 1 ∧
+        target.1.allocations.length =
+          (renameStore resolve store).allocations.length + 1) ∧
+      (source.2 = footprint .metadata
+          (Region.mk store.nextId 0 request.bytes.length) ∧
+        target.2 = footprint .metadata
+          (Region.mk (renameStore resolve store).nextId 0
+            (renameAllocationRequest resolve request).bytes.length))) ∨
+    (∃ fault,
+      allocateBounded store request placement alignment limit = .error fault ∧
+      allocateBounded (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) alignment limit = .error fault) := by
+  rcases pairedAllocateBounded_sound resolve store request placement alignment limit h with
+    hsuccess | hfailure
+  · rcases hsuccess with ⟨source, target, hsource, htarget⟩
+    left
+    refine ⟨source, target, hsource, htarget, ?_, ?_, ?_⟩
+    · exact pairedAllocateBounded_preserves_wellFormed resolve store request placement
+        alignment limit source target hstore hsourceBytes htargetBytes hsource htarget
+    · exact pairedAllocateBounded_preserves_counts resolve store request placement
+        alignment limit source target hsource htarget
+    · exact pairedAllocateBounded_preserves_footprints resolve store request placement
+        alignment limit source target hsource htarget
+  · exact Or.inr hfailure
+
 theorem pairedFreeMetadata_contract
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId)
