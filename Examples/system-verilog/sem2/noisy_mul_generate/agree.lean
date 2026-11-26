@@ -4636,4 +4636,92 @@ theorem noisy_static_driverWins (N : Nat)
     Lhs2.drvWins, instProcess2, instLhs2, instLhsLeaf2, instIndex2,
     hS, hC, hT, hP]
 
+def noisyStaticWins (N : Nat) : List DrvWin :=
+  [("s", some (0, N + 1)), ("c", some (0, N + 1)),
+   ("t", some (0, N)), ("p", some (N, N))]
+
+def noisyPpWinsAll (N : Nat) : List DrvWin :=
+  (List.range N).flatMap (fun i =>
+    (List.range N).map (fun j => ("pp", some (i * N + j, 1))))
+
+def noisyRowWinsAll (N : Nat) : List DrvWin :=
+  (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+    (intRange 0 (N : Int).toNat).flatMap (fun j =>
+      [("t", some (i.toNat * N + j.toNat, 1)),
+       ("s", some (i.toNat * (N + 1) + j.toNat, 1)),
+       ("c", some (i.toNat * (N + 1) + (j.toNat + 1), 1))]))
+
+def noisyOutWinsAll (N : Nat) : List DrvWin :=
+  (List.range N).map (fun i => ("p", some (i, 1)))
+
+theorem noisy_static_pp_disjoint (N : Nat) :
+    ∀ a ∈ noisyStaticWins N, ∀ b ∈ noisyPpWinsAll N, a.overlaps b = false := by
+  intro a ha b hb
+  simp only [noisyStaticWins, List.mem_cons, List.not_mem_nil, or_false] at ha
+  simp only [noisyPpWinsAll, List.mem_flatMap, List.mem_map, List.mem_range] at hb
+  obtain ⟨i, hi, j, hj, rfl⟩ := hb
+  rcases ha with rfl | rfl | rfl | rfl <;>
+    exact noisy_different_signal_windows_disjoint (by decide)
+
+theorem noisy_static_row_disjoint (N : Nat) (hN : 1 ≤ N) :
+    ∀ a ∈ noisyStaticWins N, ∀ b ∈ noisyRowWinsAll N, a.overlaps b = false := by
+  intro a ha b hb
+  simp only [noisyStaticWins, List.mem_cons, List.not_mem_nil, or_false] at ha
+  simp only [noisyRowWinsAll, List.mem_flatMap, List.mem_cons, List.not_mem_nil, or_false] at hb
+  obtain ⟨i, hi, j, hj, hb⟩ := hb
+  rw [mem_intRange] at hi hj
+  have hi0 : 0 ≤ i := by omega
+  have hj0 : 0 ≤ j := by omega
+  have hicast : (i.toNat : Int) = i := Int.toNat_of_nonneg hi0
+  have hjcast : (j.toNat : Int) = j := Int.toNat_of_nonneg hj0
+  have hiN : i.toNat < N := by rw [← hicast]; omega
+  have hjN : j.toNat < N := by rw [← hjcast]; omega
+  have hi1 : 1 ≤ i.toNat := by rw [← hicast]; omega
+  rcases ha with rfl | rfl | rfl | rfl
+  · rcases hb with rfl | rfl | rfl
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · have hbound : N + 1 ≤ i.toNat * (N + 1) + j.toNat := by
+        calc
+          N + 1 = 1 * (N + 1) := by simp
+          _ ≤ i.toNat * (N + 1) := Nat.mul_le_mul_right _ hi1
+          _ ≤ i.toNat * (N + 1) + j.toNat := Nat.le_add_right _ _
+      have hnot : ¬ i.toNat * (N + 1) + j.toNat < N + 1 := by omega
+      simp [DrvWin.overlaps, hnot]
+    · exact noisy_different_signal_windows_disjoint (by decide)
+  · rcases hb with rfl | rfl | rfl
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · have hbound : N + 1 ≤ i.toNat * (N + 1) + (j.toNat + 1) := by
+        calc
+          N + 1 = 1 * (N + 1) := by simp
+          _ ≤ i.toNat * (N + 1) := Nat.mul_le_mul_right _ hi1
+          _ ≤ i.toNat * (N + 1) + (j.toNat + 1) := Nat.le_add_right _ _
+      have hnot : ¬ i.toNat * (N + 1) + (j.toNat + 1) < N + 1 := by omega
+      simp [DrvWin.overlaps, hnot]
+  · rcases hb with rfl | rfl | rfl
+    · have hbound : N ≤ i.toNat * N + j.toNat := by
+        calc
+          N = 1 * N := by simp
+          _ ≤ i.toNat * N := Nat.mul_le_mul_right _ hi1
+          _ ≤ i.toNat * N + j.toNat := Nat.le_add_right _ _
+      have hnot : ¬ i.toNat * N + j.toNat < N := by omega
+      simp [DrvWin.overlaps, hnot]
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+  · rcases hb with rfl | rfl | rfl <;>
+      exact noisy_different_signal_windows_disjoint (by decide)
+
+theorem noisy_static_out_disjoint (N : Nat) :
+    ∀ a ∈ noisyStaticWins N, ∀ b ∈ noisyOutWinsAll N, a.overlaps b = false := by
+  intro a ha b hb
+  simp only [noisyStaticWins, List.mem_cons, List.not_mem_nil, or_false] at ha
+  simp only [noisyOutWinsAll, List.mem_map, List.mem_range] at hb
+  obtain ⟨i, hi, rfl⟩ := hb
+  rcases ha with rfl | rfl | rfl | rfl
+  · exact noisy_different_signal_windows_disjoint (by decide)
+  · exact noisy_different_signal_windows_disjoint (by decide)
+  · exact noisy_different_signal_windows_disjoint (by decide)
+  · have hnot : ¬ N < i + 1 := by omega
+    simp [DrvWin.overlaps, hnot]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
