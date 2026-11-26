@@ -11270,6 +11270,70 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedStoreUnionLoadMetadataByte_contract
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (result : ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)))
+    (hbytes : bytesWf 0 (listSet metadata.allocation.bytes offset byte))
+    (hbytesTarget : bytesWf 0 (listSet
+      (renameMetadata resolve id metadata).allocation.bytes offset
+      (renameByte resolve byte)))
+    (hlocations : metadata.locations.length = metadata.allocation.bytes.length)
+    (hlocationsTarget :
+      (renameMetadata resolve id metadata).locations.length =
+        (renameMetadata resolve id metadata).allocation.bytes.length)
+    (hresult : pairedStoreUnionLoadMetadataByte resolve id metadata offset byte =
+      some result) :
+    (∃ sourceStore sourceLoad targetStore targetLoad,
+      result = ((sourceStore, sourceLoad), (targetStore, targetLoad)) ∧
+      storeMetadataByte metadata offset byte = some sourceStore ∧
+      storeMetadataByte (renameMetadata resolve id metadata) offset
+        (renameByte resolve byte) = some targetStore ∧
+      unionLoadMetadataByte sourceStore.1 offset = some sourceLoad ∧
+      unionLoadMetadataByte targetStore.1 offset = some targetLoad ∧
+      (targetStore.1 == renameMetadata resolve id sourceStore.1) = true ∧
+      (targetStore.2 == sourceStore.2) = true ∧
+      (targetLoad.1 == renameByte resolve sourceLoad.1) = true ∧
+      (targetLoad.2 == sourceLoad.2) = true) ∧
+      (result.1.1.2 = footprint .write
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.1.2.2 = footprint .read
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.2.1.2 = footprint .write
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.2.2.2 = footprint .read
+          { allocation := 0, offset := offset, width := 1 }) ∧
+      (result.1.1.1.allocation.live = metadata.allocation.live ∧
+        result.1.1.1.allocation.address = metadata.allocation.address ∧
+        result.1.1.1.allocation.state = metadata.allocation.state ∧
+        result.2.1.1.allocation.live =
+          (renameMetadata resolve id metadata).allocation.live ∧
+        result.2.1.1.allocation.address =
+          (renameMetadata resolve id metadata).allocation.address ∧
+        result.2.1.1.allocation.state =
+          (renameMetadata resolve id metadata).allocation.state) ∧
+      (result.1.1.1.locations = metadata.locations ∧
+        result.2.1.1.locations = (renameMetadata resolve id metadata).locations) ∧
+      (result.1.1.1.wellFormed 0 ∧ result.2.1.1.wellFormed 0) := by
+  constructor
+  · exact pairedStoreUnionLoadMetadataByte_sound resolve id metadata offset byte result hresult
+  constructor
+  · exact pairedStoreUnionLoadMetadataByte_footprints resolve id metadata offset byte result
+      hresult
+  constructor
+  · exact pairedStoreUnionLoadMetadataByte_preserves_payload resolve id metadata offset byte
+      result hresult
+  constructor
+  · exact pairedStoreUnionLoadMetadataByte_preserves_locations resolve id metadata offset byte
+      result hresult
+  · exact pairedStoreUnionLoadMetadataByte_preserves_wellFormed resolve id metadata offset byte
+      result hresult hbytes hbytesTarget hlocations hlocationsTarget
+
 theorem pairedRepresentationLoadMetadataByte_contract
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
