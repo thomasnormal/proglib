@@ -56,6 +56,10 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
   mix generated child instances with ordinary processes; `GeneratedNode.segmentAt`
   and `generatedNodes_segmentAt_flatten_ok` preserve the order while folding
   the valuation-dependent segments.
+  `GeneratedLoop.toHdr?` and `GeneratedSite.toLSite?` bridge retained
+  generated-for headers and process sites into the existing `Hdr`/`LSite`
+  profile vocabulary without selecting a loop valuation; child sites refuse
+  until a child summary is supplied.
   `CombHier.GeneratedLoop.bindPath` and `GeneratedNode.segmentAtPath` make the
   one-path symbolic family contract explicit: a caller supplies genvar values,
   then reads exactly that source node, without enumerating sibling iterations.
