@@ -128,6 +128,14 @@ def encodePointer (pointer : Pointer Tag) : List (Byte Tag) :=
     .value (pointerByte pointer.address fragment)
       pointer.provenance (some fragment))
 
+theorem encodePointer_contract (pointer : Pointer Tag) :
+    (encodePointer pointer).length = 8 ∧
+      (encodePointer pointer).map byteFragment =
+        (List.range 8).map some ∧
+      (encodePointer pointer).map byteProvenance =
+        (List.range 8).map (fun _ => pointer.provenance) := by
+  simp [encodePointer, byteFragment, byteProvenance]
+
 def encodeValue : Value Tag → List (Byte Tag)
   | .scalar bytes => bytes.map (fun byte => .value byte none none)
   | .pointer pointer => encodePointer pointer
