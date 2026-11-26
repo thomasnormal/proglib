@@ -431,6 +431,18 @@ theorem listSet_length (values : List α) (offset : Nat) (value : α) :
   | cons head rest ih =>
       cases offset <;> simp [listSet, ih]
 
+theorem listSet_updates_at (values : List α) (offset : Nat) (value : α)
+    (hwithin : offset < values.length) :
+    (listSet values offset value)[offset]? = some value := by
+  induction values generalizing offset with
+  | nil => simp at hwithin
+  | cons head rest ih =>
+      cases offset with
+      | zero => simp [listSet]
+      | succ offset =>
+          simp only [listSet, List.length_cons, Nat.succ_lt_succ_iff] at hwithin ⊢
+          simpa using ih offset hwithin
+
 structure Region where
   allocation : AllocId
   offset : Nat
