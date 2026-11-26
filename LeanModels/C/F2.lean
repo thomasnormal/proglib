@@ -3090,6 +3090,15 @@ theorem renameAllocationRequest_length
     (renameAllocationRequest resolve request).bytes.length = request.bytes.length := by
   simp [renameAllocationRequest]
 
+theorem renameAllocationRequest_contract
+    (resolve : AllocId → Nat) (request : AllocationRequest Tag State) :
+    (renameAllocationRequest resolve request).bytes =
+        request.bytes.map (renameByte resolve) ∧
+      (renameAllocationRequest resolve request).bytes.length = request.bytes.length ∧
+      (renameAllocationRequest resolve request).state = request.state := by
+  exact ⟨renameAllocationRequest_bytes resolve request,
+    renameAllocationRequest_length resolve request, rfl⟩
+
 inductive Placement where
   | address (base : Nat)
   | unaddressable
