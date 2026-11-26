@@ -353,7 +353,7 @@
                     "end_col": 16
                   },
                   "width": 1,
-                  "name": "g[0].t[0]"
+                  "name": "g[$genvar:k].t[0]"
                 },
                 "value": {
                   "kind": "BitSel",
@@ -404,7 +404,7 @@
                     "end_col": 16
                   },
                   "width": 1,
-                  "name": "g[0].t[1]"
+                  "name": "g[$genvar:k].t[1]"
                 },
                 "value": {
                   "kind": "Unary",
@@ -497,7 +497,7 @@
                     "end_col": 23
                   },
                   "width": 1,
-                  "name": "g[0].t[1]"
+                  "name": "g[$genvar:k].t[1]"
                 }
               }
             ]

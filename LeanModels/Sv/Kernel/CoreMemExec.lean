@@ -885,6 +885,18 @@ def coreMemGeneratedName (scope : CoreMemScope) (name : String) : String :=
 def coreMemScopedName (scope : CoreMemScope) (name : String) : String :=
   coreMemGeneratedName scope name
 
+@[simp] theorem coreMemScopedName_empty (name : String) :
+    coreMemScopedName ({ } : CoreMemScope) name = name := by
+  rfl
+
+def coreMemSubstName (scope : CoreMemScope) (name : String) : String :=
+  scope.genvars.foldl (fun acc (g, v) =>
+    acc.replace ("[$genvar:" ++ g ++ "]") ("[" ++ toString v ++ "]")) name
+
+@[simp] theorem coreMemSubstName_empty (name : String) :
+    coreMemSubstName ({ } : CoreMemScope) name = name := by
+  rfl
+
 def coreMemDirectGeneratedDeclNames : List GenItem → List String
   | [] => []
   | .decl d :: rest => d.name :: coreMemDirectGeneratedDeclNames rest
@@ -963,7 +975,6 @@ def coreMemSubstLhs (scope : CoreMemScope) : PLhs → PLhs
       (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .aggregateMember n path => .aggregateMember (coreMemScopedName scope n)
       (path.map fun (field, ix) => (field, ix.map (coreMemSubstExpr scope)))
-  | l => l
 
 def coreMemSubstDim (scope : CoreMemScope) (d : PDim) : PDim :=
   { msb := coreMemSubstExpr scope d.msb, lsb := coreMemSubstExpr scope d.lsb }
@@ -974,8 +985,7 @@ def coreMemSubstType (scope : CoreMemScope) : PType → PType
   | .unrecoverable resolved => .unrecoverable resolved
 
 def coreMemSubstDecl (scope : CoreMemScope) (d : PDecl) : PDecl :=
-  let name := coreMemScopedName { scope with generatedDecls := d.name :: scope.generatedDecls } d.name
-  { name := name, type := coreMemSubstType scope d.type,
+  { name := coreMemScopedName scope d.name, type := coreMemSubstType scope d.type,
     unpackedDims := d.unpackedDims.map (coreMemSubstDim scope),
     isSigned := d.isSigned, twoState := d.twoState, isInput := d.isInput,
     isOutput := d.isOutput, isNet := d.isNet,

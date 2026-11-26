@@ -306,7 +306,7 @@
                   "end_line": 8,
                   "end_col": 12
                 },
-                "name": "g[0].t",
+                "name": "g[$genvar:k].t",
                 "width": {
                   "kind": "PackedType",
                   "packed": [],
@@ -331,7 +331,7 @@
                     "end_col": 13
                   },
                   "width": 1,
-                  "name": "g[0].t"
+                  "name": "g[$genvar:k].t"
                 },
                 "value": {
                   "kind": "Unary",
@@ -424,7 +424,7 @@
                     "end_col": 20
                   },
                   "width": 1,
-                  "name": "g[0].t"
+                  "name": "g[$genvar:k].t"
                 }
               }
             ]
