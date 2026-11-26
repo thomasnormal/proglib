@@ -1435,6 +1435,37 @@ theorem typedLoadMetadataByte_footprint
           | padding => simp [typedLoadMetadataByte, hbyte, hlocation, htype] at hresult
           | indeterminate => simp [typedLoadMetadataByte, hbyte, hlocation, htype] at hresult
 
+theorem typedLoadMetadataByte_contract
+    [BEq TypeId]
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (result : Byte Tag × Footprint)
+    (hresult : typedLoadMetadataByte metadata offset typeId = some result) :
+    ∃ (byte : Byte Tag) (location : LocationState TypeId),
+      metadata.allocation.bytes[offset]? = some byte ∧
+      metadata.locations[offset]? = some location ∧
+      (∃ storedType,
+        location.effectiveType = .typed storedType ∧
+        (storedType == typeId) = true) ∧
+      result.1 = byte ∧
+      result.2 = footprint .read { allocation := 0, offset := offset, width := 1 } := by
+  cases hbyte : metadata.allocation.bytes[offset]? with
+  | none => simp [typedLoadMetadataByte, hbyte] at hresult
+  | some byte =>
+      cases hlocation : metadata.locations[offset]? with
+      | none => simp [typedLoadMetadataByte, hbyte, hlocation] at hresult
+      | some location =>
+          cases htype : location.effectiveType with
+          | typed storedType =>
+              by_cases hsame : storedType == typeId
+              · simp [typedLoadMetadataByte, hbyte, hlocation, htype, hsame] at hresult
+                rcases hresult with rfl
+                exact ⟨byte, location, rfl, rfl, ⟨storedType, htype, hsame⟩,
+                  rfl, rfl⟩
+              · simp [typedLoadMetadataByte, hbyte, hlocation, htype, hsame] at hresult
+          | untyped => simp [typedLoadMetadataByte, hbyte, hlocation, htype] at hresult
+          | padding => simp [typedLoadMetadataByte, hbyte, hlocation, htype] at hresult
+          | indeterminate => simp [typedLoadMetadataByte, hbyte, hlocation, htype] at hresult
+
 theorem pairedTypedLoadMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
