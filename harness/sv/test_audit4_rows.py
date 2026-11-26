@@ -1,10 +1,14 @@
 """Pinned Audit 4 differential rows and oracle provenance."""
 import json
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 
 
 ROWS = Path(__file__).with_name("audit4_rows.json")
+CASES = Path(__file__).with_name("cases2.json")
+REPO = Path(__file__).resolve().parents[2]
 
 
 class Audit4Rows(unittest.TestCase):
@@ -19,3 +23,29 @@ class Audit4Rows(unittest.TestCase):
                 self.assertEqual(row["iverilog"], row["xcelium"])
             else:
                 self.assertTrue(row["model"])
+
+    def test_audit_rows_run_on_canonical_e(self):
+        """Exercise every Audit 4 row through the changed canonical-E path.
+
+        The ordinary sv2 harness defaults to the retiring run2 backend.  This
+        explicit step keeps the loop-fuel regressions on the executor that the
+        branch changes, and a zero-row collection is a failure.
+        """
+        cases = json.loads(CASES.read_text())["cases"]
+        names = [case["name"] for case in cases
+                 if case.get("example") == "loopfuel_audit4"]
+        self.assertGreater(len(names), 0)
+        command = [sys.executable, str(REPO / "harness/sv/diff_test2.py"),
+                   "--backend", "ecanon", "--sim", "iverilog", "--no-xcheck"]
+        for name in names:
+            command.extend(("--case", name))
+        result = subprocess.run(command, cwd=REPO, text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        completed = sum(any(line.startswith(name + " ") for line in result.stdout.splitlines())
+                        for name in names)
+        self.assertEqual(completed, len(names), result.stdout)
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()
