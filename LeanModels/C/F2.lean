@@ -485,6 +485,29 @@ theorem setLocation_success_shape (locations : LocationStore TypeId)
   simp [setLocation] at hresult
   simpa using hresult.2.symm
 
+theorem setLocation_contract
+    (locations : LocationStore TypeId) (allocation offset : Nat)
+    (state : LocationState TypeId) (result : LocationStore TypeId) :
+    setLocation locations allocation offset state = some result ↔
+      locations.any (fun entry => entry.1 == allocation && entry.2.1 == offset) = true ∧
+      result = locations.map (fun entry =>
+        if entry.1 == allocation && entry.2.1 == offset then
+          (allocation, offset, state)
+        else entry) := by
+  by_cases hguard : locations.any
+      (fun entry => entry.1 == allocation && entry.2.1 == offset) = true
+  · unfold setLocation
+    rw [if_pos hguard]
+    constructor
+    · intro h
+      exact ⟨hguard, (Option.some.inj h).symm⟩
+    · rintro ⟨_, hresult⟩
+      exact congrArg some hresult.symm
+  · have hguard' : locations.any
+        (fun entry => entry.1 == allocation && entry.2.1 == offset) = false := by
+      exact Bool.eq_false_iff.mpr hguard
+    simp [setLocation, hguard']
+
 structure Store (Tag State : Type) where
   allocations : List (AllocId × Allocation Tag State)
   nextId : AllocId
