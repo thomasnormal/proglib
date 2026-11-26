@@ -3153,6 +3153,7 @@ theorem test_noisy_and_conn_driverWins
     intro x hx
     simp [hl x hx]
   simp [ha', hb', hf', hy', hlf]
+
 theorem noisy_xor_conn_driverWins
     (env : IEnv) (elems : List (String × Nat)) (pfx : String)
     (names : List String) (l : Lhs2) (w : Nat)
@@ -3434,6 +3435,30 @@ theorem noisy_arrayElemTarget_sq_genvar
   · simpa [IEnv.bindVal] using hd
   · exact evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup])
   · exact evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup])
+
+theorem noisy_and_conn_driverWins_at
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hc : names.contains (pfx ++ "c") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "pp" = true)
+    (hd : env.dims.lookup "pp" = some [((N : Int) - 1, 0), ((N : Int) - 1, 0)]) :
+    driverWins names
+      (andDesign.decls.toList.flatMap
+        (connProcs ((env.bindVal "i" i).bindVal "j" j) elems pfx andInst.conns)) =
+      [("pp", some (i * N + j, 1))] := by
+  have hq := noisy_arrayElemTarget_sq_genvar (env := env) (elems := elems)
+    (n := "pp") hN hi hj hd
+  apply test_noisy_and_conn_driverWins ((env.bindVal "i" i).bindVal "j" j)
+    elems pfx names
+    (.slice "pp" (i * N + j) 1) 1 ha hb hc hf hy hp
+  · simp [Lhs2.drvWins]
+    exact List.contains_iff_mem.mp hp
+  · simpa using hq
 
 theorem noisy_arrayElemTarget_rect_genvar
     {env : IEnv} {elems : List (String × Nat)} {n : String}
