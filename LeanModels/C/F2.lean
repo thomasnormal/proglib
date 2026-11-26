@@ -33,6 +33,13 @@ deriving Repr, BEq
 def pointerByte (address fragment : Nat) : UInt8 :=
   UInt8.ofNat ((address / (256 ^ fragment)) % 256)
 
+theorem pointerByte_contract (address fragment : Nat) :
+    pointerByte address fragment =
+        UInt8.ofNat ((address / (256 ^ fragment)) % 256) ∧
+      (pointerByte address fragment).toNat =
+        (address / (256 ^ fragment)) % 256 := by
+  simp [pointerByte]
+
 def renamePointer (resolve : AllocId → Nat) (pointer : Pointer Tag) : Pointer Tag :=
   { pointer with
     address := match pointer.provenance with
