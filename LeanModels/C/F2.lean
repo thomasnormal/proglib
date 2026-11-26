@@ -9119,6 +9119,17 @@ theorem unaddressableToken_true
     unaddressableToken store id = true := by
   simp [unaddressableToken, hlookup, hlive, haddress]
 
+theorem unaddressableToken_contract
+    (store : Store Tag State) (id : AllocId) :
+    unaddressableToken store id = true ↔
+      ∃ allocation,
+        lookup store id = some allocation ∧
+        allocation.live = true ∧ allocation.address = none := by
+  constructor
+  · exact unaddressableToken_sound store id
+  · rintro ⟨allocation, hlookup, hlive, haddress⟩
+    exact unaddressableToken_true store id allocation hlookup hlive haddress
+
 theorem unaddressableToken_empty_false
     {Tag State : Type} (id : AllocId) :
     unaddressableToken ({ allocations := [], nextId := 0 } : Store Tag State) id = false := by
