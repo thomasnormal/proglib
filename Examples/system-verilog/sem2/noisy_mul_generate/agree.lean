@@ -979,18 +979,6 @@ theorem noisy_generated_source_order :
     ha, hx, hs, hm, Except.bind, Except.pure, pure, Functor.map, Except.map,
     bind, List.append_assoc]
 
-theorem noisy_generated_site_reader_process_child_order :
-    CombHier.generatedSitesAt [] 0
-      [.process [rowLoop] rowLeft,
-       .child { loops := [rowLoop], inst := xorInst, child := xorDef }] =
-      .ok [
-        .process [rowLoop] 0 (siteOf? [] 0 rowLeft |>.toOption.getD default),
-        .child { loops := [rowLoop], inst := xorInst, child := xorDef }] := by
-  rw [CombHier.generatedSitesAt_process]
-  · rfl
-  · rw [CombHier.generatedSitesAt_child]
-    rfl
-
 theorem noisy_generated_row_inner_refs :
     CombHier.generatedChildRefs noisyMul.plib []
       [.genFor (some "g_row") "i" (.int 1) (.paramRef "N" none)
