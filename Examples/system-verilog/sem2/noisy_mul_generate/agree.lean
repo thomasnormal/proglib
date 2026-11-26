@@ -4382,4 +4382,16 @@ theorem noisy_pairwise_append_driverWins
   rw [List.pairwise_append]
   exact ⟨hleft, hright, hcross⟩
 
+theorem noisy_out_driverWins_at_of_target
+    (env : IEnv) (elems : List (String × Nat)) (i : Int)
+    (names : List String)
+    (hp : names.contains "p" = true)
+    (hq : instLhs2 (env.bindVal "i" i) elems
+      (.bitSel "p" (.genvarRef "i")) = .ok (.slice "p" i.toNat 1, 1)) :
+    driverWins names [instProcess2 (env.bindVal "i" i) elems outProc] =
+      [("p", some (i.toNat, 1))] := by
+  have hpm : "p" ∈ names := List.contains_iff_mem.mp hp
+  simp [instProcess2, outProc, driverWins, Process2.drvWins, Lhs2.drvWins,
+    hq, hpm]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
