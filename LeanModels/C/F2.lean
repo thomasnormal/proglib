@@ -11297,6 +11297,15 @@ theorem pairedUnaddressableAllocation_contract
     exact Or.inl ⟨source, target, hsource, htarget, hwfSource, hwfTarget⟩
   · exact Or.inr hfailure
 
+theorem pairedFreePointer_contract
+    (resolve : AllocId → Nat)
+    (metadata : Option (AllocationMetadata Tag State TypeId)) :
+    pairedFreePointer resolve metadata = true ∧
+      freePointer metadata =
+        freePointer (metadata.map (renameZeroTokenMetadata resolve)) := by
+  exact ⟨pairedFreePointer_true resolve metadata,
+    pairedFreePointer_agrees resolve metadata⟩
+
 theorem pairedAllocateFailure_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
