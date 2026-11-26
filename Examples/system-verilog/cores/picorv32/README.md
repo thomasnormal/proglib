@@ -8,6 +8,10 @@ instruction, order and PCs. The post-edge comparison covers initialized
 physical register cells and the external byte memory. Canonical E currently
 refuses the top with `Schedule:preemptive` before reset. The whole-core ADDI obligation remains open. [Obligation](R2.lean) · [Loaded design](input_drive_core.lean)
 
+The source-shaped unpacked `cpuregs` slice has a six-row canonical-E receipt
+covering two NBA writes, runtime reads, and an unknown read index. Icarus
+Verilog 13.0 and Xcelium 24.03-s004 match those rows.
+
 The generated ALU writer and its `always @*` reader can interleave at a
 blocking assignment (§4.7). At cycle 12 of a five-instruction branch program,
 the operands change from 0 and 5 to 5 and 5. Icarus 13.0 and Xcelium
