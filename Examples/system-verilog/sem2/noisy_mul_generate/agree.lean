@@ -4670,6 +4670,64 @@ theorem noisy_row_right_driverWins_actual
   · exact noisy_value (N : Int) (i : Int) hCanon
   · exact noisy_dims_s (N : Int) hCanon
 
+theorem noisy_row_family_driverWins_actual_int
+    (N : Nat) (hN : 1 ≤ N)
+    (hCanon : canonInt 32 true (N : Int) = N) :
+    driverWins noisyMul.pdesign.declNames
+      ((intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+        (noisyRowPaths (N : Int) i).flatMap
+          (fun p =>
+            (noisyFullFamilySegment (noisyEnv (N : Int)) (noisyElems (N : Int)) p).2))) =
+      (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+        [("c", some (i.toNat * (N + 1), 1))] ++
+          (intRange 0 (N : Int).toNat).flatMap (fun j =>
+            [("t", some (i.toNat * N + j.toNat, 1)),
+             ("s", some (i.toNat * (N + 1) + j.toNat, 1)),
+             ("c", some (i.toNat * (N + 1) + (j.toNat + 1), 1))]) ++
+          [("s", some (i.toNat * (N + 1) + N, 1))]) := by
+  apply noisy_row_paths_driverWins
+  · intro i hi
+    have hi0 : 0 ≤ i := by
+      rw [mem_intRange] at hi
+      omega
+    have hiN : i.toNat < N := by
+      rw [mem_intRange] at hi
+      rw [← Int.toNat_of_nonneg hi0]
+      omega
+    simpa [Int.toNat_of_nonneg hi0] using
+      (noisy_row_left_driverWins_actual N i.toNat hN hiN hCanon)
+  · intro i hi
+    have hi0 : 0 ≤ i := by
+      rw [mem_intRange] at hi
+      omega
+    have hiN : i.toNat < N := by
+      rw [mem_intRange] at hi
+      rw [← Int.toNat_of_nonneg hi0]
+      omega
+    simpa [Int.toNat_of_nonneg hi0] using
+      (noisy_row_right_driverWins_actual N i.toNat hN hiN hCanon)
+  · intro i hi
+    rw [noisy_row_child_paths_processes]
+    rw [driverWins_flatMap]
+    apply CombView.flatMap_congr'
+    intro j hj
+    have hi0 : 0 ≤ i := by
+      rw [mem_intRange] at hi
+      omega
+    have hj0 : 0 ≤ j := by
+      rw [mem_intRange] at hj
+      omega
+    have hiN : i.toNat < N := by
+      rw [mem_intRange] at hi
+      rw [← Int.toNat_of_nonneg hi0]
+      omega
+    have hjN : j.toNat < N := by
+      rw [mem_intRange] at hj
+      rw [← Int.toNat_of_nonneg hj0]
+      omega
+    simpa [Int.toNat_of_nonneg hi0, Int.toNat_of_nonneg hj0] using
+      (noisy_row_child_cell_driverWins_actual N i.toNat j.toNat hN hiN hjN hCanon)
+
 theorem noisy_row_boundary_family_driverWins_pairwise
     (names : List String) (left right : Process2) (children : List Process2)
     (leftWin rightWin : DrvWin) (childWins : List DrvWin)
