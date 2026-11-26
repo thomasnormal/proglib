@@ -2875,4 +2875,120 @@ theorem noisy_maj_conn_procWrites (env : IEnv) (elems : List (String × Nat))
         simp [majInst, connProcs, PConn.port, List.find?, Process2.procWrites,
           Process2.procWins, portInOk, PExpr.portSafe, portOut, hq]
 
+
+theorem noisy_instBodyProc_assign_procWrites (pfx : String) (i : PInst)
+    (ports : List Decl) (bare : List (String × String)) (t : Lhs2) (e : Expr2) :
+    Process2.procWrites (instBodyProc pfx i ports bare (.assign t e)) = [] := by
+  simp [instBodyProc, Process2.clock?, Process2.rename, Process2.procWrites, Process2.procWins]
+
+theorem noisy_flatten_child_procWrites
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (i : PInst) (c : Design2)
+    (hstray : (i.conns.filterMap
+      (strayConn c (c.decls.toList.filter fun dc => dc.isInput || dc.isOutput))).flatMap
+      Process2.procWrites = [])
+    (hconn : ((c.decls.toList.filter fun dc => dc.isInput || dc.isOutput).flatMap
+      (connProcs env elems pfx i.conns)).flatMap Process2.procWrites = [])
+    (hchild : ∀ p ∈ c.processes.toList,
+      ∃ t e, p = .assign t e) :
+    (flattenInst env elems pfx i c).2.flatMap Process2.procWrites = [] := by
+  simp only [flattenInst, List.flatMap_append, hstray, hconn, List.nil_append, List.append_nil]
+  rw [List.flatMap_eq_nil_iff]
+  intro p hp
+  simp only [List.mem_map] at hp
+  obtain ⟨q, hq, rfl⟩ := hp
+  obtain ⟨t, e, rfl⟩ := hchild q hq
+  exact noisy_instBodyProc_assign_procWrites pfx i
+    (c.decls.toList.filter fun dc => dc.isInput || dc.isOutput)
+    (bareInputs env (c.decls.toList.filter fun dc => dc.isInput || dc.isOutput) i.conns) t e
+
+
+
+theorem noisy_stray_conn_procWrites (c : Design2) (ports : List Decl)
+    (conns : List PConn) :
+    (conns.filterMap (strayConn c ports)).flatMap Process2.procWrites = [] := by
+  rw [List.flatMap_eq_nil_iff]
+  intro p hp
+  simp only [List.mem_filterMap] at hp
+  obtain ⟨cn, hcn, hpc⟩ := hp
+  cases cn <;> simp [strayConn] at hpc
+  all_goals cases p <;> simp_all [Process2.procWrites, Process2.procWins]
+
+theorem noisy_xorS_conn_procWrites (env : IEnv) (elems : List (String × Nat))
+    (pfx : String) :
+    (xorDesign.decls.toList.flatMap (connProcs env elems pfx xorSInst.conns)).flatMap
+      Process2.procWrites = [] := by
+  rw [List.flatMap_assoc]
+  apply List.flatMap_eq_nil_iff.mpr
+  intro dc hdc
+  simp only [xorDesign] at hdc
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hdc
+  rcases hdc with rfl | rfl | rfl | rfl
+  · simp [xorSInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [xorSInst, xorDesign, portInOk, PExpr.portSafe, portOut]
+  · simp [xorSInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [xorSInst, xorDesign, portInOk, PExpr.portSafe, portOut]
+  · simp [xorSInst, connProcs, PConn.port, List.find?, Process2.procWrites, Process2.procWins,
+      portInOk, PExpr.portSafe, portOut]
+    try sv2_inst_simp [xorSInst, xorDesign, portInOk, PExpr.portSafe, portOut]
+  · cases hq : instLhs2 env elems (.arrayElem "s" [.genvarRef "i", .genvarRef "j"]) with
+    | error e =>
+        simp [xorSInst, connProcs, PConn.port, List.find?, Process2.procWrites,
+          Process2.procWins, portInOk, PExpr.portSafe, portOut, hq]
+    | ok p =>
+        simp [xorSInst, connProcs, PConn.port, List.find?, Process2.procWrites,
+          Process2.procWins, portInOk, PExpr.portSafe, portOut, hq]
+
+theorem noisy_and_flatten_procWrites (env : IEnv) (elems : List (String × Nat))
+    (pfx : String) :
+    (flattenInst env elems pfx andInst andDesign).2.flatMap Process2.procWrites = [] := by
+  apply noisy_flatten_child_procWrites env elems pfx andInst andDesign
+  · exact noisy_stray_conn_procWrites andDesign
+      (andDesign.decls.toList.filter fun dc => dc.isInput || dc.isOutput) andInst.conns
+  · simpa [andDesign] using noisy_and_conn_procWrites env elems pfx
+  · intro p hp
+    simp only [andDesign, List.mem_cons, List.not_mem_nil, or_false] at hp
+    rcases hp with rfl
+    exact ⟨_, _, rfl⟩
+
+theorem noisy_xor_flatten_procWrites (env : IEnv) (elems : List (String × Nat))
+    (pfx : String) :
+    (flattenInst env elems pfx xorInst xorDesign).2.flatMap Process2.procWrites = [] := by
+  apply noisy_flatten_child_procWrites env elems pfx xorInst xorDesign
+  · exact noisy_stray_conn_procWrites xorDesign
+      (xorDesign.decls.toList.filter fun dc => dc.isInput || dc.isOutput) xorInst.conns
+  · simpa [xorDesign] using noisy_xor_conn_procWrites env elems pfx
+  · intro p hp
+    simp only [xorDesign, List.mem_cons, List.not_mem_nil, or_false] at hp
+    rcases hp with rfl
+    exact ⟨_, _, rfl⟩
+
+theorem noisy_xorS_flatten_procWrites (env : IEnv) (elems : List (String × Nat))
+    (pfx : String) :
+    (flattenInst env elems pfx xorSInst xorDesign).2.flatMap Process2.procWrites = [] := by
+  apply noisy_flatten_child_procWrites env elems pfx xorSInst xorDesign
+  · exact noisy_stray_conn_procWrites xorDesign
+      (xorDesign.decls.toList.filter fun dc => dc.isInput || dc.isOutput) xorSInst.conns
+  · simpa [xorDesign] using noisy_xorS_conn_procWrites env elems pfx
+  · intro p hp
+    simp only [xorDesign, List.mem_cons, List.not_mem_nil, or_false] at hp
+    rcases hp with rfl
+    exact ⟨_, _, rfl⟩
+
+theorem noisy_maj_flatten_procWrites (env : IEnv) (elems : List (String × Nat))
+    (pfx : String) :
+    (flattenInst env elems pfx majInst majDesign).2.flatMap Process2.procWrites = [] := by
+  apply noisy_flatten_child_procWrites env elems pfx majInst majDesign
+  · exact noisy_stray_conn_procWrites majDesign
+      (majDesign.decls.toList.filter fun dc => dc.isInput || dc.isOutput) majInst.conns
+  · simpa [majDesign] using noisy_maj_conn_procWrites env elems pfx
+  · intro p hp
+    simp only [majDesign, List.mem_cons, List.not_mem_nil, or_false] at hp
+    rcases hp with rfl
+    exact ⟨_, _, rfl⟩
+
+
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
