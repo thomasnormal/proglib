@@ -384,10 +384,15 @@ def envelope_refusal_kinds(envelope):
     return found
 
 
-def check_refusal(case, envelope, sigma, probes=None, xout=None, runner=RUNNER):
+def check_refusal(case, envelope, sigma, probes=None, xout=None, runner=RUNNER,
+                  canonical=False):
     """A loud-refusal row: `(True, detail)` when the runner refuses the
     case and names the expected kind (in its error or the envelope)."""
-    kind = case["refusal"]
+    # A source-shaped memory runner can reject hierarchy before canonical E
+    # sees the design.  Keep both observed refusal kinds on the row so the
+    # same differential case can exercise each backend without accepting a
+    # refusal from the wrong path.
+    kind = case.get("canonical_refusal", case["refusal"]) if canonical else case["refusal"]
     try:
         run_lean(envelope, case["name"], sigma, probes, xout, runner)
     except HarnessError as exc:
@@ -545,7 +550,8 @@ def main():
         # into the canonical backend explicitly and is then compared as a
         # normal simulator trace.
         if "refusal" in case and not (args.backend == "ecanon" and case.get("canonical_e")):
-            ok, detail = check_refusal(case, envelope, sigmas[0], xprobe, xout, runner)
+            ok, detail = check_refusal(case, envelope, sigmas[0], xprobe, xout, runner,
+                                       canonical=(args.backend == "ecanon"))
             xnote = ""
             if xprobe is not None:
                 bad = [ln for ln in xout if not ln.startswith("XCHECK ok")]
