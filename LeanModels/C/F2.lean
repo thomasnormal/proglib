@@ -11270,6 +11270,90 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedTypedStoreLoadMetadataByte_contract
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (result : ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)))
+    (hbytes : bytesWf 0 (listSet metadata.allocation.bytes offset byte))
+    (hbytesTarget : bytesWf 0 (listSet
+      (renameMetadata resolve id metadata).allocation.bytes offset
+      (renameByte resolve byte)))
+    (hlocations : metadata.locations.length = metadata.allocation.bytes.length)
+    (hlocationsTarget :
+      (renameMetadata resolve id metadata).locations.length =
+        (renameMetadata resolve id metadata).allocation.bytes.length)
+    (hresult : pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte =
+      some result) :
+    (∃ sourceStore sourceLoad targetStore targetLoad,
+      result = ((sourceStore, sourceLoad), (targetStore, targetLoad)) ∧
+      typedStoreMetadataByte metadata offset typeId byte = some sourceStore ∧
+      typedStoreMetadataByte (renameMetadata resolve id metadata) offset typeId
+        (renameByte resolve byte) = some targetStore ∧
+      typedLoadMetadataByte sourceStore.1 offset typeId = some sourceLoad ∧
+      typedLoadMetadataByte targetStore.1 offset typeId = some targetLoad ∧
+      (targetStore.1 == renameMetadata resolve id sourceStore.1) = true ∧
+      (targetStore.2 == sourceStore.2) = true ∧
+      (targetLoad.1 == renameByte resolve sourceLoad.1) = true ∧
+      (targetLoad.2 == sourceLoad.2) = true) ∧
+      (result.1.1.2 = footprint .write
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.1.2.2 = footprint .read
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.2.1.2 = footprint .write
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.2.2.2 = footprint .read
+          { allocation := 0, offset := offset, width := 1 }) ∧
+      ((result.2.1.1 == renameMetadata resolve id result.1.1.1) = true ∧
+        (result.2.1.2 == result.1.1.2) = true ∧
+        (result.2.2.1 == renameByte resolve result.1.2.1) = true ∧
+        (result.2.2.2 == result.1.2.2) = true) ∧
+      (result.1.1.1.allocation.bytes.length = metadata.allocation.bytes.length ∧
+        result.1.1.1.locations.length = metadata.locations.length ∧
+        result.2.1.1.allocation.bytes.length =
+          (renameMetadata resolve id metadata).allocation.bytes.length ∧
+        result.2.1.1.locations.length =
+          (renameMetadata resolve id metadata).locations.length) ∧
+      (result.1.1.1.allocation.live = metadata.allocation.live ∧
+        result.1.1.1.allocation.address = metadata.allocation.address ∧
+        result.1.1.1.allocation.state = metadata.allocation.state ∧
+        result.2.1.1.allocation.live =
+          (renameMetadata resolve id metadata).allocation.live ∧
+        result.2.1.1.allocation.address =
+          (renameMetadata resolve id metadata).allocation.address ∧
+        result.2.1.1.allocation.state =
+          (renameMetadata resolve id metadata).allocation.state) ∧
+      (result.1.1.1.locations = listSet metadata.locations offset
+          { effectiveType := .typed typeId, initialized := true } ∧
+        result.2.1.1.locations = listSet
+          (renameMetadata resolve id metadata).locations offset
+          { effectiveType := .typed typeId, initialized := true }) ∧
+      (result.1.1.1.wellFormed 0 ∧ result.2.1.1.wellFormed 0) := by
+  constructor
+  · exact pairedTypedStoreLoadMetadataByte_sound resolve id metadata offset typeId byte
+      result hresult
+  constructor
+  · exact pairedTypedStoreLoadMetadataByte_footprints resolve id metadata offset typeId byte
+      result hresult
+  constructor
+  · exact pairedTypedStoreLoadMetadataByte_correspondence resolve id metadata offset typeId byte
+      result hresult
+  constructor
+  · exact pairedTypedStoreLoadMetadataByte_preserves_lengths resolve id metadata offset typeId byte
+      result hresult
+  constructor
+  · exact pairedTypedStoreLoadMetadataByte_preserves_payload resolve id metadata offset typeId byte
+      result hresult
+  constructor
+  · exact pairedTypedStoreLoadMetadataByte_preserves_locations resolve id metadata offset typeId byte
+      result hresult
+  · exact pairedTypedStoreLoadMetadataByte_preserves_wellFormed resolve id metadata offset typeId
+      byte result hresult hbytes hbytesTarget hlocations hlocationsTarget
+
 theorem pairedTypedStoreMetadataByte_contract
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
