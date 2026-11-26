@@ -3901,6 +3901,13 @@ theorem pairedZeroTokenEqual_success (resolve : AllocId → Nat)
     pairedZeroTokenEqual resolve left right = true := by
   simp [pairedZeroTokenEqual, heq]
 
+theorem pairedZeroTokenEqual_contract (resolve : AllocId → Nat)
+    (left right : AllocationMetadata Tag State TypeId) :
+    pairedZeroTokenEqual resolve left right = true ↔
+      zeroTokenEqual (renameZeroTokenMetadata resolve left)
+        (renameZeroTokenMetadata resolve right) = zeroTokenEqual left right := by
+  simp [pairedZeroTokenEqual, beq_iff_eq]
+
 theorem zeroTokenEqual_rename_of_equal (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId)
     (haddress : left.allocation.address = right.allocation.address) :
