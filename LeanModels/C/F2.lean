@@ -8860,6 +8860,12 @@ theorem zeroTokenPlacementAgreement_refusal
     (zeroTokenPlacementAgreement left right).agreesAt id = false := by
   simp [zeroTokenPlacementAgreement, PlacementAgreement.agreesAt, haddress]
 
+theorem zeroTokenPlacementAgreement_agreesAt_contract
+    (left right : AllocationMetadata Tag State TypeId) (id : AllocId) :
+    (zeroTokenPlacementAgreement left right).agreesAt id = true ↔
+      left.allocation.address = right.allocation.address := by
+  simp [zeroTokenPlacementAgreement, PlacementAgreement.agreesAt, beq_iff_eq]
+
 def placementOf (store : Store Tag State) (id : AllocId) : Option Nat :=
   (lookup store id).bind Allocation.address
 
