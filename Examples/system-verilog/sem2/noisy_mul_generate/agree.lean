@@ -2699,6 +2699,20 @@ theorem noisy_canonN (N : Nat) (hR : (N : Int) < 2147483648) :
     canonInt 32 true (N : Int) = N := by
   exact CombView.canonInt32_of_range ⟨by omega, hR⟩
 
+theorem noisy_surfaceFuel_outer (N : Nat) :
+    (N : Int).toNat < PDesign.surfaceFuel [(N : Int)] := by
+  simp [PDesign.surfaceFuel]
+  have hmul : N + 2 ≤ (N + 2) * (N + 2) := by
+    exact Nat.le_mul_of_pos_left (N + 2) (by omega)
+  omega
+
+theorem noisy_surfaceFuel_row (N : Nat) :
+    ((N : Int) - 1).toNat < PDesign.surfaceFuel [(N : Int)] := by
+  simp [PDesign.surfaceFuel]
+  have hmul : N + 2 ≤ (N + 2) * (N + 2) := by
+    exact Nat.le_mul_of_pos_left (N + 2) (by omega)
+  omega
+
 theorem noisy_bound (N i : Int)
     (hCanon : canonInt 32 true N = N) :
     PExpr.isInt (((noisyEnv N).withDecls (noisyDeclsRaw N)).bindVal "i" i)
