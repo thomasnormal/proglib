@@ -6292,6 +6292,13 @@ theorem renameReplayEvents_identity (resolve : AllocId → Nat)
       cases event <;> simp [renameReplayEvents, renameReplayEvent]
       all_goals simpa [renameReplayEvents] using ih
 
+theorem renameReplayEvents_contract
+    (resolve : AllocId → Nat) (events : List ReplayEvent) :
+    renameReplayEvents resolve events = events ∧
+      (renameReplayEvents resolve events).length = events.length := by
+  exact ⟨renameReplayEvents_identity resolve events,
+    by simp [renameReplayEvents]⟩
+
 inductive ReplayEnding where
   | exit (status : Int)
   | signal (number : Nat)
