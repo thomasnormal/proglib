@@ -3325,6 +3325,11 @@ theorem memmoveSnapshot_contract
   simp [memmoveSnapshot] at hresult
   exact ⟨hresult.symm, by simp [hresult]⟩
 
+theorem memmoveSnapshot_failure_contract
+    (source destination : Region) (bytes : List (Byte Tag)) :
+    memmoveSnapshot source destination bytes = none ↔ False := by
+  simp [memmoveSnapshot]
+
 def pairedMemmoveSnapshot [BEq Tag] (resolve : AllocId → Nat)
     (source destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag) × List (Byte Tag)) := do
