@@ -6477,6 +6477,17 @@ theorem renameRecovery_kind_preserved
     | _, _ => False := by
   cases recovery <;> simp [renameRecovery]
 
+theorem renameRecovery_contract
+    (resolve : AllocId → Nat) (recovery : Recovery Tag) :
+    match recovery with
+    | .recovered pointer =>
+        renameRecovery resolve recovery = .recovered (renamePointer resolve pointer)
+    | .empty address => renameRecovery resolve recovery = .empty address
+    | .ambiguousOnePastAdjacent =>
+        renameRecovery resolve recovery = .ambiguousOnePastAdjacent
+    | .noLiveAllocation => renameRecovery resolve recovery = .noLiveAllocation := by
+  cases recovery <;> rfl
+
 def pairedRecoverAddress (resolve : AllocId → Nat) (address : Nat)
     (live : List (AllocId × Nat × Nat × Tag)) : Bool :=
   match recoverAddress address live,
