@@ -11277,6 +11277,32 @@ theorem storeByte_result_contract
           · refine ⟨allocation, rfl, hlive, Nat.lt_of_not_ge hoffset, ?_⟩
             simpa [storeByte, hlookup, hlive, hoffset] using hresult.symm
 
+theorem storeByte_failure_contract
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag) :
+    storeByte store id offset byte = none ↔
+      lookup store id = none ∨
+      (∃ allocation,
+        lookup store id = some allocation ∧
+        (allocation.live = false ∨ offset ≥ allocation.bytes.length)) := by
+  constructor
+  · intro hnone
+    cases hlookup : lookup store id with
+    | none => exact Or.inl rfl
+    | some allocation =>
+        right
+        refine ⟨allocation, rfl, ?_⟩
+        cases hlive : allocation.live with
+        | false => exact Or.inl rfl
+        | true =>
+            by_cases hoffset : offset ≥ allocation.bytes.length
+            · exact Or.inr hoffset
+            · simp [storeByte, hlookup, hlive, hoffset] at hnone
+  · intro hfailure
+    rcases hfailure with hlookup | ⟨allocation, hlookup, hlive | hoffset⟩
+    · simp [storeByte, hlookup]
+    · simp [storeByte, hlookup, hlive]
+    · simp [storeByte, hlookup, hoffset]
+
 def storeTransitionCorresponds (resolve : AllocId → Nat)
     (source target : Store Tag State)
     (sourceResult targetResult : Store Tag State × Footprint) : Prop :=
