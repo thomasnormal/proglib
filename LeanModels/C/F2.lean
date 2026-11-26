@@ -2741,6 +2741,13 @@ theorem memmoveSnapshot_preserves_length
   simp [memmoveSnapshot] at hresult
   exact congrArg List.length hresult.symm
 
+theorem memmoveSnapshot_contract
+    (source destination : Region) (bytes result : List (Byte Tag))
+    (hresult : memmoveSnapshot source destination bytes = some result) :
+    result = bytes ∧ result.length = bytes.length := by
+  simp [memmoveSnapshot] at hresult
+  exact ⟨hresult.symm, by simp [hresult]⟩
+
 def pairedMemmoveSnapshot [BEq Tag] (resolve : AllocId → Nat)
     (source destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag) × List (Byte Tag)) := do
