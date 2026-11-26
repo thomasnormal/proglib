@@ -7796,6 +7796,17 @@ theorem placementWithin_refusal_size
     placementWithin base size limit = false := by
   simp [placementWithin, hbase, Nat.not_le.mpr hrejected]
 
+theorem placementWithin_contract
+    (base size limit : Nat) :
+    placementWithin base size limit = true ↔
+      base ≤ limit ∧ size ≤ limit - base := by
+  simp only [placementWithin, Bool.and_eq_true]
+  constructor
+  · rintro ⟨hbase, hsize⟩
+    exact ⟨decide_eq_true_iff.mp hbase, decide_eq_true_iff.mp hsize⟩
+  · rintro ⟨hbase, hsize⟩
+    exact ⟨decide_eq_true hbase, decide_eq_true hsize⟩
+
 def pairedPlacementWithin (resolve : AllocId → Nat)
     (id size limit : Nat) (base : Nat) : Bool :=
   placementWithin base size limit == placementWithin (resolve id) size limit
