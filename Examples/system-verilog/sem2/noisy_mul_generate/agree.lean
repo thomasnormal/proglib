@@ -3965,6 +3965,21 @@ theorem noisy_pp_path_driverWins_actual
   · simp [PDesign.declNames, PDesign.declSig, CombView.Summary.declNames, noisyMul.pdesign]
   · exact noisy_dims_pp (N : Int) hCanon
 
+theorem noisy_generated_internal_name_absent
+    (pfx suffix : String) (hpfx : 4 ≤ pfx.length) :
+    noisyMul.pdesign.declNames.contains (pfx ++ suffix) = false := by
+  apply Bool.eq_false_iff.mpr
+  intro h
+  have hm := List.contains_iff_mem.mp h
+  change pfx ++ suffix ∈ ["a", "b", "f", "p", "pp", "s", "c", "t"] at hm
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hm
+  rcases hm with h | h | h | h | h | h | h | h
+  all_goals
+    have hpfx' : 4 ≤ pfx.toList.length := by simpa [String.length] using hpfx
+    have hl := congrArg String.length h
+    simp [String.length] at hl
+    omega
+
 theorem noisy_out_paths_driverWins
     (N : Nat) (env : IEnv) (elems : List (String × Nat))
     (names : List String)
@@ -4403,6 +4418,34 @@ theorem noisy_row_child_cell_driverWins
   unfold noisyRowChildCellProcs
   rw [driverWins_append, driverWins_append, htw, hsw, hcw]
   simp
+
+theorem noisy_row_child_cell_driverWins_actual
+    (N i j : Nat) (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (hCanon : canonInt 32 true (N : Int) = N) :
+    driverWins noisyMul.pdesign.declNames
+      (noisyRowChildCellProcs (noisyEnv (N : Int)) (noisyElems (N : Int))
+        (i : Int) (j : Int)) =
+      [("t", some (i * N + j, 1)),
+       ("s", some (i * (N + 1) + j, 1)),
+       ("c", some (i * (N + 1) + (j + 1), 1))] := by
+  apply noisy_row_child_cell_driverWins hN hi hj
+    (env := noisyEnv (N : Int)) (elems := noisyElems (N : Int))
+    (names := noisyMul.pdesign.declNames)
+  · refine ⟨?_, ?_, ?_, ?_⟩ <;>
+      apply noisy_generated_internal_name_absent <;>
+      simp [noisyRowTPrefix, String.length]
+  · refine ⟨?_, ?_, ?_, ?_⟩ <;>
+      apply noisy_generated_internal_name_absent <;>
+      simp [noisyRowSPrefix, String.length]
+  · refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
+      apply noisy_generated_internal_name_absent <;>
+      simp [noisyRowCPrefix, String.length]
+  · simp [PDesign.declNames, PDesign.declSig, noisyMul.pdesign]
+  · simp [PDesign.declNames, PDesign.declSig, noisyMul.pdesign]
+  · simp [PDesign.declNames, PDesign.declSig, noisyMul.pdesign]
+  · exact noisy_dims_t (N : Int) hCanon
+  · exact noisy_dims_s (N : Int) hCanon
+  · exact noisy_dims_c (N : Int) hCanon
 
 theorem noisy_row_child_paths_processes
     (env : IEnv) (elems : List (String × Nat)) (N i : Int) :
