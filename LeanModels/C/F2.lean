@@ -12141,6 +12141,53 @@ theorem pairedLifetimeLookup_contract
         | some targetResult =>
             simp [pairedLifetimeLookup, hs, ht] at h
 
+theorem pairedStaleLoad_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) :
+    (pairedStaleLoad resolve store id offset = true ∧
+      ∃ sourceResult targetResult,
+        endLifetime store id = some sourceResult ∧
+        endLifetime (renameStore resolve store) id = some targetResult ∧
+        loadByte sourceResult.1 id offset = none ∧
+        loadByte targetResult.1 id offset = none) ∨
+    (pairedStaleLoad resolve store id offset = false ∧
+      (endLifetime store id = none ∨
+        endLifetime (renameStore resolve store) id = none ∨
+        (∃ (sourceResult targetResult : Store Tag State × Footprint)
+            (sourceLoad : Byte Tag × Footprint),
+          endLifetime store id = some sourceResult ∧
+          endLifetime (renameStore resolve store) id = some targetResult ∧
+          loadByte sourceResult.1 id offset = some sourceLoad) ∨
+        (∃ (sourceResult targetResult : Store Tag State × Footprint)
+            (targetLoad : Byte Tag × Footprint),
+          endLifetime store id = some sourceResult ∧
+          endLifetime (renameStore resolve store) id = some targetResult ∧
+          loadByte sourceResult.1 id offset = none ∧
+          loadByte targetResult.1 id offset = some targetLoad))) := by
+  by_cases h : pairedStaleLoad resolve store id offset = true
+  · exact Or.inl ⟨h, pairedStaleLoad_sound resolve store id offset h⟩
+  · have hfalse : pairedStaleLoad resolve store id offset = false := by
+      apply Bool.eq_false_iff.mpr
+      exact h
+    refine Or.inr ⟨hfalse, ?_⟩
+    cases hs : endLifetime store id with
+    | none => simp
+    | some sourceResult =>
+        cases ht : endLifetime (renameStore resolve store) id with
+        | none => simp
+        | some targetResult =>
+            cases hloadSource : loadByte sourceResult.1 id offset with
+            | some sourceLoad =>
+                exact Or.inr (Or.inr (Or.inl ⟨sourceResult, targetResult,
+                  sourceLoad, rfl, rfl, hloadSource⟩))
+            | none =>
+                cases hloadTarget : loadByte targetResult.1 id offset with
+                | some targetLoad =>
+                    exact Or.inr (Or.inr (Or.inr ⟨sourceResult, targetResult,
+                      targetLoad, rfl, rfl, hloadSource, hloadTarget⟩))
+                | none =>
+                    simp [pairedStaleLoad, hs, ht, hloadSource, hloadTarget] at h
+
 #guard true
 #guard (footprint .read { allocation := 1, offset := 0, width := 1 }).accesses.length == 1
 
