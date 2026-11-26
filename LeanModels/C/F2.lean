@@ -6245,6 +6245,11 @@ theorem renameExposure_identity (resolve : AllocId → Nat) (state : Exposure) :
     renameExposure resolve state = state := by
   rfl
 
+theorem renameExposure_contract (resolve : AllocId → Nat) (state : Exposure) :
+    renameExposure resolve state = state ∧
+      (renameExposure resolve state).exposed = state.exposed := by
+  exact ⟨renameExposure_identity resolve state, rfl⟩
+
 theorem expose_renameExposure (resolve : AllocId → Nat) (state : Exposure) :
     renameExposure resolve (expose state) = expose (renameExposure resolve state) := by
   rfl
