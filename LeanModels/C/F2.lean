@@ -8585,6 +8585,47 @@ theorem pairedAllocateBounded_empty_unaddressable_both_success
   exact pairedAllocateBounded_both_success resolve store
     { bytes := [], state := state } .unaddressable alignment limit hsource htarget
 
+theorem pairedAllocateBounded_empty_unaddressable_result_shapes
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (alignment limit : Nat)
+    (source target : Store Tag State × Footprint)
+    (hsource : allocateBounded store { bytes := [], state := state }
+      .unaddressable alignment limit = .ok source)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId .unaddressable) alignment limit =
+        .ok target) :
+    source.1 =
+        { allocations := store.allocations ++
+            [(store.nextId,
+              { live := true, address := none,
+                bytes := [], state := state })]
+          nextId := store.nextId + 1 } ∧
+      source.2 = footprint .metadata (Region.mk store.nextId 0 0) ∧
+      target.1 =
+        { allocations := (renameStore resolve store).allocations ++
+            [((renameStore resolve store).nextId,
+              { live := true, address := none,
+                bytes := [], state := state })]
+          nextId := (renameStore resolve store).nextId + 1 } ∧
+      target.2 = footprint .metadata
+        (Region.mk (renameStore resolve store).nextId 0 0) := by
+  have hsourcePayload := allocateBounded_empty_unaddressable_result_payload
+    store state alignment limit source hsource
+  have hsourceFootprint := allocateBounded_empty_unaddressable_result_footprint
+    store state alignment limit source hsource
+  have htargetPayload := allocateBounded_unaddressable_result_payload
+    (renameStore resolve store)
+    (renameAllocationRequest resolve { bytes := [], state := state })
+    alignment limit target htarget
+  have htargetFootprint := allocateBounded_unaddressable_result_footprint
+    (renameStore resolve store)
+    (renameAllocationRequest resolve { bytes := [], state := state })
+    alignment limit target htarget
+  exact ⟨hsourcePayload, hsourceFootprint,
+    by simpa [renameAllocationRequest] using htargetPayload,
+    by simpa [renameAllocationRequest] using htargetFootprint⟩
+
 theorem pairedAllocateBounded_preserves_wellFormed
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
