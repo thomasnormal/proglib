@@ -1538,35 +1538,6 @@ def coreMemCaseHasAggregateWrite : List (List PExpr × PStmt) → Bool
 
 end
 
-def coreMemReactiveMemoryProcFor (memoryNames : List String) : PProcess → Bool
-  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
-      =>
-      coreMemStmtTouchesNames memoryNames body || coreMemStmtHasAggregateWrite body
-  | .alwaysEvent events body =>
-      events.any (fun event => event.edge == .any) &&
-        (coreMemStmtTouchesNames memoryNames body || coreMemStmtHasAggregateWrite body)
-  | _ => false
-
--- The parser may retain a fixed unpacked cell as a declaration with `flatBase`
--- metadata and a resolved `mem[k]` name.  Carry those names from the typed
--- declaration instead of recovering array structure from source text.
-def coreMemReactiveMemoryViolFor (memoryNames : List String) : List PProcess → Option String
-  | [] => none
-  | p :: rest =>
-      if coreMemReactiveMemoryProcFor memoryNames p then
-        some (match p with
-          | .alwaysComb _ => "always_comb"
-          | .alwaysLatch _ => "always_latch"
-          | .alwaysImplicit _ => "always @*"
-          | .alwaysEvent _ _ => "always event"
-          | .initial _ => "initial"
-          | _ => "reactive")
-      else coreMemReactiveMemoryViolFor memoryNames rest
-
-def coreMemReactiveMemoryViol : List PProcess → Option String :=
-  coreMemReactiveMemoryViolFor []
-
-
 /-! A continuous assignment is a source-shaped reader edge.  When an edge
 process reads its target, the values that can reach that target are also part
 of the edge reader's visibility.  Close this relation transitively with a
@@ -1866,6 +1837,71 @@ def coreMemSeparateReactiveProc : PProcess → Bool
 def coreMemReactiveReads : PProcess → List String
   | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body => coreMemStmtReadNames body
   | _ => []
+
+/-! Memory access is admitted when a reactive process reads a memory that is
+written by an initial or edge process, and when a process writes a memory
+before reading that same cell.  The unsafe shape here is a cross-process
+reactive dependency cycle.  Its source-order witness is a read-before-write
+edge from one reactive process to a write in another, under IEEE 1800-2023
+§§4.5 and 9.2.2.2.  A process-local write is already accounted for by
+`coreMemStmtReadBeforeWritesFrom`, so the canonical examples that fill then
+read one cell remain executable.
+-/
+def coreMemReactiveMemoryProcReads (memoryNames : List String) : PProcess → List String
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body =>
+      (coreMemStmtReadBeforeWritesFrom [] body).1.filter (memoryNames.contains ·)
+  | _ => []
+
+def coreMemReactiveMemoryProcWrites (memoryNames : List String) : PProcess → List String
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body =>
+      (coreMemStmtWrites body).filter (memoryNames.contains ·)
+  | _ => []
+
+def coreMemReactiveMemoryCyclePair (memoryNames : List String)
+    (p q : PProcess) : Bool :=
+  coreMemReactiveProc p && coreMemReactiveProc q &&
+    ((coreMemReactiveMemoryProcReads memoryNames p).any
+        (fun name => (coreMemReactiveMemoryProcWrites memoryNames q).contains name) ||
+     (coreMemReactiveMemoryProcReads memoryNames q).any
+        (fun name => (coreMemReactiveMemoryProcWrites memoryNames p).contains name))
+
+def coreMemReactiveMemoryCycleAt (memoryNames : List String) (p : PProcess) :
+    List PProcess → Bool
+  | [] => false
+  | q :: rest =>
+      coreMemReactiveMemoryCyclePair memoryNames p q ||
+        coreMemReactiveMemoryCycleAt memoryNames p rest
+
+def coreMemReactiveMemoryProcFor (memoryNames : List String) : PProcess → Bool
+  | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body =>
+      coreMemStmtHasAggregateWrite body
+  | .alwaysEvent events body =>
+      events.any (fun event => event.edge == .any) &&
+        (coreMemStmtTouchesNames memoryNames body || coreMemStmtHasAggregateWrite body)
+  | _ => false
+
+-- The parser may retain a fixed unpacked cell as a declaration with `flatBase`
+-- metadata and a resolved `mem[k]` name.  Carry those names from the typed
+-- declaration instead of recovering array structure from source text.  For
+-- reactive processes, only a cross-process memory cycle is refused.  The
+-- separate aggregate-write check remains unconditional because the current
+-- quiescence pass has no aggregate scheduler.
+def coreMemReactiveMemoryViolFor (memoryNames : List String) : List PProcess → Option String
+  | [] => none
+  | p :: rest =>
+      if coreMemReactiveMemoryProcFor memoryNames p ||
+          coreMemReactiveMemoryCycleAt memoryNames p rest then
+        some (match p with
+          | .alwaysComb _ => "always_comb"
+          | .alwaysLatch _ => "always_latch"
+          | .alwaysImplicit _ => "always @*"
+          | .alwaysEvent _ _ => "always event"
+          | .initial _ => "initial"
+          | _ => "reactive")
+      else coreMemReactiveMemoryViolFor memoryNames rest
+
+def coreMemReactiveMemoryViol : List PProcess → Option String :=
+  coreMemReactiveMemoryViolFor []
 
 /-! A self-read in an `always_comb` body is outside canonical E's atomic
 activation profile. IEEE 1800-2023 §9.2.2.2.1 removes variables written by
@@ -4786,6 +4822,18 @@ private def auditW5Partial : PStmt :=
     .blockingAssign "t" (.ident "b")]
 
 #guard coreMemReactiveDependencyViol [.alwaysComb auditW5Partial] == some "t"
+
+/-! The memory guard tracks a cross-process reactive cycle rather than every
+memory read.  A read of a memory filled by an initial or edge process is
+admitted, while the two-process feedback shape remains refused. -/
+private def auditMemoryCycleProcesses : List PProcess :=
+  [.alwaysComb (.blockingAssign "mem[1]" (.ident "mem[0]")),
+   .alwaysComb (.blockingAssign "mem[0]" (.ident "seed"))]
+
+#guard coreMemReactiveMemoryViolFor ["mem[0]", "mem[1]"]
+    auditMemoryCycleProcesses == some "always_comb"
+#guard coreMemReactiveMemoryViolFor ["mem[0]"]
+    [.alwaysComb (.blockingAssign "q" (.ident "mem[0]"))] == none
 
 private def auditW5Complete : PStmt :=
   .block [
