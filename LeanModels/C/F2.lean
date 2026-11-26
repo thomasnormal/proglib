@@ -153,6 +153,26 @@ def renameValue (resolve : AllocId → Nat) : Value Tag → Value Tag
   | .pointer pointer => .pointer (renamePointer resolve pointer)
   | .aggregate members => .aggregate (members.map (renameValue resolve))
 
+theorem renameValue_idempotent (resolve : AllocId → Nat) (value : Value Tag) :
+    renameValue resolve (renameValue resolve value) = renameValue resolve value := by
+  refine Value.rec
+    (motive_1 := fun value =>
+      renameValue resolve (renameValue resolve value) = renameValue resolve value)
+    (motive_2 := fun members =>
+      (members.map (renameValue resolve)).map (renameValue resolve) =
+        members.map (renameValue resolve))
+    (scalar := ?_) (pointer := ?_) (aggregate := ?_) (nil := ?_) (cons := ?_) value
+  · intro bytes
+    simp [renameValue]
+  · intro pointer
+    simp [renameValue, renamePointer_idempotent]
+  · intro members ih
+    simp [renameValue, ih]
+  · simp
+  · intro head tail headIh tailIh
+    simp only [List.map_cons]
+    rw [headIh, tailIh]
+
 theorem encodeValue_rename (resolve : AllocId → Nat) (value : Value Tag) :
     encodeValue (renameValue resolve value) =
       (encodeValue value).map (renameByte resolve) := by
