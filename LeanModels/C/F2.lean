@@ -6875,6 +6875,30 @@ theorem recoverAddress_no_live_allocation
     recoverAddress address live = .empty address := by
   simp [recoverAddress, hnone]
 
+theorem recoverAddress_result_contract
+    (address : Nat) (live : List (AllocId × Nat × Nat × Tag))
+    (result : Recovery Tag)
+    (hresult : recoverAddress address live = result) :
+    (∃ entry,
+      live.find? (fun candidate =>
+        candidate.2.1 ≤ address && address < candidate.2.2.1) = some entry ∧
+      result = .recovered
+        { provenance := some { allocation := entry.1, tag := entry.2.2.2 },
+          address := address }) ∨
+    (live.find? (fun candidate =>
+        candidate.2.1 ≤ address && address < candidate.2.2.1) = none ∧
+      result = .empty address) := by
+  cases hfind : live.find? (fun candidate =>
+      candidate.2.1 ≤ address && address < candidate.2.2.1) with
+  | some entry =>
+      left
+      refine ⟨entry, rfl, ?_⟩
+      simpa [recoverAddress, hfind] using hresult.symm
+  | none =>
+      right
+      refine ⟨rfl, ?_⟩
+      simpa [recoverAddress, hfind] using hresult.symm
+
 def renameLiveRegion (resolve : AllocId → Nat)
     (entry : AllocId × Nat × Nat × Tag) : AllocId × Nat × Nat × Tag :=
   (entry.1, resolve entry.1, resolve entry.1 + (entry.2.2.1 - entry.2.1), entry.2.2.2)
