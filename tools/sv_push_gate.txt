@@ -335,3 +335,4 @@ LeanModels.Sv.Kernel.NdTrace
 Examples/system-verilog/sem2/simultaneous_nba/footprint.lean
 Examples/system-verilog/sem2/nd_counter/relation.lean
 Examples/system-verilog/sem2/nd_sync2/relation.lean
+Examples/system-verilog/sem2/blocking_local_always_ff_step11/relation.lean

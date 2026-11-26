@@ -51,20 +51,30 @@ is a statement about runs.
   resolved net, no `$readmemh`, no declaration initializer).
 * `bodies`: every process body is `PStmt.nbaPlain E.ndEventSources`: built
   from `begin ... end`, `if` (condition without `===`, `!==`, `==?`, `!=?`),
-  counted `for`, and nonblocking assignments to a WHOLE declared signal
-  (`x <= e`, with `e` free of those observers) that is not a clock or event
-  source of any process.
+  counted `for`, nonblocking AND BLOCKING assignments to a WHOLE declared
+  signal (`x <= e`, `x = e`, with `e` free of those observers) that is not a
+  clock or event source of any process, and declarations of static locals
+  (`logic t;` in a block: the local is a declared signal of the design).
+  A blocking target need not be local to its process for THIS theorem: the
+  run that is constructed is the executor's own schedule (first runnable
+  cursor to completion), under which a later process reads what an earlier
+  one wrote, in the relation as in the executor.  Process-locality matters
+  for non-interference (`NdFootprint.lean`), not for soundness.  The step
+  refuses a blocking write that changes a clock or event source; the
+  fragment excludes such a target syntactically.
 * `fourState`: every scalar declaration is four-state.
 * `edgeBase`: `E.scalarEdge.base = E.scalar` (the NBA commit and the view use
   the same declaration table; `rfl` on a loaded design).
 
 ## The gap, exactly
 
-* blocking assignments and procedural declarations in a clocked body (the
-  relation has them; this theorem does not);
-* nonblocking assignments to a bit select, part select, concatenation, array
-  element or memory word (the relation checks their index values, the
-  executor does not; the frame lemma for their queue entries is not proved);
+* automatic procedural declarations (`automatic logic t;`: the cursor's
+  locals), and blocking assignments to them (the relation has them; this
+  theorem does not);
+* blocking or nonblocking assignments to a bit select, part select,
+  concatenation, array element or memory word (the relation checks their
+  index values, the executor does not; the frame lemma for their queue
+  entries is not proved);
 * a nonblocking assignment to a clock or event source (a derived clock): the
   slot may then take a second round, and control knownness after the commit
   is no longer implied by the start hypotheses;
@@ -85,14 +95,23 @@ set_option autoImplicit false
 
 /-! ## The fragment -/
 
+/-- The initializer of a procedural declaration has no x observer. -/
+def ndInitPlain : Option PExpr → Bool
+  | none => true
+  | some e => (ndXObserver? e).isNone
+
 mutual
 
-/-- A clocked body of the fragment: blocks, `if`, counted `for`, and
-nonblocking assignments to a whole signal that is not in `srcs`; no x
-observer in a condition or a right-hand side. -/
+/-- A clocked body of the fragment: blocks, `if`, counted `for`, nonblocking
+and blocking assignments to a whole signal that is not in `srcs`, and
+declarations of static locals; no x observer in a condition, a right-hand
+side or an initializer. -/
 def _root_.LeanModels.Sv.PStmt.nbaPlain (srcs : List String) : PStmt → Bool
   | .nbaAssign t v => decide (t ∉ srcs) && (ndXObserver? v).isNone
   | .nbaAssignL (.ident t) v => decide (t ∉ srcs) && (ndXObserver? v).isNone
+  | .blockingAssign t v => decide (t ∉ srcs) && (ndXObserver? v).isNone
+  | .blockingAssignL (.ident t) v => decide (t ∉ srcs) && (ndXObserver? v).isNone
+  | .localDecl _ _ init => ndInitPlain init
   | .block body => PStmt.nbaPlainList srcs body
   | .ifStmt c yes no =>
       (ndXObserver? c).isNone && PStmt.nbaPlain srcs yes && PStmt.nbaPlainOpt srcs no
@@ -396,85 +415,113 @@ def ndCtx (st : CoreMemState) (before mid after : List EdgeCursor)
   { store := st, active := before ++ mid ++ after, scalarQ := sQ, memoryQ := mQ, base,
     oracle := Oracle.zero, settled := false }
 
+theorem CoreMemDesign.SourcesAgree.refl (E : CoreMemDesign) (a : SvState) : E.SourcesAgree a a :=
+  fun _ _ => rfl
+
+theorem CoreMemDesign.SourcesAgree.trans {E : CoreMemDesign} {a b c : SvState}
+    (h₁ : E.SourcesAgree a b) (h₂ : E.SourcesAgree b c) : E.SourcesAgree a c :=
+  fun n hn => (h₁ n hn).trans (h₂ n hn)
+
+/-- Views that agree on the event sources: no event source changed. -/
+theorem CoreMemDesign.ndEventSourceChanged_agree {E : CoreMemDesign} {a b : SvState}
+    (h : E.SourcesAgree a b) : E.ndEventSourceChanged a b = false := by
+  unfold CoreMemDesign.ndEventSourceChanged
+  rw [List.any_eq_false]
+  intro n hn
+  simp [h n hn]
+
+/-- One node of one cursor, as a step of the relation.  The node may change
+the store (a blocking write) as long as every clock and event source keeps its
+value: then the step function's refusal for a blocking write that moves an
+event source does not apply. -/
 theorem fire_ndCtx {E : CoreMemDesign} (hA : E.ndAdmitted = true) {st : CoreMemState}
     {before after : List EdgeCursor}
     {w : EdgeWork} {tail : List EdgeWork} {locals : SvState} {sQ : NbaQueue2} {mQ : MemNbaQueue}
     {base : SvState} {r : CoreMemExecResult} {exposed : List EdgeWork}
-    (h : w.ndOpen E st locals Oracle.zero = .ok (r, exposed, Oracle.zero)) (hst : r.state = st) :
+    (h : w.ndOpen E st locals Oracle.zero = .ok (r, exposed, Oracle.zero))
+    (hag : E.SourcesAgree (E.scalar.view st.scalar) (E.scalar.view r.state.scalar)) :
     Nd.Step E (ndCtx st before [⟨w :: tail, locals⟩] after sQ mQ base)
-      (ndCtx st before (EdgeCursor.keep ⟨exposed ++ tail, r.locals⟩) after
+      (ndCtx r.state before (EdgeCursor.keep ⟨exposed ++ tail, r.locals⟩) after
         (sQ ++ r.scalarQ) (mQ ++ r.memoryQ) base) := by
   refine ⟨before.length, ?_⟩
   have hp := pickAt_append before (⟨w :: tail, locals⟩ : EdgeCursor) after
-  simp [ndStep, hA, ndCtx, NdState.fire, hp, h, hst]
+  simp [ndStep, hA, ndCtx, NdState.fire, hp, h, CoreMemDesign.any_firesIn_agree hag,
+    CoreMemDesign.ndEventSourceChanged_agree hag]
 
-/-- The executor's result `r` for the work item `w`, started in store `st`
-with locals `locals`, is reproduced by the cursor in every context: the store
-and the locals are unchanged, no issued update names a clock or event source,
-and the issued updates are appended to the queues. -/
-def NdRuns (E : CoreMemDesign) (st : CoreMemState) (locals : SvState) (w : EdgeWork)
+/-- The executor's result `r` for the work item `w`, started in the store
+`st` with no automatic local, is reproduced by the cursor in every context:
+the cursor runs from `st` to the store `r.state` the executor reached, which
+is coherent and gives every clock and event source the value it had; the
+locals are still empty; no issued update names a clock or event source; and
+the issued updates are appended to the queues. -/
+def NdRuns (E : CoreMemDesign) (st : CoreMemState) (w : EdgeWork)
     (r : CoreMemExecResult) : Prop :=
-  r.state = st ∧ r.locals = locals ∧ (∀ u ∈ r.scalarQ, u.1 ∉ E.ndEventSources) ∧
+  E.Coherent r.state ∧
+    E.SourcesAgree (E.scalar.view st.scalar) (E.scalar.view r.state.scalar) ∧
+    r.locals = [] ∧ (∀ u ∈ r.scalarQ, u.1 ∉ E.ndEventSources) ∧
     ∀ (before after : List EdgeCursor) (tail : List EdgeWork) (sQ : NbaQueue2) (mQ : MemNbaQueue)
       (base : SvState),
-      Nd.Run E (ndCtx st before [⟨w :: tail, locals⟩] after sQ mQ base)
-        (ndCtx st before (EdgeCursor.keep ⟨tail, locals⟩) after
+      Nd.Run E (ndCtx st before [⟨w :: tail, []⟩] after sQ mQ base)
+        (ndCtx r.state before (EdgeCursor.keep ⟨tail, []⟩) after
           (sQ ++ r.scalarQ) (mQ ++ r.memoryQ) base)
 
 theorem NdRuns.leaf {E : CoreMemDesign} (hA : E.ndAdmitted = true) {st : CoreMemState}
-    {locals : SvState} {w : EdgeWork} {r : CoreMemExecResult}
-    (h : w.ndOpen E st locals Oracle.zero = .ok (r, [], Oracle.zero))
-    (hst : r.state = st) (hl : r.locals = locals)
-    (hq : ∀ u ∈ r.scalarQ, u.1 ∉ E.ndEventSources) : NdRuns E st locals w r := by
-  refine ⟨hst, hl, hq, fun before after tail sQ mQ base => Nd.Run.single ?_⟩
+    {w : EdgeWork} {r : CoreMemExecResult}
+    (h : w.ndOpen E st [] Oracle.zero = .ok (r, [], Oracle.zero))
+    (hcoh : E.Coherent r.state)
+    (hag : E.SourcesAgree (E.scalar.view st.scalar) (E.scalar.view r.state.scalar))
+    (hl : r.locals = [])
+    (hq : ∀ u ∈ r.scalarQ, u.1 ∉ E.ndEventSources) : NdRuns E st w r := by
+  refine ⟨hcoh, hag, hl, hq, fun before after tail sQ mQ base => Nd.Run.single ?_⟩
   simpa [hl] using fire_ndCtx hA (before := before) (after := after) (tail := tail) (sQ := sQ)
-    (mQ := mQ) (base := base) h hst
+    (mQ := mQ) (base := base) h hag
 
 theorem NdRuns.open0 {E : CoreMemDesign} (hA : E.ndAdmitted = true) {st : CoreMemState}
-    {locals : SvState} {w : EdgeWork}
-    (h : w.ndOpen E st locals Oracle.zero = .ok (.idle st locals, [], Oracle.zero)) :
-    NdRuns E st locals w (.idle st locals) :=
-  NdRuns.leaf hA h rfl rfl (fun u hu => by simp [CoreMemExecResult.idle] at hu)
+    (hc : E.Coherent st) {w : EdgeWork}
+    (h : w.ndOpen E st [] Oracle.zero = .ok (.idle st [], [], Oracle.zero)) :
+    NdRuns E st w (.idle st []) :=
+  NdRuns.leaf hA h hc (CoreMemDesign.SourcesAgree.refl E _) rfl
+    (fun u hu => by simp [CoreMemExecResult.idle] at hu)
 
 theorem NdRuns.open1 {E : CoreMemDesign} (hA : E.ndAdmitted = true) {st : CoreMemState}
-    {locals : SvState} {w w₁ : EdgeWork} {r : CoreMemExecResult}
-    (h : w.ndOpen E st locals Oracle.zero = .ok (.idle st locals, [w₁], Oracle.zero))
-    (h₁ : NdRuns E st locals w₁ r) : NdRuns E st locals w r := by
-  refine ⟨h₁.1, h₁.2.1, h₁.2.2.1, fun before after tail sQ mQ base => ?_⟩
-  have hstep : Nd.Step E (ndCtx st before [⟨w :: tail, locals⟩] after sQ mQ base)
-      (ndCtx st before [⟨w₁ :: tail, locals⟩] after sQ mQ base) := by
+    {w w₁ : EdgeWork} {r : CoreMemExecResult}
+    (h : w.ndOpen E st [] Oracle.zero = .ok (.idle st [], [w₁], Oracle.zero))
+    (h₁ : NdRuns E st w₁ r) : NdRuns E st w r := by
+  refine ⟨h₁.1, h₁.2.1, h₁.2.2.1, h₁.2.2.2.1, fun before after tail sQ mQ base => ?_⟩
+  have hstep : Nd.Step E (ndCtx st before [⟨w :: tail, []⟩] after sQ mQ base)
+      (ndCtx st before [⟨w₁ :: tail, []⟩] after sQ mQ base) := by
     simpa [EdgeCursor.keep, CoreMemExecResult.idle] using
       fire_ndCtx hA (before := before) (after := after) (tail := tail) (sQ := sQ) (mQ := mQ)
-        (base := base) h rfl
-  exact Nd.Run.head hstep (h₁.2.2.2 before after tail sQ mQ base)
+        (base := base) h (CoreMemDesign.SourcesAgree.refl E _)
+  exact Nd.Run.head hstep (h₁.2.2.2.2 before after tail sQ mQ base)
 
 theorem NdRuns.open2 {E : CoreMemDesign} (hA : E.ndAdmitted = true) {st : CoreMemState}
-    {locals : SvState} {w w₁ w₂ : EdgeWork} {a b : CoreMemExecResult}
-    (h : w.ndOpen E st locals Oracle.zero = .ok (.idle st locals, [w₁, w₂], Oracle.zero))
-    (h₁ : NdRuns E st locals w₁ a) (h₂ : NdRuns E st locals w₂ b) :
-    NdRuns E st locals w (CoreMemExec.append a b) := by
+    {w w₁ w₂ : EdgeWork} {a b : CoreMemExecResult}
+    (h : w.ndOpen E st [] Oracle.zero = .ok (.idle st [], [w₁, w₂], Oracle.zero))
+    (h₁ : NdRuns E st w₁ a) (h₂ : NdRuns E a.state w₂ b) :
+    NdRuns E st w (CoreMemExec.append a b) := by
   have hq : (CoreMemExec.append a b).scalarQ = a.scalarQ ++ b.scalarQ := rfl
   have hm : (CoreMemExec.append a b).memoryQ = a.memoryQ ++ b.memoryQ := rfl
-  refine ⟨h₂.1, h₂.2.1, ?_, fun before after tail sQ mQ base => ?_⟩
+  refine ⟨h₂.1, h₁.2.1.trans h₂.2.1, h₂.2.2.1, ?_, fun before after tail sQ mQ base => ?_⟩
   · intro u hu
     rw [hq] at hu
     rcases List.mem_append.mp hu with hu | hu
-    · exact h₁.2.2.1 u hu
-    · exact h₂.2.2.1 u hu
-  have hstep : Nd.Step E (ndCtx st before [⟨w :: tail, locals⟩] after sQ mQ base)
-      (ndCtx st before [⟨w₁ :: w₂ :: tail, locals⟩] after sQ mQ base) := by
+    · exact h₁.2.2.2.1 u hu
+    · exact h₂.2.2.2.1 u hu
+  have hstep : Nd.Step E (ndCtx st before [⟨w :: tail, []⟩] after sQ mQ base)
+      (ndCtx st before [⟨w₁ :: w₂ :: tail, []⟩] after sQ mQ base) := by
     simpa [EdgeCursor.keep, CoreMemExecResult.idle] using
       fire_ndCtx hA (before := before) (after := after) (tail := tail) (sQ := sQ) (mQ := mQ)
-        (base := base) h rfl
-  have hr₁ := h₁.2.2.2 before after (w₂ :: tail) sQ mQ base
-  have hk : EdgeCursor.keep ⟨w₂ :: tail, locals⟩ = [⟨w₂ :: tail, locals⟩] := rfl
+        (base := base) h (CoreMemDesign.SourcesAgree.refl E _)
+  have hr₁ := h₁.2.2.2.2 before after (w₂ :: tail) sQ mQ base
+  have hk : EdgeCursor.keep ⟨w₂ :: tail, []⟩ = [⟨w₂ :: tail, []⟩] := rfl
   rw [hk] at hr₁
-  have hr₂ := h₂.2.2.2 before after tail (sQ ++ a.scalarQ) (mQ ++ a.memoryQ) base
+  have hr₂ := h₂.2.2.2.2 before after tail (sQ ++ a.scalarQ) (mQ ++ a.memoryQ) base
   rw [hq, hm, ← List.append_assoc, ← List.append_assoc]
   exact Nd.Run.head hstep (hr₁.trans hr₂)
 
-/-! ## Leaf statements: the executor does not recurse, and an NBA changes
-neither the store nor the locals -/
+/-! ## Leaf statements: the executor does not recurse; an NBA changes neither
+the store nor the locals; a blocking write changes one signal -/
 
 theorem withLocals_fromQueue_ok {locals : SvState} {st : CoreMemState} {q : Res CoreMemQueue}
     {r : CoreMemExecResult}
@@ -505,6 +552,29 @@ theorem execStmtFuel_nbaAssignIdent_fuel (E : CoreMemDesign) (env : IEnv) (st : 
     E.execStmtFuel env E.elems st locals (fuel + 1) (.nbaAssignL (.ident t) v) =
       E.execStmtFuel env E.elems st locals 1 (.nbaAssignL (.ident t) v) := by
   rw [CoreMemDesign.execStmtFuel, CoreMemDesign.execStmtFuel]
+
+/-- The same for a whole-signal blocking assignment. -/
+theorem execStmtFuel_blockingAssign_fuel (E : CoreMemDesign) (env : IEnv) (st : CoreMemState)
+    (locals : SvState) (fuel : Nat) (t : String) (v : PExpr) :
+    E.execStmtFuel env E.elems st locals (fuel + 1) (.blockingAssign t v) =
+      E.execStmtFuel env E.elems st locals 1 (.blockingAssign t v) := by
+  rw [CoreMemDesign.execStmtFuel, CoreMemDesign.execStmtFuel]
+
+/-- The same for the target-node form of a whole-signal blocking assignment. -/
+theorem execStmtFuel_blockingAssignIdent_fuel (E : CoreMemDesign) (env : IEnv)
+    (st : CoreMemState) (locals : SvState) (fuel : Nat) (t : String) (v : PExpr) :
+    E.execStmtFuel env E.elems st locals (fuel + 1) (.blockingAssignL (.ident t) v) =
+      E.execStmtFuel env E.elems st locals 1 (.blockingAssignL (.ident t) v) := by
+  rw [CoreMemDesign.execStmtFuel, CoreMemDesign.execStmtFuel]
+
+/-- A procedural declaration of a static local changes nothing, at every
+positive fuel. -/
+theorem execStmtFuel_localDecl (E : CoreMemDesign) (env : IEnv) (st : CoreMemState)
+    (locals : SvState) (fuel : Nat) (name : String) (width : Nat) (init : Option PExpr) :
+    E.execStmtFuel env E.elems st locals (fuel + 1) (.localDecl name width init) =
+      .ok (.idle st locals) := by
+  rw [CoreMemDesign.execStmtFuel]
+  rfl
 
 /-- What a whole-signal nonblocking assignment does in the executor: the
 store and the locals are unchanged and every queued update names the target. -/
@@ -544,30 +614,86 @@ theorem execStmtFuel_nbaAssignIdent_ok {E : CoreMemDesign} {env : IEnv} {st : Co
     | exact issueIdent_ok h
     | (obtain ⟨_, _, h'⟩ := Res.bind_eq_ok.mp h; exact issueIdent_ok h')
 
+/-- **What a whole-signal blocking assignment does in the executor**, from a
+coherent store and with no automatic local: the result store is coherent,
+the locals are still empty, and every signal other than the target reads as
+before. -/
+theorem execBlockingIdentLocal_ok {E : CoreMemDesign} {env : IEnv} {st : CoreMemState}
+    (hc : E.Coherent st) {t : String} {v : PExpr} {p : CoreMemState × SvState}
+    (h : E.execBlockingIdentLocal env E.elems st [] t v = .ok p) :
+    p.2 = [] ∧ E.Coherent p.1 ∧ ∀ n, n ≠ t →
+      SvState.lookup (E.scalar.view p.1.scalar) n = SvState.lookup (E.scalar.view st.scalar) n := by
+  simp only [CoreMemDesign.execBlockingIdentLocal, SvState.lookup] at h
+  obtain ⟨st', hst', h⟩ := Res.bind_eq_ok.mp h
+  simp only [Res.ok.injEq] at h
+  subst h
+  simp only [CoreMemDesign.execBlockingTarget] at hst'
+  cases hw : E.scalarTarget t with
+  | none => simp [hw] at hst'
+  | some width =>
+      simp only [hw] at hst'
+      obtain ⟨val, -, hval⟩ := Res.bind_eq_ok.mp hst'
+      simp only [Res.ok.injEq] at hval
+      subst hval
+      obtain ⟨x, hx⟩ := CoreMemDesign.scalarWidth?_some (E := E) (n := t) (by
+        have hw' : E.scalarWidth? t = some width := hw
+        simp [hw'])
+      obtain ⟨hview, hcoh⟩ := CoreMemDesign.setScalarState_spec hc hx val
+      refine ⟨rfl, hcoh, fun n hn => ?_⟩
+      rw [hview]
+      exact SvState.lookup_set_ne _ _ (Ne.symm hn)
+
+theorem execStmtFuel_blockingAssign_ok {E : CoreMemDesign} {env : IEnv} {st : CoreMemState}
+    (hc : E.Coherent st) {fuel : Nat} {t : String} {v : PExpr} {r : CoreMemExecResult}
+    (h : E.execStmtFuel env E.elems st [] (fuel + 1) (.blockingAssign t v) = .ok r) :
+    E.Coherent r.state ∧ r.locals = [] ∧ r.scalarQ = [] ∧ ∀ n, n ≠ t →
+      SvState.lookup (E.scalar.view r.state.scalar) n =
+        SvState.lookup (E.scalar.view st.scalar) n := by
+  rw [CoreMemDesign.execStmtFuel] at h
+  obtain ⟨⟨st', l'⟩, hp, h⟩ := Res.bind_eq_ok.mp h
+  obtain ⟨hl, hcoh, hv⟩ := execBlockingIdentLocal_ok hc hp
+  simp only [Res.ok.injEq] at h
+  subst h
+  exact ⟨hcoh, hl, rfl, hv⟩
+
+theorem execStmtFuel_blockingAssignIdent_ok {E : CoreMemDesign} {env : IEnv} {st : CoreMemState}
+    (hc : E.Coherent st) {fuel : Nat} {t : String} {v : PExpr} {r : CoreMemExecResult}
+    (h : E.execStmtFuel env E.elems st [] (fuel + 1) (.blockingAssignL (.ident t) v) = .ok r) :
+    E.Coherent r.state ∧ r.locals = [] ∧ r.scalarQ = [] ∧ ∀ n, n ≠ t →
+      SvState.lookup (E.scalar.view r.state.scalar) n =
+        SvState.lookup (E.scalar.view st.scalar) n := by
+  rw [CoreMemDesign.execStmtFuel] at h
+  obtain ⟨⟨st', l'⟩, hp, h⟩ := Res.bind_eq_ok.mp h
+  obtain ⟨hl, hcoh, hv⟩ := execBlockingIdentLocal_ok hc hp
+  simp only [Res.ok.injEq] at h
+  subst h
+  exact ⟨hcoh, hl, rfl, hv⟩
+
 /-! ## A clocked body: the executor's result is a run of the cursor -/
 
 theorem exec_runs {E : CoreMemDesign} (hA : E.ndAdmitted = true) : ∀ fuel : Nat,
-    (∀ stmt env st locals r, PStmt.nbaPlain E.ndEventSources stmt = true →
-      E.execStmtFuel env E.elems st locals fuel stmt = .ok r →
-        NdRuns E st locals (.edgeStmt env stmt) r) ∧
-    (∀ stmts env st locals r, PStmt.nbaPlainList E.ndEventSources stmts = true →
-      E.execStmtsFuel env E.elems st locals fuel stmts = .ok r →
-        NdRuns E st locals (.edgeBlock env stmts) r) ∧
-    (∀ values body iterator env st locals r, PStmt.nbaPlain E.ndEventSources body = true →
-      E.execLoopValuesFuel env E.elems st locals fuel values body iterator = .ok r →
-        NdRuns E st locals (.edgeLoop env iterator body values) r)
+    (∀ stmt env st r, E.Coherent st → PStmt.nbaPlain E.ndEventSources stmt = true →
+      E.execStmtFuel env E.elems st [] fuel stmt = .ok r →
+        NdRuns E st (.edgeStmt env stmt) r) ∧
+    (∀ stmts env st r, E.Coherent st → PStmt.nbaPlainList E.ndEventSources stmts = true →
+      E.execStmtsFuel env E.elems st [] fuel stmts = .ok r →
+        NdRuns E st (.edgeBlock env stmts) r) ∧
+    (∀ values body iterator env st r, E.Coherent st →
+      PStmt.nbaPlain E.ndEventSources body = true →
+      E.execLoopValuesFuel env E.elems st [] fuel values body iterator = .ok r →
+        NdRuns E st (.edgeLoop env iterator body values) r)
   | 0 => by
       refine ⟨?_, ?_, ?_⟩
-      · intro stmt env st locals r _ h
+      · intro stmt env st r _ _ h
         simp [CoreMemDesign.execStmtFuel] at h
-      · intro stmts env st locals r _ h
+      · intro stmts env st r _ _ h
         simp [CoreMemDesign.execStmtsFuel] at h
-      · intro values body iterator env st locals r _ h
+      · intro values body iterator env st r _ _ h
         simp [CoreMemDesign.execLoopValuesFuel] at h
   | fuel + 1 => by
       obtain ⟨ihS, ihL, ihV⟩ := exec_runs hA fuel
       refine ⟨?_, ?_, ?_⟩
-      · intro stmt env st locals r hn h
+      · intro stmt env st r hc hn h
         cases stmt with
         | nbaAssign t v =>
             simp only [PStmt.nbaPlain, Bool.and_eq_true, decide_eq_true_eq,
@@ -576,7 +702,9 @@ theorem exec_runs {E : CoreMemDesign} (hA : E.ndAdmitted = true) : ∀ fuel : Na
             rw [execStmtFuel_nbaAssign_fuel] at h
             exact NdRuns.leaf hA
               (by simp [EdgeWork.ndOpen, ndOpenStmt, CoreMemDesign.ndCheckExpr, hn.2, ndLeaf, h])
-              hst hl (fun u hu => by rw [hq u hu]; exact hn.1)
+              (by rw [hst]; exact hc)
+              (by rw [hst]; exact CoreMemDesign.SourcesAgree.refl E _)
+              hl (fun u hu => by rw [hq u hu]; exact hn.1)
         | nbaAssignL t v =>
             cases t with
             | ident name =>
@@ -588,12 +716,50 @@ theorem exec_runs {E : CoreMemDesign} (hA : E.ndAdmitted = true) : ∀ fuel : Na
                   (by simp [EdgeWork.ndOpen, ndOpenStmt, CoreMemDesign.ndCheckExpr,
                     CoreMemDesign.ndCheckTarget, ndIndexExprs, CoreMemDesign.ndCheckIndexExprs,
                     hn.2, ndLeaf, h])
-                  hst hl (fun u hu => by rw [hq u hu]; exact hn.1)
+                  (by rw [hst]; exact hc)
+                  (by rw [hst]; exact CoreMemDesign.SourcesAgree.refl E _)
+                  hl (fun u hu => by rw [hq u hu]; exact hn.1)
             | _ => simp [PStmt.nbaPlain] at hn
+        | blockingAssign t v =>
+            simp only [PStmt.nbaPlain, Bool.and_eq_true, decide_eq_true_eq,
+              Option.isNone_iff_eq_none] at hn
+            obtain ⟨hcoh, hl, hq, hv⟩ := execStmtFuel_blockingAssign_ok hc h
+            rw [execStmtFuel_blockingAssign_fuel] at h
+            exact NdRuns.leaf hA
+              (by simp [EdgeWork.ndOpen, ndOpenStmt, CoreMemDesign.ndCheckExpr, hn.2, ndLeaf, h])
+              hcoh (fun n hns => (hv n (by rintro rfl; exact hn.1 hns)).symm)
+              hl (fun u hu => by rw [hq] at hu; simp at hu)
+        | blockingAssignL t v =>
+            cases t with
+            | ident name =>
+                simp only [PStmt.nbaPlain, Bool.and_eq_true, decide_eq_true_eq,
+                  Option.isNone_iff_eq_none] at hn
+                obtain ⟨hcoh, hl, hq, hv⟩ := execStmtFuel_blockingAssignIdent_ok hc h
+                rw [execStmtFuel_blockingAssignIdent_fuel] at h
+                exact NdRuns.leaf hA
+                  (by simp [EdgeWork.ndOpen, ndOpenStmt, CoreMemDesign.ndCheckExpr,
+                    CoreMemDesign.ndCheckTarget, ndIndexExprs, CoreMemDesign.ndCheckIndexExprs,
+                    hn.2, ndLeaf, h])
+                  hcoh (fun n hns => (hv n (by rintro rfl; exact hn.1 hns)).symm)
+                  hl (fun u hu => by rw [hq] at hu; simp at hu)
+            | _ => simp [PStmt.nbaPlain] at hn
+        | localDecl name width init =>
+            rw [execStmtFuel_localDecl] at h
+            simp only [Res.ok.injEq] at h
+            subst h
+            refine NdRuns.open0 hA hc ?_
+            cases init with
+            | none =>
+                simp [EdgeWork.ndOpen, ndOpenStmt, CoreMemDesign.ndCheckOptionalExpr, ndLeaf,
+                  execStmtFuel_localDecl]
+            | some e =>
+                simp only [PStmt.nbaPlain, ndInitPlain, Option.isNone_iff_eq_none] at hn
+                simp [EdgeWork.ndOpen, ndOpenStmt, CoreMemDesign.ndCheckOptionalExpr,
+                  CoreMemDesign.ndCheckExpr, hn, ndLeaf, execStmtFuel_localDecl]
         | block body =>
             rw [CoreMemDesign.execStmtFuel] at h
             exact NdRuns.open1 hA (w₁ := .edgeBlock env body) rfl
-              (ihL body env st locals r (by simpa [PStmt.nbaPlain] using hn) h)
+              (ihL body env st r hc (by simpa [PStmt.nbaPlain] using hn) h)
         | ifStmt c y n =>
             simp only [PStmt.nbaPlain, Bool.and_eq_true, Option.isNone_iff_eq_none] at hn
             obtain ⟨⟨hobs, hy⟩, hno⟩ := hn
@@ -601,20 +767,20 @@ theorem exec_runs {E : CoreMemDesign} (hA : E.ndAdmitted = true) : ∀ fuel : Na
             obtain ⟨cv, hcv, h⟩ := Res.bind_eq_ok.mp h
             by_cases hct : cv.condTrue = true
             · simp only [hct, ↓reduceIte] at h
-              refine NdRuns.open1 hA (w₁ := .edgeStmt env y) ?_ (ihS y env st locals r hy h)
+              refine NdRuns.open1 hA (w₁ := .edgeStmt env y) ?_ (ihS y env st r hc hy h)
               simp [EdgeWork.ndOpen, ndOpenStmt, CoreMemDesign.ndCheckExpr, hobs, hcv,
                 Oracle.zero_read_condTrue, Oracle.zero_read_snd, hct]
             · simp only [hct, Bool.false_eq_true, ↓reduceIte] at h
               cases n with
               | none =>
                   cases h
-                  exact NdRuns.open0 hA (by
+                  exact NdRuns.open0 hA hc (by
                     simp [EdgeWork.ndOpen, ndOpenStmt, CoreMemDesign.ndCheckExpr, hobs, hcv,
                       Oracle.zero_read_condTrue, Oracle.zero_read_snd, hct,
                       CoreMemExecResult.idle])
               | some s =>
                   refine NdRuns.open1 hA (w₁ := .edgeStmt env s) ?_
-                    (ihS s env st locals r (by simpa [PStmt.nbaPlainOpt] using hno) h)
+                    (ihS s env st r hc (by simpa [PStmt.nbaPlainOpt] using hno) h)
                   simp [EdgeWork.ndOpen, ndOpenStmt, CoreMemDesign.ndCheckExpr, hobs, hcv,
                     Oracle.zero_read_condTrue, Oracle.zero_read_snd, hct]
         | forLoop name init cond step body =>
@@ -625,41 +791,41 @@ theorem exec_runs {E : CoreMemDesign} (hA : E.ndAdmitted = true) : ∀ fuel : Na
             | ok values =>
                 simp only [hfv] at h
                 refine NdRuns.open1 hA (w₁ := .edgeLoop env name body values) ?_
-                  (ihV values body name env st locals r (by simpa [PStmt.nbaPlain] using hn) h)
+                  (ihV values body name env st r hc (by simpa [PStmt.nbaPlain] using hn) h)
                 simp [EdgeWork.ndOpen, ndOpenStmt, hfv]
         | _ => simp [PStmt.nbaPlain] at hn
-      · intro stmts env st locals r hn h
+      · intro stmts env st r hc hn h
         cases stmts with
         | nil =>
             rw [CoreMemDesign.execStmtsFuel] at h
             cases h
-            exact NdRuns.open0 hA rfl
+            exact NdRuns.open0 hA hc rfl
         | cons s ss =>
             simp only [PStmt.nbaPlainList, Bool.and_eq_true] at hn
             rw [CoreMemDesign.execStmtsFuel] at h
             obtain ⟨a, ha, h⟩ := Res.bind_eq_ok.mp h
             obtain ⟨b, hb, h⟩ := Res.bind_eq_ok.mp h
             cases h
-            have hra := ihS s env st locals a hn.1 ha
-            rw [hra.1, hra.2.1] at hb
+            have hra := ihS s env st a hc hn.1 ha
+            rw [hra.2.2.1] at hb
             exact NdRuns.open2 hA (w₁ := .edgeStmt env s) (w₂ := .edgeBlock env ss) rfl hra
-              (ihL ss env st locals b hn.2 hb)
-      · intro values body iterator env st locals r hn h
+              (ihL ss env a.state b hra.1 hn.2 hb)
+      · intro values body iterator env st r hc hn h
         cases values with
         | nil =>
             rw [CoreMemDesign.execLoopValuesFuel] at h
             cases h
-            exact NdRuns.open0 hA rfl
+            exact NdRuns.open0 hA hc rfl
         | cons i rest =>
             rw [CoreMemDesign.execLoopValuesFuel] at h
             obtain ⟨a, ha, h⟩ := Res.bind_eq_ok.mp h
             obtain ⟨b, hb, h⟩ := Res.bind_eq_ok.mp h
             cases h
-            have hra := ihS body (env.bindVal iterator i) st locals a hn ha
-            rw [hra.1, hra.2.1] at hb
+            have hra := ihS body (env.bindVal iterator i) st a hc hn ha
+            rw [hra.2.2.1] at hb
             exact NdRuns.open2 hA (w₁ := .edgeStmt (env.bindVal iterator i) body)
               (w₂ := .edgeLoop env iterator body rest) rfl hra
-              (ihV rest body iterator env st locals b hn hb)
+              (ihV rest body iterator env a.state b hra.1 hn hb)
 
 /-! ## The Active region: `runEdges` -/
 
@@ -674,43 +840,49 @@ theorem ndCtx_mid_nil (st : CoreMemState) (rest : List EdgeCursor)
   simp [ndCtx]
 
 /-- What the Active region of the executor did, as a fact about the relation:
-the store is unchanged, no issued update names a clock or event source, and
-the woken cursors run to the empty list with exactly the issued queues. -/
+the store it reached is coherent and gives every clock and event source the
+value it had, no issued update names a clock or event source, and the woken
+cursors run from the start store to that store and the empty list with
+exactly the issued queues. -/
 def NdEdgesRun (E : CoreMemDesign) (a b : SvState) (procs : List CoreMemProc)
     (st : CoreMemState) (r : CoreMemExecResult) : Prop :=
-  r.state = st ∧ (∀ u ∈ r.scalarQ, u.1 ∉ E.ndEventSources) ∧
+  E.Coherent r.state ∧
+    E.SourcesAgree (E.scalar.view st.scalar) (E.scalar.view r.state.scalar) ∧
+    (∀ u ∈ r.scalarQ, u.1 ∉ E.ndEventSources) ∧
     ∀ (sQ : NbaQueue2) (mQ : MemNbaQueue) (base : SvState),
       Nd.Run E (ndCtx st [] (E.ndWakeList a b procs) [] sQ mQ base)
-        (ndCtx st [] [] [] (sQ ++ r.scalarQ) (mQ ++ r.memoryQ) base)
+        (ndCtx r.state [] [] [] (sQ ++ r.scalarQ) (mQ ++ r.memoryQ) base)
 
 private theorem runEdges_fire {E : CoreMemDesign} (hA : E.ndAdmitted = true) {a b : SvState}
-    {st : CoreMemState} {body : PStmt} {rest : List CoreMemProc} {r : CoreMemExecResult}
+    {st : CoreMemState} (hc : E.Coherent st) {body : PStmt} {rest : List CoreMemProc}
+    {r : CoreMemExecResult}
     (hbody : PStmt.nbaPlain E.ndEventSources body = true)
-    (ih : ∀ (st : CoreMemState) (r : CoreMemExecResult),
+    (ih : ∀ (st : CoreMemState) (r : CoreMemExecResult), E.Coherent st →
       E.runEdges E.env E.elems st a b rest = .ok r → NdEdgesRun E a b rest st r)
     (h : (do
       let x ← E.execStmt E.env E.elems st body
       let y ← E.runEdges E.env E.elems x.state a b rest
       Res.ok (CoreMemExec.append x y)) = .ok r) :
-    r.state = st ∧ (∀ u ∈ r.scalarQ, u.1 ∉ E.ndEventSources) ∧
+    E.Coherent r.state ∧
+      E.SourcesAgree (E.scalar.view st.scalar) (E.scalar.view r.state.scalar) ∧
+      (∀ u ∈ r.scalarQ, u.1 ∉ E.ndEventSources) ∧
       ∀ (sQ : NbaQueue2) (mQ : MemNbaQueue) (base : SvState), Nd.Run E
         (ndCtx st [] (EdgeCursor.start E.env body :: E.ndWakeList a b rest) [] sQ mQ base)
-        (ndCtx st [] [] [] (sQ ++ r.scalarQ) (mQ ++ r.memoryQ) base) := by
+        (ndCtx r.state [] [] [] (sQ ++ r.scalarQ) (mQ ++ r.memoryQ) base) := by
   obtain ⟨x, hx, h⟩ := Res.bind_eq_ok.mp h
   obtain ⟨y, hy, h⟩ := Res.bind_eq_ok.mp h
   cases h
-  have hrx := (exec_runs hA 4096).1 body E.env st [] x hbody hx
-  rw [hrx.1] at hy
-  obtain ⟨hys, hyq, hyr⟩ := ih st y hy
+  have hrx := (exec_runs hA 4096).1 body E.env st x hc hbody hx
+  obtain ⟨hyc, hya, hyq, hyr⟩ := ih x.state y hrx.1 hy
   have hq : (CoreMemExec.append x y).scalarQ = x.scalarQ ++ y.scalarQ := rfl
   have hm : (CoreMemExec.append x y).memoryQ = x.memoryQ ++ y.memoryQ := rfl
-  refine ⟨hys, ?_, fun sQ mQ base => ?_⟩
+  refine ⟨hyc, hrx.2.1.trans hya, ?_, fun sQ mQ base => ?_⟩
   · intro u hu
     rw [hq] at hu
     rcases List.mem_append.mp hu with hu | hu
-    · exact hrx.2.2.1 u hu
+    · exact hrx.2.2.2.1 u hu
     · exact hyq u hu
-  have h1 := hrx.2.2.2 [] (E.ndWakeList a b rest) [] sQ mQ base
+  have h1 := hrx.2.2.2.2 [] (E.ndWakeList a b rest) [] sQ mQ base
   have hk : EdgeCursor.keep ⟨[], []⟩ = [] := rfl
   rw [hk, ndCtx_mid_nil] at h1
   rw [ndCtx_mid_cons]
@@ -718,19 +890,20 @@ private theorem runEdges_fire {E : CoreMemDesign} (hA : E.ndAdmitted = true) {a 
   exact h1.trans (hyr (sQ ++ x.scalarQ) (mQ ++ x.memoryQ) base)
 
 /-- The executor's Active-region result is a run of the relation that empties
-the runnable list, with the same store and the same issued queues. -/
+the runnable list, reaching the same store with the same issued queues. -/
 theorem runEdges_runs {E : CoreMemDesign} (hA : E.ndAdmitted = true) (a b : SvState) :
     ∀ (procs : List CoreMemProc), (∀ p ∈ procs, p.nbaBody E.ndEventSources = true) →
-      ∀ (st : CoreMemState) (r : CoreMemExecResult),
+      ∀ (st : CoreMemState) (r : CoreMemExecResult), E.Coherent st →
         E.runEdges E.env E.elems st a b procs = .ok r → NdEdgesRun E a b procs st r
-  | [], _, st, r, h => by
+  | [], _, st, r, hc, h => by
       rw [CoreMemDesign.runEdges] at h
       cases h
-      refine ⟨rfl, fun u hu => by simp at hu, fun sQ mQ base => ?_⟩
+      refine ⟨hc, CoreMemDesign.SourcesAgree.refl E _, fun u hu => by simp at hu,
+        fun sQ mQ base => ?_⟩
       show Nd.Run E (ndCtx st [] [] [] sQ mQ base) (ndCtx st [] [] [] (sQ ++ []) (mQ ++ []) base)
       rw [List.append_nil, List.append_nil]
       exact .refl _
-  | p :: rest, hb, st, r, h => by
+  | p :: rest, hb, st, r, hc, h => by
       have ih := runEdges_runs hA a b rest (fun q hq => hb q (List.mem_cons_of_mem _ hq))
       have hp := hb p (List.mem_cons_self ..)
       cases p with
@@ -743,13 +916,13 @@ theorem runEdges_runs {E : CoreMemDesign} (hA : E.ndAdmitted = true) (a b : SvSt
               simp [CoreMemDesign.ndWakeList, CoreMemProc.ndWake, hf]
             unfold NdEdgesRun
             rw [hw]
-            exact runEdges_fire hA hp ih h
+            exact runEdges_fire hA hc hp ih h
           · simp only [hf, Bool.false_eq_true, ↓reduceIte] at h
             have hw : E.ndWakeList a b (.edge q :: rest) = E.ndWakeList a b rest := by
               simp [CoreMemDesign.ndWakeList, CoreMemProc.ndWake, hf]
             unfold NdEdgesRun
             rw [hw]
-            exact ih st r h
+            exact ih st r hc h
       | event events body =>
           rw [CoreMemDesign.runEdges] at h
           by_cases hf : coreMemEventsFire a b events = true
@@ -759,13 +932,13 @@ theorem runEdges_runs {E : CoreMemDesign} (hA : E.ndAdmitted = true) (a b : SvSt
               simp [CoreMemDesign.ndWakeList, CoreMemProc.ndWake, hf]
             unfold NdEdgesRun
             rw [hw]
-            exact runEdges_fire hA hp ih h
+            exact runEdges_fire hA hc hp ih h
           · simp only [hf, Bool.false_eq_true, ↓reduceIte] at h
             have hw : E.ndWakeList a b (.event events body :: rest) = E.ndWakeList a b rest := by
               simp [CoreMemDesign.ndWakeList, CoreMemProc.ndWake, hf]
             unfold NdEdgesRun
             rw [hw]
-            exact ih st r h
+            exact ih st r hc h
       | _ =>
           simp only [CoreMemDesign.runEdges] at h
           have hw : ∀ p', (CoreMemProc.ndWake E a b p' = none) →
@@ -774,7 +947,7 @@ theorem runEdges_runs {E : CoreMemDesign} (hA : E.ndAdmitted = true) (a b : SvSt
             simp [CoreMemDesign.ndWakeList, hp']
           unfold NdEdgesRun
           rw [hw _ rfl]
-          exact ih st r h
+          exact ih st r hc h
 
 /-! ## The regions the fragment does not have are the identity in the executor -/
 
@@ -874,36 +1047,41 @@ theorem CoreMemDesign.edgePass_clocked_ok {E : CoreMemDesign} (h : E.ndAdmitted 
 
 /-- **What the executor's slot function computes on the fragment.**  From a
 typed store, `E.step st entry = .ok next` means: the inputs were applied
-(`ndInput`), the woken cursors ran to the empty list issuing a queue `q` that
-names no clock or event source, and `next` is the commit of that queue.  The
-slot has exactly one round. -/
+(`ndInput`), the woken cursors ran to the empty list, reaching a coherent
+store `es` in which every clock and event source has the value it had after
+the inputs (`es` differs from the input store by the blocking writes), and
+issuing a queue `q` that names no clock or event source; `next` is the commit
+of that queue on `es`.  The slot has exactly one round. -/
 theorem CoreMemDesign.step_decompose {E : CoreMemDesign} (hE : E.NbaClocked)
     {st next : CoreMemState} {entry : SvState} (hT : E.scalar.Typed st.scalar)
     (h : E.step st entry = .ok next) :
-    ∃ (q : NbaQueue2) (mq : MemNbaQueue) (m : MemState),
+    ∃ (es : CoreMemState) (q : NbaQueue2) (mq : MemNbaQueue) (m : MemState),
+      E.Coherent es ∧
+      E.SourcesAgree (E.scalar.view (E.ndInput st entry).scalar) (E.scalar.view es.scalar) ∧
       (∀ u ∈ q, u.1 ∉ E.ndEventSources) ∧
-      (E.ndInput st entry).memory.commitNba mq = some m ∧
-      next = E.ndCommitted (E.ndInput st entry) q m ∧
+      es.memory.commitNba mq = some m ∧
+      next = E.ndCommitted es q m ∧
       Nd.Run E (E.ndStart st entry Oracle.zero)
-        { store := E.ndInput st entry, active := [], scalarQ := q, memoryQ := mq,
+        { store := es, active := [], scalarQ := q, memoryQ := mq,
           base := E.scalar.view (E.ndInput st entry).scalar, oracle := Oracle.zero,
           settled := false } := by
   have hA := hE.admitted
+  have hic : E.Coherent (E.ndInput st entry) :=
+    E.normalizeScalar_coherent _ (hT.applyInputs entry)
   unfold CoreMemDesign.step at h
   rw [CoreMemDesign.prepareStep_clocked hA] at h
   simp only [Res.ok_bind] at h
   rw [show (4096 : Nat) = 4095 + 1 from rfl, CoreMemDesign.edgeQuiesce] at h
   obtain ⟨nx, hpass, h⟩ := Res.bind_eq_ok.mp h
   obtain ⟨edge, m, he, hm, rfl⟩ := CoreMemDesign.edgePass_clocked hA hpass
-  obtain ⟨hes, hq, hrun⟩ := runEdges_runs hA (E.scalar.view st.scalar)
+  obtain ⟨hec, hea, hq, hrun⟩ := runEdges_runs hA (E.scalar.view st.scalar)
     (E.scalar.view (E.ndInput st entry).scalar) _ (List.all_eq_true.mp hE.bodies)
-    (E.ndInput st entry) edge he
-  rw [hes] at hm h
-  have hagree := CoreMemDesign.ndCommitted_agree hE.edgeBase hE.allFour
-    (CoreMemDesign.ndInput_typed hT entry) hq m
+    (E.ndInput st entry) edge hic he
+  have hagree := hea.trans
+    (CoreMemDesign.ndCommitted_agree hE.edgeBase hE.allFour hec.typed hq m)
   simp only [CoreMemDesign.any_firesIn_agree hagree, Bool.false_eq_true, ↓reduceIte,
     Res.ok.injEq] at h
-  refine ⟨edge.scalarQ, edge.memoryQ, m, hq, hm, h.symm, ?_⟩
+  refine ⟨edge.state, edge.scalarQ, edge.memoryQ, m, hec, hea, hq, hm, h.symm, ?_⟩
   have hrun' := hrun [] [] (E.scalar.view (E.ndInput st entry).scalar)
   simpa [ndCtx, CoreMemDesign.ndStart, CoreMemDesign.ndWake] using hrun'
 
@@ -920,17 +1098,18 @@ theorem CoreMemDesign.step_eq_of_runEdges {E : CoreMemDesign} (hE : E.NbaClocked
     (hm : edge.state.memory.commitNba edge.memoryQ = some m) :
     E.step st entry = .ok (E.ndCommitted edge.state edge.scalarQ m) := by
   have hA := hE.admitted
-  obtain ⟨hes, hq, -⟩ := runEdges_runs hA (E.scalar.view st.scalar)
+  have hic : E.Coherent (E.ndInput st entry) :=
+    E.normalizeScalar_coherent _ (hT.applyInputs entry)
+  obtain ⟨hec, hea, hq, -⟩ := runEdges_runs hA (E.scalar.view st.scalar)
     (E.scalar.view (E.ndInput st entry).scalar) _ (List.all_eq_true.mp hE.bodies)
-    (E.ndInput st entry) edge he
+    (E.ndInput st entry) edge hic he
   unfold CoreMemDesign.step
   rw [CoreMemDesign.prepareStep_clocked hA]
   simp only [Res.ok_bind]
   apply CoreMemDesign.edgeQuiesce_eq_edgePass_of_no_followup
     (CoreMemDesign.edgePass_clocked_ok hA he hm)
-  rw [hes]
-  exact CoreMemDesign.any_firesIn_agree (CoreMemDesign.ndCommitted_agree hE.edgeBase hE.allFour
-    (CoreMemDesign.ndInput_typed hT entry) hq m)
+  exact CoreMemDesign.any_firesIn_agree (hea.trans
+    (CoreMemDesign.ndCommitted_agree hE.edgeBase hE.allFour hec.typed hq m))
 
 /-! ## T2: the executor's slot result is a settled run of the relation -/
 
@@ -940,17 +1119,17 @@ theorem CoreMemDesign.step_input_controls {E : CoreMemDesign} (hE : E.NbaClocked
     {st next : CoreMemState} {entry : SvState} (hT : E.scalar.Typed st.scalar)
     (h : E.step st entry = .ok next) :
     E.ControlsKnown next ↔ E.ControlsKnown (E.ndInput st entry) := by
-  obtain ⟨q, mq, m, hq, -, rfl, -⟩ := CoreMemDesign.step_decompose hE hT h
+  obtain ⟨es, q, mq, m, hec, hea, hq, -, rfl, -⟩ := CoreMemDesign.step_decompose hE hT h
   unfold CoreMemDesign.ControlsKnown
-  rw [CoreMemDesign.ndControlsKnownIn_agree (CoreMemDesign.ndCommitted_agree hE.edgeBase
-    hE.allFour (CoreMemDesign.ndInput_typed hT entry) hq m)]
+  rw [CoreMemDesign.ndControlsKnownIn_agree (hea.trans
+    (CoreMemDesign.ndCommitted_agree hE.edgeBase hE.allFour hec.typed hq m))]
 
 /-- The executor's result on the fragment is typed. -/
 theorem CoreMemDesign.step_typed {E : CoreMemDesign} (hE : E.NbaClocked)
     {st next : CoreMemState} {entry : SvState} (hT : E.scalar.Typed st.scalar)
     (h : E.step st entry = .ok next) : E.scalar.Typed next.scalar := by
-  obtain ⟨q, mq, m, -, -, rfl, -⟩ := CoreMemDesign.step_decompose hE hT h
-  exact CoreMemDesign.ndCommitted_typed hE.edgeBase (CoreMemDesign.ndInput_typed hT entry) q m
+  obtain ⟨es, q, mq, m, hec, -, -, -, rfl, -⟩ := CoreMemDesign.step_decompose hE hT h
+  exact CoreMemDesign.ndCommitted_typed hE.edgeBase hec.typed q m
 
 /-- **T2: soundness of the executor's slot function on the fragment.**
 
@@ -971,11 +1150,11 @@ theorem CoreMemDesign.step_sound {E : CoreMemDesign} (hE : E.NbaClocked)
   have hA := hE.admitted
   have hkin : E.ControlsKnown (E.ndInput st entry) :=
     (CoreMemDesign.step_input_controls hE hT h).mp hk'
-  obtain ⟨q, mq, m, hq, hm, rfl, hrun⟩ := CoreMemDesign.step_decompose hE hT h
-  have hagree := CoreMemDesign.ndCommitted_agree hE.edgeBase hE.allFour
-    (CoreMemDesign.ndInput_typed hT entry) hq m
+  obtain ⟨es, q, mq, m, hec, hea, hq, hm, rfl, hrun⟩ := CoreMemDesign.step_decompose hE hT h
+  have hagree := hea.trans
+    (CoreMemDesign.ndCommitted_agree hE.edgeBase hE.allFour hec.typed hq m)
   have hstep := Nd.Step.commit hA
-    (s := { store := E.ndInput st entry, active := [], scalarQ := q, memoryQ := mq,
+    (s := { store := es, active := [], scalarQ := q, memoryQ := mq,
             base := E.scalar.view (E.ndInput st entry).scalar, oracle := Oracle.zero,
             settled := false })
     rfl rfl hm hkin hk'
