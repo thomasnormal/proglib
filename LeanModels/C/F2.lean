@@ -13084,6 +13084,15 @@ theorem pairedCopySnapshot_contract [BEq Tag]
   · exact pairedCopySnapshot_decompose resolve source destination result hresult
   · exact pairedCopySnapshot_byte_correspondence resolve source destination result hresult
 
+theorem pairedCopySnapshot_failure_contract [BEq Tag]
+    (resolve : AllocId → Nat)
+    (source destination : List (Byte Tag)) :
+    pairedCopySnapshot resolve source destination = none ↔
+      source.length ≠ destination.length := by
+  by_cases hsame : source.length = destination.length
+  · simp [pairedCopySnapshot, copySnapshot, hsame, List.length_map]
+  · simp [pairedCopySnapshot, copySnapshot, hsame, List.length_map]
+
 theorem pairedMergeByte_contract [BEq Tag]
     (resolve : AllocId → Nat) (old : Byte Tag)
     (mask value choice : UInt8) :
