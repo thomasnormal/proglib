@@ -11270,6 +11270,40 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedAllocate_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hstore : WellFormed store)
+    (hsourceBytes : bytesWf store.nextId request.bytes)
+    (htargetBytes : bytesWf (renameStore resolve store).nextId
+      (renameAllocationRequest resolve request).bytes)
+    (hresult : pairedAllocate resolve store request placement = some result) :
+    (∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      allocate store request placement = some sourceResult ∧
+      allocate (renameStore resolve store) (renameAllocationRequest resolve request)
+        (renamedPlacement resolve store.nextId placement) = some targetResult) ∧
+      (WellFormed result.1.1 ∧ WellFormed result.2.1) ∧
+      (result.1.1.nextId = store.nextId + 1 ∧
+        result.2.1.nextId = (renameStore resolve store).nextId + 1 ∧
+        result.1.1.allocations.length = store.allocations.length + 1 ∧
+        result.2.1.allocations.length =
+          (renameStore resolve store).allocations.length + 1) ∧
+      (result.1.2 = footprint .metadata
+          (Region.mk store.nextId 0 request.bytes.length) ∧
+        result.2.2 = footprint .metadata
+          (Region.mk (renameStore resolve store).nextId 0 request.bytes.length)) := by
+  constructor
+  · exact pairedAllocate_sound resolve store request placement result hresult
+  constructor
+  · exact pairedAllocate_preserves_wellFormed resolve store request placement result
+      hstore hsourceBytes htargetBytes hresult
+  constructor
+  · exact pairedAllocate_preserves_counts resolve store request placement result hresult
+  · exact pairedAllocate_preserves_footprints resolve store request placement result hresult
+
 theorem pairedAllocateBounded_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
