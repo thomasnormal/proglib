@@ -6345,6 +6345,12 @@ theorem bytesWf_rename (resolve : AllocId → Nat) (id : AllocId)
                   simp [bytesWf, renameByte] at h ⊢
                   exact And.intro h.1 (ih h.2)
 
+theorem bytesWf_rename_contract (resolve : AllocId → Nat) (id : AllocId)
+    (bytes : List (Byte Tag)) (h : bytesWf id bytes) :
+    bytesWf id (bytes.map (renameByte resolve)) ∧
+      (bytes.map (renameByte resolve)).length = bytes.length := by
+  exact ⟨bytesWf_rename resolve id bytes h, by simp⟩
+
 theorem renameMetadata_preserves_wellFormed
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
