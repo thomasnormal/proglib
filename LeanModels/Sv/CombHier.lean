@@ -1594,6 +1594,19 @@ def GeneratedFamilyExpansion (cb : ChildInst) (env : IEnv)
   expandListH cb env elems fuel d.generates = .ok generated ∧
     GeneratedFamilyRealization env elems paths child generated
 
+/-- A complete source-shaped hierarchy summary for a generated family.  The
+expansion and driver certificate are kept as separate fields so a hand proof
+can establish them independently; a tactic may consume this one contract
+without reconstructing or unrolling the generate loops. -/
+structure GeneratedHierarchySummary (cb : ChildInst) (env : IEnv)
+    (decls : List Decl) (elems : List (String × Nat)) (fuel : Nat) (d : PDesign)
+    (paths : List (GeneratedNode × List Int))
+    (child : GeneratedChildRef → Except String Design2)
+    (generated : List Decl × List Process2) where
+  expansion : GeneratedFamilyExpansion cb env elems fuel d paths child generated
+  drivers : driversOk d.declNames d.inputNames
+    (d.assembleH env decls generated.1 elems generated.2).processes.toList = true
+
 theorem GeneratedFamilyExpansion.of_parts
     (cb : ChildInst) (env : IEnv) (elems : List (String × Nat)) (fuel : Nat)
     (d : PDesign) (paths : List (GeneratedNode × List Int))
@@ -1702,6 +1715,25 @@ theorem PDesign.instantiateH_of_generated_expansion
     (idecls := generated.1) (gens := generated.2)
   · simpa using hexpand.1
   · exact hok
+
+theorem PDesign.instantiateH_of_generated_summary
+    {d : PDesign} {lib : List PDesign} {args : List Int}
+    {env : IEnv} {decls : List Decl} {elems : List (String × Nat)}
+    {paths : List (GeneratedNode × List Int)}
+    {child : GeneratedChildRef → Except String Design2}
+    {generated : List Decl × List Process2}
+    (summary : GeneratedHierarchySummary
+      (PDesign.childRec lib.length lib { int32 := true }
+        (PDesign.surfaceFuel args) (Decl.inputNames decls))
+      (env.withDecls decls) decls elems (PDesign.surfaceFuel args) d paths child generated)
+    (harity : args.length = d.params.length)
+    (h1 : d.paramEnvH { int32 := true } args = .ok env)
+    (h2 : buildDecls env d.decls = .ok decls)
+    (h3 : buildElems env d.decls = .ok elems) :
+    d.instantiateH lib args (PDesign.surfaceFuel args) =
+      .ok (d.assembleH env decls generated.1 elems generated.2) := by
+  exact PDesign.instantiateH_of_generated_expansion harity h1 h2 h3
+    summary.expansion summary.drivers
 
 
 @[simp] theorem assembleGeneratedAt_processes
