@@ -3793,6 +3793,10 @@ theorem pairedReallocZero_true (resolve : AllocId → Nat) :
   change reallocZeroAgrees reallocZeroGNU17 reallocZeroGNU17 = true
   simp [reallocZeroAgrees]
 
+theorem pairedReallocZero_contract (resolve : AllocId → Nat) :
+    pairedReallocZero resolve = true := by
+  exact pairedReallocZero_true resolve
+
 def isZeroToken (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   metadata.allocation.live && metadata.allocation.bytes.isEmpty
 
