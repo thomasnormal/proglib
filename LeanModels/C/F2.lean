@@ -6337,6 +6337,20 @@ theorem renameReplayPlacement_contract
       (renameReplayPlacement resolve placement).exposed = placement.exposed := by
   exact renameReplayPlacement_shape resolve placement
 
+theorem renameReplayPlacement_idempotent
+    (resolve : AllocId → Nat) (placement : ReplayPlacement) :
+    renameReplayPlacement resolve (renameReplayPlacement resolve placement) =
+      renameReplayPlacement resolve placement := by
+  cases placement with
+  | mk allocation base size exposed => rfl
+
+theorem renameReplayPlacement_comp
+    (first second : AllocId → Nat) (placement : ReplayPlacement) :
+    renameReplayPlacement second (renameReplayPlacement first placement) =
+      renameReplayPlacement second placement := by
+  cases placement with
+  | mk allocation base size exposed => rfl
+
 def renameReplayFixture (resolve : AllocId → Nat)
     (fixture : ReplayFixture) : ReplayFixture :=
   { fixture with
