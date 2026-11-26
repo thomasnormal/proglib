@@ -4636,6 +4636,162 @@ theorem noisy_static_driverWins (N : Nat)
     Lhs2.drvWins, instProcess2, instLhs2, instLhsLeaf2, instIndex2,
     hS, hC, hT, hP]
 
+theorem noisy_static_targets_actual (N : Nat)
+    (hN : 1 ≤ N) (hCanon : canonInt 32 true (N : Int) = N) :
+    let E := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int))
+    arrayElemTarget E "s" [.int 0] =
+        .ok (.slice "s" 0 (N + 1), N + 1) ∧
+      arrayElemTarget E "c" [.int 0] =
+        .ok (.slice "c" 0 (N + 1), N + 1) ∧
+      arrayElemTarget E "t" [.int 0] =
+        .ok (.slice "t" 0 N, N) ∧
+      arrayPartTarget E "p" [] PartMode.range
+        (.binary (SymBinOp.m0 BinOp.sub)
+          (.binary SymBinOp.mul (.int 2) (.paramRef "N" none)) (.int 1))
+        (.paramRef "N" none) =
+        .ok (.slice "p" N N, N) := by
+  dsimp
+  have hsDims : (noisyEnv (N : Int)).dims.lookup "s" =
+      some [((N : Int) - 1, 0), ((N : Int), 0)] := by
+    exact noisy_dims_s (N : Int) hCanon
+  have hcDims : (noisyEnv (N : Int)).dims.lookup "c" =
+      some [((N : Int) - 1, 0), ((N : Int), 0)] := by
+    exact noisy_dims_c (N : Int) hCanon
+  have htDims : (noisyEnv (N : Int)).dims.lookup "t" =
+      some [((N : Int) - 1, 0), ((N : Int) - 1, 0)] := by
+    exact noisy_dims_t (N : Int) hCanon
+  have hpDims : (noisyEnv (N : Int)).dims.lookup "p" =
+      some [((2 * (N : Int) - 1), 0)] := by
+    have hsum := @CombView.dimTableFast_summary (fun _ => (N : Int))
+        noisyMul.pdesign.decls _ (by rfl) (noisyScope (N : Int)) (by
+          intro dt hdt n hn
+          simp [CombView.declsOf?, CombView.declOf?, CombView.dimOf?, CombView.affOf?] at hdt
+          rcases hdt with hdt | hdt | hdt | hdt | hdt | hdt | hdt | hdt <;>
+            subst dt <;>
+            simp_all [CombView.DeclT.affNames, CombView.Aff.names, CombView.Aff.var,
+              CombView.Aff.const, CombView.Aff.sub, CombView.Aff.scale, CombView.Aff.add,
+              CombView.Aff.neg, CombView.Aff.negTerms, CombView.Aff.scaleTerms,
+              CombView.Aff.scaleQs, CombView.Aff.scaleXs, CombView.Aff.xsNames,
+              CombView.Aff.negQs, CombView.Aff.negXs, CombView.XAt.names,
+              noisyScope, IEnv.intVal?, hCanon]) "p"
+    simpa [noisyEnv, noisyScope, hCanon, CombView.DeclT.vals, CombView.Aff.eval,
+      CombView.Aff.evalTerms, CombView.Aff.evalQs, CombView.Aff.evalXs,
+      CombView.Aff.sub, CombView.Aff.add, CombView.Aff.neg, CombView.Aff.negTerms,
+      CombView.Aff.negQs, CombView.Aff.negXs, CombView.Aff.var, CombView.Aff.const,
+      CombView.Aff.scale, CombView.Aff.scaleTerms, CombView.Aff.scaleQs,
+      CombView.Aff.scaleXs,
+      List.map, List.append, Int.sub_eq_add_neg] using hsum
+  have hsDims' : ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int))).dims.lookup "s" =
+      some [((N : Int) - 1, 0), ((N : Int), 0)] := by simpa using hsDims
+  have hcDims' : ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int))).dims.lookup "c" =
+      some [((N : Int) - 1, 0), ((N : Int), 0)] := by simpa using hcDims
+  have htDims' : ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int))).dims.lookup "t" =
+      some [((N : Int) - 1, 0), ((N : Int) - 1, 0)] := by simpa using htDims
+  have hpDims' : ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int))).dims.lookup "p" =
+      some [((2 * (N : Int) - 1), 0)] := by simpa using hpDims
+  have hzero : evalInt ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int))) (.int 0) = .ok 0 := by rfl
+  have hN0 : (0 : Int) ≤ (N : Int) := by omega
+  have hNm1 : (0 : Int) ≤ (N : Int) - 1 := by omega
+  have hdimN : dimCount (N : Int) 0 = N + 1 := by
+    simp [dimCount, Int.natAbs_of_nonneg hN0]
+  have hdimNm1 : dimCount ((N : Int) - 1) 0 = N := by
+    unfold dimCount
+    omega
+  have hsWin : arrayElemWindow ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+      "s" [.int 0] = .ok (0, N + 1, true) := by
+    have hw : walkIndices ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        [((N : Int) - 1, 0), ((N : Int), 0)] [.int 0] =
+        .ok (0, true, [((N : Int), 0)]) := by
+      simpa using (walkIndices_desc0_cons
+        (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        (m := (N : Int) - 1) (ds := [((N : Int), 0)])
+        (i := .int 0) (is := []) (k := 0) (b := 0) (ok := true)
+        (rest := [((N : Int), 0)]) (by omega) hzero (by omega) (by omega)
+        (walkIndices_nil (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int))) [((N : Int), 0)]))
+    simpa [dimsStride, hdimN] using
+      (arrayElemWindow_of (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        (n := "s") (is := [.int 0]) (arrayDims_of hsDims') hw)
+  have hcWin : arrayElemWindow ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+      "c" [.int 0] = .ok (0, N + 1, true) := by
+    have hw : walkIndices ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        [((N : Int) - 1, 0), ((N : Int), 0)] [.int 0] =
+        .ok (0, true, [((N : Int), 0)]) := by
+      simpa using (walkIndices_desc0_cons
+        (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        (m := (N : Int) - 1) (ds := [((N : Int), 0)])
+        (i := .int 0) (is := []) (k := 0) (b := 0) (ok := true)
+        (rest := [((N : Int), 0)]) (by omega) hzero (by omega) (by omega)
+        (walkIndices_nil (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int))) [((N : Int), 0)]))
+    simpa [dimsStride, hdimN] using
+      (arrayElemWindow_of (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        (n := "c") (is := [.int 0]) (arrayDims_of hcDims') hw)
+  have htWin : arrayElemWindow ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+      "t" [.int 0] = .ok (0, N, true) := by
+    have hw : walkIndices ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        [((N : Int) - 1, 0), ((N : Int) - 1, 0)] [.int 0] =
+        .ok (0, true, [((N : Int) - 1, 0)]) := by
+      simpa using (walkIndices_desc0_cons
+        (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        (m := (N : Int) - 1) (ds := [((N : Int) - 1, 0)])
+        (i := .int 0) (is := []) (k := 0) (b := 0) (ok := true)
+        (rest := [((N : Int) - 1, 0)]) (by omega) hzero (by omega) (by omega)
+        (walkIndices_nil (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int))) [((N : Int) - 1, 0)]))
+    simpa [dimsStride, hdimNm1] using
+      (arrayElemWindow_of (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        (n := "t") (is := [.int 0]) (arrayDims_of htDims') hw)
+  have hs : arrayElemTarget ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+      "s" [.int 0] = .ok (.slice "s" 0 (N + 1), N + 1) := by
+    simpa using (arrayElemTarget_of_inRange hsWin)
+  have hc : arrayElemTarget ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+      "c" [.int 0] = .ok (.slice "c" 0 (N + 1), N + 1) := by
+    simpa using (arrayElemTarget_of_inRange hcWin)
+  have ht : arrayElemTarget ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+      "t" [.int 0] = .ok (.slice "t" 0 N, N) := by
+    simpa using (arrayElemTarget_of_inRange htWin)
+  have hpGeom : arrayPartGeom ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+      "p" [] PartMode.range
+        (.binary (SymBinOp.m0 BinOp.sub)
+          (.binary SymBinOp.mul (.int 2) (.paramRef "N" none)) (.int 1))
+        (.paramRef "N" none) =
+      .ok (0, true, 1, 2 * N, N, 2 * N - 1) := by
+    have hw : walkIndices ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        [((2 * (N : Int) - 1), 0)] [] =
+        .ok (0, true, [((2 * (N : Int) - 1), 0)]) := by
+      exact walkIndices_nil (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+        [((2 * (N : Int) - 1), 0)]
+    have hgeom := arrayPartGeom_range_of (env := (noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+      (n := "p") (is := []) (a :=
+        .binary (SymBinOp.m0 BinOp.sub)
+          (.binary SymBinOp.mul (.int 2) (.paramRef "N" none)) (.int 1))
+      (b := .paramRef "N" none) (pb := 0) (ok := true) (l := 2 * (N : Int) - 1)
+      (r := 0) (inner := []) (k₁ := 2 * (N : Int) - 1) (k₂ := (N : Int))
+      (arrayDims_of hpDims') hw
+      (by simp [evalInt, IEnv.bindVal, noisyEnv, noisyScope, noisyDeclsRaw, List.lookup,
+        Except.bind, Except.pure, pure, bind, hCanon])
+      (by simp [evalInt, IEnv.bindVal, noisyEnv, noisyScope, noisyDeclsRaw, List.lookup,
+        Except.bind, Except.pure, pure, bind, hCanon])
+      (by have h2N : (1 : Int) ≤ 2 * (N : Int) := by omega
+          simp [labelOffset, h2N]
+          omega)
+    have h2N : (1 : Int) ≤ 2 * (N : Int) := by omega
+    have hdim2N : dimCount (2 * (N : Int) - 1) 0 = 2 * N := by
+      unfold dimCount
+      omega
+    simpa [dimsStride, hdim2N, labelOffset, h2N] using hgeom
+  have hp : arrayPartTarget ((noisyEnv (N : Int)).withDecls (noisyDeclsRaw (N : Int)))
+      "p" [] PartMode.range
+        (.binary (SymBinOp.m0 BinOp.sub)
+          (.binary SymBinOp.mul (.int 2) (.paramRef "N" none)) (.int 1))
+        (.paramRef "N" none) = .ok (.slice "p" N N, N) := by
+    rw [arrayPartTarget_of_inRange hpGeom]
+    · simp
+      have hidx : 2 * (N : Int) - 1 - (N : Int) + 1 = (N : Int) := by omega
+      rw [hidx]
+      rfl
+    · omega
+    · omega
+  exact ⟨hs, hc, ht, hp⟩
+
 def noisyStaticWins (N : Nat) : List DrvWin :=
   [("s", some (0, N + 1)), ("c", some (0, N + 1)),
    ("t", some (0, N)), ("p", some (N, N))]
