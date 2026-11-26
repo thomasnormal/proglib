@@ -220,6 +220,15 @@ theorem encodeValue_rename (resolve : AllocId → Nat) (value : Value Tag) :
     simp only [List.map_cons, List.flatMap_cons, List.map_append]
     rw [headIh, tailIh]
 
+theorem encodeValue_rename_contract
+    (resolve : AllocId → Nat) (value : Value Tag) :
+    encodeValue (renameValue resolve value) =
+        (encodeValue value).map (renameByte resolve) ∧
+      (encodeValue (renameValue resolve value)).length =
+        (encodeValue value).length := by
+  exact ⟨encodeValue_rename resolve value,
+    by simp [encodeValue_rename resolve value]⟩
+
 theorem encodeValue_contract (value : Value Tag) :
     match value with
     | .scalar bytes =>
