@@ -12173,6 +12173,61 @@ theorem pairedPointerEqual_contract
       simp [pairedPointerEqual, pointerEqual]
       exact decide_eq_true_iff
 
+theorem pairedOffsetPointer_contract [BEq Tag]
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat) :
+    (pairedOffsetPointer resolve pointer elementSize delta bound = true ∧
+      ((∃ source target,
+          offsetPointer pointer elementSize delta bound = .ok source ∧
+          offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+            .ok target ∧
+          target.address = (renamePointer resolve source).address) ∨
+        (∃ fault,
+          offsetPointer pointer elementSize delta bound = .error fault ∧
+          offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+            .error fault))) ∨
+    (pairedOffsetPointer resolve pointer elementSize delta bound = false ∧
+      ((∃ fault target,
+          offsetPointer pointer elementSize delta bound = .error fault ∧
+          offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+            .ok target) ∨
+        (∃ source fault,
+          offsetPointer pointer elementSize delta bound = .ok source ∧
+          offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+            .error fault) ∨
+        (∃ sourceFault targetFault,
+          offsetPointer pointer elementSize delta bound = .error sourceFault ∧
+          offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+            .error targetFault ∧ sourceFault ≠ targetFault) ∨
+        (∃ source target,
+          offsetPointer pointer elementSize delta bound = .ok source ∧
+          offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+            .ok target ∧
+          (renamePointer resolve source).address ≠ target.address))) := by
+  by_cases h : pairedOffsetPointer resolve pointer elementSize delta bound = true
+  · exact Or.inl ⟨h, pairedOffsetPointer_sound resolve pointer elementSize delta bound h⟩
+  · have hfalse : pairedOffsetPointer resolve pointer elementSize delta bound = false := by
+      apply Bool.eq_false_iff.mpr
+      exact h
+    refine Or.inr ⟨hfalse, ?_⟩
+    cases hs : offsetPointer pointer elementSize delta bound with
+    | ok source =>
+        cases ht : offsetPointer (renamePointer resolve pointer) elementSize delta bound with
+        | ok target =>
+            have haddr : ((renamePointer resolve source).address == target.address) = false := by
+              simpa [pairedOffsetPointer, hs, ht] using h
+            exact Or.inr (Or.inr (Or.inr ⟨source, target, rfl, rfl,
+              beq_eq_false_iff_ne.mp haddr⟩))
+        | error fault =>
+            exact Or.inr (Or.inl ⟨source, fault, rfl, rfl⟩)
+    | error sourceFault =>
+        cases ht : offsetPointer (renamePointer resolve pointer) elementSize delta bound with
+        | ok target =>
+            exact Or.inl ⟨sourceFault, target, rfl, rfl⟩
+        | error targetFault =>
+            cases sourceFault <;> cases targetFault <;>
+              simp [pairedOffsetPointer, hs, ht] at h ⊢
+
 theorem pairedLifetimeLookup_contract
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
     (pairedLifetimeLookup resolve store id = true ∧
