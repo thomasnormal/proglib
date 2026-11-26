@@ -928,6 +928,15 @@ theorem lookup_renameStore_contract (resolve : AllocId → Nat)
   · intro hlookup
     exact lookup_renameStore_none resolve store id hlookup
 
+theorem lookup_renameStore_some
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (allocation : Allocation Tag State)
+    (hlookup : lookup store id = some allocation) :
+    lookup (renameStore resolve store) id =
+      some (renameAllocationValue resolve id allocation) := by
+  rw [lookup_renameStore, hlookup]
+  rfl
+
 def bytesWf (id : AllocId) : List (Byte Tag) → Prop
   | [] => True
   | .uninitialized :: rest => bytesWf id rest
