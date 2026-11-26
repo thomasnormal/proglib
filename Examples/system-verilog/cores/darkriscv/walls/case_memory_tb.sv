@@ -20,6 +20,8 @@ module case_memory_tb;
     cycle(2'd1, 8'h00);
     cycle(2'd2, 8'h00);
     cycle(2'd3, 8'h00);
+    cycle(2'bxx, 8'h00);
+    cycle(2'bzz, 8'h00);
     $finish;
   end
 endmodule

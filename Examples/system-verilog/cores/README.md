@@ -1057,6 +1057,13 @@ this clean-room receipt.  The gated receipt is
 `darkriscv/walls/dynamic_memory_nba_rows.lean`, with the simulator checker in
 `darkriscv/walls/dynamic_memory_nba_check.py`.
 
+The companion `darkriscv/walls/case_memory.sv` receipt covers normal `case`
+selection on the same unpacked-memory shape, including `x` and `z` selectors.
+Canonical E, Icarus Verilog 13.0, and Xcelium 24.03-s004 agree on the initial
+unknown row, the `3c` write, the `a5` and `5a` case arms, and the default arm.
+The gated probe is `darkriscv/walls/case_memory_probe.lean`, with its
+simulator checker in `darkriscv/walls/case_memory_check.py`.
+
 ## 2026-11-20 DarkRISCV system-function expression wall
 
 The repository-local clean-room fixture `darkriscv/walls/function_call_expression.sv`
