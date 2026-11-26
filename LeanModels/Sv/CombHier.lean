@@ -1760,6 +1760,32 @@ theorem PDesign.instantiateHDAlias2_of_generated_summary
   rw [PDesign.instantiateH_of_generated_summary summary harity h1 h2 h3]
   exact halias
 
+/-! Any property proved on the assembled generated-family design transports to the
+user-facing hierarchical family through the same equality.  This is the thin
+lemma-layer hook for later `sv_structure` support: the tactic need only build a
+source-shaped summary and invoke the property-specific certificate. -/
+theorem PDesign.generated_summary_transport
+    {d : PDesign} {lib : List PDesign} {args : List Int}
+    {env : IEnv} {decls : List Decl} {elems : List (String × Nat)}
+    {paths : List (GeneratedNode × List Int)}
+    {child : GeneratedChildRef → Except String Design2}
+    {generated : List Decl × List Process2}
+    {P : Design2 → Prop}
+    (summary : GeneratedHierarchySummary
+      (PDesign.childRec lib.length lib { int32 := true }
+        (PDesign.surfaceFuel args) (Decl.inputNames decls))
+      (env.withDecls decls) decls elems (PDesign.surfaceFuel args) d paths child generated)
+    (harity : args.length = d.params.length)
+    (h1 : d.paramEnvH { int32 := true } args = .ok env)
+    (h2 : buildDecls env d.decls = .ok decls)
+    (h3 : buildElems env d.decls = .ok elems)
+    (halias : (d.assembleH env decls generated.1 elems generated.2).aliasGuard =
+      d.assembleH env decls generated.1 elems generated.2)
+    (hP : P (d.assembleH env decls generated.1 elems generated.2)) :
+    P (d.instantiateHDAlias2 lib args) := by
+  rw [PDesign.instantiateHDAlias2_of_generated_summary summary harity h1 h2 h3 halias]
+  exact hP
+
 
 @[simp] theorem assembleGeneratedAt_processes
     (d : PDesign) (env : IEnv) (decls idecls : List Decl)
