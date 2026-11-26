@@ -351,3 +351,4 @@ Examples/system-verilog/sem2/negedge_e/agree.lean
 Examples/system-verilog/sem2/signal_event_control_e/agree.lean
 Examples/system-verilog/sem2/event_control_wall/agree.lean
 Examples/system-verilog/sem2/event_generated_wall/agree.lean
+Examples/system-verilog/sem2/plain_event_any_edge_e/agree.lean
