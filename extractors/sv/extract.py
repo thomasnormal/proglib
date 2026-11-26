@@ -33185,15 +33185,17 @@ def convert_port_sym(sm, m):
     if tsyn is None and m is not None:
         parent = getattr(getattr(m, "syntax", None), "parent", None)
         if parent is not None:
-            def find_type_syntax(node):
-                if node.kind == SyntaxKind.ScopedName:
-                    return node
-                for child in _syntax_children(node):
-                    found = find_type_syntax(child)
-                    if found is not None:
-                        return found
-                return None
-            tsyn = find_type_syntax(parent)
+            # ANSI ports expose the declaration's own data type directly on
+            # the port header.  Do not search the whole syntax subtree: a
+            # qualified package name in a packed dimension is an expression,
+            # not the port's type (`logic [cfg::W-1:0]`, IEEE 1800-2023
+            # §§6.11, 23.2.2).
+            tsyn = getattr(parent, "dataType", None)
+            if tsyn is None:
+                for child in _syntax_children(parent):
+                    tsyn = getattr(child, "dataType", None)
+                    if tsyn is not None:
+                        break
     if tsyn is None and isym is not None:
         tsyn = _decl_type_syntax(isym)
     dtype, reason = _dtype_sym(
