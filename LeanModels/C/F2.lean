@@ -4122,6 +4122,28 @@ theorem renameZeroTokenMetadata_preserves_wellFormed
   exact ⟨by simpa [renameZeroTokenMetadata] using h.1,
     by simpa [renameZeroTokenMetadata] using h.2⟩
 
+theorem renameZeroTokenMetadata_contract
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (hmetadata : metadata.wellFormed 0) :
+    (renameZeroTokenMetadata resolve metadata).allocation.live =
+        metadata.allocation.live ∧
+      (renameZeroTokenMetadata resolve metadata).allocation.bytes =
+        metadata.allocation.bytes ∧
+      (renameZeroTokenMetadata resolve metadata).allocation.state =
+        metadata.allocation.state ∧
+      (renameZeroTokenMetadata resolve metadata).locations = metadata.locations ∧
+      (renameZeroTokenMetadata resolve metadata).allocation.address =
+        metadata.allocation.address.map (fun _ => resolve 0) ∧
+      renameZeroTokenMetadata resolve (renameZeroTokenMetadata resolve metadata) =
+        renameZeroTokenMetadata resolve metadata ∧
+      (renameZeroTokenMetadata resolve metadata).wellFormed 0 := by
+  rcases renameZeroTokenMetadata_preserves_payload resolve metadata with
+    ⟨hlive, hbytes, hstate, hlocations⟩
+  exact ⟨hlive, hbytes, hstate, hlocations, rfl,
+    renameZeroTokenMetadata_idempotent resolve metadata,
+    renameZeroTokenMetadata_preserves_wellFormed resolve metadata hmetadata⟩
+
 def pairedZeroTokenEqual (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId) : Bool :=
   zeroTokenEqual (renameZeroTokenMetadata resolve left)
