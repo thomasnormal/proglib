@@ -6410,6 +6410,21 @@ theorem renameLiveRegion_size_shape
         (renameLiveRegion resolve entry).2.1 = entry.2.2.1 - entry.2.1 := by
   simp [renameLiveRegion]
 
+theorem renameLiveRegion_contract
+    (resolve : AllocId → Nat) (entry : AllocId × Nat × Nat × Tag) :
+    (renameLiveRegion resolve entry).1 = entry.1 ∧
+      (renameLiveRegion resolve entry).2.1 = resolve entry.1 ∧
+      (renameLiveRegion resolve entry).2.2.1 =
+        resolve entry.1 + (entry.2.2.1 - entry.2.1) ∧
+      (renameLiveRegion resolve entry).2.2.2 = entry.2.2.2 ∧
+      (renameLiveRegion resolve entry).2.2.1 -
+          (renameLiveRegion resolve entry).2.1 = entry.2.2.1 - entry.2.1 := by
+  exact ⟨renameLiveRegion_shape resolve entry |>.1,
+    renameLiveRegion_base_shape resolve entry,
+    renameLiveRegion_end_shape resolve entry,
+    renameLiveRegion_shape resolve entry |>.2,
+    renameLiveRegion_size_shape resolve entry⟩
+
 theorem renameLiveRegion_comp
     (first second : AllocId → Nat)
     (entry : AllocId × Nat × Nat × Tag) :
