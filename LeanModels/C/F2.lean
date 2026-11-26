@@ -443,6 +443,14 @@ theorem listSet_updates_at (values : List α) (offset : Nat) (value : α)
           simp only [listSet, List.length_cons, Nat.succ_lt_succ_iff] at hwithin ⊢
           simpa using ih offset hwithin
 
+theorem listSet_preserves_at_of_ne (values : List α) (offset : Nat) (value : α)
+    (index : Nat) (hwithin : index < values.length) (hne : index ≠ offset) :
+    (listSet values offset value)[index]? = values[index]? := by
+  induction values generalizing offset index with
+  | nil => simp at hwithin
+  | cons head rest ih =>
+      cases offset <;> cases index <;> simp_all [listSet, ih]
+
 structure Region where
   allocation : AllocId
   offset : Nat
