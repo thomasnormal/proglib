@@ -6591,6 +6591,12 @@ inductive ReplayEvent where
   | volatileWrite (data : List UInt8)
 deriving Repr, BEq
 
+def replayStdout (events : List ReplayEvent) : String :=
+  events.foldl (fun output event =>
+    match event with
+    | .io _ "stdout" data => output ++ data
+    | _ => output) ""
+
 def renameReplayEvent (resolve : AllocId → Nat) : ReplayEvent → ReplayEvent
   | .io operation channel data => .io operation channel data
   | .volatileRead data => .volatileRead data
@@ -6629,6 +6635,11 @@ theorem renameReplayEvents_comp
     renameReplayEvents second (renameReplayEvents first events) =
       renameReplayEvents second events := by
   rw [renameReplayEvents_identity first events]
+
+theorem renameReplayEvents_preserves_stdout
+    (resolve : AllocId → Nat) (events : List ReplayEvent) :
+    replayStdout (renameReplayEvents resolve events) = replayStdout events := by
+  rw [renameReplayEvents_identity resolve events]
 
 inductive ReplayEnding where
   | exit (status : Int)
@@ -6734,6 +6745,13 @@ theorem renameReplayFixture_event_count
     (resolve : AllocId → Nat) (fixture : ReplayFixture) :
     (renameReplayFixture resolve fixture).events.length = fixture.events.length := by
   simp [renameReplayFixture, renameReplayEvents]
+
+theorem renameReplayFixture_preserves_stdout
+    (resolve : AllocId → Nat) (fixture : ReplayFixture) :
+    replayStdout (renameReplayFixture resolve fixture).events =
+      replayStdout fixture.events := by
+  simpa [renameReplayFixture] using
+    renameReplayEvents_preserves_stdout resolve fixture.events
 
 theorem renameReplayFixture_contract
     (resolve : AllocId → Nat) (fixture : ReplayFixture) :

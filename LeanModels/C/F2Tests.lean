@@ -238,5 +238,6 @@ def pointer : Pointer Unit := { provenance := some { allocation := 3, tag := () 
 #guard match recoverAddress 104 [(3, 96, 104, ())] with | .empty _ => true | _ => false
 #guard pairedRecoverAddress resolve 100 ([] : List (AllocId × Nat × Nat × Unit))
 #guard renameReplayEvents resolve [.io "write" "stdout" "ok", .volatileRead [1, 2]] == [.io "write" "stdout" "ok", .volatileRead [1, 2]]
+#guard replayStdout [.io "write" "stdout" "ok", .volatileRead [1, 2]] == "ok"
 
 end LeanModels.C.F2Tests
