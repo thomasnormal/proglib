@@ -14,23 +14,21 @@ module darkriscv_dynamic_memory_nba_tb;
 
   initial begin
     #2;
-    $display("ROW reset=%b dptr=%0d data=%08x regs=%08x_%08x_%08x_%08x",
-      RES, DPTR, DATA, R3, R2, R1, R0);
-    #6;
+    $display("ROW init regs=%08x_%08x_%08x_%08x", R3, R2, R1, R0);
+    #4;
+    #1;
+    $display("ROW reset regs=%08x_%08x_%08x_%08x", R3, R2, R1, R0);
     RES = 0;
     DPTR = 2;
     DATA = 32'h000000a5;
-    #2;
-    $display("ROW reset=%b dptr=%0d data=%08x regs=%08x_%08x_%08x_%08x",
-      RES, DPTR, DATA, R3, R2, R1, R0);
-    #5;
-    $display("ROW reset=%b dptr=%0d data=%08x regs=%08x_%08x_%08x_%08x",
-      RES, DPTR, DATA, R3, R2, R1, R0);
+    #9;
+    #1;
+    $display("ROW write2 regs=%08x_%08x_%08x_%08x", R3, R2, R1, R0);
     DPTR = 1;
     DATA = 32'h0000005a;
-    #10;
-    $display("ROW reset=%b dptr=%0d data=%08x regs=%08x_%08x_%08x_%08x",
-      RES, DPTR, DATA, R3, R2, R1, R0);
+    #9;
+    #1;
+    $display("ROW write1 regs=%08x_%08x_%08x_%08x", R3, R2, R1, R0);
     $finish;
   end
 endmodule

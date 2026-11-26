@@ -1053,7 +1053,9 @@ registers begin as x, the first write is visible after its clock edge, and the
 second write preserves `REGS[2]`.  The canonical-E probe loads the fixture and
 returns the same final memory cells, `REGS[2] = 32'h000000a5` and
 `REGS[1] = 32'h0000005a`.  No whole-core DarkRISCV E-RUN result is claimed by
-this clean-room receipt.
+this clean-room receipt.  The gated receipt is
+`darkriscv/walls/dynamic_memory_nba_rows.lean`, with the simulator checker in
+`darkriscv/walls/dynamic_memory_nba_check.py`.
 
 ## 2026-11-20 DarkRISCV system-function expression wall
 
