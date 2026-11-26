@@ -3688,4 +3688,50 @@ theorem noisy_generated_family_driverWins_pairwise
   rw [noisy_generated_family_driverWins_flat rows cols signal off family names hwin]
   exact hdis
 
+theorem noisy_generated_family_driverWins_flat_lists
+    {α β : Type} (rows : List α) (cols : List β) (signal : String)
+    (off : α → β → Nat)
+    (family : α → β → List Process2)
+    (names : List String)
+    (hwin : ∀ i ∈ rows, ∀ j ∈ cols,
+      driverWins names (family i j) = [(signal, some (off i j, 1))]) :
+    driverWins names
+        (rows.flatMap (fun i => cols.flatMap (fun j => family i j))) =
+      rows.flatMap (fun i => cols.flatMap (fun j =>
+        [(signal, some (off i j, 1))])) := by
+  have flatMap_congr : ∀ {γ δ : Type} (l : List γ) (f g : γ → List δ),
+      (∀ x ∈ l, f x = g x) → l.flatMap f = l.flatMap g := by
+    intro γ δ l
+    induction l with
+    | nil => simp
+    | cons x xs ih =>
+        intro f g h
+        simp only [List.flatMap_cons]
+        rw [h x (by simp)]
+        exact congrArg (fun z => g x ++ z) (ih f g (by
+          intro y hy
+          exact h y (by simp [hy])))
+  rw [driverWins_flatMap]
+  apply flatMap_congr
+  intro i hi
+  rw [driverWins_flatMap]
+  apply flatMap_congr
+  intro j hj
+  exact hwin i hi j hj
+
+theorem noisy_generated_family_driverWins_pairwise_lists
+    {α β : Type} (rows : List α) (cols : List β) (signal : String)
+    (off : α → β → Nat)
+    (family : α → β → List Process2)
+    (names : List String)
+    (hwin : ∀ i ∈ rows, ∀ j ∈ cols,
+      driverWins names (family i j) = [(signal, some (off i j, 1))])
+    (hdis : List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (rows.flatMap (fun i => cols.flatMap (fun j =>
+        [(signal, some (off i j, 1))])))) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names (rows.flatMap (fun i => cols.flatMap (fun j => family i j)))) := by
+  rw [noisy_generated_family_driverWins_flat_lists rows cols signal off family names hwin]
+  exact hdis
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
