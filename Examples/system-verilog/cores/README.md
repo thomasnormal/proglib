@@ -1064,6 +1064,13 @@ unknown row, the `3c` write, the `a5` and `5a` case arms, and the default arm.
 The gated probe is `darkriscv/walls/case_memory_probe.lean`, with its
 simulator checker in `darkriscv/walls/case_memory_check.py`.
 
+The source-shaped `darkriscv/walls/selects.sv` receipt covers a clocked
+register's `[7:0]` part-select and runtime bit-select, including indices 3,
+31, x, and z.  Canonical E, Icarus Verilog 13.0, and Xcelium 24.03-s004
+match all seven rows, with x for the unresolved bit selections.  The gated
+probe is `darkriscv/walls/selects_probe.lean`, with its simulator checker in
+`darkriscv/walls/selects_check.py`.
+
 ## 2026-11-20 DarkRISCV system-function expression wall
 
 The repository-local clean-room fixture `darkriscv/walls/function_call_expression.sv`

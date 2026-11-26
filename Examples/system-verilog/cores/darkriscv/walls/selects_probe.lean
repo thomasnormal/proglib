@@ -16,8 +16,8 @@ load_design_sv2 dark_selects_wall
 open LeanModels.Sv
 open LeanModels.Sv.Kernel
 
-private def stimulus (clk : Nat) (d : Nat) (i : Nat) : SvState :=
-  [("clk", LVec.ofNat 1 clk), ("d", LVec.ofNat 32 d), ("i", LVec.ofNat 5 i)]
+private def stimulus (clk : Nat) (d : Nat) (i : LVec) : SvState :=
+  [("clk", LVec.ofNat 1 clk), ("d", LVec.ofNat 32 d), ("i", i)]
 
 private def selected (st : SvState) : Option Nat × Option Nat × Option Nat :=
   ((SvState.lookup st "q").bind LVec.toNat?,
@@ -26,15 +26,19 @@ private def selected (st : SvState) : Option Nat × Option Nat × Option Nat :=
 
 private def selectTrace : Res (List (Option Nat × Option Nat × Option Nat)) :=
   match runMem2 (dark_selects_wall.pdesign.instantiateMemD2 []) 64
-      [ stimulus 0 0 0,
-        stimulus 1 0xA5A55A5A 3,
-        stimulus 0 0xA5A55A5A 3,
-        stimulus 1 0xA5A55A5A 3,
-        stimulus 0 0xA5A55A5A 3,
-        stimulus 1 0x12345678 31,
-        stimulus 0 0x12345678 31,
-        stimulus 1 0x12345678 31,
-        stimulus 0 0x12345678 31] with
+      [ stimulus 0 0 (LVec.ofNat 5 0),
+        stimulus 1 0xA5A55A5A (LVec.ofNat 5 3),
+        stimulus 0 0xA5A55A5A (LVec.ofNat 5 3),
+        stimulus 1 0xA5A55A5A (LVec.ofNat 5 3),
+        stimulus 0 0xA5A55A5A (LVec.ofNat 5 3),
+        stimulus 1 0x12345678 (LVec.ofNat 5 31),
+        stimulus 0 0x12345678 (LVec.ofNat 5 31),
+        stimulus 1 0x12345678 (LVec.ofNat 5 31),
+        stimulus 0 0x12345678 (LVec.ofNat 5 31),
+        stimulus 1 0x12345678 (LVec.xVec 5),
+        stimulus 0 0x12345678 (LVec.xVec 5),
+        stimulus 1 0x12345678 (LVec.replicate 5 .lz),
+        stimulus 0 0x12345678 (LVec.replicate 5 .lz)] with
   | .ok states => .ok (states.map selected)
   | .unsupported msg => .unsupported msg
   | .timeout => .timeout
@@ -54,4 +58,8 @@ private def selectTrace : Res (List (Option Nat × Option Nat × Option Nat)) :=
   (some 0x78, some 0, some 0x12345678),
   (some 0x78, some 0, some 0x12345678),
   (some 0x78, some 0, some 0x12345678),
-  (some 0x78, some 0, some 0x12345678)]
+  (some 0x78, some 0, some 0x12345678),
+  (some 0x78, none, some 0x12345678),
+  (some 0x78, none, some 0x12345678),
+  (some 0x78, none, some 0x12345678),
+  (some 0x78, none, some 0x12345678)]

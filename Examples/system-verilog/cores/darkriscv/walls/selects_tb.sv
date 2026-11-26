@@ -21,6 +21,8 @@ module selects_tb;
     cycle(32'hA5A55A5A, 5'd3);
     cycle(32'h12345678, 5'd31);
     cycle(32'h12345678, 5'd31);
+    cycle(32'h12345678, 5'bxxxxx);
+    cycle(32'h12345678, 5'bzzzzz);
     $finish;
   end
 endmodule
