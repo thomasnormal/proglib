@@ -5041,6 +5041,15 @@ def noisyRowWinsAll (N : Nat) : List DrvWin :=
        ("s", some (i.toNat * (N + 1) + j.toNat, 1)),
        ("c", some (i.toNat * (N + 1) + (j.toNat + 1), 1))]))
 
+def noisyRowWinsAllFull (N : Nat) : List DrvWin :=
+  (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+    [("c", some (i.toNat * (N + 1), 1))] ++
+      (intRange 0 (N : Int).toNat).flatMap (fun j =>
+        [("t", some (i.toNat * N + j.toNat, 1)),
+         ("s", some (i.toNat * (N + 1) + j.toNat, 1)),
+         ("c", some (i.toNat * (N + 1) + (j.toNat + 1), 1))]) ++
+      [("s", some (i.toNat * (N + 1) + N, 1))])
+
 def noisyOutWinsAll (N : Nat) : List DrvWin :=
   (List.range N).map (fun i => ("p", some (i, 1)))
 
@@ -5089,6 +5098,18 @@ theorem noisy_pp_family_driverWins_actual
       Int.toNat_natCast, hsingleton]
   rw [hbridge] at hpaths
   exact hpaths
+
+theorem noisy_row_family_driverWins_actual
+    (N : Nat) (hN : 1 ≤ N)
+    (hCanon : canonInt 32 true (N : Int) = N) :
+    driverWins noisyMul.pdesign.declNames
+      ((intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+        (noisyRowPaths (N : Int) i).flatMap
+          (fun p =>
+            (noisyFullFamilySegment (noisyEnv (N : Int)) (noisyElems (N : Int)) p).2))) =
+      noisyRowWinsAllFull N := by
+  simpa [noisyRowWinsAllFull] using
+    (noisy_row_family_driverWins_actual_int N hN hCanon)
 
 
 theorem noisy_static_pp_disjoint (N : Nat) :
