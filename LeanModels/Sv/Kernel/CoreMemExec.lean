@@ -1569,10 +1569,25 @@ def coreMemEventSourcesThroughAssign (processes : List PProcess) :
                 if name == event.1 then coreMemSignalNames value else []
             | .assignL lhs value =>
                 if coreMemLhsRoot lhs == event.1 then coreMemSignalNames value else []
-            | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body
-            | .alwaysEvent _ body =>
+            | .alwaysComb body | .alwaysLatch body | .alwaysImplicit body =>
                 if (coreMemProcWriteLhss p).any (fun lhs => coreMemLhsRoot lhs == event.1) then
                   coreMemStmtReadNames body
+                else []
+            | .alwaysEvent events body =>
+                if (coreMemProcBlockingWrites p).contains event.1 then
+                  events.map (·.signal) ++ coreMemStmtReadNames body
+                else []
+            | .alwaysFF clock body | .alwaysPlain clock body =>
+                if (coreMemProcBlockingWrites p).contains event.1 then
+                  [clock]
+                else []
+            | .alwaysFFNegedge clock body =>
+                if (coreMemProcBlockingWrites p).contains event.1 then
+                  [clock]
+                else []
+            | .alwaysFFR clock reset body resetHigh =>
+                if (coreMemProcBlockingWrites p).contains event.1 then
+                  [clock, reset]
                 else []
             | _ => []).map fun source => (source, event.2)).eraseDups
       if expanded == events then events
@@ -4995,6 +5010,16 @@ private def auditEdgeDerivedClockProcesses : List PProcess :=
 
 #guard coreMemEdgeBlockingReadRaceThroughAssign auditEdgeEventDriverProcesses
 #guard coreMemEdgeBlockingReadRaceThroughAssign auditEdgeDerivedClockProcesses
+
+/-! A blocking write can manufacture the clock of a later edge process.  The
+writer itself is an event driver, so its source must be included in the same
+closure as continuous and explicit-event drivers. -/
+private def auditBlockingClockDriverProcesses : List PProcess :=
+  [.alwaysFF "clk" (.blockingAssign "g" (.ident "d2")),
+   .alwaysFF "clk" (.blockingAssign "x" (.ident "d")),
+   .alwaysFF "g" (.nbaAssign "b" (.ident "x"))]
+
+#guard coreMemEdgeBlockingReadRaceThroughAssign auditBlockingClockDriverProcesses
 
 private def auditEventSelfWriteProcesses : List PProcess :=
   [.alwaysEvent [{ signal := "a", edge := .any }, { signal := "t", edge := .any }]
