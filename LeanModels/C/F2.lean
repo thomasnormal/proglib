@@ -5523,6 +5523,26 @@ def freePointer (metadata : Option (AllocationMetadata Tag State TypeId)) : Free
   | none => .nullSuccess
   | some metadata => if metadata.allocation.live then .freed else .stalePointer
 
+theorem freePointer_result_contract
+    (metadata : Option (AllocationMetadata Tag State TypeId))
+    (result : FreeOutcome)
+    (hresult : freePointer metadata = result) :
+    match metadata, result with
+    | none, .nullSuccess => True
+    | some allocation, .freed => allocation.allocation.live = true
+    | some allocation, .stalePointer => allocation.allocation.live = false
+    | _, .unmatchedPointer => False
+    | _, _ => False := by
+  cases metadata with
+  | none =>
+      cases result <;> simp [freePointer] at hresult ⊢
+  | some allocation =>
+      cases hlive : allocation.allocation.live with
+      | false =>
+          cases result <;> simp [freePointer, hlive] at hresult ⊢
+      | true =>
+          cases result <;> simp [freePointer, hlive] at hresult ⊢
+
 theorem freePointer_null_shape :
     freePointer (Tag := Tag) (State := State) (TypeId := TypeId) none = .nullSuccess := by
   rfl
