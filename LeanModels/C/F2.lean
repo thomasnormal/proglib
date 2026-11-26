@@ -5412,6 +5412,21 @@ theorem freePointer_classification
       cases h : metadata.allocation.live <;>
         simp [freePointer, h]
 
+theorem freePointer_contract
+    (metadata : Option (AllocationMetadata Tag State TypeId))
+    (outcome : FreeOutcome) :
+    freePointer metadata = outcome ↔
+      match metadata, outcome with
+      | none, .nullSuccess => True
+      | some metadata, .freed => metadata.allocation.live = true
+      | some metadata, .stalePointer => metadata.allocation.live = false
+      | _, _ => False := by
+  cases metadata with
+  | none => cases outcome <;> simp [freePointer]
+  | some metadata =>
+      cases hlive : metadata.allocation.live <;>
+        cases outcome <;> simp [freePointer, hlive]
+
 theorem freePointer_ne_unmatchedPointer
     (metadata : Option (AllocationMetadata Tag State TypeId)) :
     freePointer metadata ≠ .unmatchedPointer := by
