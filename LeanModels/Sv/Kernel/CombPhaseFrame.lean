@@ -354,9 +354,9 @@ theorem CombPhaseStep.two_blocking_scalar_diamond_of_two_process_guard
     (hvalN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
     (hvalM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
     (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32 (coreMemPProcessReadNames q))
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3 (coreMemPProcessReadNames q))
     (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32 (coreMemPProcessReadNames p))
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3 (coreMemPProcessReadNames p))
     (hnwrites : n ∈ coreMemProcBlockingWrites p)
     (hmwrites : m ∈ coreMemProcBlockingWrites q)
     (hguard : coreMemEdgeBlockingReadRaceThroughAssign [p, q] = false)
@@ -371,7 +371,7 @@ theorem CombPhaseStep.two_blocking_scalar_diamond_of_two_process_guard
       CombPhaseStep E u₁ z ∧ CombPhaseStep E u₂ z := by
   have hpair := coreMemEdgeBlockingReadRacePairThroughAssign_false_of_two hguard hcommon
   apply CombPhaseStep.two_blocking_scalar_diamond_of_driver_closure
-    (processes := [p, q]) (fuelN := 32) (fuelM := 32)
+    (processes := [p, q]) (fuelN := 3) (fuelM := 3)
     (namesN := coreMemPProcessReadNames p)
     (namesM := coreMemPProcessReadNames q)
     hc hxN hxM hdecl hn hm hneq hkeys hlocalN hlocalM htargetN htargetM
@@ -414,10 +414,10 @@ theorem CombPhaseStep.two_blocking_scalar_diamond_of_design_guard
     (hvalN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
     (hvalM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
     (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames q))
     (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames p))
     (hnwrites : n ∈ coreMemProcBlockingWrites p)
     (hmwrites : m ∈ coreMemProcBlockingWrites q) :

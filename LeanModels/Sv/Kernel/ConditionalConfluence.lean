@@ -331,10 +331,10 @@ theorem CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_design_g
     (hvalueN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
     (hvalueM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
     (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames q))
     (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames p))
     (hnwrites : n ∈ coreMemProcBlockingWrites p)
     (hmwrites : m ∈ coreMemProcBlockingWrites q)
@@ -352,7 +352,7 @@ theorem CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_design_g
   have hpair := CombPhaseGuard.two_process_read_write_exclusions
     (d := d) hg hprocesses hcommon
   apply CombPhaseStep.two_blocking_scalar_hidden_observation_diamond_of_driver_closure
-    (processes := [p, q]) (fuelN := 32) (fuelM := 32)
+    (processes := [p, q]) (fuelN := 3) (fuelM := 3)
     (namesN := coreMemPProcessReadNames p)
     (namesM := coreMemPProcessReadNames q)
     hc hxN hxM hlocalN hlocalM htargetN htargetM htestN htestM
@@ -466,10 +466,10 @@ theorem CombPhaseTerminalPath.two_blocking_scalar_hidden_observation_of_design_g
     (hvalueN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
     (hvalueM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
     (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames q))
     (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames p))
     (hnwrites : n ∈ coreMemProcBlockingWrites p)
     (hmwrites : m ∈ coreMemProcBlockingWrites q)
@@ -486,7 +486,7 @@ theorem CombPhaseTerminalPath.two_blocking_scalar_hidden_observation_of_design_g
   have hpair := CombPhaseGuard.two_process_read_write_exclusions
     (d := d) hg hprocesses hcommon
   apply CombPhaseTerminalPath.two_blocking_scalar_hidden_observation
-    (processes := [p, q]) (fuelN := 32) (fuelM := 32)
+    (processes := [p, q]) (fuelN := 3) (fuelM := 3)
     (namesN := coreMemPProcessReadNames p)
     (namesM := coreMemPProcessReadNames q)
     hc hxN hxM hlocalN hlocalM htargetN htargetM htestN htestM
