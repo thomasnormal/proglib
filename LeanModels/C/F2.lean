@@ -2660,6 +2660,17 @@ theorem copySnapshot_rejects_length_mismatch
     copySnapshot source destination = none := by
   simp [copySnapshot, hdifferent]
 
+theorem copySnapshot_contract
+    (source destination : List (Byte Tag)) (result : List (Byte Tag))
+    (hresult : copySnapshot source destination = some result) :
+    source.length = destination.length ∧ result = source := by
+  by_cases hsame : source.length == destination.length
+  · have hlength : source.length = destination.length := by
+      exact beq_iff_eq.mp hsame
+    simp [copySnapshot, hsame] at hresult
+    exact ⟨hlength, hresult.symm⟩
+  · simp [copySnapshot, hsame] at hresult
+
 def copyFootprint (source destination : Region) (width : Nat) : Footprint :=
   { accesses := [(AccessKind.read, { source with width := width }),
                  (AccessKind.write, { destination with width := width })] }
