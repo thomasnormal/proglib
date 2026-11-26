@@ -12244,6 +12244,14 @@ theorem pairedRecoverAddress_contract
     cases ht : recoverAddress address (live.map (renameLiveRegion resolve)) <;>
       simp [pairedRecoverAddress, hs, ht]
 
+theorem pairedPlacementAllowed_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (base size : Nat) :
+    pairedPlacementAllowed resolve store base size = true ↔
+      placementAllowed store base size =
+        placementAllowed (renameStore resolve store) (resolve store.nextId) size := by
+  simp [pairedPlacementAllowed, beq_iff_eq]
+
 theorem pairedLifetimeLookup_contract
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
     (pairedLifetimeLookup resolve store id = true ∧
