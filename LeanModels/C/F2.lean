@@ -5756,6 +5756,26 @@ theorem representationLoadMetadataByte_missing_location
     representationLoadMetadataByte metadata offset choice = none := by
   simp [representationLoadMetadataByte, hbyte, hlocation]
 
+theorem representationLoadMetadataByte_failure_contract
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (choice : RepresentationChoice) :
+    representationLoadMetadataByte metadata offset choice = none ↔
+      metadata.allocation.bytes[offset]? = none ∨
+      metadata.locations[offset]? = none := by
+  constructor
+  · intro hnone
+    cases hbyte : metadata.allocation.bytes[offset]? with
+    | none => exact Or.inl rfl
+    | some byte =>
+        cases hlocation : metadata.locations[offset]? with
+        | none => exact Or.inr rfl
+        | some location =>
+            cases htype : location.effectiveType <;> cases choice <;>
+              simp [representationLoadMetadataByte, hbyte, hlocation, htype] at hnone
+  · rintro (hbyte | hlocation)
+    · simp [representationLoadMetadataByte, hbyte]
+    · simp [representationLoadMetadataByte, hlocation]
+
 theorem representationLoadMetadataByte_indeterminate_choice
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (bits : UInt8) (byte : Byte Tag)
