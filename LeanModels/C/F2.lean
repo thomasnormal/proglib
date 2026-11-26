@@ -9710,6 +9710,20 @@ theorem pairedAllocateMetadata_refusal_target
     pairedAllocateMetadata resolve id request locations placement = false := by
   simp [pairedAllocateMetadata, hsource, htarget]
 
+theorem pairedAllocateMetadata_empty_refusal_target {Tag TypeId : Type}
+    (resolve : AllocId → Nat) (id : AllocId)
+    (state : State) (placement : Placement)
+    (target : AllocationMetadata Tag State TypeId × Footprint)
+    (hsource : allocateMetadata (Tag := Tag) (TypeId := TypeId)
+      { bytes := [], state := state } [] placement = none)
+    (htarget : allocateMetadata (Tag := Tag) (TypeId := TypeId)
+      (renameAllocationRequest resolve { bytes := [], state := state }) []
+      (renamedPlacement resolve id placement) = some target) :
+    pairedAllocateMetadata (Tag := Tag) (TypeId := TypeId) resolve id
+      { bytes := [], state := state } [] placement = false := by
+  exact pairedAllocateMetadata_refusal_target resolve id
+    { bytes := [], state := state } [] placement hsource htarget
+
 theorem pairedAllocateMetadata_refusal
     (resolve : AllocId → Nat) (id : AllocId)
     (request : AllocationRequest Tag State)
