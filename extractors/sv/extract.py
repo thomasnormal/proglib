@@ -340,6 +340,29 @@ _SYM_LOOP_BINDINGS = []
 # This is a compile-time extraction environment, not a runtime call frame;
 # ordinary stateful functions never enter it.
 _SYM_CALL_BINDINGS = []
+# Depth of constant contexts being converted (a parameter or localparam
+# initializer, the body of a constant function).  A call of a module function
+# there is a constant function call (IEEE 1800-2023 §13.4.3) and stays a
+# FunctionCall node; `_SYM_CONST_FUNCS` collects the module functions so
+# called, so that their declarations join the module's function table.
+_SYM_CONST_CTX = 0
+_SYM_CONST_FUNCS = []
+# The "referenced subroutine outside the tier" markers of the module being
+# converted, with their symbols.  A function whose declaration is retained in
+# the function table is represented there: its marker is dropped at assembly
+# (a run-time call of it is loud or converted at the call site itself).
+_SYM_SUBROUTINE_MARKERS = []
+
+
+class _SymConstCtx:
+    def __enter__(self):
+        global _SYM_CONST_CTX
+        _SYM_CONST_CTX += 1
+
+    def __exit__(self, *exc):
+        global _SYM_CONST_CTX
+        _SYM_CONST_CTX -= 1
+        return False
 _SYM_PROPERTIES = []
 _DIV_CONTEXT = 0
 _COMPOUND_READ = None
@@ -12266,97 +12289,6 @@ def _sym_conditional_function_shape(subroutine):
         return None
 
 
-def _sym_procedural_if_function_shape(subroutine):
-    """Recognize one local assigned by an initial value and an if-chain.
-
-    This is the source-shaped constant-function profile from IEEE 1800-2023
-    §13.4.3 used by package initializers such as ``t = '0; if (...) t = v``.
-    The local is storage for the duration of the call.  Since every branch
-    assigns that same local and the function returns it, the value can be
-    represented by the existing parser-shaped conditional expression without
-    erasing the declaration or reparsing its source text.  Any local read,
-    compound assignment, or statement outside this profile stays loud.
-    """
-    try:
-        body = getattr(subroutine, "body", None)
-        if type(body).__name__ == "BlockStatement":
-            body = getattr(body, "body", None)
-        if type(body).__name__ != "StatementList":
-            return None
-        statements = list(getattr(body, "list", ()))
-        if len(statements) != 4:
-            return None
-        declaration, initializer, conditional, returned = statements
-        if (type(declaration).__name__ != "VariableDeclStatement"
-                or type(initializer).__name__ != "ExpressionStatement"
-                or type(returned).__name__ != "ReturnStatement"):
-            return None
-        local = getattr(declaration, "symbol", None)
-        returned_expr = getattr(returned, "expr", None)
-        if (local is None or type(returned_expr).__name__ != "NamedValueExpression"
-                or getattr(returned_expr, "symbol", None) is not local):
-            return None
-
-        def assignment(statement, target):
-            if type(statement).__name__ == "BlockStatement":
-                statement = getattr(statement, "body", None)
-            if type(statement).__name__ != "ExpressionStatement":
-                return None
-            expr = getattr(statement, "expr", None)
-            left = getattr(expr, "left", None)
-            if (type(expr).__name__ != "AssignmentExpression"
-                    or getattr(expr, "op", None) is not None
-                    or getattr(expr, "timingControl", None) is not None
-                    or getattr(expr, "isNonBlocking", False)
-                    or type(left).__name__ != "NamedValueExpression"
-                    or getattr(left, "symbol", None) is not target):
-                return None
-            return getattr(expr, "right", None)
-
-        initial_expr = assignment(initializer, local)
-        if initial_expr is None:
-            return None
-
-        branches = []
-        current = conditional
-        while type(current).__name__ == "ConditionalStatement":
-            conditions = list(getattr(current, "conditions", ()))
-            if len(conditions) != 1 or conditions[0].pattern is not None:
-                return None
-            value = assignment(getattr(current, "ifTrue", None), local)
-            if value is None:
-                return None
-            branches.append((conditions[0].expr, value))
-            current = getattr(current, "ifFalse", None)
-        if current is not None:
-            value = assignment(current, local)
-            if value is None:
-                return None
-            branches.append((None, value))
-        if not branches:
-            return None
-
-        # The conditions and values must not read the temporary itself.  A
-        # later local would require a scoped call frame, which this expression
-        # profile deliberately does not model.
-        for condition, value in branches:
-            for expression in (condition, value):
-                if expression is None:
-                    continue
-                found_local = False
-                def inspect(node):
-                    nonlocal found_local
-                    if (type(node).__name__ == "NamedValueExpression"
-                            and getattr(node, "symbol", None) is local):
-                        found_local = True
-                expression.visit(inspect)
-                if found_local:
-                    return None
-        return initial_expr, branches
-    except Exception:
-        return None
-
-
 def _sym_case_function_shape(subroutine):
     """Recognize a straight-line automatic function ending in one plain case.
 
@@ -13752,6 +13684,199 @@ def _convert_sym_bit_query(sm, e):
         return None
 
 
+def _sym_function_name(subroutine):
+    """The key of a function in the envelope's function table: a package
+    function is `pkg::name` (two packages, or a package and the module, may
+    declare the same name), a module function its own name."""
+    name = getattr(subroutine, "name", None)
+    if not name:
+        return name
+    try:
+        scope = getattr(subroutine, "parentScope", None)
+        if getattr(scope, "containingInstance", None) is None:
+            package = _pkg_of(subroutine)
+            if package is not None:
+                return package + "::" + name
+    except Exception:
+        pass
+    return name
+
+
+def _sym_fn_expr(sm, e):
+    """An expression of a function body; None when it does not convert."""
+    if e is None:
+        return None
+    node = convert_expr(sm, e)
+    if node is None or node.get("kind") == "Unsupported":
+        return None
+    return node
+
+
+def _sym_fn_expr_stmt(sm, e, bindings, where):
+    """An expression used as a statement: a blocking assignment or `x++`."""
+    kind = type(e).__name__
+    if kind == "AssignmentExpression":
+        if (getattr(e, "isNonBlocking", False)
+                or getattr(e, "timingControl", None) is not None):
+            return unsupported(sm, where, "AssignmentExpression:timing",
+                               "a constant function has blocking assignments only")
+        if getattr(e, "op", None) is not None:
+            return unsupported(sm, where, "AssignmentExpression:compound",
+                               "compound assignment in a function body is not converted")
+        target = _sym_fn_expr(sm, e.left)
+        value = _sym_fn_expr(sm, e.right)
+        if target is None or value is None:
+            return unsupported(sm, where, "AssignmentExpression:function-body")
+        return {"kind": "FnAssign", "span": node_span(sm, where),
+                "target": target, "value": value}
+    if kind == "UnaryExpression":
+        op = str(getattr(e, "op", "")).split(".")[-1]
+        operand = getattr(e, "operand", None)
+        if (op in ("Postincrement", "Preincrement", "Postdecrement", "Predecrement")
+                and type(operand).__name__ == "NamedValueExpression"):
+            target = _sym_fn_expr(sm, operand)
+            if target is not None and target.get("kind") == "Ident":
+                return {"kind": "FnIncDec", "span": node_span(sm, where),
+                        "name": target["name"],
+                        "op": "++" if "increment" in op else "--"}
+    return unsupported(sm, where, "ExpressionStatement:" + kind,
+                       "this expression statement is not converted in a function body")
+
+
+def _sym_fn_local(sm, sym, bindings, where):
+    """A local variable declaration of a function body, with its declared
+    type; the variable is bound so that later references are Ident nodes."""
+    if str(getattr(sym, "lifetime", "")).split(".")[-1] == "Static":
+        return unsupported(sm, where, "VariableDeclStatement:static",
+                           "a static variable in a function body is not converted")
+    dtype, reason = _dtype_sym(
+        sm, sym.type, _decl_type_syntax(sym), allow_signed=True,
+        scope=getattr(sym, "parentScope", None) or _SYM.scope)
+    if dtype is None:
+        return unsupported(sm, where, "VariableDeclStatement:" + (reason or "type"))
+    init = getattr(sym, "initializer", None)
+    init_node = None
+    if init is not None:
+        init_node = _sym_fn_expr(sm, init)
+        if init_node is None:
+            return unsupported(sm, where, "VariableDeclStatement:initializer")
+    bindings.append((sym, {"kind": "Ident", "span": sym_span(sm, sym),
+                           "width": int(sym.type.bitWidth), "name": sym.name}))
+    return {"kind": "FnDecl", "span": sym_span(sm, sym), "name": sym.name,
+            "type": dtype, "signed": bool(sym.type.isSigned),
+            "two_state": not bool(sym.type.isFourState), "init": init_node}
+
+
+def _sym_fn_plain_check(s):
+    """No `unique`/`unique0`/`priority` on an `if` or a `case` (their
+    violation reports are not modelled)."""
+    return str(getattr(s, "check", "None")).split(".")[-1].rstrip("_") == "None"
+
+
+def _sym_fn_stmts(sm, s, bindings):
+    """The statements of a list or of one statement, in source order."""
+    if type(s).__name__ == "StatementList":
+        out = []
+        for child in list(getattr(s, "list", ())):
+            out.extend(_sym_fn_stmts(sm, child, bindings))
+        return out
+    return [_sym_fn_stmt(sm, s, bindings)]
+
+
+def _sym_fn_stmt(sm, s, bindings):
+    """One statement of a function body, node for node (IEEE 1800-2023
+    §13.4, §12).  Nothing is rewritten: a statement this converter does not
+    know is an Unsupported node, which is a refusal only when a constant
+    evaluation reaches it."""
+    kind = type(s).__name__
+    if kind == "EmptyStatement":
+        return {"kind": "FnBlock", "span": node_span(sm, s), "stmts": []}
+    if kind == "StatementList":
+        return {"kind": "FnBlock", "span": node_span(sm, s),
+                "stmts": _sym_fn_stmts(sm, s, bindings)}
+    if kind == "BlockStatement":
+        if str(getattr(s, "blockKind", "")).split(".")[-1] != "Sequential":
+            return unsupported(sm, s, "BlockStatement:fork")
+        return {"kind": "FnBlock", "span": node_span(sm, s),
+                "stmts": _sym_fn_stmts(sm, s.body, bindings)}
+    if kind == "VariableDeclStatement":
+        return _sym_fn_local(sm, s.symbol, bindings, s)
+    if kind == "ExpressionStatement":
+        return _sym_fn_expr_stmt(sm, s.expr, bindings, s)
+    if kind == "ReturnStatement":
+        expr = getattr(s, "expr", None)
+        if expr is None:
+            return {"kind": "FnReturn", "span": node_span(sm, s), "value": None}
+        value = _sym_fn_expr(sm, expr)
+        if value is None:
+            return unsupported(sm, s, "ReturnStatement:value")
+        return {"kind": "FnReturn", "span": node_span(sm, s), "value": value}
+    if kind == "ConditionalStatement":
+        conditions = list(getattr(s, "conditions", ()))
+        if (len(conditions) != 1 or conditions[0].pattern is not None
+                or not _sym_fn_plain_check(s)):
+            return unsupported(sm, s, "ConditionalStatement:form")
+        cond = _sym_fn_expr(sm, conditions[0].expr)
+        if cond is None:
+            return unsupported(sm, s, "ConditionalStatement:condition")
+        if_false = getattr(s, "ifFalse", None)
+        return {"kind": "FnIf", "span": node_span(sm, s), "cond": cond,
+                "then": _sym_fn_stmt(sm, s.ifTrue, bindings),
+                "else": None if if_false is None else _sym_fn_stmt(sm, if_false, bindings)}
+    if kind == "CaseStatement":
+        if (str(getattr(s, "condition", "")).split(".")[-1] != "Normal"
+                or not _sym_fn_plain_check(s)):
+            return unsupported(sm, s, "CaseStatement:form")
+        subject = _sym_fn_expr(sm, s.expr)
+        if subject is None:
+            return unsupported(sm, s, "CaseStatement:subject")
+        items = []
+        for item in list(getattr(s, "items", ())):
+            patterns = [_sym_fn_expr(sm, x) for x in list(item.expressions)]
+            if any(p is None for p in patterns):
+                return unsupported(sm, s, "CaseStatement:item")
+            items.append({"patterns": patterns,
+                          "body": _sym_fn_stmt(sm, item.stmt, bindings)})
+        default = getattr(s, "defaultCase", None)
+        return {"kind": "FnCase", "span": node_span(sm, s), "subject": subject,
+                "items": items,
+                "default": None if default is None else _sym_fn_stmt(sm, default, bindings)}
+    if kind == "ForLoopStatement":
+        init = []
+        for var in list(getattr(s, "loopVars", ())):
+            init.append(_sym_fn_local(sm, var, bindings, s))
+        for expr in list(getattr(s, "initializers", ())):
+            init.append(_sym_fn_expr_stmt(sm, expr, bindings, s))
+        stop = getattr(s, "stopExpr", None)
+        cond = _sym_fn_expr(sm, stop)
+        if cond is None:
+            return unsupported(sm, s, "ForLoopStatement:condition")
+        steps = [_sym_fn_expr_stmt(sm, expr, bindings, s)
+                 for expr in list(getattr(s, "steps", ()))]
+        return {"kind": "FnFor", "span": node_span(sm, s), "init": init,
+                "cond": cond, "step": steps,
+                "body": _sym_fn_stmt(sm, s.body, bindings)}
+    return unsupported(sm, s, "Statement:" + kind,
+                       "this statement is not converted in a function body")
+
+
+def _sym_fn_body(sm, subroutine, formal_bindings, name):
+    """The body of a function as written, or None when it cannot be walked."""
+    try:
+        bindings = list(formal_bindings)
+        result_var = getattr(subroutine, "returnValVar", None)
+        if result_var is not None:
+            # §13.4.1: the function name is an implicit variable of the
+            # return type; an assignment to it sets the result.
+            bindings.append((result_var, {
+                "kind": "Ident", "span": sym_span(sm, subroutine),
+                "width": int(subroutine.returnType.bitWidth), "name": name}))
+        with _SymCallBinding(bindings), _SymConstCtx(), _SymPos():
+            return _sym_fn_stmts(sm, subroutine.body, bindings)
+    except Exception:
+        return None
+
+
 def _convert_sym_call_expr(sm, e):
     # A source-declared function whose complete body returns an integral
     # literal is pure value metadata.  The M0 path already materializes this
@@ -13796,8 +13921,26 @@ def _convert_sym_call_expr(sm, e):
                 return {
                     "kind": "FunctionCall",
                     "span": node_span(sm, e),
-                    "name": getattr(subroutine, "name", None)
+                    "name": _sym_function_name(subroutine)
                             or getattr(e, "subroutineName", ""),
+                    "args": args,
+                    "width": e.type.bitWidth,
+                }
+        if (_SYM_CONST_CTX > 0 and subroutine is not None
+                and getattr(parent_scope, "containingInstance", None) is not None
+                and str(getattr(subroutine, "subroutineKind", "")).split(".")[-1] == "Function"):
+            # A module function called in a constant expression is a constant
+            # function call (§13.4.3).  Keep the call node; the declaration
+            # joins the module's function table with its body as written.
+            args = [convert_expr(sm, arg) for arg in list(e.arguments)]
+            if all(arg is not None and arg.get("kind") != "Unsupported"
+                   for arg in args):
+                if not any(known is subroutine for known in _SYM_CONST_FUNCS):
+                    _SYM_CONST_FUNCS.append(subroutine)
+                return {
+                    "kind": "FunctionCall",
+                    "span": node_span(sm, e),
+                    "name": _sym_function_name(subroutine),
                     "args": args,
                     "width": e.type.bitWidth,
                 }
@@ -34981,7 +35124,8 @@ def convert_param_sym(sm, m):
     elif _sym_implicit_ranged(tsyn):
         ptype = _sym_param_syntax_dims(sm, m, None)
     init = getattr(m, "initializer", None)
-    init_d = convert_sym_expr(sm, init) if init is not None else None
+    with _SymConstCtx():
+        init_d = convert_sym_expr(sm, init) if init is not None else None
     is_string = (type(getattr(getattr(m, "type", None), "canonicalType", None)).__name__
                  == "StringType")
     resolved = None
@@ -35877,7 +36021,9 @@ def _convert_member_sym(sm, m, k, path=()):
                 or _sym_local_assignment_chain_shape(m) is not None
                 or _sym_local_mixed_chain_shape(m) is not None):
             return None
-        return unsupported(sm, m, "SubroutineSymbol:Subroutine")
+        marker = unsupported(sm, m, "SubroutineSymbol:Subroutine")
+        _SYM_SUBROUTINE_MARKERS.append((m, marker))
+        return marker
     if k == "TransparentMember":
         w = m.wrapped
         if type(w).__name__ == "EnumValueSymbol":
@@ -37175,10 +37321,13 @@ def _sym_instance_definitions(tree, source_map, top, module):
 def _sym_function_node(sm, subroutine):
     """Retain one parser-shaped pure automatic function declaration.
 
-    The first E rung is intentionally limited to input-only formals and one
-    return expression (including the supported local/conditional helpers).
-    The call remains a FunctionCall node; the declaration supplies its body
-    for the E elaborator instead of being erased into the caller expression.
+    The declaration carries its body twice.  `stmts` is the body as written,
+    statement for statement (`_sym_fn_body`): the constant evaluator executes
+    it (IEEE 1800-2023 §13.4.3).  `body` is the one return expression of the
+    first E function rung (input-only formals, one return expression,
+    including the supported local/conditional helpers); a body that is not
+    one expression leaves `body` an Unsupported node.  The call remains a
+    FunctionCall node; the declaration is never erased into the caller.
     """
     try:
         if str(getattr(subroutine, "subroutineKind", "")).split(".")[-1] != "Function":
@@ -37193,17 +37342,18 @@ def _sym_function_node(sm, subroutine):
                                "function formals must be input-only")
         case_shape = _sym_case_function_shape(subroutine)
         conditional_shape = None
-        procedural_if_shape = None
+        # `body` is the one return expression of the E function rung.  A body
+        # that is not one expression is NOT turned into one here: `stmts`
+        # carries it as written, and `body` is then an Unsupported node, so a
+        # run-time call stays loud while a constant call executes `stmts`.
+        expression_body = True
         returned = _literal_function_result(subroutine)
         if returned is None and case_shape is None:
             returned = _sym_local_return_expression(subroutine)
         if returned is None and case_shape is None:
             shape = _sym_conditional_function_shape(subroutine)
             if shape is None:
-                procedural_if_shape = _sym_procedural_if_function_shape(subroutine)
-                if procedural_if_shape is None:
-                    return unsupported(sm, subroutine, "SubroutineSymbol:body",
-                                       "function body is outside the straight-line return profile")
+                expression_body = False
             else:
                 conditional_shape = shape
         dtype, reason = _dtype_sym(sm, subroutine.returnType,
@@ -37225,32 +37375,13 @@ def _sym_function_node(sm, subroutine):
             formal_bindings.append((formal, {"kind": "Ident", "span": sym_span(sm, formal),
                                              "width": fdtype.get("resolved", formal.type.bitWidth),
                                              "name": formal.name}))
+        function_name = _sym_function_name(subroutine)
+        stmts = _sym_fn_body(sm, subroutine, formal_bindings, function_name)
         with _SymCallBinding(formal_bindings):
-            if case_shape is None:
-                if procedural_if_shape is not None:
-                    initial, branches = procedural_if_shape
-                    value = convert_expr(sm, initial)
-                    if value is not None:
-                        for condition, branch in reversed(branches):
-                            branch_value = convert_expr(sm, branch)
-                            if branch_value is None:
-                                value = None
-                                break
-                            if condition is None:
-                                value = branch_value
-                                continue
-                            condition_value = convert_expr(sm, condition)
-                            if condition_value is None:
-                                value = None
-                                break
-                            value = {"kind": "Ternary",
-                                     "span": sym_span(sm, subroutine),
-                                     "width": subroutine.returnType.bitWidth,
-                                     "cond": condition_value,
-                                     "then": branch_value,
-                                     "else": value}
-                    body = value
-                elif conditional_shape is None:
+            if not expression_body:
+                body = None
+            elif case_shape is None:
+                if conditional_shape is None:
                     body = convert_expr(sm, returned)
                 else:
                     condition, then_expr, else_expr = conditional_shape
@@ -37314,11 +37445,22 @@ def _sym_function_node(sm, subroutine):
                                      "else": value}
                         body = value
         if body is None or body.get("kind") == "Unsupported":
-            return unsupported(sm, subroutine, "SubroutineSymbol:body")
-        return {"kind": "Function", "span": sym_span(sm, subroutine),
-                "name": subroutine.name, "automatic": True,
+            if stmts is None:
+                return unsupported(sm, subroutine, "SubroutineSymbol:body")
+            body = unsupported(sm, subroutine, "SubroutineSymbol:body",
+                               "the function body is not one return expression; "
+                               "its statements are retained for constant evaluation")
+        node = {"kind": "Function", "span": sym_span(sm, subroutine),
+                "name": function_name, "automatic": True,
                 "return_type": dtype, "signed": bool(getattr(subroutine.returnType, "isSigned", False)),
                 "formals": formal_nodes, "body": body}
+        if "::" in function_name:
+            node["package"] = function_name.split("::")[0]
+        if stmts is not None:
+            node["stmts"] = stmts
+            node["return_two_state"] = not bool(
+                getattr(subroutine.returnType, "isFourState", True))
+        return node
     except Exception as exc:
         return internal_error(exc)
 
@@ -37355,166 +37497,185 @@ def _sym_package_default_fill(sm, initializer, width):
             "assignment_pattern_default_fill": True}
 
 
+def _sym_package_param_loud(node, package, reason):
+    """A package constant that stays in the table as a LOUD entry: the loader
+    leaves it unbound with `reason`, and only a read of it is refused."""
+    node = dict(node)
+    if node.get("kind") == "LocalParam":
+        node["kind"] = "ParameterDecl"
+        node["default"] = node.pop("expr", None)
+    node["package"] = package.name
+    node["unsupported"] = reason
+    return node
+
+
+def _sym_package_param_entry(sm, package, member):
+    """The package-table entry of one package parameter."""
+    node = None
+    t = getattr(member, "type", None)
+    node = convert_param_sym(sm, member)
+    aggregate_shape = _aggregate_shape_sym(
+        sm, t, _decl_type_syntax(member),
+        getattr(member, "syntax", None),
+        scope=getattr(member, "parentScope", None))
+    if (aggregate_shape is not None and
+            aggregate_shape.get("kind") in ("array", "struct")):
+        node = dict(node)
+        node["type"] = None
+        node["aggregate"] = aggregate_shape
+        initializer = getattr(member, "initializer", None)
+        if (type(initializer).__name__ ==
+                "SimpleAssignmentPatternExpression"):
+            rows = []
+            valid = True
+            for element in initializer.elements:
+                if type(element).__name__ == "StructuredAssignmentPatternExpression":
+                    setters = list(getattr(element, "memberSetters", []))
+                    fields = []
+                    for setter in setters:
+                        value = convert_expr(sm, setter.expr)
+                        if value is None or value.get("kind") == "Unsupported":
+                            valid = False
+                            break
+                        fields.append({"name": setter.member.name, "value": value})
+                else:
+                    value = convert_expr(sm, element)
+                    if value is None or value.get("kind") == "Unsupported":
+                        valid = False
+                        break
+                    fields = [{"name": "", "value": value}]
+                if not valid:
+                    break
+                rows.append(fields)
+            if valid and rows:
+                node.pop("default", None)
+                node["aggregate_default"] = rows
+            else:
+                node["default"] = unsupported(
+                    sm, initializer, "AssignmentPattern:aggregate-shape")
+        else:
+            node["default"] = unsupported(
+                sm, initializer, "AssignmentPattern:aggregate-shape")
+        if node.get("aggregate_default"):
+            node.pop("default", None)
+    ptype = node.get("type")
+    initial = node.get("default") or node.get("expr")
+    fill = _sym_package_default_fill(
+        sm, getattr(member, "initializer", None),
+        getattr(t, "bitWidth", 0))
+    if fill is not None:
+        node = dict(node)
+        if node.get("kind") == "LocalParam":
+            node["expr"] = fill
+        else:
+            node["default"] = fill
+    elif (isinstance(initial, dict)
+          and initial.get("kind") == "Unsupported"):
+        node = dict(node)
+        node["default"] = initial
+    if ptype is None and type(t).__name__ == "TypeAliasType":
+        width = getattr(t, "bitWidth", None)
+        if isinstance(width, int) and 1 <= width <= 256:
+            node = dict(node)
+            node["type"] = {
+                "kind": "TypeRef", "name": getattr(t, "name", ""),
+                "from_package": _pkg_of(t), "resolved": width,
+            }
+            ptype = node["type"]
+    # An untyped package parameter is the same 32-bit signed
+    # integer class as an untyped module parameter.  Keep its
+    # source-shaped default so Param2 can bind it in package
+    # declaration order.  Explicitly typed package values
+    # continue through the fixed-width integral slice below.
+    if ptype is None:
+        if node.get("kind") == "LocalParam":
+            node = dict(node)
+            node["kind"] = "ParameterDecl"
+            node["default"] = node.pop("expr")
+        node = dict(node)
+        if node.get("aggregate_default"):
+            node.pop("default", None)
+        node["package"] = package.name
+        return node
+    if ptype.get("kind") == "TypeRef":
+        if not isinstance(ptype.get("resolved"), int) or \
+                ptype["resolved"] < 1:
+            return _sym_package_param_loud(node, package, "PackageParameter:type")
+    elif (ptype.get("kind") != "PackedType"
+          or not isinstance(ptype.get("resolved"), int)
+          or ptype["resolved"] < 1):
+        return _sym_package_param_loud(node, package, "PackageParameter:type")
+    # The package table retains fixed-width values at their
+    # declared width.  A bound that contains a parameter is
+    # still loud until package width metadata is carried per
+    # point, while wide aggregates remain exact values.
+    if ptype.get("kind") == "PackedType" and ptype.get("packed") is None:
+        node = dict(node)
+        node["unsupported"] = "PackageParameter:type"
+    if ptype.get("kind") == "PackedType" and any(
+        bound.get("kind") != "Int"
+        for dim in (ptype.get("packed") or [])
+        for bound in (dim.get("msb", {}), dim.get("lsb", {}))
+    ):
+        if all(_sym_package_constant_expr(bound)
+               for dim in (ptype.get("packed") or [])
+               for bound in (dim.get("msb", {}), dim.get("lsb", {}))):
+            node = dict(node)
+            node["type"] = {
+                "kind": "TypeRef", "name": getattr(t, "name", ""),
+                "from_package": _pkg_of(t),
+                "resolved": ptype.get("resolved"),
+            }
+        else:
+            return _sym_package_param_loud(node, package, "PackageParameter:type-bounds")
+    if node.get("kind") == "LocalParam":
+        node = dict(node)
+        node["kind"] = "ParameterDecl"
+        node["default"] = node.pop("expr")
+    node = dict(node)
+    node["package"] = package.name
+    return node
+
+
 def _sym_package_params(sm):
-    """Retain fixed-width integral package parameters for sv-0.2.
+    """Retain every parameter of every package of the compilation for sv-0.2.
 
     Package parameters are elaboration constants, not module override
     binders.  Keep their qualified source identity in a module-level
     ``package_params`` table so Param2 can evaluate ``pkg::P`` without
-    replacing the reference with a default-point literal.  Parameter-
-    dependent widths, enum/real/string parameters, and package local state
-    remain on their existing loud paths.
+    replacing the reference with a default-point literal.
+
+    Each member is converted on its own.  One that cannot be represented, or
+    whose conversion fails, stays in the table as a loud entry
+    (`unsupported`): it never drops the members after it, and the table does
+    not depend on which module is being extracted.
     """
     result = []
     try:
-        for unit in _SYM.comp.getCompilationUnits():
-            for package in unit:
-                if str(getattr(package, "kind", "")).split(".")[-1] != "Package":
-                    continue
-                for member in package:
-                    if str(getattr(member, "kind", "")).split(".")[-1] != "Parameter":
-                        continue
-                    node = None
-                    t = getattr(member, "type", None)
-                    node = convert_param_sym(sm, member)
-                    aggregate_shape = _aggregate_shape_sym(
-                        sm, t, _decl_type_syntax(member),
-                        getattr(member, "syntax", None),
-                        scope=getattr(member, "parentScope", None))
-                    if (aggregate_shape is not None and
-                            aggregate_shape.get("kind") in ("array", "struct")):
-                        node = dict(node)
-                        node["type"] = None
-                        node["aggregate"] = aggregate_shape
-                        initializer = getattr(member, "initializer", None)
-                        if (type(initializer).__name__ ==
-                                "SimpleAssignmentPatternExpression"):
-                            rows = []
-                            valid = True
-                            for element in initializer.elements:
-                                if type(element).__name__ == "StructuredAssignmentPatternExpression":
-                                    setters = list(getattr(element, "memberSetters", []))
-                                    fields = []
-                                    for setter in setters:
-                                        value = convert_expr(sm, setter.expr)
-                                        if value is None or value.get("kind") == "Unsupported":
-                                            valid = False
-                                            break
-                                        fields.append({"name": setter.member.name, "value": value})
-                                else:
-                                    value = convert_expr(sm, element)
-                                    if value is None or value.get("kind") == "Unsupported":
-                                        valid = False
-                                        break
-                                    fields = [{"name": "", "value": value}]
-                                if not valid:
-                                    break
-                                rows.append(fields)
-                            if valid and rows:
-                                node.pop("default", None)
-                                node["aggregate_default"] = rows
-                            else:
-                                node["default"] = unsupported(
-                                    sm, initializer, "AssignmentPattern:aggregate-shape")
-                        else:
-                            node["default"] = unsupported(
-                                sm, initializer, "AssignmentPattern:aggregate-shape")
-                        if node.get("aggregate_default"):
-                            node.pop("default", None)
-                    ptype = node.get("type")
-                    initial = node.get("default") or node.get("expr")
-                    fill = _sym_package_default_fill(
-                        sm, getattr(member, "initializer", None),
-                        getattr(t, "bitWidth", 0))
-                    if fill is not None:
-                        node = dict(node)
-                        if node.get("kind") == "LocalParam":
-                            node["expr"] = fill
-                        else:
-                            node["default"] = fill
-                    elif (isinstance(initial, dict)
-                          and initial.get("kind") == "Unsupported"):
-                        node = dict(node)
-                        node["default"] = initial
-                    if ptype is None and type(t).__name__ == "TypeAliasType":
-                        width = getattr(t, "bitWidth", None)
-                        if isinstance(width, int) and 1 <= width <= 256:
-                            node = dict(node)
-                            node["type"] = {
-                                "kind": "TypeRef", "name": getattr(t, "name", ""),
-                                "from_package": _pkg_of(t), "resolved": width,
-                            }
-                            ptype = node["type"]
-                    # An untyped package parameter is the same 32-bit signed
-                    # integer class as an untyped module parameter.  Keep its
-                    # source-shaped default so Param2 can bind it in package
-                    # declaration order.  Explicitly typed package values
-                    # continue through the fixed-width integral slice below.
-                    if ptype is None:
-                        if node.get("kind") == "LocalParam":
-                            node = dict(node)
-                            node["kind"] = "ParameterDecl"
-                            node["default"] = node.pop("expr")
-                        node = dict(node)
-                        if node.get("aggregate_default"):
-                            node.pop("default", None)
-                        node["package"] = package.name
-                        result.append(node)
-                        continue
-                    if ptype.get("kind") == "TypeRef":
-                        if not isinstance(ptype.get("resolved"), int) or \
-                                ptype["resolved"] < 1:
-                            continue
-                    elif (ptype.get("kind") != "PackedType"
-                          or not isinstance(ptype.get("resolved"), int)
-                          or ptype["resolved"] < 1):
-                        continue
-                    # The package table retains fixed-width values at their
-                    # declared width.  A bound that contains a parameter is
-                    # still loud until package width metadata is carried per
-                    # point, while wide aggregates remain exact values.
-                    if ptype.get("kind") == "PackedType" and ptype.get("packed") is None:
-                        node = dict(node)
-                        node["unsupported"] = "PackageParameter:type"
-                    if ptype.get("kind") == "PackedType" and any(
-                        bound.get("kind") != "Int"
-                        for dim in (ptype.get("packed") or [])
-                        for bound in (dim.get("msb", {}), dim.get("lsb", {}))
-                    ):
-                        if all(_sym_package_constant_expr(bound)
-                               for dim in (ptype.get("packed") or [])
-                               for bound in (dim.get("msb", {}), dim.get("lsb", {}))):
-                            node = dict(node)
-                            node["type"] = {
-                                "kind": "TypeRef", "name": getattr(t, "name", ""),
-                                "from_package": _pkg_of(t),
-                                "resolved": ptype.get("resolved"),
-                            }
-                        else:
-                            continue
-                    if node.get("kind") == "LocalParam":
-                        node = dict(node)
-                        node["kind"] = "ParameterDecl"
-                        node["default"] = node.pop("expr")
-                    node = dict(node)
-                    node["package"] = package.name
-                    result.append(node)
-    except Exception as exc:
-        # A single package member must never erase the table for every other
-        # package constant.  Preserve the member as a loud entry and keep all
-        # successfully converted entries.  The loader skips this marker until
-        # a source expression actually references the member.
-        try:
-            candidate = locals().get("node")
-            if not isinstance(candidate, dict):
-                candidate = convert_param_sym(sm, locals()["member"])
-            candidate = dict(candidate)
-            candidate["package"] = locals()["package"].name
-            candidate["unsupported"] = "PackageParameter:unconvertible"
-            result.append(candidate)
-        except Exception:
-            pass
+        units = list(_SYM.comp.getCompilationUnits())
+    except Exception:
         return result
+    for unit in units:
+        for package in unit:
+            if str(getattr(package, "kind", "")).split(".")[-1] != "Package":
+                continue
+            for member in package:
+                if str(getattr(member, "kind", "")).split(".")[-1] != "Parameter":
+                    continue
+                try:
+                    entry = _sym_package_param_entry(sm, package, member)
+                except Exception:
+                    try:
+                        entry = _sym_package_param_loud(
+                            convert_param_sym(sm, member), package,
+                            "PackageParameter:unconvertible")
+                    except Exception:
+                        entry = {"kind": "ParameterDecl", "span": None,
+                                 "name": member.name, "type": None,
+                                 "default": None, "resolved": None,
+                                 "string": False, "package": package.name,
+                                 "unsupported": "PackageParameter:unconvertible"}
+                result.append(entry)
     return result
 
 
@@ -37571,6 +37732,25 @@ def _sym_package_functions(sm, module=None):
     return result, packages
 
 
+def _sym_const_called_functions(sm, already):
+    """Declarations of the module functions called from constant contexts
+    (`_SYM_CONST_FUNCS`), and of the module functions those call.  Converting
+    one body may name further functions, so the list is walked as it grows."""
+    result = []
+    names = {f.get("name") for f in already if isinstance(f, dict)}
+    i = 0
+    while i < len(_SYM_CONST_FUNCS):
+        subroutine = _SYM_CONST_FUNCS[i]
+        i += 1
+        if subroutine.name in names:
+            continue
+        retained = _sym_function_node(sm, subroutine)
+        if isinstance(retained, dict) and retained.get("kind") == "Function":
+            names.add(retained["name"])
+            result.append(retained)
+    return result
+
+
 def convert_module_sym(sm, inst):
     """Top module -> symbolic Module node (schema sv-0.2)."""
     global _SYM_PROPERTIES, _SYM_READMEMH_PENDING
@@ -37585,6 +37765,8 @@ def convert_module_sym(sm, inst):
         if name not in _SYM.instance_modules:
             _SYM.instance_modules.append(name)
     lower_proc.begin_module(sys.modules[__name__], body)      # WP-PROC L1: hoisted block-local declarations
+    del _SYM_CONST_FUNCS[:]
+    del _SYM_SUBROUTINE_MARKERS[:]
     span = sym_span(sm, body) or sym_span(sm, inst)
 
     port_names = set()
@@ -37731,10 +37913,19 @@ def convert_module_sym(sm, inst):
     decls.extend(lower_proc.hoisted_decls())                  # WP-PROC L1
 
     package_params = _sym_package_params(sm)
+    const_functions = _sym_const_called_functions(sm, functions)
+    functions = functions + const_functions
+    retained_names = {f["name"] for f in const_functions}
+    dropped = [marker for subroutine, marker in _SYM_SUBROUTINE_MARKERS
+               if subroutine.name in retained_names
+               and any(known is subroutine for known in _SYM_CONST_FUNCS)]
+    if dropped:
+        others = [node for node in others
+                  if not any(node is marker for marker in dropped)]
     package_functions, function_packages = _sym_package_functions(
         sm, {"params": params, "ports": ports, "decls": decls,
              "processes": processes, "generates": generates,
-             "others": others})
+             "others": others, "functions": functions})
     _SYM.packages.update(function_packages)
     properties.extend(_SYM_PROPERTIES)
     cell_refs = []
