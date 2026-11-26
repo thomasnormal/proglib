@@ -2640,4 +2640,54 @@ theorem noisy_instantiateH_of_family
         hFuel hRowFuel hBound hValue hInnerBound hInnerValue)
   · exact hok
 
+def noisyScope (N : Int) : IEnv :=
+  { int32 := true, nvals := [("N", (canonInt 32 true N, 32, true))],
+    pwidths := [("N", 32)] }
+
+def noisyEnv (N : Int) : IEnv :=
+  { noisyScope N with dims := dimTableFast (noisyScope N) noisyMul.pdesign.decls }
+
+def noisyDeclsRaw (N : Int) : List Decl :=
+  [{ name := "a", width := (canonInt 32 true N - 1).natAbs + 1, isInput := true },
+   { name := "b", width := (canonInt 32 true N - 1).natAbs + 1, isInput := true },
+   { name := "f", width := ((4 * canonInt 32 true N - 4).natAbs + 1) *
+       ((canonInt 32 true N - 1).natAbs + 1), isInput := true },
+   { name := "p", width := (2 * canonInt 32 true N - 1).natAbs + 1, isOutput := true },
+   { name := "pp", width := ((canonInt 32 true N - 1).natAbs + 1) *
+       ((canonInt 32 true N - 1).natAbs + 1) },
+   { name := "s", width := ((canonInt 32 true N - 1).natAbs + 1) *
+       ((canonInt 32 true N).natAbs + 1) },
+   { name := "c", width := ((canonInt 32 true N - 1).natAbs + 1) *
+       ((canonInt 32 true N).natAbs + 1) },
+   { name := "t", width := ((canonInt 32 true N - 1).natAbs + 1) *
+       ((canonInt 32 true N - 1).natAbs + 1) }]
+
+def noisyElems (N : Int) : List (String × Nat) :=
+  [("a", 1), ("b", 1), ("f", (canonInt 32 true N - 1).natAbs + 1), ("p", 1),
+   ("pp", (canonInt 32 true N - 1).natAbs + 1),
+   ("s", (canonInt 32 true N).natAbs + 1), ("c", (canonInt 32 true N).natAbs + 1),
+   ("t", (canonInt 32 true N - 1).natAbs + 1)]
+
+set_option maxHeartbeats 10000000 in
+set_option maxRecDepth 100000 in
+theorem noisy_paramEnvH (N : Int) :
+    noisyMul.pdesign.paramEnvH { int32 := true } [N] = .ok (noisyEnv N) := by
+  rfl
+
+theorem noisy_decls (N : Int) :
+    buildDecls (noisyEnv N) noisyMul.pdesign.decls = .ok (noisyDeclsRaw N) := by
+  set_option maxHeartbeats 1000000 in
+  simp [noisyMul.pdesign, buildDecls, instDecl, PType.width_packed_cons,
+    PType.width_packed_nil, PDim.width, evalInt, noisyEnv, noisyScope,
+    noisyDeclsRaw, List.lookup, Gen2.except_ok_bind]
+
+theorem noisy_elems (N : Int) :
+    buildElems (noisyEnv N) noisyMul.pdesign.decls = .ok (noisyElems N) := by
+  set_option maxHeartbeats 1000000 in
+  simp [noisyMul.pdesign, buildElems, PType.width_packed_cons,
+    PType.width_packed_nil, PType.elemWidth, PDim.width,
+    evalInt, noisyEnv, noisyScope,
+    noisyElems, List.lookup, Gen2.except_ok_bind, Except.bind, Except.map, Except.pure,
+    pure, bind]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
