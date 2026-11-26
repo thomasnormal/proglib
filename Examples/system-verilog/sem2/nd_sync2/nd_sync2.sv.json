@@ -1,0 +1,192 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "nd_sync2",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/nd_sync2/nd_sync2.sv",
+      "sha256": "9a1ece98b3c51158ea56aec53b59491ad171715a67abc35dff963a61a883cb33"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 10,
+          "end_col": 10
+        },
+        "name": "nd_sync2",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 18,
+              "end_line": 3,
+              "end_col": 21
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 18,
+              "end_line": 4,
+              "end_col": 19
+            },
+            "name": "d",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 18,
+              "end_line": 5,
+              "end_col": 20
+            },
+            "name": "s1",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 6,
+              "col": 18,
+              "end_line": 6,
+              "end_col": 20
+            },
+            "name": "s2",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 8,
+              "col": 3,
+              "end_line": 8,
+              "end_col": 36
+            },
+            "style": "always_ff",
+            "clock": "clk",
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 8,
+                "col": 28,
+                "end_line": 8,
+                "end_col": 36
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 8,
+                  "col": 28,
+                  "end_line": 8,
+                  "end_col": 30
+                },
+                "width": 1,
+                "name": "s1"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 8,
+                  "col": 34,
+                  "end_line": 8,
+                  "end_col": 35
+                },
+                "width": 1,
+                "name": "d"
+              }
+            }
+          },
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 9,
+              "col": 3,
+              "end_line": 9,
+              "end_col": 37
+            },
+            "style": "always_ff",
+            "clock": "clk",
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 9,
+                "col": 28,
+                "end_line": 9,
+                "end_col": 37
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 9,
+                  "col": 28,
+                  "end_line": 9,
+                  "end_col": 30
+                },
+                "width": 1,
+                "name": "s2"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 9,
+                  "col": 34,
+                  "end_line": 9,
+                  "end_col": 36
+                },
+                "width": 1,
+                "name": "s1"
+              }
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
