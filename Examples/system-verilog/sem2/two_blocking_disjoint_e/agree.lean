@@ -36,10 +36,10 @@ example : ∃ p q,
 example : ∃ p q,
     twoBlocking.pdesign.processes = [p, q] ∧
     (∀ x, x ∈ coreMemProcBlockingWrites p →
-      x ∉ coreMemReadNamesThroughDrivers [p, q] 32
+      x ∉ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames q)) ∧
     (∀ x, x ∈ coreMemProcBlockingWrites q →
-      x ∉ coreMemReadNamesThroughDrivers [p, q] 32
+      x ∉ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames p)) := by
   obtain ⟨p, q, hprocesses, hcommon⟩ := show ∃ p q,
       twoBlocking.pdesign.processes = [p, q] ∧
@@ -80,10 +80,10 @@ theorem guarded_pair_receipt
     (hvalN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
     (hvalM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
     (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames q))
     (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames p))
     (hnwrites : n ∈ coreMemProcBlockingWrites p)
     (hmwrites : m ∈ coreMemProcBlockingWrites q) :
@@ -126,10 +126,10 @@ theorem guarded_hidden_terminal_receipt
     (hvalN : E.evalExprLocals env E.elems st (some widthN) locals eN = .ok vN)
     (hvalM : E.evalExprLocals env E.elems st (some widthM) locals eM = .ok vM)
     (hclosureM : ∀ y ∈ E.readsV env E.elems (some widthM) eM,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames q))
     (hclosureN : ∀ y ∈ E.readsV env E.elems (some widthN) eN,
-      y ∈ coreMemReadNamesThroughDrivers [p, q] 32
+      y ∈ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames p))
     (hnwrites : n ∈ coreMemProcBlockingWrites p)
     (hmwrites : m ∈ coreMemProcBlockingWrites q) :
