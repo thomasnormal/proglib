@@ -3554,4 +3554,88 @@ theorem noisy_maj_conn_driverWins_at
 
 
 
+theorem noisy_pp_child_driverWins_flat
+    (N : Nat)
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String)
+    (hwin : ∀ i j : Nat, i < N → j < N →
+      driverWins names
+        (andDesign.decls.toList.flatMap
+          (connProcs ((env.bindVal "i" (i : Int)).bindVal "j" (j : Int)) elems pfx andInst.conns)) =
+        [("pp", some (i * N + j, 1))]) :
+    driverWins names
+        ((List.range N).flatMap (fun (i : Nat) =>
+          (List.range N).flatMap (fun (j : Nat) =>
+            andDesign.decls.toList.flatMap
+              (connProcs ((env.bindVal "i" (i : Int)).bindVal "j" (j : Int)) elems pfx andInst.conns)))) =
+      (List.range N).flatMap (fun (i : Nat) =>
+        (List.range N).flatMap (fun (j : Nat) =>
+          [("pp", some (i * N + j, 1))])) := by
+  have flatMap_congr : ∀ (l : List Nat) (f g : Nat → List DrvWin),
+      (∀ x ∈ l, f x = g x) → l.flatMap f = l.flatMap g := by
+    intro l
+    induction l with
+    | nil => simp
+    | cons x xs ih =>
+        intro f g h
+        simp only [List.flatMap_cons]
+        rw [h x (by simp)]
+        exact congrArg (fun z => g x ++ z) (ih f g (by
+          intro y hy
+          exact h y (by simp [hy])))
+  rw [driverWins_flatMap]
+  apply flatMap_congr
+  intro i hi
+  rw [driverWins_flatMap]
+  apply flatMap_congr
+  intro j hj
+  simpa using hwin i j (List.mem_range.mp hi) (List.mem_range.mp hj)
+
+theorem noisy_pp_child_driverWins_pairwise
+    (N : Nat) (hN : 1 ≤ N)
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String)
+    (hwin : ∀ i j : Nat, i < N → j < N →
+      driverWins names
+        (andDesign.decls.toList.flatMap
+          (connProcs ((env.bindVal "i" (i : Int)).bindVal "j" (j : Int)) elems pfx andInst.conns)) =
+        [("pp", some (i * N + j, 1))]) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names
+        ((List.range N).flatMap (fun (i : Nat) =>
+          (List.range N).flatMap (fun (j : Nat) =>
+            andDesign.decls.toList.flatMap
+              (connProcs ((env.bindVal "i" (i : Int)).bindVal "j" (j : Int)) elems pfx andInst.conns))))) := by
+  rw [noisy_pp_child_driverWins_flat N env elems pfx names hwin]
+  have hsingleton : ∀ (l : List Nat) (f : Nat → DrvWin),
+      l.flatMap (fun j => [f j]) = l.map f := by
+    intro l f
+    induction l with
+    | nil => rfl
+    | cons j js ih => simp [ih]
+  have flatMap_congr : ∀ (l : List Nat) (f g : Nat → List DrvWin),
+      (∀ x ∈ l, f x = g x) → l.flatMap f = l.flatMap g := by
+    intro l
+    induction l with
+    | nil => simp
+    | cons x xs ih =>
+        intro f g h
+        simp only [List.flatMap_cons]
+        rw [h x (by simp)]
+        exact congrArg (fun z => g x ++ z) (ih f g (by
+          intro y hy
+          exact h y (by simp [hy])))
+  have hnorm :
+      (List.range N).flatMap (fun (i : Nat) =>
+        (List.range N).flatMap (fun (j : Nat) =>
+          [("pp", some (i * N + j, 1))])) =
+      (List.range N).flatMap (fun (i : Nat) =>
+        (List.range N).map (fun (j : Nat) =>
+          ("pp", some (i * N + j, 1)))) := by
+    apply flatMap_congr
+    intro i hi
+    exact hsingleton (List.range N) (fun j => ("pp", some (i * N + j, 1)))
+  rw [hnorm]
+  exact noisy_pp_family_windows_pairwise N hN
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
