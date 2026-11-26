@@ -63,14 +63,16 @@ def _static_row(entry: dict) -> tuple[str, str, str]:
     return "", "", ""
 
 
-def _refresh_stale(entry: dict) -> tuple[bool, str]:
+def _refresh_stale(entry: dict, manifest: Path | None = None) -> tuple[bool, str]:
     """Regenerate one stale envelope from the pinned external source cache."""
     envelope_name = entry.get("envelope")
     name = entry.get("name")
     if not envelope_name or not name:
         return False, "manifest has no envelope or test name"
     envelope = Path(envelope_name)
-    source = envelope.parent.parent / "src" / name
+    source_root = (manifest.parent / "src" if manifest is not None
+                   else envelope.parent.parent / "src")
+    source = source_root / name
     if not source.is_file():
         return False, "source is unavailable for envelope refresh"
     result = subprocess.run(
@@ -178,7 +180,7 @@ def run(manifest: Path, runner: str, fuel: int, timeout: float) -> int:
                 continue
             static = _static_row(entry)
             if static[1] == "not-ingested":
-                refreshed, refresh_detail = _refresh_stale(entry)
+                refreshed, refresh_detail = _refresh_stale(entry, manifest)
                 if refreshed:
                     static = _static_row(entry)
                 elif refresh_detail:
@@ -304,6 +306,29 @@ def self_test() -> int:
         if (before[1] != 'not-ingested' or not refreshed or refresh_detail or
                 after != ('', '', '')):
             print("c_torture_batch --self-test: stale envelope was not refreshed", file=sys.stderr)
+            return 1
+
+        nested_source = cache / "src" / "nested" / "refresh.c"
+        nested_envelope = cache / "env" / "nested" / "refresh.json"
+        nested_source.parent.mkdir(parents=True)
+        nested_envelope.parent.mkdir(parents=True)
+        nested_source.write_text("int main(void) { return 0; }\n")
+        nested_envelope.write_text(json.dumps({
+            'schema_version': 'c-0.1', 'language': 'c',
+            'source_sha256': 'stale', 'extractor_sha256': 'stale'}))
+        nested_entry = {'name': 'nested/refresh.c', 'status': 'parsed',
+                        'sha256': hashlib.sha256(nested_source.read_bytes()).hexdigest(),
+                        'envelope': str(nested_envelope)}
+        old_extractor = globals()['EXTRACTOR']
+        globals()['EXTRACTOR'] = fake_extractor
+        try:
+            nested_refreshed, nested_detail = _refresh_stale(
+                nested_entry, cache / "manifest.json")
+        finally:
+            globals()['EXTRACTOR'] = old_extractor
+        if not nested_refreshed or nested_detail:
+            print("c_torture_batch --self-test: nested stale envelope was not refreshed",
+                  file=sys.stderr)
             return 1
 
         copied = root / "copied" / "rev"
