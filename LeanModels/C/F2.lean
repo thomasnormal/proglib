@@ -8731,6 +8731,74 @@ theorem pairedAllocateBounded_empty_address_both_success
   exact pairedAllocateBounded_both_success resolve store
     { bytes := [], state := state } (.address base) alignment limit hsource htarget
 
+theorem pairedAllocateBounded_empty_address_result_shapes
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment limit : Nat)
+    (source target : Store Tag State × Footprint)
+    (hsource : allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .ok source)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId (.address base)) alignment limit =
+        .ok target) :
+    source.1 =
+        { allocations := store.allocations ++
+            [(store.nextId,
+              { live := true, address := some base,
+                bytes := [], state := state })]
+          nextId := store.nextId + 1 } ∧
+      source.2 = footprint .metadata (Region.mk store.nextId 0 0) ∧
+      target.1 =
+        { allocations := (renameStore resolve store).allocations ++
+            [((renameStore resolve store).nextId,
+              { live := true, address := some (resolve store.nextId),
+                bytes := [], state := state })]
+          nextId := (renameStore resolve store).nextId + 1 } ∧
+      target.2 = footprint .metadata
+        (Region.mk (renameStore resolve store).nextId 0 0) := by
+  have hsourceWithin : placementWithin base 0 limit = true := by
+    by_cases h : placementWithin base 0 limit = true
+    · exact h
+    · simp [allocateBounded, h] at hsource
+  have hsourceAligned : alignmentAllowed base alignment = true := by
+    by_cases h : alignmentAllowed base alignment = true
+    · exact h
+    · simp [allocateBounded, hsourceWithin, h] at hsource
+  have hsourceAllowed : placementAllowed store base 0 = true := by
+    by_cases h : placementAllowed store base 0 = true
+    · exact h
+    · simp [allocateBounded, hsourceWithin, hsourceAligned, h] at hsource
+  have hsourcePayload := allocateBounded_empty_address_result_payload
+    store state base alignment limit source hsourceWithin hsourceAligned hsourceAllowed hsource
+  have hsourceFootprint := allocateBounded_empty_address_result_footprint
+    store state base alignment limit source hsourceWithin hsourceAligned hsourceAllowed hsource
+  have htarget' : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (.address (resolve store.nextId)) alignment limit = .ok target := by
+    simpa [renamedPlacement] using htarget
+  have htargetWithin : placementWithin (resolve store.nextId) 0 limit = true := by
+    by_cases h : placementWithin (resolve store.nextId) 0 limit = true
+    · exact h
+    · simp [allocateBounded, renameAllocationRequest, h] at htarget'
+  have htargetAligned : alignmentAllowed (resolve store.nextId) alignment = true := by
+    by_cases h : alignmentAllowed (resolve store.nextId) alignment = true
+    · exact h
+    · simp [allocateBounded, renameAllocationRequest, htargetWithin, h] at htarget'
+  have htargetAllowed : placementAllowed (renameStore resolve store)
+      (resolve store.nextId) 0 = true := by
+    by_cases h : placementAllowed (renameStore resolve store)
+        (resolve store.nextId) 0 = true
+    · exact h
+    · simp [allocateBounded, renameAllocationRequest, htargetWithin, htargetAligned, h] at htarget'
+  have htargetPayload := allocateBounded_empty_address_result_payload
+    (renameStore resolve store) state (resolve store.nextId) alignment limit target
+    htargetWithin htargetAligned htargetAllowed htarget'
+  have htargetFootprint := allocateBounded_empty_address_result_footprint
+    (renameStore resolve store) state (resolve store.nextId) alignment limit target
+    htargetWithin htargetAligned htargetAllowed htarget'
+  exact ⟨hsourcePayload, hsourceFootprint,
+    htargetPayload, htargetFootprint⟩
+
 theorem pairedAllocateBounded_matching_fault
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
