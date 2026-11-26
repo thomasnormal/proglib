@@ -29,9 +29,9 @@ Two kinds of row, and the difference matters:
 No simulator was run for any row.  No oracle (simulator) result is claimed
 here; differential rows through the simulator gate are separate work.
 
-Row R18 records a KNOWN GAP, not intended behaviour: an x observer inside a
-write-target index is not refused yet (the value check sees a known index).
-The row changes when the observer walk covers write-target indices.
+Row R18 records the named refusal for an x observer inside a write-target
+index. The target-index walk runs before the value check, so the leaf
+evaluator never collapses the observer.
 -/
 
 open LeanModels.Sv LeanModels.Sv.Kernel
@@ -195,11 +195,21 @@ theorem R14 : seen (runC (mk st0 [cur [.ifStmt (.binary .ceq (.ident "a") (.iden
 #guard seen (runC (mk st0 [cur [.blockingAssignL (.bitSel "a" (.ident "b")) (.int 1)]]) [0]) =
   .refused "11.5.1: unknown write index is outside per-read x semantics"
 
-/- R18 (evaluated). KNOWN GAP: an x observer inside a write-target index is
-NOT refused; the step answers. -/
+/- R18 (evaluated). An x observer inside a write-target index is refused before
+the leaf evaluator. -/
 #guard seen (runC (mk st01 [cur [.blockingAssignL
   (.bitSel "a" (.binary .ceq (.ident "b") (.ident "b"))) (.int 1)]]) [0]) =
-  .next false 0 0 (view .l0 .l0 .l0 .l1)
+  .refused "12.4: case equality '===' is outside per-read x semantics"
+
+/- R24 and R25 (evaluated). Binary casez/casex observers are refused by name. -/
+#guard seen (runC (mk st0 [cur [.ifStmt
+    (.binary (.m0 .casez) (.ident "a") (.ident "b"))
+    (.nbaAssign "b" (.int 1)) none]]) [0]) =
+  .refused "12.5.4: casez is outside per-read x semantics"
+#guard seen (runC (mk st0 [cur [.ifStmt
+    (.binary (.m0 .casex) (.ident "a") (.ident "b"))
+    (.nbaAssign "b" (.int 1)) none]]) [0]) =
+  .refused "12.5.4: casex is outside per-read x semantics"
 
 /- R23 (evaluated). A nonblocking write of x to a clock: the commit refuses,
 x on a control. -/
