@@ -172,6 +172,20 @@ theorem encodeValue_rename (resolve : AllocId → Nat) (value : Value Tag) :
     simp only [List.map_cons, List.flatMap_cons, List.map_append]
     rw [headIh, tailIh]
 
+theorem encodeValue_contract (value : Value Tag) :
+    match value with
+    | .scalar bytes =>
+        encodeValue value = bytes.map (fun byte => .value byte none none)
+    | .pointer pointer =>
+        encodeValue value = encodePointer pointer ∧
+          (encodeValue value).length = 8
+    | .aggregate members =>
+        encodeValue value = members.flatMap encodeValue := by
+  cases value with
+  | scalar bytes => simp [encodeValue]
+  | pointer pointer => simp [encodeValue, encodePointer]
+  | aggregate members => simp [encodeValue]
+
 theorem renameValue_contract (resolve : AllocId → Nat) (value : Value Tag) :
     encodeValue (renameValue resolve value) =
         (encodeValue value).map (renameByte resolve) ∧
