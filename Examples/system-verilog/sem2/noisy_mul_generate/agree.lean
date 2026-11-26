@@ -4413,4 +4413,16 @@ theorem noisy_output_family_windows_pairwise (N : Nat) :
   simp [DrvWin.overlaps]
   omega
 
+theorem noisy_out_target_actual (N i : Int)
+    (hCanon : canonInt 32 true N = N)
+    (hi : 0 ≤ i) :
+    instLhs2 (((noisyEnv N).withDecls (noisyDeclsRaw N)).bindVal "i" i)
+      (noisyElems N) (.bitSel "p" (.genvarRef "i")) =
+      Except.ok (.slice "p" i.toNat 1, 1) := by
+  apply noisy_out_target_of_elem
+  · rfl
+  · exact hi
+  · rw [IEnv.bindVal_vals, IEnv.withDecls_vals]
+    rfl
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
