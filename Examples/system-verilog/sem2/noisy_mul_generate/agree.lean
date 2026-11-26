@@ -2681,6 +2681,90 @@ theorem noisy_decls (N : Int) :
     PType.width_packed_nil, PDim.width, evalInt, noisyEnv, noisyScope,
     noisyDeclsRaw, List.lookup, Gen2.except_ok_bind]
 
+set_option maxHeartbeats 10000000 in
+theorem noisy_dims_pp (N : Int) (hCanon : canonInt 32 true N = N) :
+    (noisyEnv N).dims.lookup "pp" = some [(N - 1, 0), (N - 1, 0)] := by
+  have hsum := @CombView.dimTableFast_summary (fun _ => N)
+      noisyMul.pdesign.decls _ (by rfl) (noisyScope N) (by
+        intro dt hdt n hn
+        simp [CombView.declsOf?, CombView.declOf?, CombView.dimOf?, CombView.affOf?] at hdt
+        rcases hdt with hdt | hdt | hdt | hdt | hdt | hdt | hdt | hdt <;>
+          subst dt <;>
+          simp_all [CombView.DeclT.affNames, CombView.Aff.names, CombView.Aff.var,
+            CombView.Aff.const, CombView.Aff.sub, CombView.Aff.scale, CombView.Aff.add,
+            CombView.Aff.neg, CombView.Aff.negTerms, CombView.Aff.scaleTerms,
+            CombView.Aff.scaleQs, CombView.Aff.scaleXs, CombView.Aff.xsNames,
+            CombView.Aff.negQs, CombView.Aff.negXs, CombView.XAt.names,
+            noisyScope, IEnv.intVal?, hCanon]) "pp"
+  simpa [noisyEnv, noisyScope, hCanon, CombView.DeclT.vals, CombView.Aff.eval,
+    CombView.Aff.evalTerms, CombView.Aff.evalQs, CombView.Aff.evalXs,
+    CombView.Aff.sub, CombView.Aff.add, CombView.Aff.neg, CombView.Aff.negTerms,
+    CombView.Aff.negQs, CombView.Aff.negXs, CombView.Aff.var, CombView.Aff.const,
+    List.map, List.append, Int.sub_eq_add_neg] using hsum
+
+set_option maxHeartbeats 10000000 in
+theorem noisy_dims_t (N : Int) (hCanon : canonInt 32 true N = N) :
+    (noisyEnv N).dims.lookup "t" = some [(N - 1, 0), (N - 1, 0)] := by
+  have hsum := @CombView.dimTableFast_summary (fun _ => N)
+      noisyMul.pdesign.decls _ (by rfl) (noisyScope N) (by
+        intro dt hdt n hn
+        simp [CombView.declsOf?, CombView.declOf?, CombView.dimOf?, CombView.affOf?] at hdt
+        rcases hdt with hdt | hdt | hdt | hdt | hdt | hdt | hdt | hdt <;>
+          subst dt <;>
+          simp_all [CombView.DeclT.affNames, CombView.Aff.names, CombView.Aff.var,
+            CombView.Aff.const, CombView.Aff.sub, CombView.Aff.scale, CombView.Aff.add,
+            CombView.Aff.neg, CombView.Aff.negTerms, CombView.Aff.scaleTerms,
+            CombView.Aff.scaleQs, CombView.Aff.scaleXs, CombView.Aff.xsNames,
+            CombView.Aff.negQs, CombView.Aff.negXs, CombView.XAt.names,
+            noisyScope, IEnv.intVal?, hCanon]) "t"
+  simpa [noisyEnv, noisyScope, hCanon, CombView.DeclT.vals, CombView.Aff.eval,
+    CombView.Aff.evalTerms, CombView.Aff.evalQs, CombView.Aff.evalXs,
+    CombView.Aff.sub, CombView.Aff.add, CombView.Aff.neg, CombView.Aff.negTerms,
+    CombView.Aff.negQs, CombView.Aff.negXs, CombView.Aff.var, CombView.Aff.const,
+    List.map, List.append, Int.sub_eq_add_neg] using hsum
+
+set_option maxHeartbeats 10000000 in
+theorem noisy_dims_s (N : Int) (hCanon : canonInt 32 true N = N) :
+    (noisyEnv N).dims.lookup "s" = some [(N - 1, 0), (N, 0)] := by
+  have hsum := @CombView.dimTableFast_summary (fun _ => N)
+      noisyMul.pdesign.decls _ (by rfl) (noisyScope N) (by
+        intro dt hdt n hn
+        simp [CombView.declsOf?, CombView.declOf?, CombView.dimOf?, CombView.affOf?] at hdt
+        rcases hdt with hdt | hdt | hdt | hdt | hdt | hdt | hdt | hdt <;>
+          subst dt <;>
+          simp_all [CombView.DeclT.affNames, CombView.Aff.names, CombView.Aff.var,
+            CombView.Aff.const, CombView.Aff.sub, CombView.Aff.scale, CombView.Aff.add,
+            CombView.Aff.neg, CombView.Aff.negTerms, CombView.Aff.scaleTerms,
+            CombView.Aff.scaleQs, CombView.Aff.scaleXs, CombView.Aff.xsNames,
+            CombView.Aff.negQs, CombView.Aff.negXs, CombView.XAt.names,
+            noisyScope, IEnv.intVal?, hCanon]) "s"
+  simpa [noisyEnv, noisyScope, hCanon, CombView.DeclT.vals, CombView.Aff.eval,
+    CombView.Aff.evalTerms, CombView.Aff.evalQs, CombView.Aff.evalXs,
+    CombView.Aff.sub, CombView.Aff.add, CombView.Aff.neg, CombView.Aff.negTerms,
+    CombView.Aff.negQs, CombView.Aff.negXs, CombView.Aff.var, CombView.Aff.const,
+    List.map, List.append, Int.sub_eq_add_neg] using hsum
+
+set_option maxHeartbeats 10000000 in
+theorem noisy_dims_c (N : Int) (hCanon : canonInt 32 true N = N) :
+    (noisyEnv N).dims.lookup "c" = some [(N - 1, 0), (N, 0)] := by
+  have hsum := @CombView.dimTableFast_summary (fun _ => N)
+      noisyMul.pdesign.decls _ (by rfl) (noisyScope N) (by
+        intro dt hdt n hn
+        simp [CombView.declsOf?, CombView.declOf?, CombView.dimOf?, CombView.affOf?] at hdt
+        rcases hdt with hdt | hdt | hdt | hdt | hdt | hdt | hdt | hdt <;>
+          subst dt <;>
+          simp_all [CombView.DeclT.affNames, CombView.Aff.names, CombView.Aff.var,
+            CombView.Aff.const, CombView.Aff.sub, CombView.Aff.scale, CombView.Aff.add,
+            CombView.Aff.neg, CombView.Aff.negTerms, CombView.Aff.scaleTerms,
+            CombView.Aff.scaleQs, CombView.Aff.scaleXs, CombView.Aff.xsNames,
+            CombView.Aff.negQs, CombView.Aff.negXs, CombView.XAt.names,
+            noisyScope, IEnv.intVal?, hCanon]) "c"
+  simpa [noisyEnv, noisyScope, hCanon, CombView.DeclT.vals, CombView.Aff.eval,
+    CombView.Aff.evalTerms, CombView.Aff.evalQs, CombView.Aff.evalXs,
+    CombView.Aff.sub, CombView.Aff.add, CombView.Aff.neg, CombView.Aff.negTerms,
+    CombView.Aff.negQs, CombView.Aff.negXs, CombView.Aff.var, CombView.Aff.const,
+    List.map, List.append, Int.sub_eq_add_neg] using hsum
+
 theorem noisy_elems (N : Int) :
     buildElems (noisyEnv N) noisyMul.pdesign.decls = .ok (noisyElems N) := by
   set_option maxHeartbeats 1000000 in
