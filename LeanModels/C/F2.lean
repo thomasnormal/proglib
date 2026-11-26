@@ -12158,6 +12158,21 @@ theorem pairedAllocateMetadata_contract
         | none => exact Or.inr ⟨source, rfl, rfl⟩
         | some target => simp [pairedAllocateMetadata, hs, ht] at h
 
+theorem pairedPointerEqual_contract
+    (resolve : AllocId → Nat) (left right : Pointer Tag)
+    (choice : EqualityChoice) :
+    pairedPointerEqual resolve left right choice = true ↔
+      choice = .unequal ∨
+        (choice = .equal ∧
+          decide (((renamePointer resolve left).address ==
+            (renamePointer resolve right).address) =
+            (left.address == right.address)) = true) := by
+  cases choice with
+  | unequal => simp [pairedPointerEqual, pointerEqual]
+  | equal =>
+      simp [pairedPointerEqual, pointerEqual]
+      exact decide_eq_true_iff
+
 theorem pairedLifetimeLookup_contract
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
     (pairedLifetimeLookup resolve store id = true ∧
