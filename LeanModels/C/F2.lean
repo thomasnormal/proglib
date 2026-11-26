@@ -802,6 +802,20 @@ theorem renameResult_comp {Tag State F : Type} (first second : AllocId → Nat)
       simp only [renameResult]
       rw [renameStore_comp, renameFootprint_comp]
 
+theorem renameResult_idempotent {Tag State F : Type}
+    (resolve : AllocId → Nat) (result : Result Tag State F (Byte Tag)) :
+    renameResult resolve (renameResult resolve result) = renameResult resolve result := by
+  cases result with
+  | ok value store footprint =>
+      simp only [renameResult]
+      rw [renameByte_idempotent, renameStore_idempotent, renameFootprint_comp]
+  | fault error store footprint =>
+      simp only [renameResult]
+      rw [renameStore_idempotent, renameFootprint_comp]
+  | refused reason store footprint =>
+      simp only [renameResult]
+      rw [renameStore_idempotent, renameFootprint_comp]
+
 theorem renameResult_kind_preserved {Tag State F : Type} (resolve : AllocId → Nat)
     (result : Result Tag State F (Byte Tag)) :
     match result, renameResult resolve result with
