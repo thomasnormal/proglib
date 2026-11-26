@@ -164,6 +164,18 @@ theorem encodeValue_rename (resolve : AllocId → Nat) (value : Value Tag) :
     simp only [List.map_cons, List.flatMap_cons, List.map_append]
     rw [headIh, tailIh]
 
+theorem renameValue_contract (resolve : AllocId → Nat) (value : Value Tag) :
+    encodeValue (renameValue resolve value) =
+        (encodeValue value).map (renameByte resolve) ∧
+      (match value, renameValue resolve value with
+      | .scalar _, .scalar _ => True
+      | .pointer _, .pointer _ => True
+      | .aggregate _, .aggregate _ => True
+      | _, _ => False) := by
+  constructor
+  · exact encodeValue_rename resolve value
+  · cases value <;> simp [renameValue]
+
 def copyEncoded (bytes : List (Byte Tag)) : List (Byte Tag) := bytes.map id
 
 def provenanceEqual [BEq Tag] : Option (Provenance Tag) →
