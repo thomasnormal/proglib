@@ -3553,6 +3553,215 @@ theorem noisy_maj_conn_driverWins_at
   · simpa using hq
 
 
+theorem noisy_xor_flatten_driverWins_at
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "t" = true)
+    (hd : env.dims.lookup "t" = some [((N : Int) - 1, 0), ((N : Int) - 1, 0)]) :
+    driverWins names
+      (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems pfx xorInst xorDesign).2 =
+      [("t", some (i * N + j, 1))] := by
+  have hconn := noisy_xor_conn_driverWins_at
+    (N := N) (i := i) (j := j) hN hi hj
+    env elems pfx names ha hb hf hy hp hd
+  unfold flattenInst
+  rw [driverWins_append, driverWins_append]
+  have hconn' : driverWins names
+      ((xorDesign.decls.toList.filter (fun dc => dc.isInput || dc.isOutput)).flatMap
+        (connProcs ((env.bindVal "i" i).bindVal "j" j) elems pfx xorInst.conns)) =
+      [("t", some (i * N + j, 1))] := by
+    simpa [xorDesign] using hconn
+  rw [hconn']
+  have ha' : ¬ (pfx ++ "a") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [ha] at ht
+    cases ht
+  have hb' : ¬ (pfx ++ "b") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hb] at ht
+    cases ht
+  have hf' : ¬ (pfx ++ "f") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hf] at ht
+    cases ht
+  have hy' : ¬ (pfx ++ "y") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hy] at ht
+    cases ht
+  simp [driverWins, xorDesign, xorInst, instBodyProc, Process2.drvWins,
+    Lhs2.drvWins, connProcs, PConn.port, List.find?, portInOk,
+    PExpr.portSafe, portOut, strayConn, Process2.rename, Lhs2.rename,
+    Expr2.rename, Process2.clock?, ha, hb, hf, hy, hp, ha', hb', hf', hy']
+
+theorem noisy_and_flatten_driverWins_at
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hc : names.contains (pfx ++ "c") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "pp" = true)
+    (hd : env.dims.lookup "pp" = some [((N : Int) - 1, 0), ((N : Int) - 1, 0)]) :
+    driverWins names
+      (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems pfx andInst andDesign).2 =
+      [("pp", some (i * N + j, 1))] := by
+  have hconn := noisy_and_conn_driverWins_at
+    (N := N) (i := i) (j := j) hN hi hj
+    env elems pfx names ha hb hc hf hy hp hd
+  unfold flattenInst
+  rw [driverWins_append, driverWins_append]
+  have hconn' : driverWins names
+      ((andDesign.decls.toList.filter (fun dc => dc.isInput || dc.isOutput)).flatMap
+        (connProcs ((env.bindVal "i" i).bindVal "j" j) elems pfx andInst.conns)) =
+      [("pp", some (i * N + j, 1))] := by
+    simpa [andDesign] using hconn
+  rw [hconn']
+  have ha' : ¬ (pfx ++ "a") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [ha] at ht
+    cases ht
+  have hb' : ¬ (pfx ++ "b") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hb] at ht
+    cases ht
+  have hc' : ¬ (pfx ++ "c") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hc] at ht
+    cases ht
+  have hf' : ¬ (pfx ++ "f") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hf] at ht
+    cases ht
+  have hy' : ¬ (pfx ++ "y") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hy] at ht
+    cases ht
+  simp [driverWins, andDesign, andInst, instBodyProc, Process2.drvWins,
+    Lhs2.drvWins, connProcs, PConn.port, List.find?, portInOk,
+    PExpr.portSafe, portOut, strayConn, Process2.rename, Lhs2.rename,
+    Expr2.rename, Process2.clock?, ha, hb, hc, hf, hy, hp, ha', hb', hc', hf', hy']
+
+theorem noisy_xorS_flatten_driverWins_at
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j ≤ N)
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "s" = true)
+    (hd : env.dims.lookup "s" = some [((N : Int) - 1, 0), ((N : Int), 0)]) :
+    driverWins names
+      (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems pfx xorSInst xorDesign).2 =
+      [("s", some (i * (N + 1) + j, 1))] := by
+  have hconn := noisy_xorS_conn_driverWins_at
+    (N := N) (i := i) (j := j) hN hi hj
+    env elems pfx names ha hb hf hy hp hd
+  unfold flattenInst
+  rw [driverWins_append, driverWins_append]
+  have hconn' : driverWins names
+      ((xorDesign.decls.toList.filter (fun dc => dc.isInput || dc.isOutput)).flatMap
+        (connProcs ((env.bindVal "i" i).bindVal "j" j) elems pfx xorSInst.conns)) =
+      [("s", some (i * (N + 1) + j, 1))] := by
+    simpa [xorDesign] using hconn
+  rw [hconn']
+  have ha' : ¬ (pfx ++ "a") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [ha] at ht
+    cases ht
+  have hb' : ¬ (pfx ++ "b") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hb] at ht
+    cases ht
+  have hf' : ¬ (pfx ++ "f") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hf] at ht
+    cases ht
+  have hy' : ¬ (pfx ++ "y") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hy] at ht
+    cases ht
+  simp [driverWins, xorDesign, xorSInst, instBodyProc, Process2.drvWins,
+    Lhs2.drvWins, connProcs, PConn.port, List.find?, portInOk,
+    PExpr.portSafe, portOut, strayConn, Process2.rename, Lhs2.rename,
+    Expr2.rename, Process2.clock?, ha, hb, hf, hy, hp, ha', hb', hf', hy']
+
+theorem noisy_maj_flatten_driverWins_at
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (env : IEnv) (elems : List (String × Nat)) (pfx : String)
+    (names : List String)
+    (ha : names.contains (pfx ++ "a") = false)
+    (hb : names.contains (pfx ++ "b") = false)
+    (hc : names.contains (pfx ++ "c") = false)
+    (hf : names.contains (pfx ++ "f") = false)
+    (hy : names.contains (pfx ++ "y") = false)
+    (hp : names.contains "c" = true)
+    (hd : env.dims.lookup "c" = some [((N : Int) - 1, 0), ((N : Int), 0)]) :
+    driverWins names
+      (flattenInst ((env.bindVal "i" i).bindVal "j" j) elems pfx majInst majDesign).2 =
+      [("c", some (i * (N + 1) + (j + 1), 1))] := by
+  have hconn := noisy_maj_conn_driverWins_at
+    (N := N) (i := i) (j := j) hN hi hj
+    env elems pfx names ha hb hc hf hy hp hd
+  unfold flattenInst
+  rw [driverWins_append, driverWins_append]
+  have hconn' : driverWins names
+      ((majDesign.decls.toList.filter (fun dc => dc.isInput || dc.isOutput)).flatMap
+        (connProcs ((env.bindVal "i" i).bindVal "j" j) elems pfx majInst.conns)) =
+      [("c", some (i * (N + 1) + (j + 1), 1))] := by
+    simpa [majDesign] using hconn
+  rw [hconn']
+  have ha' : ¬ (pfx ++ "a") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [ha] at ht
+    cases ht
+  have hb' : ¬ (pfx ++ "b") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hb] at ht
+    cases ht
+  have hc' : ¬ (pfx ++ "c") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hc] at ht
+    cases ht
+  have hf' : ¬ (pfx ++ "f") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hf] at ht
+    cases ht
+  have hy' : ¬ (pfx ++ "y") ∈ names := by
+    intro h
+    have ht := List.contains_iff.mpr h
+    rw [hy] at ht
+    cases ht
+  simp [driverWins, majDesign, majInst, instBodyProc, Process2.drvWins,
+    Lhs2.drvWins, connProcs, PConn.port, List.find?, portInOk,
+    PExpr.portSafe, portOut, strayConn, Process2.rename, Lhs2.rename,
+    Expr2.rename, Process2.clock?, ha, hb, hc, hf, hy, hp, ha', hb', hc', hf', hy']
+
+
 
 theorem noisy_pp_child_driverWins_flat
     (N : Nat)
@@ -3732,6 +3941,29 @@ theorem noisy_generated_family_driverWins_pairwise_lists
     List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
       (driverWins names (rows.flatMap (fun i => cols.flatMap (fun j => family i j)))) := by
   rw [noisy_generated_family_driverWins_flat_lists rows cols signal off family names hwin]
+  exact hdis
+
+theorem noisy_generated_family_driverWins_pairwise_cells
+    {α β : Type} (rows : List α) (cols : List β)
+    (family : α → β → List Process2) (names : List String)
+    (cell : α → β → List DrvWin)
+    (hwin : ∀ i ∈ rows, ∀ j ∈ cols,
+      driverWins names (family i j) = cell i j)
+    (hdis : List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (rows.flatMap (fun i => cols.flatMap (fun j => cell i j)))) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names (rows.flatMap (fun i => cols.flatMap (fun j => family i j)))) := by
+  have hflat : driverWins names
+      (rows.flatMap (fun i => cols.flatMap (fun j => family i j))) =
+      rows.flatMap (fun i => cols.flatMap (fun j => cell i j)) := by
+    rw [driverWins_flatMap]
+    apply CombView.flatMap_congr'
+    intro i hi
+    rw [driverWins_flatMap]
+    apply CombView.flatMap_congr'
+    intro j hj
+    exact hwin i hi j hj
+  rw [hflat]
   exact hdis
 
 theorem noisy_shifted_rect_family_windows_pairwise
@@ -3942,5 +4174,89 @@ theorem noisy_row_three_signal_windows_pairwise
         (i₂ := k.toNat) (j₂ := l.toNat + 1)
         hN (hiN i hi') (Nat.succ_le_of_lt (hjN j hj)) (hiN k hk')
           (Nat.succ_le_of_lt (hjN l hl)) (by omega) "c"
+
+theorem noisy_row_child_generated_driverWins_pairwise
+    (N : Nat) (hN : 1 ≤ N) (names : List String)
+    (family : Int → Int → List Process2)
+    (hwin : ∀ i ∈ intRange 1 ((N : Int) - 1).toNat,
+      ∀ j ∈ intRange 0 (N : Int).toNat,
+        driverWins names (family i j) =
+          [("t", some (i.toNat * N + j.toNat, 1)),
+           ("s", some (i.toNat * (N + 1) + j.toNat, 1)),
+           ("c", some (i.toNat * (N + 1) + (j.toNat + 1), 1))]) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names
+        ((intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+          (intRange 0 (N : Int).toNat).flatMap (fun j => family i j)))) := by
+  apply noisy_generated_family_driverWins_pairwise_cells
+    (rows := intRange 1 ((N : Int) - 1).toNat)
+    (cols := intRange 0 (N : Int).toNat)
+    (family := family) (names := names)
+    (cell := fun i j =>
+      [("t", some (i.toNat * N + j.toNat, 1)),
+       ("s", some (i.toNat * (N + 1) + j.toNat, 1)),
+       ("c", some (i.toNat * (N + 1) + (j.toNat + 1), 1))])
+  · exact hwin
+  · simpa using noisy_row_three_signal_windows_pairwise N hN
+
+def noisyRowTPrefix (i j : Int) : String :=
+  "g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_t."
+
+def noisyRowSPrefix (i j : Int) : String :=
+  "g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_s."
+
+def noisyRowCPrefix (i j : Int) : String :=
+  "g_row[" ++ toString i ++ "].g_bit[" ++ toString j ++ "].u_c."
+
+def noisyRowChildCellProcs
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) : List Process2 :=
+  (flattenInst (env.bindVal "i" i |>.bindVal "j" j) elems
+      (noisyRowTPrefix i j) xorInst xorDesign).2 ++
+    (flattenInst (env.bindVal "i" i |>.bindVal "j" j) elems
+      (noisyRowSPrefix i j) xorSInst xorDesign).2 ++
+    (flattenInst (env.bindVal "i" i |>.bindVal "j" j) elems
+      (noisyRowCPrefix i j) majInst majDesign).2
+
+theorem noisy_row_child_cell_driverWins
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (env : IEnv) (elems : List (String × Nat)) (names : List String)
+    (hT : names.contains (noisyRowTPrefix i j ++ "a") = false ∧
+      names.contains (noisyRowTPrefix i j ++ "b") = false ∧
+      names.contains (noisyRowTPrefix i j ++ "f") = false ∧
+      names.contains (noisyRowTPrefix i j ++ "y") = false)
+    (hS : names.contains (noisyRowSPrefix i j ++ "a") = false ∧
+      names.contains (noisyRowSPrefix i j ++ "b") = false ∧
+      names.contains (noisyRowSPrefix i j ++ "f") = false ∧
+      names.contains (noisyRowSPrefix i j ++ "y") = false)
+    (hC : names.contains (noisyRowCPrefix i j ++ "a") = false ∧
+      names.contains (noisyRowCPrefix i j ++ "b") = false ∧
+      names.contains (noisyRowCPrefix i j ++ "c") = false ∧
+      names.contains (noisyRowCPrefix i j ++ "f") = false ∧
+      names.contains (noisyRowCPrefix i j ++ "y") = false)
+    (ht : names.contains "t" = true)
+    (hs : names.contains "s" = true)
+    (hc : names.contains "c" = true)
+    (hdT : env.dims.lookup "t" = some [((N : Int) - 1, 0), ((N : Int) - 1, 0)])
+    (hdS : env.dims.lookup "s" = some [((N : Int) - 1, 0), ((N : Int), 0)])
+    (hdC : env.dims.lookup "c" = some [((N : Int) - 1, 0), ((N : Int), 0)]) :
+    driverWins names (noisyRowChildCellProcs env elems i j) =
+      [("t", some (i * N + j, 1)),
+       ("s", some (i * (N + 1) + j, 1)),
+       ("c", some (i * (N + 1) + (j + 1), 1))] := by
+  rcases hT with ⟨hTa, hTb, hTf, hTy⟩
+  rcases hS with ⟨hSa, hSb, hSf, hSy⟩
+  rcases hC with ⟨hCa, hCb, hCc, hCf, hCy⟩
+  have htw := noisy_xor_flatten_driverWins_at
+    (N := N) (i := i) (j := j) hN hi hj env elems
+    (noisyRowTPrefix i j) names hTa hTb hTf hTy ht hdT
+  have hsw := noisy_xorS_flatten_driverWins_at
+    (N := N) (i := i) (j := j) hN hi (Nat.le_of_lt hj) env elems
+    (noisyRowSPrefix i j) names hSa hSb hSf hSy hs hdS
+  have hcw := noisy_maj_flatten_driverWins_at
+    (N := N) (i := i) (j := j) hN hi hj env elems
+    (noisyRowCPrefix i j) names hCa hCb hCc hCf hCy hc hdC
+  unfold noisyRowChildCellProcs
+  rw [driverWins_append, driverWins_append, htw, hsw, hcw]
+  simp
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
