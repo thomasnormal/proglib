@@ -2764,4 +2764,28 @@ theorem noisy_instantiateH_of_generated_expansion
   · exact hexpand.1
   · exact hok
 
+def noisyStaticProcs (env : IEnv) (decls : List Decl)
+    (elems : List (String × Nat)) : List Process2 :=
+  noisyMul.pdesign.processes.map (instProcess2 (env.withDecls decls) elems)
+
+theorem noisy_instProcess2_assignL_procWrites (env : IEnv)
+    (elems : List (String × Nat)) (lhs : PLhs) (v : PExpr) :
+    Process2.procWrites (instProcess2 env elems (.assignL lhs v)) = [] := by
+  simp only [instProcess2]
+  split <;> rfl
+
+theorem noisy_static_procWrites (env : IEnv) (decls : List Decl)
+    (elems : List (String × Nat)) :
+    (noisyStaticProcs env decls elems).flatMap Process2.procWrites = [] := by
+  rw [List.flatMap_eq_nil_iff]
+  intro p hp
+  simp only [noisyStaticProcs, noisyMul.pdesign, List.mem_map] at hp
+  obtain ⟨q, hq, rfl⟩ := hp
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hq
+  rcases hq with rfl | rfl | rfl | rfl
+  · exact noisy_instProcess2_assignL_procWrites _ _ _ _
+  · exact noisy_instProcess2_assignL_procWrites _ _ _ _
+  · exact noisy_instProcess2_assignL_procWrites _ _ _ _
+  · exact noisy_instProcess2_assignL_procWrites _ _ _ _
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
