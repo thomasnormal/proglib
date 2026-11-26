@@ -4573,6 +4573,31 @@ theorem noisy_pairwise_append_driverWins
   rw [List.pairwise_append]
   exact ⟨hleft, hright, hcross⟩
 
+theorem noisy_driversOk_of_continuous_split
+    (names inputs : List String) (static generated : List Process2)
+    (hStaticWrites : static.flatMap Process2.procWrites = [])
+    (hGeneratedWrites : generated.flatMap Process2.procWrites = [])
+    (hStaticPair : List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names static))
+    (hGeneratedPair : List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names generated))
+    (hCross : ∀ a ∈ driverWins names static, ∀ b ∈ driverWins names generated,
+      a.overlaps b = false)
+    (hStaticInputs : ∀ w ∈ driverWins names static,
+      inputs.contains w.1 = false)
+    (hGeneratedInputs : ∀ w ∈ driverWins names generated,
+      inputs.contains w.1 = false) :
+    driversOk names inputs (static ++ generated) = true := by
+  apply driversOk_of_continuous
+  · simp [hStaticWrites, hGeneratedWrites]
+  · rw [driverWins_append]
+    exact noisy_pairwise_append_driverWins _ _ hStaticPair hGeneratedPair hCross
+  · intro w hw
+    rw [driverWins_append] at hw
+    rcases List.mem_append.mp hw with hw | hw
+    · exact hStaticInputs w hw
+    · exact hGeneratedInputs w hw
+
 theorem noisy_out_driverWins_at_of_target
     (env : IEnv) (elems : List (String × Nat)) (i : Int)
     (names : List String)
