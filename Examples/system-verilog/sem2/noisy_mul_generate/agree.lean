@@ -3271,4 +3271,9 @@ theorem noisy_row_major_rect_windows_disjoint
     simp [DrvWin.overlaps]
     omega
 
+theorem noisy_different_signal_windows_disjoint
+    {a b : String} {x y : Option (Nat × Nat)} (hne : a ≠ b) :
+    DrvWin.overlaps (a, x) (b, y) = false := by
+  simp [DrvWin.overlaps, hne]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
