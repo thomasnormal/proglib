@@ -12228,6 +12228,22 @@ theorem pairedOffsetPointer_contract [BEq Tag]
             cases sourceFault <;> cases targetFault <;>
               simp [pairedOffsetPointer, hs, ht] at h ⊢
 
+theorem pairedRecoverAddress_contract
+    (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag)) :
+    pairedRecoverAddress resolve address live = true ↔
+      ((∃ source target,
+          recoverAddress address live = .recovered source ∧
+          recoverAddress address (live.map (renameLiveRegion resolve)) =
+            .recovered target) ∨
+        (∃ source target,
+          recoverAddress address live = .empty source ∧
+          recoverAddress address (live.map (renameLiveRegion resolve)) =
+            .empty target)) := by
+  cases hs : recoverAddress address live <;>
+    cases ht : recoverAddress address (live.map (renameLiveRegion resolve)) <;>
+      simp [pairedRecoverAddress, hs, ht]
+
 theorem pairedLifetimeLookup_contract
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
     (pairedLifetimeLookup resolve store id = true ∧
