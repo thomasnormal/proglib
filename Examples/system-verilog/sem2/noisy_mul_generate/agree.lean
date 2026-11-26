@@ -1840,4 +1840,206 @@ theorem noisy_generated_source_realization
     noisy_generated_source_paths_segments env elems i j, rfl⟩
 
 
+
+def noisyPpPaths (N i : Int) : List (CombHier.GeneratedNode × List Int) :=
+  (intRange 0 N.toNat).map fun j =>
+    (.child { loops := ppSourceLoops, inst := andInst, child := andDef }, [i, j])
+
+def noisyRowChildPaths (N i : Int) : List (CombHier.GeneratedNode × List Int) :=
+  (intRange 0 N.toNat).flatMap fun j =>
+    [ (.child { loops := rowSourceLoops, inst := xorInst, child := xorDef }, [i, j]),
+      (.child { loops := rowSourceLoops, inst := xorSInst, child := xorDef }, [i, j]),
+      (.child { loops := rowSourceLoops, inst := majInst, child := majDef }, [i, j]) ]
+
+def noisyRowPaths (N i : Int) : List (CombHier.GeneratedNode × List Int) :=
+  (.process [rowSourceLoop] rowLeft, [i]) ::
+    noisyRowChildPaths N i ++ [(.process [rowSourceLoop] rowRight, [i])]
+
+def noisyOutPaths (N : Int) : List (CombHier.GeneratedNode × List Int) :=
+  (intRange 0 N.toNat).map fun i => (.process [outSourceLoop] outProc, [i])
+
+def noisyFullFamilyPaths (N : Int) : List (CombHier.GeneratedNode × List Int) :=
+  (intRange 0 N.toNat).flatMap (noisyPpPaths N) ++
+    (intRange 1 (N - 1).toNat).flatMap (noisyRowPaths N) ++ noisyOutPaths N
+
+def noisyFullFamilySegment
+    (env : IEnv) (elems : List (String × Nat)) :
+    CombHier.GeneratedNode × List Int → List Decl × List Process2
+  | (.child r, [i, j]) => noisyTopNodeSegment env elems i j (.child r)
+  | (.process _ p, [i]) => ([], [instProcess2 (env.bindVal "i" i) elems p])
+  | _ => ([], [])
+
+
+theorem noisyPpPath_segment_ok
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    ((.child { loops := ppSourceLoops, inst := andInst, child := andDef }, [i, j]) :
+      CombHier.GeneratedNode × List Int).1.segmentAtPath noisyTopNodeChild env [i, j] elems =
+      .ok (noisyFullFamilySegment env elems
+        (.child { loops := ppSourceLoops, inst := andInst, child := andDef }, [i, j])) := by
+  apply CombHier.GeneratedNode.segmentAtPath_of_bind
+  · rfl
+  · apply CombHier.GeneratedNode.segmentAt_child
+    · simp [noisyTopNodeChild, andInst]
+    · simpa [noisyFullFamilySegment, noisyTopNodeSegment,
+        noisyTopGeneratedPairSegment, noisyTopNodeChild] using
+        andInst_prefix env i j
+
+theorem noisyRowPath_segment_ok
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    ((.child { loops := rowSourceLoops, inst := xorInst, child := xorDef }, [i, j]) :
+      CombHier.GeneratedNode × List Int).1.segmentAtPath noisyTopNodeChild env [i, j] elems =
+      .ok (noisyFullFamilySegment env elems
+        (.child { loops := rowSourceLoops, inst := xorInst, child := xorDef }, [i, j])) := by
+  apply CombHier.GeneratedNode.segmentAtPath_of_bind
+  · rfl
+  · apply CombHier.GeneratedNode.segmentAt_child
+    · simp [rowSourceLoop, bitSourceLoop, noisyTopNodeChild, xorInst, andInst]
+    · simpa [rowSourceLoop, bitSourceLoop, noisyFullFamilySegment,
+        noisyTopNodeSegment, noisyTopGeneratedPairSegment] using
+        xorInst_prefix env i j
+
+theorem noisyRowPath_segment_ok_xorS
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    ((.child { loops := rowSourceLoops, inst := xorSInst, child := xorDef }, [i, j]) :
+      CombHier.GeneratedNode × List Int).1.segmentAtPath noisyTopNodeChild env [i, j] elems =
+      .ok (noisyFullFamilySegment env elems
+        (.child { loops := rowSourceLoops, inst := xorSInst, child := xorDef }, [i, j])) := by
+  apply CombHier.GeneratedNode.segmentAtPath_of_bind
+  · rfl
+  · apply CombHier.GeneratedNode.segmentAt_child
+    · simp [rowSourceLoop, bitSourceLoop, noisyTopNodeChild, xorSInst, andInst, xorInst]
+    · simpa [rowSourceLoop, bitSourceLoop, noisyFullFamilySegment,
+        noisyTopNodeSegment, noisyTopGeneratedPairSegment] using
+        xorS_prefix env i j
+
+theorem noisyRowPath_segment_ok_maj
+    (env : IEnv) (elems : List (String × Nat)) (i j : Int) :
+    ((.child { loops := rowSourceLoops, inst := majInst, child := majDef }, [i, j]) :
+      CombHier.GeneratedNode × List Int).1.segmentAtPath noisyTopNodeChild env [i, j] elems =
+      .ok (noisyFullFamilySegment env elems
+        (.child { loops := rowSourceLoops, inst := majInst, child := majDef }, [i, j])) := by
+  apply CombHier.GeneratedNode.segmentAtPath_of_bind
+  · rfl
+  · apply CombHier.GeneratedNode.segmentAt_child
+    · simp [rowSourceLoop, bitSourceLoop, noisyTopNodeChild, majInst, andInst, xorInst, xorSInst]
+    · simpa [rowSourceLoop, bitSourceLoop, noisyFullFamilySegment,
+        noisyTopNodeSegment, noisyTopGeneratedPairSegment] using
+        majInst_prefix env i j
+
+theorem noisyRowPath_segment_ok_left
+    (env : IEnv) (elems : List (String × Nat)) (i : Int) :
+    ((.process [rowSourceLoop] rowLeft, [i]) :
+      CombHier.GeneratedNode × List Int).1.segmentAtPath noisyTopNodeChild env [i] elems =
+      .ok (noisyFullFamilySegment env elems
+        (.process [rowSourceLoop] rowLeft, [i])) := by
+  simp [CombHier.GeneratedNode.segmentAtPath, CombHier.GeneratedNode.loops, CombHier.GeneratedLoop.bindPath, noisyFullFamilySegment, rowSourceLoop]
+  rfl
+
+theorem noisyRowPath_segment_ok_right
+    (env : IEnv) (elems : List (String × Nat)) (i : Int) :
+    ((.process [rowSourceLoop] rowRight, [i]) :
+      CombHier.GeneratedNode × List Int).1.segmentAtPath noisyTopNodeChild env [i] elems =
+      .ok (noisyFullFamilySegment env elems
+        (.process [rowSourceLoop] rowRight, [i])) := by
+  simp [CombHier.GeneratedNode.segmentAtPath, CombHier.GeneratedNode.loops, CombHier.GeneratedLoop.bindPath, noisyFullFamilySegment, rowSourceLoop]
+  rfl
+
+theorem noisyOutPath_segment_ok
+    (env : IEnv) (elems : List (String × Nat)) (i : Int) :
+    ((.process [outSourceLoop] outProc, [i]) :
+      CombHier.GeneratedNode × List Int).1.segmentAtPath noisyTopNodeChild env [i] elems =
+      .ok (noisyFullFamilySegment env elems
+        (.process [outSourceLoop] outProc, [i])) := by
+  simp [CombHier.GeneratedNode.segmentAtPath, CombHier.GeneratedNode.loops, CombHier.GeneratedLoop.bindPath, noisyFullFamilySegment, outSourceLoop]
+  rfl
+
+theorem mapM_flatMap_ok {α β γ : Type} {f : β → Except String γ}
+    {g : α → List β} {s : β → γ} {xs : List α}
+    (h : ∀ a, (g a).mapM f = .ok ((g a).map s)) :
+    (xs.flatMap g).mapM f = .ok ((xs.flatMap g).map s) := by
+  induction xs with
+  | nil => rfl
+  | cons a xs ih =>
+      rw [List.flatMap_cons]
+      rw [CombHier.mapM_append_ok_of_ok (h a) ih]
+      simp only [List.map_append]
+
+theorem noisyPpPaths_segments
+    (env : IEnv) (elems : List (String × Nat)) (N i : Int) :
+    (noisyPpPaths N i).mapM
+        (fun p => p.1.segmentAtPath noisyTopNodeChild env p.2 elems) =
+      .ok ((noisyPpPaths N i).map (noisyFullFamilySegment env elems)) := by
+  apply CombHier.generatedPaths_segmentAtPath_mapM_ok
+  intro p hp
+  simp [noisyPpPaths] at hp
+  obtain ⟨j, hj, rfl⟩ := hp
+  exact noisyPpPath_segment_ok env elems i j
+
+theorem noisyRowChildPaths_segments
+    (env : IEnv) (elems : List (String × Nat)) (N i : Int) :
+    (noisyRowChildPaths N i).mapM
+        (fun p => p.1.segmentAtPath noisyTopNodeChild env p.2 elems) =
+      .ok ((noisyRowChildPaths N i).map (noisyFullFamilySegment env elems)) := by
+  apply CombHier.generatedPaths_segmentAtPath_mapM_ok
+  intro p hp
+  simp [noisyRowChildPaths] at hp
+  rcases hp with ⟨j, hj, h⟩
+  rcases h with rfl | rfl | rfl
+  · exact noisyRowPath_segment_ok env elems i j
+  · exact noisyRowPath_segment_ok_xorS env elems i j
+  · exact noisyRowPath_segment_ok_maj env elems i j
+
+theorem noisyRowPaths_segments
+    (env : IEnv) (elems : List (String × Nat)) (N i : Int) :
+    (noisyRowPaths N i).mapM
+        (fun p => p.1.segmentAtPath noisyTopNodeChild env p.2 elems) =
+      .ok ((noisyRowPaths N i).map (noisyFullFamilySegment env elems)) := by
+  unfold noisyRowPaths
+  have hleft :
+      ([((.process [rowSourceLoop] rowLeft, [i]) :
+          CombHier.GeneratedNode × List Int)]).mapM
+          (fun p => p.1.segmentAtPath noisyTopNodeChild env p.2 elems) =
+        .ok ([((.process [rowSourceLoop] rowLeft, [i]) :
+          CombHier.GeneratedNode × List Int)].map (noisyFullFamilySegment env elems)) := by
+    rw [List.mapM_cons, List.mapM_nil, noisyRowPath_segment_ok_left]
+    rfl
+  have hright :
+      ([((.process [rowSourceLoop] rowRight, [i]) :
+          CombHier.GeneratedNode × List Int)]).mapM
+          (fun p => p.1.segmentAtPath noisyTopNodeChild env p.2 elems) =
+        .ok ([((.process [rowSourceLoop] rowRight, [i]) :
+          CombHier.GeneratedNode × List Int)].map (noisyFullFamilySegment env elems)) := by
+    rw [List.mapM_cons, List.mapM_nil, noisyRowPath_segment_ok_right]
+    rfl
+  have htail := CombHier.mapM_append_ok_of_ok
+    (noisyRowChildPaths_segments env elems N i) hright
+  simpa [List.map_append] using
+    (CombHier.mapM_append_ok_of_ok hleft htail)
+
+theorem noisyOutPaths_segments
+    (env : IEnv) (elems : List (String × Nat)) (N : Int) :
+    (noisyOutPaths N).mapM
+        (fun p => p.1.segmentAtPath noisyTopNodeChild env p.2 elems) =
+      .ok ((noisyOutPaths N).map (noisyFullFamilySegment env elems)) := by
+  apply CombHier.generatedPaths_segmentAtPath_mapM_ok
+  intro p hp
+  simp [noisyOutPaths] at hp
+  obtain ⟨i, hi, rfl⟩ := hp
+  exact noisyOutPath_segment_ok env elems i
+
+theorem noisyFullFamily_segments
+    (env : IEnv) (elems : List (String × Nat)) (N : Int) :
+    (noisyFullFamilyPaths N).mapM
+        (fun p => p.1.segmentAtPath noisyTopNodeChild env p.2 elems) =
+      .ok ((noisyFullFamilyPaths N).map (noisyFullFamilySegment env elems)) := by
+  unfold noisyFullFamilyPaths
+  have hpp := mapM_flatMap_ok (xs := intRange 0 N.toNat)
+      (fun i => noisyPpPaths_segments env elems N i)
+  have hrow := mapM_flatMap_ok (xs := intRange 1 (N - 1).toNat)
+      (fun i => noisyRowPaths_segments env elems N i)
+  have hout := noisyOutPaths_segments env elems N
+  simpa only [List.map_append, List.append_assoc] using
+    (CombHier.mapM_append_ok_of_ok hpp
+      (CombHier.mapM_append_ok_of_ok hrow hout))
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
