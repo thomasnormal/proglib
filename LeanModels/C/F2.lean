@@ -466,6 +466,17 @@ theorem renameHookRequest_choice
     (renameHookRequest resolve request).choice = request.choice := by
   rfl
 
+theorem renameHookRequest_contract
+    (resolve : AllocId → Nat) (request : HookRequest) :
+    (renameHookRequest resolve request).choice = request.choice ∧
+      (renameHookRequest resolve request).footprint =
+        renameFootprint resolve request.footprint ∧
+      (renameHookRequest resolve request).footprint.accesses.length =
+        request.footprint.accesses.length := by
+  exact ⟨renameHookRequest_choice resolve request,
+    renameHookRequest_footprint resolve request,
+    renameHookRequest_access_count resolve request⟩
+
 structure Fault (F : Type) where
   value : F
 deriving Repr
