@@ -9655,6 +9655,25 @@ theorem pairedAllocateMetadata_sound
       | none => simp [pairedAllocateMetadata, hs, ht] at h
       | some target => exact Or.inl ⟨source, target, rfl, rfl⟩
 
+theorem pairedAllocateMetadata_empty_sound {Tag TypeId : Type}
+    (resolve : AllocId → Nat) (id : AllocId)
+    (state : State) (placement : Placement)
+    (h : pairedAllocateMetadata (Tag := Tag) (TypeId := TypeId) resolve id
+      { bytes := [], state := state } [] placement = true) :
+    (∃ source target,
+      allocateMetadata (Tag := Tag) (TypeId := TypeId)
+          { bytes := [], state := state } [] placement = some source ∧
+      allocateMetadata (Tag := Tag) (TypeId := TypeId)
+          (renameAllocationRequest resolve { bytes := [], state := state }) []
+        (renamedPlacement resolve id placement) = some target) ∨
+    (allocateMetadata (Tag := Tag) (TypeId := TypeId)
+          { bytes := [], state := state } [] placement = none ∧
+      allocateMetadata (Tag := Tag) (TypeId := TypeId)
+          (renameAllocationRequest resolve { bytes := [], state := state }) []
+        (renamedPlacement resolve id placement) = none) := by
+  exact pairedAllocateMetadata_sound resolve id
+    { bytes := [], state := state } [] placement h
+
 theorem pairedAllocateMetadata_refusal_source
     (resolve : AllocId → Nat) (id : AllocId)
     (request : AllocationRequest Tag State)
