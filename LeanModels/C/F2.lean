@@ -666,6 +666,15 @@ theorem storesCorrespond_refl (resolve : AllocId → Nat) (store : Store Tag Sta
     storesCorrespond resolve (renameStore resolve store) (renameStore resolve store) := by
   simp [storesCorrespond, renameStore_idempotent]
 
+theorem storesCorrespond_contract
+    (resolve : AllocId → Nat) (source : Store Tag State) :
+    storesCorrespond resolve source (renameStore resolve source) ∧
+      storesCorrespond resolve (renameStore resolve source)
+        (renameStore resolve (renameStore resolve source)) := by
+  constructor
+  · rfl
+  · simp [storesCorrespond, renameStore_idempotent]
+
 def renameRegion (_resolve : AllocId → Nat) (region : Region) : Region := region
 
 def renameFootprint (resolve : AllocId → Nat) (footprint : Footprint) : Footprint :=
