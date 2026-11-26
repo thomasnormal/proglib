@@ -896,14 +896,6 @@ def coreMemScopedName (scope : CoreMemScope) (name : String) : String :=
     coreMemScopedName ({ } : CoreMemScope) name = name := by
   rfl
 
-def coreMemSubstName (scope : CoreMemScope) (name : String) : String :=
-  scope.genvars.foldl (fun acc (g, v) =>
-    acc.replace ("[$genvar:" ++ g ++ "]") ("[" ++ toString v ++ "]")) name
-
-@[simp] theorem coreMemSubstName_empty (name : String) :
-    coreMemSubstName ({ } : CoreMemScope) name = name := by
-  rfl
-
 def coreMemDirectGeneratedDeclNames : List GenItem → List String
   | [] => []
   | .decl d :: rest => d.name :: coreMemDirectGeneratedDeclNames rest
@@ -954,7 +946,9 @@ def coreMemSubstExpr (scope : CoreMemScope) : PExpr → PExpr
               if s then .signedResize w (.lit (.ofInt w v))
               else .lit (.ofInt w v)
           | none => .paramRef n none
-  | .ident n => .ident (coreMemScopedName scope n)
+  | .ident n => match scope.genLabels with
+      | [] => .ident n
+      | _ => .ident (coreMemGeneratedName scope n)
   | .unary op a => .unary op (coreMemSubstExpr scope a)
   | .binary op a b => .binary op (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .ternary c a b => .ternary (coreMemSubstExpr scope c) (coreMemSubstExpr scope a)
@@ -970,23 +964,43 @@ def coreMemSubstExpr (scope : CoreMemScope) : PExpr → PExpr
   | .repl a b => .repl (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .reduce op a => .reduce op (coreMemSubstExpr scope a)
   | .cast s a => .cast s (coreMemSubstExpr scope a)
-  | .arrayElem n xs => .arrayElem (coreMemScopedName scope n) (xs.map (coreMemSubstExpr scope))
-  | .arrayPart n xs mode a b => .arrayPart (coreMemScopedName scope n) (xs.map (coreMemSubstExpr scope)) mode
-      (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+  | .arrayElem n xs => match scope.genLabels with
+      | [] => .arrayElem n (xs.map (coreMemSubstExpr scope))
+      | _ => .arrayElem (coreMemGeneratedName scope n) (xs.map (coreMemSubstExpr scope))
+  | .arrayPart n xs mode a b => match scope.genLabels with
+      | [] => .arrayPart n (xs.map (coreMemSubstExpr scope)) mode
+          (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+      | _ => .arrayPart (coreMemGeneratedName scope n) (xs.map (coreMemSubstExpr scope)) mode
+          (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .functionCall n xs => .functionCall n (xs.map (coreMemSubstExpr scope))
   | e => e
 
 def coreMemSubstLhs (scope : CoreMemScope) : PLhs → PLhs
-  | .ident n => .ident (coreMemScopedName scope n)
-  | .bitSel n i => .bitSel (coreMemScopedName scope n) (coreMemSubstExpr scope i)
-  | .partSel n a b => .partSel (coreMemScopedName scope n) (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+  | .ident n => match scope.genLabels with
+      | [] => .ident n
+      | _ => .ident (coreMemGeneratedName scope n)
+  | .bitSel n i => match scope.genLabels with
+      | [] => .bitSel n (coreMemSubstExpr scope i)
+      | _ => .bitSel (coreMemGeneratedName scope n) (coreMemSubstExpr scope i)
+  | .partSel n a b => match scope.genLabels with
+      | [] => .partSel n (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+      | _ => .partSel (coreMemGeneratedName scope n) (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
   | .concat xs => .concat (xs.map (coreMemSubstLhs scope))
-  | .arrayElem n xs => .arrayElem (coreMemScopedName scope n) (xs.map (coreMemSubstExpr scope))
-  | .arrayBitSel n xs bit => .arrayBitSel (coreMemScopedName scope n) (xs.map (coreMemSubstExpr scope)) (coreMemSubstExpr scope bit)
-  | .arrayPart n xs mode a b => .arrayPart (coreMemScopedName scope n) (xs.map (coreMemSubstExpr scope)) mode
-      (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
-  | .aggregateMember n path => .aggregateMember (coreMemScopedName scope n)
-      (path.map fun (field, ix) => (field, ix.map (coreMemSubstExpr scope)))
+  | .arrayElem n xs => match scope.genLabels with
+      | [] => .arrayElem n (xs.map (coreMemSubstExpr scope))
+      | _ => .arrayElem (coreMemGeneratedName scope n) (xs.map (coreMemSubstExpr scope))
+  | .arrayBitSel n xs bit => match scope.genLabels with
+      | [] => .arrayBitSel n (xs.map (coreMemSubstExpr scope)) (coreMemSubstExpr scope bit)
+      | _ => .arrayBitSel (coreMemGeneratedName scope n) (xs.map (coreMemSubstExpr scope)) (coreMemSubstExpr scope bit)
+  | .arrayPart n xs mode a b => match scope.genLabels with
+      | [] => .arrayPart n (xs.map (coreMemSubstExpr scope)) mode
+          (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+      | _ => .arrayPart (coreMemGeneratedName scope n) (xs.map (coreMemSubstExpr scope)) mode
+          (coreMemSubstExpr scope a) (coreMemSubstExpr scope b)
+  | .aggregateMember n path => match scope.genLabels with
+      | [] => .aggregateMember n (path.map fun (field, ix) => (field, ix.map (coreMemSubstExpr scope)))
+      | _ => .aggregateMember (coreMemGeneratedName scope n)
+          (path.map fun (field, ix) => (field, ix.map (coreMemSubstExpr scope)))
 
 def coreMemSubstDim (scope : CoreMemScope) (d : PDim) : PDim :=
   { msb := coreMemSubstExpr scope d.msb, lsb := coreMemSubstExpr scope d.lsb }
@@ -997,7 +1011,11 @@ def coreMemSubstType (scope : CoreMemScope) : PType → PType
   | .unrecoverable resolved => .unrecoverable resolved
 
 def coreMemSubstDecl (scope : CoreMemScope) (d : PDecl) : PDecl :=
-  { name := coreMemScopedName scope d.name, type := coreMemSubstType scope d.type,
+  let name := match scope.genLabels with
+    | [] => d.name
+    | _ => coreMemGeneratedName { scope with generatedDecls := d.name :: scope.generatedDecls } d.name
+  { name := name, type := coreMemSubstType scope d.type,
+>>>>>>> a4f225350 (sv: reduce names in unscoped source nodes)
     unpackedDims := d.unpackedDims.map (coreMemSubstDim scope),
     isSigned := d.isSigned, twoState := d.twoState, isInput := d.isInput,
     isOutput := d.isOutput, isNet := d.isNet,
@@ -1006,8 +1024,12 @@ def coreMemSubstDecl (scope : CoreMemScope) (d : PDecl) : PDecl :=
 
 mutual
 def coreMemSubstStmt (scope : CoreMemScope) : PStmt → PStmt
-  | .blockingAssign n e => .blockingAssign (coreMemScopedName scope n) (coreMemSubstExpr scope e)
-  | .nbaAssign n e => .nbaAssign (coreMemScopedName scope n) (coreMemSubstExpr scope e)
+  | .blockingAssign n e => match scope.genLabels with
+      | [] => .blockingAssign n (coreMemSubstExpr scope e)
+      | _ => .blockingAssign (coreMemGeneratedName scope n) (coreMemSubstExpr scope e)
+  | .nbaAssign n e => match scope.genLabels with
+      | [] => .nbaAssign n (coreMemSubstExpr scope e)
+      | _ => .nbaAssign (coreMemGeneratedName scope n) (coreMemSubstExpr scope e)
   | .ifStmt c t e => .ifStmt (coreMemSubstExpr scope c) (coreMemSubstStmt scope t)
       (coreMemSubstStmtOpt scope e)
   | .block xs => .block (coreMemSubstStmtList scope xs)
