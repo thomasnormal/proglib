@@ -6108,6 +6108,13 @@ theorem pointerEqual_unequal_choice (left right : Pointer Tag) :
     pointerEqual left right .unequal = false := by
   rfl
 
+theorem pointerEqual_contract (left right : Pointer Tag) (choice : EqualityChoice) :
+    match choice with
+    | .equal =>
+        pointerEqual left right choice = (left.address == right.address)
+    | .unequal => pointerEqual left right choice = false := by
+  cases choice <;> rfl
+
 def pairedPointerEqual (resolve : AllocId → Nat)
     (left right : Pointer Tag) (choice : EqualityChoice) : Bool :=
   pointerEqual (renamePointer resolve left) (renamePointer resolve right) choice =
