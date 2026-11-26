@@ -3099,6 +3099,14 @@ theorem renameAllocationRequest_contract
   exact ⟨renameAllocationRequest_bytes resolve request,
     renameAllocationRequest_length resolve request, rfl⟩
 
+theorem renameAllocationRequest_idempotent
+    (resolve : AllocId → Nat) (request : AllocationRequest Tag State) :
+    renameAllocationRequest resolve (renameAllocationRequest resolve request) =
+      renameAllocationRequest resolve request := by
+  cases request with
+  | mk bytes state =>
+      simp [renameAllocationRequest, List.map_map, renameByte_idempotent]
+
 inductive Placement where
   | address (base : Nat)
   | unaddressable
