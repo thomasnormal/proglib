@@ -328,7 +328,10 @@ def check_file(path, problems, warnings=None):
     # PASSAGE is asserted for LIVE rows only. A retired row's guard is verified
     # to EXIST above; whether it holds is the tier's signal, not this checker's
     # business -- see clause 3.
-    for name in sorted(named & ran):
+    # A retired guard is a watch for a regression, so its expected false state
+    # is reported by the probe and does not fail this schema check. Live guards
+    # must still hold. The retired row remains gated by the probe's own alarm.
+    for name in sorted((named - retired_named) & ran):
         if not results[name].get("held"):
             _fail(problems, path, "GUARD FAILED %s: %s"
                   % (name, results[name].get("detail", "")))
@@ -553,12 +556,26 @@ def main(argv=None):
                     help="print the rows and exit (no probes run)")
     ap.add_argument("--self-test", action="store_true",
                     help="exercise this checker's OWN defect detection")
+    ap.add_argument("--tier", action="append", dest="tiers",
+                    help="check only the named register tier (repeatable)")
     opts = ap.parse_args(argv)
 
     if opts.self_test:
         return self_test()
 
     files = sorted(glob.glob(PATTERN))
+    if opts.tiers:
+        wanted = {tier.lower() for tier in opts.tiers}
+        selected = []
+        for path in files:
+            try:
+                with open(path, encoding="utf-8") as fh:
+                    tier = str(json.load(fh).get("tier", "")).lower()
+            except (OSError, ValueError):
+                tier = ""
+            if tier in wanted:
+                selected.append(path)
+        files = selected
     problems = []
 
     # NON-VACUITY. This check is currently UNREACHABLE -- the sv and python

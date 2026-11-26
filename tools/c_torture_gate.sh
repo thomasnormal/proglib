@@ -48,7 +48,7 @@ python3 "$ROOT/harness/c_extract_determinism.py" || exit 1
 python3 "$ROOT/harness/c_survey.py" --self-test || exit 1
 python3 "$ROOT/harness/c_admitted_subset.py" --self-test || exit 1
 python3 "$ROOT/harness/f2_replay_check.py" --self-test || exit 1
-python3 "$ROOT/harness/divergence_register.py" || exit 1
+python3 "$ROOT/harness/divergence_register.py" --tier C || exit 1
 python3 "$ROOT/harness/c_divergence_probe.py" || exit 1
 # --offline: verifies every cached file's sha256 against docs/c-torture-pin.json
 # and writes the manifest.  No network in a gate, ever.
