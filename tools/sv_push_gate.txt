@@ -341,3 +341,4 @@ Examples/system-verilog/sem2/blocking_local_always_ff_step11/relation.lean
 Examples/system-verilog/sem2/package_wall_suite/suite.lean
 
 Examples/system-verilog/sem2/generate_walls_w2_scope/agree.lean
+Examples/system-verilog/sem2/resolved_net_canonical_e/agree.lean
