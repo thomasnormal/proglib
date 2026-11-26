@@ -902,6 +902,25 @@ theorem renameResult_composition_contract {Tag State F : Type}
 def lookup (store : Store Tag State) (id : AllocId) : Option (Allocation Tag State) :=
   store.allocations.find? (fun entry => entry.1 == id) |>.map (·.2)
 
+theorem lookup_result_contract
+    (store : Store Tag State) (id : AllocId)
+    (result : Option (Allocation Tag State))
+    (hresult : lookup store id = result) :
+    (∃ entry,
+      store.allocations.find? (fun candidate => candidate.1 == id) = some entry ∧
+      result = some entry.2) ∨
+    (store.allocations.find? (fun candidate => candidate.1 == id) = none ∧
+      result = none) := by
+  cases hfind : store.allocations.find? (fun candidate => candidate.1 == id) with
+  | some entry =>
+      left
+      refine ⟨entry, rfl, ?_⟩
+      simpa [lookup, hfind] using hresult.symm
+  | none =>
+      right
+      refine ⟨rfl, ?_⟩
+      simpa [lookup, hfind] using hresult.symm
+
 theorem lookup_renameStore (resolve : AllocId → Nat)
     (store : Store Tag State) (id : AllocId) :
     lookup (renameStore resolve store) id =
