@@ -6472,6 +6472,11 @@ theorem placementAllowed_empty
 
 def zeroSizePlacementAllowed (store : Store Tag State) (base : Nat) : Bool := true
 
+theorem zeroSizePlacementAllowed_contract
+    (store : Store Tag State) (base : Nat) :
+    zeroSizePlacementAllowed store base = true := by
+  rfl
+
 theorem zeroSizePlacementAllowed_shape
     (store : Store Tag State) (base : Nat) :
     zeroSizePlacementAllowed store base = true := by
