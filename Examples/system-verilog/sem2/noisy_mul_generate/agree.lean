@@ -2042,4 +2042,18 @@ theorem noisyFullFamily_segments
     (CombHier.mapM_append_ok_of_ok hpp
       (CombHier.mapM_append_ok_of_ok hrow hout))
 
+theorem noisyRowPaths_flatten
+    (env : IEnv) (elems : List (String × Nat)) (N i : Int) :
+    CombHier.GeneratedNode.flattenSegments
+        ((noisyRowPaths N i).map (noisyFullFamilySegment env elems)) =
+      ((noisyRowChildPaths N i).flatMap
+          (fun p => (noisyFullFamilySegment env elems p).1),
+       [instProcess2 (env.bindVal "i" i) elems rowLeft] ++
+         (noisyRowChildPaths N i).flatMap
+           (fun p => (noisyFullFamilySegment env elems p).2) ++
+         [instProcess2 (env.bindVal "i" i) elems rowRight]) := by
+  rw [CombHier.GeneratedNode.flattenSegments_map]
+  simp [noisyRowPaths, noisyFullFamilySegment, List.flatMap_cons,
+    List.flatMap_append, List.flatMap_map, List.append_assoc]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
