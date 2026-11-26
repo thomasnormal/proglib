@@ -8425,6 +8425,23 @@ theorem renameBoundedResult_empty_unaddressable_result_counts
   simp [renameBoundedResult, hcounts, renameStore,
     renameStore_nextId, renameStore_allocation_count]
 
+theorem renameBoundedResult_empty_address_result_footprint
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment limit : Nat)
+    (result : Store Tag State × Footprint)
+    (hwithin : placementWithin base 0 limit = true)
+    (haligned : alignmentAllowed base alignment = true)
+    (hallowed : placementAllowed store base 0 = true)
+    (hresult : allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .ok result) :
+    match renameBoundedResult resolve (.ok result) with
+    | .ok (_, fp) =>
+        fp = footprint .metadata (Region.mk store.nextId 0 0)
+    | .error _ => False := by
+  have hfootprint := allocateBounded_empty_address_result_footprint
+    store state base alignment limit result hwithin haligned hallowed hresult
+  simp [renameBoundedResult, hfootprint]
+
 def pairedAllocateBounded (resolve : AllocId → Nat)
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (alignment limit : Nat) : Bool :=
