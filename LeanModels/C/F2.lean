@@ -156,6 +156,12 @@ theorem encodePointer_contract (pointer : Pointer Tag) :
         (List.range 8).map (fun _ => pointer.provenance) := by
   simp [encodePointer, byteFragment, byteProvenance]
 
+theorem encodePointer_first_fragment (pointer : Pointer Tag) :
+    (encodePointer pointer).head? =
+      some (.value (pointerByte pointer.address 0) pointer.provenance (some 0)) := by
+  have hrange : List.range 8 = [0, 1, 2, 3, 4, 5, 6, 7] := by decide
+  simp [encodePointer, hrange]
+
 def encodeValue : Value Tag → List (Byte Tag)
   | .scalar bytes => bytes.map (fun byte => .value byte none none)
   | .pointer pointer => encodePointer pointer
