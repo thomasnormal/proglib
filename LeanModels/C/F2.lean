@@ -3383,6 +3383,12 @@ theorem pairedMemmoveSnapshot_byte_correspondence [BEq Tag]
   rcases hresult with ⟨hResult, rfl⟩
   simp
 
+theorem pairedMemmoveSnapshot_failure_contract [BEq Tag]
+    (resolve : AllocId → Nat) (source destination : Region)
+    (bytes : List (Byte Tag)) :
+    pairedMemmoveSnapshot resolve source destination bytes = none ↔ False := by
+  simp [pairedMemmoveSnapshot, memmoveSnapshot]
+
 def pairedMemmoveFootprint (source destination : Region) (width : Nat) : Bool :=
   (copyFootprint source destination width).accesses.length == 2
 
