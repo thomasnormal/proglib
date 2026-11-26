@@ -11270,6 +11270,93 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedReallocMetadata_contract
+    (resolve : AllocId → Nat)
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : (ReallocOutcome Tag State TypeId × Footprint) ×
+      (ReallocOutcome Tag State TypeId × Footprint))
+    (hold : old.wellFormed 0)
+    (hbytes : bytesWf 0 request.bytes)
+    (hlocations : locations.length = request.bytes.length)
+    (hresult : pairedReallocMetadata resolve old request locations placement = some result) :
+    (∃ sourceResult targetResult,
+      result = (sourceResult, targetResult)) ∧
+      ((match result.1.1 with
+        | .failed previous => previous.allocation.bytes.length = old.allocation.bytes.length
+        | .replaced fresh =>
+            fresh.allocation.bytes.length = request.bytes.length ∧
+              fresh.locations.length = locations.length) ∧
+       (match result.2.1 with
+        | .failed previous => previous.allocation.bytes.length =
+            (renameMetadata resolve 0 old).allocation.bytes.length
+        | .replaced fresh =>
+            fresh.allocation.bytes.length =
+                (renameAllocationRequest resolve request).bytes.length ∧
+              fresh.locations.length = locations.length)) ∧
+      ((match result.1.1 with
+        | .failed previous => previous = old
+        | .replaced fresh =>
+            fresh.allocation.bytes = request.bytes ∧
+              fresh.allocation.state = request.state ∧ fresh.locations = locations) ∧
+       (match result.2.1 with
+        | .failed previous => previous = renameMetadata resolve 0 old
+        | .replaced fresh =>
+            fresh.allocation.bytes = (renameAllocationRequest resolve request).bytes ∧
+              fresh.allocation.state = request.state ∧ fresh.locations = locations)) ∧
+      ((match result.1.1 with
+        | .failed previous => previous.allocation.live = old.allocation.live
+        | .replaced fresh => fresh.allocation.live = true) ∧
+       (match result.2.1 with
+        | .failed previous => previous.allocation.live =
+            (renameMetadata resolve 0 old).allocation.live
+        | .replaced fresh => fresh.allocation.live = true)) ∧
+      ((match result.1.1 with
+        | .failed previous => previous.locations = old.locations
+        | .replaced fresh => fresh.locations = locations) ∧
+       (match result.2.1 with
+        | .failed previous => previous.locations = (renameMetadata resolve 0 old).locations
+        | .replaced fresh => fresh.locations = locations)) ∧
+      (result.1.2 = footprint .metadata
+          (Region.mk 0 0 (match result.1.1 with
+            | .failed previous => previous.allocation.bytes.length
+            | .replaced fresh => fresh.allocation.bytes.length)) ∧
+        result.2.2 = footprint .metadata
+          (Region.mk 0 0 (match result.2.1 with
+            | .failed previous => previous.allocation.bytes.length
+            | .replaced fresh => fresh.allocation.bytes.length))) ∧
+      ((match result.1.1 with
+        | .failed previous => previous.wellFormed 0
+        | .replaced fresh => fresh.wellFormed 0) ∧
+       (match result.2.1 with
+        | .failed previous => previous.wellFormed 0
+        | .replaced fresh => fresh.wellFormed 0)) := by
+  constructor
+  · exact pairedReallocMetadata_decompose resolve old request locations placement result hresult
+  constructor
+  · simpa only using
+      (pairedReallocMetadata_preserves_lengths resolve old request locations placement
+        result hresult)
+  constructor
+  · simpa only using
+      (pairedReallocMetadata_preserves_payload resolve old request locations placement
+        result hresult)
+  constructor
+  · simpa only using
+      (pairedReallocMetadata_preserves_liveness resolve old request locations placement
+        result hresult)
+  constructor
+  · simpa only using
+      (pairedReallocMetadata_preserves_locations resolve old request locations placement
+        result hresult)
+  constructor
+  · simpa only using
+      (pairedReallocMetadata_footprints resolve old request locations placement result hresult)
+  · simpa only using
+      (pairedReallocMetadata_preserves_wellFormed resolve old request locations placement
+        result hold hbytes hlocations hresult)
+
 theorem pairedUnionLoadMetadataByte_contract
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
