@@ -10688,6 +10688,25 @@ theorem allocateMetadata_result_contract
         constructor <;> intro h <;> exact h.symm
       · simp [allocateMetadata, hlength]
 
+theorem allocateMetadata_failure_contract
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement) :
+    allocateMetadata request locations placement = none ↔
+      match placement with
+      | .fail => True
+      | .address _ | .unaddressable =>
+          locations.length ≠ request.bytes.length := by
+  cases placement with
+  | fail => simp [allocateMetadata]
+  | address base =>
+      by_cases hlength : locations.length = request.bytes.length
+      · simp [allocateMetadata, hlength]
+      · simp [allocateMetadata, hlength]
+  | unaddressable =>
+      by_cases hlength : locations.length = request.bytes.length
+      · simp [allocateMetadata, hlength]
+      · simp [allocateMetadata, hlength]
+
 theorem allocateMetadata_preserves_lengths
     (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement)
