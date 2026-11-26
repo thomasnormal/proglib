@@ -6488,6 +6488,14 @@ theorem pairedZeroSizePlacementAllowed
       zeroSizePlacementAllowed (renameStore resolve store) (resolve store.nextId) := by
   rfl
 
+theorem pairedZeroSizePlacementAllowed_contract
+    (resolve : AllocId → Nat) (store : Store Tag State) (base : Nat) :
+    zeroSizePlacementAllowed store base =
+      zeroSizePlacementAllowed (renameStore resolve store) (resolve store.nextId) ∧
+      zeroSizePlacementAllowed store base = true := by
+  exact ⟨pairedZeroSizePlacementAllowed resolve store base,
+    zeroSizePlacementAllowed_contract store base⟩
+
 def pairedPlacementAllowed (resolve : AllocId → Nat)
     (store : Store Tag State) (base size : Nat) : Bool :=
   placementAllowed store base size ==
