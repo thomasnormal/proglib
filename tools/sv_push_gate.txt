@@ -347,3 +347,4 @@ Examples/system-verilog/sem2/initial_storage_e/agree.lean
 Examples/system-verilog/sem2/wake_base_wrong_answer_e/agree.lean
 Examples/system-verilog/sem2/multi_clock_domain_e/agree.lean
 Examples/system-verilog/sem2/internal_clock_e/agree.lean
+Examples/system-verilog/sem2/negedge_e/agree.lean
