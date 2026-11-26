@@ -547,6 +547,22 @@ theorem setLocation_contract
       exact Bool.eq_false_iff.mpr hguard
     simp [setLocation, hguard']
 
+theorem setLocation_failure_contract
+    (locations : LocationStore TypeId) (allocation offset : Nat)
+    (state : LocationState TypeId) :
+    setLocation locations allocation offset state = none ↔
+      locations.any (fun entry => entry.1 == allocation && entry.2.1 == offset) = false := by
+  by_cases hguard : locations.any
+      (fun entry => entry.1 == allocation && entry.2.1 == offset) = true
+  · have hguard' : locations.any
+        (fun entry => entry.1 == allocation && entry.2.1 == offset) ≠ false := by
+      simpa using hguard
+    simp [setLocation, hguard, hguard']
+  · have hfalse : locations.any
+        (fun entry => entry.1 == allocation && entry.2.1 == offset) = false := by
+      exact Bool.eq_false_iff.mpr hguard
+    simp [setLocation, hfalse]
+
 structure Store (Tag State : Type) where
   allocations : List (AllocId × Allocation Tag State)
   nextId : AllocId
