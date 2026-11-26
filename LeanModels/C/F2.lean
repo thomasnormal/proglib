@@ -206,6 +206,11 @@ theorem copyEncoded_preserves (bytes : List (Byte Tag)) :
     copyEncoded bytes = bytes := by
   simp [copyEncoded]
 
+theorem copyEncoded_contract (bytes : List (Byte Tag)) :
+    copyEncoded bytes = bytes ∧
+      (copyEncoded bytes).length = bytes.length := by
+  exact ⟨copyEncoded_preserves bytes, by simp [copyEncoded]⟩
+
 theorem decodePointer_wrong_length_refusal [BEq Tag]
     (bytes : List (Byte Tag)) (hlength : bytes.length ≠ 8) :
     decodePointer bytes = none := by
