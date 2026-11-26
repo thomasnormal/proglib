@@ -8925,6 +8925,17 @@ theorem placementOf_renameStore
   | some allocation =>
       simp [placementOf, hlookup, renameAllocationValue]
 
+theorem placementOf_renameStore_contract
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
+    placementOf (renameStore resolve store) id =
+        (placementOf store id).map (fun _ => resolve id) ∧
+      (placementOf store id = none → placementOf (renameStore resolve store) id = none) := by
+  constructor
+  · exact placementOf_renameStore resolve store id
+  · intro hplacement
+    rw [placementOf_renameStore, hplacement]
+    rfl
+
 def placementAgreementOfStores (left right : Store Tag State)
     (exposed : AllocId → Bool) : PlacementAgreement :=
   { left := placementOf left
