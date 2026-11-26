@@ -544,6 +544,24 @@ theorem renameResult_footprint_access_count {Tag State F : Type}
     | _, _ => True := by
   cases result <;> simp [renameResult, renameFootprint]
 
+theorem renameResult_contract {Tag State F : Type}
+    (resolve : AllocId → Nat) (result : Result Tag State F (Byte Tag)) :
+    match result, renameResult resolve result with
+    | .ok value store footprint, .ok renamedValue renamedStore renamedFootprint =>
+        renamedValue = renameByte resolve value ∧
+          renamedStore = renameStore resolve store ∧
+          renamedFootprint = renameFootprint resolve footprint
+    | .fault error store footprint, .fault renamedError renamedStore renamedFootprint =>
+        renamedError = error ∧
+          renamedStore = renameStore resolve store ∧
+          renamedFootprint = renameFootprint resolve footprint
+    | .refused reason store footprint, .refused renamedReason renamedStore renamedFootprint =>
+        renamedReason = reason ∧
+          renamedStore = renameStore resolve store ∧
+          renamedFootprint = renameFootprint resolve footprint
+    | _, _ => False := by
+  cases result <;> simp [renameResult]
+
 def lookup (store : Store Tag State) (id : AllocId) : Option (Allocation Tag State) :=
   store.allocations.find? (fun entry => entry.1 == id) |>.map (·.2)
 
