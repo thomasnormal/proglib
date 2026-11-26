@@ -10654,6 +10654,40 @@ def allocateMetadata (request : AllocationRequest Tag State)
                 locations,
               footprint .metadata (Region.mk 0 0 request.bytes.length))
 
+theorem allocateMetadata_result_contract
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : AllocationMetadata Tag State TypeId × Footprint) :
+    allocateMetadata request locations placement = some result ↔
+      match placement with
+      | .fail => False
+      | .address base =>
+          locations.length = request.bytes.length ∧
+          result =
+            (AllocationMetadata.mk
+              (Allocation.mk true (some base) request.bytes request.state)
+              locations,
+             footprint .metadata (Region.mk 0 0 request.bytes.length))
+      | .unaddressable =>
+          locations.length = request.bytes.length ∧
+          result =
+            (AllocationMetadata.mk
+              (Allocation.mk true none request.bytes request.state)
+              locations,
+             footprint .metadata (Region.mk 0 0 request.bytes.length)) := by
+  cases placement with
+  | fail => simp [allocateMetadata]
+  | address base =>
+      by_cases hlength : locations.length = request.bytes.length
+      · simp [allocateMetadata, hlength]
+        constructor <;> intro h <;> exact h.symm
+      · simp [allocateMetadata, hlength]
+  | unaddressable =>
+      by_cases hlength : locations.length = request.bytes.length
+      · simp [allocateMetadata, hlength]
+        constructor <;> intro h <;> exact h.symm
+      · simp [allocateMetadata, hlength]
+
 theorem allocateMetadata_preserves_lengths
     (request : AllocationRequest Tag State)
     (locations : List (LocationState TypeId)) (placement : Placement)
