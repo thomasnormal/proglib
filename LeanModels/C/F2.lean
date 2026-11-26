@@ -868,6 +868,23 @@ theorem renameResult_contract {Tag State F : Type}
     | _, _ => False := by
   cases result <;> simp [renameResult]
 
+theorem renameResult_shape_contract {Tag State F : Type}
+    (resolve : AllocId → Nat) (result : Result Tag State F (Byte Tag)) :
+    match result with
+    | .ok value store footprint =>
+        renameResult resolve result =
+          .ok (renameByte resolve value) (renameStore resolve store)
+            (renameFootprint resolve footprint)
+    | .fault error store footprint =>
+        renameResult resolve result =
+          .fault error (renameStore resolve store)
+            (renameFootprint resolve footprint)
+    | .refused reason store footprint =>
+        renameResult resolve result =
+          .refused reason (renameStore resolve store)
+            (renameFootprint resolve footprint) := by
+  cases result <;> rfl
+
 theorem renameResult_composition_contract {Tag State F : Type}
     (first second : AllocId → Nat) (result : Result Tag State F (Byte Tag)) :
     renameResult second (renameResult first result) = renameResult second result := by
