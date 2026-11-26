@@ -8848,6 +8848,23 @@ theorem pairedAllocateBounded_preserves_footprints
   | fail =>
       simp [allocateBounded] at hsource
 
+theorem pairedAllocateBounded_empty_address_result_footprints
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (state : State) (base alignment limit : Nat)
+    (source target : Store Tag State × Footprint)
+    (hsource : allocateBounded store { bytes := [], state := state }
+      (.address base) alignment limit = .ok source)
+    (htarget : allocateBounded (renameStore resolve store)
+      (renameAllocationRequest resolve { bytes := [], state := state })
+      (renamedPlacement resolve store.nextId (.address base)) alignment limit =
+        .ok target) :
+    source.2 = footprint .metadata (Region.mk store.nextId 0 0) ∧
+      target.2 = footprint .metadata
+        (Region.mk (renameStore resolve store).nextId 0 0) := by
+  exact pairedAllocateBounded_preserves_footprints resolve store
+    { bytes := [], state := state } (.address base) alignment limit source target
+    hsource htarget
+
 theorem pairedAllocateBounded_empty_unaddressable_result_footprints
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (alignment limit : Nat)
