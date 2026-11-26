@@ -477,6 +477,12 @@ theorem renameRegion_identity (resolve : AllocId → Nat) (region : Region) :
     renameRegion resolve region = region := by
   rfl
 
+theorem renameRegion_contract (first second : AllocId → Nat) (region : Region) :
+    renameRegion first region = region ∧
+      renameRegion second (renameRegion first region) = renameRegion second region := by
+  exact ⟨renameRegion_identity first region,
+    by simpa [renameRegion_identity] using renameRegion_identity second region⟩
+
 theorem renameFootprint_identity (resolve : AllocId → Nat) (footprint : Footprint) :
     renameFootprint resolve footprint = footprint := by
   simp [renameFootprint, renameRegion]
