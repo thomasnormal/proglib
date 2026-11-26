@@ -11308,6 +11308,21 @@ theorem pairedCopySnapshot_contract [BEq Tag]
   · exact pairedCopySnapshot_decompose resolve source destination result hresult
   · exact pairedCopySnapshot_byte_correspondence resolve source destination result hresult
 
+theorem pairedMemmoveSnapshot_contract [BEq Tag]
+    (resolve : AllocId → Nat) (source destination : Region)
+    (bytes : List (Byte Tag))
+    (result : List (Byte Tag) × List (Byte Tag))
+    (hresult : pairedMemmoveSnapshot resolve source destination bytes = some result) :
+    (∃ sourceResult targetResult, result = (sourceResult, targetResult)) ∧
+      result.2 = result.1.map (renameByte resolve) ∧
+      (result.1.length = bytes.length ∧ result.2.length = bytes.length) := by
+  constructor
+  · exact pairedMemmoveSnapshot_decompose resolve source destination bytes result hresult
+  constructor
+  · exact pairedMemmoveSnapshot_byte_correspondence resolve source destination bytes result
+      hresult
+  · exact pairedMemmoveSnapshot_preserves_lengths resolve source destination bytes result hresult
+
 theorem pairedFreePointer_contract
     (resolve : AllocId → Nat)
     (metadata : Option (AllocationMetadata Tag State TypeId)) :
