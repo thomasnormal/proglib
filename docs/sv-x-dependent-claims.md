@@ -1,9 +1,10 @@
 # X-dependent SystemVerilog claims
 
-This is a static audit of proved statements that call the executor's
-`condTrue` on a value that may be x or z. It is preparation for the
-relation migration. It does not change the current executor meaning and it
-claims no new simulator result.
+This is the restatement of eight proved-claim families that call the
+executor's `condTrue` on a value that may be x or z. Each source theorem now
+exposes a `DecisionKnown` premise at the decision it reasons about. The
+executor keeps its existing meaning, and this page claims no new simulator
+result.
 
 The owner ruling is per-read resolution. At an x or z decision, both 0 and 1
 are admissible when the IEEE rule leaves the decision open. A theorem that
@@ -35,9 +36,9 @@ lemmas, but the surrounding theorem may already provide known-value
 hypotheses. Inspect the statement before migration.
 
 * `Examples/system-verilog/seq_cycle/plain_proof.lean`
-  (`pa_step`, `pa_reset`, `pa_load`, `pa_keep)).
+  (`pa_step`, `pa_reset`, `pa_load`, `pa_keep`).
 * `Examples/system-verilog/seq_cycle/gen_proof.lean`
-  (`gb_reg_step`, `gb_wire_row), and the conditional helper lemmas).
+  (`gb_reg_step`, `gb_wire_row`, and the conditional helper lemmas).
 * `Examples/system-verilog/seq_cycle/valid_proof.lean`
   (`valid_step` and its reset/ready branches).
 * `Examples/system-verilog/seq_cycle/unsigned_proof.lean`
@@ -45,13 +46,13 @@ hypotheses. Inspect the statement before migration.
 * `Examples/system-verilog/first_theorem/dff_arst_proof.lean`
   (the asynchronous-reset next-state equation).
 * `LeanModels/Sv/CombFragE.lean`, `Seq2Cycle.lean`, `Loop2Frag.lean`,
-  `Loop2E.lean`, `MemCycle.lean), and `Sva.lean). These are executor or
+  `Loop2E.lean`, `MemCycle.lean`, and `Sva.lean`. These are executor or
   compatibility definitions whose users need a known-decision bridge.
 
-The known-value proof route remains valid. `DecisionKnown) and
-`decisionKnown_of_allKnown` in `Kernel/XResolve.lean) are the intended
-interim witnesses. No proof may use `condTrue)'s x-optimistic branch without
-one of those witnesses once the relation migration begins.
+The known-value proof route remains valid. `DecisionKnown` and
+`decisionKnown_of_allKnown` in `Kernel/XResolve.lean` are the intended
+interim witnesses. No universal proof may use `condTrue`'s x-optimistic branch
+without one of those witnesses.
 
 ## Audit boundary
 
