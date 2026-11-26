@@ -4660,9 +4660,16 @@ def CoreMemDesign.stepOnePassTrace (E : CoreMemDesign) (st : CoreMemState) (entr
   let caused := E.processes.toList.any (CoreMemProc.firesIn after nextView)
   .ok (next, caused)
 
-def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) : Res CoreMemState := do
+/-! The top-level step exposes its event-slot fuel explicitly.  The legacy
+entry point below keeps the canonical 4096 bound used by existing callers.
+The fuel parameter is consumed by the outer event-slot closure. -/
+def CoreMemDesign.stepFuel (E : CoreMemDesign) (limit : Nat)
+    (st : CoreMemState) (entry : SvState) : Res CoreMemState := do
   let (pre, before, after) ← E.prepareStep st entry
-  E.edgeQuiesce 4096 pre before after pre
+  E.edgeQuiesce limit pre before after pre
+
+def CoreMemDesign.step (E : CoreMemDesign) (st : CoreMemState) (entry : SvState) : Res CoreMemState :=
+  E.stepFuel 4096 st entry
 
 theorem CoreMemDesign.step_eq_stepOnePass_of_no_followup
     {E : CoreMemDesign} {st : CoreMemState} {entry : SvState} {next : CoreMemState}
@@ -4682,7 +4689,7 @@ theorem CoreMemDesign.step_eq_stepOnePass_of_no_followup
           obtain ⟨next', caused⟩ := pair
           simp only [he, Res.ok_bind, Res.ok.injEq, Prod.mk.injEq] at h
           obtain ⟨rfl, hcause⟩ := h
-          simp only [CoreMemDesign.step, hp, Res.ok_bind]
+          simp only [CoreMemDesign.step, CoreMemDesign.stepFuel, hp, Res.ok_bind]
           exact CoreMemDesign.edgeQuiesce_eq_edgePass_of_no_followup he hcause
 
 #print axioms CoreMemDesign.step_eq_stepOnePass_of_no_followup
