@@ -11270,6 +11270,44 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedStoreByte_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint))
+    (hsourceStore : WellFormed store)
+    (hsourceBytes : bytesWf id (listSet
+      ((lookup store id).map (fun allocation => allocation.bytes) |>.getD [])
+      offset byte))
+    (htargetBytes : bytesWf id (listSet
+      ((lookup (renameStore resolve store) id).map
+        (fun allocation => allocation.bytes) |>.getD [])
+      offset (renameByte resolve byte)))
+    (hresult : pairedStoreByte resolve store id offset byte = some result) :
+    (∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      storeByte store id offset byte = some sourceResult ∧
+      storeByte (renameStore resolve store) id offset (renameByte resolve byte) =
+        some targetResult) ∧
+      (result.1.2 = footprint .write
+          { allocation := id, offset := offset, width := 1 } ∧
+        result.2.2 = footprint .write
+          { allocation := id, offset := offset, width := 1 }) ∧
+      (result.1.1.nextId = store.nextId ∧
+        result.2.1.nextId = (renameStore resolve store).nextId ∧
+        result.1.1.allocations.length = store.allocations.length ∧
+        result.2.1.allocations.length =
+          (renameStore resolve store).allocations.length) ∧
+      (WellFormed result.1.1 ∧ WellFormed result.2.1) := by
+  constructor
+  · exact pairedStoreByte_sound resolve store id offset byte result hresult
+  constructor
+  · exact pairedStoreByte_footprints resolve store id offset byte result hresult
+  constructor
+  · exact pairedStoreByte_preserves_store_counts resolve store id offset byte result hresult
+  · exact pairedStoreByte_preserves_wellFormed resolve store id offset byte result
+      hsourceStore hsourceBytes htargetBytes hresult
+
 theorem pairedEndLifetime_contract
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
     (result : (Store Tag State × Footprint) ×
