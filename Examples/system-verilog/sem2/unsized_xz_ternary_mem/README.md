@@ -12,3 +12,13 @@ or lowered before a context width is available.
 The route remains loud when the marker has no destination width or an invalid
 payload.  Other conversion kinds and unsupported memory expressions retain
 their existing boundaries.
+
+The differential checker exercises `a=0`, `a=1`, `a=x`, and `a=z` at `N=8`.
+Icarus Verilog 13.0 and Xcelium 24.03-s004 are expected to match canonical E
+on the unsized ternary result and the uninitialized memory read.
+
+Run the focused receipt with:
+
+```text
+python3 Examples/system-verilog/sem2/unsized_xz_ternary_mem/check.py
+```
