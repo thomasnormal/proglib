@@ -1297,6 +1297,16 @@ theorem renameMetadata_contract (resolve : AllocId → Nat) (id : AllocId)
     renameMetadata_preserves_byte_length resolve id metadata,
     renameMetadata_comp resolve resolve id metadata⟩
 
+theorem renameMetadata_composition_contract
+    (first second : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    renameMetadata second id (renameMetadata first id metadata) =
+        renameMetadata second id metadata ∧
+      (renameMetadata second id (renameMetadata first id metadata)).allocation.bytes.length =
+        metadata.allocation.bytes.length := by
+  exact ⟨renameMetadata_comp first second id metadata,
+    by simp [renameMetadata]⟩
+
 def pairedTypedStoreMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
