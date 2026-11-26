@@ -1889,7 +1889,9 @@ folds, verifier finding `vp_lp2`: `localparam logic [N-1:0] L1 = 8'd200 +
 8'd100` is `44` at `N = 8` and `300` at `N = 16`; the envelope's
 default-point `Resize(4, …)` used to make it `12` at every point). -/
 def evalAssign (env : IEnv) (w : Nat) (e : PExpr) : Except String Int :=
-  match e with
+  if !env.stale.isEmpty && e.mentionsAny env.stale then
+    .error "Constant:override-type — constant expression depends on an overridden untyped parameter"
+  else match e with
   | .fill b =>
       -- An unbased unsized 0/1 literal takes the assignment target's
       -- context width (§5.7.1).  It has no self-determined `ctype`, so this
@@ -4444,6 +4446,8 @@ private def uPlus1 : PExpr :=
   .binary (.m0 .add) (.paramRef "U" none) (.resize 32 (.lit (.ofNat 1 1)))
 private def u15 : IEnv := { nvals := [("U", (15, 4, false))] }
 private def int32Ty : PType := .packed [⟨.int 31, .int 0⟩] (some 32)
+#guard (evalAssign { nvals := [("P", (-2, 32, true))], stale := ["P"] } 8
+    (.binary (.m0 .add) (.paramRef "P" none) (.int 1)) matches .error _)
 #guard (match bindLocal u15 { name := "L", expr := uPlus1, type? := some int32Ty } with
   | .ok e => e.vals.lookup "L" == some 16
   | .error _ => false)

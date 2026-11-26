@@ -298,6 +298,7 @@ Examples/system-verilog/first_theorem/dff_arst_proof.lean
 Examples/system-verilog/first_theorem/half_add_proof.lean
 
 Examples/system-verilog/sem2/untyped_localparam_exact/agree.lean
+Examples/system-verilog/sem2/untyped_width_repair/agree.lean
 
 Examples/system-verilog/sem2/always_comb_reactivation_e/agree.lean
 Examples/system-verilog/sem2/time_zero_comb_quiesce_e/agree.lean
