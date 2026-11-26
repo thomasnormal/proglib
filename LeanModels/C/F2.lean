@@ -2447,6 +2447,10 @@ theorem pairedCopyFootprint_sound (source destination : Region) (width : Nat) :
     pairedCopyFootprint source destination width = true := by
   simp [pairedCopyFootprint, copyFootprint]
 
+theorem pairedCopyFootprint_contract (source destination : Region) (width : Nat) :
+    pairedCopyFootprint source destination width = true := by
+  exact pairedCopyFootprint_sound source destination width
+
 def regionsOverlap (source destination : Region) (width : Nat) : Bool :=
   source.allocation == destination.allocation &&
     source.offset < destination.offset + width &&
