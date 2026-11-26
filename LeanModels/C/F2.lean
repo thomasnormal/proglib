@@ -2533,6 +2533,13 @@ theorem mergeFootprint_access_count
     (mergeFootprint allocation offset width).accesses.length = 1 := by
   rfl
 
+theorem mergeFootprint_contract
+    (allocation offset width : Nat) :
+    mergeFootprint allocation offset width =
+        footprint .write { allocation := allocation, offset := offset, width := width } ∧
+      (mergeFootprint allocation offset width).accesses.length = 1 := by
+  exact ⟨rfl, mergeFootprint_access_count allocation offset width⟩
+
 theorem mergeByte_preserves_pointer_fragment
     (pointer : Provenance Tag) (fragment : Nat)
     (bits mask value choice : UInt8) :
