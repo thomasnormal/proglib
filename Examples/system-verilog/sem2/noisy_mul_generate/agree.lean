@@ -4404,4 +4404,13 @@ theorem noisy_out_target_of_elem
   simp [instLhs2, instLhsLeaf2, instIndex2, helem, evalInt,
     IEnv.bindVal, List.lookup, hi, hinonneg]
 
+theorem noisy_output_family_windows_pairwise (N : Nat) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      ((List.range N).map (fun i => ("p", some (i, 1)))) := by
+  rw [List.pairwise_map]
+  apply List.pairwise_lt_range.imp
+  intro i k hik
+  simp [DrvWin.overlaps]
+  omega
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
