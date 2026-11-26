@@ -11270,6 +11270,26 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedLoadByte_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint))
+    (hresult : pairedLoadByte resolve store id offset = some result) :
+    (∃ sourceResult targetResult,
+      result = (sourceResult, targetResult) ∧
+      loadByte store id offset = some sourceResult ∧
+      loadByte (renameStore resolve store) id offset = some targetResult) ∧
+      result.2.1 = renameByte resolve result.1.1 ∧
+      (result.1.2 = footprint .read
+          { allocation := id, offset := offset, width := 1 } ∧
+        result.2.2 = footprint .read
+          { allocation := id, offset := offset, width := 1 }) := by
+  constructor
+  · exact pairedLoadByte_sound resolve store id offset result hresult
+  constructor
+  · exact pairedLoadByte_value_correspondence resolve store id offset result hresult
+  · exact pairedLoadByte_footprints resolve store id offset result hresult
+
 theorem pairedStoreByte_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) (byte : Byte Tag)
