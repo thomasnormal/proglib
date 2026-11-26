@@ -12118,6 +12118,46 @@ theorem pairedEndLifetime_contract
   · exact pairedEndLifetime_preserves_wellFormed resolve store id result
       hstore hsourceBytes htargetBytes hresult
 
+theorem pairedAllocateMetadata_contract
+    (resolve : AllocId → Nat) (id : AllocId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement) :
+    (pairedAllocateMetadata resolve id request locations placement = true ∧
+      ((∃ source target,
+          allocateMetadata request locations placement = some source ∧
+          allocateMetadata (renameAllocationRequest resolve request) locations
+            (renamedPlacement resolve id placement) = some target) ∨
+        (allocateMetadata request locations placement = none ∧
+          allocateMetadata (renameAllocationRequest resolve request) locations
+            (renamedPlacement resolve id placement) = none))) ∨
+    (pairedAllocateMetadata resolve id request locations placement = false ∧
+      ((∃ target,
+          allocateMetadata request locations placement = none ∧
+          allocateMetadata (renameAllocationRequest resolve request) locations
+            (renamedPlacement resolve id placement) = some target) ∨
+        (∃ source,
+          allocateMetadata request locations placement = some source ∧
+          allocateMetadata (renameAllocationRequest resolve request) locations
+            (renamedPlacement resolve id placement) = none))) := by
+  by_cases h : pairedAllocateMetadata resolve id request locations placement = true
+  · exact Or.inl ⟨h, pairedAllocateMetadata_sound resolve id request locations
+      placement h⟩
+  · have hfalse : pairedAllocateMetadata resolve id request locations placement = false := by
+      apply Bool.eq_false_iff.mpr
+      exact h
+    refine Or.inr ⟨hfalse, ?_⟩
+    cases hs : allocateMetadata request locations placement with
+    | none =>
+        cases ht : allocateMetadata (renameAllocationRequest resolve request)
+            locations (renamedPlacement resolve id placement) with
+        | none => simp [pairedAllocateMetadata, hs, ht] at h
+        | some target => exact Or.inl ⟨target, rfl, rfl⟩
+    | some source =>
+        cases ht : allocateMetadata (renameAllocationRequest resolve request)
+            locations (renamedPlacement resolve id placement) with
+        | none => exact Or.inr ⟨source, rfl, rfl⟩
+        | some target => simp [pairedAllocateMetadata, hs, ht] at h
+
 theorem pairedLifetimeLookup_contract
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
     (pairedLifetimeLookup resolve store id = true ∧
