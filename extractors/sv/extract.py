@@ -12243,6 +12243,97 @@ def _sym_conditional_function_shape(subroutine):
         return None
 
 
+def _sym_procedural_if_function_shape(subroutine):
+    """Recognize one local assigned by an initial value and an if-chain.
+
+    This is the source-shaped constant-function profile from IEEE 1800-2023
+    §13.4.3 used by package initializers such as ``t = '0; if (...) t = v``.
+    The local is storage for the duration of the call.  Since every branch
+    assigns that same local and the function returns it, the value can be
+    represented by the existing parser-shaped conditional expression without
+    erasing the declaration or reparsing its source text.  Any local read,
+    compound assignment, or statement outside this profile stays loud.
+    """
+    try:
+        body = getattr(subroutine, "body", None)
+        if type(body).__name__ == "BlockStatement":
+            body = getattr(body, "body", None)
+        if type(body).__name__ != "StatementList":
+            return None
+        statements = list(getattr(body, "list", ()))
+        if len(statements) != 4:
+            return None
+        declaration, initializer, conditional, returned = statements
+        if (type(declaration).__name__ != "VariableDeclStatement"
+                or type(initializer).__name__ != "ExpressionStatement"
+                or type(returned).__name__ != "ReturnStatement"):
+            return None
+        local = getattr(declaration, "symbol", None)
+        returned_expr = getattr(returned, "expr", None)
+        if (local is None or type(returned_expr).__name__ != "NamedValueExpression"
+                or getattr(returned_expr, "symbol", None) is not local):
+            return None
+
+        def assignment(statement, target):
+            if type(statement).__name__ == "BlockStatement":
+                statement = getattr(statement, "body", None)
+            if type(statement).__name__ != "ExpressionStatement":
+                return None
+            expr = getattr(statement, "expr", None)
+            left = getattr(expr, "left", None)
+            if (type(expr).__name__ != "AssignmentExpression"
+                    or getattr(expr, "op", None) is not None
+                    or getattr(expr, "timingControl", None) is not None
+                    or getattr(expr, "isNonBlocking", False)
+                    or type(left).__name__ != "NamedValueExpression"
+                    or getattr(left, "symbol", None) is not target):
+                return None
+            return getattr(expr, "right", None)
+
+        initial_expr = assignment(initializer, local)
+        if initial_expr is None:
+            return None
+
+        branches = []
+        current = conditional
+        while type(current).__name__ == "ConditionalStatement":
+            conditions = list(getattr(current, "conditions", ()))
+            if len(conditions) != 1 or conditions[0].pattern is not None:
+                return None
+            value = assignment(getattr(current, "ifTrue", None), local)
+            if value is None:
+                return None
+            branches.append((conditions[0].expr, value))
+            current = getattr(current, "ifFalse", None)
+        if current is not None:
+            value = assignment(current, local)
+            if value is None:
+                return None
+            branches.append((None, value))
+        if not branches:
+            return None
+
+        # The conditions and values must not read the temporary itself.  A
+        # later local would require a scoped call frame, which this expression
+        # profile deliberately does not model.
+        for condition, value in branches:
+            for expression in (condition, value):
+                if expression is None:
+                    continue
+                found_local = False
+                def inspect(node):
+                    nonlocal found_local
+                    if (type(node).__name__ == "NamedValueExpression"
+                            and getattr(node, "symbol", None) is local):
+                        found_local = True
+                expression.visit(inspect)
+                if found_local:
+                    return None
+        return initial_expr, branches
+    except Exception:
+        return None
+
+
 def _sym_case_function_shape(subroutine):
     """Recognize a straight-line automatic function ending in one plain case.
 
@@ -36923,15 +37014,19 @@ def _sym_function_node(sm, subroutine):
                                "function formals must be input-only")
         case_shape = _sym_case_function_shape(subroutine)
         conditional_shape = None
+        procedural_if_shape = None
         returned = _literal_function_result(subroutine)
         if returned is None and case_shape is None:
             returned = _sym_local_return_expression(subroutine)
         if returned is None and case_shape is None:
             shape = _sym_conditional_function_shape(subroutine)
             if shape is None:
-                return unsupported(sm, subroutine, "SubroutineSymbol:body",
-                                   "function body is outside the straight-line return profile")
-            conditional_shape = shape
+                procedural_if_shape = _sym_procedural_if_function_shape(subroutine)
+                if procedural_if_shape is None:
+                    return unsupported(sm, subroutine, "SubroutineSymbol:body",
+                                       "function body is outside the straight-line return profile")
+            else:
+                conditional_shape = shape
         dtype, reason = _dtype_sym(sm, subroutine.returnType,
                                    _decl_type_syntax(subroutine), allow_signed=True)
         if dtype is None:
@@ -36953,7 +37048,30 @@ def _sym_function_node(sm, subroutine):
                                              "name": formal.name}))
         with _SymCallBinding(formal_bindings):
             if case_shape is None:
-                if conditional_shape is None:
+                if procedural_if_shape is not None:
+                    initial, branches = procedural_if_shape
+                    value = convert_expr(sm, initial)
+                    if value is not None:
+                        for condition, branch in reversed(branches):
+                            branch_value = convert_expr(sm, branch)
+                            if branch_value is None:
+                                value = None
+                                break
+                            if condition is None:
+                                value = branch_value
+                                continue
+                            condition_value = convert_expr(sm, condition)
+                            if condition_value is None:
+                                value = None
+                                break
+                            value = {"kind": "Ternary",
+                                     "span": sym_span(sm, subroutine),
+                                     "width": subroutine.returnType.bitWidth,
+                                     "cond": condition_value,
+                                     "then": branch_value,
+                                     "else": value}
+                    body = value
+                elif conditional_shape is None:
                     body = convert_expr(sm, returned)
                 else:
                     condition, then_expr, else_expr = conditional_shape
