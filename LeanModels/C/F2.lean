@@ -4702,6 +4702,12 @@ theorem pairedReallocZero_contract (resolve : AllocId → Nat) :
 def isZeroToken (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   metadata.allocation.live && metadata.allocation.bytes.isEmpty
 
+theorem isZeroToken_contract
+    (metadata : AllocationMetadata Tag State TypeId) :
+    isZeroToken metadata = true ↔
+      metadata.allocation.live = true ∧ metadata.allocation.bytes = [] := by
+  simp [isZeroToken]
+
 def zeroTokenEqual (left right : AllocationMetadata Tag State TypeId) : Bool :=
   isZeroToken left && isZeroToken right && left.allocation.address == right.allocation.address
 
