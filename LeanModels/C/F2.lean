@@ -2739,6 +2739,21 @@ def regionsOverlap (source destination : Region) (width : Nat) : Bool :=
     source.offset < destination.offset + width &&
     destination.offset < source.offset + width
 
+theorem regionsOverlap_contract
+    (source destination : Region) (width : Nat) :
+    regionsOverlap source destination width = true ↔
+      source.allocation = destination.allocation ∧
+      source.offset < destination.offset + width ∧
+      destination.offset < source.offset + width := by
+  simp only [regionsOverlap, Bool.and_eq_true, beq_iff_eq]
+  constructor
+  · rintro ⟨⟨hallocation, hsource⟩, hdestination⟩
+    exact ⟨hallocation, decide_eq_true_iff.mp hsource,
+      decide_eq_true_iff.mp hdestination⟩
+  · rintro ⟨hallocation, hsource, hdestination⟩
+    exact ⟨⟨hallocation, decide_eq_true hsource⟩,
+      decide_eq_true hdestination⟩
+
 def memcpySnapshot (source destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag)) :=
   if regionsOverlap source destination bytes.length then none
