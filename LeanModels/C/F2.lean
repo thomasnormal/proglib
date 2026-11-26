@@ -11270,6 +11270,76 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedStoreRepresentationLoadMetadataByte_contract
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) (choice : RepresentationChoice)
+    (result : (((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint)) ×
+      ((AllocationMetadata Tag State TypeId × Footprint) ×
+      (Byte Tag × Footprint))))
+    (hbytes : bytesWf 0 (listSet metadata.allocation.bytes offset byte))
+    (hbytesTarget : bytesWf 0 (listSet
+      (renameMetadata resolve id metadata).allocation.bytes offset
+      (renameByte resolve byte)))
+    (hlocations : metadata.locations.length = metadata.allocation.bytes.length)
+    (hlocationsTarget :
+      (renameMetadata resolve id metadata).locations.length =
+        (renameMetadata resolve id metadata).allocation.bytes.length)
+    (hresult : pairedStoreRepresentationLoadMetadataByte resolve id metadata offset byte choice =
+      some result) :
+    (∃ sourceStore sourceLoad targetStore targetLoad,
+      result = ((sourceStore, sourceLoad), (targetStore, targetLoad)) ∧
+      storeMetadataByte metadata offset byte = some sourceStore ∧
+      storeMetadataByte (renameMetadata resolve id metadata) offset
+        (renameByte resolve byte) = some targetStore ∧
+      representationLoadMetadataByte sourceStore.1 offset choice = some sourceLoad ∧
+      representationLoadMetadataByte targetStore.1 offset choice = some targetLoad) ∧
+      (result.1.1.2 = footprint .write
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.1.2.2 = footprint .read
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.2.1.2 = footprint .write
+          { allocation := 0, offset := offset, width := 1 } ∧
+        result.2.2.2 = footprint .read
+          { allocation := 0, offset := offset, width := 1 }) ∧
+      (result.1.1.1.locations = metadata.locations ∧
+        result.2.1.1.locations = (renameMetadata resolve id metadata).locations) ∧
+      (result.1.1.1.allocation.bytes.length = metadata.allocation.bytes.length ∧
+        result.1.1.1.locations.length = metadata.locations.length ∧
+        result.2.1.1.allocation.bytes.length =
+          (renameMetadata resolve id metadata).allocation.bytes.length ∧
+        result.2.1.1.locations.length =
+          (renameMetadata resolve id metadata).locations.length) ∧
+      (result.1.1.1.allocation.live = metadata.allocation.live ∧
+        result.1.1.1.allocation.address = metadata.allocation.address ∧
+        result.1.1.1.allocation.state = metadata.allocation.state ∧
+        result.2.1.1.allocation.live =
+          (renameMetadata resolve id metadata).allocation.live ∧
+        result.2.1.1.allocation.address =
+          (renameMetadata resolve id metadata).allocation.address ∧
+        result.2.1.1.allocation.state =
+          (renameMetadata resolve id metadata).allocation.state) ∧
+      (result.1.1.1.wellFormed 0 ∧ result.2.1.1.wellFormed 0) := by
+  constructor
+  · exact pairedStoreRepresentationLoadMetadataByte_sound resolve id metadata
+      offset byte choice result hresult
+  constructor
+  · exact pairedStoreRepresentationLoadMetadataByte_footprints resolve id metadata
+      offset byte choice result hresult
+  constructor
+  · exact pairedStoreRepresentationLoadMetadataByte_preserves_locations resolve id metadata
+      offset byte choice result hresult
+  constructor
+  · exact pairedStoreRepresentationLoadMetadataByte_preserves_lengths resolve id metadata
+      offset byte choice result hresult
+  constructor
+  · exact pairedStoreRepresentationLoadMetadataByte_preserves_payload resolve id metadata
+      offset byte choice result hresult
+  · exact pairedStoreRepresentationLoadMetadataByte_preserves_wellFormed resolve id metadata
+      offset byte choice result hresult hbytes hbytesTarget hlocations hlocationsTarget
+
 theorem pairedStoreLoadByte_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) (byte : Byte Tag)
