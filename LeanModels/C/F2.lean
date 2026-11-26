@@ -4760,6 +4760,12 @@ theorem freeMetadata_dead_refusal
     freeMetadata metadata = none := by
   simp [freeMetadata, hdead]
 
+theorem freeMetadata_failure_contract
+    (metadata : AllocationMetadata Tag State TypeId) :
+    freeMetadata metadata = none ↔ metadata.allocation.live = false := by
+  cases hlive : metadata.allocation.live <;>
+    simp [freeMetadata, hlive]
+
 theorem freeMetadata_preserves_locations
     (metadata : AllocationMetadata Tag State TypeId)
     (result : AllocationMetadata Tag State TypeId × Footprint)
