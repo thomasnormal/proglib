@@ -85,6 +85,47 @@ machine state.
 The acceptance example is
 [`simultaneous_nba/relation.lean`](../Examples/system-verilog/sem2/simultaneous_nba/relation.lean):
 `swap_only`, `swap_exists`, `swap_unique`, the executor agreement
-`swap_executor`, and `if_condition_x_read_twice_can_differ`. The two-flop
-synchroniser, x read twice in one expression and the FIFO for every depth are
+`swap_executor`, and `if_condition_x_read_twice_can_differ`.
+
+Non-interference is also a property of the design.
+[`LeanModels/Sv/Kernel/NdFootprint.lean`](../LeanModels/Sv/Kernel/NdFootprint.lean)
+defines `CoreMemDesign.NdFootprint`, a `Bool` test on the loaded design:
+every process body is built from blocks, `if` and nonblocking assignments to
+a whole signal, no assignment targets a clock or event source, no path
+writes one target twice, and the write footprints of two processes are
+disjoint. On such a design `CoreMemDesign.eventV` is the event as a total,
+fuel-free function on scalar views. It is undefined exactly where the
+relation refuses or consults the oracle: an untyped row, an unknown control
+value, an `if` condition with an unknown bit, an evaluator refusal.
+`NdFootprint.nonInterfering` derives `Nd.NonInterfering` at every coherent
+start store where the function is defined, and `NdFootprint.event_view` and
+`NdFootprint.event_exists` say that every settled outcome of the event has
+the view the function computes and that one exists. The process-atomic,
+functional reading of an event is derived this way from the node-granular
+relation; it is not assumed.
+
+[`LeanModels/Sv/Kernel/NdTrace.lean`](../LeanModels/Sv/Kernel/NdTrace.lean)
+has the proof principles over `Nd.Trace`: `Nd.Trace.invariant` for every
+design, and on a footprint design `trace_invariant` (an invariant of views
+preserved by the event function holds at every store of every trace) and
+`trace_refines` (the views of every trace are the running fold of the
+design's function), with `trace_exists`. None has a bound on the number of
+rows.
+
+Two more acceptance examples use them.
+[`nd_counter/relation.lean`](../Examples/system-verilog/sem2/nd_counter/relation.lean):
+a counter with enable and synchronous reset; for every stimulus the views of
+every trace are the fold of the obvious function.
+[`nd_sync2/relation.lean`](../Examples/system-verilog/sem2/nd_sync2/relation.lean):
+the two-flop synchroniser with an asynchronous input; `sync_output` says the
+output in cycle `k + 2` is the input of the row that raised the clock in
+cycle `k`, for an input that is an arbitrary real bit in every row. That
+statement is at the language layer: the model has no metastability. Which
+value an edge samples is fixed by the interim inputs-first convention.
+
+The soundness fragment `CoreMemDesign.NbaClocked` also admits blocking
+assignments to a whole signal that is not a clock or event source, and
+declarations of static locals
+([`blocking_local_always_ff_step11/relation.lean`](../Examples/system-verilog/sem2/blocking_local_always_ff_step11/relation.lean)).
+`case`, x read twice in one expression and the FIFO for every depth are
 still open.

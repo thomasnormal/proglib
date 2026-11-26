@@ -60,8 +60,9 @@ is bounded.
   second round can start.  Slots with a second round are outside this lemma.
 * Blocking writes to shared signals are outside `NdSolo` (a node must leave
   the store unchanged).
-* The condition is stated per start state.  A decidable predicate on the
-  design that implies it for every start state is not in this file.
+* The condition is stated per start state.  The decidable predicate on the
+  design that implies it at every admissible start state is
+  `CoreMemDesign.NdFootprint` (`NdFootprint.lean`).
 -/
 
 namespace LeanModels.Sv.Kernel
