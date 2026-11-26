@@ -652,6 +652,16 @@ theorem renameStore_comp (first second : AllocId → Nat) (store : Store Tag Sta
       simp [renameStore, renameAllocation, renameByte_comp,
         optionResolve_comp, optionResolve_comp_direct]
 
+theorem renameStore_composition_contract
+    (first second : AllocId → Nat) (store : Store Tag State) :
+    renameStore second (renameStore first store) = renameStore second store ∧
+      (renameStore second (renameStore first store)).nextId = store.nextId ∧
+      (renameStore second (renameStore first store)).allocations.length =
+        store.allocations.length := by
+  exact ⟨renameStore_comp first second store,
+    by simp [renameStore],
+    by simp [renameStore]⟩
+
 theorem storesCorrespond_refl (resolve : AllocId → Nat) (store : Store Tag State) :
     storesCorrespond resolve (renameStore resolve store) (renameStore resolve store) := by
   simp [storesCorrespond, renameStore_idempotent]
