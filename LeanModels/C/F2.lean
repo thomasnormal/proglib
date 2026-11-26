@@ -3872,6 +3872,38 @@ theorem allocateZeroSize_footprint (state : State) (placement : Placement) :
       footprint .metadata (Region.mk 0 0 0) := by
   cases placement <;> rfl
 
+theorem allocateZeroSize_contract
+    (state : State) (placement : Placement)
+    (result : ZeroSizeOutcome Tag State TypeId × Footprint)
+    (hresult : allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement = result) :
+    match placement with
+    | .fail =>
+        result = (.null, footprint .metadata (Region.mk 0 0 0))
+    | .address base =>
+        result =
+          (.token
+            { allocation :=
+                { live := true, address := some base, bytes := [], state := state },
+              locations := [] },
+            footprint .metadata (Region.mk 0 0 0))
+    | .unaddressable =>
+        result =
+          (.token
+            { allocation :=
+                { live := true, address := none, bytes := [], state := state },
+              locations := [] },
+            footprint .metadata (Region.mk 0 0 0)) := by
+  cases placement with
+  | fail =>
+      simp [allocateZeroSize] at hresult
+      exact hresult.symm
+  | address base =>
+      simp [allocateZeroSize] at hresult
+      exact hresult.symm
+  | unaddressable =>
+      simp [allocateZeroSize] at hresult
+      exact hresult.symm
+
 def renameZeroSizeOutcome (resolve : AllocId → Nat) :
     ZeroSizeOutcome Tag State TypeId → ZeroSizeOutcome Tag State TypeId
   | .null => .null
