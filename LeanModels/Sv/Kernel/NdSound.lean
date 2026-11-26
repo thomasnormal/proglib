@@ -785,14 +785,15 @@ theorem exec_runs {E : CoreMemDesign} (hA : E.ndAdmitted = true) : ∀ fuel : Na
                     Oracle.zero_read_condTrue, Oracle.zero_read_snd, hct]
         | forLoop name init cond step body =>
             rw [CoreMemDesign.execStmtFuel] at h
-            cases hfv : forValues2 env name init cond step with
+            cases hfv : forValues2Int32 env name init cond step with
             | timeout => simp [hfv] at h
             | unsupported e => simp [hfv] at h
             | ok values =>
                 simp only [hfv] at h
+                have hlegacy := forValues2_of_forValues2Int32_ok env name init cond step hfv
                 refine NdRuns.open1 hA (w₁ := .edgeLoop env name body values) ?_
                   (ihV values body name env st r hc (by simpa [PStmt.nbaPlain] using hn) h)
-                simp [EdgeWork.ndOpen, ndOpenStmt, hfv]
+                simp [EdgeWork.ndOpen, ndOpenStmt, hlegacy]
         | _ => simp [PStmt.nbaPlain] at hn
       · intro stmts env st r hc hn h
         cases stmts with
@@ -872,7 +873,10 @@ private theorem runEdges_fire {E : CoreMemDesign} (hA : E.ndAdmitted = true) {a 
   obtain ⟨x, hx, h⟩ := Res.bind_eq_ok.mp h
   obtain ⟨y, hy, h⟩ := Res.bind_eq_ok.mp h
   cases h
-  have hrx := (exec_runs hA 4096).1 body E.env st x hc hbody hx
+  have hrx := (exec_runs hA
+      (4096 + PStmt.need E.env body + PStmt.runtimeNeed E.env body)).1
+    body E.env st x hc hbody (by
+      simpa only [CoreMemDesign.execStmt] using hx)
   obtain ⟨hyc, hya, hyq, hyr⟩ := ih x.state y hrx.1 hy
   have hq : (CoreMemExec.append x y).scalarQ = x.scalarQ ++ y.scalarQ := rfl
   have hm : (CoreMemExec.append x y).memoryQ = x.memoryQ ++ y.memoryQ := rfl
@@ -1068,7 +1072,7 @@ theorem CoreMemDesign.step_decompose {E : CoreMemDesign} (hE : E.NbaClocked)
   have hA := hE.admitted
   have hic : E.Coherent (E.ndInput st entry) :=
     E.normalizeScalar_coherent _ (hT.applyInputs entry)
-  unfold CoreMemDesign.step at h
+  unfold CoreMemDesign.step CoreMemDesign.stepFuel at h
   rw [CoreMemDesign.prepareStep_clocked hA] at h
   simp only [Res.ok_bind] at h
   rw [show (4096 : Nat) = 4095 + 1 from rfl, CoreMemDesign.edgeQuiesce] at h
@@ -1103,7 +1107,7 @@ theorem CoreMemDesign.step_eq_of_runEdges {E : CoreMemDesign} (hE : E.NbaClocked
   obtain ⟨hec, hea, hq, -⟩ := runEdges_runs hA (E.scalar.view st.scalar)
     (E.scalar.view (E.ndInput st entry).scalar) _ (List.all_eq_true.mp hE.bodies)
     (E.ndInput st entry) edge hic he
-  unfold CoreMemDesign.step
+  unfold CoreMemDesign.step CoreMemDesign.stepFuel
   rw [CoreMemDesign.prepareStep_clocked hA]
   simp only [Res.ok_bind]
   apply CoreMemDesign.edgeQuiesce_eq_edgePass_of_no_followup
