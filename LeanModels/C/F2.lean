@@ -9111,6 +9111,41 @@ theorem allocateBounded_error_contract
                   | none => simp [allocateBounded, hwithin, haligned, hallowed, halloc]
                   | some result => simp [allocateBounded, hwithin, haligned, hallowed, halloc]
 
+theorem allocateBounded_success_contract
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (alignment limit : Nat)
+    (result : Store Tag State × Footprint) :
+    allocateBounded store request placement alignment limit = .ok result ↔
+      match placement with
+      | .fail => False
+      | .unaddressable =>
+          allocate store request .unaddressable = some result
+      | .address base =>
+          placementWithin base request.bytes.length limit = true ∧
+          alignmentAllowed base alignment = true ∧
+          placementAllowed store base request.bytes.length = true ∧
+          allocate store request (.address base) = some result := by
+  cases placement with
+  | fail => simp [allocateBounded]
+  | unaddressable =>
+      cases halloc : allocate store request .unaddressable with
+      | none => simp [allocateBounded, halloc]
+      | some allocationResult => simp [allocateBounded, halloc]
+  | address base =>
+      cases hwithin : placementWithin base request.bytes.length limit with
+      | false => simp [allocateBounded, hwithin]
+      | true =>
+          cases haligned : alignmentAllowed base alignment with
+          | false => simp [allocateBounded, hwithin, haligned]
+          | true =>
+              cases hallowed : placementAllowed store base request.bytes.length with
+              | false => simp [allocateBounded, hwithin, haligned, hallowed]
+              | true =>
+                  cases halloc : allocate store request (.address base) with
+                  | none => simp [allocateBounded, hwithin, haligned, hallowed, halloc]
+                  | some allocationResult =>
+                      simp [allocateBounded, hwithin, haligned, hallowed, halloc]
+
 theorem allocateBounded_failure_shape
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (alignment limit : Nat) :
