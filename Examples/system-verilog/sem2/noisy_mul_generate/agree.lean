@@ -4280,4 +4280,44 @@ theorem noisy_row_child_paths_processes
     noisyRowTPrefix, noisyRowSPrefix, noisyRowCPrefix, hta, hsa, hst,
     hma, hmt, hms]
 
+theorem noisy_row_child_generated_driverWins_pairwise_paths
+    (N : Nat) (hN : 1 ≤ N) (env : IEnv) (elems : List (String × Nat))
+    (names : List String)
+    (cell : Int → Int → List DrvWin)
+    (hwin : ∀ i ∈ intRange 1 ((N : Int) - 1).toNat,
+      ∀ j ∈ intRange 0 (N : Int).toNat,
+        driverWins names (noisyRowChildCellProcs env elems i j) = cell i j)
+    (hdis : List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      ((intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+        (intRange 0 (N : Int).toNat).flatMap (fun j => cell i j)))) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      (driverWins names
+        ((intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+          (noisyRowChildPaths N i).flatMap
+            (fun p => (noisyFullFamilySegment env elems p).2)))) := by
+  have hrow : ∀ i ∈ intRange 1 ((N : Int) - 1).toNat,
+      driverWins names
+        ((noisyRowChildPaths N i).flatMap
+          (fun p => (noisyFullFamilySegment env elems p).2)) =
+        (intRange 0 (N : Int).toNat).flatMap (fun j => cell i j) := by
+    intro i hi
+    have hpaths := noisy_row_child_paths_processes env elems N i
+    rw [hpaths]
+    rw [driverWins_flatMap]
+    apply CombView.flatMap_congr'
+    intro j hj
+    exact hwin i hi j hj
+  rw [driverWins_flatMap]
+  have hrows : (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+      driverWins names
+        ((noisyRowChildPaths N i).flatMap
+          (fun p => (noisyFullFamilySegment env elems p).2))) =
+      (intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+        (intRange 0 (N : Int).toNat).flatMap (fun j => cell i j)) := by
+    apply CombView.flatMap_congr'
+    intro i hi
+    exact hrow i hi
+  rw [hrows]
+  exact hdis
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
