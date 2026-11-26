@@ -4535,6 +4535,17 @@ theorem zeroTokenEqual_refusal
   · simp [zeroTokenEqual, hright]
   · simp [zeroTokenEqual, haddress]
 
+theorem zeroTokenEqual_contract
+    (left right : AllocationMetadata Tag State TypeId) :
+    zeroTokenEqual left right = true ↔
+      isZeroToken left = true ∧
+      isZeroToken right = true ∧
+      left.allocation.address = right.allocation.address := by
+  constructor
+  · exact zeroTokenEqual_sound left right
+  · intro h
+    simp [zeroTokenEqual, h.1, h.2.1, h.2.2]
+
 def zeroTokenFreeable (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   isZeroToken metadata
 
