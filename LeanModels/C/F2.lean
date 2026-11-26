@@ -5156,6 +5156,34 @@ theorem representationLoadMetadataByte_success
   cases htype : location.effectiveType <;> cases choice <;>
     simp [representationLoadMetadataByte, hbyte, hlocation, htype]
 
+theorem representationLoadMetadataByte_contract
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (choice : RepresentationChoice) (result : Byte Tag × Footprint)
+    (hresult : representationLoadMetadataByte metadata offset choice = some result) :
+    ∃ byte location,
+      metadata.allocation.bytes[offset]? = some byte ∧
+      metadata.locations[offset]? = some location ∧
+      result =
+        (match location.effectiveType, choice with
+        | .padding, .byte bits | .indeterminate, .byte bits =>
+            (.value bits none none,
+              footprint .read { allocation := 0, offset := offset, width := 1 })
+        | _, _ => (byte,
+            footprint .read { allocation := 0, offset := offset, width := 1 })) := by
+  cases hbyte : metadata.allocation.bytes[offset]? with
+  | none =>
+      simp [representationLoadMetadataByte, hbyte] at hresult
+  | some byte =>
+      cases hlocation : metadata.locations[offset]? with
+      | none =>
+          simp [representationLoadMetadataByte, hbyte, hlocation] at hresult
+      | some location =>
+          cases htype : location.effectiveType <;> cases choice <;>
+            simp [representationLoadMetadataByte, hbyte, hlocation, htype] at hresult
+          all_goals
+            refine ⟨byte, location, rfl, rfl, ?_⟩
+            simpa [htype] using hresult.symm
+
 theorem representationLoadMetadataByte_footprint
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (choice : RepresentationChoice) (result : Byte Tag × Footprint)
