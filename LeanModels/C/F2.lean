@@ -11253,6 +11253,30 @@ theorem storeByte_preserves_wellFormed
                         exact ⟨hentries.1, ih hentries.2⟩
             simpa [hlive] using map_wf store.allocations hstore
 
+theorem storeByte_result_contract
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (result : Store Tag State × Footprint)
+    (hresult : storeByte store id offset byte = some result) :
+    (∃ allocation,
+      lookup store id = some allocation ∧
+      allocation.live = true ∧
+      offset < allocation.bytes.length ∧
+      result = ({ store with allocations := store.allocations.map (fun entry =>
+        if entry.1 == id then
+          (id, { allocation with bytes := listSet allocation.bytes offset byte })
+        else entry) },
+        footprint .write { allocation := id, offset := offset, width := 1 })) := by
+  cases hlookup : lookup store id with
+  | none => simp [storeByte, hlookup] at hresult
+  | some allocation =>
+      cases hlive : allocation.live with
+      | false => simp [storeByte, hlookup, hlive] at hresult
+      | true =>
+          by_cases hoffset : offset ≥ allocation.bytes.length
+          · simp [storeByte, hlookup, hlive, hoffset] at hresult
+          · refine ⟨allocation, rfl, hlive, Nat.lt_of_not_ge hoffset, ?_⟩
+            simpa [storeByte, hlookup, hlive, hoffset] using hresult.symm
+
 def storeTransitionCorresponds (resolve : AllocId → Nat)
     (source target : Store Tag State)
     (sourceResult targetResult : Store Tag State × Footprint) : Prop :=
