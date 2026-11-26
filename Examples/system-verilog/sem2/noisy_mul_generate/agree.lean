@@ -3235,4 +3235,40 @@ theorem noisy_row_major_cell_windows_disjoint
     simp [DrvWin.overlaps]
     omega
 
+theorem noisy_row_major_rect_windows_disjoint
+    {N i₁ j₁ i₂ j₂ : Nat} (hN : 1 ≤ N)
+    (hi₁ : i₁ < N) (hj₁ : j₁ ≤ N)
+    (hi₂ : i₂ < N) (hj₂ : j₂ ≤ N)
+    (hneq : i₁ ≠ i₂ ∨ j₁ ≠ j₂) (signal : String) :
+    DrvWin.overlaps
+      (signal, some (i₁ * (N + 1) + j₁, 1))
+      (signal, some (i₂ * (N + 1) + j₂, 1)) = false := by
+  have hcols : j₁ < N + 1 ∧ j₂ < N + 1 := by omega
+  have hidx : i₁ * (N + 1) + j₁ ≠ i₂ * (N + 1) + j₂ := by
+    intro heq
+    by_cases hir : i₁ = i₂
+    · rcases hneq with h | h
+      · exact (h hir).elim
+      · subst i₂
+        omega
+    · rcases Nat.lt_or_gt_of_ne hir with hlt | hgt
+      · have htop : i₁ * (N + 1) + j₁ < (i₁ + 1) * (N + 1) := by
+          simp [Nat.add_mul]
+          omega
+        have hrow : (i₁ + 1) * (N + 1) ≤ i₂ * (N + 1) := by
+          exact Nat.mul_le_mul_right (N + 1) (Nat.succ_le_of_lt hlt)
+        omega
+      · have htop : i₂ * (N + 1) + j₂ < (i₂ + 1) * (N + 1) := by
+          simp [Nat.add_mul]
+          omega
+        have hrow : (i₂ + 1) * (N + 1) ≤ i₁ * (N + 1) := by
+          exact Nat.mul_le_mul_right (N + 1) (Nat.succ_le_of_lt hgt)
+        omega
+  by_cases hlt : i₁ * (N + 1) + j₁ < i₂ * (N + 1) + j₂
+  · simp [DrvWin.overlaps]
+    omega
+  · have hgt : i₂ * (N + 1) + j₂ < i₁ * (N + 1) + j₁ := by omega
+    simp [DrvWin.overlaps]
+    omega
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
