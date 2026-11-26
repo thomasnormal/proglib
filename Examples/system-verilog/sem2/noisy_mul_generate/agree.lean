@@ -4616,4 +4616,24 @@ theorem noisy_out_target_actual (N i : Int)
   · rw [IEnv.bindVal_vals, IEnv.withDecls_vals]
     rfl
 
+theorem noisy_static_driverWins (N : Nat)
+    (env : IEnv) (decls : List Decl) (elems : List (String × Nat))
+    (hS : arrayElemTarget (env.withDecls decls) "s" [.int 0] =
+      .ok (.slice "s" 0 (N + 1), N + 1))
+    (hC : arrayElemTarget (env.withDecls decls) "c" [.int 0] =
+      .ok (.slice "c" 0 (N + 1), N + 1))
+    (hT : arrayElemTarget (env.withDecls decls) "t" [.int 0] =
+      .ok (.slice "t" 0 N, N))
+    (hP : arrayPartTarget (env.withDecls decls) "p" [] PartMode.range
+        (.binary (SymBinOp.m0 BinOp.sub) (.binary SymBinOp.mul (.int 2) (.paramRef "N" none)) (.int 1))
+        (.paramRef "N" none) =
+      .ok (.slice "p" N N, N)) :
+    driverWins ["a", "b", "f", "p", "pp", "s", "c", "t"]
+      (noisyStaticProcs env decls elems) =
+      [("s", some (0, N + 1)), ("c", some (0, N + 1)),
+       ("t", some (0, N)), ("p", some (N, N))] := by
+  simp [noisyStaticProcs, noisyMul.pdesign, driverWins, Process2.drvWins,
+    Lhs2.drvWins, instProcess2, instLhs2, instLhsLeaf2, instIndex2,
+    hS, hC, hT, hP]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
