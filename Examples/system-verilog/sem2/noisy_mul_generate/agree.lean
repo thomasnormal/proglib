@@ -4335,6 +4335,259 @@ theorem noisy_row_three_signal_windows_pairwise
         hN (hiN i hi') (Nat.succ_le_of_lt (hjN j hj)) (hiN k hk')
           (Nat.succ_le_of_lt (hjN l hl)) (by omega) "c"
 
+theorem noisy_row_three_signal_windows_pairwise_at
+    (N : Nat) (hN : 1 ≤ N) (i : Int)
+    (hi : i ∈ intRange 1 ((N : Int) - 1).toNat) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      ((intRange 0 (N : Int).toNat).flatMap (fun j =>
+        [("t", some (i.toNat * N + j.toNat, 1)),
+         ("s", some (i.toNat * (N + 1) + j.toNat, 1)),
+         ("c", some (i.toNat * (N + 1) + (j.toNat + 1), 1))])) := by
+  have hi0 : 0 ≤ i := by rw [mem_intRange] at hi; omega
+  have hiN : i.toNat < N := by
+    have hcast : (i.toNat : Int) = i := Int.toNat_of_nonneg hi0
+    rw [← hcast]
+    rw [mem_intRange] at hi
+    omega
+  have hjN : ∀ j ∈ intRange 0 (N : Int).toNat, j.toNat < N := by
+    intro j hj
+    rw [mem_intRange] at hj
+    have hj0 : 0 ≤ j := by omega
+    have hcast : (j.toNat : Int) = j := Int.toNat_of_nonneg hj0
+    rw [← hcast]
+    omega
+  rw [List.pairwise_flatMap]
+  refine ⟨?_, ?_⟩
+  · intro j hj
+    refine List.pairwise_cons.mpr ⟨?_, ?_⟩
+    · intro y hy
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hy
+      rcases hy with rfl | rfl
+      · exact noisy_different_signal_windows_disjoint (by decide)
+      · exact noisy_different_signal_windows_disjoint (by decide)
+    · refine List.pairwise_cons.mpr ⟨?_, by simp⟩
+      intro y hy
+      simp only [List.mem_singleton] at hy
+      subst y
+      exact noisy_different_signal_windows_disjoint (by decide)
+  · apply CombView.pairwise_intRange
+    intro j k hj hjk hk
+    have hj' : j ∈ intRange 0 (N : Int).toNat := by rw [mem_intRange]; omega
+    have hk' : k ∈ intRange 0 (N : Int).toNat := by rw [mem_intRange]; omega
+    intro x hx y hy
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at hx hy
+    rcases hx with rfl | rfl | rfl <;> rcases hy with rfl | rfl | rfl
+    · exact noisy_row_major_cell_windows_disjoint
+        (N := N) (i₁ := i.toNat) (j₁ := j.toNat)
+        (i₂ := i.toNat) (j₂ := k.toNat)
+        hN hiN (hjN j hj') hiN (hjN k hk') (by omega)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_row_major_rect_windows_disjoint
+        (N := N) (i₁ := i.toNat) (j₁ := j.toNat)
+        (i₂ := i.toNat) (j₂ := k.toNat)
+        hN hiN (by omega) hiN (by omega) (by omega) "s"
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_row_major_rect_windows_disjoint
+        (N := N) (i₁ := i.toNat) (j₁ := j.toNat + 1)
+        (i₂ := i.toNat) (j₂ := k.toNat + 1)
+        hN hiN (by omega) hiN (by omega) (by omega) "c"
+
+theorem noisy_row_full_mem {N : Nat} {i : Int} {a : DrvWin} :
+    a ∈
+        [("c", some (i.toNat * (N + 1), 1))] ++
+          (intRange 0 (N : Int).toNat).flatMap (fun j =>
+            [("t", some (i.toNat * N + j.toNat, 1)),
+             ("s", some (i.toNat * (N + 1) + j.toNat, 1)),
+             ("c", some (i.toNat * (N + 1) + (j.toNat + 1), 1))]) ++
+          [("s", some (i.toNat * (N + 1) + N, 1))] ↔
+      a = ("c", some (i.toNat * (N + 1), 1)) ∨
+        a = ("s", some (i.toNat * (N + 1) + N, 1)) ∨
+        ∃ j ∈ intRange 0 (N : Int).toNat,
+          a = ("t", some (i.toNat * N + j.toNat, 1)) ∨
+          a = ("s", some (i.toNat * (N + 1) + j.toNat, 1)) ∨
+          a = ("c", some (i.toNat * (N + 1) + (j.toNat + 1), 1)) := by
+  simp only [List.mem_append, List.mem_cons, List.not_mem_nil, or_false,
+    List.mem_flatMap]
+  constructor
+  · rintro ((hc | ⟨j, hj, hjw⟩) | hs)
+    · exact Or.inl hc
+    · exact Or.inr (Or.inr ⟨j, hj, hjw⟩)
+    · exact Or.inr (Or.inl hs)
+  · rintro (hc | hs | ⟨j, hj, hjw⟩)
+    · exact Or.inl (Or.inl hc)
+    · exact Or.inr hs
+    · exact Or.inl (Or.inr ⟨j, hj, hjw⟩)
+
+theorem noisy_row_full_windows_pairwise
+    (N : Nat) (hN : 1 ≤ N) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      ((intRange 1 ((N : Int) - 1).toNat).flatMap (fun i =>
+        [("c", some (i.toNat * (N + 1), 1))] ++
+          (intRange 0 (N : Int).toNat).flatMap (fun j =>
+            [("t", some (i.toNat * N + j.toNat, 1)),
+             ("s", some (i.toNat * (N + 1) + j.toNat, 1)),
+             ("c", some (i.toNat * (N + 1) + (j.toNat + 1), 1))]) ++
+          [("s", some (i.toNat * (N + 1) + N, 1))])) := by
+  have hiN : ∀ i ∈ intRange 1 ((N : Int) - 1).toNat, i.toNat < N := by
+    intro i hi
+    rw [mem_intRange] at hi
+    have hi0 : 0 ≤ i := by omega
+    have hcast : (i.toNat : Int) = i := Int.toNat_of_nonneg hi0
+    rw [← hcast]
+    omega
+  have hjN : ∀ j ∈ intRange 0 (N : Int).toNat, j.toNat < N := by
+    intro j hj
+    rw [mem_intRange] at hj
+    have hj0 : 0 ≤ j := by omega
+    have hcast : (j.toNat : Int) = j := Int.toNat_of_nonneg hj0
+    rw [← hcast]
+    omega
+  rw [List.pairwise_flatMap]
+  refine ⟨?_, ?_⟩
+  · intro i hi
+    rw [List.pairwise_append, List.pairwise_append]
+    refine ⟨⟨List.pairwise_singleton _ _, noisy_row_three_signal_windows_pairwise_at N hN i hi, ?_⟩,
+      List.pairwise_singleton _ _, ?_⟩
+    · intro x hx y hy
+      simp only [List.mem_singleton] at hx
+      subst x
+      simp only [List.mem_flatMap] at hy
+      obtain ⟨j, hj, hy⟩ := hy
+      have hjN' := hjN j hj
+      have hj0 : 0 ≤ j := by rw [mem_intRange] at hj; omega
+      have hjcast : (j.toNat : Int) = j := Int.toNat_of_nonneg hj0
+      have hjNat : j.toNat < N := by rw [← hjcast]; rw [mem_intRange] at hj; omega
+      simp only [List.mem_cons, List.not_mem_nil, or_false] at hy
+      rcases hy with rfl | rfl | rfl <;>
+        simp [DrvWin.overlaps] <;> omega
+    · intro x hx y hy
+      simp only [List.mem_singleton] at hy
+      subst y
+      simp only [List.mem_append] at hx
+      rcases hx with hx | hx
+      · simp only [List.mem_singleton] at hx
+        subst x
+        simp [DrvWin.overlaps] <;> omega
+      · simp only [List.mem_flatMap] at hx
+        obtain ⟨j, hj, hx⟩ := hx
+        have hj0 : 0 ≤ j := by rw [mem_intRange] at hj; omega
+        have hjcast : (j.toNat : Int) = j := Int.toNat_of_nonneg hj0
+        have hjNat : j.toNat < N := by rw [← hjcast]; rw [mem_intRange] at hj; omega
+        simp only [List.mem_cons, List.not_mem_nil, or_false] at hx
+        rcases hx with rfl | rfl | rfl <;>
+          simp [DrvWin.overlaps] <;> omega
+  · apply CombView.pairwise_intRange
+    intro i k hi hik hk
+    have hi' : i ∈ intRange 1 ((N : Int) - 1).toNat := by rw [mem_intRange]; omega
+    have hk' : k ∈ intRange 1 ((N : Int) - 1).toNat := by rw [mem_intRange]; omega
+    have hi0 : 0 ≤ i := by rw [mem_intRange] at hi'; omega
+    have hk0 : 0 ≤ k := by rw [mem_intRange] at hk'; omega
+    have hicast : (i.toNat : Int) = i := Int.toNat_of_nonneg hi0
+    have hkcast : (k.toNat : Int) = k := Int.toNat_of_nonneg hk0
+    have hiNat : i.toNat < N := by exact hiN i hi'
+    have hkNat : k.toNat < N := by exact hiN k hk'
+    have hikNat : i.toNat < k.toNat := by rw [← hicast, ← hkcast]; omega
+    intro x hx y hy
+    rw [noisy_row_full_mem] at hx hy
+    rcases hx with hx | hx | ⟨j, hj, hx⟩
+    · rcases hx with rfl
+      rcases hy with hy | hy | ⟨l, hl, hy⟩
+      · rcases hy with rfl
+        exact noisy_row_major_rect_windows_disjoint
+          (N := N) (i₁ := i.toNat) (j₁ := 0)
+          (i₂ := k.toNat) (j₂ := 0)
+          hN hiNat (by omega) hkNat (by omega) (Or.inl (Nat.ne_of_lt hikNat)) "c"
+      · rcases hy with rfl
+        exact noisy_different_signal_windows_disjoint (by decide)
+      · rcases hy with rfl | rfl | rfl
+        · exact noisy_different_signal_windows_disjoint (by decide)
+        · exact noisy_different_signal_windows_disjoint (by decide)
+        · have hl0 : 0 ≤ l := by rw [mem_intRange] at hl; omega
+          have hlcast : (l.toNat : Int) = l := Int.toNat_of_nonneg hl0
+          have hlNat : l.toNat < N := by rw [← hlcast]; rw [mem_intRange] at hl; omega
+          exact noisy_row_major_rect_windows_disjoint
+            (N := N) (i₁ := i.toNat) (j₁ := 0)
+            (i₂ := k.toNat) (j₂ := l.toNat + 1)
+            hN hiNat (by omega) hkNat (by omega) (Or.inl (Nat.ne_of_lt hikNat)) "c"
+    · rcases hx with rfl
+      rcases hy with hy | hy | ⟨l, hl, hy⟩
+      · rcases hy with rfl
+        exact noisy_different_signal_windows_disjoint (by decide)
+      · rcases hy with rfl
+        exact noisy_row_major_rect_windows_disjoint
+          (N := N) (i₁ := i.toNat) (j₁ := N)
+          (i₂ := k.toNat) (j₂ := N)
+          hN hiNat (by omega) hkNat (by omega) (Or.inl (Nat.ne_of_lt hikNat)) "s"
+      · rcases hy with rfl | rfl | rfl
+        · exact noisy_different_signal_windows_disjoint (by decide)
+        · have hl0 : 0 ≤ l := by rw [mem_intRange] at hl; omega
+          have hlcast : (l.toNat : Int) = l := Int.toNat_of_nonneg hl0
+          have hlNat : l.toNat < N := by rw [← hlcast]; rw [mem_intRange] at hl; omega
+          exact noisy_row_major_rect_windows_disjoint
+            (N := N) (i₁ := i.toNat) (j₁ := N)
+            (i₂ := k.toNat) (j₂ := l.toNat)
+            hN hiNat (by omega) hkNat (by omega) (Or.inl (Nat.ne_of_lt hikNat)) "s"
+        · exact noisy_different_signal_windows_disjoint (by decide)
+    · have hj0 : 0 ≤ j := by rw [mem_intRange] at hj; omega
+      have hjcast : (j.toNat : Int) = j := Int.toNat_of_nonneg hj0
+      have hjNat : j.toNat < N := by rw [← hjcast]; rw [mem_intRange] at hj; omega
+      rcases hx with rfl | rfl | rfl
+      · rcases hy with hy | hy | ⟨l, hl, hy⟩
+        · rcases hy with rfl
+          exact noisy_different_signal_windows_disjoint (by decide)
+        · rcases hy with rfl
+          exact noisy_different_signal_windows_disjoint (by decide)
+        · rcases hy with rfl | rfl | rfl
+          · have hl0 : 0 ≤ l := by rw [mem_intRange] at hl; omega
+            have hlcast : (l.toNat : Int) = l := Int.toNat_of_nonneg hl0
+            have hlNat : l.toNat < N := by rw [← hlcast]; rw [mem_intRange] at hl; omega
+            exact noisy_row_major_cell_windows_disjoint
+              (N := N) (i₁ := i.toNat) (j₁ := j.toNat)
+              (i₂ := k.toNat) (j₂ := l.toNat)
+              hN hiNat (by omega) hkNat hlNat (Or.inl (Nat.ne_of_lt hikNat))
+          · exact noisy_different_signal_windows_disjoint (by decide)
+          · exact noisy_different_signal_windows_disjoint (by decide)
+      · rcases hy with hy | hy | ⟨l, hl, hy⟩
+        · rcases hy with rfl
+          exact noisy_different_signal_windows_disjoint (by decide)
+        · rcases hy with rfl
+          exact noisy_row_major_rect_windows_disjoint
+            (N := N) (i₁ := i.toNat) (j₁ := j.toNat)
+            (i₂ := k.toNat) (j₂ := N)
+            hN hiNat (by omega) hkNat (by omega) (Or.inl (Nat.ne_of_lt hikNat)) "s"
+        · rcases hy with rfl | rfl | rfl
+          · exact noisy_different_signal_windows_disjoint (by decide)
+          · have hl0 : 0 ≤ l := by rw [mem_intRange] at hl; omega
+            have hlcast : (l.toNat : Int) = l := Int.toNat_of_nonneg hl0
+            have hlNat : l.toNat < N := by rw [← hlcast]; rw [mem_intRange] at hl; omega
+            exact noisy_row_major_rect_windows_disjoint
+              (N := N) (i₁ := i.toNat) (j₁ := j.toNat)
+              (i₂ := k.toNat) (j₂ := l.toNat)
+              hN hiNat (by omega) hkNat (by omega) (Or.inl (Nat.ne_of_lt hikNat)) "s"
+          · exact noisy_different_signal_windows_disjoint (by decide)
+      · rcases hy with hy | hy | ⟨l, hl, hy⟩
+        · rcases hy with rfl
+          exact noisy_row_major_rect_windows_disjoint
+            (N := N) (i₁ := i.toNat) (j₁ := j.toNat + 1)
+            (i₂ := k.toNat) (j₂ := 0)
+            hN hiNat (by omega) hkNat (by omega) (Or.inl (Nat.ne_of_lt hikNat)) "c"
+        · rcases hy with rfl
+          exact noisy_different_signal_windows_disjoint (by decide)
+        · rcases hy with rfl | rfl | rfl
+          · exact noisy_different_signal_windows_disjoint (by decide)
+          · exact noisy_different_signal_windows_disjoint (by decide)
+          · have hl0 : 0 ≤ l := by rw [mem_intRange] at hl; omega
+            have hlcast : (l.toNat : Int) = l := Int.toNat_of_nonneg hl0
+            have hlNat : l.toNat < N := by rw [← hlcast]; rw [mem_intRange] at hl; omega
+            exact noisy_row_major_rect_windows_disjoint
+              (N := N) (i₁ := i.toNat) (j₁ := j.toNat + 1)
+              (i₂ := k.toNat) (j₂ := l.toNat + 1)
+              hN hiNat (by omega) hkNat (by omega) (Or.inl (Nat.ne_of_lt hikNat)) "c"
+
 theorem noisy_row_child_generated_driverWins_pairwise
     (N : Nat) (hN : 1 ≤ N) (names : List String)
     (family : Int → Int → List Process2)
@@ -5053,6 +5306,47 @@ def noisyRowWinsAllFull (N : Nat) : List DrvWin :=
 def noisyOutWinsAll (N : Nat) : List DrvWin :=
   (List.range N).map (fun i => ("p", some (i, 1)))
 
+theorem noisy_out_family_driverWins_actual
+    (N : Nat) (hCanon : canonInt 32 true (N : Int) = N) :
+    driverWins noisyMul.pdesign.declNames
+        ((noisyOutPaths (N : Int)).flatMap
+          (fun p => (noisyFullFamilySegment (noisyEnv (N : Int))
+            (noisyElems (N : Int)) p).2)) =
+      noisyOutWinsAll N := by
+  have hpaths := noisy_out_paths_driverWins
+    (N := N) (env := noisyEnv (N : Int))
+    (elems := noisyElems (N : Int))
+    (names := noisyMul.pdesign.declNames)
+    (hwin := by
+      intro i hi
+      apply noisy_out_driverWins_at_of_target
+        (env := noisyEnv (N : Int)) (elems := noisyElems (N : Int))
+        (i := i) (names := noisyMul.pdesign.declNames)
+      · simp [PDesign.declNames, PDesign.declSig, CombView.Summary.declNames,
+          noisyMul.pdesign]
+      · apply noisy_out_target_of_elem
+        · rfl
+        · rw [mem_intRange] at hi
+          omega
+        · simp [noisyEnv, IEnv.bindVal, List.lookup]
+    )
+  have hbridge :
+      (intRange 0 (N : Int).toNat).flatMap (fun i =>
+        [(
+          "p", some (i.toNat, 1))]) = noisyOutWinsAll N := by
+    have hsingleton : ∀ (l : List Nat) (f : Nat → DrvWin),
+        l.flatMap (fun j => [f j]) = l.map f := by
+      intro l f
+      induction l with
+      | nil => rfl
+      | cons j js ih => simp [ih]
+    simpa [intRange_zero, noisyOutWinsAll, List.flatMap_map, List.map_map,
+      Int.toNat_natCast, hsingleton]
+  rw [hbridge] at hpaths
+  exact hpaths
+
+
+
 theorem noisy_pp_family_driverWins_actual
     (N : Nat) (hN : 1 ≤ N) (hCanon : canonInt 32 true (N : Int) = N) :
     driverWins noisyMul.pdesign.declNames
@@ -5169,6 +5463,68 @@ theorem noisy_static_row_disjoint (N : Nat) (hN : 1 ≤ N) :
   · rcases hb with rfl | rfl | rfl <;>
       exact noisy_different_signal_windows_disjoint (by decide)
 
+theorem noisy_static_row_full_disjoint (N : Nat) (hN : 1 ≤ N) :
+    ∀ a ∈ noisyStaticWins N, ∀ b ∈ noisyRowWinsAllFull N, a.overlaps b = false := by
+  intro a ha b hb
+  simp only [noisyStaticWins, List.mem_cons, List.not_mem_nil, or_false] at ha
+  simp only [noisyRowWinsAllFull, List.mem_flatMap] at hb
+  obtain ⟨i, hi, hb⟩ := hb
+  have hi0 : 0 ≤ i := by rw [mem_intRange] at hi; omega
+  have hicast : (i.toNat : Int) = i := Int.toNat_of_nonneg hi0
+  have hiN : i.toNat < N := by rw [← hicast]; rw [mem_intRange] at hi; omega
+  have hi1 : 1 ≤ i.toNat := by rw [← hicast]; rw [mem_intRange] at hi; omega
+  rw [noisy_row_full_mem] at hb
+  rcases ha with rfl | rfl | rfl | rfl
+  · rcases hb with rfl | rfl | ⟨j, hj, rfl | rfl | rfl⟩
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · have hbound : N + 1 ≤ i.toNat * (N + 1) + N := by
+        calc
+          N + 1 = 1 * (N + 1) := by simp
+          _ ≤ i.toNat * (N + 1) := Nat.mul_le_mul_right _ hi1
+          _ ≤ i.toNat * (N + 1) + N := Nat.le_add_right _ _
+      have hnot : ¬ i.toNat * (N + 1) + N < N + 1 := by omega
+      simp [DrvWin.overlaps, hnot]
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · have hbound : N + 1 ≤ i.toNat * (N + 1) + j.toNat := by
+        calc
+          N + 1 = 1 * (N + 1) := by simp
+          _ ≤ i.toNat * (N + 1) := Nat.mul_le_mul_right _ hi1
+          _ ≤ i.toNat * (N + 1) + j.toNat := Nat.le_add_right _ _
+      have hnot : ¬ i.toNat * (N + 1) + j.toNat < N + 1 := by omega
+      simp [DrvWin.overlaps, hnot]
+    · exact noisy_different_signal_windows_disjoint (by decide)
+  · rcases hb with rfl | rfl | ⟨j, hj, rfl | rfl | rfl⟩
+    · have hbound : N + 1 ≤ i.toNat * (N + 1) := by
+        calc
+          N + 1 = 1 * (N + 1) := by simp
+          _ ≤ i.toNat * (N + 1) := Nat.mul_le_mul_right _ hi1
+      have hnot : ¬ i.toNat * (N + 1) < N + 1 := by omega
+      simp [DrvWin.overlaps, hnot]
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · have hbound : N + 1 ≤ i.toNat * (N + 1) + (j.toNat + 1) := by
+        calc
+          N + 1 = 1 * (N + 1) := by simp
+          _ ≤ i.toNat * (N + 1) := Nat.mul_le_mul_right _ hi1
+          _ ≤ i.toNat * (N + 1) + (j.toNat + 1) := Nat.le_add_right _ _
+      have hnot : ¬ i.toNat * (N + 1) + (j.toNat + 1) < N + 1 := by omega
+      simp [DrvWin.overlaps, hnot]
+  · rcases hb with rfl | rfl | ⟨j, hj, rfl | rfl | rfl⟩
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · have hbound : N ≤ i.toNat * N + j.toNat := by
+        calc
+          N = 1 * N := by simp
+          _ ≤ i.toNat * N := Nat.mul_le_mul_right _ hi1
+          _ ≤ i.toNat * N + j.toNat := Nat.le_add_right _ _
+      have hnot : ¬ i.toNat * N + j.toNat < N := by omega
+      simp [DrvWin.overlaps, hnot]
+    · exact noisy_different_signal_windows_disjoint (by decide)
+    · exact noisy_different_signal_windows_disjoint (by decide)
+  · rcases hb with rfl | rfl | ⟨j, hj, rfl | rfl | rfl⟩ <;>
+      exact noisy_different_signal_windows_disjoint (by decide)
+
 theorem noisy_static_out_disjoint (N : Nat) :
     ∀ a ∈ noisyStaticWins N, ∀ b ∈ noisyOutWinsAll N, a.overlaps b = false := by
   intro a ha b hb
@@ -5192,6 +5548,17 @@ theorem noisy_generated_pp_row_disjoint (N : Nat) :
   rcases hb with rfl | rfl | rfl <;>
     exact noisy_different_signal_windows_disjoint (by decide)
 
+theorem noisy_generated_pp_row_full_disjoint (N : Nat) :
+    ∀ a ∈ noisyPpWinsAll N, ∀ b ∈ noisyRowWinsAllFull N, a.overlaps b = false := by
+  intro a ha b hb
+  simp only [noisyPpWinsAll, List.mem_flatMap, List.mem_map, List.mem_range] at ha
+  simp only [noisyRowWinsAllFull, List.mem_flatMap] at hb
+  obtain ⟨i, hi, j, hj, rfl⟩ := ha
+  obtain ⟨i', hi', hb⟩ := hb
+  rw [noisy_row_full_mem] at hb
+  rcases hb with rfl | rfl | ⟨k, hk, rfl | rfl | rfl⟩ <;>
+    exact noisy_different_signal_windows_disjoint (by decide)
+
 theorem noisy_generated_pp_out_disjoint (N : Nat) :
     ∀ a ∈ noisyPpWinsAll N, ∀ b ∈ noisyOutWinsAll N, a.overlaps b = false := by
   intro a ha b hb
@@ -5211,25 +5578,36 @@ theorem noisy_generated_row_out_disjoint (N : Nat) :
   rcases ha with rfl | rfl | rfl <;>
     exact noisy_different_signal_windows_disjoint (by decide)
 
+theorem noisy_generated_row_full_out_disjoint (N : Nat) :
+    ∀ a ∈ noisyRowWinsAllFull N, ∀ b ∈ noisyOutWinsAll N, a.overlaps b = false := by
+  intro a ha b hb
+  simp only [noisyRowWinsAllFull, List.mem_flatMap] at ha
+  simp only [noisyOutWinsAll, List.mem_map, List.mem_range] at hb
+  obtain ⟨i, hi, ha⟩ := ha
+  obtain ⟨k, hk, rfl⟩ := hb
+  rw [noisy_row_full_mem] at ha
+  rcases ha with rfl | rfl | ⟨j, hj, rfl | rfl | rfl⟩ <;>
+    exact noisy_different_signal_windows_disjoint (by decide)
+
 theorem noisy_generated_pairwise_of_expected
     (N : Nat) (hN : 1 ≤ N) (names : List String)
     (pp row out : List Process2)
     (hpp : driverWins names pp = noisyPpWinsAll N)
-    (hrow : driverWins names row = noisyRowWinsAll N)
+    (hrow : driverWins names row = noisyRowWinsAllFull N)
     (hout : driverWins names out = noisyOutWinsAll N) :
     List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
       (driverWins names (pp ++ row ++ out)) := by
   apply noisy_generated_pairwise_of_parts
     (names := names) (pp := pp) (row := row) (out := out)
     (ppWins := noisyPpWinsAll N)
-    (rowWins := noisyRowWinsAll N)
+    (rowWins := noisyRowWinsAllFull N)
     (outWins := noisyOutWinsAll N)
     (hpp := hpp) (hrow := hrow) (hout := hout)
   · exact noisy_pp_family_windows_pairwise N hN
-  · exact noisy_row_three_signal_windows_pairwise N hN
+  · exact noisy_row_full_windows_pairwise N hN
   · exact noisy_output_family_windows_pairwise N
-  · exact noisy_generated_pp_row_disjoint N
+  · exact noisy_generated_pp_row_full_disjoint N
   · exact noisy_generated_pp_out_disjoint N
-  · exact noisy_generated_row_out_disjoint N
+  · exact noisy_generated_row_full_out_disjoint N
 
 end Examples.«system-verilog».sem2.noisy_mul_generate
