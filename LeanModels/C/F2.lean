@@ -5843,6 +5843,18 @@ theorem renameStore_preserves_wellFormed
 def intervalOverlap (leftBase leftSize rightBase rightSize : Nat) : Bool :=
   leftBase < rightBase + rightSize && rightBase < leftBase + leftSize
 
+theorem intervalOverlap_contract
+    (leftBase leftSize rightBase rightSize : Nat) :
+    intervalOverlap leftBase leftSize rightBase rightSize = true ↔
+      leftBase < rightBase + rightSize ∧
+      rightBase < leftBase + leftSize := by
+  simp only [intervalOverlap, Bool.and_eq_true]
+  constructor
+  · rintro ⟨hleft, hright⟩
+    exact ⟨decide_eq_true_iff.mp hleft, decide_eq_true_iff.mp hright⟩
+  · rintro ⟨hleft, hright⟩
+    exact ⟨decide_eq_true hleft, decide_eq_true hright⟩
+
 def placementAllowed (store : Store Tag State) (base size : Nat) : Bool :=
   store.allocations.all fun entry =>
     let allocation := entry.2
