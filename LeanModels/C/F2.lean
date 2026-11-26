@@ -8658,6 +8658,21 @@ theorem zeroTokenPlacementAgreement_refusal
 def placementOf (store : Store Tag State) (id : AllocId) : Option Nat :=
   (lookup store id).bind Allocation.address
 
+theorem placementOf_result_contract
+    (store : Store Tag State) (id : AllocId) (result : Option Nat)
+    (hresult : placementOf store id = result) :
+    (∃ allocation,
+      lookup store id = some allocation ∧
+      result = allocation.address) ∨
+    (lookup store id = none ∧ result = none) := by
+  cases hlookup : lookup store id with
+  | none =>
+      right
+      exact ⟨rfl, by simpa [placementOf, hlookup] using hresult.symm⟩
+  | some allocation =>
+      left
+      exact ⟨allocation, rfl, by simpa [placementOf, hlookup] using hresult.symm⟩
+
 theorem placementOf_empty
     {Tag State : Type} (id : AllocId) :
     placementOf (Tag := Tag) (State := State)
