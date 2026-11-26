@@ -3661,6 +3661,20 @@ theorem reallocMetadata_unaddressable_rejects_length_mismatch
     reallocMetadata old request locations .unaddressable = none := by
   simp [reallocMetadata, hmismatch]
 
+theorem reallocMetadata_failure_contract
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement) :
+    reallocMetadata old request locations placement = none ↔
+      match placement with
+      | .fail => False
+      | .address _ => locations.length ≠ request.bytes.length
+      | .unaddressable => locations.length ≠ request.bytes.length := by
+  cases placement with
+  | fail => simp [reallocMetadata]
+  | address base => simp [reallocMetadata]
+  | unaddressable => simp [reallocMetadata]
+
 def pairedReallocMetadata (resolve : AllocId → Nat)
     (old : AllocationMetadata Tag State TypeId)
     (request : AllocationRequest Tag State)
