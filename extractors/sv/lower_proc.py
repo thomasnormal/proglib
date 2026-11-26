@@ -160,7 +160,17 @@ def _iterator_census(ex, symbol):
                         process_ranges.append((r.start.offset, r.end.offset))
             def visit(node):
                 kind = type(node).__name__
-                if kind in ("ProceduralBlock", "AlwaysBlock", "AlwaysCombBlock",
+                # `scope` contains direct module members only.  A generate
+                # block owns its procedural symbols below that boundary, but
+                # Slang's symbol visitor still exposes each
+                # `ProceduralBlockSymbol`.  Use the symbol's retained body
+                # range to partition references by process.  The syntax-kind
+                # names below are not emitted by pyslang for this traversal.
+                if kind == "ProceduralBlockSymbol":
+                    r = getattr(getattr(node, "body", None), "sourceRange", None)
+                    if r is not None:
+                        process_ranges.append((r.start.offset, r.end.offset))
+                elif kind in ("ProceduralBlock", "AlwaysBlock", "AlwaysCombBlock",
                               "AlwaysFFBlock", "AlwaysLatchBlock"):
                     r = getattr(node, "sourceRange", None)
                     if r is not None:

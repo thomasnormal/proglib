@@ -216,6 +216,13 @@ def generate_tb2(mod_name, ports, case):
         lines.append("    #1;")
     lines.append("    $finish;")
     lines.append("  end")
+    # A simulator timeout in the Python parent does not terminate a child
+    # xrun/vvp process.  Keep every generated row self-terminating even when
+    # the DUT never reaches the expected sampling edge.
+    watchdog = max(1, len(stimulus)) * 4 + 10
+    lines.append("  initial begin")
+    lines.append("    #%d $finish;" % watchdog)
+    lines.append("  end")
     lines.append("endmodule")
     return "\n".join(lines) + "\n"
 
@@ -284,5 +291,8 @@ def generate_multi_tb2(mod_name, ports, case):
         fmt = "CYCLE %d " % k + " ".join("%s=%%b" % n for n in signals)
         args = ", ".join("dut.%s" % n for n in signals)
         lines.append('    $display("%s", %s);' % (fmt, args))
-    lines.extend(["    $finish;", "  end", "endmodule"])
+    lines.extend(["    $finish;", "  end"])
+    watchdog = max(1, len(case["instants"])) * 4 + 10
+    lines.extend(["  initial begin", "    #%d $finish;" % watchdog,
+                  "  end", "endmodule"])
     return "\n".join(lines) + "\n"
