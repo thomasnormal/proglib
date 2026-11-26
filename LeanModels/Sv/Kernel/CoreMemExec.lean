@@ -1015,7 +1015,6 @@ def coreMemSubstDecl (scope : CoreMemScope) (d : PDecl) : PDecl :=
     | [] => d.name
     | _ => coreMemGeneratedName { scope with generatedDecls := d.name :: scope.generatedDecls } d.name
   { name := name, type := coreMemSubstType scope d.type,
->>>>>>> a4f225350 (sv: reduce names in unscoped source nodes)
     unpackedDims := d.unpackedDims.map (coreMemSubstDim scope),
     isSigned := d.isSigned, twoState := d.twoState, isInput := d.isInput,
     isOutput := d.isOutput, isNet := d.isNet,
