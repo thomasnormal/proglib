@@ -11516,6 +11516,32 @@ theorem loadByte_result_contract
               refine ⟨allocation, byte, rfl, hlive, hbyte, ?_⟩
               simpa [loadByte, hlookup, hlive, hbyte] using hresult.symm
 
+theorem loadByte_failure_contract
+    (store : Store Tag State) (id offset : Nat) :
+    loadByte store id offset = none ↔
+      lookup store id = none ∨
+      (∃ allocation,
+        lookup store id = some allocation ∧
+        (allocation.live = false ∨ allocation.bytes[offset]? = none)) := by
+  constructor
+  · intro hnone
+    cases hlookup : lookup store id with
+    | none => exact Or.inl rfl
+    | some allocation =>
+        right
+        refine ⟨allocation, rfl, ?_⟩
+        cases hlive : allocation.live with
+        | false => exact Or.inl rfl
+        | true =>
+            cases hvalue : allocation.bytes[offset]? with
+            | none => exact Or.inr rfl
+            | some stored => simp [loadByte, hlookup, hlive, hvalue] at hnone
+  · intro hfailure
+    rcases hfailure with hlookup | ⟨allocation, hlookup, hlive | hbyte⟩
+    · simp [loadByte, hlookup]
+    · simp [loadByte, hlookup, hlive]
+    · simp [loadByte, hlookup, hbyte]
+
 def loadTransitionCorresponds (resolve : AllocId → Nat)
     (source target : Store Tag State)
     (sourceResult targetResult : Byte Tag × Footprint) : Prop :=
