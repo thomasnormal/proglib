@@ -47,5 +47,6 @@ def main():
         version = run(["iverilog", "-V"] if sim == "iverilog" else ["xrun", "-version"]).splitlines()[0]
         print(f"{version}: 8 source rows MATCH")
     print("canonical E: retained parameter-bound loop admitted")
+    print("clocked sv_structure: named descending-loop header refusal")
 if __name__ == "__main__":
     main()
