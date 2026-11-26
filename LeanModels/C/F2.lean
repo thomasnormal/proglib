@@ -11270,6 +11270,33 @@ theorem pairedEndLifetime_preserves_wellFormed
               targetResult (renameStore_preserves_wellFormed resolve store hstore)
               htargetBytes ht⟩
 
+theorem pairedUnaddressableAllocation_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State)
+    (hstore : WellFormed store)
+    (hsourceBytes : bytesWf store.nextId request.bytes)
+    (htargetBytes : bytesWf (renameStore resolve store).nextId
+      (renameAllocationRequest resolve request).bytes)
+    (h : pairedUnaddressableAllocation resolve store request = true) :
+    (∃ source target,
+      allocate store request .unaddressable = some source ∧
+      allocate (renameStore resolve store)
+        (renameAllocationRequest resolve request) .unaddressable = some target ∧
+      WellFormed source.1 ∧ WellFormed target.1) ∨
+    (allocate store request .unaddressable = none ∧
+      allocate (renameStore resolve store)
+        (renameAllocationRequest resolve request) .unaddressable = none) := by
+  rcases pairedUnaddressableAllocation_sound resolve store request h with
+    hsuccess | hfailure
+  · rcases hsuccess with ⟨source, target, hsource, htarget⟩
+    have hwfSource := allocate_preserves_wellFormed store request .unaddressable source
+      hstore hsourceBytes hsource
+    have hwfTarget := allocate_preserves_wellFormed (renameStore resolve store)
+      (renameAllocationRequest resolve request) .unaddressable target
+      (renameStore_preserves_wellFormed resolve store hstore) htargetBytes htarget
+    exact Or.inl ⟨source, target, hsource, htarget, hwfSource, hwfTarget⟩
+  · exact Or.inr hfailure
+
 theorem pairedAllocateFailure_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
