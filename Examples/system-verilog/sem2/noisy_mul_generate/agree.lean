@@ -3276,4 +3276,30 @@ theorem noisy_different_signal_windows_disjoint
     DrvWin.overlaps (a, x) (b, y) = false := by
   simp [DrvWin.overlaps, hne]
 
+theorem noisy_pp_family_windows_pairwise (N : Nat) (hN : 1 ≤ N) :
+    List.Pairwise (fun a b : DrvWin => a.overlaps b = false)
+      ((List.range N).flatMap (fun i =>
+        (List.range N).map (fun j => ("pp", some (i * N + j, 1))))) := by
+  rw [List.pairwise_flatMap]
+  refine ⟨?_, ?_⟩
+  · intro i hi
+    rw [List.pairwise_map]
+    refine (List.pairwise_lt_range.imp ?_)
+    intro j k hjk
+    have hidx : i * N + j < i * N + k := by omega
+    simp [DrvWin.overlaps]
+    omega
+  · refine List.pairwise_lt_range.imp ?_
+    intro i k hik x hx y hy
+    simp only [List.mem_map, List.mem_range] at hx hy
+    obtain ⟨j, hj, rfl⟩ := hx
+    obtain ⟨l, hl, rfl⟩ := hy
+    have htop : i * N + j < (i + 1) * N := by
+      simp [Nat.add_mul]
+      omega
+    have hrow : (i + 1) * N ≤ k * N := by
+      exact Nat.mul_le_mul_right N (Nat.succ_le_of_lt hik)
+    simp [DrvWin.overlaps]
+    omega
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
