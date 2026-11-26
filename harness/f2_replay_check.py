@@ -28,7 +28,7 @@ def check(fixture, source=None):
         return "compiler pin mismatch"
     placements = fixture["placements"]
     intervals = sorted((p["base"], p["base"] + p["size"]) for p in placements)
-    if any(right > left_end for (_, left_end), (right, _) in zip(intervals, intervals[1:])):
+    if any(right < left_end for (_, left_end), (right, _) in zip(intervals, intervals[1:])):
         return "placements overlap"
     if not isinstance(fixture["events"], list):
         return "events must be a list"
@@ -75,6 +75,12 @@ def main():
         bad_ub = dict(good, ending={"kind": "ub", "clause_operand": {"clause": "6.5"}})
         bad_exhaustion = dict(good, ending={"kind": "exhausted"})
         bad_removal = dict(good, allocation_removal={"null_folded": True, "free_null": False})
+        first = {"allocation": 1, "base": 16, "size": 8, "exposed": False}
+        second = {"allocation": 2, "base": 32, "size": 8, "exposed": True}
+        separated = dict(good, placements=[second, first])
+        adjacent = dict(good, placements=[first, dict(second, base=24)])
+        overlapping = dict(good, placements=[first, dict(second, base=23)])
+        enclosing = dict(good, placements=[first, dict(second, base=18, size=2)])
         assert check(good) is None
         assert check(bad) == "compiler pin mismatch"
         assert check(placeholder) == "source hash is not a SHA-256 digest"
@@ -82,6 +88,10 @@ def main():
         assert check(bad_ub) == "UB ending lacks cited clause and operand"
         assert check(bad_exhaustion) == "exhaustion ending lacks complete observable prefix"
         assert check(bad_removal) == "removed allocation null branch lacks free(NULL) step"
+        assert check(separated) is None
+        assert check(adjacent) is None
+        assert check(overlapping) == "placements overlap"
+        assert check(enclosing) == "placements overlap"
         print("f2_replay_check --self-test: ok")
         return 0
     if args.fixture is None:
