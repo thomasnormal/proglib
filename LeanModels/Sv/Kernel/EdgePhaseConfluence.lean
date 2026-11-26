@@ -803,10 +803,10 @@ theorem coreMemEdgeBlockingReadRacePairThroughAssign_false_of_two
     (hguard : coreMemEdgeBlockingReadRaceThroughAssign [p, q] = false)
     (hcommon : coreMemHasCommonEventSourceThroughAssign [p, q] p q = true) :
     (∀ x, x ∈ coreMemProcBlockingWrites p →
-      x ∉ coreMemReadNamesThroughDrivers [p, q] 32
+      x ∉ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames q)) ∧
     (∀ x, x ∈ coreMemProcBlockingWrites q →
-      x ∉ coreMemReadNamesThroughDrivers [p, q] 32
+      x ∉ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames p)) := by
   simpa [coreMemEdgeBlockingReadRaceThroughAssign,
     coreMemEdgeBlockingReadRaceThroughAssignFrom,
@@ -825,10 +825,10 @@ theorem CombPhaseGuard.two_process_read_write_exclusions
     (hprocesses : d.processes = [p, q])
     (hcommon : coreMemHasCommonEventSourceThroughAssign [p, q] p q = true) :
     (∀ x, x ∈ coreMemProcBlockingWrites p →
-      x ∉ coreMemReadNamesThroughDrivers [p, q] 32
+      x ∉ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames q)) ∧
     (∀ x, x ∈ coreMemProcBlockingWrites q →
-      x ∉ coreMemReadNamesThroughDrivers [p, q] 32
+      x ∉ coreMemReadNamesThroughDrivers [p, q] 3
         (coreMemPProcessReadNames p)) := by
   apply coreMemEdgeBlockingReadRacePairThroughAssign_false_of_two
   · simpa [hprocesses] using hg.no_blocking_read_after_closure
