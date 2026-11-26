@@ -4413,6 +4413,32 @@ theorem pairedFreeMetadata_empty_preserves_locations
       result.2.1.locations = (renameZeroTokenMetadata resolve metadata).locations := by
   exact pairedFreeMetadata_preserves_locations resolve metadata result hresult
 
+theorem pairedFreeMetadata_empty_result_shape
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    result.1.1.allocation.bytes = [] ∧
+      result.2.1.allocation.bytes = [] ∧
+      result.1.1.locations = metadata.locations ∧
+      result.2.1.locations = (renameZeroTokenMetadata resolve metadata).locations ∧
+      result.1.1.allocation.live = false ∧
+      result.2.1.allocation.live = false ∧
+      result.1.2 = footprint .metadata (Region.mk 0 0 0) ∧
+      result.2.2 = footprint .metadata (Region.mk 0 0 0) := by
+  have hpayload := pairedFreeMetadata_empty_preserves_payload
+    resolve metadata result hbytes hresult
+  have hlocations := pairedFreeMetadata_empty_preserves_locations
+    resolve metadata result hbytes hresult
+  have hdead := pairedFreeMetadata_empty_marks_dead
+    resolve metadata result hbytes hresult
+  have hfootprints := pairedFreeMetadata_empty_footprints
+    resolve metadata result hresult hbytes
+  exact ⟨hpayload.1, hpayload.2, hlocations.1, hlocations.2,
+    hdead.1, hdead.2, hfootprints.1, hfootprints.2⟩
+
 theorem freeMetadata_empty_preserves_payload
     (metadata : AllocationMetadata Tag State TypeId)
     (result : AllocationMetadata Tag State TypeId × Footprint)
