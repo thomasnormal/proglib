@@ -5959,6 +5959,17 @@ theorem alignmentAllowed_refusal_remainder
     alignmentAllowed base alignment = false := by
   simp [alignmentAllowed, hpositive, hremainder]
 
+theorem alignmentAllowed_contract
+    (base alignment : Nat) :
+    alignmentAllowed base alignment = true ↔
+      0 < alignment ∧ base % alignment = 0 := by
+  simp only [alignmentAllowed, Bool.and_eq_true]
+  constructor
+  · rintro ⟨hpositive, hmod⟩
+    exact ⟨decide_eq_true_iff.mp hpositive, beq_iff_eq.mp hmod⟩
+  · rintro ⟨hpositive, hmod⟩
+    exact ⟨decide_eq_true hpositive, beq_iff_eq.mpr hmod⟩
+
 def pairedAlignmentAllowed (resolve : AllocId → Nat)
     (id alignment : Nat) : Bool :=
   alignmentAllowed id alignment == alignmentAllowed (resolve id) alignment
