@@ -3338,4 +3338,30 @@ theorem noisy_rect_family_windows_pairwise (N : Nat) (hN : 1 ≤ N)
     simp [DrvWin.overlaps]
     omega
 
+theorem noisy_arrayElemTarget_sq_genvar
+    {env : IEnv} {elems : List (String × Nat)} {n : String}
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (hd : env.dims.lookup n = some [((N : Int) - 1, 0), ((N : Int) - 1, 0)]) :
+    instLhs2 ((env.bindVal "i" i).bindVal "j" j) elems
+        (.arrayElem n [.genvarRef "i", .genvarRef "j"]) =
+      .ok (.slice n (i * N + j) 1, 1) := by
+  refine noisy_arrayElemTarget_sq_of_range
+    (env := (env.bindVal "i" i).bindVal "j" j) (elems := elems) hN hi hj ?_ ?_ ?_
+  · simpa [IEnv.bindVal] using hd
+  · exact evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup])
+  · exact evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup])
+
+theorem noisy_arrayElemTarget_rect_genvar
+    {env : IEnv} {elems : List (String × Nat)} {n : String}
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j ≤ N)
+    (hd : env.dims.lookup n = some [((N : Int) - 1, 0), ((N : Int), 0)]) :
+    instLhs2 ((env.bindVal "i" i).bindVal "j" j) elems
+        (.arrayElem n [.genvarRef "i", .genvarRef "j"]) =
+      .ok (.slice n (i * (N + 1) + j) 1, 1) := by
+  refine noisy_arrayElemTarget_rect_of_range
+    (env := (env.bindVal "i" i).bindVal "j" j) (elems := elems) hN hi hj ?_ ?_ ?_
+  · simpa [IEnv.bindVal] using hd
+  · exact evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup])
+  · exact evalInt_genvarRef_of (by simp [IEnv.bindVal, List.lookup])
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
