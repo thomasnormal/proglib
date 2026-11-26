@@ -3041,6 +3041,49 @@ theorem reallocMetadata_empty_result_shape
       simp [reallocMetadata] at hresult
       exact hresult.symm
 
+theorem reallocMetadata_contract
+    (old : AllocationMetadata Tag State TypeId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement)
+    (result : ReallocOutcome Tag State TypeId × Footprint)
+    (hresult : reallocMetadata old request locations placement = some result) :
+    match placement with
+    | .fail =>
+        result = (.failed old,
+          footprint .metadata (Region.mk 0 0 old.allocation.bytes.length))
+    | .address base =>
+        locations.length = request.bytes.length ∧
+          result =
+            (.replaced
+              { allocation :=
+                  { live := true, address := some base,
+                    bytes := request.bytes, state := request.state },
+                locations := locations },
+              footprint .metadata (Region.mk 0 0 request.bytes.length))
+    | .unaddressable =>
+        locations.length = request.bytes.length ∧
+          result =
+            (.replaced
+              { allocation :=
+                  { live := true, address := none,
+                    bytes := request.bytes, state := request.state },
+                locations := locations },
+              footprint .metadata (Region.mk 0 0 request.bytes.length)) := by
+  cases placement with
+  | fail =>
+      simp [reallocMetadata] at hresult
+      exact hresult.symm
+  | address base =>
+      by_cases hsame : locations.length = request.bytes.length
+      · simp [reallocMetadata, hsame] at hresult
+        exact ⟨hsame, hresult.symm⟩
+      · simp [reallocMetadata, hsame] at hresult
+  | unaddressable =>
+      by_cases hsame : locations.length = request.bytes.length
+      · simp [reallocMetadata, hsame] at hresult
+        exact ⟨hsame, hresult.symm⟩
+      · simp [reallocMetadata, hsame] at hresult
+
 theorem reallocMetadata_address_rejects_length_mismatch
     (old : AllocationMetadata Tag State TypeId)
     (request : AllocationRequest Tag State)
