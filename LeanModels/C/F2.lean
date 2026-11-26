@@ -4758,6 +4758,10 @@ theorem reallocZeroAgrees_refusal (source target : ReallocZeroOutcome)
     reallocZeroAgrees source target = false := by
   simp [reallocZeroAgrees, hneq]
 
+theorem reallocZeroAgrees_contract (source target : ReallocZeroOutcome) :
+    reallocZeroAgrees source target = true ↔ source = target := by
+  simp [reallocZeroAgrees]
+
 def pairedReallocZero (_resolve : AllocId → Nat) : Bool :=
   reallocZeroAgrees reallocZeroGNU17 reallocZeroGNU17
 
