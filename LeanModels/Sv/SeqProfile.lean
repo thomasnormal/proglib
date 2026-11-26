@@ -384,27 +384,24 @@ theorem resolve_covered {fuel : Nat} {st : SvState} {t : Lhs2} {n : String} {lo 
       · obtain ⟨c, j, rfl, hj, rfl, rfl⟩ := indexWin?_some hw
         simp only [resolveLhs2, Res.bind_eq_ok] at h
         obtain ⟨iv, hiv, h⟩ := h
-        cases fuel with
-        | zero => simp [evalExpr2] at hiv
-        | succ f =>
-            simp only [evalExpr2, Res.ok.injEq] at hiv
-            subst hiv
-            simp only [indexInt?, Expr2.indexSigned, Bool.false_eq_true, ↓reduceIte] at h
-            rw [hj] at h
-            cases hm : SvState.lookup st m with
-            | none => rw [hm] at h; simp at h
-            | some old =>
-                rw [hm] at h
-                simp only [Option.map_some, Bool.and_eq_true, decide_eq_true_eq, Bool.true_and] at h
-                by_cases hcond : (0 : Int) ≤ j ∧
-                    ((j : Int) + 1) * (k : Int) ≤ (old.width : Int)
-                · simp only [Int.ofNat_eq_coe] at h
-                  rw [if_pos hcond] at h
-                  obtain ⟨rfl, rfl, rfl⟩ := h
-                  simp
-                · simp only [Int.ofNat_eq_coe] at h
-                  rw [if_neg hcond] at h
-                  simp at h
+        simp only [evalPure2, Res.ok.injEq] at hiv
+        subst hiv
+        simp only [indexInt?, Expr2.indexSigned, Bool.false_eq_true, ↓reduceIte] at h
+        rw [hj] at h
+        cases hm : SvState.lookup st m with
+        | none => rw [hm] at h; simp at h
+        | some old =>
+            rw [hm] at h
+            simp only [Option.map_some, Bool.and_eq_true, decide_eq_true_eq, Bool.true_and] at h
+            by_cases hcond : (0 : Int) ≤ j ∧
+                ((j : Int) + 1) * (k : Int) ≤ (old.width : Int)
+            · simp only [Int.ofNat_eq_coe] at h
+              rw [if_pos hcond] at h
+              obtain ⟨rfl, rfl, rfl⟩ := h
+              simp
+            · simp only [Int.ofNat_eq_coe] at h
+              rw [if_neg hcond] at h
+              simp at h
   | concat ps => simp [resolveLhs2] at h
 
 /-- **Every update a run issues is covered by a window of the statement.** -/
