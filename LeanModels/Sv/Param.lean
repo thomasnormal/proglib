@@ -3800,7 +3800,7 @@ def PDesign.crossCheck (d₀ : PDesign) : List String :=
   -- The DEFAULT point (`atPoint []`): untyped parameters with a non-INT
   -- default carry the default's type, as in slang's elaboration.
   match d₀.atPoint [] with
-  | .error e => [s!"defaults: {e}"]
+  | .error e => afterDefaultsError d₀ (s!"defaults: {e}")
   | .ok (d, args) =>
       let paramMsgs := (d.params.zip args).filterMap fun (p, v) =>
         match p.resolved? with
@@ -3822,6 +3822,29 @@ def PDesign.crossCheck (d₀ : PDesign) : List String :=
       | .timeout => paramMsgs ++ localMsgs ++ ["enums: timeout"]
       | .unsupported e => paramMsgs ++ localMsgs ++ [s!"enums: {e}"]
 where
+  /-- Continue the differential checks after a defaults error.  A failed
+  package or parameter binding must not hide independent localparam,
+  declaration-width, or generate-count mismatches later in the envelope. -/
+  afterDefaultsError (d : PDesign) (head : String) : List String :=
+    let env0 : IEnv := { int32 := true, functions := d.functions }
+    let envP : IEnv :=
+      match bindPackageEnums env0 d.enums with
+      | .ok e =>
+          match bindPackageParams e d.packageParams with
+          | .ok p => p
+          | .unsupported _ | .timeout => env0
+      | .unsupported _ | .timeout => env0
+    let (localMsgs, env1) := checkLocals envP d.localParams
+    let env2 :=
+      match bindEnums env1 d.enums with
+      | .ok e => e
+      | .unsupported _ | .timeout => env1
+    let declMsgs := checkDecls env2 d.decls
+    let genMsgs := checkGenerates
+      { env2 with widths := declWidths env2 d.decls }
+      (PDesign.surfaceFuel []) d.generates
+    head :: (localMsgs ++ declMsgs ++ genMsgs)
+
   declWidths (env : IEnv) (decls : List PDecl) : List (String × Nat) :=
     match buildDecls env decls with
     | .ok ds => ds.map fun dc => (dc.name, dc.width)
