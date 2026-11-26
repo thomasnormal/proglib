@@ -865,6 +865,33 @@ theorem typedStoreMetadataByte_preserves_wellFormed
   unfold AllocationMetadata.wellFormed
   exact ⟨hbytes, by simpa [listSet_length] using hlocations⟩
 
+theorem typedStoreMetadataByte_contract
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (typeId : TypeId) (byte : Byte Tag)
+    (result : AllocationMetadata Tag State TypeId × Footprint)
+    (hresult : typedStoreMetadataByte metadata offset typeId byte = some result)
+    (hbytes : bytesWf 0 (listSet metadata.allocation.bytes offset byte))
+    (hlocations : metadata.locations.length = metadata.allocation.bytes.length) :
+    result.1.allocation.bytes = listSet metadata.allocation.bytes offset byte ∧
+      result.1.locations = listSet metadata.locations offset
+        { effectiveType := .typed typeId, initialized := true } ∧
+      result.2 = footprint .write { allocation := 0, offset := offset, width := 1 } ∧
+      result.1.allocation.live = metadata.allocation.live ∧
+      result.1.allocation.address = metadata.allocation.address ∧
+      result.1.allocation.state = metadata.allocation.state ∧
+      result.1.allocation.bytes.length = metadata.allocation.bytes.length ∧
+      result.1.locations.length = metadata.locations.length ∧
+      result.1.wellFormed 0 := by
+  rcases typedStoreMetadataByte_success_shape metadata offset typeId byte result hresult with
+    ⟨hbytes', hlocations', hfootprint⟩
+  rcases typedStoreMetadataByte_preserves_payload metadata offset typeId byte result hresult with
+    ⟨hlive, haddress, hstate⟩
+  exact ⟨hbytes', hlocations', hfootprint, hlive, haddress, hstate,
+    typedStoreMetadataByte_preserves_byte_length metadata offset typeId byte result hresult,
+    typedStoreMetadataByte_preserves_length metadata offset typeId byte result hresult,
+    typedStoreMetadataByte_preserves_wellFormed metadata offset typeId byte result
+      hresult hbytes hlocations⟩
+
 def renameMetadata (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId) :
     AllocationMetadata Tag State TypeId :=
