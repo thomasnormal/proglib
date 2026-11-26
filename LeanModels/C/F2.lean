@@ -4573,6 +4573,33 @@ theorem pairedFreeMetadata_empty_result_stale_pointers
       freePointer (some result.2.1) = .stalePointer := by
   exact pairedFreeMetadata_result_stale_pointers resolve metadata result hresult
 
+theorem pairedFreeMetadata_empty_contract
+    (resolve : AllocId → Nat)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (result : (AllocationMetadata Tag State TypeId × Footprint) ×
+      (AllocationMetadata Tag State TypeId × Footprint))
+    (hmetadata : metadata.wellFormed 0)
+    (hbytes : metadata.allocation.bytes = [])
+    (hresult : pairedFreeMetadata resolve metadata = some result) :
+    (result.1.1.allocation.bytes = [] ∧
+      result.2.1.allocation.bytes = [] ∧
+      result.1.1.locations = metadata.locations ∧
+      result.2.1.locations = (renameZeroTokenMetadata resolve metadata).locations ∧
+      result.1.1.allocation.live = false ∧
+      result.2.1.allocation.live = false ∧
+      result.1.2 = footprint .metadata (Region.mk 0 0 0) ∧
+      result.2.2 = footprint .metadata (Region.mk 0 0 0)) ∧
+      (result.1.1.wellFormed 0 ∧ result.2.1.wellFormed 0) ∧
+      (freePointer (some result.1.1) = .stalePointer ∧
+        freePointer (some result.2.1) = .stalePointer) := by
+  constructor
+  · exact pairedFreeMetadata_empty_result_shape resolve metadata result hbytes hresult
+  constructor
+  · exact pairedFreeMetadata_empty_result_wellFormed resolve metadata result
+      hmetadata hbytes hresult
+  · exact pairedFreeMetadata_empty_result_stale_pointers resolve metadata result
+      hbytes hresult
+
 theorem freePointer_live_or_dead
     (metadata : AllocationMetadata Tag State TypeId) :
     freePointer (some metadata) = .freed ∨
