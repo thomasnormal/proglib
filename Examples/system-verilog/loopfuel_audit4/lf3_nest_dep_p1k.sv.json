@@ -78,7 +78,8 @@
               "value": 3,
               "resolved_width": 32
             },
-            "resolved": 3
+            "resolved": 3,
+            "string": false
           }
         ],
         "types": [],
@@ -452,9 +453,11 @@
                         }
                       }
                     },
-                    "symbolic_for_parameter": true
+                    "symbolic_for_parameter": true,
+                    "symbolic_for_retained": true
                   },
-                  "symbolic_for_parameter": true
+                  "symbolic_for_parameter": true,
+                  "symbolic_for_retained": true
                 },
                 {
                   "kind": "NonblockingAssign",

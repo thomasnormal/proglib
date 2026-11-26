@@ -6,7 +6,9 @@ The question C5 asks: wherever the OLD fixed-fuel semantics (the merge base) giv
 one (the tip) give the same answer? The tree's `coreMemFuelMono` relates the tip's executor to ITSELF at two fuels;
 this file keeps a renamed copy of the merge-base executor. The block between the `-- BEGIN MERGE-BASE`
 and `-- END MERGE-BASE` markers below is the merge base's `execStmtFuel`/`execStmtsFuel`/`execLoopValuesFuel` mutual
-block and its `execStmt` entry at merge base `03579f0c7`, copied by `sed` with only the names changed (`old*`).
+block and its `execStmt` entry at the merge base used by the branch (the audit-5 base was `03579f0c7`), copied by
+`sed` with only the names changed (`old*`). `tools/test_conservative_copy.py` derives the current merge base and
+compares the marked block against `git show`, so a rebase cannot silently leave this proof paired with another entry.
 The copied block has the merge-base entry budget `4096`; the tip entry adds `PStmt.need` and
 `PStmt.runtimeNeed`. Inside the mutual block, the only semantic difference is that the loop arm reads
 `forValues2` (unchecked) where the tip reads `forValues2Int32`.

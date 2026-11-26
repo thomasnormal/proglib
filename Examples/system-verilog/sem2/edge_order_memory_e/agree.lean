@@ -104,7 +104,7 @@ example (v : SvState) (values : List Int) (m : Int → MemQV) :
 example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
     (it : String) (init condition step : PExpr) (body : PStmt) (values : List Int)
     (hloop : PStmt.loopBodyB body = true)
-    (hvals : forValues2 env it init condition step = .ok values)
+    (hvals : forValues2Int32 env it init condition step = .ok values)
     (hbody : ∀ i, ∃ mq, E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
       (∀ u ∈ mq, u.1 ∈ body.writes)) :
     ∃ mq, E.execV env v mv (.forLoop it init condition step body) = .ok (v, [], mq) ∧
@@ -118,7 +118,7 @@ example (body : PStmt) (h : PStmt.loopNbaMemory body = true) :
 example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
     (body : PStmt) (it : String) (init condition step : PExpr) (values : List Int)
     (hbodyP : PStmt.loopNbaMemory body = true)
-    (hvals : forValues2 env it init condition step = .ok values)
+    (hvals : forValues2Int32 env it init condition step = .ok values)
     (hbody : ∀ i, ∃ mq, E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
       (∀ u ∈ mq, u.1 ∈ body.writes)) :
     ∃ mq, E.execV env v mv (.forLoop it init condition step body) = .ok (v, [], mq) ∧
@@ -158,7 +158,7 @@ example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
     (body : PStmt) (it : String) (init condition step : PExpr) (values : List Int)
     (hshape : PStmt.memoryLeafB body = true)
     (hdecl : ∀ n ∈ body.writes, ∃ md, E.memDecl? n = some md)
-    (hvals : forValues2 env it init condition step = .ok values)
+    (hvals : forValues2Int32 env it init condition step = .ok values)
     (hbody : ∀ i, i ∈ values → ∃ mq,
       E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
       (∀ u ∈ mq, u.1 ∈ body.writes)) :
@@ -182,7 +182,7 @@ example (E : CoreMemDesign) (env : IEnv) (v : SvState) (mv : MemV)
     (hdecl : ∀ n ∈ (PStmt.ifStmt guard (.forLoop it init condition step body) none).writes,
       ∃ md, E.memDecl? n = some md)
     (values : List Int)
-    (hvals : forValues2 env it init condition step = .ok values)
+    (hvals : forValues2Int32 env it init condition step = .ok values)
     (hbody : ∀ i, i ∈ values → ∃ mq,
       E.execV (env.bindVal it i) v mv body = .ok (v, [], mq) ∧
       (∀ u ∈ mq, u.1 ∈ body.writes))
