@@ -2371,6 +2371,35 @@ def unionLoadMetadataByte
   if !location.initialized then none
   else some (byte, footprint .read { allocation := 0, offset := offset, width := 1 })
 
+theorem unionLoadMetadataByte_failure_contract
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat) :
+    unionLoadMetadataByte metadata offset = none ↔
+      metadata.allocation.bytes[offset]? = none ∨
+      metadata.locations[offset]? = none ∨
+      (∃ byte location,
+        metadata.allocation.bytes[offset]? = some byte ∧
+        metadata.locations[offset]? = some location ∧
+        location.initialized = false) := by
+  constructor
+  · intro hnone
+    cases hbyte : metadata.allocation.bytes[offset]? with
+    | none => exact Or.inl rfl
+    | some byte =>
+        cases hlocation : metadata.locations[offset]? with
+        | none => exact Or.inr (Or.inl rfl)
+        | some location =>
+            right
+            right
+            refine ⟨byte, location, rfl, rfl, ?_⟩
+            cases hinitialized : location.initialized with
+            | false => exact rfl
+            | true => simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized] at hnone
+  · intro hfailure
+    rcases hfailure with hbyte | hlocation | ⟨byte, location, hbyte, hlocation, hinitialized⟩
+    · simp [unionLoadMetadataByte, hbyte]
+    · simp [unionLoadMetadataByte, hlocation]
+    · simp [unionLoadMetadataByte, hbyte, hlocation, hinitialized]
+
 theorem unionLoadMetadataByte_empty_none
     (metadata : AllocationMetadata Tag State TypeId)
     (offset : Nat)
