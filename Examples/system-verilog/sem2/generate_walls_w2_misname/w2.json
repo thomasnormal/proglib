@@ -1,0 +1,321 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "m",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/generate_walls_w2_misname/w2g_gfor_if_decl.sv",
+      "sha256": "30efe2bc016ec75538f582505aa16460bb10bd3d68e11d7934788294c3570ce2"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 3,
+          "col": 1,
+          "end_line": 18,
+          "end_col": 10
+        },
+        "name": "m",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 3,
+              "col": 35,
+              "end_line": 3,
+              "end_col": 40
+            },
+            "name": "N",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 35,
+                      "end_line": 3,
+                      "end_col": 40
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 35,
+                      "end_line": 3,
+                      "end_col": 40
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 3,
+                "col": 39,
+                "end_line": 3,
+                "end_col": 40
+              },
+              "value": 2,
+              "resolved_width": 32
+            },
+            "resolved": 2,
+            "string": false,
+            "signed": false
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 24,
+              "end_line": 4,
+              "end_col": 25
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 4,
+                      "col": 17,
+                      "end_line": 4,
+                      "end_col": 20
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 4,
+                        "col": 17,
+                        "end_line": 4,
+                        "end_col": 18
+                      },
+                      "name": "N"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 4,
+                        "col": 19,
+                        "end_line": 4,
+                        "end_col": 20
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 4,
+                      "col": 21,
+                      "end_line": 4,
+                      "end_col": 22
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 2
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 24,
+              "end_line": 5,
+              "end_col": 25
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 5,
+                      "col": 17,
+                      "end_line": 5,
+                      "end_col": 20
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 5,
+                        "col": 17,
+                        "end_line": 5,
+                        "end_col": 18
+                      },
+                      "name": "N"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 5,
+                        "col": 19,
+                        "end_line": 5,
+                        "end_col": 20
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 21,
+                      "end_line": 5,
+                      "end_col": 22
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 2
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [],
+        "generates": [
+          {
+            "kind": "GenerateFor",
+            "span": {
+              "line": 7,
+              "col": 3,
+              "end_line": 17,
+              "end_col": 6
+            },
+            "label": "g",
+            "genvar": "k",
+            "init": {
+              "kind": "Int",
+              "span": {
+                "line": 7,
+                "col": 19,
+                "end_line": 7,
+                "end_col": 20
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "bound": {
+              "kind": "Binary",
+              "span": {
+                "line": 7,
+                "col": 22,
+                "end_line": 7,
+                "end_col": 27
+              },
+              "width": 1,
+              "op": "<",
+              "left": {
+                "kind": "Resize",
+                "span": {
+                  "line": 7,
+                  "col": 22,
+                  "end_line": 7,
+                  "end_col": 23
+                },
+                "width": 32,
+                "operand": {
+                  "kind": "GenvarRef",
+                  "span": {
+                    "line": 7,
+                    "col": 22,
+                    "end_line": 7,
+                    "end_col": 23
+                  },
+                  "name": "k"
+                }
+              },
+              "right": {
+                "kind": "ParamRef",
+                "span": {
+                  "line": 7,
+                  "col": 26,
+                  "end_line": 7,
+                  "end_col": 27
+                },
+                "name": "N"
+              }
+            },
+            "step": {
+              "kind": "Unary",
+              "span": {
+                "line": 7,
+                "col": 29,
+                "end_line": 7,
+                "end_col": 32
+              },
+              "width": null,
+              "op": "++",
+              "operand": {
+                "kind": "GenvarRef",
+                "span": {
+                  "line": 7,
+                  "col": 29,
+                  "end_line": 7,
+                  "end_col": 30
+                },
+                "name": "k"
+              }
+            },
+            "resolved_count": 2,
+            "body": [
+              {
+                "kind": "Unsupported",
+                "span": {
+                  "line": 7,
+                  "col": 3,
+                  "end_line": 17,
+                  "end_col": 6
+                },
+                "sv_kind": "GenerateDecl:instance-name",
+                "text": "a declaration inside generate-if nested in generate-for has a template instance name; per-instance scope naming is not modeled (IEEE 1800-2023 \u00a7\u00a727.4-27.6)"
+              }
+            ]
+          }
+        ],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

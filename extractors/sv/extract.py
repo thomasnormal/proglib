@@ -35121,6 +35121,27 @@ def convert_generate_for(sm, m, path=()):
             # exists; the body is kept as raw source (honest limit).
             body = [_syntax_unsupported(sm, m.syntax,
                                         "GenerateFor:no-template")]
+        def nested_generate_if_decl(nodes):
+            for node in nodes:
+                if not isinstance(node, dict):
+                    continue
+                kind = node.get("kind")
+                if kind == "GenerateIf":
+                    branches = [node.get("then", []), node.get("else", [])]
+                    for branch in branches:
+                        if any(isinstance(item, dict) and item.get("kind") in
+                               ("Var", "Net", "UnpackedDecl") for item in branch):
+                            return True
+                        if nested_generate_if_decl(branch):
+                            return True
+                elif kind == "GenerateFor" and nested_generate_if_decl(node.get("body", [])):
+                    return True
+            return False
+        if nested_generate_if_decl(body):
+            body = [unsupported(
+                sm, m, "GenerateDecl:instance-name",
+                "a declaration inside generate-if nested in generate-for has a template instance name; "
+                "per-instance scope naming is not modeled (IEEE 1800-2023 §§27.4-27.6)")]
         return {
             "kind": "GenerateFor",
             "span": span,
