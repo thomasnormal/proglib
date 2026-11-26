@@ -3885,6 +3885,32 @@ theorem noisy_pp_paths_driverWins
   intro j hj
   exact hwin i hi j hj
 
+theorem noisy_pp_path_driverWins_at
+    {N i j : Nat} (hN : 1 ≤ N) (hi : i < N) (hj : j < N)
+    (env : IEnv) (elems : List (String × Nat)) (names : List String)
+    (ha : names.contains (("g_pp[" ++ toString (i : Int) ++ "].g_pp_j[" ++
+      toString (j : Int) ++ "].u_and.") ++ "a") = false)
+    (hb : names.contains (("g_pp[" ++ toString (i : Int) ++ "].g_pp_j[" ++
+      toString (j : Int) ++ "].u_and.") ++ "b") = false)
+    (hc : names.contains (("g_pp[" ++ toString (i : Int) ++ "].g_pp_j[" ++
+      toString (j : Int) ++ "].u_and.") ++ "c") = false)
+    (hf : names.contains (("g_pp[" ++ toString (i : Int) ++ "].g_pp_j[" ++
+      toString (j : Int) ++ "].u_and.") ++ "f") = false)
+    (hy : names.contains (("g_pp[" ++ toString (i : Int) ++ "].g_pp_j[" ++
+      toString (j : Int) ++ "].u_and.") ++ "y") = false)
+    (hp : names.contains "pp" = true)
+    (hd : env.dims.lookup "pp" = some [((N : Int) - 1, 0), ((N : Int) - 1, 0)]) :
+    driverWins names
+      (noisyFullFamilySegment env elems
+        (.child { loops := ppSourceLoops, inst := andInst, child := andDef },
+          [i, j])).2 =
+      [("pp", some (i * N + j, 1))] := by
+  simpa [noisyFullFamilySegment, noisyTopNodeSegment,
+    noisyTopGeneratedPairSegment, noisyTopNodeChild, andInst] using
+    (noisy_and_flatten_driverWins_at hN hi hj env elems
+      ("g_pp[" ++ toString (i : Int) ++ "].g_pp_j[" ++
+        toString (j : Int) ++ "].u_and.") names ha hb hc hf hy hp hd)
+
 theorem noisy_out_paths_driverWins
     (N : Nat) (env : IEnv) (elems : List (String × Nat))
     (names : List String)
@@ -3901,6 +3927,16 @@ theorem noisy_out_paths_driverWins
   apply CombView.flatMap_congr'
   intro i hi
   exact hwin i hi
+
+theorem noisy_generated_family_driverWins_append
+    (names : List String)
+    (pp row out : List Process2)
+    (ppWins rowWins outWins : List DrvWin)
+    (hpp : driverWins names pp = ppWins)
+    (hrow : driverWins names row = rowWins)
+    (hout : driverWins names out = outWins) :
+    driverWins names (pp ++ row ++ out) = ppWins ++ rowWins ++ outWins := by
+  rw [driverWins_append, driverWins_append, hpp, hrow, hout]
 
 theorem noisy_generated_family_driverWins_flat
     (rows cols : Nat) (signal : String)
