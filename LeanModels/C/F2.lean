@@ -106,6 +106,17 @@ theorem renameByte_pointer_fragment
         (some provenance) (some fragment) := by
   rfl
 
+theorem renameByte_contract (resolve : AllocId → Nat) (byte : Byte Tag) :
+    byteFragment (renameByte resolve byte) = byteFragment byte ∧
+      byteProvenance (renameByte resolve byte) = byteProvenance byte ∧
+      (∀ (bits : UInt8) (provenance : Provenance Tag) (fragment : Nat),
+        renameByte resolve (.value bits (some provenance) (some fragment)) =
+          .value (pointerByte (resolve provenance.allocation) fragment)
+            (some provenance) (some fragment)) := by
+  exact ⟨renameByte_preserves_fragment resolve byte,
+    renameByte_preserves_provenance resolve byte,
+    fun bits provenance fragment => renameByte_pointer_fragment resolve bits provenance fragment⟩
+
 inductive Value (Tag : Type) where
   | scalar (bytes : List UInt8)
   | pointer (pointer : Pointer Tag)
