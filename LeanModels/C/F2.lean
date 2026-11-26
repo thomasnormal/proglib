@@ -932,6 +932,29 @@ theorem renameMetadata_comp (first second : AllocId → Nat) (id : AllocId)
           intro value hvalue
           exact renameByte_comp first second value
 
+theorem renameMetadata_contract (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) :
+    (renameMetadata resolve id metadata).locations = metadata.locations ∧
+      (renameMetadata resolve id metadata).allocation.live =
+        metadata.allocation.live ∧
+      (renameMetadata resolve id metadata).allocation.state =
+        metadata.allocation.state ∧
+      (renameMetadata resolve id metadata).allocation.address =
+        metadata.allocation.address.map (fun _ => resolve id) ∧
+      (renameMetadata resolve id metadata).allocation.bytes =
+        metadata.allocation.bytes.map (renameByte resolve) ∧
+      (renameMetadata resolve id metadata).allocation.bytes.length =
+        metadata.allocation.bytes.length ∧
+      (renameMetadata resolve id (renameMetadata resolve id metadata)) =
+        renameMetadata resolve id metadata := by
+  exact ⟨renameMetadata_preserves_locations resolve id metadata,
+    renameMetadata_preserves_liveness resolve id metadata,
+    renameMetadata_preserves_state resolve id metadata,
+    renameMetadata_address_shape resolve id metadata,
+    renameMetadata_bytes_shape resolve id metadata,
+    renameMetadata_preserves_byte_length resolve id metadata,
+    renameMetadata_comp resolve resolve id metadata⟩
+
 def pairedTypedStoreMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
