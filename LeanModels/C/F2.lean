@@ -8607,6 +8607,14 @@ theorem PlacementAgreement.agrees_of_agreesAt
   intro id
   exact agreement.agreesAt_sound id (h id)
 
+theorem PlacementAgreement.agrees_contract
+    (agreement : PlacementAgreement) :
+    agreement.agrees ↔ ∀ id, agreement.agreesAt id = true := by
+  constructor
+  · intro hagrees id
+    simp [PlacementAgreement.agreesAt, hagrees id]
+  · exact agreement.agrees_of_agreesAt
+
 theorem PlacementAgreement.agreesAt_refusal
     (agreement : PlacementAgreement) (id : AllocId)
     (h : agreement.left id ≠ agreement.right id) :
