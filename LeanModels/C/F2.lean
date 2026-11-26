@@ -1686,6 +1686,52 @@ theorem typedLoadMetadataByte_type_mismatch_refusal
     typedLoadMetadataByte metadata offset typeId = none := by
   simp [typedLoadMetadataByte, hbyte, hlocation, hmismatch]
 
+theorem typedLoadMetadataByte_failure_contract
+    [BEq TypeId]
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) :
+    typedLoadMetadataByte metadata offset typeId = none ↔
+      metadata.allocation.bytes[offset]? = none ∨
+      metadata.locations[offset]? = none ∨
+      (∃ byte location,
+        metadata.allocation.bytes[offset]? = some byte ∧
+        metadata.locations[offset]? = some location ∧
+        match location.effectiveType with
+        | .typed storedType => (storedType == typeId) = false
+        | .untyped | .padding | .indeterminate => True) := by
+  constructor
+  · intro hnone
+    cases hbyte : metadata.allocation.bytes[offset]? with
+    | none => exact Or.inl rfl
+    | some byte =>
+        cases hlocation : metadata.locations[offset]? with
+        | none => exact Or.inr (Or.inl rfl)
+        | some location =>
+            right
+            right
+            refine ⟨byte, location, rfl, rfl, ?_⟩
+            cases heffective : location.effectiveType with
+            | typed storedType =>
+                cases hmatch : storedType == typeId with
+                | false => exact hmatch
+                | true => simp [typedLoadMetadataByte, hbyte, hlocation,
+                    heffective, hmatch] at hnone
+            | untyped => trivial
+            | padding => trivial
+            | indeterminate => trivial
+  · intro hfailure
+    rcases hfailure with hbyte | hlocation | ⟨byte, location, hbyte, hlocation, heffective⟩
+    · simp [typedLoadMetadataByte, hbyte]
+    · simp [typedLoadMetadataByte, hlocation]
+    · cases heffective' : location.effectiveType with
+      | typed storedType =>
+          have hmismatch : (storedType == typeId) = false := by
+            simpa [heffective'] using heffective
+          simp [typedLoadMetadataByte, hbyte, hlocation, heffective', hmismatch]
+      | untyped => simp [typedLoadMetadataByte, hbyte, hlocation, heffective']
+      | padding => simp [typedLoadMetadataByte, hbyte, hlocation, heffective']
+      | indeterminate => simp [typedLoadMetadataByte, hbyte, hlocation, heffective']
+
 def pairedTypedLoadMetadataByte [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
