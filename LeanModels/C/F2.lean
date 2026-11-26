@@ -12252,6 +12252,12 @@ theorem pairedPlacementAllowed_contract
         placementAllowed (renameStore resolve store) (resolve store.nextId) size := by
   simp [pairedPlacementAllowed, beq_iff_eq]
 
+theorem pairedAlignmentAllowed_contract
+    (resolve : AllocId → Nat) (id alignment : Nat) :
+    pairedAlignmentAllowed resolve id alignment = true ↔
+      alignmentAllowed id alignment = alignmentAllowed (resolve id) alignment := by
+  simp [pairedAlignmentAllowed, beq_iff_eq]
+
 theorem pairedLifetimeLookup_contract
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
     (pairedLifetimeLookup resolve store id = true ∧
