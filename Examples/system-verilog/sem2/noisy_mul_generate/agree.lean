@@ -4259,4 +4259,25 @@ theorem noisy_row_child_cell_driverWins
   rw [driverWins_append, driverWins_append, htw, hsw, hcw]
   simp
 
+theorem noisy_row_child_paths_processes
+    (env : IEnv) (elems : List (String × Nat)) (N i : Int) :
+    (noisyRowChildPaths N i).flatMap
+        (fun p => (noisyFullFamilySegment env elems p).2) =
+      (intRange 0 N.toNat).flatMap (fun j =>
+        noisyRowChildCellProcs env elems i j) := by
+  unfold noisyRowChildPaths
+  rw [List.flatMap_assoc]
+  apply CombView.flatMap_congr'
+  intro j hj
+  have hta : xorInst.name ≠ andInst.name := by decide
+  have hsa : xorSInst.name ≠ andInst.name := by decide
+  have hst : xorSInst.name ≠ xorInst.name := by decide
+  have hma : majInst.name ≠ andInst.name := by decide
+  have hmt : majInst.name ≠ xorInst.name := by decide
+  have hms : majInst.name ≠ xorSInst.name := by decide
+  simp [noisyFullFamilySegment, noisyTopNodeSegment,
+    noisyTopGeneratedPairSegment, noisyRowChildCellProcs,
+    noisyRowTPrefix, noisyRowSPrefix, noisyRowCPrefix, hta, hsa, hst,
+    hma, hmt, hms]
+
 end Examples.«system-verilog».sem2.noisy_mul_generate
