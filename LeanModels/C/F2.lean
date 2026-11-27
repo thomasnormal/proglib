@@ -7200,6 +7200,22 @@ theorem pairedPointerEqual_equal_choice_refusal
   · simp [pairedPointerEqual, pointerEqual, hleft, hright]
   · simp [pairedPointerEqual, pointerEqual, hleft, hright]
 
+theorem pairedPointerEqual_equal_choice_failure_contract
+    (resolve : AllocId → Nat) (left right : Pointer Tag) :
+    pairedPointerEqual resolve left right .equal = false ↔
+      ((left.address == right.address) ≠
+        ((renamePointer resolve left).address ==
+          (renamePointer resolve right).address)) := by
+  by_cases hleft : (left.address == right.address) = true
+  · by_cases hright : ((renamePointer resolve left).address ==
+        (renamePointer resolve right).address) = true
+    · simp [pairedPointerEqual, pointerEqual, hleft, hright]
+    · simp [pairedPointerEqual, pointerEqual, hleft, hright]
+  · by_cases hright : ((renamePointer resolve left).address ==
+        (renamePointer resolve right).address) = true
+    · simp [pairedPointerEqual, pointerEqual, hleft, hright]
+    · simp [pairedPointerEqual, pointerEqual, hleft, hright]
+
 theorem pairedPointerEqual_sound
     (resolve : AllocId → Nat) (left right : Pointer Tag)
     (choice : EqualityChoice)
