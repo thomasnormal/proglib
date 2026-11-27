@@ -1133,7 +1133,10 @@ def extract(path, source_name=None, standard="c23"):
     floating_bits = floating_bit_records(path)
     record_layouts = record_layout_records(path)
     structured_types = structured_type_records(joined["structured"])
-    ex = Extractor(target, src.decode(), string_bytes, floating_bits, record_layouts,
+    # Clang accepts source bytes inside literals that are not UTF-8.  Keep
+    # those parser-owned bytes available for diagnostic slicing without
+    # rejecting an otherwise valid translation unit at the Python boundary.
+    ex = Extractor(target, src.decode("utf-8", errors="surrogateescape"), string_bytes, floating_bits, record_layouts,
                    member_record_ids)
     ex.collect_labels(tu)
 
@@ -1367,6 +1370,16 @@ def selftest():
 
     ex = Extractor("selftest.c", "")
     node = {"kind": "ParenExpr", "range": {}, "type": {"qualType": "int"}}
+
+    # Clang accepts arbitrary source bytes inside a character or string
+    # literal.  The source text is diagnostic metadata, so preserve such a
+    # byte with surrogateescape instead of rejecting the parser's AST at the
+    # Python UTF-8 boundary.
+    diagnostic_bytes = b'"' + bytes([0, 255]) + b'"'
+    diagnostic_text = diagnostic_bytes.decode("utf-8", errors="surrogateescape")
+    check("non-UTF-8 literal bytes survive diagnostic decoding",
+          diagnostic_text.encode("utf-8", errors="surrogateescape"),
+          diagnostic_bytes)
 
     # 1. the ordinary path still assembles kind/span from the INSTRUMENT
     ex.e_ParenExpr = lambda n: {"sub": None, "type": "int"}
