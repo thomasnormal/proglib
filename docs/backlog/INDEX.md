@@ -16,11 +16,198 @@ with ids `YYYY-MM-DD-<lane>-<n>` that need no reservation. Everything before
 the split is in [`docs/backlog-archive.md`](../backlog-archive.md), frozen,
 and every existing `§Lnn` reference still resolves there.
 
-**1453 entries across 19 lanes.** Regenerate with
+**1642 entries across 19 lanes.** Regenerate with
 `tools/backlog-index.sh`; check with `--check` (exit 1 on drift).
 
 | id | class | title | lane |
 | --- | --- | --- | --- |
+| `2026-11-15-pyfoundation-287` |  | recursive continuation after branch transport | python-completeness |
+| `2026-11-14-pyfoundation-286` |  | direct callInM integration after getter normalization (blocked) | python-completeness |
+| `2026-11-14-pyfoundation-285` |  | getter/setter bind normalization | python-completeness |
+| `2026-11-14-pyfoundation-284` |  | direct callInM top-body integration (blocked) | python-completeness |
+| `2026-11-14-pyfoundation-283` |  | inWorld call-body timeout/refusal transport | python-completeness |
+| `2026-11-14-pyfoundation-282` |  | inWorld call-body exception transport | python-completeness |
+| `2026-11-14-pyfoundation-281` |  | inWorld call-body success transport | python-completeness |
+| `2026-11-14-pyfoundation-280` |  | explicit finishCallM timeout/refusal transport | python-completeness |
+| `2026-11-14-pyfoundation-279` |  | call-specific finishCallM transport | python-completeness |
+| `2026-11-14-pyfoundation-278` |  | explicit tryCatch handler-result equations | python-completeness |
+| `2026-11-14-pyfoundation-277` |  | recursive call/body adequacy reassessment | python-completeness |
+| `2026-11-14-pyfoundation-276` |  | combined tryCatch transport (blocked) | python-completeness |
+| `2026-11-14-pyfoundation-275` |  | explicit tryCatch timeout/refusal equations | python-completeness |
+| `2026-11-14-pyfoundation-274` |  | four-result tryCatch normalization (blocked) | python-completeness |
+| `2026-11-14-pyfoundation-273` |  | generic finishCallM transport (blocked) | python-completeness |
+| `2026-11-14-pyfoundation-272` |  | generic assignment-list continue flow | python-completeness |
+| `2026-11-14-pyfoundation-271` |  | generic assignment-list break flow | python-completeness |
+| `2026-11-14-pyfoundation-270` |  | generic assignment-list bare return | python-completeness |
+| `2026-11-14-pyfoundation-269` |  | generic assignment-list expression composition | python-completeness |
+| `2026-11-14-pyfoundation-268` |  | inWorld assignment-list pass wrapper | python-completeness |
+| `2026-11-14-pyfoundation-267` |  | toRun assignment-list pass composition | python-completeness |
+| `2026-11-14-pyfoundation-266` |  | inWorld assignment-list return wrapper | python-completeness |
+| `2026-11-14-pyfoundation-265` |  | toRun append/return substrate lemma | python-completeness |
+| `2026-11-14-pyfoundation-264` |  | generic assignment-list value return (blocked) | python-completeness |
+| `2026-11-14-pyfoundation-263` |  | arbitrary assignment-list bridge | python-completeness |
+| `2026-11-14-pyfoundation-262` |  | nineteen-assignment return bridge | python-completeness |
+| `2026-11-14-pyfoundation-261` |  | nineteen-assignment state bridge | python-completeness |
+| `2026-11-14-pyfoundation-260` |  | eighteen-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-259` |  | eighteen-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-258` |  | eighteen-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-257` |  | eighteen-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-256` |  | eighteen-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-255` |  | eighteen-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-254` |  | eighteen-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-253` |  | seventeen-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-252` |  | seventeen-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-251` |  | seventeen-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-250` |  | seventeen-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-249` |  | seventeen-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-248` |  | seventeen-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-247` |  | seventeen-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-246` |  | sixteen-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-245` |  | sixteen-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-244` |  | sixteen-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-243` |  | sixteen-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-242` |  | sixteen-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-241` |  | sixteen-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-240` |  | sixteen-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-239` |  | fifteen-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-238` |  | fifteen-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-237` |  | fifteen-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-236` |  | fifteen-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-235` |  | fifteen-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-234` |  | fifteen-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-233` |  | fifteen-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-232` |  | fourteen-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-231` |  | fourteen-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-230` |  | fourteen-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-229` |  | fourteen-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-228` |  | fourteen-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-227` |  | fourteen-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-226` |  | fourteen-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-225` |  | thirteen-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-224` |  | thirteen-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-223` |  | thirteen-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-222` |  | thirteen-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-221` |  | thirteen-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-220` |  | thirteen-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-219` |  | thirteen-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-218` |  | twelve-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-217` |  | twelve-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-216` |  | twelve-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-215` |  | twelve-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-214` |  | twelve-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-213` |  | twelve-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-212` |  | twelve-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-211` |  | eleven-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-210` |  | eleven-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-209` |  | eleven-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-208` |  | eleven-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-207` |  | eleven-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-206` |  | eleven-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-205` |  | eleven-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-204` |  | ten-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-203` |  | ten-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-202` |  | ten-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-201` |  | ten-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-200` |  | ten-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-199` |  | ten-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-198` |  | ten-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-197` |  | nine-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-196` |  | nine-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-195` |  | nine-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-194` |  | nine-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-193` |  | nine-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-192` |  | nine-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-191` |  | nine-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-190` |  | eight-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-189` |  | eight-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-188` |  | eight-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-187` |  | eight-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-186` |  | eight-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-185` |  | eight-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-184` |  | eight-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-183` |  | seven-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-182` |  | seven-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-181` |  | seven-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-180` |  | seven-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-179` |  | seven-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-178` |  | seven-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-177` |  | seven-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-176` |  | six-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-175` |  | six-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-174` |  | six-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-173` |  | six-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-172` |  | six-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-171` |  | six-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-170` |  | six-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-169` |  | five-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-168` |  | five-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-167` |  | five-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-166` |  | five-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-165` |  | five-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-164` |  | five-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-163` |  | five-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-162` |  | four-assignment continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-161` |  | four-assignment break bridge | python-completeness |
+| `2026-11-13-pyfoundation-160` |  | four-assignment bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-159` |  | four-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-158` |  | four-assignment pass bridge | python-completeness |
+| `2026-11-13-pyfoundation-157` |  | four-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-156` |  | four-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-155` |  | three-assignment expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-154` |  | three-assignment normal bridge | python-completeness |
+| `2026-11-13-pyfoundation-153` |  | three-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-152` |  | two-assignment return bridge | python-completeness |
+| `2026-11-13-pyfoundation-151` |  | assignment return short-circuit bridge | python-completeness |
+| `2026-11-13-pyfoundation-150` |  | three-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-149` |  | two-assignment state bridge | python-completeness |
+| `2026-11-13-pyfoundation-148` |  | assignment-to-expression bridge | python-completeness |
+| `2026-11-13-pyfoundation-147` |  | assignment-to-bare-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-146` |  | assignment-to-continue bridge | python-completeness |
+| `2026-11-13-pyfoundation-145` |  | assignment-to-break bridge | python-completeness |
+| `2026-11-13-pyfoundation-144` |  | assignment-to-normal bridge | python-completeness |
+| `2026-11-13-pyfoundation-143` |  | assignment-to-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-142` |  | existing-local assignment bridge | python-completeness |
+| `2026-11-13-pyfoundation-141` |  | assignment sequencing with empty locals | python-completeness |
+| `2026-11-13-pyfoundation-140` |  | longer early-return sequencing | python-completeness |
+| `2026-11-13-pyfoundation-139` |  | five-statement sequencing bridge | python-completeness |
+| `2026-11-13-pyfoundation-138` |  | longer bare-return sequencing | python-completeness |
+| `2026-11-13-pyfoundation-137` |  | longer continue sequencing bridge | python-completeness |
+| `2026-11-13-pyfoundation-136` |  | longer break sequencing bridge | python-completeness |
+| `2026-11-13-pyfoundation-135` |  | four-statement early-return bridge | python-completeness |
+| `2026-11-13-pyfoundation-134` |  | four-statement sequencing bridge | python-completeness |
+| `2026-11-13-pyfoundation-133` |  | three-statement sequencing bridge | python-completeness |
+| `2026-11-13-pyfoundation-132` |  | continue sequencing bridge | python-completeness |
+| `2026-11-13-pyfoundation-131` |  | break sequencing bridge | python-completeness |
+| `2026-11-13-pyfoundation-130` |  | early-return sequencing bridge | python-completeness |
+| `2026-11-13-pyfoundation-129` |  | two-statement sequencing bridge | python-completeness |
+| `2026-11-13-pyfoundation-128` |  | continue-flow body bridge | python-completeness |
+| `2026-11-13-pyfoundation-127` |  | break-flow body bridge | python-completeness |
+| `2026-11-13-pyfoundation-126` |  | bare-return flow bridge | python-completeness |
+| `2026-11-13-pyfoundation-125` |  | return-flow body bridge | python-completeness |
+| `2026-11-13-pyfoundation-124` |  | top-level exception restoration | python-completeness |
+| `2026-11-13-pyfoundation-122` |  | nested-call exception unwind | python-completeness |
+| `2026-11-13-pyfoundation-121` |  | assignment-body call bridge | python-completeness |
+| `2026-11-13-pyfoundation-120` |  | nested-call mutation unwind | python-completeness |
+| `2026-11-13-pyfoundation-119` |  | state-mutating call restoration | python-completeness |
+| `2026-11-13-pyfoundation-118` |  | first effectful expression body | python-completeness |
+| `2026-11-13-pyfoundation-117` |  | compose the first nonempty body | python-completeness |
+| `2026-11-13-pyfoundation-116` |  | restore depth for empty statement bodies | python-completeness |
+| `2026-11-13-pyfoundation-115` |  | prove monadic pure call restoration | python-completeness |
+| `2026-11-13-pyfoundation-114` |  | pin raised-exception call restoration | python-completeness |
+| `2026-11-13-pyfoundation-113` |  | pin successful call-depth restoration | python-completeness |
+| `2026-11-13-pyfoundation-112` |  | close the empty-body call base case | python-completeness |
+| `2026-11-13-pyfoundation-111` |  | bridge successful try/catch projection | python-completeness |
+| `2026-11-13-pyfoundation-110` |  | factor successful bind adequacy | python-completeness |
+| `2026-11-13-pyfoundation-109` |  | bridge the nested frame lift | python-completeness |
+| `2026-11-13-pyfoundation-108` |  | add state-wrapper adequacy bridges | python-completeness |
+| `2026-11-13-pyfoundation-107` |  | pin the zero-fuel call boundary | python-completeness |
+| `2026-11-13-pyfoundation-106` |  | bridge the static-locals call preflight | python-completeness |
+| `2026-11-13-pyfoundation-105` |  | bridge the arity call preflight | python-completeness |
+| `2026-11-13-pyfoundation-104` |  | close unsupported-parameter call preflight | python-completeness |
+| `2026-11-13-pyfoundation-103` |  | close the missing-function call preflight | python-completeness |
+| `2026-11-13-pyfoundation-102` |  | compose statement sequencing adequacy | python-completeness |
+| `2026-11-13-pyfoundation-101` |  | factor list adequacy into a reusable control theorem | python-completeness |
+| `2026-11-13-pyfoundation-100` |  | compose the first control-level adequacy edge | python-completeness |
 | `2026-11-11-ls-sv2-477` |  | unify the E-core-0 and observation cones | ls-sv2 |
 | `2026-11-11-pyfoundation-99` |  | park round-float ties proof over hosted memory | python-completeness |
 | `2026-11-11-pyfoundation-98` |  | prove literal multiplication control refinement | python-completeness |
@@ -1408,18 +1595,18 @@ and every existing `§Lnn` reference still resolves there.
 | `2026-08-22-audit-1` |  | AUDIT #2: adoption is real (6 lanes), the fixes hold 14/14, and a defect came BACK in a file written 3 hours after the fix | audit |
 | `2026-08-22-architecture-1` |  | NEW LAW — count the PATTERN POSITION, never the IDENTIFIER (§5.4a's constructive half) | architecture |
 | `2026-08-22-ada-1` |  | THE STANDING STRATEGY, adopted by touch: `DIFFER` was a conformance gap, and this lane was one of §9.4's drifted emitters | ada |
-| ``cpp-two-callable-evaluators`:` |  | one callable semantics | cpp |
-| ``cpp-tinyxml2-probe-regeneration`:` |  | pinned capture prerequisite | cpp |
-| ``cpp-target-profile-unchecked`:` |  | artifact profile gate | cpp |
-| ``cpp-switch-and-ir-lowering`:` |  | source-item switch semantics | cpp |
-| ``cpp-spelling-identity`:` |  | structured base and result identity | cpp |
-| ``cpp-harness-oracle-misfile`:` |  | native oracle policy | cpp |
-| ``cpp-diff-handwritten-twins`:` |  | source-derived differential execution | cpp |
-| ``cpp-diff-handwritten-twins`:` |  | reporting boundary | cpp |
-| ``cpp-call-arg-order`:` |  | effectful call arguments | cpp |
-| ``c-no-compiled-oracle`:` |  | pinned C differential battery | cpp |
-| ``c-name-resolution-by-string`:` |  | declaration-id resolution | cpp |
-| ``c-census-regex`:` |  | AST/preprocessor census inputs | cpp |
+| `cpp-two-callable-evaluators` |  | one callable semantics | cpp |
+| `cpp-tinyxml2-probe-regeneration` |  | pinned capture prerequisite | cpp |
+| `cpp-target-profile-unchecked` |  | artifact profile gate | cpp |
+| `cpp-switch-and-ir-lowering` |  | source-item switch semantics | cpp |
+| `cpp-spelling-identity` |  | structured base and result identity | cpp |
+| `cpp-harness-oracle-misfile` |  | native oracle policy | cpp |
+| `cpp-diff-handwritten-twins` |  | source-derived differential execution | cpp |
+| `cpp-diff-handwritten-twins` |  | reporting boundary | cpp |
+| `cpp-call-arg-order` |  | effectful call arguments | cpp |
+| `c-no-compiled-oracle` |  | pinned C differential battery | cpp |
+| `c-name-resolution-by-string` |  | declaration-id resolution | cpp |
+| `c-census-regex` |  | AST/preprocessor census inputs | cpp |
 | `G9` |  | THE AUDIT'S THREE ROWS, all fixed, and one of them caught this lane failing its own rule (2026-08-23) | go |
 | `G8` |  | THE LOOP INDUCTION IS NOT LANDED, and the selector question is an EXTRACTOR decision (2026-08-23) | go |
 | `G7` |  | INCH 4: `bitLen` gets its SPEC HALF proved, and the call census corrects §G6's reading (2026-08-23) | go |
@@ -1449,6 +1636,8 @@ and every existing `§Lnn` reference still resolves there.
 | `G12` |  | THE LOOP INDUCTION CLOSES: `len = l + bitLenSpec v`, proved (2026-08-23) | go |
 | `G11` |  | THE WALKER IS PROVED THROUGH A MUTATION, and the blocker moved again (2026-08-23) | go |
 | `G10` |  | THE SEAM: one lemma opens the stack, and §G8's three "unprovable" lemmas are four lines each (2026-08-23) | go |
+| `2026-11-18-pyfoundation-float-lab-floor-infinite` |  | park concrete proof over hosted memory | python-completeness |
+| `2026-11-12-p2-library-boundary` |  | heap-threaded public list mutation | python-completeness |
 | `2026-11-11-c-union-init` |  | designated union members | c |
 | `2026-11-11-c-type-spelling-grammar` |  | guarded declarator boundary | c |
 | `2026-11-11-c-torture-main-return-ignored` |  | scorer exit status | c |
@@ -1475,4 +1664,4 @@ and every existing `§Lnn` reference still resolves there.
 | `2026-11-10-c-array-filler-designators` |  | Clang array initializer positions | c |
 | `2026-08-26` |  | PARKED (indefinite). Read this first on resumption. | analog |
 
-**66 heading(s) do not use the §9.5 id scheme** and sort last.
+**68 heading(s) do not use the §9.5 id scheme** and sort last.
