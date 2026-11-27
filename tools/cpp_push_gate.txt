@@ -1,0 +1,6 @@
+# C++ lane push gate. Every commit touching LeanModels/Cpp or Examples/cpp/tinyxml2
+# is pushed only after all real-source C++ example targets build successfully.
+Examples.cpp.tinyxml2.BaseGetLineNum
+Examples.cpp.tinyxml2.AttributeGetLineNum
+Examples.cpp.tinyxml2.IsUTF8Continuation
+Examples.cpp.tinyxml2.NodeGetLineNum

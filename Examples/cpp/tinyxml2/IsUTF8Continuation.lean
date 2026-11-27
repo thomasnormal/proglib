@@ -41,18 +41,18 @@ def function : CallableFunction :=
                                   ("includedFrom",
                                    LeanModels.Cpp.Raw.object
                                      [("file", LeanModels.Cpp.Raw.string "tinyxml2.cpp")])])]) },
-  signature := { result := LeanModels.Cpp.CppTypeEvidence.builtin (LeanModels.Cpp.CppIntType.boolean),
-                 parameters := [LeanModels.Cpp.CppTypeEvidence.qualified
+  signature := { result := LeanModels.Clang.QualType.builtin (LeanModels.Cpp.CppIntType.boolean),
+                 parameters := [LeanModels.Clang.QualType.qualified
                                   true
                                   false
-                                  (LeanModels.Cpp.CppTypeEvidence.builtin (LeanModels.Cpp.CppIntType.char))],
+                                  (LeanModels.Clang.QualType.builtin (LeanModels.Cpp.CppIntType.char))],
                  variadic := false },
   parameters := [{ declaration := { value := "0x55c343dddbc8" },
                    name := some "p",
-                   type := LeanModels.Cpp.CppTypeEvidence.qualified
+                   type := LeanModels.Clang.QualType.qualified
                              true
                              false
-                             (LeanModels.Cpp.CppTypeEvidence.builtin (LeanModels.Cpp.CppIntType.char)) }],
+                             (LeanModels.Clang.QualType.builtin (LeanModels.Cpp.CppIntType.char)) }],
   body := LeanModels.Cpp.CallableStatement.block
             (LeanModels.Cpp.CallableStatement.return_
               { expression := LeanModels.Cpp.CallableExpression.binary
@@ -63,41 +63,41 @@ def function : CallableFunction :=
                                                                     { expression := LeanModels.Cpp.CallableExpression.convert
                                                                                       { expression := LeanModels.Cpp.CallableExpression.parameter
                                                                                                         { value := "0x55c343dddbc8" },
-                                                                                        sourceType := LeanModels.Cpp.CppTypeEvidence.qualified
+                                                                                        sourceType := LeanModels.Clang.QualType.qualified
                                                                                                         true
                                                                                                         false
-                                                                                                        (LeanModels.Cpp.CppTypeEvidence.builtin
+                                                                                                        (LeanModels.Clang.QualType.builtin
                                                                                                           (LeanModels.Cpp.CppIntType.char)),
-                                                                                        type := LeanModels.Cpp.CppTypeEvidence.qualified
+                                                                                        type := LeanModels.Clang.QualType.qualified
                                                                                                   true
                                                                                                   false
-                                                                                                  (LeanModels.Cpp.CppTypeEvidence.builtin
+                                                                                                  (LeanModels.Clang.QualType.builtin
                                                                                                     (LeanModels.Cpp.CppIntType.char)) },
-                                                                      sourceType := LeanModels.Cpp.CppTypeEvidence.qualified
+                                                                      sourceType := LeanModels.Clang.QualType.qualified
                                                                                       true
                                                                                       false
-                                                                                      (LeanModels.Cpp.CppTypeEvidence.builtin
+                                                                                      (LeanModels.Clang.QualType.builtin
                                                                                         (LeanModels.Cpp.CppIntType.char)),
-                                                                      type := LeanModels.Cpp.CppTypeEvidence.builtin
+                                                                      type := LeanModels.Clang.QualType.builtin
                                                                                 (LeanModels.Cpp.CppIntType.char) },
-                                                    sourceType := LeanModels.Cpp.CppTypeEvidence.qualified
+                                                    sourceType := LeanModels.Clang.QualType.qualified
                                                                     true
                                                                     false
-                                                                    (LeanModels.Cpp.CppTypeEvidence.builtin
+                                                                    (LeanModels.Clang.QualType.builtin
                                                                       (LeanModels.Cpp.CppIntType.char)),
-                                                    type := LeanModels.Cpp.CppTypeEvidence.builtin
+                                                    type := LeanModels.Clang.QualType.builtin
                                                               (LeanModels.Cpp.CppIntType.int) }
                                                   { expression := LeanModels.Cpp.CallableExpression.integer 128,
-                                                    sourceType := LeanModels.Cpp.CppTypeEvidence.builtin
+                                                    sourceType := LeanModels.Clang.QualType.builtin
                                                                     (LeanModels.Cpp.CppIntType.int),
-                                                    type := LeanModels.Cpp.CppTypeEvidence.builtin
+                                                    type := LeanModels.Clang.QualType.builtin
                                                               (LeanModels.Cpp.CppIntType.int) },
-                                  sourceType := LeanModels.Cpp.CppTypeEvidence.builtin (LeanModels.Cpp.CppIntType.int),
-                                  type := LeanModels.Cpp.CppTypeEvidence.builtin (LeanModels.Cpp.CppIntType.int) }
+                                  sourceType := LeanModels.Clang.QualType.builtin (LeanModels.Cpp.CppIntType.int),
+                                  type := LeanModels.Clang.QualType.builtin (LeanModels.Cpp.CppIntType.int) }
                                 { expression := LeanModels.Cpp.CallableExpression.integer 0,
-                                  sourceType := LeanModels.Cpp.CppTypeEvidence.builtin (LeanModels.Cpp.CppIntType.int),
-                                  type := LeanModels.Cpp.CppTypeEvidence.builtin (LeanModels.Cpp.CppIntType.int) },
-                sourceType := LeanModels.Cpp.CppTypeEvidence.builtin (LeanModels.Cpp.CppIntType.boolean),
-                type := LeanModels.Cpp.CppTypeEvidence.builtin (LeanModels.Cpp.CppIntType.boolean) }) }
+                                  sourceType := LeanModels.Clang.QualType.builtin (LeanModels.Cpp.CppIntType.int),
+                                  type := LeanModels.Clang.QualType.builtin (LeanModels.Cpp.CppIntType.int) },
+                sourceType := LeanModels.Clang.QualType.builtin (LeanModels.Cpp.CppIntType.boolean),
+                type := LeanModels.Clang.QualType.builtin (LeanModels.Cpp.CppIntType.boolean) }) }
 
 end «Examples».«cpp».«tinyxml2».«IsUTF8Continuation»

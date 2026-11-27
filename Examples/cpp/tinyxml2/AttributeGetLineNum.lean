@@ -42,7 +42,7 @@ def getter : IntegralMemberGetter :=
   owner := { value := "0x55a89e7062e8" },
   field := { declaration := { value := "0x55a89e74b2d8" },
              name := "_parseLineNum",
-             type := LeanModels.Cpp.CppTypeEvidence.builtin (LeanModels.Cpp.CppIntType.int),
+             type := LeanModels.Clang.QualType.builtin (LeanModels.Cpp.CppIntType.int),
              isMutable := false },
   isConst := true,
   conversions := [],
