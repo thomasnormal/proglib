@@ -1,6 +1,6 @@
 # C++ lane backlog
 
-## `cpp-tinyxml2-probe-regeneration`: pinned capture prerequisite
+## cpp-tinyxml2-probe-regeneration — pinned capture prerequisite
 
 **Capture mismatch (measured 2026-11-11).** The TinyXML-2 revision
 `321ea883b7190d4e85cae5512a12e5eaa8f8731f` was fetched and both source hashes
@@ -20,7 +20,7 @@ it exited `2` with `provenance.json IsUTF8Continuation.lean: committed
 literal differs from exporter output`, confirming that stale literals cannot be
 silently accepted.
 
-## `cpp-target-profile-unchecked`: artifact profile gate
+## cpp-target-profile-unchecked — artifact profile gate
 
 **Closed 2026-11-11.** The C++ extractor now validates Clang's recorded
 predefined macros against the admitted LP64/signed-char profile (8-bit bytes,
@@ -32,7 +32,7 @@ pins the default match and profile-changing-flag refusal. Revalidated
 2026-11-11 under the 24 GiB cgroup with pinned Clang/LLVM 21.1.8:
 `cpp-lp64-profile MATCH` and `cpp-profile-changing-flag REFUSE`.
 
-## `cpp-switch-and-ir-lowering`: source-item switch semantics
+## cpp-switch-and-ir-lowering — source-item switch semantics
 
 **Closed 2026-11-11.** Callable admission retains `ExprWithCleanups` as an
 explicit `CallableStatement.cleanups` node, and both callable evaluators
@@ -49,7 +49,7 @@ LeanModels.Cpp.CallableTests LeanModels.Cpp.TranslationTests
 LeanModels.Cpp.CallableObjectEvaluationTests` completed successfully (26
 jobs), including the source-item and cleanup guards.
 
-## `c-name-resolution-by-string`: declaration-id resolution
+## c-name-resolution-by-string — declaration-id resolution
 
 **Closed 2026-11-11.** The C extractor now retains Clang declaration handles
 on `FunctionDecl`, `VarDecl`, `ParmVarDecl`, `EnumConstantDecl`, and every
@@ -64,7 +64,7 @@ table, C runners, and a compiled two-function/local-shadow probe cover the
 new identity path. Revalidated 2026-11-11 with pinned Clang/LLVM 21.1.8:
 `local-variable-callee REFUSE` from the identity guard.
 
-## `cpp-spelling-identity`: structured base and result identity
+## cpp-spelling-identity — structured base and result identity
 
 **Partially closed 2026-11-11.** Enum and class admission no longer accepts a
 qualified spelling merely because it ends with the expected bare name.
@@ -83,7 +83,7 @@ Revalidated 2026-11-11 with the 24 GiB cgroup:
 completed successfully (18 jobs), including the structured-handle guards,
 qualified direct enum argument, and friend-class refusal.
 
-## `cpp-harness-oracle-misfile`: native oracle policy
+## cpp-harness-oracle-misfile — native oracle policy
 
 **Closed 2026-11-11.** Native assertion failures are classified as `DIVERGE`,
 while compile/run/environment failures remain `ORACLE`; the harness prints the
@@ -95,7 +95,7 @@ native assertion `DIVERGE`, capture mismatch `DIVERGE`, visible `ORACLE`, and
 the pinned-version check; `tools/docs_check.py` also passed (85 marked blocks
 OK).
 
-## `cpp-diff-handwritten-twins`: reporting boundary
+## cpp-diff-handwritten-twins — reporting boundary
 
 **Closed 2026-11-11 (reporting correction).** The harness and generated page
 classify independent handwritten Lean/native checks as `WITNESS`; only the
@@ -106,7 +106,7 @@ open work and is not represented as a differential match. Revalidated
 2026-11-11 with the eight `test_cpp_diff_classification.py` cases and
 `test_cpp_diff_reporting.py` (all passed); `tools/docs_check.py` also passed.
 
-## `cpp-call-arg-order`: effectful call arguments
+## cpp-call-arg-order — effectful call arguments
 
 **Closed 2026-11-11.** Direct-call admission now refuses any call argument
 with observable effects, matching the existing binary-operand guard and
@@ -116,7 +116,7 @@ increment argument while the pure direct-call witness remains admitted.
 Revalidated 2026-11-11 with `lake build LeanModels.Cpp.CallableTests` under
 the 24 GiB cgroup (18 jobs, exit 0).
 
-## `cpp-diff-handwritten-twins`: source-derived differential execution
+## cpp-diff-handwritten-twins — source-derived differential execution
 
 **Partially closed 2026-11-11.** The bounded TinyXML-2 callable path now
 requires the current canonical literal gate whenever
@@ -141,7 +141,7 @@ admit a source. Keep independent fixtures as unit witnesses, and run grammar
 samples through the same source-to-model path before treating them as execution
 results.
 
-## `cpp-two-callable-evaluators`: one callable semantics
+## cpp-two-callable-evaluators — one callable semantics
 
 **Closed 2026-11-11.** `evaluateCallable` is now a value-shaped projection of
 the frame-backed `CallableObjectEvaluation.evaluateCallableObject`; it no longer
@@ -160,7 +160,7 @@ LeanModels.Cpp.CallableRefinementTests LeanModels.Cpp.CallableObjectEvaluationTe
 LeanModels.Cpp.CallableTests` completed successfully (26 jobs), including the
 projection, refinement, and `unsupportedCall` guards.
 
-## `c-no-compiled-oracle`: pinned C differential battery
+## c-no-compiled-oracle — pinned C differential battery
 
 **Closed 2026-11-11.** Added `harness/c_diff_test.py` and its five-row
 `harness/c_cases.json` battery. Each row compiles the unchanged C source with
@@ -176,7 +176,7 @@ and stamps that line into the envelope. The Lean ingester retains and checks
 envelope produced by a different point release. `harness/c_profile_probe.py`
 uses the same executable selection.
 
-## `c-census-regex`: AST/preprocessor census inputs
+## c-census-regex — AST/preprocessor census inputs
 
 **Closed 2026-11-11.** `harness/c_frontend.py` now owns the source-attributed
 Clang AST and preprocessor walks. `c_construct_census.py` derives includes,
