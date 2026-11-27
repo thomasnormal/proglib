@@ -55,6 +55,18 @@ theorem seqE_natAbs_add_sub_one_add_one (A B : Nat) (h : 1 ≤ A + B) :
     ((A : Int) + (B : Int) - 1).natAbs + 1 = A + B := by
   omega
 
+/-! `declConstType` first computes a packed type's width and only then applies
+the declared signedness rule.  Keeping that sequencing as a named equation
+lets callers normalize a parameter-dependent packed type without unfolding
+the whole parameter-binding route. -/
+theorem seqE_declConstType_packed_of_width (env : IEnv) (ds : List PDim) (r : Option Nat)
+    (w : Nat) (s : Bool) (h : (PType.packed ds r).width env = .ok w) :
+    declConstType env (some (PType.packed ds r)) (some s) =
+      .ok (if w == 32 && s then none else some (w, s)) := by
+  simp only [declConstType]
+  rw [h]
+  rfl
+
 /-- No positive edge into a 0. -/
 theorem seqE_isPosedge_l0 (b : Logic) : isPosedge b .l0 = false := by cases b <;> rfl
 
