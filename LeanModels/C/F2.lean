@@ -8345,6 +8345,26 @@ theorem offsetPointer_result_contract
           .ok { pointer with address := address } := by
   simpa [offsetPointer] using hresult.symm
 
+theorem offsetPointer_failure_contract
+    (pointer : Pointer Tag) (elementSize : Nat) (delta : Int) (bound : Nat)
+    (fault : OffsetFault) :
+    offsetPointer pointer elementSize delta bound = .error fault ↔
+      (elementSize = 0 ∧ fault = .alignment) ∨
+      (elementSize ≠ 0 ∧ fault = .outOfBounds ∧
+        (if delta < 0 then
+          pointer.address - Int.natAbs delta * elementSize
+        else
+          pointer.address + Int.natAbs delta * elementSize) > bound) := by
+  by_cases hsize : elementSize = 0
+  · cases fault <;> simp [offsetPointer, hsize]
+  · by_cases hbound :
+        (if delta < 0 then
+          pointer.address - Int.natAbs delta * elementSize
+        else
+          pointer.address + Int.natAbs delta * elementSize) > bound
+    · cases fault <;> simp [offsetPointer, hsize, hbound]
+    · cases fault <;> simp [offsetPointer, hsize, hbound]
+
 def renameOffsetResult (resolve : AllocId → Nat) :
     Except OffsetFault (Pointer Tag) → Except OffsetFault (Pointer Tag)
   | .error fault => .error fault
