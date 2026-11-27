@@ -220,6 +220,8 @@ inductive Expr where
   /-- C23's `true`/`false` literals, retained from clang's semantic node. -/
   | boolLit (value : Bool) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
+  | nullPtrLit (ty : String) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   /-- GNU `__builtin_choose_expr`: condition and both parser branches. -/
   | choose (cond thenBranch elseBranch : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
@@ -297,7 +299,7 @@ deriving Repr, Inhabited
 
 def Expr.span : Expr → CSpan
   | .intLit _ _ span .. | .charLit _ _ span .. | .strLit _ _ _ span ..
-  | .floatLit _ _ _ _ span .. | .boolLit _ _ span .. | .choose _ _ _ _ span ..
+  | .floatLit _ _ _ _ span .. | .boolLit _ _ span .. | .nullPtrLit _ span .. | .choose _ _ _ _ span ..
   | .declRef _ _ _ _ span .. | .member _ _ _ _ span _ .. | .index _ _ _ span ..
   | .call _ _ _ span .. | .binop _ _ _ _ span .. | .compoundAssign _ _ _ _ _ _ span ..
   | .unop _ _ _ _ span .. | .cond _ _ _ _ span .. | .paren _ _ span ..
@@ -480,7 +482,7 @@ consumer refuses rather than inventing one. -/
 def Expr.ty : Expr → String
   | .intLit _ t _ .. | .charLit _ t _ .. | .floatLit _ _ _ t _ .. => t
   | .strLit _ _ t _ .. => t
-  | .boolLit _ t _ .. => t
+  | .boolLit _ t _ .. | .nullPtrLit t _ .. => t
   | .choose _ _ _ t _ .. => t
   | .declRef _ _ _ t _ .. => t
   | .member _ _ _ t _ _ .. | .index _ _ t _ .. | .call _ _ t _ .. => t
@@ -497,7 +499,7 @@ def Expr.ty : Expr → String
 /-- The parser-native QualType carried directly by an expression node. -/
 def Expr.structuredType? : Expr → Option LeanModels.Clang.QualType
   | .intLit _ _ _ q | .charLit _ _ _ q | .strLit _ _ _ _ q
-  | .floatLit _ _ _ _ _ q | .boolLit _ _ _ q | .choose _ _ _ _ _ q
+  | .floatLit _ _ _ _ _ q | .boolLit _ _ _ q | .nullPtrLit _ _ q | .choose _ _ _ _ _ q
   | .declRef _ _ _ _ _ q | .member _ _ _ _ _ _ q | .index _ _ _ _ q
   | .call _ _ _ _ q | .binop _ _ _ _ _ q | .compoundAssign _ _ _ _ _ _ _ q _ _
   | .unop _ _ _ _ _ q | .cond _ _ _ _ _ q | .paren _ _ _ q
@@ -517,6 +519,7 @@ def Expr.kindName : Expr → String
   | .strLit .. => "StringLiteral"
   | .floatLit .. => "FloatingLiteral"
   | .boolLit .. => "CXXBoolLiteralExpr"
+  | .nullPtrLit .. => "CXXNullPtrLiteralExpr"
   | .choose .. => "ChooseExpr"
   | .declRef .. => "DeclRefExpr"
   | .member .. => "MemberExpr"

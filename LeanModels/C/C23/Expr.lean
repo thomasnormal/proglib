@@ -1808,7 +1808,9 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         pure (.ptr p)
       else if ck == "NullToPointer" then
         -- §6.3.2.3p3 — a null pointer constant becomes a null pointer.
-        pure (.ptr Ptr.null)
+        do
+          let _ ← evalExpr ctx sub
+          pure (.ptr Ptr.null)
       else if ck == "IntegralCast" then do
         -- §6.3.1.3 — defined to unsigned; to signed it is the PROFILE's
         -- answer to `J.3.6(3)`, not the standard's (see `Value.convert`).
@@ -2185,6 +2187,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       | none => refuseUnsupported s!"integer literal spelling '{v}'"
   | .boolLit b _ _ .. =>
       pure (.int IntTy.bool_ (if b then 1 else 0))
+  | .nullPtrLit _ _ _ =>
+      -- C23 §6.3.2.3: the parser-native nullptr literal is a null pointer
+      -- value before any contextual conversion is applied.
+      pure (.ptr Ptr.null)
   | .choose cond yes no _ _ .. =>
       match chooseCond cond with
       | some true => evalExpr ctx yes
@@ -3125,6 +3131,7 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       cases e with
       | intLit value _ _ structuredType => exact ⟨by open_eval; exact MemInvariant.intLiteralNode' value structuredType, by open_lvalue; mem_inv⟩
       | boolLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | nullPtrLit _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | choose _ _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | charLit value _ _ structuredType => exact ⟨by open_eval; exact MemInvariant.charLiteralNode' value structuredType, by open_lvalue; mem_inv⟩
       | strLit _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩

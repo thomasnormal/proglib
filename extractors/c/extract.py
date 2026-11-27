@@ -73,6 +73,7 @@ STMTS = {"CompoundStmt", "DeclStmt", "IfStmt", "ForStmt", "WhileStmt", "DoStmt",
          "NullStmt", "SwitchStmt", "CaseStmt", "DefaultStmt"}
 EXPRS = {"IntegerLiteral", "CharacterLiteral", "StringLiteral", "FloatingLiteral",
          "CXXBoolLiteralExpr",
+         "CXXNullPtrLiteralExpr",
          "ChooseExpr",
          "DeclRefExpr", "MemberExpr", "ArraySubscriptExpr", "CallExpr",
          "BinaryOperator", "CompoundAssignOperator", "UnaryOperator",
@@ -868,6 +869,12 @@ class Extractor:
         # Clang supplies the parser's semantic boolean value; retain it as a
         # boolean field rather than reparsing the source spelling.
         return {"value": n.get("value"), "type": qual(n)}
+
+    def e_CXXNullPtrLiteralExpr(self, n):
+        # C23 nullptr is represented by Clang's parser-owned null-pointer
+        # literal node. Preserve that node so the semantics can give it its
+        # own §6.3.2.3 case.
+        return {"type": qual(n)}
 
     def e_ChooseExpr(self, n):
         cs = kids(n)

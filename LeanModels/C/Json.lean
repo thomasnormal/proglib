@@ -292,6 +292,8 @@ partial def parseExpr (j : Json) : Except String Expr := do
                           | _ => v.compress) bitsHex bitWidth (← ty) span structuredType
     | "CXXBoolLiteralExpr" =>
         return .boolLit (← getBool j "value") (← ty) span structuredType
+    | "CXXNullPtrLiteralExpr" =>
+        return .nullPtrLit (← ty) span structuredType
     | "ChooseExpr" =>
         return .choose (← sub "cond") (← sub "then") (← sub "else") (← ty) span structuredType
     | "DeclRefExpr" =>
