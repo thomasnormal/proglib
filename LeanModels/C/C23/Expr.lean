@@ -933,6 +933,53 @@ def float64ToInt (f : Float.Model) (t : IntTy) : EvalM CVal :=
       split <;> simp [CVal.renameAddress, map_eq_pure_bind, SemMWith.run_bind,
         SemMWith.run_pure, SemMWith.run_throw, refuseValue]
 
+/-! C23 §6.3.1.8 gives a compound assignment the computation type recorded
+by Clang.  In particular, an integer lvalue and a floating right operand are
+computed in the floating type, and a `float` lvalue may be computed in
+`double`.  Keep these conversions on the node's parser-native QualType so
+the mixed cases do not invent a type from a spelling. -/
+
+def asFloat64ForCompound : CVal → Option Float.Model
+  | .float64 f => some f
+  | .float32 f => some (Float.Model.pack (Float32.Model.unpack f))
+  | .int _ n => some (Float.Model.ofInt n)
+  | _ => none
+
+def asFloat32ForCompound : CVal → Option Float32.Model
+  | .float32 f => some f
+  | .float64 f => some (Float32.Model.pack (Float.Model.unpack f))
+  | .int _ n => some (Float32.Model.ofInt n)
+  | _ => none
+
+def compoundFloatResult (op : String) (resultBits : Nat) (lhs rhs : CVal) : EvalM CVal :=
+  if resultBits == 32 then
+    match asFloat32ForCompound lhs, asFloat32ForCompound rhs with
+    | some a, some b => float32Binop op a b
+    | _, _ => refuseUnsupported "compound assignment has a non-floating computation operand"
+  else if resultBits == 64 then
+    match asFloat64ForCompound lhs, asFloat64ForCompound rhs with
+    | some a, some b => float64Binop op a b
+    | _, _ => refuseUnsupported "compound assignment has a non-floating computation operand"
+  else
+    refuseUnsupported "compound assignment has an unsupported floating computation type"
+
+def convertCompoundResult (value : CVal)
+    (target : Option LeanModels.Clang.QualType) : EvalM CVal :=
+  match target.bind intTyOfStructured with
+  | some t =>
+      match value with
+      | .float32 f => float32ToInt f t
+      | .float64 f => float64ToInt f t
+      | _ => refuseUnsupported "compound assignment result is not floating"
+  | none =>
+      match target.bind floatBitsOfStructured, value with
+      | some 32, .float64 _ => floatCast value target
+      | some 32, .float32 _ => pure value
+      | some 64, .float32 _ => floatCast value target
+      | some 64, .float64 _ => pure value
+      | _, _ => refuseUnsupported "compound assignment lacks parser-native storage type"
+
+
 /-! ### Projecting a value
 
 Named, because every refusal must be. -/
@@ -2086,9 +2133,20 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           | _, _, _ =>
               refuseUnsupported
                 "compound assignment lacks parser-native compute type observations"
-      | _, _ =>
-          refuseUnsupported
-            "compound assignment lacks parser-native compute type observations"
+      | _, _ => do
+          match computeResultNodeType.bind floatBitsOfStructured with
+          | some resultBits =>
+              let computed ← compoundFloatResult (compoundBase op) resultBits old rv
+              let stored ← convertCompoundResult computed lNodeType
+              match bits with
+              | some (offsetBits, width) =>
+                  storeBitField l.ty p offsetBits width lStructured stored
+              | none =>
+                  storeAt ctx.aliasModel p l.ty stored lStructured
+                  pure stored
+          | none =>
+              refuseUnsupported
+                "compound assignment lacks parser-native compute type observations"
 
   -- ===== lvalues reaching value position without a conversion =====
   -- Clang wraps scalar reads in `LValueToRValue`, so these are the
