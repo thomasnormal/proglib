@@ -112,7 +112,7 @@ def canonicalize_ids(tree):
             for key in list(value):
                 item = value[key]
                 if (key == "id" or key.endswith("Id") or key.endswith("_id") or
-                        key == "referencedMemberDecl") and isinstance(item, str):
+                        key in ("init", "referencedMemberDecl")) and isinstance(item, str):
                     value[key] = canon(item)
                 else:
                     walk(item)
@@ -612,7 +612,12 @@ class Extractor:
                 "body": self.node(body) if body else None}
 
     def e_VarDecl(self, n):
-        init = kids(n)[-1] if n.get("init") and kids(n) else None
+        init = None
+        if n.get("init"):
+            init = next((child for child in kids(n)
+                         if child.get("kind") in EXPRS), None)
+            if init is None:
+                raise SystemExit("extract.py: VarDecl initializer node is absent")
         return {"decl_id": n.get("id"), "name": n.get("name"), "type": qual(n),
                 "storage": n.get("storageClass"),
                 "va_list": "__va_list_tag" in (n.get("type") or {}).get("desugaredQualType", ""),
