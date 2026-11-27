@@ -656,6 +656,24 @@ theorem optionResolve_comp_direct (first second : AllocId → Nat)
       Option.map (fun _ => second id) address := by
   cases address <;> rfl
 
+theorem renameAllocationValue_idempotent (resolve : AllocId → Nat)
+    (id : AllocId) (allocation : Allocation Tag State) :
+    renameAllocationValue resolve id (renameAllocationValue resolve id allocation) =
+      renameAllocationValue resolve id allocation := by
+  cases allocation with
+  | mk live address bytes state =>
+      cases address <;>
+        simp [renameAllocationValue, renameByte_idempotent]
+
+theorem renameAllocationValue_comp (first second : AllocId → Nat)
+    (id : AllocId) (allocation : Allocation Tag State) :
+    renameAllocationValue second id (renameAllocationValue first id allocation) =
+      renameAllocationValue second id allocation := by
+  cases allocation with
+  | mk live address bytes state =>
+      cases address <;>
+        simp [renameAllocationValue, renameByte_comp]
+
 def renameStore (resolve : AllocId → Nat) (store : Store Tag State) : Store Tag State :=
   { store with allocations := store.allocations.map (renameAllocation resolve) }
 
