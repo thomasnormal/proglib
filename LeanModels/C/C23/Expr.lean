@@ -399,9 +399,15 @@ and a refusal must not un-happen them.
 The message used to read *"the call semantics is inch 5"*. Inch 5 has
 landed and `callFn` supplies a real handler; what remains true is only
 that THIS context has no program. -/
-def noCalls : CallHandler := fun callee _ _ =>
-  refuseUnsupported
-    s!"call to '{calleeNameOf callee}' in a context with no program — call it through 'callByName'"
+def noCalls : CallHandler := fun callee _ args =>
+  match calleeNameOf callee, args with
+  | "__builtin_inff", [] =>
+      pure (.float32 (Float32.Model.ofBits (UInt32.ofNat 0x7f800000)))
+  | "__builtin_inf", [] =>
+      pure (.float64 (Float.Model.ofBits (UInt64.ofNat 0x7ff0000000000000)))
+  | _, _ =>
+      refuseUnsupported
+        s!"call to '{calleeNameOf callee}' in a context with no program — call it through 'callByName'"
 
 /-! ## Layout — the implementation-defined surface, PARAMETERIZED
 
