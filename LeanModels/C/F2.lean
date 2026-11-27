@@ -14133,6 +14133,22 @@ theorem pairedStaleStore_sound
           simp [pairedStaleStore, hs, ht] at h
           exact ⟨sourceResult, targetResult, rfl, rfl, h.1, h.2⟩
 
+theorem pairedStaleStore_success_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag) :
+    pairedStaleStore resolve store id offset byte = true ↔
+      ∃ sourceResult targetResult,
+        endLifetime store id = some sourceResult ∧
+        endLifetime (renameStore resolve store) id = some targetResult ∧
+        storeByte sourceResult.1 id offset byte = none ∧
+        storeByte targetResult.1 id offset (renameByte resolve byte) = none := by
+  constructor
+  · exact pairedStaleStore_sound resolve store id offset byte
+  · rintro ⟨sourceResult, targetResult, hsource, htarget,
+      hstoreSource, hstoreTarget⟩
+    exact pairedStaleStore_both_refused resolve store id offset byte hsource htarget
+      hstoreSource hstoreTarget
+
 theorem pairedStaleLoad_failure_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) :
