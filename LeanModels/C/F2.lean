@@ -9009,6 +9009,33 @@ theorem pairedAllocateAligned_both_refused
     pairedAllocateAligned resolve store request placement alignment = true := by
   simp [pairedAllocateAligned, hsource, htarget]
 
+theorem pairedAllocateAligned_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment : Nat) :
+    pairedAllocateAligned resolve store request placement alignment = false ↔
+      (allocateAligned store request placement alignment = none ∧
+        allocateAligned (renameStore resolve store)
+          (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment ≠ none) ∨
+      (allocateAligned store request placement alignment ≠ none ∧
+        allocateAligned (renameStore resolve store)
+          (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment = none) := by
+  cases hs : allocateAligned store request placement alignment with
+  | none =>
+      cases ht : allocateAligned (renameStore resolve store)
+          (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment with
+      | none => simp [pairedAllocateAligned, hs, ht]
+      | some target => simp [pairedAllocateAligned, hs, ht]
+  | some source =>
+      cases ht : allocateAligned (renameStore resolve store)
+          (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment with
+      | none => simp [pairedAllocateAligned, hs, ht]
+      | some target => simp [pairedAllocateAligned, hs, ht]
+
 theorem pairedAllocateAligned_sound
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
