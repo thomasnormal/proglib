@@ -1887,6 +1887,43 @@ theorem pairedTypedLoadMetadataByte_refusal_target
     pairedTypedLoadMetadataByte resolve id metadata offset typeId = none := by
   simp [pairedTypedLoadMetadataByte, htarget]
 
+theorem pairedTypedLoadMetadataByte_failure_contract
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) :
+    pairedTypedLoadMetadataByte resolve id metadata offset typeId = none ↔
+      typedLoadMetadataByte metadata offset typeId = none ∨
+      typedLoadMetadataByte (renameMetadata resolve id metadata) offset typeId = none ∨
+      (∃ sourceResult targetResult,
+        typedLoadMetadataByte metadata offset typeId = some sourceResult ∧
+        typedLoadMetadataByte (renameMetadata resolve id metadata) offset typeId = some targetResult ∧
+        ((targetResult.1 == renameByte resolve sourceResult.1) = false ∨
+          (targetResult.2 == sourceResult.2) = false)) := by
+  constructor
+  · intro hnone
+    cases hs : typedLoadMetadataByte metadata offset typeId with
+    | none => exact Or.inl rfl
+    | some sourceResult =>
+        cases ht : typedLoadMetadataByte (renameMetadata resolve id metadata)
+            offset typeId with
+        | none => exact Or.inr (Or.inl rfl)
+        | some targetResult =>
+            by_cases hbyte : (targetResult.1 == renameByte resolve sourceResult.1) = false
+            · exact Or.inr (Or.inr ⟨sourceResult, targetResult, by simpa using hs,
+                by simpa using ht, Or.inl hbyte⟩)
+            · by_cases hfootprint : (targetResult.2 == sourceResult.2) = false
+              · exact Or.inr (Or.inr ⟨sourceResult, targetResult, by simpa using hs,
+                  by simpa using ht, Or.inr hfootprint⟩)
+              · simp [pairedTypedLoadMetadataByte, hs, ht, hbyte, hfootprint] at hnone
+  · rintro (hsource | htarget | hguard)
+    · simp [pairedTypedLoadMetadataByte, hsource]
+    · simp [pairedTypedLoadMetadataByte, htarget]
+    · rcases hguard with ⟨sourceResult, targetResult, hsource, htarget, hcondition⟩
+      rcases hcondition with hbyte | hfootprint
+      · simp [pairedTypedLoadMetadataByte, hsource, htarget, hbyte]
+      · simp [pairedTypedLoadMetadataByte, hsource, htarget, hfootprint]
+
 theorem typedLoadMetadataByte_success
     [BEq TypeId]
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
