@@ -13358,6 +13358,19 @@ theorem endLifetime_result_contract
           refine ⟨allocation, rfl, hlive, ?_⟩
           simpa [endLifetime, hlookup, hlive] using hresult.symm
 
+theorem endLifetime_failure_contract
+    (store : Store Tag State) (id : AllocId) :
+    endLifetime store id = none ↔
+      lookup store id = none ∨
+      (∃ allocation,
+        lookup store id = some allocation ∧ allocation.live = false) := by
+  cases hlookup : lookup store id with
+  | none => simp [endLifetime, hlookup]
+  | some allocation =>
+      cases hlive : allocation.live with
+      | false => simp [endLifetime, hlookup, hlive]
+      | true => simp [endLifetime, hlookup, hlive]
+
 def pairedEndLifetime (resolve : AllocId → Nat) (store : Store Tag State)
     (id : AllocId) :
     Option ((Store Tag State × Footprint) × (Store Tag State × Footprint)) := do
