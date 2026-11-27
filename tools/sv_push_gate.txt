@@ -380,3 +380,5 @@ Examples/system-verilog/sem2/generated_scalar_child_storage_e/agree.lean
 Examples/system-verilog/sem2/always_star_step11/agree.lean
 
 Examples/system-verilog/sem2/generate_if_unpacked_array_canonical_e/probe.lean
+
+Examples/system-verilog/sem2/invalid_chain2_wall/agree.lean

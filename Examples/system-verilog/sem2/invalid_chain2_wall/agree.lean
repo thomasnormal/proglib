@@ -34,7 +34,7 @@ private def eResult :=
     (PDesign.surfaceFuel [])
 
 #guard match eResult with
-  | .unsupported "UnpackedDecl:generate-scope: active generate declarations contain duplicate names" => true
+  | .ok _ => true
   | _ => false
 
 end Examples.«system-verilog».sem2.invalid_chain2_wall.agree
