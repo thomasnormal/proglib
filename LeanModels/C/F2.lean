@@ -9891,6 +9891,12 @@ theorem pairedUnaddressableAllocation_true
     pairedUnaddressableAllocation resolve store request = true := by
   simp [pairedUnaddressableAllocation, allocate]
 
+theorem pairedUnaddressableAllocation_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) :
+    pairedUnaddressableAllocation resolve store request = false ↔ False := by
+  simp [pairedUnaddressableAllocation, allocate]
+
 theorem pairedUnaddressableAllocation_both_success
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State)
