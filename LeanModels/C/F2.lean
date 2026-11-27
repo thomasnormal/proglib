@@ -3238,6 +3238,14 @@ theorem pairedMergeByte_refusal
     pairedMergeByte resolve old mask value choice = none := by
   simp [pairedMergeByte, hguard]
 
+theorem pairedMergeByte_failure_contract
+    [BEq Tag] (resolve : AllocId → Nat) (old : Byte Tag)
+    (mask value choice : UInt8) :
+    pairedMergeByte resolve old mask value choice = none ↔
+      (mergeByte (renameByte resolve old) mask value choice ==
+        renameByte resolve (mergeByte old mask value choice)) = false := by
+  simp [pairedMergeByte]
+
 def copySnapshot (source destination : List (Byte Tag)) : Option (List (Byte Tag)) :=
   if source.length == destination.length then some source else none
 
