@@ -9621,6 +9621,12 @@ theorem PlacementAgreement.agreesAt_refusal
     agreement.agreesAt id = false := by
   simp [PlacementAgreement.agreesAt, h]
 
+theorem PlacementAgreement.agreesAt_failure_contract
+    (agreement : PlacementAgreement) (id : AllocId) :
+    agreement.agreesAt id = false ↔
+      agreement.left id ≠ agreement.right id := by
+  simp [PlacementAgreement.agreesAt, beq_iff_eq]
+
 theorem PlacementAgreement.agrees_refusal
     (agreement : PlacementAgreement)
     (hrefusal : ∃ id, agreement.left id ≠ agreement.right id) :
