@@ -3655,6 +3655,20 @@ theorem regionsOverlap_contract
     exact ⟨⟨hallocation, decide_eq_true hsource⟩,
       decide_eq_true hdestination⟩
 
+theorem regionsOverlap_failure_contract
+    (source destination : Region) (width : Nat) :
+    regionsOverlap source destination width = false ↔
+      source.allocation ≠ destination.allocation ∨
+      ¬ source.offset < destination.offset + width ∨
+      ¬ destination.offset < source.offset + width := by
+  by_cases halloc : source.allocation = destination.allocation
+  · by_cases hsource : source.offset < destination.offset + width
+    · by_cases hdestination : destination.offset < source.offset + width
+      · simp [regionsOverlap, halloc, hsource, hdestination]
+      · simp [regionsOverlap, halloc, hsource, hdestination]
+    · simp [regionsOverlap, halloc, hsource]
+  · simp [regionsOverlap, halloc]
+
 def memcpySnapshot (source destination : Region) (bytes : List (Byte Tag)) :
     Option (List (Byte Tag)) :=
   if regionsOverlap source destination bytes.length then none
