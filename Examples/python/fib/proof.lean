@@ -196,7 +196,8 @@ theorem fib_total (k : Nat) (hk : k + 1 < pythonRecursionLimit) : fib(k) ==> fib
   unfold callFunction
   have hinit : initWorld fib = ({heap := #[], globals := []} : World) := by rfl
   have hargs : RVal.thawArgs #[ToVal.toVal k] = #[.int (k : Int)] := by rfl
-  rw [hinit, hargs]
+  simp only [hinit, hargs, publicThawArgs_of_listFree
+    (show Val.listFreeArgs #[ToVal.toVal k] = true from rfl)]
   rw [hf f₀ (Nat.le_refl f₀)]
   simp [pythonTopCallDepth, pythonRecursionLimit, Run.finishCallAt,
     Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]

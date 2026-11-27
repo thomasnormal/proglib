@@ -192,6 +192,31 @@ theorem rank_count_ge (data : List Int) (k : Nat) (hk : k < data.length) :
     _ ≤ s.countP (fun v => decide (s.getD k 0 ≤ v)) :=
         (List.drop_sublist _ _).countP_le
 
+/-! ## The public boundary
+
+Since the public wrapper thaws a list argument onto the heap
+(`publicThawArgs`, 2026-11-12) and this module is not heap-free (`sorted`
+allocates), `data` enters the body as `.ref 0` to a fresh heap list of the
+marshalled ints. -/
+
+private theorem listFree_map_int (data : List Int) :
+    Val.listFreeList (data.map Val.int) = true := by
+  induction data with
+  | nil => rfl
+  | cons a l ih => simpa [Val.listFreeList, Val.listFree] using ih
+
+private theorem thaw_data (data : List Int) :
+    publicThawArgs bench_statistics (initWorld bench_statistics).heap
+        #[ToVal.toVal data] =
+      (#[Obj.list (data.map RVal.int).toArray], #[RVal.ref 0]) := by
+  have hm : bench_statistics.heapFree = false := by rfl
+  have hh : (initWorld bench_statistics).heap = #[] := by rfl
+  have hint : (RVal.thaw ∘ Val.int) = RVal.int := by
+    funext x; rfl
+  simp [publicThawArgs, hm, hh, RVal.thawArgsH, RVal.thawH, RVal.thawListH, ToVal.toVal,
+    RVal.thawListH_of_listFree _ (listFree_map_int data), RVal.thawList_eq_map,
+    Val.listFreeArgs, Val.listFreeList, Val.listFree, hint]
+
 /-! ## The total-correctness cores
 
 Straight-line symbolic execution: `refine ⟨64, ?_⟩` (fuel is a depth
@@ -228,6 +253,7 @@ theorem median_high_total (data : List PyInt) (hne : data ≠ [])
   have hq := arrVal_getElem (sortInts data) (data.length / 2)
     (by rw [sortInts_length]; omega)
   refine ⟨64, ?_⟩
+  simp only [callFunction, thaw_data]
   py_simp [callFunction, callIn, bench_statistics, asIntList_map_toVal,
     asIntList_map_thaw_comp, evalBinOpH, PyVCGen.binOpBeqBitAnd,
     PyVCGen.binOpBeqMult, setLikeRefH, funsHeapFree, FunctionDefn.heapFree,
@@ -275,6 +301,7 @@ theorem median_low_total (data : List PyInt) (hne : data ≠ [])
       constructor <;> (try simp only [pySsizeMin]) <;> omega
     have htn : (((data.length : Int)) / 2).toNat = (data.length - 1) / 2 := by
       omega
+    simp only [callFunction, thaw_data]
     py_simp [callFunction, callIn, bench_statistics, asIntList_map_toVal,
     asIntList_map_thaw_comp, evalBinOpH, PyVCGen.binOpBeqBitAnd,
     PyVCGen.binOpBeqMult, setLikeRefH, funsHeapFree, FunctionDefn.heapFree,
@@ -304,6 +331,7 @@ theorem median_low_total (data : List PyInt) (hne : data ≠ [])
       constructor <;> (try simp only [pySsizeMin]) <;> omega
     have htn : ((((data.length : Int)) / 2) - 1).toNat = (data.length - 1) / 2 := by
       omega
+    simp only [callFunction, thaw_data]
     py_simp [callFunction, callIn, bench_statistics, asIntList_map_toVal,
     asIntList_map_thaw_comp, evalBinOpH, PyVCGen.binOpBeqBitAnd,
     PyVCGen.binOpBeqMult, setLikeRefH, funsHeapFree, FunctionDefn.heapFree,

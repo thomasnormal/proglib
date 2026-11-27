@@ -325,6 +325,10 @@ theorem bisect_left_core (xs : List Int) (x : Int)
     (simp only [pw, bench_bisect, blTest, blBody, toEnvB, midEnv] at hloopT
      have hloop := hloopT (f₀ + 58) (by omega)
      refine ⟨f₀ + 64, ?_⟩
+     -- the public wrapper's thaw (`publicThawArgs`) is the pure one in a
+     -- heap-free module, even for the list argument
+     simp only [callFunction,
+       publicThawArgs_of_heapFree (show bench_bisect.heapFree = true from rfl)]
      py_simp [callFunction, callIn, bench_bisect, hloop,
        funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList, Stmt.heapFree,
        Expr.heapFreeList, Expr.heapFree, hasUnboundLocal, unboundLocalMarker,
@@ -449,6 +453,10 @@ theorem bisect_left_terminates (xs : List PyInt) (x : PyInt)
     (simp only [pw, bench_bisect, blTest, blBody, toEnvB, midEnv] at hloopT
      have hloop := hloopT (f₀ + 58) (by omega)
      refine ⟨f₀ + 64, ?_⟩
+     -- the public wrapper's thaw (`publicThawArgs`) is the pure one in a
+     -- heap-free module, even for the list argument
+     simp only [callFunction,
+       publicThawArgs_of_heapFree (show bench_bisect.heapFree = true from rfl)]
      py_simp [callFunction, callIn, bench_bisect, hloop,
        funsHeapFree, FunctionDefn.heapFree, Stmt.heapFreeList, Stmt.heapFree,
        Expr.heapFreeList, Expr.heapFree, hasUnboundLocal, unboundLocalMarker,
@@ -921,7 +929,7 @@ private theorem bisect_right_core (a : List Int) (x : Int)
       fstringFormatBuiltinName, lenMultBuiltinName, flattenStarRun,
       flattenStarCallArgs, Run.bind, Run.liftRes, Run.toPublic,
       Run.toPublic_ok, RVal.freezeB, pythonTopCallDepth, pythonRecursionLimit,
-      Run.finishCallAt, Run.leaveCallDepth, hh, hh']
+      Run.finishCallAt, Run.leaveCallDepth, RVal.thawList_eq_map, hh, hh']
     try unfold BR.toEnv
     rcases p' with ⟨lo', hi', _mid', grown'⟩
     cases grown' <;> py_simp
@@ -957,7 +965,7 @@ private theorem bisect_right_terminates_core (a : List Int) (x : Int)
     fstringFormatBuiltinName, lenMultBuiltinName, flattenStarRun,
     flattenStarCallArgs, Run.bind, Run.liftRes, Run.toPublic,
     Run.toPublic_ok, RVal.freezeB, pythonTopCallDepth, pythonRecursionLimit,
-    Run.finishCallAt, Run.leaveCallDepth, hh, hh']
+    Run.finishCallAt, Run.leaveCallDepth, RVal.thawList_eq_map, hh, hh']
   try unfold BR.toEnv
   rcases p' with ⟨lo', hi', _mid', grown'⟩
   cases grown' <;> py_simp

@@ -1111,7 +1111,6 @@ WHITELIST_CLASS.update({
     'star_lab::tuple_tail': 'starred.display',
     'star_shadow::elsewhere': 'starred.display',
     'star_shadow::shadowed': 'starred.display',
-    'string_repeat::repeat_aug': 'op.Mult-repetition',
     'string_repeat::repeat_boundary_list_length': 'op.Mult-repetition',
     'string_repeat::repeat_left_length': 'op.Mult-repetition',
     'string_repeat::repeat_right_length': 'op.Mult-repetition',

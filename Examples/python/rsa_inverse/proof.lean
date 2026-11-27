@@ -367,23 +367,6 @@ theorem extended_gcd_zero (a : PyInt) (ha : 0 ≤ a) :
   simp [RVal.freezeListB, RVal.freezeB, pythonTopCallDepth, pythonRecursionLimit, Run.finishCallAt,
     Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
 
-private theorem callsIn_exists_of_callsTo {m : Module} {fname : String}
-    {args : Array Val} {v : Val} (h : CallsTo m fname args v)
-    (hv : Val.listFree v = true) :
-    ∃ w, CallsIn m (initWorld m) fname (RVal.thawArgs args) w (RVal.thaw v) := by
-  obtain ⟨fuel, hf⟩ := h
-  unfold callFunction at hf
-  cases hc : callIn m fuel (initWorld m) fname (RVal.thawArgs args) with
-  | ok w rv =>
-    rw [hc, Run.toPublic_ok] at hf
-    have hrv : rv = RVal.thaw v :=
-      RVal.eq_thaw_of_freezeB w.heap fuel rv hf hv
-    subst hrv
-    exact ⟨w, fuel, hc⟩
-  | exn w e => simp [hc] at hf
-  | timeout => simp [hc] at hf
-  | unsupported msg => simp [hc] at hf
-
 set_option maxHeartbeats 4000000 in
 /-- `Int`-typed core of `inverse_spec` — TOTAL correctness on coprime
 inputs. Coprimality rewrites the callee fact's gcd to 1, and the closing

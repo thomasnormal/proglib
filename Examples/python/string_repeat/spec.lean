@@ -55,23 +55,21 @@ set_option maxRecDepth 8192
   (.typeError "can't multiply sequence by non-int of type 'tuple'")
 #py_check string_repeat.repeat_left((Val.list #[.int 1]), (Val.tuple #[.int 1])) raises
   (.typeError "can't multiply sequence by non-int of type 'tuple'")
-/-! `repeat_aug` on a boundary list refuses since the boundary augmented-repeat
-rewrite was removed (`docs/backlog/python-completeness.md`
-§2026-11-05-pycomplete-337), and the oversized `repeat_boundary_list_length`
-product refuses since the length-only repetition rewrites were removed
-(§2026-11-05-pycomplete-340). The CPython answers these checks pinned are
-kept in the `-- was` comments; `harness/cases.json` expects `unsupported`
-for these rows. -/
+/-! `repeat_aug` on a boundary list gives CPython's answers again. The rows
+were pinned as refusals while the boundary augmented-repeat rewrite was gone
+(`docs/backlog/python-completeness.md` §2026-11-05-pycomplete-337); since the
+public call boundary thaws a `Val.list` argument onto the heap
+(§2026-11-12-p2-library-boundary), the in-place `*=` reaches the ordinary
+heap-list repetition. The oversized `repeat_boundary_list_length` product
+still refuses since the length-only repetition rewrites were removed
+(§2026-11-05-pycomplete-340); its CPython answer is kept in the `-- was`
+comment, and `harness/cases.json` expects `unsupported` for that row. -/
 
--- was `#py_check string_repeat.repeat_aug((Val.list #[.int 1, .int 2]), 3) = (Val.list #[.int 1, .int 2, .int 1, .int 2, .int 1, .int 2])`
-#guard callFunction string_repeat "repeat_aug" #[Val.list #[Val.int 1, Val.int 2], .int 3] 4096 matches
-  .unsupported "augmented assignment to a list ('+=' mutates in place, visible through aliases) is outside the v0 tier"
--- was `#py_check string_repeat.repeat_aug((Val.list #[.int 1, .int 2]), -2) = (Val.list #[])`
-#guard callFunction string_repeat "repeat_aug" #[Val.list #[Val.int 1, Val.int 2], .int (-2)] 4096 matches
-  .unsupported "augmented assignment to a list ('+=' mutates in place, visible through aliases) is outside the v0 tier"
--- was `#py_check string_repeat.repeat_aug((Val.list #[.int 1]), (Val.tuple #[.int 1])) raises (.typeError "can't multiply sequence by non-int of type 'tuple'")`
-#guard callFunction string_repeat "repeat_aug" #[Val.list #[Val.int 1], Val.tuple #[Val.int 1]] 4096 matches
-  .unsupported "augmented assignment to a list ('+=' mutates in place, visible through aliases) is outside the v0 tier"
+#py_check string_repeat.repeat_aug((Val.list #[.int 1, .int 2]), 3) =
+  (Val.list #[.int 1, .int 2, .int 1, .int 2, .int 1, .int 2])
+#py_check string_repeat.repeat_aug((Val.list #[.int 1, .int 2]), -2) = (Val.list #[])
+#py_check string_repeat.repeat_aug((Val.list #[.int 1]), (Val.tuple #[.int 1])) raises
+  (.typeError "can't multiply sequence by non-int of type 'tuple'")
 #py_check string_repeat.repeat_boundary_list((Val.list #[.int 1, .int 2]), 3) =
   (Val.list #[.int 1, .int 2, .int 1, .int 2, .int 1, .int 2])
 #py_check string_repeat.repeat_boundary_list(3, (Val.list #[.int 1, .int 2])) =

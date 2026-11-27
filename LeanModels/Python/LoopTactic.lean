@@ -299,7 +299,8 @@ elab "py_begin" "[" prog:ident "]" : tactic => do
     let progT : Term := ⟨prog.raw⟩
     evalTactic (← `(tactic|
       (intro F; simp only [callFunction];
-       simp [publicThawArgs_of_listFree, Val.listFreeArgs, Val.listFree, Val.listFreeList];
+       try (rewrite [publicThawArgs_of_pure]; rotate_left; with_unfolding_all rfl);
+       try simp [publicThawArgs_of_listFree, Val.listFreeArgs, Val.listFree, Val.listFreeList];
        simp only [$progT:term];
        py_simp [callIn.eq_2, publicThawArgs, publicThawArgs_of_listFree,
          Val.listFreeArgs, Val.listFree, Val.listFreeList, Module.heapFree,
