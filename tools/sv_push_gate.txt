@@ -63,6 +63,7 @@ LeanModels.Sv.CombViewThm
 LeanModels.Sv.CombWord
 LeanModels.Sv.CombWordPins
 LeanModels.Sv.Ingest2
+LeanModels.Sv.MemPreemptGuard
 Examples/system-verilog/comb_bridge/bridge.lean
 Examples/system-verilog/comb_bridge/cover.lean
 Examples/system-verilog/comb_case/comb_errors.lean

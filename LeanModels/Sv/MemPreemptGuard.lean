@@ -95,6 +95,8 @@ mutual
     | .partSel _ a b => PExpr.memPreemptReads d a ++ PExpr.memPreemptReads d b
     | .concat xs => PLhs.memPreemptReadsList d xs
     | .arrayElem _ xs => PExpr.memPreemptReadsList d xs
+    | .arrayBitSel _ xs bit =>
+        PExpr.memPreemptReadsList d xs ++ PExpr.memPreemptReads d bit
     | .arrayPart _ xs _ a b =>
         PExpr.memPreemptReadsList d xs ++ PExpr.memPreemptReads d a ++
           PExpr.memPreemptReads d b
@@ -111,7 +113,7 @@ end
 
 mutual
   def PLhs.memPreemptWrites (d : MemDesign2) : PLhs → List BWin
-    | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayPart n .. =>
+    | .ident n | .bitSel n _ | .partSel n _ _ | .arrayElem n _ | .arrayBitSel n _ _ | .arrayPart n .. =>
         memPreemptWhole d n
     | .aggregateMember n _ => memPreemptWhole d n
     | .concat xs => PLhs.memPreemptWritesList d xs
