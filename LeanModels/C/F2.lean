@@ -11539,6 +11539,59 @@ theorem pairedAllocateBounded_refusal
   · simp [pairedAllocateBounded, hsource, htarget]
   · simp [pairedAllocateBounded, hsource, htarget]
 
+theorem pairedAllocateBounded_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement)
+    (alignment limit : Nat) :
+    pairedAllocateBounded resolve store request placement alignment limit = false ↔
+      (∃ sourceFault target,
+        allocateBounded store request placement alignment limit = .error sourceFault ∧
+        allocateBounded (renameStore resolve store)
+          (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment limit = .ok target) ∨
+      (∃ source targetFault,
+        allocateBounded store request placement alignment limit = .ok source ∧
+        allocateBounded (renameStore resolve store)
+          (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment limit =
+            .error targetFault) ∨
+      (∃ sourceFault targetFault,
+        allocateBounded store request placement alignment limit = .error sourceFault ∧
+        allocateBounded (renameStore resolve store)
+          (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment limit =
+            .error targetFault ∧
+        sourceFault ≠ targetFault) := by
+  cases hs : allocateBounded store request placement alignment limit with
+  | ok source =>
+      cases ht : allocateBounded (renameStore resolve store)
+          (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment limit with
+      | ok target => simp [pairedAllocateBounded, hs, ht]
+      | error targetFault =>
+          simp [pairedAllocateBounded, hs, ht]
+  | error sourceFault =>
+      cases ht : allocateBounded (renameStore resolve store)
+          (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) alignment limit with
+      | ok target => simp [pairedAllocateBounded, hs, ht]
+      | error targetFault =>
+          cases hEq : sourceFault == targetFault with
+          | true =>
+              have heq : sourceFault = targetFault :=
+                (placementFault_beq_iff sourceFault targetFault).mp hEq
+              have hEqSelf : (targetFault == targetFault) = true :=
+                (placementFault_beq_iff targetFault targetFault).mpr rfl
+              simp [pairedAllocateBounded, hs, ht, hEq, heq, hEqSelf]
+          | false =>
+              have hne : sourceFault ≠ targetFault := by
+                intro heq
+                have hEqTrue : (sourceFault == targetFault) = true :=
+                  (placementFault_beq_iff sourceFault targetFault).mpr heq
+                rw [hEq] at hEqTrue
+                simp at hEqTrue
+              simp [pairedAllocateBounded, hs, ht, hEq, hne]
+
 theorem pairedAllocateBounded_empty_address_refusal
     (resolve : AllocId → Nat) (store : Store Tag State)
     (state : State) (base alignment limit : Nat)
