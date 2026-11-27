@@ -5173,6 +5173,17 @@ theorem CoreMemDesign.step_seqIC_of_noComb {E : CoreMemDesign}
   exact CoreMemDesign.step_seqI hP (CoreMemDesign.seqOblIC_to_seqOblI_of_noComb hO hno)
     hc hmc hty hv
 
+theorem CoreMemDesign.step_seqIMC_of_noComb {E : CoreMemDesign}
+    (hP : E.SeqProfileI) (hO : E.seqOblIMC = true)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry) {v' : SvState} {mv' : MemV}
+    (hv : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv')) :
+    ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧ E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  exact CoreMemDesign.step_seqIM hP (CoreMemDesign.seqOblIMC_to_seqOblIM_of_noComb hO hno)
+    hc hmc hty hv
+
 /-! The concrete confluence bridge for the first honest clocked class.  The
 continuous-assignment region is settled before and after the edge, and the
 only schedule choice is the order of the edge processes' NBA evaluations.
