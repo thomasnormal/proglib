@@ -5189,6 +5189,17 @@ theorem isZeroToken_contract
       metadata.allocation.live = true ∧ metadata.allocation.bytes = [] := by
   simp [isZeroToken]
 
+theorem isZeroToken_failure_contract
+    (metadata : AllocationMetadata Tag State TypeId) :
+    isZeroToken metadata = false ↔
+      metadata.allocation.live = false ∨ metadata.allocation.bytes ≠ [] := by
+  by_cases hlive : metadata.allocation.live = true
+  · by_cases hbytes : metadata.allocation.bytes = []
+    · simp [isZeroToken, hlive, hbytes]
+    · simp [isZeroToken, hlive, hbytes]
+  · have hdead : metadata.allocation.live = false := Bool.eq_false_iff.mpr hlive
+    simp [isZeroToken, hlive, hdead]
+
 def zeroTokenEqual (left right : AllocationMetadata Tag State TypeId) : Bool :=
   isZeroToken left && isZeroToken right && left.allocation.address == right.allocation.address
 
@@ -7243,6 +7254,18 @@ theorem alignmentAllowed_contract
     exact ⟨decide_eq_true_iff.mp hpositive, beq_iff_eq.mp hmod⟩
   · rintro ⟨hpositive, hmod⟩
     exact ⟨decide_eq_true hpositive, beq_iff_eq.mpr hmod⟩
+
+theorem alignmentAllowed_failure_contract
+    (base alignment : Nat) :
+    alignmentAllowed base alignment = false ↔
+      alignment ≤ 0 ∨ base % alignment ≠ 0 := by
+  by_cases hpositive : 0 < alignment
+  · by_cases hmod : base % alignment = 0
+    · have hne : alignment ≠ 0 := by omega
+      simp [alignmentAllowed, hpositive, hmod, hne]
+    · simp [alignmentAllowed, hpositive, hmod]
+  · have hnonpositive : alignment ≤ 0 := Nat.le_of_not_gt hpositive
+    simp [alignmentAllowed, hpositive, hnonpositive]
 
 def pairedAlignmentAllowed (resolve : AllocId → Nat)
     (id alignment : Nat) : Bool :=
