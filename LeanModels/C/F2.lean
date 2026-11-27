@@ -10940,6 +10940,18 @@ theorem renameBoundedResult_error_shape
       (.error fault : Except PlacementFault (Store Tag State × Footprint)) := by
   rfl
 
+theorem renameBoundedResult_error_contract
+    {Tag State : Type} (resolve : AllocId → Nat)
+    (result : Except PlacementFault (Store Tag State × Footprint))
+    (fault : PlacementFault) :
+    renameBoundedResult resolve result = .error fault ↔
+      result = .error fault := by
+  cases result with
+  | error sourceFault =>
+      simp [renameBoundedResult, placementFault_beq_iff]
+  | ok sourceResult =>
+      simp [renameBoundedResult]
+
 theorem renameBoundedResult_success_shape
     (resolve : AllocId → Nat) (store : Store Tag State)
     (footprint : Footprint) :
