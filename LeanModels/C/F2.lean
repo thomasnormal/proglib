@@ -5032,6 +5032,18 @@ theorem renameZeroSizeOutcome_preserves_failure
       resolve (.null) = .null := by
   rfl
 
+theorem renameZeroSizeOutcome_result_contract
+    (resolve : AllocId → Nat)
+    (outcome result : ZeroSizeOutcome Tag State TypeId) :
+    renameZeroSizeOutcome resolve outcome = result ↔
+      match outcome with
+      | .null => result = .null
+      | .token metadata =>
+          result = .token { metadata with
+            allocation := { metadata.allocation with
+              address := metadata.allocation.address.map (fun _ => resolve 0) } } := by
+  cases outcome <;> simp [renameZeroSizeOutcome, eq_comm]
+
 theorem renameZeroSizeOutcome_token_shape
     (resolve : AllocId → Nat)
     (metadata : AllocationMetadata Tag State TypeId) :
