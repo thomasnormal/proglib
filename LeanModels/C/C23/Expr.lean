@@ -1891,10 +1891,17 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | _ => refuseUnsupported "non-floating value in floating-to-integral conversion"
       else if ck == "PointerToIntegral" then
         -- C23 §6.3.2.3p6 leaves the representation implementation-defined.
-        -- Until F2 stores exposure and provenance explicitly, admitting a
-        -- pointer-integer value would answer round trips from an invented
-        -- address token. Refuse the representation boundary loudly.
-        refuseUnsupported "nonValueRepresentation"
+        -- The pinned LP64 profile admits the unchanged round-trip token. It
+        -- retains the pointer provenance and is consumed only by the
+        -- corresponding parser-node IntegralToPointer case. Arithmetic on
+        -- the token remains a separate refusal, so this does not invent an
+        -- address or recover provenance from an arbitrary integer.
+        do
+          let v ← evalExpr ctx sub
+          match v with
+          | .ptr p => pure (.ptrInt p)
+          | .funPtr _ => refuseUnsupported "nonValueRepresentation"
+          | _ => refuseUnsupported "nonValueRepresentation"
       else if ck == "IntegralToPointer" then
         if pointerTypeOfNode structuredType then do
           let v ← evalExpr ctx sub
