@@ -393,6 +393,7 @@ Examples/system-verilog/sem2/picorv32_alu_case_canonical_e/agree.lean
 Examples/system-verilog/sem2/unpacked_array_target_canonical_e/oracle.lean
 
 Examples/system-verilog/sem2/xnor_const/agree.lean
+Examples/system-verilog/sem2/readmemh_parameter_file_e/agree.lean
 Examples/system-verilog/sem2/clocked_tick_assign_e/agree.lean
 Examples/system-verilog/sem2/duplicate_generate_group_e/agree.lean
 

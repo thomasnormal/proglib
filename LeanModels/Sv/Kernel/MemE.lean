@@ -203,6 +203,11 @@ def MemEDesign.writeReadmemhFlat (d : MemEDesign) (st : MemEState)
 
 def MemEDesign.writeReadmemh (d : MemEDesign) (st : MemEState)
     (task : PReadmemh) : Except String MemEState := do
+  -- IEEE 1800-2023 §21.4 leaves the destination unchanged when the
+  -- elaboration-time file cannot be opened.  The extractor records that
+  -- case with an empty payload.
+  if task.words.isEmpty then
+    return st
   match d.memDecl? task.target with
   | some pd =>
       let shape ← d.shape? pd

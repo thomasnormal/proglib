@@ -60,6 +60,23 @@ class ReadmemhArguments(unittest.TestCase):
         self.assertEqual(nodes[0]["sv_kind"], "SystemTask:readmemh:shape")
         self.assertIn("literal file", nodes[0]["text"])
 
+    def test_missing_string_parameter_retains_empty_payload(self):
+        source = ('module top #(parameter FILE = "missing.hex"); '
+                  'logic [7:0] rom [0:1]; '
+                  'initial $readmemh(FILE, rom); endmodule')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            src = root / "fixture.sv"
+            out = root / "fixture.sv.json"
+            src.write_text(source)
+            extract.process_symbolic("top", [str(src)], [], str(out))
+            module = json.loads(out.read_text())["design"]["modules"][0]
+        nodes = self.readmemh_nodes(module)
+        self.assertEqual(nodes[0]["sv_kind"], "SystemTask:readmemh")
+        self.assertEqual(nodes[0]["text"], "file=missing.hex;target=rom;data=")
+        self.assertEqual(module["readmemh"],
+                         [{"file": "missing.hex", "target": "rom", "words": []}])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,419 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "readmemh_parameter_file",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/readmemh_parameter_file_e/readmemh_parameter_file.sv",
+      "sha256": "968f453f70a95c50df06ac238bdf80afec36ac01b42c6e7f3992db5c7356e154"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 11,
+          "end_col": 10
+        },
+        "name": "readmemh_parameter_file",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 2,
+              "col": 15,
+              "end_line": 2,
+              "end_col": 37
+            },
+            "name": "MEMFILE",
+            "type": null,
+            "default": {
+              "kind": "Literal",
+              "span": {
+                "line": 2,
+                "col": 25,
+                "end_line": 2,
+                "end_col": 37
+              },
+              "width": 80,
+              "bits": "01110110011000010110110001110101011001010111001100101110011011010110010101101101"
+            },
+            "resolved": null,
+            "string": true
+          },
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 3,
+              "col": 19,
+              "end_line": 3,
+              "end_col": 24
+            },
+            "name": "W",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 19,
+                      "end_line": 3,
+                      "end_col": 24
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 19,
+                      "end_line": 3,
+                      "end_col": 24
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 3,
+                "col": 23,
+                "end_line": 3,
+                "end_col": 24
+              },
+              "value": 8,
+              "resolved_width": 32
+            },
+            "resolved": 8,
+            "string": false
+          },
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 4,
+              "col": 19,
+              "end_line": 4,
+              "end_col": 24
+            },
+            "name": "D",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 4,
+                      "col": 19,
+                      "end_line": 4,
+                      "end_col": 24
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 4,
+                      "col": 19,
+                      "end_line": 4,
+                      "end_col": 24
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 4,
+                "col": 23,
+                "end_line": 4,
+                "end_col": 24
+              },
+              "value": 4,
+              "resolved_width": 32
+            },
+            "resolved": 4,
+            "string": false
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 6,
+              "col": 26,
+              "end_line": 6,
+              "end_col": 27
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 6,
+                      "col": 19,
+                      "end_line": 6,
+                      "end_col": 22
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 6,
+                        "col": 19,
+                        "end_line": 6,
+                        "end_col": 20
+                      },
+                      "name": "W"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 6,
+                        "col": 21,
+                        "end_line": 6,
+                        "end_col": 22
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 23,
+                      "end_line": 6,
+                      "end_col": 24
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "UnpackedDecl",
+            "span": {
+              "line": 8,
+              "col": 19,
+              "end_line": 8,
+              "end_col": 30
+            },
+            "name": "mem",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 8,
+                      "col": 12,
+                      "end_line": 8,
+                      "end_col": 15
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 8,
+                        "col": 12,
+                        "end_line": 8,
+                        "end_col": 13
+                      },
+                      "name": "W"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 8,
+                        "col": 14,
+                        "end_line": 8,
+                        "end_col": 15
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 16,
+                      "end_line": 8,
+                      "end_col": 17
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "unpacked": [
+              {
+                "msb": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 8,
+                    "col": 24,
+                    "end_line": 8,
+                    "end_col": 25
+                  },
+                  "value": 0,
+                  "resolved_width": null
+                },
+                "lsb": {
+                  "kind": "Binary",
+                  "span": {
+                    "line": 8,
+                    "col": 26,
+                    "end_line": 8,
+                    "end_col": 29
+                  },
+                  "width": null,
+                  "op": "-",
+                  "left": {
+                    "kind": "ParamRef",
+                    "span": {
+                      "line": 8,
+                      "col": 26,
+                      "end_line": 8,
+                      "end_col": 27
+                    },
+                    "name": "D"
+                  },
+                  "right": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 28,
+                      "end_line": 8,
+                      "end_col": 29
+                    },
+                    "value": 1,
+                    "resolved_width": null
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Initial",
+            "span": {
+              "line": 9,
+              "col": 5,
+              "end_line": 9,
+              "end_col": 37
+            },
+            "body": {
+              "kind": "Unsupported",
+              "span": {
+                "line": 9,
+                "col": 13,
+                "end_line": 9,
+                "end_col": 37
+              },
+              "sv_kind": "SystemTask:readmemh",
+              "text": "file=values.mem;target=mem;data="
+            }
+          },
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 10,
+              "col": 12,
+              "end_line": 10,
+              "end_col": 22
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 10,
+                "col": 12,
+                "end_line": 10,
+                "end_col": 13
+              },
+              "width": 8,
+              "name": "y"
+            },
+            "value": {
+              "kind": "ArraySel",
+              "span": {
+                "line": 10,
+                "col": 16,
+                "end_line": 10,
+                "end_col": 22
+              },
+              "width": 8,
+              "name": "mem",
+              "indices": [
+                {
+                  "kind": "Int",
+                  "span": {
+                    "line": 10,
+                    "col": 20,
+                    "end_line": 10,
+                    "end_col": 21
+                  },
+                  "value": 0,
+                  "resolved_width": 32
+                }
+              ],
+              "part": null,
+              "unpacked": true
+            }
+          }
+        ],
+        "generates": [],
+        "others": [],
+        "readmemh": [
+          {
+            "file": "values.mem",
+            "target": "mem",
+            "words": []
+          }
+        ]
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

@@ -849,6 +849,10 @@ def readmemhNat (s : String) : Option Nat :=
 def runReadmemh (d : MemDesign2) (st : MemCycleState) (task : PReadmemh) : Res MemCycleState := do
   let target := task.target
   let words := task.words
+  -- IEEE 1800-2023 §21.4 leaves memory unchanged when the selected file is
+  -- unavailable.  The extractor uses an empty payload for that case.
+  if words.isEmpty then
+    return st
   match memDeclOf? d.memDecls target with
   | none =>
       -- slang's fixed one-rank elaboration may expose the cells as scalar

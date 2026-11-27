@@ -4231,7 +4231,11 @@ def CoreMemDesign.writeReadmemhMem (E : CoreMemDesign) (st : CoreMemState) (task
 
 def CoreMemDesign.writeReadmemh (E : CoreMemDesign) (st : CoreMemState)
     (task : PReadmemh) : Res CoreMemState :=
-  match E.memDecl? task.target with
+  -- IEEE 1800-2023 §21.4 leaves the destination unchanged when the
+  -- elaboration-time file name cannot be opened.  The extractor records that
+  -- source-shaped case with an empty word list, distinct from a valid file
+  -- because valid files are rejected when they contain no words.
+  if task.words.isEmpty then .ok st else match E.memDecl? task.target with
   | none => .unsupported s!"SystemTask:readmemh target '{task.target}' is not a declared memory"
   | some md =>
       let shape := md.shape

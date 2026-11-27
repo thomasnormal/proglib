@@ -26590,7 +26590,18 @@ def _readmemh_string_argument(expression):
     if type(expression).__name__ == "StringLiteral":
         value = getattr(expression, "value", None)
         return value if isinstance(value, str) else None
+    # An untyped parameter with a string default is represented by Slang as
+    # a packed integral value.  Keep the declaration source-shaped and use
+    # its parser-resolved initializer rather than treating the identifier as
+    # a filename.  This is the elaboration-time constant required by §21.4.
     symbol = getattr(expression, "symbol", None)
+    initializer = getattr(symbol, "initializer", None)
+    while type(initializer).__name__ == "ConversionExpression":
+        initializer = getattr(initializer, "operand", None)
+    if type(initializer).__name__ == "StringLiteral":
+        value = getattr(initializer, "value", None)
+        if isinstance(value, str):
+            return value
     if type(symbol).__name__ != "ParameterSymbol":
         return None
     try:
@@ -26689,8 +26700,13 @@ def _convert_syscall(sm, s, e):
         # Keep the source task as an Unsupported envelope node (Stmt2 is
         # frozen); the memory E route consumes its retained file payload.
         try:
+            global _SYM_READMEMH_PENDING
             args = list(e.arguments)
             filename = _readmemh_string_argument(args[0])
+            parameter_filename = (
+                type(args[0]).__name__ == "NamedValueExpression" and
+                type(getattr(args[0], "symbol", None)).__name__ ==
+                "ParameterSymbol")
             if filename is not None:
                 filename = filename.strip()
             target_expr = getattr(args[1], "left", args[1])
@@ -26701,6 +26717,15 @@ def _convert_syscall(sm, s, e):
             source_file = os.path.normpath(sm.getFileName(s.sourceRange.start))
             path = os.path.join(os.path.dirname(source_file), filename)
             if not os.path.isfile(path):
+                # §21.4 leaves the memory unchanged when the selected file
+                # cannot be opened.  Retain the task with an empty payload so
+                # the memory route can model that x-initialized state.
+                if parameter_filename and _SYM is not None:
+                    _SYM_READMEMH_PENDING.append({
+                        "file": filename, "target": target, "words": [],
+                    })
+                    return unsupported(sm, s, "SystemTask:readmemh",
+                                       f"file={filename};target={target};data=")
                 return unsupported(sm, s, "SystemTask:readmemh:missing-file",
                                    f"literal file '{filename}' is not present beside the source")
             with open(path, encoding="utf-8") as data_file:
@@ -26719,7 +26744,6 @@ def _convert_syscall(sm, s, e):
             if len(words) != abs(left - right) + 1:
                 return unsupported(sm, s, "SystemTask:readmemh:short-file",
                                    f"literal file has {len(words)} words for {abs(left - right) + 1} ROM cells")
-            global _SYM_READMEMH_PENDING
             if _SYM is not None:
                 _SYM_READMEMH_PENDING.append({
                     "file": filename, "target": target, "words": words,
