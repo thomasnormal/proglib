@@ -1518,6 +1518,26 @@ theorem CoreMemDesign.runCombV_of_noComb
   unfold CoreMemDesign.runCombV
   exact E.runCombQuiesceV_of_noComb hnd h4 hbefore hcurrent hno hconverted
 
+theorem CoreMemDesign.runCombSettleQuiesceV_of_noComb
+    {E : CoreMemDesign} {n : Nat} {mv : MemV} {before current : SvState}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hbefore : E.matV before = before) (hcurrent : E.matV current = current)
+    (hsettled : E.settleV mv current = .ok current)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    (hconverted : ∀ p ∈ E.processes.toList, ∀ kind text, p ≠ .unsupported kind text) :
+    E.runCombSettleQuiesceV (n + 1) mv before current E.processes.toList = .ok current := by
+  induction n generalizing before with
+  | zero =>
+      simp only [CoreMemDesign.runCombSettleQuiesceV,
+        E.runCombV_of_noComb hnd h4 hbefore hcurrent hno hconverted, Res.ok_bind]
+      rw [hcurrent, hsettled]
+      simp
+  | succ n ih =>
+      simp only [CoreMemDesign.runCombSettleQuiesceV,
+        E.runCombV_of_noComb hnd h4 hbefore hcurrent hno hconverted, Res.ok_bind]
+      rw [hcurrent, hsettled]
+      simp
+
 /-! The view-only quiescence loop preserves a coherent realization of its
 returned view.  The materialization premises are explicit because the view
 runner compares source-shaped views, while the retained state stores the
