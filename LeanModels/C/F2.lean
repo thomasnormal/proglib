@@ -6931,6 +6931,27 @@ theorem pairedPlacementAllowed_refusal
   · simp [pairedPlacementAllowed, hsource, htarget]
   · simp [pairedPlacementAllowed, hsource, htarget]
 
+theorem pairedPlacementAllowed_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (base size : Nat) :
+    pairedPlacementAllowed resolve store base size = false ↔
+      placementAllowed store base size ≠
+        placementAllowed (renameStore resolve store) (resolve store.nextId) size := by
+  by_cases hsource : placementAllowed store base size = true
+  · by_cases htarget : placementAllowed (renameStore resolve store)
+        (resolve store.nextId) size = true
+    · simp [pairedPlacementAllowed, hsource, htarget]
+    · have htarget' : placementAllowed (renameStore resolve store)
+          (resolve store.nextId) size = false := Bool.eq_false_iff.mpr htarget
+      simp [pairedPlacementAllowed, hsource, htarget']
+  · have hsource' : placementAllowed store base size = false := Bool.eq_false_iff.mpr hsource
+    by_cases htarget : placementAllowed (renameStore resolve store)
+        (resolve store.nextId) size = true
+    · simp [pairedPlacementAllowed, hsource', htarget]
+    · have htarget' : placementAllowed (renameStore resolve store)
+          (resolve store.nextId) size = false := Bool.eq_false_iff.mpr htarget
+      simp [pairedPlacementAllowed, hsource', htarget']
+
 def alignmentAllowed (base alignment : Nat) : Bool :=
   alignment > 0 && base % alignment == 0
 
