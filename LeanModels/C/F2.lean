@@ -13907,6 +13907,17 @@ theorem pairedLifetimeLookup_failure_contract
       | none => simp [pairedLifetimeLookup, hs, ht]
       | some targetResult => simp [pairedLifetimeLookup, hs, ht]
 
+theorem pairedLifetimeLookup_success_contract
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
+    pairedLifetimeLookup resolve store id = true ↔
+      ∃ source target,
+        endLifetime store id = some source ∧
+        endLifetime (renameStore resolve store) id = some target := by
+  constructor
+  · exact pairedLifetimeLookup_sound resolve store id
+  · rintro ⟨source, target, hsource, htarget⟩
+    exact pairedLifetimeLookup_both_success resolve store id source target hsource htarget
+
 def pairedStaleLoad (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) : Bool :=
   match endLifetime store id, endLifetime (renameStore resolve store) id with
