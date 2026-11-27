@@ -3584,6 +3584,27 @@ theorem pairedCopySnapshot_success
       some (source, source.map (renameByte resolve)) := by
   simp [pairedCopySnapshot, copySnapshot, hsame, List.length_map]
 
+theorem pairedCopySnapshot_result_contract
+    [BEq Tag] (resolve : AllocId → Nat)
+    (source destination : List (Byte Tag))
+    (result : List (Byte Tag) × List (Byte Tag))
+    (hresult : pairedCopySnapshot resolve source destination = some result) :
+    source.length = destination.length ∧
+      result = (source, source.map (renameByte resolve)) := by
+  cases hs : copySnapshot source destination with
+  | none => simp [pairedCopySnapshot, hs] at hresult
+  | some sourceResult =>
+      cases ht : copySnapshot (source.map (renameByte resolve))
+          (destination.map (renameByte resolve)) with
+      | none => simp [pairedCopySnapshot, hs, ht] at hresult
+      | some targetResult =>
+          simp [pairedCopySnapshot, hs, ht] at hresult
+          rcases hresult with rfl
+          simp [copySnapshot] at hs ht
+          rcases hs with ⟨hsame, rfl⟩
+          rcases ht with ⟨_, rfl⟩
+          exact ⟨hsame, rfl⟩
+
 theorem pairedCopySnapshot_refusal
     [BEq Tag] (resolve : AllocId → Nat)
     (source destination : List (Byte Tag))
