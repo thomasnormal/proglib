@@ -13137,6 +13137,23 @@ theorem pairedStoreByte_failure_contract
       | none => simp [pairedStoreByte, hs, ht]
       | some targetResult => simp [pairedStoreByte, hs, ht]
 
+theorem pairedStoreByte_success_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint)) :
+    pairedStoreByte resolve store id offset byte = some result ↔
+      ∃ sourceResult targetResult,
+        result = (sourceResult, targetResult) ∧
+        storeByte store id offset byte = some sourceResult ∧
+        storeByte (renameStore resolve store) id offset (renameByte resolve byte) =
+          some targetResult := by
+  constructor
+  · exact pairedStoreByte_sound resolve store id offset byte result
+  · rintro ⟨sourceResult, targetResult, hresult, hsource, htarget⟩
+    subst result
+    simp [pairedStoreByte, hsource, htarget]
+
 theorem pairedStoreRepresentationLoadMetadataByte_sound
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
