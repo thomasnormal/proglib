@@ -12282,6 +12282,20 @@ theorem pairedStoreByte_refusal
   · simp [pairedStoreByte, hsource]
   · simp [pairedStoreByte, htarget]
 
+theorem pairedStoreByte_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : AllocId) (byte : Byte Tag) :
+    pairedStoreByte resolve store id offset byte = none ↔
+      storeByte store id offset byte = none ∨
+      storeByte (renameStore resolve store) id offset (renameByte resolve byte) = none := by
+  cases hs : storeByte store id offset byte with
+  | none =>
+      simp [pairedStoreByte, hs]
+  | some sourceResult =>
+      cases ht : storeByte (renameStore resolve store) id offset (renameByte resolve byte) with
+      | none => simp [pairedStoreByte, hs, ht]
+      | some targetResult => simp [pairedStoreByte, hs, ht]
+
 theorem pairedStoreRepresentationLoadMetadataByte_sound
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
