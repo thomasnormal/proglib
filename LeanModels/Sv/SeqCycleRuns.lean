@@ -536,6 +536,42 @@ theorem SeqRunsM.of_cycleEqs {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : 
 
 #print axioms SeqRunsM.of_cycleEqs
 
+/-- **Memory-aware cycle equations**: the `seqOblIM` route has the same
+equation-to-run bridge as the scalar route, but uses the semantic memory-NBA
+edge-order certificate throughout. -/
+theorem SeqRunsM.of_cycleEqsIM {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
+    {P : List ((SvState × MemV) × (SvState × MemV)) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk)
+    (hO : E.seqOblIM = true) (hclk : E.scalar.toDesign2.declWidth clk = some 1)
+    (Inv : SvState × MemV → Prop)
+    (hinv : ∀ st, E.Coherent st → E.MemCoherent st.memory →
+      Inv (E.scalar.view st.scalar, E.memOf st.memory))
+    (Step : SvState × MemV → SvState →
+      (SvState × MemV) × (SvState × MemV) → Prop)
+    (heqs : E.CycleEqsM clk Inv Step)
+    (hrun : ∀ σ ins tr, Inv σ → (∀ d ∈ ins, E.DataTyped clk d) →
+      RunSat Step σ ins tr → P tr) :
+    SeqRunsM r clk P := by
+  refine SeqRunsM.introIM hr hP hO hclk Inv hinv
+    (fun σ d hσ hd => by
+      obtain ⟨⟨pre, post⟩, h1, h2, -⟩ := heqs σ d hσ hd
+      exact ⟨pre, post, h1, h2⟩) ?_
+  intro σ ins tr hσ hd htr
+  refine hrun σ ins tr hσ hd ?_
+  induction ins generalizing σ tr with
+  | nil =>
+      simp only [CoreMemDesign.runMV, Res.ok.injEq] at htr
+      exact htr.symm
+  | cons d ds ih =>
+      simp only [CoreMemDesign.runMV, Res.bind_eq_ok, Res.ok.injEq] at htr
+      obtain ⟨pp, hcyc, rest, hrest, rfl⟩ := htr
+      obtain ⟨pp', h1, h2, h3⟩ := heqs σ d hσ (hd d (by simp))
+      rw [h1, Res.ok.injEq] at hcyc
+      subst hcyc
+      exact ⟨pp', rest, rfl, h3,
+        ih pp'.2 rest h2 (fun d' h' => hd d' (by simp [h'])) hrest⟩
+
+#print axioms SeqRunsM.of_cycleEqsIM
+
 /-- **How a `SeqRuns` claim is proved from per-signal equations, for a design without memories.** -/
 theorem SeqRuns.of_cycleEqs {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
     {P : List (SvState × SvState) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk) (hO : E.seqOblB clk = true)

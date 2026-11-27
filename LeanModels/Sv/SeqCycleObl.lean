@@ -1428,7 +1428,6 @@ theorem CoreMemDesign.runCombQuiesceV_coherent_of_each
                 rw [← hnextView]
                 exact CoreMemDesign.matV_view hnd h4 hnext.typed
               obtain ⟨st', hc', hv'⟩ := ih (before := current) (current := nextView)
-              obtain ⟨st', hs', hc', hv'⟩ := ih (before := current) (current := nextView)
                 (v' := v') hcurrent hmatNext h
               exact ⟨st', hc', hv'⟩
 
@@ -1466,55 +1465,6 @@ theorem CoreMemDesign.runCombQuiesce_coherent_of_each
               simp only [heq, Bool.false_eq_true, ↓reduceIte] at h
               exact ih (before := current) (current := next) (st' := st')
                 hnext.1 hnext.2 h
-
-/-! The combined active-region runner alternates source-shaped comb execution
-with the existing continuous-assignment fixpoint.  Its coherence receipt is
-global in the caller's limit; settle totality is a separate premise because a
-successful route run must not be confused with a proof that every settle
-evaluation terminates. -/
-theorem CoreMemDesign.runCombSettleQuiesce_coherent_of_each
-    {E : CoreMemDesign} {limit : Nat} {before current st' : CoreMemState}
-    {procs : List CoreMemProc} (hP : E.SeqProfileI) (htopo : E.topoC = true)
-    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
-    (hc : E.Coherent current) (hm : E.MemCoherent current.memory)
-    (hproc : ∀ p ∈ procs, match p with
-      | .comb body => E.CombStmtCoherent E.env body
-      | .latch _ => False
-      | _ => True)
-    (hsettle : ∀ {st : CoreMemState}, E.Coherent st → E.MemCoherent st.memory →
-      ∃ v, E.settleV (E.memOf st.memory) (E.scalar.view st.scalar) = .ok v)
-    (h : E.runCombSettleQuiesce limit before current procs = .ok st') :
-    E.Coherent st' ∧ E.MemCoherent st'.memory := by
-  induction limit generalizing before current st' with
-  | zero =>
-      simp [CoreMemDesign.runCombSettleQuiesce] at h
-  | succ n ih =>
-      simp only [CoreMemDesign.runCombSettleQuiesce] at h
-      cases hcmb : E.runComb before current procs with
-      | timeout => simp [hcmb] at h
-      | unsupported msg => simp [hcmb] at h
-      | ok combed =>
-          have hcomb := E.runCombQuiesce_coherent_of_each hnd h4 hc hm hproc hcmb
-          obtain ⟨hcc, hcm⟩ := hcomb
-          obtain ⟨vsettle, hvsettle⟩ := hsettle hcc hcm
-          have hcan := E.settleCanonical_seq hP htopo hcc hcm hvsettle
-          cases hset : E.settleCanonical E.env E.elems combed procs with
-          | timeout => simp [hset] at h
-          | unsupported msg => simp [hset] at h
-          | ok settled =>
-              obtain ⟨settled', hset', hv', hc', hm'⟩ := hcan
-              have heq : settled' = settled := by
-                exact Res.ok.inj (hset'.symm.trans hset)
-              subst settled'
-              simp only [hcmb, Res.ok_bind, hset, Res.ok_bind, Res.ok.injEq] at h
-              cases heqv : E.scalar.view current.scalar == E.scalar.view settled.scalar with
-              | true =>
-                  simp only [heqv, ↓reduceIte, Res.ok.injEq] at h
-                  obtain rfl := h
-                  exact ⟨hc', hm'⟩
-              | false =>
-                  simp only [heqv, Bool.false_eq_true, ↓reduceIte] at h
-                  exact ih (before := combed) (current := settled) (st' := st') hc' hm' h
 
 theorem CoreMemDesign.combStmt_coherent_blocking
     {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
