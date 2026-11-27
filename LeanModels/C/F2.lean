@@ -885,6 +885,22 @@ theorem renameHookRequest_contract
     renameHookRequest_footprint resolve request,
     renameHookRequest_access_count resolve request⟩
 
+theorem renameHookRequest_idempotent
+    (resolve : AllocId → Nat) (request : HookRequest) :
+    renameHookRequest resolve (renameHookRequest resolve request) =
+      renameHookRequest resolve request := by
+  cases request with
+  | mk choice footprint =>
+      simp [renameHookRequest, renameFootprint_comp]
+
+theorem renameHookRequest_comp
+    (first second : AllocId → Nat) (request : HookRequest) :
+    renameHookRequest second (renameHookRequest first request) =
+      renameHookRequest second request := by
+  cases request with
+  | mk choice footprint =>
+      simp [renameHookRequest, renameFootprint_comp]
+
 structure Fault (F : Type) where
   value : F
 deriving Repr
