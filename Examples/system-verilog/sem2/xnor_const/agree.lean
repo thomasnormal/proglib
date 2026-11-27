@@ -15,6 +15,8 @@ open LeanModels.Sv
 /--
 error: load_design_sv2: 'Examples/system-verilog/sem2/xnor_const/xnor_const.sv.json' REFUSED — our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):
   defaults: parameter 'Q' default: unsupported node 'BinaryExpression:BinaryXnor' in a constant context
+  localparam 'M': unsupported node 'BinaryExpression:BinaryXnor' in a constant context
+  decl 'a': unbound parameter 'N'
 -/
 #guard_msgs (whitespace := lax) in
 load_design_sv2 xnor_const from "Examples/system-verilog/sem2/xnor_const/xnor_const.sv.json"
