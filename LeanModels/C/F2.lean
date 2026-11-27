@@ -802,6 +802,12 @@ theorem storesCorrespond_contract
   · rfl
   · simp [storesCorrespond, renameStore_idempotent]
 
+theorem storesCorrespond_iff
+    (resolve : AllocId → Nat) (source target : Store Tag State) :
+    storesCorrespond resolve source target ↔
+      target = renameStore resolve source := by
+  rfl
+
 def renameRegion (_resolve : AllocId → Nat) (region : Region) : Region := region
 
 def renameFootprint (resolve : AllocId → Nat) (footprint : Footprint) : Footprint :=
