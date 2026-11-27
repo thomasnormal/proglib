@@ -7165,6 +7165,20 @@ theorem bytesWf_rename_contract (resolve : AllocId → Nat) (id : AllocId)
       (bytes.map (renameByte resolve)).length = bytes.length := by
   exact ⟨bytesWf_rename resolve id bytes h, by simp⟩
 
+theorem bytesWf_rename_iff (resolve : AllocId → Nat) (id : AllocId)
+    (bytes : List (Byte Tag)) :
+    bytesWf id (bytes.map (renameByte resolve)) ↔ bytesWf id bytes := by
+  induction bytes with
+  | nil => simp [bytesWf]
+  | cons byte rest ih =>
+      cases byte with
+      | uninitialized => simp [bytesWf, renameByte, ih]
+      | value bits provenance fragment =>
+          cases provenance with
+          | none => simp [bytesWf, renameByte, ih]
+          | some provenance =>
+              cases fragment <;> simp [bytesWf, renameByte, ih, and_assoc]
+
 theorem renameMetadata_preserves_wellFormed
     (resolve : AllocId → Nat) (id : AllocId)
     (metadata : AllocationMetadata Tag State TypeId)
