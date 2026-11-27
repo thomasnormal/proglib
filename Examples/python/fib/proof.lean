@@ -59,12 +59,13 @@ private theorem fib_depth (d n : Nat)
           simp [fibBound, pythonRecursionLimit] at hlim ⊢; omega
         have hcompare : ¬ (998 ≤ d) := by
           simp [fibBound, pythonRecursionLimit] at hlim; omega
+        have hframe : d < 1000 := by omega
         refine ⟨32, ?_⟩
         intro F hF
         obtain ⟨c, hc⟩ := Nat.exists_eq_add_of_le hF
         subst hc
         rw [Nat.add_comm, callIn.eq_2]
-        py_simp [fib, fibSpec, hz, hd, htop, hguard, hcompare,
+        py_simp [fib, fibSpec, hz, hd, htop, hguard, hcompare, hframe,
           pythonTopCallDepth, pythonRecursionLimit, Run.finishCallAt,
           Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
     | n + 2 =>
@@ -131,6 +132,7 @@ private theorem fib_depth (d n : Nat)
           cases n with
           | zero => simp [fibBound, pythonRecursionLimit] at hlim; omega
           | succ n => simp [fibBound, pythonRecursionLimit] at hlim; omega
+        have hframe : d < 1000 := by omega
         refine ⟨f₁ + f₂ + 32, ?_⟩
         intro F hF
         obtain ⟨c, hc⟩ := Nat.exists_eq_add_of_le hF
@@ -154,7 +156,8 @@ private theorem fib_depth (d n : Nat)
             .ok ({heap := #[], globals := [], callDepth := d + 1} : World)
             (.int (fibSpec n)) := by simpa [fib] using h₂'
         simp only [fib] at h₁'' h₂''
-        py_simp [fib, fibSpec, hz, hd, htop, htopb, htop1001, hguard, hcompare, hn1, hn2,
+        py_simp [fib, fibSpec, hz, hd, htop, htopb, htop1001, hguard, hcompare, hframe,
+          hn1, hn2,
           show ¬((n : Int) + 2 < 2) by omega,
           pythonTopCallDepth, pythonRecursionLimit, Run.finishCallAt,
           Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB,
@@ -171,7 +174,7 @@ private theorem fib_depth (d n : Nat)
         py_simp [evalExprs, evalExpr, RVal.thawList, RVal.thawList_eq_map,
           flattenStarRun, flattenStarCallArgs, Run.bind, Run.withLocals,
           h₁'', h₂'',
-          Run.toWorld, Run.liftRes]
+          Run.toWorld, Run.liftRes, hframe]
 
 -- H7 note: the `.call` arm's equation now carries the keyword tier and
 -- the guarded closure dispatch; fib's whole-body symbolic step crosses
