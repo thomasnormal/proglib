@@ -7626,6 +7626,10 @@ theorem expose_contract (state : Exposure) :
       expose (expose state) = expose state := by
   exact ⟨rfl, expose_idempotent state⟩
 
+theorem expose_failure_contract (state : Exposure) :
+    (expose state).exposed = false ↔ False := by
+  simp [expose]
+
 def renameExposure (resolve : AllocId → Nat) (state : Exposure) : Exposure := state
 
 theorem renameExposure_identity (resolve : AllocId → Nat) (state : Exposure) :
