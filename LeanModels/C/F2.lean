@@ -12937,6 +12937,18 @@ theorem pairedLifetimeLookup_refusal
   · simp [pairedLifetimeLookup, hsource]
   · simp [pairedLifetimeLookup, htarget]
 
+theorem pairedLifetimeLookup_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
+    pairedLifetimeLookup resolve store id = false ↔
+      endLifetime store id = none ∨
+      endLifetime (renameStore resolve store) id = none := by
+  cases hs : endLifetime store id with
+  | none => simp [pairedLifetimeLookup, hs]
+  | some sourceResult =>
+      cases ht : endLifetime (renameStore resolve store) id with
+      | none => simp [pairedLifetimeLookup, hs, ht]
+      | some targetResult => simp [pairedLifetimeLookup, hs, ht]
+
 def pairedStaleLoad (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) : Bool :=
   match endLifetime store id, endLifetime (renameStore resolve store) id with
