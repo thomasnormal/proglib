@@ -8256,6 +8256,26 @@ theorem pairedRecoverAddress_sound
   | ambiguousOnePastAdjacent => simp [pairedRecoverAddress, hs] at h
   | noLiveAllocation => simp [pairedRecoverAddress, hs] at h
 
+theorem pairedRecoverAddress_success_contract
+    (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag)) :
+    pairedRecoverAddress resolve address live = true ↔
+      (∃ source target,
+        recoverAddress address live = .recovered source ∧
+        recoverAddress address (live.map (renameLiveRegion resolve)) =
+          .recovered target) ∨
+      (∃ source target,
+        recoverAddress address live = .empty source ∧
+        recoverAddress address (live.map (renameLiveRegion resolve)) =
+          .empty target) := by
+  constructor
+  · exact pairedRecoverAddress_sound resolve address live
+  · rintro (⟨source, target, hsource, htarget⟩ | ⟨source, target, hsource, htarget⟩)
+    · exact pairedRecoverAddress_both_recovered resolve address live source target
+        hsource htarget
+    · exact pairedRecoverAddress_both_empty resolve address live
+        hsource htarget
+
 def offsetPointer (pointer : Pointer Tag) (elementSize : Nat) (delta : Int)
     (bound : Nat) : Except OffsetFault (Pointer Tag) :=
   if elementSize == 0 then .error .alignment
