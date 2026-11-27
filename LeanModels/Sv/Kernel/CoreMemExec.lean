@@ -1787,6 +1787,40 @@ def coreMemEventSelfReadViol : List PProcess → Option String
       | none => coreMemEventSelfReadViol rest
   | _ :: rest => coreMemEventSelfReadViol rest
 
+/-! An explicit level event list can wake a reader in the same active region as
+an `always_comb` writer that computes the value being read.  If the list also
+wakes that writer through one of the writer's inputs, IEEE 1800-2023 §§9.2.2.2
+and 9.4.2 leave the relative activation order open.  Canonical E has no
+event-queue relation for this case, so retain the source-shaped design as a
+loud refusal instead of selecting one order. -/
+def coreMemLevelEventReactivePair : PProcess → PProcess → Bool
+  | .alwaysEvent events body, p =>
+      match p with
+      | .alwaysComb writer | .alwaysLatch writer | .alwaysImplicit writer =>
+          events.any (fun e => e.edge == .any) &&
+            (coreMemStmtWrites writer).any (fun name =>
+              (coreMemStmtReadNames body).contains name) &&
+            events.any (fun e => (coreMemStmtReadNames writer).contains e.signal)
+      | _ => false
+  | _, _ => false
+
+def coreMemLevelEventReactiveAt (p : PProcess) : List PProcess → Bool
+  | [] => false
+  | q :: rest => coreMemLevelEventReactivePair p q ||
+      coreMemLevelEventReactiveAt p rest
+
+def coreMemLevelEventReactiveViol : List PProcess → Bool
+  | [] | [_] => false
+  | p :: rest => coreMemLevelEventReactiveAt p rest ||
+      coreMemLevelEventReactiveViol rest
+
+def coreMemLevelEventReactiveViolReport (d : PDesign) (generated : List PProcess) :
+    Option (String × String) :=
+  if coreMemLevelEventReactiveViol (d.processes ++ generated) then
+    some ("Schedule:level-event",
+      "IEEE 1800-2023 §§9.2.2.2/9.4.2 leave the order of a level-event reader and a reactive writer open; canonical E refuses the schedule-dependent activation")
+  else none
+
 def coreMemHasEventProcess : List PProcess → Bool
   | [] => false
   | .alwaysEvent _ _ :: _ => true
@@ -1941,6 +1975,8 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
           | none => match coreMemEdgeBlockingReadRaceViol d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none => match coreMemPreemptiveBlockingViolReport d generated with
+          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+          | none => match coreMemLevelEventReactiveViolReport d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none => match coreMemTimeZeroEventSourceViol d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"

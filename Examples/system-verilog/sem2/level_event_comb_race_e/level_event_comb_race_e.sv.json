@@ -1,0 +1,251 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "level_event_comb_race_e",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/level_event_comb_race_e/level_event_comb_race_e.sv",
+      "sha256": "d6f40f975c32a8bd740b52def3c286b3c05425db4803333943055746dd366831"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 6,
+          "end_col": 10
+        },
+        "name": "level_event_comb_race_e",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 44,
+              "end_line": 2,
+              "end_col": 46
+            },
+            "name": "en",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 60,
+              "end_line": 2,
+              "end_col": 61
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 63,
+              "end_line": 2,
+              "end_col": 64
+            },
+            "name": "b",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 79,
+              "end_line": 2,
+              "end_col": 80
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 3,
+              "col": 9,
+              "end_line": 3,
+              "end_col": 12
+            },
+            "name": "nxt",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "init": null
+          }
+        ],
+        "processes": [
+          {
+            "kind": "AlwaysEvent",
+            "span": {
+              "line": 4,
+              "col": 3,
+              "end_line": 4,
+              "end_col": 34
+            },
+            "events": [
+              {
+                "signal": "a",
+                "edge": "any"
+              },
+              {
+                "signal": "b",
+                "edge": "any"
+              },
+              {
+                "signal": "en",
+                "edge": "any"
+              }
+            ],
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 4,
+                "col": 26,
+                "end_line": 4,
+                "end_col": 34
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 4,
+                  "col": 26,
+                  "end_line": 4,
+                  "end_col": 27
+                },
+                "width": 1,
+                "name": "y"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 4,
+                  "col": 30,
+                  "end_line": 4,
+                  "end_col": 33
+                },
+                "width": 1,
+                "name": "nxt"
+              }
+            }
+          },
+          {
+            "kind": "AlwaysComb",
+            "span": {
+              "line": 5,
+              "col": 3,
+              "end_line": 5,
+              "end_col": 32
+            },
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 5,
+                "col": 15,
+                "end_line": 5,
+                "end_col": 32
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 5,
+                  "col": 15,
+                  "end_line": 5,
+                  "end_col": 18
+                },
+                "width": 1,
+                "name": "nxt"
+              },
+              "value": {
+                "kind": "Ternary",
+                "span": {
+                  "line": 5,
+                  "col": 21,
+                  "end_line": 5,
+                  "end_col": 31
+                },
+                "width": 1,
+                "cond": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 5,
+                    "col": 21,
+                    "end_line": 5,
+                    "end_col": 23
+                  },
+                  "width": 1,
+                  "name": "en"
+                },
+                "then": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 5,
+                    "col": 26,
+                    "end_line": 5,
+                    "end_col": 27
+                  },
+                  "width": 1,
+                  "name": "b"
+                },
+                "else": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 5,
+                    "col": 30,
+                    "end_line": 5,
+                    "end_col": 31
+                  },
+                  "width": 1,
+                  "name": "a"
+                }
+              }
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
