@@ -424,6 +424,9 @@ structure PackageAggValue where
   msb : Int
   lsb : Int
   elements : List LVec
+  /-- Signedness of a scalar array element.  Struct and nested aggregate
+  elements are unsigned packed values at this tier. -/
+  signed : Bool := false
 deriving Repr, BEq, Inhabited
 
 /-- A `localparam` (evaluated from the bound parameters at
@@ -964,6 +967,12 @@ def IEnv.bindPackageAgg (env : IEnv) (pkg n : String) (v : PackageAggValue) : IE
 
 def IEnv.packageAgg? (env : IEnv) (pkg n : String) : Option PackageAggValue :=
   env.packageAggs.lookup (pkg, n)
+
+private def packageAggLabels (msb lsb : Int) : List Int :=
+  if msb ≤ lsb then
+    (List.range ((lsb - msb + 1).toNat)).map (fun n => msb + Int.ofNat n)
+  else
+    (List.range ((msb - lsb + 1).toNat)).map (fun n => msb - Int.ofNat n)
 
 /-- A module parameter whose default is a parser-retained package aggregate.
 The integer parameter binder cannot carry this value.  Keep the source-shaped
@@ -1575,7 +1584,13 @@ def ctype (env : IEnv) : PExpr → Except String (Nat × Bool)
       if lv ≤ mv then .ok ((mv - lv).toNat + 1, false) else .error "bad part-select bounds"
   | .arrayElem n _ | .arrayPart n .. => .error s!"signal '{n}' in a constant context"
   | .aggregateMember n _ => .error s!"signal '{n}' in a constant context"
-  | .packageAggElem pkg n _ => .error s!"package aggregate '{pkg}::{n}' in a constant context"
+  | .packageAggElem pkg n _ =>
+      match env.packageAgg? pkg n with
+      | some agg =>
+          match agg.elements.head? with
+          | some v => .ok (v.width, agg.signed)
+          | none => .error s!"package aggregate '{pkg}::{n}' has no elements"
+      | none => .error s!"package aggregate '{pkg}::{n}' in a constant context"
   | .fill _ => .error "unbased-unsized literal in a constant context (no context width)"
   | .concat ps => do
       let tys ← ctypeList env ps
@@ -1806,7 +1821,18 @@ def evalAt (env : IEnv) (ty : Nat × Bool) : PExpr → Except String Int
   | .functionCall n _ => .error s!"function '{n}' in a constant context"
   | .arrayElem n _ | .arrayPart n .. => .error s!"signal '{n}' in a constant context"
   | .aggregateMember n _ => .error s!"signal '{n}' in a constant context"
-  | .packageAggElem pkg n _ => .error s!"package aggregate '{pkg}::{n}' in a constant context"
+  | .packageAggElem pkg n index =>
+      match env.packageAgg? pkg n with
+      | none => .error s!"package aggregate '{pkg}::{n}' in a constant context"
+      | some agg => do
+          let i ← evalAt env (← ctype env index) index
+          match (packageAggLabels agg.msb agg.lsb).zip agg.elements |>.find?
+              (fun (label, _) => label == i) with
+          | some (_, v) =>
+              match v.toNat? with
+              | some k => .ok (convertConst v.width ty.1 ty.2 k)
+              | none => .error s!"package aggregate '{pkg}::{n}' contains x/z bits in a constant context"
+          | none => .error s!"package aggregate '{pkg}::{n}' index {i} is out of range"
   | .fill _ => .error "unbased-unsized literal in a constant context (no context width)"
   | .concat ps => do
       let parts ← evalAtList env ps
