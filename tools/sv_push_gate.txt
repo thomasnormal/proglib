@@ -406,3 +406,4 @@ Examples/system-verilog/sem2/packed_dimension_crosscheck_e/agree.lean
 Examples/system-verilog/sem2/constant_fn_size_cast_e/agree.lean
 Examples/system-verilog/sem2/level_event_comb_race_e/agree.lean
 Examples/system-verilog/sem2/legacy_event_writer_race_e/agree.lean
+Examples/system-verilog/sem2/time_zero_input_comb_e/agree.lean

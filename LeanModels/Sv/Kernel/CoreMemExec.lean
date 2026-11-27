@@ -752,6 +752,25 @@ def coreMemTimeZeroEventSourceViol (d : PDesign) (generated : List PProcess) :
           some ("Event:time-zero",
             s!"4.7/9.4.2: event source '{source}' is driven by an initial/always_comb/always_latch or continuous-assign activation at time zero; canonical E refuses the unresolved scheduling race")
 
+/-! An input edge can coincide with the mandatory time-zero `always_comb`
+activation even when the design itself does not drive the edge source.  The
+environment supplies the first input row, so the source-shaped design cannot
+establish which active-region activation happens first (§§4.7 and 9.2.2.2.2).
+Refuse the mixed shape until the row interface carries an explicit time-zero
+ordering witness. -/
+def coreMemInputEdgeWithCombTimeZeroViol (d : PDesign) (generated : List PProcess) :
+    Option (String × String) :=
+  let processes := d.processes ++ generated
+  if coreMemHasTimeZeroWriter processes then
+    match (coreMemEventSources processes).find? (coreMemInputPortB d) with
+    | some source =>
+        if processes.any (fun p => match p with | .alwaysComb _ => true | _ => false) then
+          some ("Event:time-zero",
+            s!"4.7/9.2.2.2.2: input edge '{source}' can race the mandatory always_comb time-zero activation; canonical E refuses the unresolved startup ordering")
+        else none
+    | none => none
+  else none
+
 def coreMemClockResetViol (_d : PDesign) (_generated : List PProcess) :
     Option (String × String) :=
   -- Canonical E now iterates NBA-caused clock/reset events in the same slot
@@ -1975,9 +1994,11 @@ def PDesign.instantiateCoreMemFrom (envI : IEnv) (d : PDesign) (args : List Int)
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none => match coreMemEdgeBlockingReadRaceViol d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
-          | none => match coreMemPreemptiveBlockingViolReport d generated with
-          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none => match coreMemLevelEventReactiveViolReport d generated with
+          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+          | none => match coreMemInputEdgeWithCombTimeZeroViol d generated with
+          | some (kind, msg) => .unsupported s!"{kind}: {msg}"
+          | none => match coreMemPreemptiveBlockingViolReport d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
           | none => match coreMemTimeZeroEventSourceViol d generated with
           | some (kind, msg) => .unsupported s!"{kind}: {msg}"
