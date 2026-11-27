@@ -275,6 +275,9 @@ run_lake() {
 # input so a constructor drift such as GenItem.localParam fails this gate.
 check_refusal_census() {
   command -v lake >/dev/null 2>&1 || { echo "check_sv_chain: no \`lake\` on PATH" >&2; return 2; }
+  command -v python3 >/dev/null 2>&1 || { echo "check_sv_chain: no \`python3\` on PATH" >&2; return 2; }
+  echo "=== [sv-chain] refusal register"
+  python3 tools/gen_sv_refusals.py --check || return 1
   local envelopes=(
     "Examples/system-verilog/event_control_repro/event_control_repro.sv.json"
     "Examples/system-verilog/sem2/inout_wall/inout_wall.sv.json"
@@ -365,6 +368,14 @@ STUB
   local tree="$tmp/tree"
   mk() { mkdir -p "$(dirname "$tree/$1")"; printf '%s\n' "$2" > "$tree/$1"; }
   mkdir -p "$tree/tools"; cp "$self" "$tree/tools/check_sv_chain.sh"
+  # The copied tree is deliberately tiny. Stub the register checker so the
+  # self-test verifies that the chain invokes it without needing the full
+  # source census and JSON register.
+  cat > "$tree/tools/gen_sv_refusals.py" <<'STUB'
+import sys
+assert sys.argv[1:] == ["--check"]
+open("sv-refusals-register-called", "w").close()
+STUB
   mk LeanModels/Sv/Obs.lean        '-- imports nothing'
   mk LeanModels/Sv/Foo.lean        'import LeanModels.Sv.Obs'
   mk LeanModels/Sv/CombBar.lean    'import LeanModels.Sv.Foo'
@@ -479,6 +490,7 @@ def drift := 1'
   ( cd "$tree" && bash tools/check_run2_ratchet.sh --regenerate >/dev/null 2>&1 )
   chain
   check "a passing ratchet lets the two builds run" "$rc:$(grep -c '^lake build' "$STUB_LOG")" "0:2"
+  check "a passing chain checks the refusal register" "$([ -f "$tree/sv-refusals-register-called" ] && echo yes || echo no)" yes
   : > "$STUB_LOG"; PATH="$tmp:$PATH" env -u LEANSLOT bash "$tree/tools/check_sv_chain.sh" >/dev/null 2>&1; rc=$?
   check "no slot: exits 0 when lake succeeds" "$rc" 0
   check "no slot: two lake builds" "$(grep -c '^lake build' "$STUB_LOG")" 2

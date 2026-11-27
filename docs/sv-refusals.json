@@ -2752,7 +2752,7 @@
    "layers": [
     "extractor"
    ],
-   "trigger": "H: assign y = \"\u00e9\";  (a character beyond latin-1: slang gives its UTF-8 bytes, the extractor reads latin-1 and the literal width disagrees)",
+   "trigger": "H: assign y = \"é\";  (a character beyond latin-1: slang gives its UTF-8 bytes, the extractor reads latin-1 and the literal width disagrees)",
    "why": "A non-ASCII string literal: slang types it by its UTF-8 bytes, the extractor reads the text as latin-1 and refuses a literal whose width is not eight bits per latin-1 character (`:width`) or that has a character beyond latin-1 (`:encoding`). Measured in the audit (lit_str_nonlatin2, a 16-bit target): Icarus, Verilator and Yosys agree, Xcelium alone differs, which since the 2026-11-01 ruling is no longer a reason to refuse by itself; the model has no encoding decision for such text yet. (The named control escapes `\\a \\v \\f` left this row on 2026-11-01: they are admitted, Xcelium is a declared departure; the hex escape `\\xdd` is the separate row lit-string-hex.)",
    "category": "later",
    "proposed": true,
@@ -6218,33 +6218,6 @@
    "decided_by": "Thomas 2026-10-29: approved the refused-now and later classifications of the register"
   },
   {
-   "id": "le-generate-decl",
-   "tag": "GenerateDecl:<kind>",
-   "group": "generate",
-   "layers": [
-    "lean-loader"
-   ],
-   "trigger": "a Var, Net, LocalParam or ParameterDecl inside a generate body: for (genvar i...) begin : g logic t; localparam int K = i+1; ... end",
-   "why": "Generate-local declarations need per-instance scoping and hoisting; a loud item, not an envelope parse failure.",
-   "category": "later",
-   "proposed": false,
-   "prerequisite": "none recorded; proposed prerequisite: hoist generate-local declarations as `<path>.<name>` like instance signals (Hier2 already hoists)",
-   "kinds": {
-    "lean": [
-     "GenerateDecl"
-    ]
-   },
-   "where": [
-    {
-     "file": "LeanModels/Sv/Ingest2.lean",
-     "fn": "parseGenItem"
-    }
-   ],
-   "evidence": "Ingest2.lean #guard (GenerateDecl:LocalParam)",
-   "verified_by_run": true,
-   "decided_by": "Thomas 2026-10-29: approved the refused-now and later classifications of the register"
-  },
-  {
    "id": "le-m0-boundary",
    "tag": "T2:<node>, Division:operand-width, Resize:context | :truncate | :width (M0 instantiate path)",
    "group": "loader",
@@ -6700,47 +6673,6 @@
    "unverified": true,
    "verified_by_run": false,
    "decided_by": "Thomas 2026-10-29: approved the refused-now and later classifications of the register"
-  },
-  {
-   "id": "ld-localdecl",
-   "tag": "LocalDecl (scoped block-local declaration)",
-   "group": "loader",
-   "layers": [
-    "lean-loader"
-   ],
-   "trigger": "H: an automatic or otherwise scoped block-local declaration that cannot be hoisted to module storage",
-   "why": "The extractor retains LocalDecl and the loader now preserves it as a named PStmt.unsupported node, so the envelope loads and fails loudly at the retained source boundary. Static flat locals in module-level always_comb remain hoisted by WP-PROC L1; automatic variables, runtime/effectful initializers, aggregates, generate-scope locals, and locals in other process kinds still need scoped procedural storage.",
-   "category": "later",
-   "proposed": false,
-   "prerequisite": "none for a static block local of a module-level always_comb (hoisted, WP-PROC L1), including closed literal/fill/parameter/enum initializers; proposed prerequisite for the rest (runtime/effectful initializers, automatic variables, generate scopes): a LocalDecl statement (scoped temporaries) in Stmt2 / PStmt",
-   "plan": "AGGR",
-   "match": [
-    {
-     "file": "LeanModels/Sv/Ingest2.lean",
-     "text": "return .unsupported \"LocalDecl\""
-    }
-   ],
-   "kinds": {
-    "lean": [
-     "LocalDecl"
-    ]
-   },
-   "where": [
-    {
-     "file": "LeanModels/Sv/Ingest2.lean",
-     "fn": "parsePStmt"
-    },
-    {
-     "file": "LeanModels/Sv/Comb2Proc.lean",
-     "fn": "Stmt2.symExec"
-    }
-   ],
-   "evidence": "Examples/system-verilog/sem2/proc_local_automatic; harness/sv/cases2.json refusal row; Examples/system-verilog/sem2/always_ff_static_local_nba_refuse",
-   "verified_by_run": true,
-   "value_rank": 3,
-   "value_note": "block-local temporaries in always_comb (static locals of a module-level always_comb are hoisted since WP-PROC L1; the remaining scoped forms load and retain a named LocalDecl refusal)",
-   "decided_by": "Thomas 2026-10-29: approved the refused-now and later classifications of the register",
-   "notes": "WP-PROC L1 and its initializer follow-up, plus `proc_local_automatic` as the retained LocalDecl loader witness. The always_ff loop row pins the static-local NBA/Yosys per-iteration-copy boundary."
   },
   {
    "id": "ld-initial-syscall",
@@ -7277,7 +7209,7 @@
     "lean-proof-tooling"
    ],
    "trigger": "a module instance (WP-I step I0: the refusal reads `this design instantiates modules`; the loader, the scorer and the post-synthesis check accept such a design), declaration initializer, localparams, enums, out-of-tier members, non-affine indexes or bounds, unary minus, a replication of anything but a sized literal or one bit or part select with an affine count (read since WP-B2 gate 4c, in an `assign` right-hand side, not in an `always_comb` leaf or a self-determined position), a product `*` neither of whose factors is a signal access, `<<<`, `>>>`, a signed `>>`, a shift whose left operand is an operation or whose amount is an expression (a bare genvar is read since WP-B2 gate 4b) or a parameter, an implicit width conversion around a concatenation or around another conversion, `+` or `-`, a comparison, a shift or a width conversion in a self-determined position (the operand of `!`, a reduction, a comparison, `&&`, `||` or a `?:` condition, an `if` condition or a `case` subject), `'0` inside an operator, a concatenation in a self-determined position (the operand of `!`, a reduction, `&&`, `||`, a condition) or as the left operand of a shift, concat targets, an indexed part select `x[i +: w]` or a part select with a non-affine bound or of a base that is not a zero-based one-dimensional declaration, a whole-row select of a declaration that is not a zero-based two-dimensional one, a declaration of three or more packed dimensions, always_ff / always_latch / always @ processes, an always_comb body outside the first fragment (a window written in two separate groups of statements, a `case` outside the S3a fragment (no `default`, `inside`/`unique`, an arm that is not a single assignment, a non-literal item), a latch (an `if` without `else`), temporaries or a read of the window the body wrote earlier (SSA), a second unconditional assignment, an `else` after the first statement, nonblocking assignment), nested generate loops deeper than two, conditional generate, instances",
-   "why": "The v1 recognizer covers the gate-level assign fragment of the adder and array multiplier with affine geometry, and (WP-G, `PDesign.summaryP`) an `always_comb` body that is an if/else tree writing ONE window, whose leaves are right-hand sides of that fragment and whose conditions are one-bit expressions of it; WP-G S2 adds to the gate trees of `& | ^` the operators `~` and `!`, the six reductions, `&&` and `||`, `==` and `!=` of equal-width operands and the conditional `c ? a : b` (a one-bit condition, arms as wide as the target), every operand exactly as wide as its context; WP-G S3a adds the plain `case` with a `default`, sized literal items as wide as the subject and single-assignment arms (stated as one `XF.caseSel` fold); WP-G S3b adds bodies of several statements writing ONE window: a first tree, then overrides `if (c) tree;` without `else`, the last write winning (default-then-override); WP-G S1b adds ONE `always_comb` body that writes SEVERAL windows (`c[i+1] = \u2026; s[i] = \u2026;`: one site with further windows; `sv_structure` since gate c, `sv_equations` since gate d, which states one equation and one knownness fact per window, the stable aliases counting the windows that write a signal), each window a tree of the first fragment; WP-B2 (gates 1, 2a, 2b, 3a and 3b) adds unsigned `+` and `-`, the six comparisons `== != < <= > >=` (one bit, operands at the wider of their widths), unsized integer constants (32 bits, materialized at the context) and the run-time shifts `<<` and `>>` (the left operand context-determined and extended before the shift, by zeros, or by its sign for a signed `<<` such as `1 << s`; the amount a signal access, a sized literal or an unsized constant, self-determined and never widening the result: `XF.shlBits`/`XF.shrBits`/`XF.sext`) at the context-determined positions of a right-hand side (an `assign`, or a leaf of an `always_comb` tree), concatenations of literals and accesses as operands there (the same `Sk.cat` node as a whole-right-hand-side concatenation, bare or under a `Resize` marker), a width conversion around an operation (a truncation, or the zero extension of a result that does not follow the context) and the implicit zero extension slang puts around an operand narrower than its context (a `Resize` marker around one signal access or one sized literal), stated as `XF.addBits`/`XF.subBits`/`XF.zext` over the bit functions of the operands at the CONTEXT width; WP-B2 gate 4a adds the two LEGACY select encodings of the extractor: `r[i + 1]` over a zero-based two-dimensional declaration is a whole ROW (`Acc.row`, the access the `ArraySel` encoding of the same row already had; read and written, in `assign` and in `always_comb` leaves, over literal, localparam and parameter dimensions) and `x[hi:lo]` over a zero-based one-dimensional declaration is a window (`Acc.part1`; the bounds literals or affine in the genvars and parameters; read, as a part of a concatenation, as a shift operand or under a marker, and written as a target); a GENVAR as the amount of a shift (`pp[i] = aw << i` in a generate loop, WP-B2 gate 4b: a constant of the instance, the 32-bit literal of its value, `Sk.cref`; the genvar must be an enclosing loop variable, checked with the indices of the site); a REPLICATION `{N{x}}` of a sized literal or of one bit or part select that is not a whole signal, with a count affine in the parameters and genvars (WP-B2 gate 4c: zero padding `{ {K{1'b0}}, x }`, the AND mask `a & {N{b[i]}}`; a part of a concatenation or a whole right-hand side, `Sk.rep`; the count is a constant of the instance whose scope is checked like a genvar amount and whose non-negativity is a guarded conjunct of the in-range obligation); the PRODUCT `*` at the context-determined positions, like `+` (the factors extended to the context first, the product modulo `2^` the context width, `XF.mulBits`, `Sk.mul`), when one factor is a signal access, bare or under the `Resize` marker (`sigOpd`: `instExpr2` folds a product that `evalInt` can evaluate, and `evalInt` fails on a signal access at every type, `evalInt_mul_sig`); and a `$clog2` localparam (`CE.clog2`, an opaque atom of the obligations, `localparam integer` only: under a 2-state `int` the elaborated design squashes it and `paramEnv2` does not evaluate that at a symbolic parameter); anything else cannot be summarized soundly. Reported as `sv_structure: outside the supported fragment`, with the site and the reason (e.g. site `g_bit#1`: always_comb statement `case \u2026 inside`).",
+   "why": "The v1 recognizer covers the gate-level assign fragment of the adder and array multiplier with affine geometry, and (WP-G, `PDesign.summaryP`) an `always_comb` body that is an if/else tree writing ONE window, whose leaves are right-hand sides of that fragment and whose conditions are one-bit expressions of it; WP-G S2 adds to the gate trees of `& | ^` the operators `~` and `!`, the six reductions, `&&` and `||`, `==` and `!=` of equal-width operands and the conditional `c ? a : b` (a one-bit condition, arms as wide as the target), every operand exactly as wide as its context; WP-G S3a adds the plain `case` with a `default`, sized literal items as wide as the subject and single-assignment arms (stated as one `XF.caseSel` fold); WP-G S3b adds bodies of several statements writing ONE window: a first tree, then overrides `if (c) tree;` without `else`, the last write winning (default-then-override); WP-G S1b adds ONE `always_comb` body that writes SEVERAL windows (`c[i+1] = …; s[i] = …;`: one site with further windows; `sv_structure` since gate c, `sv_equations` since gate d, which states one equation and one knownness fact per window, the stable aliases counting the windows that write a signal), each window a tree of the first fragment; WP-B2 (gates 1, 2a, 2b, 3a and 3b) adds unsigned `+` and `-`, the six comparisons `== != < <= > >=` (one bit, operands at the wider of their widths), unsized integer constants (32 bits, materialized at the context) and the run-time shifts `<<` and `>>` (the left operand context-determined and extended before the shift, by zeros, or by its sign for a signed `<<` such as `1 << s`; the amount a signal access, a sized literal or an unsized constant, self-determined and never widening the result: `XF.shlBits`/`XF.shrBits`/`XF.sext`) at the context-determined positions of a right-hand side (an `assign`, or a leaf of an `always_comb` tree), concatenations of literals and accesses as operands there (the same `Sk.cat` node as a whole-right-hand-side concatenation, bare or under a `Resize` marker), a width conversion around an operation (a truncation, or the zero extension of a result that does not follow the context) and the implicit zero extension slang puts around an operand narrower than its context (a `Resize` marker around one signal access or one sized literal), stated as `XF.addBits`/`XF.subBits`/`XF.zext` over the bit functions of the operands at the CONTEXT width; WP-B2 gate 4a adds the two LEGACY select encodings of the extractor: `r[i + 1]` over a zero-based two-dimensional declaration is a whole ROW (`Acc.row`, the access the `ArraySel` encoding of the same row already had; read and written, in `assign` and in `always_comb` leaves, over literal, localparam and parameter dimensions) and `x[hi:lo]` over a zero-based one-dimensional declaration is a window (`Acc.part1`; the bounds literals or affine in the genvars and parameters; read, as a part of a concatenation, as a shift operand or under a marker, and written as a target); a GENVAR as the amount of a shift (`pp[i] = aw << i` in a generate loop, WP-B2 gate 4b: a constant of the instance, the 32-bit literal of its value, `Sk.cref`; the genvar must be an enclosing loop variable, checked with the indices of the site); a REPLICATION `{N{x}}` of a sized literal or of one bit or part select that is not a whole signal, with a count affine in the parameters and genvars (WP-B2 gate 4c: zero padding `{ {K{1'b0}}, x }`, the AND mask `a & {N{b[i]}}`; a part of a concatenation or a whole right-hand side, `Sk.rep`; the count is a constant of the instance whose scope is checked like a genvar amount and whose non-negativity is a guarded conjunct of the in-range obligation); the PRODUCT `*` at the context-determined positions, like `+` (the factors extended to the context first, the product modulo `2^` the context width, `XF.mulBits`, `Sk.mul`), when one factor is a signal access, bare or under the `Resize` marker (`sigOpd`: `instExpr2` folds a product that `evalInt` can evaluate, and `evalInt` fails on a signal access at every type, `evalInt_mul_sig`); and a `$clog2` localparam (`CE.clog2`, an opaque atom of the obligations, `localparam integer` only: under a 2-state `int` the elaborated design squashes it and `paramEnv2` does not evaluate that at a symbolic parameter); anything else cannot be summarized soundly. Reported as `sv_structure: outside the supported fragment`, with the site and the reason (e.g. site `g_bit#1`: always_comb statement `case … inside`).",
    "category": "later",
    "proposed": false,
    "prerequisite": "stage-2 lanes: localparams via the parameter stage, deeper arrays, concat targets, indexed part selects, nested loops, instances; arithmetic is a separate lane (sv_equations); always_comb bodies beyond the first fragment: the equations of multi-window bodies (S1b gate d), S3b temporaries and SSA reads of an earlier write, and `case` arms that are trees; word-level operators beyond `+ - * < <= > >= << >>` at the context-determined positions of a right-hand side (expression and parameter shift amounts (a bare genvar is read since gate 4b), a replication of a concatenation or of several parts (a sized literal or one access is read since gate 4c), `<<<`, `>>>`, signed forms, `+ -` in self-determined positions: WP-B2 gates 4b to 4d and later); `'0` and concatenations inside `?:` arms (svgolf/design/always-comb/README.md)",
@@ -7473,32 +7405,6 @@
    "prerequisite": "USERFN"
   },
   {
-   "id": "boundary-subroutinesymbol-conditional",
-   "tag": "SubroutineSymbol:conditional",
-   "group": "statements",
-   "layers": [
-    "extractor"
-   ],
-   "trigger": "source-shaped clean-room boundary",
-   "why": "Conditional subroutine metadata is outside the admitted source-shaped function subset.",
-   "category": "later",
-   "proposed": false,
-   "principle": "P-SAME-PROGRAM",
-   "decided_by": "ls-sv",
-   "since": "2026-11-12",
-   "kinds": {
-    "extractor": [
-     "SubroutineSymbol:conditional"
-    ]
-   },
-   "where": [],
-   "evidence": "current symbolic extractor and loader boundary",
-   "verified_by_run": false,
-   "notes": "Named loud refusal; no semantics is claimed.",
-   "plan": "USERFN",
-   "prerequisite": "USERFN"
-  },
-  {
    "id": "boundary-subroutinesymbol-formal",
    "tag": "SubroutineSymbol:formal",
    "group": "statements",
@@ -7603,32 +7509,6 @@
    "prerequisite": "USERFN"
   },
   {
-   "id": "boundary-subroutinesymbol-static",
-   "tag": "SubroutineSymbol:static",
-   "group": "statements",
-   "layers": [
-    "extractor"
-   ],
-   "trigger": "source-shaped clean-room boundary",
-   "why": "Static subroutine storage is outside the admitted automatic function subset.",
-   "category": "later",
-   "proposed": false,
-   "principle": "P-SAME-PROGRAM",
-   "decided_by": "ls-sv",
-   "since": "2026-11-12",
-   "kinds": {
-    "extractor": [
-     "SubroutineSymbol:static"
-    ]
-   },
-   "where": [],
-   "evidence": "current symbolic extractor and loader boundary",
-   "verified_by_run": false,
-   "notes": "Named loud refusal; no semantics is claimed.",
-   "plan": "USERFN",
-   "prerequisite": "USERFN"
-  },
-  {
    "id": "boundary-clock-implicit",
    "tag": "Clock:implicit",
    "group": "processes",
@@ -7679,6 +7559,1087 @@
    "notes": "Named loud refusal; no semantics is claimed.",
    "plan": "SEQ",
    "prerequisite": "SEQ"
+  },
+  {
+   "id": "boundary-extractor-expression",
+   "tag": "*:expression",
+   "group": "meta",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "*:expression"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-negative",
+   "tag": "*:negative",
+   "group": "meta",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "*:negative"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-range",
+   "tag": "*:range",
+   "group": "meta",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "*:range"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-unknown",
+   "tag": "*:unknown",
+   "group": "meta",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "*:unknown"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-assignmentexpression-function-body",
+   "tag": "AssignmentExpression:function-body",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "AssignmentExpression:function-body"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-assignmentexpression-timing",
+   "tag": "AssignmentExpression:timing",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "AssignmentExpression:timing"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-assignmentpattern-aggregate-shape",
+   "tag": "AssignmentPattern:aggregate-shape",
+   "group": "expressions",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "AssignmentPattern:aggregate-shape"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-blockstatement-fork",
+   "tag": "BlockStatement:fork",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "BlockStatement:fork"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-casegenerate-pattern",
+   "tag": "CaseGenerate:pattern",
+   "group": "generate",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "CaseGenerate:pattern"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-casestatement-form",
+   "tag": "CaseStatement:form",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "CaseStatement:form"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-casestatement-item",
+   "tag": "CaseStatement:item",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "CaseStatement:item"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-casestatement-subject",
+   "tag": "CaseStatement:subject",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "CaseStatement:subject"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-conditionalstatement-condition",
+   "tag": "ConditionalStatement:condition",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "ConditionalStatement:condition"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-conditionalstatement-form",
+   "tag": "ConditionalStatement:form",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "ConditionalStatement:form"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-forloopstatement-condition",
+   "tag": "ForLoopStatement:condition",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "ForLoopStatement:condition"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-generatedecl-instance-name",
+   "tag": "GenerateDecl:instance-name",
+   "group": "generate",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "GenerateDecl:instance-name"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-hierarchicalvalueexpression",
+   "tag": "HierarchicalValueExpression",
+   "group": "expressions",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "HierarchicalValueExpression"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-immediateassertion-condition",
+   "tag": "ImmediateAssertion:condition",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "ImmediateAssertion:condition"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-immediateassertion-deferred",
+   "tag": "ImmediateAssertion:deferred",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "ImmediateAssertion:deferred"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-immediateassertion-implicit-error",
+   "tag": "ImmediateAssertion:implicit-error",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "ImmediateAssertion:implicit-error"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-immediateassertion-initial-kind",
+   "tag": "ImmediateAssertion:initial-kind",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "ImmediateAssertion:initial-kind"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-immediateassertion-kind",
+   "tag": "ImmediateAssertion:kind",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "ImmediateAssertion:kind"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-immediateassertion-null-failure",
+   "tag": "ImmediateAssertion:null-failure",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "ImmediateAssertion:null-failure"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-memberaccessexpression-aggregate",
+   "tag": "MemberAccessExpression:aggregate",
+   "group": "expressions",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "MemberAccessExpression:aggregate"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-portsymbol-type",
+   "tag": "PortSymbol:type",
+   "group": "declarations",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "PortSymbol:type"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-primitiveinstancesymbol-primitiveinstance",
+   "tag": "PrimitiveInstanceSymbol:PrimitiveInstance",
+   "group": "hierarchy",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "PrimitiveInstanceSymbol:PrimitiveInstance"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-returnstatement-value",
+   "tag": "ReturnStatement:value",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "ReturnStatement:value"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-statement",
+   "tag": "Statement:*",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "Statement:*"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-syscall-bits-type",
+   "tag": "SysCall:$bits:type",
+   "group": "systasks",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "SysCall:$bits:type"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-timedstatement-delaycontrol",
+   "tag": "TimedStatement:DelayControl",
+   "group": "statements",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "TimedStatement:DelayControl"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-uninstantiateddefsymbol-connection",
+   "tag": "UninstantiatedDefSymbol:connection",
+   "group": "hierarchy",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "UninstantiatedDefSymbol:connection"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-uninstantiateddefsymbol-connections",
+   "tag": "UninstantiatedDefSymbol:connections",
+   "group": "hierarchy",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "UninstantiatedDefSymbol:connections"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-uninstantiateddefsymbol-expression",
+   "tag": "UninstantiatedDefSymbol:expression",
+   "group": "hierarchy",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "UninstantiatedDefSymbol:expression"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-uninstantiateddefsymbol-name",
+   "tag": "UninstantiatedDefSymbol:name",
+   "group": "hierarchy",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "UninstantiatedDefSymbol:name"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-uninstantiateddefsymbol-parameters",
+   "tag": "UninstantiatedDefSymbol:parameters",
+   "group": "hierarchy",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "UninstantiatedDefSymbol:parameters"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-uninstantiateddefsymbol-path",
+   "tag": "UninstantiatedDefSymbol:path",
+   "group": "hierarchy",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "UninstantiatedDefSymbol:path"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-uninstantiateddefsymbol-ports",
+   "tag": "UninstantiatedDefSymbol:ports",
+   "group": "hierarchy",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "UninstantiatedDefSymbol:ports"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-variabledeclstatement-initializer",
+   "tag": "VariableDeclStatement:initializer",
+   "group": "declarations",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "VariableDeclStatement:initializer"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-variabledeclstatement-static-initializer",
+   "tag": "VariableDeclStatement:static-initializer",
+   "group": "declarations",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "VariableDeclStatement:static-initializer"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-extractor-variablesymbol-type",
+   "tag": "VariableSymbol:type",
+   "group": "declarations",
+   "layers": [
+    "extractor"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The parser-native extractor retains this construct as a named refusal until its exact IEEE 1800 semantics and differential rows are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a parser-native semantic case with Icarus/Xcelium differential rows",
+   "kinds": {
+    "extractor": [
+     "VariableSymbol:type"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-lean-alwayslatch",
+   "tag": "AlwaysLatch",
+   "group": "processes",
+   "layers": [
+    "lean-model"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The loader retains this construct as a named refusal until its exact IEEE 1800 semantics and kernel proof boundary are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a kernel evaluator case with differential rows and a proof of the admitted shape",
+   "kinds": {
+    "lean": [
+     "AlwaysLatch"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-lean-alwaysposedge-edge",
+   "tag": "AlwaysPosedge:edge",
+   "group": "processes",
+   "layers": [
+    "lean-model"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The loader retains this construct as a named refusal until its exact IEEE 1800 semantics and kernel proof boundary are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a kernel evaluator case with differential rows and a proof of the admitted shape",
+   "kinds": {
+    "lean": [
+     "AlwaysPosedge:edge"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-lean-breakstatement",
+   "tag": "BreakStatement",
+   "group": "statements",
+   "layers": [
+    "lean-model"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The loader retains this construct as a named refusal until its exact IEEE 1800 semantics and kernel proof boundary are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a kernel evaluator case with differential rows and a proof of the admitted shape",
+   "kinds": {
+    "lean": [
+     "BreakStatement"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-lean-generatedecl-localparam",
+   "tag": "GenerateDecl:LocalParam",
+   "group": "generate",
+   "layers": [
+    "lean-model"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The loader retains this construct as a named refusal until its exact IEEE 1800 semantics and kernel proof boundary are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a kernel evaluator case with differential rows and a proof of the admitted shape",
+   "kinds": {
+    "lean": [
+     "GenerateDecl:LocalParam"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-lean-generatedecl-unpackeddecl",
+   "tag": "GenerateDecl:UnpackedDecl",
+   "group": "generate",
+   "layers": [
+    "lean-model"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The loader retains this construct as a named refusal until its exact IEEE 1800 semantics and kernel proof boundary are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a kernel evaluator case with differential rows and a proof of the admitted shape",
+   "kinds": {
+    "lean": [
+     "GenerateDecl:UnpackedDecl"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-lean-memberaccessexpression-aggregate",
+   "tag": "MemberAccessExpression:aggregate",
+   "group": "expressions",
+   "layers": [
+    "lean-model"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The loader retains this construct as a named refusal until its exact IEEE 1800 semantics and kernel proof boundary are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a kernel evaluator case with differential rows and a proof of the admitted shape",
+   "kinds": {
+    "lean": [
+     "MemberAccessExpression:aggregate"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-lean-paramref-package-aggregate",
+   "tag": "ParamRef:package-aggregate",
+   "group": "parameters",
+   "layers": [
+    "lean-model"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The loader retains this construct as a named refusal until its exact IEEE 1800 semantics and kernel proof boundary are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a kernel evaluator case with differential rows and a proof of the admitted shape",
+   "kinds": {
+    "lean": [
+     "ParamRef:package-aggregate"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-lean-portconn-inout",
+   "tag": "PortConn:InOut",
+   "group": "hierarchy",
+   "layers": [
+    "lean-model"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The loader retains this construct as a named refusal until its exact IEEE 1800 semantics and kernel proof boundary are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a kernel evaluator case with differential rows and a proof of the admitted shape",
+   "kinds": {
+    "lean": [
+     "PortConn:InOut"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-lean-select-local-dimensions",
+   "tag": "Select:local-dimensions",
+   "group": "selects",
+   "layers": [
+    "lean-model"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The loader retains this construct as a named refusal until its exact IEEE 1800 semantics and kernel proof boundary are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a kernel evaluator case with differential rows and a proof of the admitted shape",
+   "kinds": {
+    "lean": [
+     "Select:local-dimensions"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "boundary-lean-internal",
+   "tag": "internal",
+   "group": "meta",
+   "layers": [
+    "lean-model"
+   ],
+   "trigger": "a source-shaped design reaching this retained refusal boundary",
+   "why": "The loader retains this construct as a named refusal until its exact IEEE 1800 semantics and kernel proof boundary are implemented.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a kernel evaluator case with differential rows and a proof of the admitted shape",
+   "kinds": {
+    "lean": [
+     "internal"
+    ]
+   },
+   "evidence": "current symbolic refusal census",
+   "verified_by_run": false,
+   "decided_by": "ls-sv"
+  },
+  {
+   "id": "ld-localdecl",
+   "tag": "LocalDecl (scoped block-local declaration)",
+   "group": "loader",
+   "layers": [
+    "lean-loader"
+   ],
+   "trigger": "H: an automatic or otherwise scoped block-local declaration that cannot be hoisted to module storage",
+   "why": "The parameter instantiators retain LocalDecl as a named unsupported statement, so the envelope loads and fails loudly at the retained source boundary.",
+   "category": "later",
+   "proposed": false,
+   "prerequisite": "a scoped procedural-storage semantics for static and automatic block locals",
+   "kinds": {
+    "lean": [
+     "LocalDecl"
+    ]
+   },
+   "where": [
+    {
+     "file": "LeanModels/Sv/Param.lean",
+     "fn": "instStmt"
+    },
+    {
+     "file": "LeanModels/Sv/Param2.lean",
+     "fn": "instStmt2"
+    }
+   ],
+   "evidence": "Param.lean and Param2.lean LocalDecl cases; procedural local declaration refusal rows",
+   "verified_by_run": true,
+   "decided_by": "Thomas 2026-10-29: approved the refused-now and later classifications of the register"
   }
  ],
  "svgolf": {
@@ -8164,7 +9125,7 @@
     "layers": [
      "svgolf-gate"
     ],
-    "trigger": "string s = \"h\u00e9llo\"; a form feed; a stray 0xFF byte",
+    "trigger": "string s = \"héllo\"; a form feed; a stray 0xFF byte",
     "why": "Identifier and string lexing of non-ASCII text is each tool's business; the gate refuses rather than assume the tools agree (non-ASCII INSIDE a comment passes).",
     "category": "refused-now",
     "proposed": false,
@@ -9990,7 +10951,7 @@
    },
    {
     "id": "sg-ps-failclosed",
-    "tag": "fail-closed postsynth conditions: x/z in an ls-sv output, an unknown-valued constant in the netlist, a netlist Verilator will not lint / build / run, \u03c3_src \u2260 \u03c3_rev, port sets that differ, a netlist that does not re-read, an inout port, a non-plain identifier",
+    "tag": "fail-closed postsynth conditions: x/z in an ls-sv output, an unknown-valued constant in the netlist, a netlist Verilator will not lint / build / run, σ_src ≠ σ_rev, port sets that differ, a netlist that does not re-read, an inout port, a non-plain identifier",
     "group": "g-score",
     "layers": [
      "svgolf-checker"
@@ -10057,7 +11018,7 @@
     ],
     "unverified": true,
     "verified_by_run": false,
-    "notes": "\u03c3_src \u2260 \u03c3_rev (two ls-sv schedules disagree) is P-DETERMINISM (never, proposed)."
+    "notes": "σ_src ≠ σ_rev (two ls-sv schedules disagree) is P-DETERMINISM (never, proposed)."
    },
    {
     "id": "sg-task-ban-op",

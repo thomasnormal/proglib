@@ -1,5 +1,8 @@
 # SV push gate: every commit that touches LeanModels/Sv/** or extractors/sv/** is pushed only after
 #   lake build $(grep -v '^#' tools/sv_push_gate.txt)
+#   python3 tools/gen_sv_refusals.py --check
+# The refusal-register command is run by tools/check_sv_chain.sh before its
+# library and Examples builds. Keep both checks in every SV landing.
 # ends with "Build completed successfully". One target per line. Add a target when you add a tactic file or an example.
 LeanModels.Sv.Comb2
 LeanModels.Sv.Comb2Base
