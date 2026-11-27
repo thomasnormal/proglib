@@ -7090,6 +7090,16 @@ theorem allocationsWf_cons_contract
       bytesWf id allocation.bytes ∧ allocationsWf rest := by
   rfl
 
+theorem allocationsWf_append
+    (left right : List (AllocId × Allocation Tag State)) :
+    allocationsWf (left ++ right) ↔
+      allocationsWf left ∧ allocationsWf right := by
+  induction left with
+  | nil => simp [allocationsWf]
+  | cons entry rest ih =>
+      rcases entry with ⟨id, allocation⟩
+      simp [allocationsWf, ih, and_assoc]
+
 def WellFormed (store : Store Tag State) : Prop :=
   allocationsWf store.allocations
 
