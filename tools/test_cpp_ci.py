@@ -10,6 +10,13 @@ from unittest.mock import patch
 
 
 CI_DRIVER = Path(__file__).resolve().parent / "ci.sh"
+CPP_PUSH_GATE = Path(__file__).resolve().parent / "cpp_push_gate.txt"
+TINYXML2_TARGETS = (
+    "Examples.cpp.tinyxml2.BaseGetLineNum",
+    "Examples.cpp.tinyxml2.AttributeGetLineNum",
+    "Examples.cpp.tinyxml2.IsUTF8Continuation",
+    "Examples.cpp.tinyxml2.NodeGetLineNum",
+)
 
 
 def driver_function(name):
@@ -50,6 +57,13 @@ def driver_cpp_registration():
 
 
 class CppCiTests(unittest.TestCase):
+    def test_push_gate_keeps_real_source_tinyxml2_targets(self):
+        registered = {
+            line.strip() for line in CPP_PUSH_GATE.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        }
+        self.assertTrue(set(TINYXML2_TARGETS).issubset(registered))
+
     def invoke(self, tools=(), override=None, extractor_status=0,
                comparison_status=0, include_comparison=False):
         fixtures = """
