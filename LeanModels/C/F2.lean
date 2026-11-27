@@ -12008,6 +12008,29 @@ theorem pairedAllocateMetadata_refusal
   · simp [pairedAllocateMetadata, hsource, htarget]
   · simp [pairedAllocateMetadata, hsource, htarget]
 
+theorem pairedAllocateMetadata_failure_contract
+    (resolve : AllocId → Nat) (id : AllocId)
+    (request : AllocationRequest Tag State)
+    (locations : List (LocationState TypeId)) (placement : Placement) :
+    pairedAllocateMetadata resolve id request locations placement = false ↔
+      (allocateMetadata request locations placement = none ∧
+        allocateMetadata (renameAllocationRequest resolve request) locations
+          (renamedPlacement resolve id placement) ≠ none) ∨
+      (allocateMetadata request locations placement ≠ none ∧
+        allocateMetadata (renameAllocationRequest resolve request) locations
+          (renamedPlacement resolve id placement) = none) := by
+  cases hs : allocateMetadata request locations placement with
+  | none =>
+      cases ht : allocateMetadata (renameAllocationRequest resolve request) locations
+          (renamedPlacement resolve id placement) with
+      | none => simp [pairedAllocateMetadata, hs, ht]
+      | some target => simp [pairedAllocateMetadata, hs, ht]
+  | some source =>
+      cases ht : allocateMetadata (renameAllocationRequest resolve request) locations
+          (renamedPlacement resolve id placement) with
+      | none => simp [pairedAllocateMetadata, hs, ht]
+      | some target => simp [pairedAllocateMetadata, hs, ht]
+
 theorem pairedAllocateMetadata_empty_refusal {Tag TypeId : Type}
     (resolve : AllocId → Nat) (id : AllocId)
     (state : State) (placement : Placement)
