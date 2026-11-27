@@ -602,6 +602,13 @@ def findLabel (name : String) : List Stmt → Option (List Stmt)
                             else findLabel name rest
       | _ => findLabel name rest
 
+/-! A forward label may be nested in a loop body. This search preserves the
+parser-owned subtree and returns the tail beginning at that label. It is used
+only after ordinary block-tail search fails, so declarations on the resumed
+tail remain checked by the existing lifetime rule. -/
+def findLabelDeep (name : String) (statements : List Stmt) : Option (List Stmt) :=
+  findLabel name (statements.flatMap Stmt.substmts)
+
 def hasDecl : List Stmt → Bool
   | [] => false
   | .decl _ _ :: _ => true
@@ -842,7 +849,7 @@ def execBlock : Nat → Ctx → List Stmt → ExecM Flow
                   -- remains a loud refusal.  Fuel bounds repeated jumps.
                   match ctx.functionBody with
                   | some functionStatements =>
-                      match findLabel l functionStatements with
+                      match findLabelDeep l functionStatements with
                       | some tail =>
                           if hasDecl tail then
                             refuseUnsupported "goto skips a block declaration"
