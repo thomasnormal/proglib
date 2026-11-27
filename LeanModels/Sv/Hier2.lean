@@ -350,7 +350,25 @@ def PInst.given (env : IEnv) (c : PDesign) (i : PInst) :
     match i.params.lookup p.name with
     | none => pure none
     | some e =>
-        if p.hasAggregateDefault env then
+        if p.isString then
+          let stringValue : Except String Int :=
+            match e with
+            | .lit value =>
+                match value.toNat? with
+                | some n => .ok n
+                | none => .error s!"parameter '{p.name}' string override contains x/z bits"
+            | .paramRef n none =>
+                match env.stringVal? n with
+                | some value =>
+                    match value.toNat? with
+                    | some n => .ok n
+                    | none => .error s!"parameter '{p.name}' string override contains x/z bits"
+                | none => .error s!"parameter '{p.name}' string override references unknown string '{n}'"
+            | _ => .error s!"parameter '{p.name}' string override is outside the source-shaped string binder"
+          match stringValue with
+          | .ok v => pure (some v)
+          | .error msg => throw msg
+        else if p.hasAggregateDefault env then
           match e with
           | .paramRef n none =>
               if (env.vals.lookup n).isNone && (env.nvals.lookup n).isNone then

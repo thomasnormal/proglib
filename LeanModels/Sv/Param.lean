@@ -864,6 +864,10 @@ localparams, in-scope genvars — first match wins, so genvar bindings
 shadow), instantiated declaration widths, and the enum tables. -/
 structure IEnv where
   vals : List (String × Int) := []
+  /-- Packed values of parser-retained string parameters.  Strings are
+  source metadata for the integer constant tier, but hierarchy forwarding
+  still needs their exact bits (IEEE 1800-2023 §6.20.2). -/
+  stringVals : List (String × LVec) := []
   /-- INT-class package constants, keyed by `(package, name)`. -/
   packageVals : List ((String × String) × Int) := []
   /-- Fixed-width non-INT package constants, keyed by `(package, name)`,
@@ -943,6 +947,12 @@ def IEnv.declEnv (env : IEnv) : IEnv :=
 /-- Bind a constant (prepend — shadows outer bindings of the name). -/
 def IEnv.bindVal (env : IEnv) (n : String) (v : Int) : IEnv :=
   { env with vals := (n, v) :: env.vals }
+
+def IEnv.bindStringVal (env : IEnv) (n : String) (v : LVec) : IEnv :=
+  { env with stringVals := (n, v) :: env.stringVals }
+
+def IEnv.stringVal? (env : IEnv) (n : String) : Option LVec :=
+  env.stringVals.lookup n
 
 def IEnv.bindPackageVal (env : IEnv) (pkg n : String) (v : Int) : IEnv :=
   { env with packageVals := ((pkg, n), v) :: env.packageVals }
@@ -3935,7 +3945,13 @@ override that does not fit). -/
 def bindParams (env : IEnv) : List PParam → List Int → Except String IEnv
   | p :: ps, v :: vs =>
       if p.isString then
-        bindParams env ps vs
+        let width := match p.default? with
+          | some (.lit value) => value.width
+          | _ => 0
+        if width == 0 then
+          .error s!"string parameter '{p.name}' has no retained literal width"
+        else
+          bindParams (env.bindStringVal p.name (LVec.ofInt width v)) ps vs
       else do
         if p.type?.isNone && p.signed? == some false then
           throw "Constant:untyped-unsigned — IEEE 1800-2023 §6.20.2 leaves unsigned no-range parameters implementation-defined"
@@ -4214,7 +4230,14 @@ sized to `N = 4`; an `integer`/`int` one at 32 bits, `evalIntTarget`, round
 4); an untyped default by `evalInt` (its own type, §6.20.2), loud where
 that value wraps (`evalUntyped`, round 5). -/
 def PParam.evalDefault (env : IEnv) (p : PParam) (e : PExpr) : Except String Int :=
-  if p.isString then .ok 0 else match p.type? with
+  if p.isString then
+    match e with
+    | .lit value =>
+        match value.toNat? with
+        | some n => .ok n
+        | none => .error "string parameter default contains x/z bits"
+    | _ => .error "string parameter default is not a retained literal"
+  else match p.type? with
   | some _ =>
       if e.isInt env then evalInt env e
       else do

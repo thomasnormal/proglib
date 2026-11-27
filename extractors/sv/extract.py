@@ -33252,8 +33252,6 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False, scope=None):
                     pkg = _SYM.comp.getPackage(str(kids[0]).strip())
                     if pkg is not None:
                         scope = pkg
-                    else:
-                        print("DEBUG no pkg", str(kids[0]), file=sys.stderr)
                 except Exception:
                     pass
         if type_syntax is None or type(type_syntax).__name__ in ("NamedTypeSyntax", "ScopedNameSyntax"):
@@ -35231,13 +35229,22 @@ def convert_param_sym(sm, m):
     init = getattr(m, "initializer", None)
     with _SymConstCtx():
         init_d = convert_sym_expr(sm, init) if init is not None else None
+    # Implicit string parameters are represented by Slang as an untyped
+    # parameter whose initializer carries the StringLiteral node. Preserve
+    # that source metadata so the loader does not reinterpret the literal as
+    # an implementation-width integer (§6.20.2).
     is_string = (type(getattr(getattr(m, "type", None), "canonicalType", None)).__name__
                  == "StringType")
+    if not is_string and init is not None:
+        is_string = type(init).__name__ == "StringLiteral"
+        if (not is_string and type(init).__name__ == "ConversionExpression"):
+            is_string = type(getattr(init, "operand", None)).__name__ == "StringLiteral"
     resolved = None
-    try:
-        resolved = _cv_int(m.value)
-    except Exception:
-        pass
+    if not is_string:
+        try:
+            resolved = _cv_int(m.value)
+        except Exception:
+            pass
     if m.isLocalParam:
         return _sym_implicit_signing(tsyn, ptype, _sym_param_signedness(m, ptype, {
             "kind": "LocalParam",
