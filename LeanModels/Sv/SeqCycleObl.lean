@@ -2464,6 +2464,32 @@ theorem CoreMemDesign.seqOblIM_to_seqOblIMC {E : CoreMemDesign}
   simp [CoreMemDesign.seqOblIMC, hcomb, hs.1, hs.2.1, hs.2.2.1, hs.2.2.2.1,
     hs.2.2.2.2.1, hs.2.2.2.2.2.1, hs.2.2.2.2.2.2]
 
+theorem CoreMemDesign.hasComb_eq_false_of_noComb {E : CoreMemDesign}
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body) :
+    E.hasComb = false := by
+  simp only [CoreMemDesign.hasComb, List.any_eq_false]
+  intro p hp
+  specialize hno p hp
+  cases p <;> simp_all
+
+theorem CoreMemDesign.seqOblIC_to_seqOblI_of_noComb {E : CoreMemDesign}
+    (h : E.seqOblIC = true)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body) :
+    E.seqOblI = true := by
+  have hs := CoreMemDesign.seqOblIC_spec h
+  have hhas := CoreMemDesign.hasComb_eq_false_of_noComb hno
+  simp [CoreMemDesign.seqOblI, hhas, hs.1, hs.2.2.1, hs.2.2.2.1, hs.2.2.2.2.1,
+    hs.2.2.2.2.2.1, hs.2.2.2.2.2.2]
+
+theorem CoreMemDesign.seqOblIMC_to_seqOblIM_of_noComb {E : CoreMemDesign}
+    (h : E.seqOblIMC = true)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body) :
+    E.seqOblIM = true := by
+  have hs := CoreMemDesign.seqOblIMC_spec h
+  have hhas := CoreMemDesign.hasComb_eq_false_of_noComb hno
+  simp [CoreMemDesign.seqOblIM, hhas, hs.1, hs.2.2.1, hs.2.2.2.1, hs.2.2.2.2.1,
+    hs.2.2.2.2.2.1, hs.2.2.2.2.2.2]
+
 theorem CoreMemDesign.SeqProfileI.combProcOkI_of_mem {E : CoreMemDesign}
     (hP : E.SeqProfileI) {body : PStmt} (hp : .comb body ∈ E.processes.toList) :
     E.CombProcOkI body := by
@@ -5135,6 +5161,17 @@ theorem CoreMemDesign.step_seqI_prev {E : CoreMemDesign}
     ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
       E.memOf st'.memory = mv' ∧ E.Coherent st' ∧ E.MemCoherent st'.memory := by
   exact CoreMemDesign.step_seqI hP.toSeqProfileI hO hc hmc hty hv
+
+theorem CoreMemDesign.step_seqIC_of_noComb {E : CoreMemDesign}
+    (hP : E.SeqProfileI) (hO : E.seqOblIC = true)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry) {v' : SvState} {mv' : MemV}
+    (hv : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv')) :
+    ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧ E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  exact CoreMemDesign.step_seqI hP (CoreMemDesign.seqOblIC_to_seqOblI_of_noComb hO hno)
+    hc hmc hty hv
 
 /-! The concrete confluence bridge for the first honest clocked class.  The
 continuous-assignment region is settled before and after the edge, and the
