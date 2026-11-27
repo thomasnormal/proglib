@@ -2686,6 +2686,42 @@ theorem pairedUnionLoadMetadataByte_guard_refusal
   simp [pairedUnionLoadMetadataByte, hsource, htarget]
   grind
 
+theorem pairedUnionLoadMetadataByte_failure_contract
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat) :
+    pairedUnionLoadMetadataByte resolve id metadata offset = none ↔
+      unionLoadMetadataByte metadata offset = none ∨
+      unionLoadMetadataByte (renameMetadata resolve id metadata) offset = none ∨
+      (∃ sourceResult targetResult,
+        unionLoadMetadataByte metadata offset = some sourceResult ∧
+        unionLoadMetadataByte (renameMetadata resolve id metadata) offset =
+          some targetResult ∧
+        ((targetResult.1 == renameByte resolve sourceResult.1) = false ∨
+          (targetResult.2 == sourceResult.2) = false)) := by
+  constructor
+  · intro hnone
+    cases hs : unionLoadMetadataByte metadata offset with
+    | none => exact Or.inl rfl
+    | some sourceResult =>
+        cases ht : unionLoadMetadataByte (renameMetadata resolve id metadata) offset with
+        | none => exact Or.inr (Or.inl rfl)
+        | some targetResult =>
+            by_cases hbyte : (targetResult.1 == renameByte resolve sourceResult.1) = false
+            · exact Or.inr (Or.inr ⟨sourceResult, targetResult, by simpa using hs,
+                by simpa using ht, Or.inl hbyte⟩)
+            · by_cases hfootprint : (targetResult.2 == sourceResult.2) = false
+              · exact Or.inr (Or.inr ⟨sourceResult, targetResult, by simpa using hs,
+                  by simpa using ht, Or.inr hfootprint⟩)
+              · simp [pairedUnionLoadMetadataByte, hs, ht, hbyte, hfootprint] at hnone
+  · rintro (hsource | htarget | hguard)
+    · simp [pairedUnionLoadMetadataByte, hsource]
+    · simp [pairedUnionLoadMetadataByte, htarget]
+    · rcases hguard with ⟨sourceResult, targetResult, hsource, htarget, hcondition⟩
+      rcases hcondition with hbyte | hfootprint
+      · simp [pairedUnionLoadMetadataByte, hsource, htarget, hbyte]
+      · simp [pairedUnionLoadMetadataByte, hsource, htarget, hfootprint]
+
 theorem unionLoadMetadataByte_success
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (byte : Byte Tag) (location : LocationState TypeId)
