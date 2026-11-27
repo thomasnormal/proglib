@@ -1,4 +1,4 @@
-import LeanModels.Sv.SeqCycle
+import LeanModels.Sv.SeqCycleCompat
 
 /-!
 # The obligations of the clocked profile, and the theorems that use them (`LeanModels.Sv.Kernel`)
@@ -34,6 +34,25 @@ namespace LeanModels.Sv.Kernel
 open LeanModels.Sv
 
 set_option autoImplicit false
+
+/-! `compiledAssigns` is a cache attached by `instantiateCoreMemFrom`.
+The source process remains authoritative; this alignment predicate lets a
+hand proof use one process entry without unfolding the whole cache. -/
+
+def CoreMemDesign.CompiledAssignsAligned (E : CoreMemDesign) : Prop :=
+  E.compiledAssigns = E.compileAssigns
+
+theorem CoreMemDesign.compileAssigns_getElem_of_scalar {E : CoreMemDesign} {i : Nat}
+    {n : String} {e : PExpr} {w : Nat}
+    (halign : E.CompiledAssignsAligned)
+    (hp : E.processes[i]? = some (.assign (.ident n) e))
+    (hw : E.scalarWidth? n = some w) :
+    E.compiledAssigns[i]? = some (some (instExpr2 E.env E.elems (some w) e)) := by
+  rw [halign]
+  unfold CoreMemDesign.compileAssigns
+  rw [Array.getElem?_map]
+  rw [hp]
+  simp [hw]
 
 /-! ## The interface and the obligations -/
 
@@ -963,6 +982,854 @@ end
 
 #print axioms CoreMemDesign.evalV_congr
 
+/-! A pure expression does not depend on the memory view.  This is the
+frame fact used when a source-shaped `always_comb` body is replayed on the
+state reconstructed from a scalar view. -/
+
+theorem CoreMemDesign.evalV_mem_congr_of_pure {E : CoreMemDesign} {env : IEnv}
+    {elems : List (String × Nat)} {v : SvState} {mv mw : MemV} :
+    ∀ (ctx : Option Nat) (e : PExpr), PExpr.hasMemoryRead e = false →
+      E.evalV env elems v mv ctx e = E.evalV env elems v mw ctx e
+  | ctx, e, h => by
+      cases e <;> simp_all [CoreMemDesign.evalV, CoreMemDesign.evalScalarV,
+        CoreMemDesign.evalIdxV, CoreMemDesign.evalListV, PExpr.hasMemoryRead,
+        PExpr.hasMemoryReadList]
+
+theorem CoreMemDesign.evalListV_mem_congr_of_pure {E : CoreMemDesign} {env : IEnv}
+    {elems : List (String × Nat)} {v : SvState} {mv mw : MemV} :
+    ∀ (xs : List PExpr), (∀ e ∈ xs, PExpr.hasMemoryRead e = false) →
+      E.evalListV env elems v mv xs = E.evalListV env elems v mw xs
+  | [], _ => by simp [CoreMemDesign.evalListV]
+  | e :: xs, h => by
+      simp only [CoreMemDesign.evalListV]
+      rw [CoreMemDesign.evalV_mem_congr_of_pure none e (h e (by simp)),
+        CoreMemDesign.evalListV_mem_congr_of_pure xs (fun x hx => h x (by simp [hx]))]
+
+theorem CoreMemDesign.evalExprLocals_mem_congr_of_pure {E : CoreMemDesign} {env : IEnv}
+    {st₁ st₂ : CoreMemState} {ctx : Option Nat} {e : PExpr}
+    (hm₁ : E.MemCoherent st₁.memory) (hm₂ : E.MemCoherent st₂.memory)
+    (hview : E.scalar.view st₁.scalar = E.scalar.view st₂.scalar)
+    (hmem : PExpr.hasMemoryRead e = false)
+    (hcall : PExpr.hasFunctionCall e = false) :
+    E.evalExprLocals env E.elems st₁ ctx [] e = E.evalExprLocals env E.elems st₂ ctx [] e := by
+  have heq₁ := CoreMemDesign.evalExprLocals_eq_evalV hm₁ env E.elems ctx e hcall
+  have heq₂ := CoreMemDesign.evalExprLocals_eq_evalV hm₂ env E.elems ctx e hcall
+  have hmemv := CoreMemDesign.evalV_mem_congr_of_pure (E := E) (env := env)
+    (elems := E.elems) (v := E.scalar.view st₂.scalar)
+    (mv := E.memOf st₁.memory) (mw := E.memOf st₂.memory) ctx e hmem
+  rw [heq₁, heq₂, hview, hmemv]
+
+theorem CoreMemDesign.combIfBranch_congr_of_pure {E : CoreMemDesign} {env : IEnv}
+    {st₁ st₂ : CoreMemState} {locals : SvState} {cond : PExpr}
+    {yes : PStmt} {no : Option PStmt}
+    (hview : E.scalar.view st₁.scalar = E.scalar.view st₂.scalar)
+    (hne : E.elems ≠ []) (hcond : CoreMemDesign.combExprB cond = true) :
+    E.combIfBranch env E.elems st₁ locals cond yes no =
+      E.combIfBranch env E.elems st₂ locals cond yes no := by
+  simp only [CoreMemDesign.combExprB, Bool.and_eq_true] at hcond
+  obtain ⟨⟨hcall, hmem⟩, htest⟩ := hcond
+  have htest' : PExpr.hasTestPlusargs cond = false := by simpa using htest
+  have heq := CoreMemDesign.evalExprLocals_congr_readsV_of_pure
+    (E := E) (env := env) (elems := E.elems) (st := st₁) (st' := st₂)
+    (ctx := some 1) (locals := locals) (e := cond)
+    (by simpa using hmem) (by simpa using hcall) hne (by
+      intro x hx
+      simp [hview])
+  simp [CoreMemDesign.combIfBranch, htest', heq]
+
+/-! A scalar blocking leaf preserves both coherence judgments.  This is the
+state-side companion to `execCombStmtAtView_blocking_frame`; composition rules
+can use it without opening the evaluator again. -/
+theorem CoreMemDesign.execCombStmtAtView_blocking_coherent
+    {E : CoreMemDesign} {env : IEnv} {st : CoreMemState} {view : SvState}
+    {st' : CoreMemState} {view' : SvState} {n : String} {value : PExpr}
+    (hc : E.Coherent st) (hm : E.MemCoherent st.memory)
+    (hbody : E.combBodyB (.blockingAssign n value) = true)
+    (h : E.execCombStmtAtView env E.elems st view (.blockingAssign n value) = .ok (st', view')) :
+    E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  simp only [CoreMemDesign.combBodyB, Bool.and_eq_true] at hbody
+  obtain ⟨htarget, hexpr⟩ := hbody
+  simp only [CoreMemDesign.combExprB, Bool.and_eq_true] at hexpr
+  obtain ⟨⟨hfc, hmem⟩, htest⟩ := hexpr
+  have hwidth : (E.scalarWidth? n).isSome = true := htarget
+  cases hw : E.scalarTarget n with
+  | none => simp [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel, hw] at h
+  | some width =>
+    have hw' : E.scalarWidth? n = some width := hw
+    simp only [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel, hw,
+      htest, Bool.false_eq_true, ↓reduceIte, Res.bind_eq_ok] at h
+    obtain ⟨a, ha, hpair⟩ := h
+    simp only [Res.ok.injEq, Prod.mk.injEq] at hpair
+    obtain ⟨rfl, rfl⟩ := hpair
+    have htest' : PExpr.hasTestPlusargs value = false := by simpa using htest
+    simp [hw, htest'] at ha
+    obtain ⟨x, hx, rfl, rfl, rfl⟩ := ha
+    obtain ⟨xid, hxid⟩ := CoreMemDesign.scalarWidth?_some (E := E) (n := n) (by
+      simpa [hw'] using hwidth)
+    refine ⟨(CoreMemDesign.setV_spec hc hxid x).2, ?_⟩
+    rw [E.setScalarState_memory]
+    exact hm
+
+/-- A scalar blocking leaf exposes its raw retained-view update and preserves
+the state and memory coherence judgments needed by composition. -/
+theorem CoreMemDesign.execCombStmtAtView_blocking_view
+    {E : CoreMemDesign} {env : IEnv} {st : CoreMemState} {view : SvState}
+    {st' : CoreMemState} {view' : SvState} {n : String} {value : PExpr}
+    (hc : E.Coherent st) (hm : E.MemCoherent st.memory)
+    (hbody : E.combBodyB (.blockingAssign n value) = true)
+    (h : E.execCombStmtAtView env E.elems st view (.blockingAssign n value) = .ok (st', view')) :
+    (∃ x, view' = SvState.set view n x) ∧ E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  simp only [CoreMemDesign.combBodyB, Bool.and_eq_true] at hbody
+  obtain ⟨htarget, hexpr⟩ := hbody
+  simp only [CoreMemDesign.combExprB, Bool.and_eq_true] at hexpr
+  obtain ⟨⟨hfc, hmem⟩, htest⟩ := hexpr
+  have hwidth : (E.scalarWidth? n).isSome = true := htarget
+  cases hw : E.scalarTarget n with
+  | none => simp [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel, hw] at h
+  | some width =>
+    have hw' : E.scalarWidth? n = some width := hw
+    simp only [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel, hw,
+      htest, Bool.false_eq_true, ↓reduceIte, Res.bind_eq_ok] at h
+    obtain ⟨a, ha, hpair⟩ := h
+    simp only [Res.ok.injEq, Prod.mk.injEq] at hpair
+    obtain ⟨rfl, rfl⟩ := hpair
+    have htest' : PExpr.hasTestPlusargs value = false := by simpa using htest
+    simp [hw, htest'] at ha
+    obtain ⟨x, hx, rfl, rfl, rfl⟩ := ha
+    obtain ⟨xid, hxid⟩ := CoreMemDesign.scalarWidth?_some (E := E) (n := n) (by
+      simpa [hw'] using hwidth)
+    have hset := CoreMemDesign.setV_spec hc hxid x
+    refine ⟨⟨x, rfl⟩, hset.2, ?_⟩
+    · rw [E.setScalarState_memory]
+      exact hm
+
+/-! Statement-list composition is independent of the particular comb
+statement rule.  Once each admitted leaf/branch rule supplies this small
+coherence receipt, a block needs no second semantic interpreter. -/
+def CoreMemDesign.CombStmtCoherent (E : CoreMemDesign) (env : IEnv) (stmt : PStmt) : Prop :=
+  ∀ (fuel : Nat) (st : CoreMemState) (view locals : SvState)
+    (st' : CoreMemState) (view' locals' : SvState),
+    E.Coherent st → E.MemCoherent st.memory →
+    E.execCombStmtFuel env E.elems st view locals fuel stmt = .ok (st', view', locals') →
+    E.Coherent st' ∧ E.MemCoherent st'.memory
+
+def CoreMemDesign.CombStmtViewAligned (E : CoreMemDesign) (env : IEnv) (stmt : PStmt) : Prop :=
+  ∀ (fuel : Nat) (st : CoreMemState) (view locals : SvState)
+    (st' : CoreMemState) (view' locals' : SvState),
+    E.Coherent st → E.MemCoherent st.memory → view = E.scalar.view st.scalar →
+    E.execCombStmtFuel env E.elems st view locals fuel stmt = .ok (st', view', locals') →
+    view' = E.scalar.view st'.scalar
+
+/-- The public view executor is the fixed-fuel, empty-local-frame wrapper around
+the source-shaped statement executor.  A statement coherence receipt therefore
+applies directly to any successful `execCombStmtAtView` run. -/
+theorem CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+    {E : CoreMemDesign} {env : IEnv} {body : PStmt}
+    (hstmt : E.CombStmtCoherent env body)
+    {st : CoreMemState} {view : SvState} {st' : CoreMemState} {view' : SvState}
+    (hc : E.Coherent st) (hm : E.MemCoherent st.memory)
+    (h : E.execCombStmtAtView env E.elems st view body = .ok (st', view')) :
+    E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  unfold CoreMemDesign.execCombStmtAtView at h
+  cases hrun : E.execCombStmtFuel env E.elems st view [] 4096 body with
+  | timeout => simp [hrun] at h
+  | unsupported msg => simp [hrun] at h
+  | ok result =>
+      simp only [hrun, Res.ok_bind, Res.ok.injEq, Prod.mk.injEq] at h
+      obtain ⟨st0, view0, locals0⟩ := result
+      obtain ⟨rfl, rfl, rfl⟩ := h
+      exact hstmt 4096 st view [] st0 view0 locals0 hc hm hrun
+
+/-- The state reconstructed from a view is coherent.  This is the state-side
+entry point for the view runner; it uses the ordinary `storeFromView` typing
+theorem and the cache projection equation, not a second evaluator. -/
+theorem CoreMemDesign.combStateOfView_coherent (E : CoreMemDesign) (v : SvState) :
+    E.Coherent (E.combStateOfView v) := by
+  unfold CoreMemDesign.combStateOfView
+  refine { store := rfl, size := ?_, typed := ?_ }
+  · simp [CoreMemDesign.scalarCacheOf]
+  · apply Elab.typed_congr_decls
+      (fun j hj => (E.scalarStore_cacheOf (E.storeFromView v) j hj).symm)
+    exact E.typed_storeFromView v
+
+/-! The comb-process runner only changes state through an admitted source
+statement.  This induction is the process-level hand lemma needed by the
+active-region profile: scheduling readiness may skip a process, while a
+successful execution is discharged by the statement receipt above. -/
+theorem CoreMemDesign.runCombAt_coherent_of_each
+    {E : CoreMemDesign} {before current : CoreMemState} {beforeView currentView : SvState}
+    {index : Nat} {procs : List CoreMemProc} {st' : CoreMemState}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hc : E.Coherent current) (hm : E.MemCoherent current.memory)
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body
+      | .latch _ => False
+      | _ => True)
+    (h : E.runCombAt before beforeView current currentView index procs = .ok st') :
+    E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  induction procs generalizing index current currentView st' with
+  | nil =>
+      simp only [CoreMemDesign.runCombAt, Res.ok.injEq] at h
+      subst h
+      exact ⟨hc, hm⟩
+  | cons p rest ih =>
+      have hrest : ∀ q ∈ rest, match q with
+          | .comb body => E.CombStmtCoherent E.env body
+          | .latch _ => False
+          | _ => True := by
+        intro q hq
+        exact hproc q (by simp [hq])
+      cases p with
+      | comb body =>
+          have hb := hproc (.comb body) (by simp)
+          simp only [CoreMemDesign.runCombAt] at h
+          by_cases hagg : (coreMemCombExternalReadExprs body).any PExpr.hasAggregateMember = true
+          · simp [hagg] at h
+            cases he : E.execCombStmtAtView E.env E.elems current currentView body with
+            | timeout => simp [he] at h
+            | unsupported msg => simp [he] at h
+            | ok result =>
+                obtain ⟨after, afterView⟩ := result
+                rw [he] at h
+                have hcoh := CoreMemDesign.execCombStmtAtView_coherent_of_stmt (E := E) hb hc hm he
+                have hcompact := E.compactScalar_view hnd h4 hcoh.1 afterView
+                rcases h with ⟨a, b, hab, hnext⟩
+                cases hab
+                exact ih (index := index + 1)
+                  (current := E.compactScalar after afterView)
+                  (currentView := afterView) (st' := st') hcompact.2
+                  (by rw [E.compactScalar_memory]; exact hcoh.2) hrest hnext
+          · simp [hagg] at h
+            cases hr : E.readChangedAt before current beforeView currentView index
+                (coreMemCombExternalReadExprs body) with
+            | timeout => simp [hr] at h
+            | unsupported msg => simp [hr] at h
+            | ok ready =>
+                cases ready with
+                | false =>
+                    simp [hr] at h
+                    exact ih (index := index + 1) (current := current) (currentView := currentView)
+                      (st' := st') hc hm hrest h
+                | true =>
+                    simp [hagg, hr] at h
+                    cases he : E.execCombStmtAtView E.env E.elems current currentView body with
+                    | timeout => simp [he] at h
+                    | unsupported msg => simp [he] at h
+                    | ok result =>
+                        obtain ⟨after, afterView⟩ := result
+                        rw [he] at h
+                        have hcoh := CoreMemDesign.execCombStmtAtView_coherent_of_stmt (E := E) hb hc hm he
+                        have hcompact := E.compactScalar_view hnd h4 hcoh.1 afterView
+                        rcases h with ⟨a, b, hab, hnext⟩
+                        cases hab
+                        exact ih (index := index + 1)
+                          (current := E.compactScalar after afterView)
+                          (currentView := afterView) (st' := st') hcompact.2
+                          (by rw [E.compactScalar_memory]; exact hcoh.2) hrest hnext
+      | primitive kind name =>
+          simp only [CoreMemDesign.runCombAt] at h
+          exact ih (index := index + 1) (current := current) (currentView := currentView)
+            (st' := st') hc hm hrest h
+      | assign target value =>
+          simp only [CoreMemDesign.runCombAt] at h
+          exact ih (index := index + 1) (current := current) (currentView := currentView)
+            (st' := st') hc hm hrest h
+      | edge f =>
+          simp only [CoreMemDesign.runCombAt] at h
+          exact ih (index := index + 1) (current := current) (currentView := currentView)
+            (st' := st') hc hm hrest h
+      | initial body =>
+          simp only [CoreMemDesign.runCombAt] at h
+          exact ih (index := index + 1) (current := current) (currentView := currentView)
+            (st' := st') hc hm hrest h
+      | implicit body =>
+          simp only [CoreMemDesign.runCombAt] at h
+          exact ih (index := index + 1) (current := current) (currentView := currentView)
+            (st' := st') hc hm hrest h
+      | event events body =>
+          simp only [CoreMemDesign.runCombAt] at h
+          exact ih (index := index + 1) (current := current) (currentView := currentView)
+            (st' := st') hc hm hrest h
+      | latch body =>
+          have hbad := hproc (.latch body) (by simp)
+          simp at hbad
+      | unsupported kind text =>
+          simp [CoreMemDesign.runCombAt] at h
+
+/-- The process-list coherence receipt specializes to one active-region pass. -/
+theorem CoreMemDesign.runCombPass_coherent_of_each
+    {E : CoreMemDesign} {before current st' : CoreMemState} {procs : List CoreMemProc}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hc : E.Coherent current) (hm : E.MemCoherent current.memory)
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body
+      | .latch _ => False
+      | _ => True)
+    (h : E.runCombPass before current procs = .ok st') :
+    E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  unfold CoreMemDesign.runCombPass at h
+  exact E.runCombAt_coherent_of_each hnd h4 hc hm hproc h
+
+/-! The view wrappers expose the same coherent state runs while preserving the
+projected scalar view. -/
+theorem CoreMemDesign.runCombAtV_coherent_of_each
+    {E : CoreMemDesign} {before beforeView current currentView : SvState}
+    {index : Nat} {procs : List CoreMemProc} {v' : SvState}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hm0 : E.MemCoherent E.initial.memory)
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body
+      | .latch _ => False
+      | _ => True)
+    (h : E.runCombAtV before beforeView current currentView index procs = .ok v') :
+    ∃ st', E.runCombAt (E.combStateOfView beforeView) beforeView
+        (E.combStateOfView currentView) currentView index procs = .ok st' ∧
+      E.Coherent st' ∧ E.scalar.view st'.scalar = v' := by
+  unfold CoreMemDesign.runCombAtV at h
+  cases hr : E.runCombAt (E.combStateOfView beforeView) beforeView
+      (E.combStateOfView currentView) currentView index procs with
+  | timeout => simp [hr] at h
+  | unsupported msg => simp [hr] at h
+  | ok st' =>
+      simp only [hr, Res.ok_bind, Res.ok.injEq] at h
+      have hv : E.scalar.view st'.scalar = v' := h
+      have hc := E.combStateOfView_coherent currentView
+      have hrun := E.runCombAt_coherent_of_each hnd h4 hc
+        (by simpa [CoreMemDesign.combStateOfView] using hm0) hproc hr
+      exact ⟨st', rfl, hrun.1, hv⟩
+
+theorem CoreMemDesign.runCombPassV_coherent_of_each
+    {E : CoreMemDesign} {before current v' : SvState} {procs : List CoreMemProc}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hm0 : E.MemCoherent E.initial.memory)
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body
+      | .latch _ => False
+      | _ => True)
+    (h : E.runCombPassV before current procs = .ok v') :
+    ∃ st', E.runCombAt (E.combStateOfView before) before
+        (E.combStateOfView current) current 0 procs = .ok st' ∧
+      E.Coherent st' ∧ E.scalar.view st'.scalar = v' := by
+  unfold CoreMemDesign.runCombPassV at h
+  exact E.runCombAtV_coherent_of_each hnd h4 hm0 hproc h
+
+theorem CoreMemDesign.runCombAtV_of_noComb
+    {E : CoreMemDesign} {before beforeView current currentView : SvState}
+    {index : Nat} {procs : List CoreMemProc}
+    (hno : ∀ p ∈ procs, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    (hconverted : ∀ p ∈ procs, ∀ kind text, p ≠ .unsupported kind text) :
+    E.runCombAtV before beforeView current currentView index procs =
+      .ok (E.matV currentView) := by
+  unfold CoreMemDesign.runCombAtV
+  induction procs generalizing index current currentView with
+  | nil =>
+      simp only [CoreMemDesign.runCombAt, Res.ok_bind, Res.ok.injEq]
+      exact E.combStateOfView_view
+  | cons p rest ih =>
+      have hrest : ∀ q ∈ rest, ∀ body, q ≠ .comb body ∧ q ≠ .latch body := by
+        intro q hq body
+        exact hno q (by simp [hq]) body
+      have hrest' : ∀ q ∈ rest, ∀ kind text, q ≠ .unsupported kind text := by
+        intro q hq kind text
+        exact hconverted q (by simp [hq]) kind text
+      cases p with
+      | comb body =>
+          have hbad := hno (.comb body) (by simp) body
+          simp at hbad
+      | latch body =>
+          have hbad := hno (.latch body) (by simp) body
+          simp at hbad
+      | primitive kind name width =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (current := current) (currentView := currentView) (index := index + 1) hrest hrest'
+      | assign target value =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (current := current) (currentView := currentView) (index := index + 1) hrest hrest'
+      | edge f =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (current := current) (currentView := currentView) (index := index + 1) hrest hrest'
+      | initial body =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (current := current) (currentView := currentView) (index := index + 1) hrest hrest'
+      | implicit body =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (current := current) (currentView := currentView) (index := index + 1) hrest hrest'
+      | event events body =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (current := current) (currentView := currentView) (index := index + 1) hrest hrest'
+      | unsupported kind text =>
+          have hbad := hconverted (.unsupported kind text) (by simp) kind text
+          simp at hbad
+
+/-! The view-only quiescence loop preserves a coherent realization of its
+returned view.  The materialization premises are explicit because the view
+runner compares source-shaped views, while the retained state stores the
+scalar view of its coherent state. -/
+theorem CoreMemDesign.runCombQuiesceV_coherent_of_each
+    {E : CoreMemDesign} {limit : Nat} {before current v' : SvState}
+    {procs : List CoreMemProc}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hm0 : E.MemCoherent E.initial.memory)
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body
+      | .latch _ => False
+      | _ => True)
+    (hbefore : E.matV before = before) (hcurrent : E.matV current = current)
+    (h : E.runCombQuiesceV limit before current procs = .ok v') :
+    ∃ st', E.Coherent st' ∧ E.scalar.view st'.scalar = v' := by
+  induction limit generalizing before current v' with
+  | zero =>
+      simp [CoreMemDesign.runCombQuiesceV] at h
+  | succ n ih =>
+      simp only [CoreMemDesign.runCombQuiesceV] at h
+      cases hpV : E.runCombPassV before current procs with
+      | timeout => simp [hpV] at h
+      | unsupported msg => simp [hpV] at h
+      | ok nextView =>
+          have hpass := E.runCombPassV_coherent_of_each hnd h4 hm0 hproc hpV
+          obtain ⟨next, hrun, hnext, hnextView⟩ := hpass
+          simp only [hpV, Res.ok_bind] at h
+          cases heq : before == nextView with
+          | true =>
+              simp only [heq, ↓reduceIte, Res.ok.injEq] at h
+              obtain rfl := h
+              exact ⟨next, hnext, hnextView⟩
+          | false =>
+              simp only [heq, Bool.false_eq_true, ↓reduceIte] at h
+              have hmatNext : E.matV nextView = nextView := by
+                rw [← hnextView]
+                exact CoreMemDesign.matV_view hnd h4 hnext.typed
+              obtain ⟨st', hc', hv'⟩ := ih (before := current) (current := nextView)
+                (v' := v') hcurrent hmatNext h
+              exact ⟨st', hc', hv'⟩
+
+/-- Arbitrary-limit active-region quiescence preserves coherence.  The limit is
+the caller's scheduling budget; no correctness claim depends on choosing the
+canonical 4096 wrapper. -/
+theorem CoreMemDesign.runCombQuiesce_coherent_of_each
+    {E : CoreMemDesign} {limit : Nat} {before current st' : CoreMemState}
+    {procs : List CoreMemProc}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hc : E.Coherent current) (hm : E.MemCoherent current.memory)
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body
+      | .latch _ => False
+      | _ => True)
+    (h : E.runCombQuiesce limit before current procs = .ok st') :
+    E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  induction limit generalizing before current st' with
+  | zero =>
+      simp [CoreMemDesign.runCombQuiesce] at h
+  | succ n ih =>
+      simp only [CoreMemDesign.runCombQuiesce] at h
+      cases hp : E.runCombPass before current procs with
+      | timeout => simp [hp] at h
+      | unsupported msg => simp [hp] at h
+      | ok next =>
+          have hnext := E.runCombPass_coherent_of_each hnd h4 hc hm hproc hp
+          simp only [hp, Res.ok_bind] at h
+          cases heq : E.scalar.view before.scalar == E.scalar.view next.scalar with
+          | true =>
+              simp only [heq, ↓reduceIte, Res.ok.injEq] at h
+              obtain rfl := h
+              exact hnext
+          | false =>
+              simp only [heq, Bool.false_eq_true, ↓reduceIte] at h
+              exact ih (before := current) (current := next) (st' := st')
+                hnext.1 hnext.2 h
+
+theorem CoreMemDesign.combStmt_coherent_blocking
+    {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
+    (hbody : E.combBodyB (.blockingAssign n value) = true) :
+    E.CombStmtCoherent env (.blockingAssign n value) := by
+  simp only [CoreMemDesign.combBodyB, Bool.and_eq_true] at hbody
+  obtain ⟨htarget, hexpr⟩ := hbody
+  simp only [CoreMemDesign.combExprB, Bool.and_eq_true] at hexpr
+  obtain ⟨⟨hfc, hmem⟩, htest⟩ := hexpr
+  have htest' : LeanModels.Sv.PExpr.hasTestPlusargs value = false := by simpa using htest
+  have hwidth : (E.scalarWidth? n).isSome = true := htarget
+  have hcoh : E.CombStmtCoherent env (.blockingAssign n value) := by
+    intro fuel st view locals st' view' locals' hc hm h
+    cases fuel with
+    | zero => simp [CoreMemDesign.execCombStmtFuel] at h
+    | succ fuel =>
+        simp only [CoreMemDesign.execCombStmtFuel] at h
+        cases hl : SvState.lookup locals n with
+        | some old =>
+            simp only [hl, htest', Bool.false_eq_true, ↓reduceIte, Res.bind_eq_ok] at h
+            cases he : E.evalExprLocals env E.elems st (some old.width) locals value with
+            | timeout => simp [he] at h
+            | unsupported msg => simp [he] at h
+            | ok x =>
+                simp only [he, Res.ok_bind, Res.pure_eq, Res.ok.injEq, Prod.mk.injEq] at h
+                rcases h with ⟨hx, hs, hv', hl'⟩
+                cases hs
+                rcases hl' with ⟨hvv, _⟩
+                cases hv'
+                cases hvv
+                exact ⟨hc, hm⟩
+        | none =>
+            cases hw : E.scalarTarget n with
+            | none => simp [hl, hw] at h
+            | some width =>
+                simp only [hl, hw, htest', Bool.false_eq_true, ↓reduceIte, Res.bind_eq_ok] at h
+                cases he : E.evalExprLocals env E.elems st (some width) locals value with
+                | timeout => simp [he] at h
+                | unsupported msg => simp [he] at h
+                | ok x =>
+                    simp only [he, Res.ok_bind, Res.pure_eq, Res.ok.injEq, Prod.mk.injEq] at h
+                    rcases h with ⟨hx, hs, hv', hl'⟩
+                    cases hs
+                    cases hv'
+                    obtain ⟨xid, hxid⟩ := CoreMemDesign.scalarWidth?_some (E := E) (n := n) (by
+                      simpa [hw] using hwidth)
+                    exact ⟨(CoreMemDesign.setV_spec hc hxid x).2, by
+                      rw [E.setScalarState_memory]
+                      exact hm⟩
+  exact hcoh
+
+/-- A scalar `blockingAssignL` is the parser-native target form of the same
+statement rule; its executor delegates to `blockingAssign` exactly. -/
+theorem CoreMemDesign.combStmt_coherent_blockingL_ident
+    {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
+    (hbody : E.combBodyB (.blockingAssignL (.ident n) value) = true) :
+    E.CombStmtCoherent env (.blockingAssignL (.ident n) value) := by
+  have hblock : E.combBodyB (.blockingAssign n value) = true := by
+    simpa [CoreMemDesign.combBodyB, CoreMemDesign.combTargetB] using hbody
+  have hcoh := CoreMemDesign.combStmt_coherent_blocking (E := E) (env := env) hblock
+  intro fuel st view locals st' view' locals' hc hm h
+  cases fuel with
+  | zero => simp [CoreMemDesign.execCombStmtFuel] at h
+  | succ fuel =>
+      simp only [CoreMemDesign.execCombStmtFuel] at h
+      exact hcoh fuel st view locals st' view' locals' hc hm h
+
+
+theorem CoreMemDesign.execCombStmtsFuel_coherent_of_each {E : CoreMemDesign} {env : IEnv}
+    (body : List PStmt) (hstmt : ∀ stmt ∈ body, E.CombStmtCoherent env stmt) :
+    ∀ (fuel : Nat) (st : CoreMemState) (view locals : SvState)
+      (st' : CoreMemState) (view' locals' : SvState),
+      E.Coherent st → E.MemCoherent st.memory →
+      E.execCombStmtsFuel env E.elems st view locals fuel body = .ok (st', view', locals') →
+      E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  induction body with
+  | nil =>
+      intro fuel st view locals st' view' locals' hc hm h
+      cases fuel with
+      | zero => simp [CoreMemDesign.execCombStmtsFuel] at h
+      | succ fuel =>
+          simp only [CoreMemDesign.execCombStmtsFuel, Res.ok.injEq, Prod.mk.injEq] at h
+          obtain ⟨rfl, rfl, rfl⟩ := h
+          exact ⟨hc, hm⟩
+  | cons stmt rest ih =>
+      intro fuel st view locals st' view' locals' hc hm h
+      cases fuel with
+      | zero => simp [CoreMemDesign.execCombStmtsFuel] at h
+      | succ fuel =>
+          simp only [CoreMemDesign.execCombStmtsFuel, Res.bind_eq_ok] at h
+          obtain ⟨mid, hs, hr⟩ := h
+          obtain ⟨stmid, vmid, lmid⟩ := mid
+          obtain ⟨hc', hm'⟩ := hstmt stmt (by simp) fuel st view locals stmid vmid lmid hc hm hs
+          exact ih (hstmt := fun s hs => hstmt s (by simp [hs])) fuel stmid vmid lmid st' view' locals' hc' hm' hr
+
+theorem CoreMemDesign.execCombStmtsFuel_viewAligned_of_each {E : CoreMemDesign} {env : IEnv}
+    (body : List PStmt)
+    (hstmt : ∀ stmt ∈ body,
+      E.CombStmtCoherent env stmt ∧ E.CombStmtViewAligned env stmt) :
+    ∀ (fuel : Nat) (st : CoreMemState) (view locals : SvState)
+      (st' : CoreMemState) (view' locals' : SvState),
+      E.Coherent st → E.MemCoherent st.memory → view = E.scalar.view st.scalar →
+      E.execCombStmtsFuel env E.elems st view locals fuel body = .ok (st', view', locals') →
+      view' = E.scalar.view st'.scalar := by
+  induction body with
+  | nil =>
+      intro fuel st view locals st' view' locals' hc hm hview h
+      cases fuel with
+      | zero => simp [CoreMemDesign.execCombStmtsFuel] at h
+      | succ fuel =>
+          simp only [CoreMemDesign.execCombStmtsFuel, Res.ok.injEq, Prod.mk.injEq] at h
+          obtain ⟨rfl, rfl, rfl⟩ := h
+          exact hview
+  | cons stmt rest ih =>
+      intro fuel st view locals st' view' locals' hc hm hview h
+      cases fuel with
+      | zero => simp [CoreMemDesign.execCombStmtsFuel] at h
+      | succ fuel =>
+          simp only [CoreMemDesign.execCombStmtsFuel, Res.bind_eq_ok] at h
+          obtain ⟨mid, hs, hr⟩ := h
+          obtain ⟨stmid, vmid, lmid⟩ := mid
+          have hstmt' := hstmt stmt (by simp)
+          have hmidC := hstmt'.1 fuel st view locals stmid vmid lmid hc hm hs
+          have hmid := hstmt'.2 fuel st view locals stmid vmid lmid hc hm hview hs
+          have htail := ih (hstmt := fun s hs => hstmt s (by simp [hs])) fuel
+            stmid vmid lmid st' view' locals' hmidC.1 hmidC.2 hmid hr
+          exact htail
+
+theorem CoreMemDesign.execCombStmtFuel_coherent_if
+    {E : CoreMemDesign} {env : IEnv} {cond : PExpr} {yes : PStmt} {no : Option PStmt}
+    (hbranch : ∀ (st : CoreMemState) (locals : SvState) (stmt : PStmt),
+      E.combIfBranch env E.elems st locals cond yes no = .ok (some stmt) →
+        E.CombStmtCoherent env stmt) :
+    E.CombStmtCoherent env (.ifStmt cond yes no) := by
+  intro fuel st view locals st' view' locals' hc hm h
+  cases fuel with
+  | zero => simp [CoreMemDesign.execCombStmtFuel] at h
+  | succ fuel =>
+      simp only [CoreMemDesign.execCombStmtFuel] at h
+      cases hb : E.combIfBranch env E.elems st locals cond yes no with
+      | timeout => simp [hb] at h
+      | unsupported msg => simp [hb] at h
+      | ok branch =>
+          simp only [hb, Res.ok_bind] at h
+          cases branch with
+          | none =>
+              simp only [Res.ok.injEq, Prod.mk.injEq] at h
+              obtain ⟨rfl, rfl, rfl⟩ := h
+              exact ⟨hc, hm⟩
+          | some stmt =>
+              exact hbranch st locals stmt hb fuel st view locals st' view' locals' hc hm h
+
+theorem CoreMemDesign.execCombStmtFuel_coherent_case
+    {E : CoreMemDesign} {env : IEnv} {subject : PExpr}
+    {items : List (List PExpr × PStmt)} {default? : Option PStmt}
+    {mode : CaseMode} {check : CaseCheck}
+    (hbranch : ∀ (st : CoreMemState) (locals : SvState) (stmt : PStmt),
+      E.combCaseBranch env E.elems st locals subject items default? mode check = .ok (some stmt) →
+        E.CombStmtCoherent env stmt) :
+    E.CombStmtCoherent env (.caseStmt subject items default? mode check) := by
+  intro fuel st view locals st' view' locals' hc hm h
+  cases fuel with
+  | zero => simp [CoreMemDesign.execCombStmtFuel] at h
+  | succ fuel =>
+      simp only [CoreMemDesign.execCombStmtFuel] at h
+      cases hb : E.combCaseBranch env E.elems st locals subject items default? mode check with
+      | timeout => simp [hb] at h
+      | unsupported msg => simp [hb] at h
+      | ok branch =>
+          simp only [hb, Res.ok_bind] at h
+          cases branch with
+          | none =>
+              simp only [Res.ok.injEq, Prod.mk.injEq] at h
+              obtain ⟨rfl, rfl, rfl⟩ := h
+              exact ⟨hc, hm⟩
+          | some stmt =>
+              exact hbranch st locals stmt hb fuel st view locals st' view' locals' hc hm h
+
+theorem CoreMemDesign.execCombStmtFuel_viewAligned_if
+    {E : CoreMemDesign} {env : IEnv} {cond : PExpr} {yes : PStmt} {no : Option PStmt}
+    (hbranch : ∀ (st : CoreMemState) (locals : SvState) (stmt : PStmt),
+      E.combIfBranch env E.elems st locals cond yes no = .ok (some stmt) →
+        E.CombStmtViewAligned env stmt) :
+    E.CombStmtViewAligned env (.ifStmt cond yes no) := by
+  intro fuel st view locals st' view' locals' hc hm hview h
+  cases fuel with
+  | zero => simp [CoreMemDesign.execCombStmtFuel] at h
+  | succ fuel =>
+      simp only [CoreMemDesign.execCombStmtFuel] at h
+      cases hb : E.combIfBranch env E.elems st locals cond yes no with
+      | timeout => simp [hb] at h
+      | unsupported msg => simp [hb] at h
+      | ok branch =>
+          simp only [hb, Res.ok_bind] at h
+          cases branch with
+          | none =>
+              simp only [Res.ok.injEq, Prod.mk.injEq] at h
+              obtain ⟨rfl, rfl, rfl⟩ := h
+              exact hview
+          | some stmt =>
+              exact hbranch st locals stmt hb fuel st view locals st' view' locals' hc hm hview h
+
+theorem CoreMemDesign.execCombStmtFuel_viewAligned_case
+    {E : CoreMemDesign} {env : IEnv} {subject : PExpr}
+    {items : List (List PExpr × PStmt)} {default? : Option PStmt}
+    {mode : CaseMode} {check : CaseCheck}
+    (hbranch : ∀ (st : CoreMemState) (locals : SvState) (stmt : PStmt),
+      E.combCaseBranch env E.elems st locals subject items default? mode check = .ok (some stmt) →
+        E.CombStmtViewAligned env stmt) :
+    E.CombStmtViewAligned env (.caseStmt subject items default? mode check) := by
+  intro fuel st view locals st' view' locals' hc hm hview h
+  cases fuel with
+  | zero => simp [CoreMemDesign.execCombStmtFuel] at h
+  | succ fuel =>
+      simp only [CoreMemDesign.execCombStmtFuel] at h
+      cases hb : E.combCaseBranch env E.elems st locals subject items default? mode check with
+      | timeout => simp [hb] at h
+      | unsupported msg => simp [hb] at h
+      | ok branch =>
+          simp only [hb, Res.ok_bind] at h
+          cases branch with
+          | none =>
+              simp only [Res.ok.injEq, Prod.mk.injEq] at h
+              obtain ⟨rfl, rfl, rfl⟩ := h
+              exact hview
+          | some stmt =>
+              exact hbranch st locals stmt hb fuel st view locals st' view' locals' hc hm hview h
+
+theorem CoreMemDesign.combIfBranch_result
+    {E : CoreMemDesign} {env : IEnv} {cond : PExpr} {yes : PStmt} {no : Option PStmt}
+    {st : CoreMemState} {locals : SvState} {result : Option PStmt}
+    (h : E.combIfBranch env E.elems st locals cond yes no = .ok result) :
+    result = some yes ∨ result = no := by
+  unfold CoreMemDesign.combIfBranch at h
+  by_cases ht : PExpr.hasTestPlusargs cond = true
+  · simp only [ht] at h
+    cases he : E.evalRuntimeExpr env E.elems st (some 1) cond with
+    | timeout => simp [he] at h
+    | unsupported msg => simp [he] at h
+    | ok cv =>
+        simp only [he, Res.ok_bind, Res.pure_eq] at h
+        by_cases hcv : cv.condTrue = true
+        · simp [hcv] at h
+          exact Or.inl h.symm
+        · simp [hcv] at h
+          exact Or.inr h.symm
+  · simp only [ht] at h
+    cases he : E.evalExprLocals env E.elems st (some 1) locals cond with
+    | timeout => simp [he] at h
+    | unsupported msg => simp [he] at h
+    | ok cv =>
+        simp only [he, Res.ok_bind, Res.pure_eq] at h
+        by_cases hcv : cv.condTrue = true
+        · simp [hcv] at h
+          exact Or.inl h.symm
+        · simp [hcv] at h
+          exact Or.inr h.symm
+
+theorem coreMemSelectCase_result
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {subject : LVec} {mode : CaseMode}
+    (items : List (List PExpr × PStmt)) (default? : Option PStmt) (result : Option PStmt) :
+    coreMemSelectCase E env elems st subject mode items default? = .ok result →
+      (result = none ∨
+        (∃ patterns body, (patterns, body) ∈ items ∧ result = some body) ∨
+        (∃ body, default? = some body ∧ result = some body)) := by
+  induction items with
+  | nil =>
+      intro h
+      simp [coreMemSelectCase] at h
+      cases default? with
+      | none => exact Or.inl h.symm
+      | some body => exact Or.inr (Or.inr ⟨body, rfl, h.symm⟩)
+  | cons item rest ih =>
+      intro h
+      obtain ⟨patterns, body⟩ := item
+      simp only [coreMemSelectCase] at h
+      cases hv : evalMemExprList E env elems st patterns with
+      | timeout => simp [hv] at h
+      | unsupported msg => simp [hv] at h
+      | ok values =>
+          simp only [hv, Res.ok_bind] at h
+          split at h
+          · have hr : result = some body := by
+              simpa only [Res.ok.injEq] using h.symm
+            exact Or.inr (Or.inl ⟨patterns, body, by simp, hr⟩)
+          · rcases ih h with hnone | hhit | hdefault
+            · exact Or.inl hnone
+            · exact Or.inr (Or.inl (by
+                rcases hhit with ⟨pats, b, hm, hr⟩
+                exact ⟨pats, b, by simp [hm], hr⟩))
+            · exact Or.inr (Or.inr hdefault)
+
+theorem CoreMemDesign.combCaseBranch_result
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {locals : SvState} {subject : PExpr}
+    {items : List (List PExpr × PStmt)} {default? : Option PStmt}
+    {mode : CaseMode} {check : CaseCheck} {result : Option PStmt}
+    (h : E.combCaseBranch env elems st locals subject items default? mode check = .ok result) :
+    result = none ∨
+      (∃ patterns body, (patterns, body) ∈ items ∧ result = some body) ∨
+      (∃ body, default? = some body ∧ result = some body) := by
+  unfold CoreMemDesign.combCaseBranch at h
+  cases he : E.evalExprLocals env elems st none locals subject with
+  | timeout => simp [he] at h
+  | unsupported msg => simp [he] at h
+  | ok sv =>
+      simp only [he, Res.ok_bind] at h
+      by_cases hc : check != .none
+      · simp [hc] at h
+        cases hh : coreMemCaseHits E env elems st sv mode items with
+        | timeout => simp [hh] at h
+        | unsupported msg => simp [hh] at h
+        | ok count =>
+            simp only [hh] at h
+            by_cases hclaim : caseClaimOk check default?.isSome count = true
+            · simp [hclaim] at h
+              exact coreMemSelectCase_result items default? result h
+            · simp [hclaim] at h
+      · simp [hc] at h
+        exact coreMemSelectCase_result items default? result h
+
+theorem CoreMemDesign.combStmt_receipts_if_of_children
+    {E : CoreMemDesign} {env : IEnv} {cond : PExpr} {yes : PStmt} {no : Option PStmt}
+    (hyes : E.CombStmtCoherent env yes ∧ E.CombStmtViewAligned env yes)
+    (hno : ∀ stmt, no = some stmt →
+      E.CombStmtCoherent env stmt ∧ E.CombStmtViewAligned env stmt) :
+    E.CombStmtCoherent env (.ifStmt cond yes no) ∧
+      E.CombStmtViewAligned env (.ifStmt cond yes no) := by
+  constructor
+  · apply CoreMemDesign.execCombStmtFuel_coherent_if
+    intro st locals stmt hs
+    rcases CoreMemDesign.combIfBranch_result hs with hyes' | hno'
+    · cases hyes'
+      exact hyes.1
+    · exact (hno stmt hno'.symm).1
+  · apply CoreMemDesign.execCombStmtFuel_viewAligned_if
+    intro st locals stmt hs
+    rcases CoreMemDesign.combIfBranch_result hs with hyes' | hno'
+    · cases hyes'
+      exact hyes.2
+    · exact (hno stmt hno'.symm).2
+
+theorem CoreMemDesign.combStmt_receipts_block_of_children
+    {E : CoreMemDesign} {env : IEnv} {body : List PStmt}
+    (hstmt : ∀ stmt ∈ body,
+      E.CombStmtCoherent env stmt ∧ E.CombStmtViewAligned env stmt) :
+    E.CombStmtCoherent env (.block body) ∧
+      E.CombStmtViewAligned env (.block body) := by
+  constructor
+  · intro fuel st view locals st' view' locals' hc hm h
+    cases fuel with
+    | zero => simp [CoreMemDesign.execCombStmtFuel] at h
+    | succ fuel =>
+        simp only [CoreMemDesign.execCombStmtFuel] at h
+        exact CoreMemDesign.execCombStmtsFuel_coherent_of_each body
+          (fun stmt hs => (hstmt stmt hs).1) fuel st view locals st' view' locals' hc hm h
+  · intro fuel st view locals st' view' locals' hc hm hview h
+    cases fuel with
+    | zero => simp [CoreMemDesign.execCombStmtFuel] at h
+    | succ fuel =>
+        simp only [CoreMemDesign.execCombStmtFuel] at h
+        exact CoreMemDesign.execCombStmtsFuel_viewAligned_of_each body hstmt
+          fuel st view locals st' view' locals' hc hm hview h
+
+theorem CoreMemDesign.combStmt_receipts_case_of_children
+    {E : CoreMemDesign} {env : IEnv} {subject : PExpr}
+    {items : List (List PExpr × PStmt)} {default? : Option PStmt}
+    {mode : CaseMode} {check : CaseCheck}
+    (hitem : ∀ patterns stmt, (patterns, stmt) ∈ items →
+      E.CombStmtCoherent env stmt ∧ E.CombStmtViewAligned env stmt)
+    (hdefault : ∀ stmt, default? = some stmt →
+      E.CombStmtCoherent env stmt ∧ E.CombStmtViewAligned env stmt) :
+    E.CombStmtCoherent env (.caseStmt subject items default? mode check) ∧
+      E.CombStmtViewAligned env (.caseStmt subject items default? mode check) := by
+  constructor
+  · apply CoreMemDesign.execCombStmtFuel_coherent_case
+    intro st locals stmt hs
+    rcases CoreMemDesign.combCaseBranch_result hs with hnone | hitem' | hdefault'
+    · cases hnone
+    · rcases hitem' with ⟨patterns, body, hmem, heq⟩
+      exact (Option.some.inj heq) ▸ (hitem patterns body hmem).1
+    · rcases hdefault' with ⟨body, hdef, heq⟩
+      exact (Option.some.inj heq) ▸ (hdefault body hdef).1
+  · apply CoreMemDesign.execCombStmtFuel_viewAligned_case
+    intro st locals stmt hs
+    rcases CoreMemDesign.combCaseBranch_result hs with hnone | hitem' | hdefault'
+    · cases hnone
+    · rcases hitem' with ⟨patterns, body, hmem, heq⟩
+      exact (Option.some.inj heq) ▸ (hitem patterns body hmem).2
+    · rcases hdefault' with ⟨body, hdef, heq⟩
+      exact (Option.some.inj heq) ▸ (hdefault body hdef).2
+
 /-- Each continuous assign, from index `idx` on, reads (in what the route evaluates: its compiled expression, or for an
 assign that reads a memory the names `evalV` reads) no target of itself or of a LATER assign: topological source
 order. -/
@@ -1181,6 +2048,45 @@ def CoreMemDesign.inputNamesL (E : CoreMemDesign) : List String :=
 /-- One driver per signal: the names the processes drive are pairwise distinct. -/
 def CoreMemDesign.oblDrivers (E : CoreMemDesign) : Bool := E.driven.Nodup
 
+/-! ## Source-shaped packed partial-driver geometry
+
+These predicates describe the certificate consumed by the future partial-driver
+route.  They are ordinary finite-width facts, not a second evaluator: a window
+is a half-open `[lo, lo + width)` interval in one packed signal. -/
+
+abbrev PackedWindow := Nat × Nat
+
+def packedWindowDisjoint (a b : PackedWindow) : Prop :=
+  a.1 + a.2 ≤ b.1 ∨ b.1 + b.2 ≤ a.1
+
+def packedWindowInRange (width : Nat) (window : PackedWindow) : Prop :=
+  window.1 + window.2 ≤ width
+
+structure CoreMemDesign.PartialDriverCertificate (E : CoreMemDesign) where
+  root : String
+  width : Nat
+  windows : List PackedWindow
+  rootWidth : E.scalarWidth? root = some width
+  nonempty : ∀ window ∈ windows, 0 < window.2
+  inRange : ∀ window ∈ windows, packedWindowInRange width window
+  disjoint : windows.Pairwise packedWindowDisjoint
+
+def CoreMemProc.partialDriverRoot? : CoreMemProc → Option String
+  | .assign (.bitSel root _) _ => some root
+  | _ => none
+
+theorem CoreMemProc.partialDriverRoot?_assign_bitSel {root : String} {index value : PExpr} :
+    CoreMemProc.partialDriverRoot? (.assign (.bitSel root index) value) = some root := by
+  rfl
+
+theorem CoreMemProc.partialDriverRoot?_none_of_ident {root : String} {value : PExpr} :
+    CoreMemProc.partialDriverRoot? (.assign (.ident root) value) = none := by
+  rfl
+
+theorem packedWindowDisjoint_symm {a b : PackedWindow}
+    (h : packedWindowDisjoint a b) : packedWindowDisjoint b a := by
+  rcases h with h | h <;> simp [packedWindowDisjoint, h]
+
 /-- No process drives an input or the clock. -/
 def CoreMemDesign.oblNoInputWrite (E : CoreMemDesign) (clk : String) : Bool :=
   E.driven.all fun t => !E.inputNamesL.contains t && t != clk
@@ -1242,6 +2148,50 @@ def CoreMemProc.sourceReadOk (srcs : List String) : CoreMemProc → Bool
 def CoreMemDesign.oblNoSourceRead (E : CoreMemDesign) : Bool :=
   E.processes.toList.all (CoreMemProc.sourceReadOk E.sources)
 
+/-! Source-shaped admission for procedural combinational processes.  This is
+kept separate from `hasComb`: presence is not admission, and an unsafe or
+unconverted body must remain a loud refusal. -/
+def CoreMemDesign.oblComb (E : CoreMemDesign) : Bool :=
+  E.processes.toList.all fun p =>
+    match p with
+    | .comb body => E.combProcOkIB body
+    | .latch _ => false
+    | _ => true
+
+theorem CoreMemDesign.oblComb_spec {E : CoreMemDesign} (h : E.oblComb = true) :
+    ∀ p ∈ E.processes.toList, match p with
+      | .comb body => E.combProcOkIB body = true
+      | .latch _ => False
+      | _ => True := by
+  simp only [CoreMemDesign.oblComb, List.all_eq_true] at h
+  intro p hp
+  cases p with
+  | comb body => simpa using h (.comb body) hp
+  | latch body => have := h (.latch body) hp; simp at this
+  | primitive kind name width => trivial
+  | assign target value => trivial
+  | edge f => trivial
+  | initial body => trivial
+  | implicit body => trivial
+  | event events body => trivial
+  | unsupported kind text => trivial
+
+theorem CoreMemDesign.oblComb_of_noComb {E : CoreMemDesign} (h : E.hasComb = false) :
+    E.oblComb = true := by
+  simp only [CoreMemDesign.oblComb, List.all_eq_true, CoreMemDesign.hasComb,
+    List.any_eq_false] at h ⊢
+  intro p hp
+  cases p with
+  | comb body => have := h (.comb body) hp; simp at this
+  | latch body => have := h (.latch body) hp; simp at this
+  | primitive kind name width => simp
+  | assign target value => simp
+  | edge f => simp
+  | initial body => simp
+  | implicit body => simp
+  | event events body => simp
+  | unsupported kind text => simp
+
 /-- **The obligations of the clocked profile, for any number of events**, decided:
 * one driver per signal: the base names the processes write are pairwise distinct across processes;
 * the continuous assigns in topological source order on the expressions the route evaluates (`topoC`): then one settle
@@ -1262,30 +2212,95 @@ Under them the route's choices are proved harmless (rule 4's cheap sufficient co
 their first round, and its source order of the edge processes does not change the commit (`edgesV_order`). That
 `step` is every legal schedule of a scheduler of §4 is the semantics lane's U3. -/
 def CoreMemDesign.seqOblI (E : CoreMemDesign) : Bool :=
-  E.oblDrivers && E.topoC && E.oblInputsUndriven && E.oblSources && E.oblNoSourceRead && E.oblEdgeOrder &&
-    E.oblConverted
+  E.oblDrivers && !E.hasComb && E.topoC && E.oblInputsUndriven && E.oblSources && E.oblNoSourceRead &&
+    E.oblEdgeOrder && E.oblConverted
 
 /-! Successor obligation for the source-shaped memory NBA rung.  It shares the
     ordinary profile's scalar/source discipline and replaces only the edge
     order bit with the memory-aware admission predicate. -/
 def CoreMemDesign.seqOblIM (E : CoreMemDesign) : Bool :=
-  E.oblDrivers && E.topoC && E.oblInputsUndriven && E.oblSources && E.oblNoSourceRead &&
+  E.oblDrivers && !E.hasComb && E.topoC && E.oblInputsUndriven && E.oblSources && E.oblNoSourceRead &&
     E.oblEdgeOrderMemory && E.oblConverted
+
+/-! Comb-aware successors.  The conservative predicates above remain the
+compatibility profile; these predicates only admit a procedural comb process
+when its source-shaped certificate is present. -/
+def CoreMemDesign.seqOblIC (E : CoreMemDesign) : Bool :=
+  E.oblDrivers && E.oblComb && E.topoC && E.oblInputsUndriven && E.oblSources && E.oblNoSourceRead &&
+    E.oblEdgeOrder && E.oblConverted
+
+def CoreMemDesign.seqOblIMC (E : CoreMemDesign) : Bool :=
+  E.oblDrivers && E.oblComb && E.topoC && E.oblInputsUndriven && E.oblSources && E.oblNoSourceRead &&
+    E.oblEdgeOrderMemory && E.oblConverted
+
+theorem CoreMemDesign.seqOblIC_spec {E : CoreMemDesign} (h : E.seqOblIC = true) :
+    E.oblDrivers = true ∧ E.oblComb = true ∧ E.topoC = true ∧ E.oblInputsUndriven = true ∧
+      E.oblSources = true ∧ E.oblNoSourceRead = true ∧ E.oblEdgeOrder = true ∧ E.oblConverted = true := by
+  simp only [CoreMemDesign.seqOblIC, Bool.and_eq_true] at h
+  obtain ⟨⟨⟨⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩, h8⟩ := h
+  exact ⟨h1, h2, h3, h4, h5, h6, h7, h8⟩
+
+theorem CoreMemDesign.seqOblIMC_spec {E : CoreMemDesign} (h : E.seqOblIMC = true) :
+    E.oblDrivers = true ∧ E.oblComb = true ∧ E.topoC = true ∧ E.oblInputsUndriven = true ∧
+      E.oblSources = true ∧ E.oblNoSourceRead = true ∧ E.oblEdgeOrderMemory = true ∧
+      E.oblConverted = true := by
+  simp only [CoreMemDesign.seqOblIMC, Bool.and_eq_true] at h
+  obtain ⟨⟨⟨⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩, h8⟩ := h
+  exact ⟨h1, h2, h3, h4, h5, h6, h7, h8⟩
 
 theorem CoreMemDesign.seqOblIM_spec {E : CoreMemDesign} (h : E.seqOblIM = true) :
     E.oblDrivers = true ∧ E.topoC = true ∧ E.oblInputsUndriven = true ∧ E.oblSources = true ∧
       E.oblNoSourceRead = true ∧ E.oblEdgeOrderMemory = true ∧ E.oblConverted = true := by
   simp only [CoreMemDesign.seqOblIM, Bool.and_eq_true] at h
-  obtain ⟨⟨⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩ := h
+  obtain ⟨⟨⟨⟨⟨⟨⟨h1, hcomb⟩, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩ := h
   exact ⟨h1, h2, h3, h4, h5, h6, h7⟩
+
+theorem CoreMemDesign.seqOblIM_noComb {E : CoreMemDesign} (h : E.seqOblIM = true) :
+    E.hasComb = false := by
+  simp only [CoreMemDesign.seqOblIM, Bool.and_eq_true] at h
+  simpa using h.1.1.1.1.1.1.2
 
 /-- The obligations, one by one. -/
 theorem CoreMemDesign.seqOblI_spec {E : CoreMemDesign} (h : E.seqOblI = true) :
     E.oblDrivers = true ∧ E.topoC = true ∧ E.oblInputsUndriven = true ∧ E.oblSources = true ∧
       E.oblNoSourceRead = true ∧ E.oblEdgeOrder = true ∧ E.oblConverted = true := by
   simp only [CoreMemDesign.seqOblI, Bool.and_eq_true] at h
-  obtain ⟨⟨⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩ := h
+  obtain ⟨⟨⟨⟨⟨⟨⟨h1, hcomb⟩, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩ := h
   exact ⟨h1, h2, h3, h4, h5, h6, h7⟩
+
+theorem CoreMemDesign.seqOblI_noComb {E : CoreMemDesign} (h : E.seqOblI = true) :
+    E.hasComb = false := by
+  simp only [CoreMemDesign.seqOblI, Bool.and_eq_true] at h
+  simpa using h.1.1.1.1.1.1.2
+
+theorem CoreMemDesign.seqOblI_to_seqOblIC {E : CoreMemDesign}
+    (h : E.seqOblI = true) : E.seqOblIC = true := by
+  have hcomb := CoreMemDesign.oblComb_of_noComb (CoreMemDesign.seqOblI_noComb h)
+  have hs := CoreMemDesign.seqOblI_spec h
+  simp [CoreMemDesign.seqOblIC, hcomb, hs.1, hs.2.1, hs.2.2.1, hs.2.2.2.1,
+    hs.2.2.2.2.1, hs.2.2.2.2.2.1, hs.2.2.2.2.2.2]
+
+theorem CoreMemDesign.seqOblIM_to_seqOblIMC {E : CoreMemDesign}
+    (h : E.seqOblIM = true) : E.seqOblIMC = true := by
+  have hcomb := CoreMemDesign.oblComb_of_noComb (CoreMemDesign.seqOblIM_noComb h)
+  have hs := CoreMemDesign.seqOblIM_spec h
+  simp [CoreMemDesign.seqOblIMC, hcomb, hs.1, hs.2.1, hs.2.2.1, hs.2.2.2.1,
+    hs.2.2.2.2.1, hs.2.2.2.2.2.1, hs.2.2.2.2.2.2]
+
+theorem CoreMemDesign.SeqProfileI.combProcOkI_of_mem {E : CoreMemDesign}
+    (hP : E.SeqProfileI) {body : PStmt} (hp : .comb body ∈ E.processes.toList) :
+    E.CombProcOkI body := by
+  obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hp
+  rw [Array.getElem?_toList] at hi
+  exact hP.procs i (.comb body) hi
+
+theorem CoreMemDesign.SeqProfileI.combAdmission_of_seqOblIC {E : CoreMemDesign}
+    (hP : E.SeqProfileI) (hO : E.seqOblIC = true) {body : PStmt}
+    (hp : .comb body ∈ E.processes.toList) :
+    E.CombProcOkI body ∧ E.combProcOkIB body = true := by
+  refine ⟨hP.combProcOkI_of_mem hp, ?_⟩
+  obtain ⟨_, hcomb, _, _, _, _, _, _⟩ := CoreMemDesign.seqOblIC_spec hO
+  exact (CoreMemDesign.oblComb_spec hcomb (.comb body) hp)
 
 /-- **The obligations of the single-clock profile**: the instant obligations, and for the one clock `clk`: no process
 drives it or reads it, an asynchronous reset is an input other than it, it is an input port. -/
@@ -1305,6 +2320,10 @@ theorem CoreMemDesign.seqOblB_spec {E : CoreMemDesign} {clk : String} (h : E.seq
   obtain ⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩ := h
   exact ⟨h1, h2, h3, h4, h5⟩
 
+theorem CoreMemDesign.seqOblB_noComb {E : CoreMemDesign} {clk : String}
+    (h : E.seqOblB clk = true) : E.hasComb = false := by
+  exact CoreMemDesign.seqOblI_noComb (CoreMemDesign.seqOblB_spec h).1
+
 /-- **The structure of a clocked family member**, single clock: it instantiates, in the single-clock profile at `clk`,
 with its obligations. -/
 def SeqDesign (r : Res CoreMemDesign) (clk : String) : Prop :=
@@ -1315,10 +2334,34 @@ instant profile, with the instant obligations. -/
 def SeqDesignI (r : Res CoreMemDesign) : Prop :=
   ∃ E, r = .ok E ∧ E.SeqProfileI ∧ E.seqOblI = true
 
+/-! Public structure predicates for the comb-aware obligation layer.  They are
+additive: existing `SeqDesign`/`SeqDesignI` users keep the conservative route,
+while future slot/run theorems can target these predicates explicitly. -/
+def SeqDesignIC (r : Res CoreMemDesign) : Prop :=
+  ∃ E, r = .ok E ∧ E.SeqProfileI ∧ E.seqOblIC = true
+
+def SeqDesignIM (r : Res CoreMemDesign) : Prop :=
+  ∃ E, r = .ok E ∧ E.SeqProfileI ∧ E.seqOblIM = true
+
+def SeqDesignIMC (r : Res CoreMemDesign) : Prop :=
+  ∃ E, r = .ok E ∧ E.SeqProfileI ∧ E.seqOblIMC = true
+
 /-- A single-clock structure is an instant structure. -/
 theorem SeqDesign.toI {r : Res CoreMemDesign} {clk : String} (h : SeqDesign r clk) : SeqDesignI r := by
   obtain ⟨E, hr, hP, hO⟩ := h
   exact ⟨E, hr, hP.toSeqProfileI, CoreMemDesign.seqOblB_I hO⟩
+
+theorem SeqDesign.toIC {r : Res CoreMemDesign} {clk : String} (h : SeqDesign r clk) : SeqDesignIC r := by
+  obtain ⟨E, hr, hP, hO⟩ := h
+  exact ⟨E, hr, hP.toSeqProfileI, CoreMemDesign.seqOblI_to_seqOblIC (CoreMemDesign.seqOblB_I hO)⟩
+
+theorem SeqDesignI.toIC {r : Res CoreMemDesign} (h : SeqDesignI r) : SeqDesignIC r := by
+  obtain ⟨E, hr, hP, hO⟩ := h
+  exact ⟨E, hr, hP, CoreMemDesign.seqOblI_to_seqOblIC hO⟩
+
+theorem SeqDesignIM.toIMC {r : Res CoreMemDesign} (h : SeqDesignIM r) : SeqDesignIMC r := by
+  obtain ⟨E, hr, hP, hO⟩ := h
+  exact ⟨E, hr, hP, CoreMemDesign.seqOblIM_to_seqOblIMC hO⟩
 
 /-- An input port's name is an input name. -/
 theorem CoreMemDesign.inputNamesL_of_ports {E : CoreMemDesign} {s : String} {w : Nat}
@@ -1399,7 +2442,10 @@ theorem CoreMemDesign.settleRaw_frame {E : CoreMemDesign} {mv : MemV} :
           exact CoreMemDesign.settleRaw_frame rest (idx + 1) r r' h x (by simpa [assignTargets] using hx)
       | primitive _ _ _ => simp [CoreMemDesign.settleRaw] at h
       | initial _ => simp [CoreMemDesign.settleRaw] at h
-      | comb _ => simp [CoreMemDesign.settleRaw] at h
+      | comb _ =>
+          simp only [CoreMemDesign.settleRaw] at h
+          exact CoreMemDesign.settleRaw_frame rest (idx + 1) r r' h x
+            (by simpa [assignTargets] using hx)
       | implicit _ => simp [CoreMemDesign.settleRaw] at h
       | latch _ => simp [CoreMemDesign.settleRaw] at h
       | event _ _ =>
@@ -1503,7 +2549,11 @@ theorem CoreMemDesign.settleRaw_agree {E : CoreMemDesign} {mv : MemV} :
           exact ⟨r2', by simp [CoreMemDesign.settleRaw, h2], hfin⟩
       | primitive _ _ _ => simp [CoreMemDesign.settleRaw] at h
       | initial _ => simp [CoreMemDesign.settleRaw] at h
-      | comb _ => simp [CoreMemDesign.settleRaw] at h
+      | comb _ =>
+          simp only [CoreMemDesign.settleRaw] at h
+          obtain ⟨r2', h2, hfin⟩ := CoreMemDesign.settleRaw_agree rest (idx + 1) r1 r2 r1' ht.2
+            (fun x hx => hag x (by simpa [assignTargets] using hx)) h
+          exact ⟨r2', by simp [CoreMemDesign.settleRaw, h2], hfin⟩
       | implicit _ => simp [CoreMemDesign.settleRaw] at h
       | latch _ => simp [CoreMemDesign.settleRaw] at h
       | event _ _ =>
@@ -2962,6 +4012,59 @@ theorem CoreMemDesign.settleCanonical_seq {E : CoreMemDesign} (hP : E.SeqProfile
 
 #print axioms CoreMemDesign.settleCanonical_seq
 
+/-! The combined active-region runner alternates source-shaped comb execution
+with the existing continuous-assignment fixpoint.  Its coherence receipt is
+global in the caller's limit; settle totality is a separate premise because a
+successful route run must not be confused with a proof that every settle
+evaluation terminates. -/
+theorem CoreMemDesign.runCombSettleQuiesce_coherent_of_each
+    {E : CoreMemDesign} {limit : Nat} {before current st' : CoreMemState}
+    {procs : List CoreMemProc} (hP : E.SeqProfileI) (htopo : E.topoC = true)
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hprocs : procs = E.processes.toList)
+    (hc : E.Coherent current) (hm : E.MemCoherent current.memory)
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body
+      | .latch _ => False
+      | _ => True)
+    (hsettle : ∀ {st : CoreMemState}, E.Coherent st → E.MemCoherent st.memory →
+      ∃ v, E.settleV (E.memOf st.memory) (E.scalar.view st.scalar) = .ok v)
+    (h : E.runCombSettleQuiesce limit before current procs = .ok st') :
+    E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  induction limit generalizing before current st' with
+  | zero =>
+      simp [CoreMemDesign.runCombSettleQuiesce] at h
+  | succ n ih =>
+      simp only [CoreMemDesign.runCombSettleQuiesce] at h
+      cases hcmb : E.runComb before current procs with
+      | timeout => simp [hcmb] at h
+      | unsupported msg => simp [hcmb] at h
+      | ok combed =>
+          have hcomb := E.runCombQuiesce_coherent_of_each hnd h4 hc hm hproc hcmb
+          obtain ⟨hcc, hcm⟩ := hcomb
+          obtain ⟨vsettle, hvsettle⟩ := hsettle hcc hcm
+          subst procs
+          have hcan := E.settleCanonical_seq hP htopo hcc hcm hvsettle
+          simp only [hcmb, Res.ok_bind] at h
+          cases hset : E.settleCanonical E.env E.elems combed E.processes.toList with
+          | timeout => simp [hset] at h
+          | unsupported msg => simp [hset] at h
+          | ok settled =>
+              obtain ⟨settled', hset', hv', hc', hm'⟩ := hcan
+              have heq : settled' = settled := by
+                exact Res.ok.inj (hset'.symm.trans hset)
+              subst settled'
+              simp only [hset, Res.ok_bind, Res.ok.injEq] at h
+              cases heqv : E.scalar.view current.scalar == E.scalar.view settled.scalar with
+              | true =>
+                  simp only [heqv, ↓reduceIte, Res.ok.injEq] at h
+                  obtain rfl := h
+                  exact ⟨hc', by rw [hm']; exact hcm⟩
+              | false =>
+                  simp only [heqv, Bool.false_eq_true, ↓reduceIte] at h
+                  exact ih (before := combed) (current := settled) (st' := st') hc'
+                    (by rw [hm']; exact hcm) h
+
 /-! ### The frame: a slot changes only the names its processes drive -/
 
 /-- A write-target leaf whose name is in `S` (not a concatenation). -/
@@ -3692,7 +4795,8 @@ theorem CoreMemDesign.step_seqI {E : CoreMemDesign} (hP : E.SeqProfileI)
   refine ⟨st4, ?_, hv4, by rw [hm4, hm3, hvm], hc4, by rw [hm4, hm3]; exact hmc'⟩
   -- no follow-up event: the step is its first round
   have hnf := CoreMemDesign.slot_noFollowup hP hO (CoreMemDesign.matV_settleV hP.names hP.four h1) hq h2 h3
-  exact CoreMemDesign.step_of_onePass hP.hasComb hP.hasImplicit hs0 hs1 hedge hcm hs3 hs4
+  have hcomb := CoreMemDesign.seqOblI_noComb hO
+  exact CoreMemDesign.step_of_onePass hcomb hP.hasImplicit hs0 hs1 hedge hcm hs3 hs4
     (by rw [hv1, hv4]; exact hnf)
 
 theorem CoreMemDesign.step_seqIM {E : CoreMemDesign} (hP : E.SeqProfileI)
@@ -3755,7 +4859,8 @@ theorem CoreMemDesign.step_seqIM {E : CoreMemDesign} (hP : E.SeqProfileI)
   refine ⟨st4, ?_, hv4, by rw [hm4, hm3, hvm], hc4, by rw [hm4, hm3]; exact hmc'⟩
   -- no follow-up event: the step is its first round
   have hnf := CoreMemDesign.slot_noFollowup_seqOblIM hP hO (CoreMemDesign.matV_settleV hP.names hP.four h1) hq h2 h3
-  exact CoreMemDesign.step_of_onePass hP.hasComb hP.hasImplicit hs0 hs1 hedge hcm hs3 hs4
+  have hcomb := CoreMemDesign.seqOblIM_noComb hO
+  exact CoreMemDesign.step_of_onePass hcomb hP.hasImplicit hs0 hs1 hedge hcm hs3 hs4
     (by rw [hv1, hv4]; exact hnf)
 
 #print axioms CoreMemDesign.step_seqI
@@ -3852,7 +4957,7 @@ theorem CoreMemDesign.edge_schedule_refines_step_guarded {E : CoreMemDesign}
     (hdrivers : E.oblDrivers = true) (htopo : E.topoC = true)
     (hinputs : E.oblInputsUndriven = true) (hsources : E.oblSources = true)
     (hreads : E.oblNoSourceRead = true) (hedge : E.oblEdgeOrder = true)
-    (hconverted : E.oblConverted = true)
+    (hconverted : E.oblConverted = true) (hcomb : E.hasComb = false)
     {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
     {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
     {v' : SvState} {mv' : MemV}
@@ -3865,7 +4970,7 @@ theorem CoreMemDesign.edge_schedule_refines_step_guarded {E : CoreMemDesign}
       E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
       E.memOf st'.memory = mv' := by
   have hO : E.seqOblI = true := by
-    simp [CoreMemDesign.seqOblI, hdrivers, htopo, hinputs, hsources, hreads, hedge, hconverted]
+    simp [CoreMemDesign.seqOblI, hdrivers, htopo, hinputs, hsources, hreads, hedge, hconverted, hcomb]
   exact CoreMemDesign.edge_schedule_refines_step hP hO hc hmc hty hslot hσ
 
 #print axioms CoreMemDesign.edge_schedule_refines_step_guarded
@@ -3925,6 +5030,27 @@ theorem CoreMemDesign.cycleMV_refines {E : CoreMemDesign} {clk : String} (hP : E
 
 #print axioms CoreMemDesign.cycleMV_refines
 
+/-- The memory-aware cycle refinement uses the semantic edge-order certificate
+`seqOblIM`; unlike `cycleMV_refines`, it does not require the syntactic
+scalar-only `oblEdgeOrder` bit. -/
+theorem CoreMemDesign.cycleMV_refines_IM {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
+    (hO : E.seqOblIM = true) {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {data : SvState} (hlow : EntryTyped E.scalar.toDesign2 (lowEntry clk data))
+    (hhigh : EntryTyped E.scalar.toDesign2 (highEntry clk)) {pre post : SvState × MemV}
+    (hv : E.cycleMV clk (E.scalar.view st.scalar, E.memOf st.memory) data = .ok (pre, post)) :
+    ∃ s1 s2, E.step st (lowEntry clk data) = .ok s1 ∧ E.step s1 (highEntry clk) = .ok s2 ∧
+      (E.scalar.view s1.scalar, E.memOf s1.memory) = pre ∧
+      (E.scalar.view s2.scalar, E.memOf s2.memory) = post ∧
+      E.Coherent s1 ∧ E.Coherent s2 ∧ E.MemCoherent s1.memory ∧ E.MemCoherent s2.memory := by
+  simp only [CoreMemDesign.cycleMV_slots, Res.bind_eq_ok, Res.ok.injEq, Prod.mk.injEq] at hv
+  obtain ⟨⟨v1, m1⟩, h1, ⟨v2, m2⟩, h2, rfl, rfl⟩ := hv
+  obtain ⟨s1, hs1, hv1, hm1, hc1, hmc1⟩ := CoreMemDesign.step_seqIM hP.toSeqProfileI hO hc hmc hlow h1
+  obtain ⟨s2, hs2, hv2, hm2, hc2, hmc2⟩ :=
+    CoreMemDesign.step_seqIM hP.toSeqProfileI hO hc1 hmc1 hhigh (by rw [hv1, hm1]; exact h2)
+  exact ⟨s1, s2, hs1, hs2, by rw [hv1, hm1], by rw [hv2, hm2], hc1, hc2, hmc1, hmc2⟩
+
+#print axioms CoreMemDesign.cycleMV_refines_IM
+
 /-- **THE CYCLE REFINEMENT, without memories**: from every coherent state, for every typed data entry, when the
 view-level cycle gives `(pre, post)` the route's two slots succeed, land on exactly `pre` and `post`, and stay
 coherent. -/
@@ -3951,14 +5077,16 @@ block), and it is coherent with a coherent memory. So it is one of the run judgm
 claim (`SeqRunsI`, `SeqRunsM`, `SeqRuns`) holds from it. -/
 theorem CoreMemDesign.SeqProfileI.initialState {E : CoreMemDesign} (hP : E.SeqProfileI) (ht : E.topoC = true)
     (hrm : E.readmemh = []) (hdi : E.declInitializers = [])
-    {v : SvState} (hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok v) :
+    {v : SvState} (hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok v)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body) :
     ∃ st, E.initialState = .ok st ∧ E.scalar.view st.scalar = v ∧ st.memory = E.initial.memory ∧ E.Coherent st ∧
       E.MemCoherent st.memory := by
   have hmc := CoreMemDesign.initial_memCoherent hP.mems
   obtain ⟨st, hs, hvs, hc, hm⟩ := CoreMemDesign.settleCanonical_seq hP ht E.initial_coherent hmc hv
   refine ⟨st, ?_, hvs, hm, hc, by rw [hm]; exact hmc⟩
   rw [CoreMemDesign.initialState_of_quiet (fun p hp b h => by
-    subst h; exact absurd (hP.shapes _ hp) (by simp [CoreMemDesign.ProcShapeI])) hP.hasComb hrm]
+    subst h; exact absurd (hP.shapes _ hp) (by simp [CoreMemDesign.ProcShapeI]))
+      (hP.hasComb_of_noComb hno) hrm]
   simp only [hdi, CoreMemDesign.execDeclInitializers, Res.ok_bind]
   exact hs
 
@@ -3971,6 +5099,13 @@ theorem CoreMemDesign.SeqProfile.initialState {E : CoreMemDesign} {clk : String}
     ∃ st, E.initialState = .ok st ∧ E.scalar.view st.scalar = v ∧ st.memory = E.initial.memory ∧ E.Coherent st ∧
       E.MemCoherent st.memory :=
   hP.toSeqProfileI.initialState (CoreMemDesign.seqOblI_spec (CoreMemDesign.seqOblB_I hO)).2.1 hrm hdi hv
+    (by
+      intro p hp body
+      have h := CoreMemDesign.seqOblB_noComb hO
+      simp only [CoreMemDesign.hasComb, List.any_eq_false] at h
+      have := h p hp
+      cases p <;> simp_all)
+
 
 #print axioms CoreMemDesign.SeqProfile.initialState
 
@@ -3980,10 +5115,11 @@ one more view-level pass changes nothing (`settleV_idem`), and the route's own c
 assignment is out of date at time zero (§4.5, §10.3). -/
 theorem CoreMemDesign.SeqProfileI.initialState_settled {E : CoreMemDesign} (hP : E.SeqProfileI)
     (ht : E.topoC = true) (hrm : E.readmemh = []) (hdi : E.declInitializers = []) {v : SvState}
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
     (hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok v) :
     ∃ st, E.initialState = .ok st ∧ E.scalar.view st.scalar = v ∧ E.settleV (E.memOf st.memory) v = .ok v ∧
       ∃ st', E.settleCanonical E.env E.elems st E.processes.toList = .ok st' ∧ E.scalar.view st'.scalar = v := by
-  obtain ⟨st, hs, hvs, hm, hc, hmc⟩ := hP.initialState ht hrm hdi hv
+  obtain ⟨st, hs, hvs, hm, hc, hmc⟩ := hP.initialState ht hrm hdi hv hno
   have hidem : E.settleV (E.memOf st.memory) v = .ok v := by
     rw [hm]
     exact CoreMemDesign.settleV_idem ht (CoreMemDesign.matV_view hP.names hP.four E.initial_coherent.typed) hv

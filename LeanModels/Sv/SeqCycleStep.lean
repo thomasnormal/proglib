@@ -104,6 +104,103 @@ theorem CoreMemDesign.step_of_onePass {E : CoreMemDesign} {st : CoreMemState} {e
 
 #print axioms CoreMemDesign.step_of_onePass
 
+/-! The comb-capable one-pass bridge keeps the source-shaped comb settlement
+    equations explicit.  Unlike `step_of_onePass`, it does not infer a
+    no-comb fact from the profile; callers provide the actual `prepareStep`
+    and `edgePass` results produced by canonical E. -/
+theorem CoreMemDesign.step_of_onePass_comb {E : CoreMemDesign} {st : CoreMemState} {entry : SvState}
+    {pre : CoreMemState} {next : CoreMemState}
+    (hprepare : E.prepareStep st entry =
+      .ok (pre, E.scalar.view st.scalar, E.scalar.view pre.scalar))
+    (hpass : E.edgePass pre (E.scalar.view st.scalar) (E.scalar.view pre.scalar) pre = .ok next)
+    (hnoFollowup : E.processes.toList.any
+      (CoreMemProc.firesIn (E.scalar.view pre.scalar) (E.scalar.view next.scalar)) = false) :
+    E.step st entry = .ok next := by
+  apply CoreMemDesign.step_eq_stepOnePass_of_no_followup
+  unfold CoreMemDesign.stepOnePassTrace
+  have hno : E.processes.any (CoreMemProc.firesIn
+      (E.scalar.view pre.scalar) (E.scalar.view next.scalar)) = false := by
+    rw [← Array.any_toList]
+    exact hnoFollowup
+  simp [hprepare, hpass, hno]
+
+#print axioms CoreMemDesign.step_of_onePass_comb
+
+theorem CoreMemDesign.runCombSettleQuiesce_succ {E : CoreMemDesign} {n : Nat}
+    {before current : CoreMemState} {procs : List CoreMemProc} :
+    E.runCombSettleQuiesce (n + 1) before current procs = (do
+      let combed ← E.runComb before current procs
+      let settled ← E.settleCanonical E.env E.elems combed procs
+      let beforeView := E.scalar.view current.scalar
+      let settledView := E.scalar.view settled.scalar
+      if beforeView == settledView then
+        .ok settled
+      else
+        E.runCombSettleQuiesce n combed settled procs) := by
+  rfl
+
+#print axioms CoreMemDesign.runCombSettleQuiesce_succ
+
+/-- The source-shaped pre-edge active region when a design contains an
+`always_comb` process.  This equation is deliberately stated at the ordinary
+executor boundary: it does not lower the body to a continuous assignment. -/
+theorem CoreMemDesign.comb_settle_pre {E : CoreMemDesign} {st : CoreMemState} {entry : SvState}
+    (hcomb : E.hasComb = true) (himp : E.hasImplicit = false) :
+    E.prepareStep st entry = (do
+      let inputStore := E.scalar.applyInputs st.scalar entry
+      let memoryInput := E.applyMemoryInputs entry st.memory
+      let inputState := E.normalizeScalar { st with memory := memoryInput } inputStore
+      let pre0 ← E.settleCanonical E.env E.elems inputState E.processes.toList
+      let preComb ← E.runCombSettleQuiesce 4096 st pre0 E.processes.toList
+      let pre ← E.settleCanonical E.env E.elems preComb E.processes.toList
+      .ok (pre, E.scalar.view st.scalar, E.scalar.view pre.scalar)) := by
+  simp [CoreMemDesign.prepareStep, hcomb, himp]
+
+/-- The source-shaped post-edge active region when a design contains an
+`always_comb` process.  The comb runner is after the NBA commit and after the
+ordinary continuous-assignment settle, exactly as in `CoreMemDesign.edgePass`.
+-/
+theorem CoreMemDesign.comb_settle_post {E : CoreMemDesign} {st : CoreMemState}
+    {before after : SvState} {combBefore : CoreMemState} (hcomb : E.hasComb = true) (himp : E.hasImplicit = false) :
+    E.edgePass st before after combBefore = (do
+      let edge ← E.runEdges E.env E.elems st before after E.processes.toList
+      let committedStore := E.scalarEdge.commit edge.state.scalar edge.scalarQ
+      let memory ← match edge.state.memory.commitNba edge.memoryQ with
+        | some m => .ok m
+        | none => .unsupported "10.4.2: memory NBA commit lost its declaration identity"
+      let committed := E.normalizeScalar edge.state committedStore
+      let settled ← E.settleCanonical E.env E.elems { committed with memory } E.processes.toList
+      let combed ← E.runCombSettleQuiesce 4096 combBefore settled E.processes.toList
+      .ok combed) := by
+  simp [CoreMemDesign.edgePass, hcomb, himp]
+  rfl
+
+/-- Exact time-zero equation for a design with a retained combinational
+region.  The declaration/continuous settle is followed by comb activation and
+one final continuous settle; no fixed result is selected when the executor
+refuses to quiesce. -/
+theorem CoreMemDesign.initialState_of_quiet_comb {E : CoreMemDesign}
+    (hni : ∀ p ∈ E.processes.toList, ∀ b, p ≠ .initial b)
+    (hrm : E.readmemh = []) :
+    E.initialState = (do
+      let declared ← E.execDeclInitializers E.initial E.declInitializers
+      let settled ← E.settleCanonical E.env E.elems declared E.processes.toList
+      if !E.hasComb then
+        .ok settled
+      else
+        let (settled, settledView) ←
+          E.settleAssignWithView E.env E.elems settled (E.scalar.view settled.scalar) E.processes.toList
+        let combed ← E.runCombInitialQuiesce 4096 settled E.processes.toList
+        let combedView := E.scalar.view combed.scalar
+        let (final, _) ← E.settleAssignWithView E.env E.elems combed combedView E.processes.toList
+        .ok final) := by
+  unfold CoreMemDesign.initialState
+  rw [List.filterMap_eq_nil_iff.mpr (fun p hp => ?_)]
+  · simp [hrm, CoreMemDesign.settleCanonical, CoreMemDesign.initialState]
+  · cases p with
+    | initial b => exact absurd rfl (hni _ hp b)
+    | _ => rfl
+
 /-- **The route's run of a nonempty row** is the step on it, then the run of the rest. -/
 theorem runCoreMemRows_cons {E : CoreMemDesign} {st : CoreMemState} {row : SvState} {rest : List SvState}
     (hrow : row.isEmpty = false) :

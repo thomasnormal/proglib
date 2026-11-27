@@ -1282,6 +1282,81 @@ theorem CoreMemDesign.mem_events {E : CoreMemDesign} {e : SeqEvent} :
 
 /-! ## The clocked profile and coherent states -/
 
+def CoreMemDesign.combExprB (e : PExpr) : Bool :=
+  !LeanModels.Sv.PExpr.hasFunctionCall e && !LeanModels.Sv.PExpr.hasMemoryRead e &&
+    !LeanModels.Sv.PExpr.hasTestPlusargs e
+
+def CoreMemDesign.combTargetB (E : CoreMemDesign) : PLhs → Bool
+  | .ident n => (E.scalarWidth? n).isSome
+  | _ => false
+
+mutual
+
+def CoreMemDesign.combBodyB (E : CoreMemDesign) : PStmt → Bool
+  | .blockingAssign n e => (E.scalarWidth? n).isSome && CoreMemDesign.combExprB e
+  | .blockingAssignL lhs e => E.combTargetB lhs && CoreMemDesign.combExprB e
+  | .ifStmt c yes (some no) => CoreMemDesign.combExprB c && E.combBodyB yes && E.combBodyB no
+  | .ifStmt _ _ none => false
+  | .block body => E.combBodyListB body
+  | .caseStmt subject items (some defaultBody) _ _ =>
+      CoreMemDesign.combExprB subject && E.combCaseItemsB items && E.combBodyB defaultBody
+  | .caseStmt _ _ none _ _ => false
+  | _ => false
+
+def CoreMemDesign.combOptBodyB (E : CoreMemDesign) : Option PStmt → Bool
+  | none => true
+  | some body => E.combBodyB body
+
+def CoreMemDesign.combBodyListB (E : CoreMemDesign) : List PStmt → Bool
+  | [] => true
+  | body :: rest => E.combBodyB body && E.combBodyListB rest
+
+def CoreMemDesign.combCaseItemsB (E : CoreMemDesign) : List (List PExpr × PStmt) → Bool
+  | [] => true
+  | (patterns, body) :: rest =>
+      patterns.all CoreMemDesign.combExprB && E.combBodyB body && E.combCaseItemsB rest
+
+end
+
+/-- The source-shaped restrictions used when an `always_comb` body is admitted
+to the clocked profile.  The body remains a `PStmt`: this certificate does
+not lower it to a continuous assignment or to an edge process.  Whole-signal
+writes and the read-before-write exclusion are the local conditions needed by
+the canonical active-region runner; cross-process dependency is checked by the
+profile's separate obligation. -/
+def CoreMemDesign.CombProcOkI (E : CoreMemDesign) (body : PStmt) : Prop :=
+  E.combBodyB body = true ∧ body.need E.env ≤ 4096 ∧
+  ∀ n ∈ (coreMemStmtReadBeforeWritesFrom [] body).1,
+    n ∉ coreMemStmtWrites body
+
+/-- The index-free shape carried by `ProcShapeI` for a combinational body. -/
+def CoreMemDesign.CombProcShapeI (E : CoreMemDesign) (body : PStmt) : Prop :=
+  E.combBodyB body = true ∧ body.need E.env ≤ 4096 ∧
+  ∀ n ∈ (coreMemStmtReadBeforeWritesFrom [] body).1,
+    n ∉ coreMemStmtWrites body
+
+def CoreMemDesign.combProcOkIB (E : CoreMemDesign) (body : PStmt) : Bool :=
+  E.combBodyB body && decide (body.need E.env ≤ 4096) &&
+    (coreMemStmtReadBeforeWritesFrom [] body).1.all
+      (fun n => !(coreMemStmtWrites body).contains n)
+
+theorem CoreMemDesign.combProcOkIB_spec {E : CoreMemDesign} {body : PStmt}
+    (h : E.combProcOkIB body = true) : E.CombProcOkI body := by
+  change (E.combBodyB body && decide (body.need E.env ≤ 4096) &&
+    (coreMemStmtReadBeforeWritesFrom [] body).1.all
+      (fun n => !(coreMemStmtWrites body).contains n)) = true at h
+  simp only [Bool.and_eq_true] at h
+  rcases h with ⟨⟨hbody, hneed⟩, hreads⟩
+  refine ⟨hbody, by simpa using hneed, ?_⟩
+  intro n hn hmem
+  have hall := List.all_eq_true.mp hreads n hn
+  have hcontains : (coreMemStmtWrites body).contains n = true := by simpa using hmem
+  rw [hcontains] at hall
+  simp at hall
+
+theorem CoreMemDesign.CombProcOkI.shape {E : CoreMemDesign} {body : PStmt}
+    (h : E.CombProcOkI body) : E.CombProcShapeI body := h
+
 /-- A process of the clocked profile, at index `i` of the design, for any number of clocks: a continuous assign to a
 whole declared scalar (function-free; a memory read is evaluated by the route's evaluator, anything else by its compiled
 expression, which must be present), or an edge process on either edge of any clock (with or without an asynchronous
@@ -1298,6 +1373,7 @@ def CoreMemDesign.ProcOkI (E : CoreMemDesign) (i : Nat) : CoreMemProc → Prop
       match coreMemEventEdge? evs body with
       | some f => f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
       | none => False
+  | .comb body => E.CombProcOkI body
   | _ => False
 
 /-- A process of the single-clock profile: `ProcOkI`, and an edge process is on the rising edge of `clk`. A falling-edge
@@ -1311,6 +1387,7 @@ def CoreMemDesign.ProcOk (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMemP
       match coreMemEventEdge? evs body with
       | some f => f.clock = clk ∧ f.edge = .posedge ∧ f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
       | none => False
+  | .comb body => E.CombProcOkI body
   | _ => False
 
 /-- The memories of the clocked profile: distinct names, distinct identities, 4-state elements, none a port of the
@@ -1356,6 +1433,7 @@ def CoreMemDesign.procOkB (E : CoreMemDesign) (clk : String) (i : Nat) : CoreMem
       match coreMemEventEdge? evs body with
       | some f => f.clock == clk && decide (f.edge = .posedge) && f.body.edgeOkB && decide (f.body.need E.env ≤ 4096)
       | none => false
+  | .comb body => E.combProcOkIB body
   | _ => false
 
 theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} {p : CoreMemProc}
@@ -1379,7 +1457,7 @@ theorem CoreMemDesign.procOkB_spec {E : CoreMemDesign} {clk : String} {i : Nat} 
       exact ⟨h.1.1.1, h.1.1.2, h.1.2, h.2⟩
   | primitive _ _ _ => simp [CoreMemDesign.procOkB] at h
   | initial _ => simp [CoreMemDesign.procOkB] at h
-  | comb _ => simp [CoreMemDesign.procOkB] at h
+  | comb _ => exact CoreMemDesign.combProcOkIB_spec h
   | implicit _ => simp [CoreMemDesign.procOkB] at h
   | latch _ => simp [CoreMemDesign.procOkB] at h
   | event evs body =>
@@ -1428,6 +1506,7 @@ theorem CoreMemDesign.ProcOk.toI {E : CoreMemDesign} {clk : String} {i : Nat} {p
           simp only [CoreMemDesign.ProcOk, hfe] at h
           simp only [CoreMemDesign.ProcOkI, CoreMemProc.OnRise, hfe]
           exact ⟨⟨h.2.2.1, h.2.2.2⟩, h.1, h.2.1⟩
+  | comb body => exact ⟨h, trivial⟩
   | _ => exact absurd h (by simp [CoreMemDesign.ProcOk])
 
 /-- An edge process of a design in the single-clock profile is on the rising edge of the clock. -/
@@ -1454,6 +1533,7 @@ def CoreMemDesign.procOkIB (E : CoreMemDesign) (i : Nat) : CoreMemProc → Bool
       match coreMemEventEdge? evs body with
       | some f => f.body.edgeOkB && decide (f.body.need E.env ≤ 4096)
       | none => false
+  | .comb body => E.combProcOkIB body
   | _ => false
 
 theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemProc}
@@ -1480,7 +1560,7 @@ theorem CoreMemDesign.procOkIB_spec {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
       exact ⟨h.1, h.2⟩
   | primitive _ _ _ => simp [CoreMemDesign.procOkIB] at h
   | initial _ => simp [CoreMemDesign.procOkIB] at h
-  | comb _ => simp [CoreMemDesign.procOkIB] at h
+  | comb _ => exact CoreMemDesign.combProcOkIB_spec h
   | implicit _ => simp [CoreMemDesign.procOkIB] at h
   | latch _ => simp [CoreMemDesign.procOkIB] at h
   | event evs body =>
@@ -1688,6 +1768,7 @@ def CoreMemDesign.settleRaw (E : CoreMemDesign) (mv : MemV) (raw : SvState) (idx
             E.settleRaw mv (SvState.set raw n x) (idx + 1) rest
         | _ => .unsupported "settleRaw: a continuous assign without its compiled expression"
   | .edge _ :: rest => E.settleRaw mv raw (idx + 1) rest
+  | .comb _ :: rest => E.settleRaw mv raw (idx + 1) rest
   | .event _ _ :: rest => E.settleRaw mv raw (idx + 1) rest
   | _ :: _ => .unsupported "settleRaw: a process outside the clocked profile"
 
@@ -1695,6 +1776,67 @@ def CoreMemDesign.settleRaw (E : CoreMemDesign) (mv : MemV) (raw : SvState) (idx
 def CoreMemDesign.settleV (E : CoreMemDesign) (mv : MemV) (v : SvState) : Res SvState := do
   let raw ← E.settleRaw mv v 0 E.processes.toList
   .ok (E.matV raw)
+
+theorem CoreMemDesign.settleRaw_comb_skip (E : CoreMemDesign) (mv : MemV) (raw : SvState)
+    (idx : Nat) (body : PStmt) (rest : List CoreMemProc) :
+    E.settleRaw mv raw idx (.comb body :: rest) = E.settleRaw mv raw (idx + 1) rest := by
+  rfl
+
+theorem CoreMemDesign.settleAssignAt_comb_skip (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) (view : SvState) (idx : Nat)
+    (body : PStmt) (rest : List CoreMemProc) :
+    E.settleAssignAt env elems st view idx (.comb body :: rest) =
+      E.settleAssignAt env elems st view (idx + 1) rest := by
+  rfl
+
+/-! The view-side comb runner is a projection of the retained state executor.
+This keeps one source-shaped semantics for `always_comb`: the view route only
+supplies the scalar state reconstructed from the view and projects the result
+back.  In particular, this is not a lowering to continuous assignment. -/
+def CoreMemDesign.combStateOfView (E : CoreMemDesign) (v : SvState) : CoreMemState :=
+  let cache := E.scalarCacheOf (E.storeFromView v)
+  { scalar := E.scalarStore cache
+    scalarCache := cache
+    memory := E.initial.memory
+    aggregates := E.initial.aggregates }
+
+def CoreMemDesign.runCombAtV (E : CoreMemDesign)
+    (before beforeView current currentView : SvState) (index : Nat) :
+    List CoreMemProc → Res SvState := fun procs => do
+      let result ← E.runCombAt (E.combStateOfView beforeView) beforeView
+        (E.combStateOfView currentView) currentView index procs
+      .ok (E.scalar.view result.scalar)
+
+def CoreMemDesign.runCombPassV (E : CoreMemDesign) (before current : SvState) :
+    List CoreMemProc → Res SvState := fun procs =>
+  E.runCombAtV before before current current 0 procs
+
+def CoreMemDesign.runCombQuiesceV (E : CoreMemDesign) (limit : Nat)
+    (before current : SvState) (procs : List CoreMemProc) : Res SvState :=
+  match limit with
+  | 0 => .unsupported "4.5: always_comb region did not quiesce within the canonical E bound"
+  | n + 1 => do
+      let next ← E.runCombPassV before current procs
+      if before == next then
+        .ok next
+      else
+        E.runCombQuiesceV n current next procs
+
+def CoreMemDesign.runCombV (E : CoreMemDesign) (before current : SvState) :
+    List CoreMemProc → Res SvState := fun procs =>
+  E.runCombQuiesceV 4096 before current procs
+
+def CoreMemDesign.runCombSettleQuiesceV (E : CoreMemDesign) (limit : Nat)
+    (mv : MemV) (before current : SvState) (procs : List CoreMemProc) : Res SvState :=
+  match limit with
+  | 0 => .unsupported "4.5: combinational and continuous regions did not quiesce within the canonical E bound"
+  | n + 1 => do
+      let combed ← E.runCombV before current procs
+      let settled ← E.settleV mv combed
+      if current == settled then
+        .ok settled
+      else
+        E.runCombSettleQuiesceV n mv combed settled procs
 
 theorem lookup_set' (st : SvState) (n : String) (v : LVec) (m : String) :
     SvState.lookup (SvState.set st n v) m = if n = m then some v else SvState.lookup st m := by
@@ -1776,6 +1918,13 @@ theorem CoreMemDesign.view_storeFromView (E : CoreMemDesign) (raw : SvState) :
       · exact ih (i + 1) fun k hk => by
           have := hi (k + 1) (by simp; omega)
           simpa [Nat.add_assoc, Nat.add_comm 1 k] using this
+
+theorem CoreMemDesign.combStateOfView_view {E : CoreMemDesign} {v : SvState} :
+    E.scalar.view (E.combStateOfView v).scalar = E.matV v := by
+  unfold CoreMemDesign.combStateOfView
+  dsimp
+  rw [Elab.view_congr_decls (fun j hj => E.scalarStore_cacheOf (E.storeFromView v) j hj)]
+  exact E.view_storeFromView v
 
 /-- The materialization of a coherent state's own view is that view. -/
 theorem CoreMemDesign.matV_view {E : CoreMemDesign} (hnd : (E.scalar.decls.toList.map Decl.name).Nodup)
@@ -2013,7 +2162,11 @@ theorem CoreMemDesign.settleAssignAt_seq {E : CoreMemDesign} (hP : E.SeqProfileI
           exact ⟨st', by simpa [CoreMemDesign.settleAssignAt] using hrun, hc', hm', hv'⟩
       | primitive _ _ _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | initial _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
-      | comb _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
+      | comb _ =>
+          simp only [CoreMemDesign.settleRaw] at hs
+          obtain ⟨st', hrun, hc', hm', hv'⟩ :=
+            CoreMemDesign.settleAssignAt_seq hP rest (idx + 1) hrest st raw raw' hc hmc hv hs
+          exact ⟨st', by simpa [CoreMemDesign.settleAssignAt] using hrun, hc', hm', hv'⟩
       | implicit _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | latch _ => exact absurd hok (by simp [CoreMemDesign.ProcOkI])
       | event evs body =>
@@ -2068,6 +2221,60 @@ theorem CoreMemDesign.setV_spec {E : CoreMemDesign} {st : CoreMemState} (hc : E.
   refine ⟨?_, h2⟩
   rw [h1, hty]
   simp [CoreMemDesign.setV, hx, hdc]
+
+/-! A first hand-usable comb refinement lemma.  It is intentionally stated
+for the parser-native scalar blocking leaf; the conditional and case rules
+compose this fact without changing the source body. -/
+theorem CoreMemDesign.execCombStmtAtView_blocking_frame
+    {E : CoreMemDesign} {env : IEnv} {st₁ st₂ : CoreMemState} {view₁ view₂ : SvState}
+    {n : String} {value : PExpr} {st₁' st₂' : CoreMemState} {view₁' view₂' : SvState}
+    (hc₁ : E.Coherent st₁) (hc₂ : E.Coherent st₂)
+    (hm₁ : E.MemCoherent st₁.memory) (hm₂ : E.MemCoherent st₂.memory)
+    (hview₁ : view₁ = E.scalar.view st₁.scalar)
+    (hview₂ : view₂ = E.scalar.view st₂.scalar)
+    (hview : E.scalar.view st₁.scalar = E.scalar.view st₂.scalar)
+    (hbody : E.combBodyB (.blockingAssign n value) = true)
+    (h₁ : E.execCombStmtAtView env E.elems st₁ view₁ (.blockingAssign n value) = .ok (st₁', view₁'))
+    (h₂ : E.execCombStmtAtView env E.elems st₂ view₂ (.blockingAssign n value) = .ok (st₂', view₂')) :
+    E.scalar.view st₁'.scalar = E.scalar.view st₂'.scalar ∧ view₁' = view₂' := by
+  simp only [CoreMemDesign.combBodyB, Bool.and_eq_true] at hbody
+  obtain ⟨htarget, hexpr⟩ := hbody
+  simp only [CoreMemDesign.combExprB, Bool.and_eq_true] at hexpr
+  obtain ⟨⟨hfc, hmem⟩, htest⟩ := hexpr
+  have hfc' : PExpr.hasFunctionCall value = false := by simpa using hfc
+  have hmem' : PExpr.hasMemoryRead value = false := by simpa using hmem
+  have htest' : PExpr.hasTestPlusargs value = false := by simpa using htest
+  cases hw : E.scalarWidth? n with
+  | none => simp [hw] at htarget
+  | some width =>
+    have hwidth : E.scalarWidth? n = some width := hw
+    have he₁ := CoreMemDesign.evalExprLocals_eq_evalV hm₁ env E.elems (some width) value hfc'
+    have he₂ := CoreMemDesign.evalExprLocals_eq_evalV hm₂ env E.elems (some width) value hfc'
+    have heq : E.evalV env E.elems (E.scalar.view st₁.scalar) (E.memOf st₁.memory) (some width) value =
+        E.evalV env E.elems (E.scalar.view st₂.scalar) (E.memOf st₂.memory) (some width) value := by
+      cases value <;> simp_all [CoreMemDesign.evalV, CoreMemDesign.evalScalarV,
+        PExpr.hasMemoryRead, PExpr.hasFunctionCall]
+    have hev : E.evalExprLocals env E.elems st₁ (some width) [] value =
+        E.evalExprLocals env E.elems st₂ (some width) [] value := by
+      rw [he₁, he₂, heq]
+    rw [← hev] at he₂
+    simp only [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] at h₁ h₂
+    simp [CoreMemDesign.scalarTarget, hwidth, htest', he₁, he₂] at h₁ h₂
+    rcases h₁ with ⟨locals₁, a₁, hs₁, hset₁, hv₁, hlocals₁⟩
+    rcases h₂ with ⟨locals₂, a₂, hs₂, hset₂, hv₂, hlocals₂⟩
+    have hval0 : Res.ok a₁ = Res.ok a₂ := by
+      rw [← hs₁, ← hs₂, ← hev, he₁]
+    have hval : a₁ = a₂ := Res.ok.inj hval0
+    subst a₂
+    obtain ⟨x, hx⟩ := CoreMemDesign.scalarWidth?_some (by simpa [hwidth])
+    obtain ⟨hsv₁, _⟩ := CoreMemDesign.setV_spec hc₁ hx a₁
+    obtain ⟨hsv₂, _⟩ := CoreMemDesign.setV_spec hc₂ hx a₁
+    have hbase : view₁ = view₂ := by rw [hview₁, hview₂, hview]
+    subst st₁'
+    subst st₂'
+    constructor
+    · rw [hsv₁, hsv₂, hview]
+    · exact hv₁.symm.trans (hbase ▸ hv₂)
 
 /-- `compactScalar` on a coherent state: the materialized view, coherent. -/
 theorem CoreMemDesign.compactScalar_view {E : CoreMemDesign} (hnd : (E.scalar.decls.toList.map Decl.name).Nodup)
@@ -2997,6 +3204,7 @@ def CoreMemDesign.ProcShapeI (E : CoreMemDesign) : CoreMemProc → Prop
       match coreMemEventEdge? evs body with
       | some f => f.body.edgeOkB = true ∧ f.body.need E.env ≤ 4096
       | none => False
+  | .comb body => E.CombProcShapeI body
   | _ => False
 
 theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemProc}
@@ -3006,7 +3214,7 @@ theorem CoreMemDesign.ProcOkI.shape {E : CoreMemDesign} {i : Nat} {p : CoreMemPr
   | edge f => exact h
   | primitive _ _ _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | initial _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
-  | comb _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
+  | comb body => exact CoreMemDesign.CombProcOkI.shape h
   | implicit _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
   | event evs body => exact h
   | latch _ => exact absurd h (by simp [CoreMemDesign.ProcOkI])
@@ -3019,12 +3227,13 @@ theorem CoreMemDesign.SeqProfileI.shapes {E : CoreMemDesign} (hP : E.SeqProfileI
   rw [Array.getElem?_toList] at hi
   exact (hP.procs i p hi).shape
 
-theorem CoreMemDesign.SeqProfileI.hasComb {E : CoreMemDesign} (hP : E.SeqProfileI) :
+theorem CoreMemDesign.SeqProfileI.hasComb_of_noComb {E : CoreMemDesign} (hP : E.SeqProfileI)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body) :
     E.hasComb = false := by
   simp only [CoreMemDesign.hasComb, List.any_eq_false]
   intro p hp
-  have := hP.shapes p hp
-  cases p <;> simp_all [CoreMemDesign.ProcShapeI]
+  specialize hno p hp
+  cases p <;> simp_all
 
 theorem CoreMemDesign.SeqProfileI.hasImplicit {E : CoreMemDesign} (hP : E.SeqProfileI) :
     E.hasImplicit = false := by
@@ -3080,7 +3289,11 @@ theorem CoreMemDesign.runEdges_V {E : CoreMemDesign}
           exact ⟨st2, by simp [CoreMemDesign.runEdges, hs2], hv2, hc2, hm2, hr2⟩
       | primitive _ _ _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | initial _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
-      | comb _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
+      | comb _ =>
+          simp only [CoreMemDesign.edgesV] at hv
+          obtain ⟨st2, hs2, hv2, hc2, hm2, hr2⟩ :=
+            CoreMemDesign.runEdges_V hnd h4 before after rest hrest st v' q mq hc hmc hv
+          exact ⟨st2, by simp [CoreMemDesign.runEdges, hs2], hv2, hc2, hm2, hr2⟩
       | implicit _ => exact absurd hp (by simp [CoreMemDesign.ProcShapeI])
       | event evs body =>
           cases hfe : coreMemEventEdge? evs body with
@@ -3121,6 +3334,21 @@ def CoreMemDesign.slotV (E : CoreMemDesign) (v : SvState) (mv : MemV) (entry : S
   let r ← E.edgesV v p p mv E.processes.toList
   let s1 ← E.settleV (commitMemV mv r.2.2) (commitNba2 r.1 r.2.1)
   let s2 ← E.settleV (commitMemV mv r.2.2) s1
+  .ok (s2, commitMemV mv r.2.2)
+
+/-! **One comb-aware slot on views.**  This is the source-shaped active-region
+route corresponding to `prepareStep`/`edgePass`: continuous assignments settle,
+the retained `always_comb` region quiesces, the edge processes run, NBA/memory
+records commit, and the post-edge active region quiesces again.  The comb body
+is not lowered to an assignment. -/
+def CoreMemDesign.slotCombV (E : CoreMemDesign) (v : SvState) (mv : MemV)
+    (entry : SvState) : Res (SvState × MemV) := do
+  let p0 ← E.settleV mv (applyInputs2 E.scalar.toDesign2 entry v)
+  let pc ← E.runCombSettleQuiesceV 4096 mv v p0 E.processes.toList
+  let p ← E.settleV mv pc
+  let r ← E.edgesV v p p mv E.processes.toList
+  let s1 ← E.settleV (commitMemV mv r.2.2) (commitNba2 r.1 r.2.1)
+  let s2 ← E.runCombSettleQuiesceV 4096 (commitMemV mv r.2.2) p s1 E.processes.toList
   .ok (s2, commitMemV mv r.2.2)
 
 /-- Coherence does not read the memory. -/
