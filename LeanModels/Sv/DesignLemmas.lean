@@ -19,6 +19,9 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
 * `docs/sv-partial-drivers.md` records the planned source-shaped certificate
   and settle/frame theorem for disjoint packed-bit continuous drivers; its
   implementation remains a separate, audited change.
+* `CoreMemDesign.PartialDriverCertificate` and
+  `packedWindowDisjoint` provide the reusable half-open packed-window
+  geometry for that certificate; they do not alter executor semantics.
 * `GenItem.expandH_genFor_ascending_flatMap` gives one structural induction
   step for an ascending generate-for; `generated_child_family`,
   `generated_child_nested_family`, and `generated_child_at_prefix` expose the
