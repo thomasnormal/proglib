@@ -12712,6 +12712,31 @@ theorem pairedStoreLoadByte_refusal
   · rcases htargetLoad with ⟨stores, sourceLoad, hstore, hload, htarget⟩
     simp [pairedStoreLoadByte, hstore, hload, htarget]
 
+theorem pairedStoreLoadByte_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) (byte : Byte Tag) :
+    pairedStoreLoadByte resolve store id offset byte = none ↔
+      pairedStoreByte resolve store id offset byte = none ∨
+      (∃ stores,
+        pairedStoreByte resolve store id offset byte = some stores ∧
+        loadByte stores.1.1 id offset = none) ∨
+      (∃ stores sourceLoad,
+        pairedStoreByte resolve store id offset byte = some stores ∧
+        loadByte stores.1.1 id offset = some sourceLoad ∧
+        loadByte stores.2.1 id offset = none) := by
+  cases hs : pairedStoreByte resolve store id offset byte with
+  | none => simp [pairedStoreLoadByte, hs]
+  | some stores =>
+      cases hsource : loadByte stores.1.1 id offset with
+      | none => simp [pairedStoreLoadByte, hs, hsource]
+      | some sourceLoad =>
+          cases htarget : loadByte stores.2.1 id offset with
+          | none =>
+              cases sourceLoad with
+              | mk sourceByte sourceFootprint =>
+                  simp [pairedStoreLoadByte, hs, hsource, htarget]
+          | some targetLoad => simp [pairedStoreLoadByte, hs, hsource, htarget]
+
 def endLifetime (store : Store Tag State) (id : AllocId) :
     Option (Store Tag State × Footprint) := do
   let allocation ← lookup store id
