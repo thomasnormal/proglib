@@ -7923,6 +7923,16 @@ theorem recoverAddress_no_live_allocation
     recoverAddress address live = .empty address := by
   simp [recoverAddress, hnone]
 
+theorem recoverAddress_empty_contract
+    (address : Nat) (live : List (AllocId × Nat × Nat × Tag)) :
+    recoverAddress address live = .empty address ↔
+      live.find? (fun candidate =>
+        candidate.2.1 ≤ address && address < candidate.2.2.1) = none := by
+  cases hfind : live.find? (fun candidate =>
+      candidate.2.1 ≤ address && address < candidate.2.2.1) with
+  | some entry => simp [recoverAddress, hfind]
+  | none => simp [recoverAddress, hfind]
+
 theorem recoverAddress_result_contract
     (address : Nat) (live : List (AllocId × Nat × Nat × Tag))
     (result : Recovery Tag)
