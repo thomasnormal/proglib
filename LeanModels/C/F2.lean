@@ -3018,6 +3018,92 @@ theorem pairedStoreUnionLoadMetadataByte_guard_refusal
     htargetLoad]
   grind
 
+theorem pairedStoreUnionLoadMetadataByte_failure_contract
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag) :
+    pairedStoreUnionLoadMetadataByte resolve id metadata offset byte = none ↔
+      storeMetadataByte metadata offset byte = none ∨
+      storeMetadataByte (renameMetadata resolve id metadata) offset
+        (renameByte resolve byte) = none ∨
+      (∃ sourceStore,
+        storeMetadataByte metadata offset byte = some sourceStore ∧
+        unionLoadMetadataByte sourceStore.1 offset = none) ∨
+      (∃ targetStore,
+        storeMetadataByte (renameMetadata resolve id metadata) offset
+          (renameByte resolve byte) = some targetStore ∧
+        unionLoadMetadataByte targetStore.1 offset = none) ∨
+      (∃ sourceStore sourceLoad targetStore targetLoad,
+        storeMetadataByte metadata offset byte = some sourceStore ∧
+        storeMetadataByte (renameMetadata resolve id metadata) offset
+          (renameByte resolve byte) = some targetStore ∧
+        unionLoadMetadataByte sourceStore.1 offset = some sourceLoad ∧
+        unionLoadMetadataByte targetStore.1 offset = some targetLoad ∧
+        ((targetStore.1 == renameMetadata resolve id sourceStore.1) = false ∨
+          (targetStore.2 == sourceStore.2) = false ∨
+          (targetLoad.1 == renameByte resolve sourceLoad.1) = false ∨
+          (targetLoad.2 == sourceLoad.2) = false)) := by
+  constructor
+  · intro hnone
+    cases hs : storeMetadataByte metadata offset byte with
+    | none => exact Or.inl rfl
+    | some sourceStore =>
+        cases ht : storeMetadataByte (renameMetadata resolve id metadata) offset
+            (renameByte resolve byte) with
+        | none => exact Or.inr (Or.inl rfl)
+        | some targetStore =>
+            cases hsl : unionLoadMetadataByte sourceStore.1 offset with
+            | none => exact Or.inr (Or.inr (Or.inl ⟨sourceStore, rfl, hsl⟩))
+            | some sourceLoad =>
+                cases htl : unionLoadMetadataByte targetStore.1 offset with
+                | none => exact Or.inr (Or.inr (Or.inr (Or.inl ⟨targetStore, rfl, htl⟩)))
+                | some targetLoad =>
+                    by_cases hmetadata :
+                        (targetStore.1 == renameMetadata resolve id sourceStore.1) = false
+                    · exact Or.inr (Or.inr (Or.inr (Or.inr
+                        ⟨sourceStore, sourceLoad, targetStore, targetLoad,
+                          rfl, rfl, hsl, htl, Or.inl hmetadata⟩)))
+                    · by_cases hstoreFootprint :
+                          (targetStore.2 == sourceStore.2) = false
+                      · exact Or.inr (Or.inr (Or.inr (Or.inr
+                          ⟨sourceStore, sourceLoad, targetStore, targetLoad,
+                            rfl, rfl, hsl, htl, Or.inr (Or.inl hstoreFootprint)⟩)))
+                      · by_cases hloadByte :
+                            (targetLoad.1 == renameByte resolve sourceLoad.1) = false
+                        · exact Or.inr (Or.inr (Or.inr (Or.inr
+                            ⟨sourceStore, sourceLoad, targetStore, targetLoad,
+                              rfl, rfl, hsl, htl,
+                              Or.inr (Or.inr (Or.inl hloadByte))⟩)))
+                        · by_cases hloadFootprint :
+                              (targetLoad.2 == sourceLoad.2) = false
+                          · exact Or.inr (Or.inr (Or.inr (Or.inr
+                              ⟨sourceStore, sourceLoad, targetStore, targetLoad,
+                                rfl, rfl, hsl, htl,
+                                Or.inr (Or.inr (Or.inr hloadFootprint))⟩)))
+                          · simp [pairedStoreUnionLoadMetadataByte, hs, ht, hsl,
+                              htl, hmetadata, hstoreFootprint, hloadByte,
+                              hloadFootprint] at hnone
+  · rintro (hsource | htarget | hsourceLoad | htargetLoad | hguard)
+    · simp [pairedStoreUnionLoadMetadataByte, hsource]
+    · simp [pairedStoreUnionLoadMetadataByte, htarget]
+    · rcases hsourceLoad with ⟨sourceStore, hstore, hload⟩
+      simp [pairedStoreUnionLoadMetadataByte, hstore, hload]
+    · rcases htargetLoad with ⟨targetStore, hstore, hload⟩
+      simp [pairedStoreUnionLoadMetadataByte, hstore, hload]
+    · rcases hguard with ⟨sourceStore, sourceLoad, targetStore, targetLoad,
+        hsourceStore, htargetStore, hsourceLoad, htargetLoad, hcondition⟩
+      rcases hcondition with hmetadata | hstoreFootprint | hloadByte |
+        hloadFootprint
+      · simp [pairedStoreUnionLoadMetadataByte, hsourceStore, htargetStore,
+          hsourceLoad, htargetLoad, hmetadata]
+      · simp [pairedStoreUnionLoadMetadataByte, hsourceStore, htargetStore,
+          hsourceLoad, htargetLoad, hstoreFootprint]
+      · simp [pairedStoreUnionLoadMetadataByte, hsourceStore, htargetStore,
+          hsourceLoad, htargetLoad, hloadByte]
+      · simp [pairedStoreUnionLoadMetadataByte, hsourceStore, htargetStore,
+          hsourceLoad, htargetLoad, hloadFootprint]
+
 theorem pairedStoreUnionLoadMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
