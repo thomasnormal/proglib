@@ -1336,6 +1336,28 @@ def GeneratedLoop.toHdr? (l : GeneratedLoop) : Option Hdr := do
       else none
   | _ => none
 
+theorem GeneratedLoop.toHdr?_of_hdrOf?
+    {l : GeneratedLoop} {h : Hdr}
+    (hh : hdrOf? l.label l.genvar l.initE l.bound l.step = .ok h) :
+    l.toHdr? = some h := by
+  unfold GeneratedLoop.toHdr? at *
+  cases hb : affOf? l.bound with
+  | none => simp [hdrOf?, hb] at hh
+  | some bound =>
+      rw [hb] at hh
+      cases hs : hdrStartOf? l.initE with
+      | error e => simp [hdrOf?, hs] at hh
+      | ok st =>
+          simp only [hdrOf?, hb, hs, Except.ok.injEq] at hh
+          rcases hh with ⟨rfl, rfl, rfl⟩
+          cases st with
+          | mk c0 st =>
+              cases hstep : l.step with
+              | unary op arg =>
+                  cases hop : op <;> cases harg : arg <;>
+                    simp [hstep, hop, harg]
+              | _ => simp [hstep]
+
 /-! The summary's `LSite.blk` is the innermost enclosing block.  Label
 qualification for reused labels is a property of the whole generate tree, so
 the source-shaped reader keeps that policy at the caller; this helper is the
