@@ -102,6 +102,8 @@ def Process2.preemptAtomic : Process2 → Bool
   | .assign _ _ => true
   | .alwaysFF _ body | .alwaysPlain _ body | .alwaysFFR _ _ body _ =>
       Stmt2.preemptNBAOnly body
+  | .alwaysComb (.blockingAssign target value) =>
+      !(value.rdW (fun _ => some 1)).any (fun w => w.1 == target.name)
   | _ => false
 
 /-- All reads and may-writes of one process at the instantiated widths. -/
@@ -256,6 +258,8 @@ end
 def Process.preemptAtomic : Process → Bool
   | .assign _ _ => true
   | .alwaysFF _ b | .alwaysPlain _ b => Stmt.preemptNBAOnly b
+  | .alwaysComb (.blockingAssign target value) =>
+      !(value.preemptReads (fun _ => some 1)).any (fun w => w.1 == target)
   | _ => false
 
 def Design.preemptionReport (d : Design) : Option (String × String) :=
@@ -297,6 +301,15 @@ private def safeNba : Design2 :=
       .alwaysFF "clk" (.nbaAssign (.ident "q") (.ident "a")),
       .alwaysFF "clk" (.nbaAssign (.ident "r") (.ident "q"))] }
 
+private def safeCombRead : Design :=
+  { name := "preempt_safe_comb_read"
+    decls := #[
+      { name := "a", width := 1, isInput := true },
+      { name := "r", width := 1 },
+      { name := "y", width := 1, isOutput := true }]
+    processes := #[.alwaysComb (.blockingAssign "y" (.ident "r"))] }
+
+
 #guard indep.preemptionReport == none
 #guard safeNba.preemptionReport == none
 #guard dep.preemptionAdmits == false
@@ -305,5 +318,6 @@ private def safeNba : Design2 :=
   | _ => false
 #guard dep.preemptionGuard.processes.toList.any fun p =>
   match p with | .unsupported "Schedule:preemptive" _ => true | _ => false
+#guard safeCombRead.preemptionReport == none
 
 end LeanModels.Sv
