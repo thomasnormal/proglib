@@ -2,6 +2,7 @@ import LeanModels.Sv.SeqCycleInstant
 import LeanModels.Sv.SeqCycleObl
 import LeanModels.Sv.CombViewTactic
 import LeanModels.Sv.Loop2Frag
+import LeanModels.Sv.Lib.BitVecArith
 
 /-!
 # The clocked stages at symbolic parameters (`LeanModels.Sv.Kernel`, plumbing for `SeqCycle`)
@@ -559,6 +560,30 @@ theorem seqK_isPosedge (a b : Bool) : isPosedge (Logic.ofBool a) (Logic.ofBool b
 /-- Case equality of known vectors is `BitVec` equality. -/
 theorem seqK_beq {w : Nat} (x y : BitVec w) : (LVec.ofBitVec x == LVec.ofBitVec y) = decide (x = y) := by
   rw [Bool.eq_iff_iff, beq_iff_eq, decide_eq_true_iff, LVec.ofBitVec_inj]
+
+/-! The FIFO wrap test is a case-equality decision on a known 32-bit counter.  Keep this bridge in the
+arithmetic layer so a symbolic `DEPTH` is discharged from its language-level bounds rather than by unfolding the
+bitvector subtraction into modular arithmetic at every occurrence. -/
+
+theorem seqK_eqLogical_u32_sub_one_zero {D : Nat} (hD : 2 ≤ D) (hD32 : D ≤ 2 ^ 32) :
+    (LVec.ofBitVec (0#32)).eqLogical
+        ((LVec.ofInt 32 (D : Int)).sub (LVec.ofInt 32 1)) = Logic.l0 := by
+  rw [LVec.ofInt_eq_ofBitVec, LVec.ofInt_eq_ofBitVec]
+  have hone : BitVec.ofInt 32 (1 : Int) = BitVec.ofNat 32 1 := by
+    simpa using BitVec.ofInt_natCast 32 1
+  rw [hone, LVec.sub_ofBitVec, LVec.eqLogical_ofBitVec]
+  rw [← Logic.ofBool_false, Logic.ofBool_inj, decide_eq_false_iff_not]
+  intro heq
+  have hiff := LeanModels.Sv.Lib.ofNat_eq_ofNat_sub_one_iff
+      (w := 32) (t := 0) (N := D) (by omega) hD32
+  have hreach : 0 + 1 = D := hiff.mp (by simpa [heq])
+  omega
+
+theorem seqK_eqLogical_u32_sub_one_zero_condTrue {D : Nat} (hD : 2 ≤ D) (hD32 : D ≤ 2 ^ 32) :
+    (LVec.ofLogic ((LVec.ofBitVec (0#32)).eqLogical
+        ((LVec.ofInt 32 (D : Int)).sub (LVec.ofInt 32 1)))).condTrue = false := by
+  rw [seqK_eqLogical_u32_sub_one_zero hD hD32]
+  simp [LVec.ofLogic, LVec.condTrue]
 
 /-- A known unsigned index resolves to its value when it is in the declared range, and to the no-op otherwise. -/
 theorem seqK_index? {w : Nat} (m : MemShape) (a : BitVec w) :
@@ -1273,7 +1298,8 @@ macro "sv_seq_eval_arith" : conv =>
       LeanModels.Sv.Kernel.seqE_canonU32_of_bounds, LeanModels.Sv.Kernel.seqE_convertU32_of_bounds,
       LeanModels.Sv.Kernel.seqE_wclog, LeanModels.Sv.Kernel.seqE_wclog1,
       LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
-      LeanModels.Sv.Kernel.seqE_natAbs_add_sub_one_add_one, Nat.sub_add_cancel])
+      LeanModels.Sv.Kernel.seqE_natAbs_add_sub_one_add_one,
+      LeanModels.Sv.Kernel.seqK_eqLogical_u32_sub_one_zero_condTrue, Nat.sub_add_cancel])
 
 /-- **`sv_seq_cycle h : E.cycleV clk v d using hE [facts]`**: `h : E.cycleV clk v d = <the computed pre and post
 views>`, where `hE : <normal form> = E` comes from `sv_seq_inst`. -/
