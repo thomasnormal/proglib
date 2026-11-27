@@ -4996,6 +4996,28 @@ theorem allocateZeroSize_contract
       simp [allocateZeroSize] at hresult
       exact hresult.symm
 
+theorem allocateZeroSize_result_iff
+    (state : State) (placement : Placement)
+    (result : ZeroSizeOutcome Tag State TypeId × Footprint) :
+    allocateZeroSize (Tag := Tag) (TypeId := TypeId) state placement = result ↔
+      match placement with
+      | .fail => result = (.null, footprint .metadata (Region.mk 0 0 0))
+      | .address base =>
+          result = (.token
+            { allocation := { live := true, address := some base, bytes := [], state := state },
+              locations := [] }, footprint .metadata (Region.mk 0 0 0))
+      | .unaddressable =>
+          result = (.token
+            { allocation := { live := true, address := none, bytes := [], state := state },
+              locations := [] }, footprint .metadata (Region.mk 0 0 0)) := by
+  cases placement with
+  | fail =>
+      constructor <;> intro h <;> cases h <;> rfl
+  | address base =>
+      constructor <;> intro h <;> cases h <;> rfl
+  | unaddressable =>
+      constructor <;> intro h <;> cases h <;> rfl
+
 def renameZeroSizeOutcome (resolve : AllocId → Nat) :
     ZeroSizeOutcome Tag State TypeId → ZeroSizeOutcome Tag State TypeId
   | .null => .null
