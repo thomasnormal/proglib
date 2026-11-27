@@ -7758,6 +7758,19 @@ theorem pairedRecoverAddress_refusal
   · simp [pairedRecoverAddress, hsource, htarget]
   · simp [pairedRecoverAddress, hsource, htarget]
 
+theorem pairedRecoverAddress_failure_contract
+    (resolve : AllocId → Nat) (address : Nat)
+    (live : List (AllocId × Nat × Nat × Tag)) :
+    pairedRecoverAddress resolve address live = false ↔
+      match recoverAddress address live,
+        recoverAddress address (live.map (renameLiveRegion resolve)) with
+      | .recovered _, .recovered _ => False
+      | .empty _, .empty _ => False
+      | _, _ => True := by
+  cases hs : recoverAddress address live <;>
+    cases ht : recoverAddress address (live.map (renameLiveRegion resolve)) <;>
+      simp [pairedRecoverAddress, hs, ht]
+
 theorem pairedRecoverAddress_sound
     (resolve : AllocId → Nat) (address : Nat)
     (live : List (AllocId × Nat × Nat × Tag))
