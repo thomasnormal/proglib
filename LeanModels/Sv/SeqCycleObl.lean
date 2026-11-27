@@ -1226,6 +1226,34 @@ theorem CoreMemDesign.runCombAt_coherent_of_each
                           (current := E.compactScalar after afterView)
                           (currentView := afterView) (st' := st') hcompact.2
                           (by rw [E.compactScalar_memory]; exact hcoh.2) hrest hnext
+          cases hr : E.readChangedAt before current beforeView currentView index
+              (coreMemCombExternalReadExprs body) with
+          | timeout => simp [hr] at h
+          | unsupported msg => simp [hr] at h
+          | ok ready =>
+              cases ready with
+              | false =>
+                  simp [hr] at h
+                  exact ih (index := index + 1) (current := current) (currentView := currentView)
+                    (st' := st') hc hm hrest h
+              | true =>
+                  simp only [hr, Bool.not_true, ↓reduceIte, Res.bind_eq_ok] at h
+                  cases he : E.execCombStmtAtView E.env E.elems current currentView body with
+                  | timeout => simp [he] at h
+                  | unsupported msg => simp [he] at h
+                  | ok result =>
+                      simp only [he, Res.ok_bind] at h
+                      obtain ⟨after, afterView⟩ := result
+                      have hcoh := CoreMemDesign.execCombStmtAtView_coherent_of_stmt (E := E) hb hc hm he
+                      have hcompact := E.compactScalar_view hnd h4 hcoh.1 afterView
+                      obtain ⟨ready, hready, hnext⟩ := h
+                      have hready' : ready = true := (Res.ok.inj hready).symm
+                      subst ready
+                      simp only [Bool.not_true, ↓reduceIte] at hnext
+                      exact ih (index := index + 1)
+                        (current := E.compactScalar after afterView)
+                        (currentView := afterView) (st' := st') hcompact.2
+                        (by rw [E.compactScalar_memory]; exact hcoh.2) hrest hnext
       | primitive kind name =>
           simp only [CoreMemDesign.runCombAt] at h
           exact ih (index := index + 1) (current := current) (currentView := currentView)
