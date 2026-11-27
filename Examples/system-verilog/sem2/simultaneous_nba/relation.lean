@@ -390,6 +390,30 @@ theorem fuel_b (st : CoreMemState) :
       E.execStmtFuel E.env E.elems st [] 1 (.nbaAssign "b" (.ident "a")) :=
   execStmtFuel_nbaAssign_fuel E E.env st [] 4095 "b" (.ident "a")
 
+theorem fuel_a_entry (st : CoreMemState) :
+    E.execStmtFuel E.env E.elems st []
+        (4096 + PStmt.need E.env (.nbaAssign "a" (.ident "b")) +
+          PStmt.runtimeNeed E.env (.nbaAssign "a" (.ident "b")))
+        (.nbaAssign "a" (.ident "b")) =
+      E.execStmtFuel E.env E.elems st [] 1 (.nbaAssign "a" (.ident "b")) := by
+  rw [show (4096 + PStmt.need E.env (.nbaAssign "a" (.ident "b")) +
+      PStmt.runtimeNeed E.env (.nbaAssign "a" (.ident "b"))) =
+      (4095 + PStmt.need E.env (.nbaAssign "a" (.ident "b")) +
+        PStmt.runtimeNeed E.env (.nbaAssign "a" (.ident "b"))) + 1 by omega]
+  exact execStmtFuel_nbaAssign_fuel E E.env st [] _ "a" (.ident "b")
+
+theorem fuel_b_entry (st : CoreMemState) :
+    E.execStmtFuel E.env E.elems st []
+        (4096 + PStmt.need E.env (.nbaAssign "b" (.ident "a")) +
+          PStmt.runtimeNeed E.env (.nbaAssign "b" (.ident "a")))
+        (.nbaAssign "b" (.ident "a")) =
+      E.execStmtFuel E.env E.elems st [] 1 (.nbaAssign "b" (.ident "a")) := by
+  rw [show (4096 + PStmt.need E.env (.nbaAssign "b" (.ident "a")) +
+      PStmt.runtimeNeed E.env (.nbaAssign "b" (.ident "a"))) =
+      (4095 + PStmt.need E.env (.nbaAssign "b" (.ident "a")) +
+        PStmt.runtimeNeed E.env (.nbaAssign "b" (.ident "a"))) + 1 by omega]
+  exact execStmtFuel_nbaAssign_fuel E E.env st [] _ "b" (.ident "a")
+
 /-- The Active region of the executor on the rising row: both processes run,
 the store is unchanged, the two updates are queued in source order. -/
 theorem runEdges_rise {st : CoreMemState} (hc : E.Coherent st) {a b : Logic}
@@ -401,7 +425,7 @@ theorem runEdges_rise {st : CoreMemState} (hc : E.Coherent st) {a b : Logic}
       (view .l0 .l0 a b) (view .l1 .l1 a b) = true := by rfl
   have f2 : CoreMemEdge.fires { clock := "clk_b", body := .nbaAssign "b" (.ident "a") }
       (view .l0 .l0 a b) (view .l1 .l1 a b) = true := by rfl
-  simp only [CoreMemDesign.runEdges, f1, f2, ↓reduceIte, CoreMemDesign.execStmt, fuel_a, fuel_b,
+  simp only [CoreMemDesign.runEdges, f1, f2, ↓reduceIte, CoreMemDesign.execStmt, fuel_a_entry, fuel_b_entry,
     exec_a hc hv, exec_b hc hv, Res.ok_bind]
   rfl
 
