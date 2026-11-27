@@ -2302,14 +2302,13 @@ def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
 
 def checkEffectiveAt (m : Mem) (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
     (used : String) (usedStructured : Option QualType := none) : MRes Unit :=
-  if usedStructured.isSome then .ok () else
   if c.effTy == some used then .ok () else
-  match m.structuredType? o, usedStructured with
-  | some effective, some usedType =>
-      if cAliasCompatibleStructured usedType effective then .ok ()
-      else .error (.memUB (.effectiveType o off used (c.effTy.getD used)))
-  | none, none => .ok ()
-  | _, _ => checkEffective alias o c off used usedStructured
+    match m.structuredType? o, usedStructured with
+    | some effective, some usedType =>
+        if cAliasCompatibleStructured usedType effective then .ok ()
+        else .error (.memUB (.effectiveType o off used (c.effTy.getD used)))
+    | none, none => .ok ()
+    | _, _ => checkEffective alias o c off used usedStructured
 
 theorem checkEffectiveAt_renameAddresses
     (rename : ObjId → Nat) (m : Mem) (alias : AliasModel) (o : ObjId)

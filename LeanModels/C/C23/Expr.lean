@@ -1155,7 +1155,10 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
     | some t => loadCharacterAt p t couldBeUninitializedRegister
     | none => refuseUnsupported s!"character type '{ty}' has no integer representation"
   else if structuredPointerObject structured ty then do
-    let q ← readMem (fun m => m.loadPtr p zeroNullPointer) couldBeUninitializedRegister
+    let q ← readMem (fun m => do
+      let (o, c, off) ← m.resolve p 8
+      Mem.checkEffectiveAt m alias o c off ty structured
+      m.loadPtr p zeroNullPointer) couldBeUninitializedRegister
     match q with
     | some q => pure (.ptr q)
     | none => refuseUnsupported "pointer representation lacks provenance or target ABI evidence"
@@ -1191,8 +1194,14 @@ abbrev Ctx.loadAt (ctx : Ctx) (p : Ptr) (ty : String) (size : Option Nat)
 def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (v : CVal)
     (structured : Option LeanModels.Clang.QualType := none) : EvalM Unit :=
   match v with
-  | .funPtr id => writeMem (fun m => Mem.storeFunction m p id)
-  | .ptr q => writeMem (fun m => Mem.storePtr m p q)
+  | .funPtr id => writeMem (fun m => do
+      let (o, c, off) ← m.resolve p 8
+      Mem.checkEffectiveAt m alias o c off ty structured
+      m.storeFunction p id)
+  | .ptr q => writeMem (fun m => do
+      let (o, c, off) ← m.resolve p 8
+      Mem.checkEffectiveAt m alias o c off ty structured
+      m.storePtr p q)
   | .ptrInt q =>
       if pointerIntegerTypeOfNode structured then writeMem (fun m => Mem.storePtrInt m p q)
       else refuseUnsupported "pointer-integer value stored outside uintptr_t/intptr_t"
@@ -1833,33 +1842,23 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         let _ ← evalExpr ctx sub
         pure .undef
       else if ck == "BitCast" then
-        -- §6.3.2.3p1 — `void*` ↔ `T*`. Provenance carried, not recomputed:
-        -- 52 sites, all void-pointer conversions, ZERO type punning.
-        let isCharacter (q : LeanModels.Clang.QualType) : Bool :=
+        -- C23 §6.3.2.3p7 defines conversion between object-pointer types.
+        -- The conversion preserves provenance and does not inspect the
+        -- pointed-to object.  Effective-type compatibility is checked when a
+        -- later lvalue access loads or stores through the converted pointer
+        -- under §6.5p6-p7.
+        let sourceIsPointer := sub.structuredType?.any fun q =>
           match q.unqualified with
-          | .cBuiltinKind .char | .cBuiltinKind .signedChar
-          | .cBuiltinKind .unsignedChar => true
+          | .pointer _ => true
           | _ => false
-        let isVoidOrCharPtr (q : Option LeanModels.Clang.QualType) : Bool :=
-          q.map (fun t => match t.unqualified with
-            | .pointer pointee =>
-                match pointee.unqualified with
-                | .void => true
-                | _ => isCharacter pointee
-            | _ => false) |>.getD false
-        let sourceIsVoid := sub.structuredType?.map (fun q =>
+        let targetIsPointer := structuredType.any fun q =>
           match q.unqualified with
-          | .pointer pointee => pointee.unqualified == .void
-          | _ => false) |>.getD false
-        let sourceIsCharacter := sub.structuredType?.map (fun q =>
-          match q.unqualified with
-          | .pointer pointee => isCharacter pointee
-          | _ => false) |>.getD false
-        if isVoidOrCharPtr structuredType || sourceIsVoid ||
-            sourceIsCharacter || compatiblePointerTypesNode structuredType sub.structuredType? then
+          | .pointer _ => true
+          | _ => false
+        if sourceIsPointer && targetIsPointer then
           evalExpr ctx sub
         else
-          refuseUnsupported "pointer bit-cast across incompatible effective types"
+          refuseUnsupported "BitCast requires parser-native object pointer types"
       else if ck == "FunctionToPointerDecay" then
         match sub with
         | .declRef (some id) _ "FunctionDecl" _ _ .. => pure (.funPtr id)
