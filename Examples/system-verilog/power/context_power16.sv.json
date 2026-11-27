@@ -49,7 +49,8 @@
               "value": 16,
               "resolved_width": 32
             },
-            "resolved": 16
+            "resolved": 16,
+            "string": false
           }
         ],
         "types": [],
@@ -466,7 +467,8 @@
                       "end_col": 36
                     },
                     "width": 8,
-                    "bits": "10000000"
+                    "bits": "10000000",
+                    "signed": true
                   }
                 }
               },
@@ -559,7 +561,8 @@
                             "end_col": 36
                           },
                           "width": 8,
-                          "bits": "10000000"
+                          "bits": "10000000",
+                          "signed": true
                         }
                       }
                     },

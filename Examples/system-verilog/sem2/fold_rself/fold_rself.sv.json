@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -141,38 +142,29 @@
               "resolved": 8
             },
             "default": {
-              "kind": "SignedResize",
+              "kind": "Unary",
               "span": {
                 "line": 8,
                 "col": 78,
                 "end_line": 8,
                 "end_col": 80
               },
-              "width": 8,
+              "width": 32,
+              "op": "-",
               "operand": {
-                "kind": "Unary",
+                "kind": "Int",
                 "span": {
                   "line": 8,
-                  "col": 78,
+                  "col": 79,
                   "end_line": 8,
                   "end_col": 80
                 },
-                "width": 32,
-                "op": "-",
-                "operand": {
-                  "kind": "Int",
-                  "span": {
-                    "line": 8,
-                    "col": 79,
-                    "end_line": 8,
-                    "end_col": 80
-                  },
-                  "value": 1,
-                  "resolved_width": 32
-                }
+                "value": 1,
+                "resolved_width": 32
               }
             },
             "resolved": -1,
+            "string": false,
             "signed": true
           },
           {
@@ -259,7 +251,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -345,7 +338,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           }
         ],
         "types": [],

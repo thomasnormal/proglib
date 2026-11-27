@@ -51,15 +51,17 @@
                   "format": "function %0d",
                   "args": [
                     {
-                      "kind": "Unsupported",
+                      "kind": "Literal",
                       "span": {
                         "line": 5,
                         "col": 42,
                         "end_line": 5,
                         "end_col": 60
                       },
-                      "sv_kind": "CallExpression",
-                      "text": "Functions::value()"
+                      "width": 32,
+                      "bits": "00000000000000000000000000001001",
+                      "signed": true,
+                      "literal_function_return": true
                     }
                   ],
                   "arg_signed": [

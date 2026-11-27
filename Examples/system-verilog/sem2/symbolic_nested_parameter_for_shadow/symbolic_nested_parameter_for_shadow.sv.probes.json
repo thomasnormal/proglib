@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "symbolic_nested_parameter_for_shadow",
- "envelope": "symbolic_nested_parameter_for_shadow.sv.json",
+ "envelope": "out.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/symbolic_nested_parameter_for_shadow/symbolic_nested_parameter_for_shadow.sv",
@@ -49,7 +49,8 @@
        "value": 0,
        "resolved_width": 32
       },
-      "resolved": 0
+      "resolved": 0,
+      "string": false
      }
     ],
     "types": [],
@@ -312,7 +313,8 @@
        "value": 3,
        "resolved_width": 32
       },
-      "resolved": 3
+      "resolved": 3,
+      "string": false
      }
     ],
     "types": [],
@@ -575,7 +577,8 @@
        "value": 4,
        "resolved_width": 32
       },
-      "resolved": 4
+      "resolved": 4,
+      "string": false
      }
     ],
     "types": [],

@@ -71,6 +71,7 @@
               "resolved": 32
             },
             "resolved": 8,
+            "string": false,
             "default": {
               "kind": "Int",
               "span": {
@@ -82,7 +83,9 @@
               "value": 8,
               "resolved_width": 32
             },
-            "package": "package_scoped_type_e_pkg"
+            "package": "package_scoped_type_e_pkg",
+            "resolved_bits": "00000000000000000000000000001000",
+            "resolved_signed": true
           }
         ],
         "types": [],

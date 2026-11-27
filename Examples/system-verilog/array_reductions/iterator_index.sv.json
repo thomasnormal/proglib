@@ -136,15 +136,136 @@
                   "format": "index %0d",
                   "args": [
                     {
-                      "kind": "Unsupported",
+                      "kind": "Binary",
                       "span": {
                         "line": 4,
                         "col": 26,
                         "end_line": 4,
                         "end_col": 38
                       },
-                      "sv_kind": "ArrayReduction:storage-or-effects",
-                      "text": "cells.sum(x) with (x+x.index)"
+                      "width": 32,
+                      "op": "+",
+                      "left": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 4,
+                          "col": 26,
+                          "end_line": 4,
+                          "end_col": 38
+                        },
+                        "width": 32,
+                        "op": "+",
+                        "left": {
+                          "kind": "Binary",
+                          "span": {
+                            "line": 4,
+                            "col": 45,
+                            "end_line": 4,
+                            "end_col": 54
+                          },
+                          "width": 32,
+                          "op": "+",
+                          "left": {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 4,
+                              "col": 26,
+                              "end_line": 4,
+                              "end_col": 38
+                            },
+                            "name": "cells[3]",
+                            "width": 32,
+                            "signed": true
+                          },
+                          "right": {
+                            "kind": "Literal",
+                            "span": {
+                              "line": 4,
+                              "col": 47,
+                              "end_line": 4,
+                              "end_col": 48
+                            },
+                            "width": 32,
+                            "bits": "00000000000000000000000000000011",
+                            "array_reduction_index": true,
+                            "signed": true
+                          }
+                        },
+                        "right": {
+                          "kind": "Binary",
+                          "span": {
+                            "line": 4,
+                            "col": 45,
+                            "end_line": 4,
+                            "end_col": 54
+                          },
+                          "width": 32,
+                          "op": "+",
+                          "left": {
+                            "kind": "Ident",
+                            "span": {
+                              "line": 4,
+                              "col": 26,
+                              "end_line": 4,
+                              "end_col": 38
+                            },
+                            "name": "cells[2]",
+                            "width": 32,
+                            "signed": true
+                          },
+                          "right": {
+                            "kind": "Literal",
+                            "span": {
+                              "line": 4,
+                              "col": 47,
+                              "end_line": 4,
+                              "end_col": 48
+                            },
+                            "width": 32,
+                            "bits": "00000000000000000000000000000010",
+                            "array_reduction_index": true,
+                            "signed": true
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 4,
+                          "col": 45,
+                          "end_line": 4,
+                          "end_col": 54
+                        },
+                        "width": 32,
+                        "op": "+",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 4,
+                            "col": 26,
+                            "end_line": 4,
+                            "end_col": 38
+                          },
+                          "name": "cells[1]",
+                          "width": 32,
+                          "signed": true
+                        },
+                        "right": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 4,
+                            "col": 47,
+                            "end_line": 4,
+                            "end_col": 48
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000000001",
+                          "array_reduction_index": true,
+                          "signed": true
+                        }
+                      },
+                      "array_reduction_lowered": "sum",
+                      "signed": true
                     }
                   ],
                   "arg_signed": [

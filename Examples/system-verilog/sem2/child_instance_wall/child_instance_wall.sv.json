@@ -324,7 +324,7 @@
                   "end_line": 17,
                   "end_col": 8
                 },
-                "sv_kind": "UninstantiatedDefSymbol:UninstantiatedDef",
+                "sv_kind": "UninstantiatedDefSymbol:ports",
                 "text": "pcpi_mul (\n        .clk(clk), .resetn(resetn), .pcpi_valid(pcpi_valid),\n        .pcpi_insn(pcpi_insn), .pcpi_rs1(pcpi_rs1), .pcpi_rs2(pcpi_rs2),\n        .pcpi_wr(pcpi_wr), .pcpi_rd(pcpi_rd), .pcpi_wai"
               }
             ],

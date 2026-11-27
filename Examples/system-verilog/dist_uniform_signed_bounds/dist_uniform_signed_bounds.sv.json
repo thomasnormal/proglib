@@ -24,12 +24,26 @@
           {
             "kind": "Var",
             "span": {
-              "line": 10,
-              "col": 23,
-              "end_line": 10,
-              "end_col": 31
+              "line": 9,
+              "col": 13,
+              "end_line": 9,
+              "end_col": 19
             },
-            "name": "crossing",
+            "name": "seed_a",
+            "width": 32,
+            "init": null,
+            "signed": true,
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 9,
+              "col": 21,
+              "end_line": 9,
+              "end_col": 27
+            },
+            "name": "seed_b",
             "width": 32,
             "init": null,
             "signed": true,
@@ -52,26 +66,12 @@
           {
             "kind": "Var",
             "span": {
-              "line": 9,
-              "col": 13,
-              "end_line": 9,
-              "end_col": 19
+              "line": 10,
+              "col": 23,
+              "end_line": 10,
+              "end_col": 31
             },
-            "name": "seed_a",
-            "width": 32,
-            "init": null,
-            "signed": true,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 9,
-              "col": 21,
-              "end_line": 9,
-              "end_col": 27
-            },
-            "name": "seed_b",
+            "name": "crossing",
             "width": 32,
             "init": null,
             "signed": true,

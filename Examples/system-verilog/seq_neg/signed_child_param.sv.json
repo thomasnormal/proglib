@@ -90,6 +90,7 @@
               }
             },
             "resolved": -8,
+            "string": false,
             "signed": true
           }
         ],
@@ -256,6 +257,7 @@
               "resolved_width": 32
             },
             "resolved": 0,
+            "string": false,
             "signed": true
           }
         ],

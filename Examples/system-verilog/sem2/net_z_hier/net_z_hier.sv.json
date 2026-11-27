@@ -304,7 +304,46 @@
               "end_col": 29
             },
             "sv_kind": "PortSymbol:net-z",
-            "text": "yn"
+            "text": "yn",
+            "metadata": {
+              "name": "yn",
+              "width": {
+                "kind": "PackedType",
+                "packed": [
+                  {
+                    "msb": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 6,
+                        "col": 22,
+                        "end_line": 6,
+                        "end_col": 23
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    },
+                    "lsb": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 6,
+                        "col": 24,
+                        "end_line": 6,
+                        "end_col": 25
+                      },
+                      "value": 0,
+                      "resolved_width": null
+                    }
+                  }
+                ],
+                "resolved": 2
+              },
+              "net_kind": "Wire",
+              "signed": false,
+              "four_state": true,
+              "is_net": true,
+              "driver_reason": "no driver: the net reads z",
+              "driver_records": []
+            }
           },
           {
             "kind": "Port",

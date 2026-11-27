@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -754,7 +755,8 @@
                       "end_col": 36
                     },
                     "width": 8,
-                    "bits": "10000000"
+                    "bits": "10000000",
+                    "signed": true
                   }
                 }
               },
@@ -776,7 +778,8 @@
                     "end_col": 45
                   },
                   "width": 8,
-                  "bits": "00000010"
+                  "bits": "00000010",
+                  "signed": true
                 }
               }
             }
@@ -857,7 +860,8 @@
                           "end_col": 32
                         },
                         "width": 4,
-                        "bits": "1000"
+                        "bits": "1000",
+                        "signed": true
                       }
                     }
                   },
@@ -879,7 +883,8 @@
                         "end_col": 42
                       },
                       "width": 4,
-                      "bits": "1000"
+                      "bits": "1000",
+                      "signed": true
                     }
                   }
                 }
@@ -983,7 +988,8 @@
                           "end_col": 31
                         },
                         "width": 4,
-                        "bits": "1000"
+                        "bits": "1000",
+                        "signed": true
                       }
                     }
                   },
@@ -1005,7 +1011,8 @@
                         "end_col": 40
                       },
                       "width": 4,
-                      "bits": "0000"
+                      "bits": "0000",
+                      "signed": true
                     }
                   }
                 }
@@ -1119,7 +1126,8 @@
                             "end_col": 31
                           },
                           "width": 4,
-                          "bits": "1000"
+                          "bits": "1000",
+                          "signed": true
                         }
                       },
                       "right": {
@@ -1131,7 +1139,8 @@
                           "end_col": 39
                         },
                         "width": 4,
-                        "bits": "1000"
+                        "bits": "1000",
+                        "signed": true
                       }
                     }
                   }
@@ -1246,7 +1255,8 @@
                             "end_col": 30
                           },
                           "width": 4,
-                          "bits": "1000"
+                          "bits": "1000",
+                          "signed": true
                         }
                       },
                       "right": {
@@ -1258,7 +1268,8 @@
                           "end_col": 38
                         },
                         "width": 4,
-                        "bits": "1000"
+                        "bits": "1000",
+                        "signed": true
                       }
                     }
                   },
@@ -1394,7 +1405,8 @@
                             "end_col": 29
                           },
                           "width": 4,
-                          "bits": "1000"
+                          "bits": "1000",
+                          "signed": true
                         }
                       },
                       "right": {
@@ -1406,7 +1418,8 @@
                           "end_col": 37
                         },
                         "width": 4,
-                        "bits": "1000"
+                        "bits": "1000",
+                        "signed": true
                       }
                     }
                   },
@@ -1532,7 +1545,8 @@
                           "end_col": 38
                         },
                         "width": 4,
-                        "bits": "1000"
+                        "bits": "1000",
+                        "signed": true
                       }
                     },
                     "right": {
@@ -1544,7 +1558,8 @@
                         "end_col": 46
                       },
                       "width": 4,
-                      "bits": "1000"
+                      "bits": "1000",
+                      "signed": true
                     }
                   }
                 },

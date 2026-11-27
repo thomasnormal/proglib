@@ -1238,16 +1238,33 @@
                             },
                             "width": 32,
                             "operand": {
-                              "kind": "Ident",
+                              "kind": "AggregateMember",
                               "span": {
                                 "line": 12,
                                 "col": 9,
                                 "end_line": 12,
                                 "end_col": 22
                               },
-                              "width": 8,
-                              "name": "values[0].red",
-                              "signed": true
+                              "base": "values",
+                              "path": [
+                                {
+                                  "index": {
+                                    "kind": "Literal",
+                                    "span": {
+                                      "line": 12,
+                                      "col": 16,
+                                      "end_line": 12,
+                                      "end_col": 17
+                                    },
+                                    "width": 32,
+                                    "bits": "00000000000000000000000000000000"
+                                  }
+                                },
+                                {
+                                  "field": "red"
+                                }
+                              ],
+                              "width": 8
                             }
                           },
                           "right": {
@@ -1282,16 +1299,33 @@
                             },
                             "width": 32,
                             "operand": {
-                              "kind": "Ident",
+                              "kind": "AggregateMember",
                               "span": {
                                 "line": 12,
                                 "col": 31,
                                 "end_line": 12,
                                 "end_col": 44
                               },
-                              "width": 8,
-                              "name": "values[1].red",
-                              "signed": true
+                              "base": "values",
+                              "path": [
+                                {
+                                  "index": {
+                                    "kind": "Literal",
+                                    "span": {
+                                      "line": 12,
+                                      "col": 38,
+                                      "end_line": 12,
+                                      "end_col": 39
+                                    },
+                                    "width": 32,
+                                    "bits": "00000000000000000000000000000001"
+                                  }
+                                },
+                                {
+                                  "field": "red"
+                                }
+                              ],
+                              "width": 8
                             }
                           },
                           "right": {
@@ -1327,16 +1361,33 @@
                           },
                           "width": 32,
                           "operand": {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 13,
                               "col": 9,
                               "end_line": 13,
                               "end_col": 22
                             },
-                            "width": 8,
-                            "name": "values[2].red",
-                            "signed": true
+                            "base": "values",
+                            "path": [
+                              {
+                                "index": {
+                                  "kind": "Literal",
+                                  "span": {
+                                    "line": 13,
+                                    "col": 16,
+                                    "end_line": 13,
+                                    "end_col": 17
+                                  },
+                                  "width": 32,
+                                  "bits": "00000000000000000000000000000010"
+                                }
+                              },
+                              {
+                                "field": "red"
+                              }
+                            ],
+                            "width": 8
                           }
                         },
                         "right": {
@@ -1372,16 +1423,33 @@
                         },
                         "width": 32,
                         "operand": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 13,
                             "col": 31,
                             "end_line": 13,
                             "end_col": 44
                           },
-                          "width": 8,
-                          "name": "values[3].red",
-                          "signed": true
+                          "base": "values",
+                          "path": [
+                            {
+                              "index": {
+                                "kind": "Literal",
+                                "span": {
+                                  "line": 13,
+                                  "col": 38,
+                                  "end_line": 13,
+                                  "end_col": 39
+                                },
+                                "width": 32,
+                                "bits": "00000000000000000000000000000011"
+                              }
+                            },
+                            {
+                              "field": "red"
+                            }
+                          ],
+                          "width": 8
                         }
                       },
                       "right": {

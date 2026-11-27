@@ -20,7 +20,62 @@
         },
         "name": "top",
         "ports": [],
-        "decls": [],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 9,
+              "col": 7,
+              "end_line": 9,
+              "end_col": 15
+            },
+            "name": "values[0]",
+            "width": 32,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 32,
+              "bits": "00000000000000000000000000000000"
+            },
+            "signed": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 9,
+              "col": 7,
+              "end_line": 9,
+              "end_col": 15
+            },
+            "name": "values[1]",
+            "width": 32,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 32,
+              "bits": "00000000000000000000000000000000"
+            },
+            "signed": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 9,
+              "col": 7,
+              "end_line": 9,
+              "end_col": 15
+            },
+            "name": "values[2]",
+            "width": 32,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 32,
+              "bits": "00000000000000000000000000000000"
+            },
+            "signed": true
+          }
+        ],
         "processes": [
           {
             "kind": "Initial",
@@ -40,15 +95,126 @@
               },
               "stmts": [
                 {
-                  "kind": "Unsupported",
+                  "kind": "Block",
                   "span": {
                     "line": 14,
                     "col": 5,
                     "end_line": 14,
-                    "end_col": 36
+                    "end_col": 35
                   },
-                  "sv_kind": "AssignmentExpression:target",
-                  "text": "values = {10, get_value(), 30};"
+                  "stmts": [
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 14,
+                        "col": 5,
+                        "end_line": 14,
+                        "end_col": 35
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 14,
+                          "col": 5,
+                          "end_line": 14,
+                          "end_col": 11
+                        },
+                        "width": 32,
+                        "name": "values[0]"
+                      },
+                      "value": {
+                        "kind": "Squash2",
+                        "span": null,
+                        "width": 32,
+                        "operand": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 14,
+                            "col": 15,
+                            "end_line": 14,
+                            "end_col": 17
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000001010"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 14,
+                        "col": 5,
+                        "end_line": 14,
+                        "end_col": 35
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 14,
+                          "col": 5,
+                          "end_line": 14,
+                          "end_col": 11
+                        },
+                        "width": 32,
+                        "name": "values[1]"
+                      },
+                      "value": {
+                        "kind": "Squash2",
+                        "span": null,
+                        "width": 32,
+                        "operand": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 14,
+                            "col": 19,
+                            "end_line": 14,
+                            "end_col": 30
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000010100",
+                          "signed": true,
+                          "literal_function_return": true
+                        }
+                      }
+                    },
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 14,
+                        "col": 5,
+                        "end_line": 14,
+                        "end_col": 35
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 14,
+                          "col": 5,
+                          "end_line": 14,
+                          "end_col": 11
+                        },
+                        "width": 32,
+                        "name": "values[2]"
+                      },
+                      "value": {
+                        "kind": "Squash2",
+                        "span": null,
+                        "width": 32,
+                        "operand": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 14,
+                            "col": 32,
+                            "end_line": 14,
+                            "end_col": 34
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000011110"
+                        }
+                      }
+                    }
+                  ],
+                  "dynamic_array_concat_lowered": true
                 },
                 {
                   "kind": "SysCall",
@@ -80,19 +246,7 @@
             }
           }
         ],
-        "others": [
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 10,
-              "col": 3,
-              "end_line": 12,
-              "end_col": 14
-            },
-            "sv_kind": "SubroutineSymbol:Subroutine",
-            "text": "function automatic int get_value();\n    get_value = 20;\n  endfunction"
-          }
-        ]
+        "others": []
       }
     ],
     "others": []

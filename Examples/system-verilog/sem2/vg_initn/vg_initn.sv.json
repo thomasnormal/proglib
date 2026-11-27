@@ -88,19 +88,7 @@
             }
           }
         ],
-        "decls": [
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 14,
-              "col": 14,
-              "end_line": 14,
-              "end_col": 23
-            },
-            "sv_kind": "NetSymbol:net-z",
-            "text": "w = 2'b01"
-          }
-        ],
+        "decls": [],
         "processes": [
           {
             "kind": "Unsupported",
@@ -146,7 +134,79 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 14,
+              "col": 14,
+              "end_line": 14,
+              "end_col": 23
+            },
+            "sv_kind": "NetSymbol:net-z",
+            "text": "w = 2'b01",
+            "metadata": {
+              "name": "w",
+              "width": {
+                "kind": "PackedType",
+                "packed": [
+                  {
+                    "msb": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 14,
+                        "col": 9,
+                        "end_line": 14,
+                        "end_col": 10
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    },
+                    "lsb": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 14,
+                        "col": 11,
+                        "end_line": 14,
+                        "end_col": 12
+                      },
+                      "value": 0,
+                      "resolved_width": null
+                    }
+                  }
+                ],
+                "resolved": 2
+              },
+              "net_kind": "Wire",
+              "signed": false,
+              "four_state": true,
+              "is_net": true,
+              "driver_reason": "a declaration assignment and another driver",
+              "driver_records": [
+                {
+                  "bounds": [
+                    0,
+                    0
+                  ],
+                  "owner_kind": "ContinuousAssignSymbol",
+                  "owner_name": "",
+                  "generated": true,
+                  "source": "w[0]"
+                },
+                {
+                  "bounds": [
+                    0,
+                    1
+                  ],
+                  "owner_kind": "InstanceBodySymbol",
+                  "owner_name": "vg_initn",
+                  "generated": true,
+                  "source": "w"
+                }
+              ]
+            }
+          }
+        ]
       }
     ],
     "others": []

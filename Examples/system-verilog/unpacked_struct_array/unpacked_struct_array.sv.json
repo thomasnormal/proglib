@@ -311,15 +311,33 @@
                             "width": 1,
                             "op": "==",
                             "left": {
-                              "kind": "Ident",
+                              "kind": "AggregateMember",
                               "span": {
                                 "line": 21,
                                 "col": 9,
                                 "end_line": 21,
                                 "end_col": 23
                               },
-                              "width": 4,
-                              "name": "values[0].bits"
+                              "base": "values",
+                              "path": [
+                                {
+                                  "index": {
+                                    "kind": "Literal",
+                                    "span": {
+                                      "line": 21,
+                                      "col": 16,
+                                      "end_line": 21,
+                                      "end_col": 17
+                                    },
+                                    "width": 32,
+                                    "bits": "00000000000000000000000000000000"
+                                  }
+                                },
+                                {
+                                  "field": "bits"
+                                }
+                              ],
+                              "width": 4
                             },
                             "right": {
                               "kind": "Literal",
@@ -344,16 +362,36 @@
                             "width": 1,
                             "op": "==",
                             "left": {
-                              "kind": "Ident",
+                              "kind": "AggregateMember",
                               "span": {
                                 "line": 21,
                                 "col": 35,
                                 "end_line": 21,
                                 "end_col": 55
                               },
-                              "width": 32,
-                              "name": "values[1].meta.count",
-                              "signed": true
+                              "base": "values",
+                              "path": [
+                                {
+                                  "index": {
+                                    "kind": "Literal",
+                                    "span": {
+                                      "line": 21,
+                                      "col": 42,
+                                      "end_line": 21,
+                                      "end_col": 43
+                                    },
+                                    "width": 32,
+                                    "bits": "00000000000000000000000000000001"
+                                  }
+                                },
+                                {
+                                  "field": "meta"
+                                },
+                                {
+                                  "field": "count"
+                                }
+                              ],
+                              "width": 32
                             },
                             "right": {
                               "kind": "Literal",
@@ -369,15 +407,36 @@
                           }
                         },
                         "right": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 22,
                             "col": 9,
                             "end_line": 22,
                             "end_col": 29
                           },
-                          "width": 1,
-                          "name": "values[1].meta.valid"
+                          "base": "values",
+                          "path": [
+                            {
+                              "index": {
+                                "kind": "Literal",
+                                "span": {
+                                  "line": 22,
+                                  "col": 16,
+                                  "end_line": 22,
+                                  "end_col": 17
+                                },
+                                "width": 32,
+                                "bits": "00000000000000000000000000000001"
+                              }
+                            },
+                            {
+                              "field": "meta"
+                            },
+                            {
+                              "field": "valid"
+                            }
+                          ],
+                          "width": 1
                         }
                       },
                       "right": {
@@ -391,16 +450,36 @@
                         "width": 1,
                         "op": "==",
                         "left": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 23,
                             "col": 9,
                             "end_line": 23,
                             "end_col": 29
                           },
-                          "width": 32,
-                          "name": "values[0].meta.count",
-                          "signed": true
+                          "base": "values",
+                          "path": [
+                            {
+                              "index": {
+                                "kind": "Literal",
+                                "span": {
+                                  "line": 23,
+                                  "col": 16,
+                                  "end_line": 23,
+                                  "end_col": 17
+                                },
+                                "width": 32,
+                                "bits": "00000000000000000000000000000000"
+                              }
+                            },
+                            {
+                              "field": "meta"
+                            },
+                            {
+                              "field": "count"
+                            }
+                          ],
+                          "width": 32
                         },
                         "right": {
                           "kind": "Literal",
@@ -435,15 +514,33 @@
                         },
                         "width": 32,
                         "operand": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 23,
                             "col": 38,
                             "end_line": 23,
                             "end_col": 52
                           },
-                          "width": 4,
-                          "name": "values[1].bits"
+                          "base": "values",
+                          "path": [
+                            {
+                              "index": {
+                                "kind": "Literal",
+                                "span": {
+                                  "line": 23,
+                                  "col": 45,
+                                  "end_line": 23,
+                                  "end_col": 46
+                                },
+                                "width": 32,
+                                "bits": "00000000000000000000000000000001"
+                              }
+                            },
+                            {
+                              "field": "bits"
+                            }
+                          ],
+                          "width": 4
                         }
                       },
                       "right": {

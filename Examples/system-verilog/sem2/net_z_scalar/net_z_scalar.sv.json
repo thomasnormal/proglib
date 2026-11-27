@@ -71,7 +71,21 @@
               "end_col": 18
             },
             "sv_kind": "PortSymbol:net-z",
-            "text": "yo"
+            "text": "yo",
+            "metadata": {
+              "name": "yo",
+              "width": {
+                "kind": "PackedType",
+                "packed": [],
+                "resolved": 1
+              },
+              "net_kind": "Wire",
+              "signed": false,
+              "four_state": true,
+              "is_net": true,
+              "driver_reason": "no driver: the net reads z",
+              "driver_records": []
+            }
           },
           {
             "kind": "Port",
@@ -106,19 +120,7 @@
             }
           }
         ],
-        "decls": [
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 12,
-              "col": 8,
-              "end_line": 12,
-              "end_col": 9
-            },
-            "sv_kind": "NetSymbol:net-z",
-            "text": "w"
-          }
-        ],
+        "decls": [],
         "processes": [
           {
             "kind": "Assign",
@@ -206,7 +208,33 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [
+          {
+            "kind": "Unsupported",
+            "span": {
+              "line": 12,
+              "col": 8,
+              "end_line": 12,
+              "end_col": 9
+            },
+            "sv_kind": "NetSymbol:net-z",
+            "text": "w",
+            "metadata": {
+              "name": "w",
+              "width": {
+                "kind": "PackedType",
+                "packed": [],
+                "resolved": 1
+              },
+              "net_kind": "Wire",
+              "signed": false,
+              "four_state": true,
+              "is_net": true,
+              "driver_reason": "no driver: the net reads z",
+              "driver_records": []
+            }
+          }
+        ]
       }
     ],
     "others": []

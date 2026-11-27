@@ -20,9 +20,9 @@
       {
         "kind": "Module",
         "span": {
-          "line": 4,
+          "line": 8,
           "col": 1,
-          "end_line": 6,
+          "end_line": 10,
           "end_col": 10
         },
         "name": "ifdef_define_e",
@@ -33,9 +33,9 @@
           {
             "kind": "Port",
             "span": {
-              "line": 4,
+              "line": 8,
               "col": 35,
-              "end_line": 4,
+              "end_line": 8,
               "end_col": 36
             },
             "name": "a",
@@ -49,9 +49,9 @@
           {
             "kind": "Port",
             "span": {
-              "line": 4,
+              "line": 8,
               "col": 51,
-              "end_line": 4,
+              "end_line": 8,
               "end_col": 52
             },
             "name": "y",
@@ -68,32 +68,43 @@
           {
             "kind": "Assign",
             "span": {
-              "line": 5,
+              "line": 9,
               "col": 10,
-              "end_line": 5,
-              "end_col": 15
+              "end_line": 9,
+              "end_col": 16
             },
             "target": {
               "kind": "Ident",
               "span": {
-                "line": 5,
+                "line": 9,
                 "col": 10,
-                "end_line": 5,
+                "end_line": 9,
                 "end_col": 11
               },
               "width": 1,
               "name": "y"
             },
             "value": {
-              "kind": "Ident",
+              "kind": "Unary",
               "span": {
-                "line": 5,
+                "line": 9,
                 "col": 14,
-                "end_line": 5,
-                "end_col": 15
+                "end_line": 9,
+                "end_col": 16
               },
               "width": 1,
-              "name": "a"
+              "op": "~",
+              "operand": {
+                "kind": "Ident",
+                "span": {
+                  "line": 9,
+                  "col": 15,
+                  "end_line": 9,
+                  "end_col": 16
+                },
+                "width": 1,
+                "name": "a"
+              }
             }
           }
         ],

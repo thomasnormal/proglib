@@ -185,7 +185,8 @@
               },
               "width": 4,
               "name": "a"
-            }
+            },
+            "continuous_net_target": true
           },
           {
             "kind": "Assign",
@@ -227,11 +228,24 @@
                 "width": 4,
                 "name": "a"
               }
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "y[0]",
+            "base": "y",
+            "index": 0
+          },
+          {
+            "name": "y[1]",
+            "base": "y",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

@@ -82,7 +82,8 @@
               ],
               "resolved": 32
             },
-            "resolved": 0,
+            "resolved": "zzzzzzzzzzzzzzzzzzzzzzzzz0110111",
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Concat",
@@ -118,7 +119,9 @@
                 }
               ]
             },
-            "package": "package_param_xz_wall_pkg"
+            "package": "package_param_xz_wall_pkg",
+            "resolved_bits": "zzzzzzzzzzzzzzzzzzzzzzzzz0110111",
+            "resolved_signed": false
           }
         ],
         "types": [],

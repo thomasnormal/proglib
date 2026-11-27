@@ -60,15 +60,20 @@
             "name": "dst[0].code",
             "width": 8,
             "init": {
-              "kind": "Literal",
-              "span": {
-                "line": 14,
-                "col": 10,
-                "end_line": 14,
-                "end_col": 15
-              },
+              "kind": "Squash2",
+              "span": null,
               "width": 8,
-              "bits": "00000000"
+              "operand": {
+                "kind": "Literal",
+                "span": {
+                  "line": 14,
+                  "col": 10,
+                  "end_line": 14,
+                  "end_col": 15
+                },
+                "width": 8,
+                "bits": "00000000"
+              }
             },
             "signed": true
           },
@@ -111,15 +116,20 @@
             "name": "dst[1].code",
             "width": 8,
             "init": {
-              "kind": "Literal",
-              "span": {
-                "line": 14,
-                "col": 10,
-                "end_line": 14,
-                "end_col": 15
-              },
+              "kind": "Squash2",
+              "span": null,
               "width": 8,
-              "bits": "00000000"
+              "operand": {
+                "kind": "Literal",
+                "span": {
+                  "line": 14,
+                  "col": 10,
+                  "end_line": 14,
+                  "end_col": 15
+                },
+                "width": 8,
+                "bits": "00000000"
+              }
             },
             "signed": true
           }
@@ -299,16 +309,33 @@
                           "width": 1,
                           "op": "!=",
                           "left": {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 24,
                               "col": 9,
                               "end_line": 24,
                               "end_col": 18
                             },
-                            "width": 32,
-                            "name": "dst[0].id",
-                            "signed": true
+                            "base": "dst",
+                            "path": [
+                              {
+                                "index": {
+                                  "kind": "Literal",
+                                  "span": {
+                                    "line": 24,
+                                    "col": 13,
+                                    "end_line": 24,
+                                    "end_col": 14
+                                  },
+                                  "width": 32,
+                                  "bits": "00000000000000000000000000000000"
+                                }
+                              },
+                              {
+                                "field": "id"
+                              }
+                            ],
+                            "width": 32
                           },
                           "right": {
                             "kind": "Literal",
@@ -342,16 +369,33 @@
                             },
                             "width": 32,
                             "operand": {
-                              "kind": "Ident",
+                              "kind": "AggregateMember",
                               "span": {
                                 "line": 24,
                                 "col": 27,
                                 "end_line": 24,
                                 "end_col": 38
                               },
-                              "width": 8,
-                              "name": "dst[0].code",
-                              "signed": true
+                              "base": "dst",
+                              "path": [
+                                {
+                                  "index": {
+                                    "kind": "Literal",
+                                    "span": {
+                                      "line": 24,
+                                      "col": 31,
+                                      "end_line": 24,
+                                      "end_col": 32
+                                    },
+                                    "width": 32,
+                                    "bits": "00000000000000000000000000000000"
+                                  }
+                                },
+                                {
+                                  "field": "code"
+                                }
+                              ],
+                              "width": 8
                             }
                           },
                           "right": {
@@ -378,16 +422,33 @@
                         "width": 1,
                         "op": "!=",
                         "left": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 25,
                             "col": 9,
                             "end_line": 25,
                             "end_col": 18
                           },
-                          "width": 32,
-                          "name": "dst[1].id",
-                          "signed": true
+                          "base": "dst",
+                          "path": [
+                            {
+                              "index": {
+                                "kind": "Literal",
+                                "span": {
+                                  "line": 25,
+                                  "col": 13,
+                                  "end_line": 25,
+                                  "end_col": 14
+                                },
+                                "width": 32,
+                                "bits": "00000000000000000000000000000001"
+                              }
+                            },
+                            {
+                              "field": "id"
+                            }
+                          ],
+                          "width": 32
                         },
                         "right": {
                           "kind": "Literal",
@@ -422,16 +483,33 @@
                         },
                         "width": 32,
                         "operand": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 25,
                             "col": 27,
                             "end_line": 25,
                             "end_col": 38
                           },
-                          "width": 8,
-                          "name": "dst[1].code",
-                          "signed": true
+                          "base": "dst",
+                          "path": [
+                            {
+                              "index": {
+                                "kind": "Literal",
+                                "span": {
+                                  "line": 25,
+                                  "col": 31,
+                                  "end_line": 25,
+                                  "end_col": 32
+                                },
+                                "width": 32,
+                                "bits": "00000000000000000000000000000001"
+                              }
+                            },
+                            {
+                              "field": "code"
+                            }
+                          ],
+                          "width": 8
                         }
                       },
                       "right": {
@@ -468,52 +546,120 @@
                         "format": "FAIL: dst0={%0d,%0h} dst1={%0d,%0h}",
                         "args": [
                           {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 27,
                               "col": 16,
                               "end_line": 27,
                               "end_col": 25
                             },
-                            "width": 32,
-                            "name": "dst[0].id",
-                            "signed": true
+                            "base": "dst",
+                            "path": [
+                              {
+                                "index": {
+                                  "kind": "Literal",
+                                  "span": {
+                                    "line": 27,
+                                    "col": 20,
+                                    "end_line": 27,
+                                    "end_col": 21
+                                  },
+                                  "width": 32,
+                                  "bits": "00000000000000000000000000000000"
+                                }
+                              },
+                              {
+                                "field": "id"
+                              }
+                            ],
+                            "width": 32
                           },
                           {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 27,
                               "col": 27,
                               "end_line": 27,
                               "end_col": 38
                             },
-                            "width": 8,
-                            "name": "dst[0].code",
-                            "signed": true
+                            "base": "dst",
+                            "path": [
+                              {
+                                "index": {
+                                  "kind": "Literal",
+                                  "span": {
+                                    "line": 27,
+                                    "col": 31,
+                                    "end_line": 27,
+                                    "end_col": 32
+                                  },
+                                  "width": 32,
+                                  "bits": "00000000000000000000000000000000"
+                                }
+                              },
+                              {
+                                "field": "code"
+                              }
+                            ],
+                            "width": 8
                           },
                           {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 27,
                               "col": 40,
                               "end_line": 27,
                               "end_col": 49
                             },
-                            "width": 32,
-                            "name": "dst[1].id",
-                            "signed": true
+                            "base": "dst",
+                            "path": [
+                              {
+                                "index": {
+                                  "kind": "Literal",
+                                  "span": {
+                                    "line": 27,
+                                    "col": 44,
+                                    "end_line": 27,
+                                    "end_col": 45
+                                  },
+                                  "width": 32,
+                                  "bits": "00000000000000000000000000000001"
+                                }
+                              },
+                              {
+                                "field": "id"
+                              }
+                            ],
+                            "width": 32
                           },
                           {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 27,
                               "col": 51,
                               "end_line": 27,
                               "end_col": 62
                             },
-                            "width": 8,
-                            "name": "dst[1].code",
-                            "signed": true
+                            "base": "dst",
+                            "path": [
+                              {
+                                "index": {
+                                  "kind": "Literal",
+                                  "span": {
+                                    "line": 27,
+                                    "col": 55,
+                                    "end_line": 27,
+                                    "end_col": 56
+                                  },
+                                  "width": 32,
+                                  "bits": "00000000000000000000000000000001"
+                                }
+                              },
+                              {
+                                "field": "code"
+                              }
+                            ],
+                            "width": 8
                           }
                         ],
                         "arg_signed": [

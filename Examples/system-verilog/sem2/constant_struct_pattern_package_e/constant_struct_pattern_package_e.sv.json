@@ -92,7 +92,8 @@
               "value": 1,
               "resolved_width": 32
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -134,7 +135,8 @@
               "name": "DEFAULT_PAIR",
               "from_package": "constant_struct_pattern_package_e_pkg"
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           }
         ],
         "package_params": [
@@ -168,6 +170,7 @@
               "resolved": 2
             },
             "resolved": 1,
+            "string": false,
             "default": {
               "kind": "Concat",
               "span": {
@@ -204,7 +207,9 @@
               "assignment_pattern_lowered": true,
               "source_pattern": "StructuredAssignmentPatternExpression"
             },
-            "package": "constant_struct_pattern_package_e_pkg"
+            "package": "constant_struct_pattern_package_e_pkg",
+            "resolved_bits": "01",
+            "resolved_signed": false
           }
         ],
         "types": [],

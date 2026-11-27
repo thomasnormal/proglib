@@ -24,12 +24,26 @@
           {
             "kind": "Var",
             "span": {
-              "line": 12,
+              "line": 9,
               "col": 13,
-              "end_line": 12,
+              "end_line": 9,
               "end_col": 17
             },
-            "name": "high",
+            "name": "seed",
+            "width": 32,
+            "init": null,
+            "signed": true,
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 10,
+              "col": 13,
+              "end_line": 10,
+              "end_col": 18
+            },
+            "name": "value",
             "width": 32,
             "init": null,
             "signed": true,
@@ -52,40 +66,26 @@
           {
             "kind": "Var",
             "span": {
+              "line": 12,
+              "col": 13,
+              "end_line": 12,
+              "end_col": 17
+            },
+            "name": "high",
+            "width": 32,
+            "init": null,
+            "signed": true,
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
               "line": 13,
               "col": 13,
               "end_line": 13,
               "end_col": 17
             },
             "name": "pass",
-            "width": 32,
-            "init": null,
-            "signed": true,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 9,
-              "col": 13,
-              "end_line": 9,
-              "end_col": 17
-            },
-            "name": "seed",
-            "width": 32,
-            "init": null,
-            "signed": true,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 10,
-              "col": 13,
-              "end_line": 10,
-              "end_col": 18
-            },
-            "name": "value",
             "width": 32,
             "init": null,
             "signed": true,

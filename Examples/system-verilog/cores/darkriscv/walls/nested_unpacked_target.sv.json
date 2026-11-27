@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -182,7 +184,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           }
         ],
         "types": [],
@@ -520,7 +523,7 @@
               "name": "q"
             },
             "value": {
-              "kind": "ArraySel",
+              "kind": "BitSel",
               "span": {
                 "line": 26,
                 "col": 14,
@@ -528,33 +531,43 @@
                 "end_col": 27
               },
               "width": 8,
-              "name": "weights",
-              "indices": [
-                {
-                  "kind": "Int",
-                  "span": {
-                    "line": 26,
-                    "col": 22,
-                    "end_line": 26,
-                    "end_col": 23
-                  },
-                  "value": 0,
-                  "resolved_width": 32
+              "value": {
+                "kind": "ArraySel",
+                "span": {
+                  "line": 26,
+                  "col": 14,
+                  "end_line": 26,
+                  "end_col": 24
                 },
-                {
-                  "kind": "Int",
-                  "span": {
-                    "line": 26,
-                    "col": 25,
-                    "end_line": 26,
-                    "end_col": 26
-                  },
-                  "value": 0,
-                  "resolved_width": 32
-                }
-              ],
-              "part": null,
-              "unpacked": true
+                "width": 0,
+                "name": "weights",
+                "indices": [
+                  {
+                    "kind": "Int",
+                    "span": {
+                      "line": 26,
+                      "col": 22,
+                      "end_line": 26,
+                      "end_col": 23
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                ],
+                "part": null,
+                "unpacked": true
+              },
+              "index": {
+                "kind": "Int",
+                "span": {
+                  "line": 26,
+                  "col": 25,
+                  "end_line": 26,
+                  "end_col": 26
+                },
+                "value": 0,
+                "resolved_width": 32
+              }
             }
           }
         ],
@@ -760,114 +773,26 @@
                             }
                           },
                           "then": {
-                            "kind": "NonblockingAssign",
+                            "kind": "Unsupported",
                             "span": {
                               "line": 19,
                               "col": 13,
                               "end_line": 19,
                               "end_col": 37
                             },
-                            "target": {
-                              "kind": "ArraySel",
-                              "span": {
-                                "line": 19,
-                                "col": 13,
-                                "end_line": 19,
-                                "end_col": 30
-                              },
-                              "width": 8,
-                              "name": "weights",
-                              "indices": [
-                                {
-                                  "kind": "GenvarRef",
-                                  "span": {
-                                    "line": 19,
-                                    "col": 21,
-                                    "end_line": 19,
-                                    "end_col": 24
-                                  },
-                                  "name": "row"
-                                },
-                                {
-                                  "kind": "GenvarRef",
-                                  "span": {
-                                    "line": 19,
-                                    "col": 26,
-                                    "end_line": 19,
-                                    "end_col": 29
-                                  },
-                                  "name": "col"
-                                }
-                              ],
-                              "part": null,
-                              "unpacked": true
-                            },
-                            "value": {
-                              "kind": "Fill",
-                              "span": {
-                                "line": 19,
-                                "col": 34,
-                                "end_line": 19,
-                                "end_col": 36
-                              },
-                              "bit": "0",
-                              "resolved_width": 8
-                            }
+                            "sv_kind": "ElementSelect:default-point-index",
+                            "text": "weights[row][col] <= '0;"
                           },
                           "else": {
-                            "kind": "NonblockingAssign",
+                            "kind": "Unsupported",
                             "span": {
                               "line": 21,
                               "col": 13,
                               "end_line": 21,
                               "end_col": 36
                             },
-                            "target": {
-                              "kind": "ArraySel",
-                              "span": {
-                                "line": 21,
-                                "col": 13,
-                                "end_line": 21,
-                                "end_col": 30
-                              },
-                              "width": 8,
-                              "name": "weights",
-                              "indices": [
-                                {
-                                  "kind": "GenvarRef",
-                                  "span": {
-                                    "line": 21,
-                                    "col": 21,
-                                    "end_line": 21,
-                                    "end_col": 24
-                                  },
-                                  "name": "row"
-                                },
-                                {
-                                  "kind": "GenvarRef",
-                                  "span": {
-                                    "line": 21,
-                                    "col": 26,
-                                    "end_line": 21,
-                                    "end_col": 29
-                                  },
-                                  "name": "col"
-                                }
-                              ],
-                              "part": null,
-                              "unpacked": true
-                            },
-                            "value": {
-                              "kind": "Ident",
-                              "span": {
-                                "line": 21,
-                                "col": 34,
-                                "end_line": 21,
-                                "end_col": 35
-                              },
-                              "width": 8,
-                              "name": "d"
-                            }
+                            "sv_kind": "ElementSelect:default-point-index",
+                            "text": "weights[row][col] <= d;"
                           }
                         }
                       ]

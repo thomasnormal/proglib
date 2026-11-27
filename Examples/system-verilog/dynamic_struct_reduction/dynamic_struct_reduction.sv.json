@@ -533,41 +533,53 @@
                         "width": 32,
                         "op": "+",
                         "left": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 11,
                             "col": 31,
                             "end_line": 11,
                             "end_col": 42
                           },
-                          "width": 32,
-                          "name": "items[0].weight",
-                          "signed": true
+                          "base": "item",
+                          "path": [
+                            {
+                              "field": "weight"
+                            }
+                          ],
+                          "width": 32
                         },
                         "right": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 11,
                             "col": 31,
                             "end_line": 11,
                             "end_col": 42
                           },
-                          "width": 32,
-                          "name": "items[1].weight",
-                          "signed": true
+                          "base": "item",
+                          "path": [
+                            {
+                              "field": "weight"
+                            }
+                          ],
+                          "width": 32
                         }
                       },
                       "right": {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 11,
                           "col": 31,
                           "end_line": 11,
                           "end_col": 42
                         },
-                        "width": 32,
-                        "name": "items[2].weight",
-                        "signed": true
+                        "base": "item",
+                        "path": [
+                          {
+                            "field": "weight"
+                          }
+                        ],
+                        "width": 32
                       },
                       "array_reduction_lowered": "sum",
                       "signed": true

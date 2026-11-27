@@ -71,6 +71,7 @@
               "resolved": 4
             },
             "resolved": 10,
+            "string": false,
             "default": {
               "kind": "Literal",
               "span": {
@@ -82,7 +83,9 @@
               "width": 4,
               "bits": "1010"
             },
-            "package": "package_param_packed_pkg"
+            "package": "package_param_packed_pkg",
+            "resolved_bits": "1010",
+            "resolved_signed": false
           }
         ],
         "types": [],

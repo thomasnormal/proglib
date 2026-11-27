@@ -115,14 +115,14 @@
         ],
         "decls": [
           {
-            "kind": "UnpackedDecl",
+            "kind": "Var",
             "span": {
               "line": 5,
               "col": 15,
               "end_line": 5,
               "end_col": 24
             },
-            "name": "rom",
+            "name": "rom[0]",
             "width": {
               "kind": "PackedType",
               "packed": [
@@ -153,32 +153,142 @@
               ],
               "resolved": 8
             },
-            "unpacked": [
-              {
-                "msb": {
-                  "kind": "Int",
-                  "span": {
-                    "line": 5,
-                    "col": 20,
-                    "end_line": 5,
-                    "end_col": 21
+            "two_state": false,
+            "flat_base": "rom",
+            "flat_index": 0,
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 5,
+              "col": 15,
+              "end_line": 5,
+              "end_col": 24
+            },
+            "name": "rom[1]",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 10,
+                      "end_line": 5,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
                   },
-                  "value": 0,
-                  "resolved_width": null
-                },
-                "lsb": {
-                  "kind": "Int",
-                  "span": {
-                    "line": 5,
-                    "col": 22,
-                    "end_line": 5,
-                    "end_col": 23
-                  },
-                  "value": 3,
-                  "resolved_width": null
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 12,
+                      "end_line": 5,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
                 }
-              }
-            ]
+              ],
+              "resolved": 8
+            },
+            "two_state": false,
+            "flat_base": "rom",
+            "flat_index": 1,
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 5,
+              "col": 15,
+              "end_line": 5,
+              "end_col": 24
+            },
+            "name": "rom[2]",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 10,
+                      "end_line": 5,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 12,
+                      "end_line": 5,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "two_state": false,
+            "flat_base": "rom",
+            "flat_index": 2,
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 5,
+              "col": 15,
+              "end_line": 5,
+              "end_col": 24
+            },
+            "name": "rom[3]",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 10,
+                      "end_line": 5,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 12,
+                      "end_line": 5,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "two_state": false,
+            "flat_base": "rom",
+            "flat_index": 3,
+            "init": null
           }
         ],
         "processes": [
@@ -207,8 +317,8 @@
                     "end_line": 7,
                     "end_col": 31
                   },
-                  "sv_kind": "SystemTask:readmemh",
-                  "text": "file=rom.hex;target=rom;data=00,11,22,33"
+                  "sv_kind": "SystemTask:readmemh:missing-file",
+                  "text": "literal file 'rom.hex' is not present beside the source"
                 }
               ]
             }
@@ -233,7 +343,7 @@
               "name": "q"
             },
             "value": {
-              "kind": "ArraySel",
+              "kind": "Ternary",
               "span": {
                 "line": 9,
                 "col": 14,
@@ -241,9 +351,17 @@
                 "end_col": 23
               },
               "width": 8,
-              "name": "rom",
-              "indices": [
-                {
+              "cond": {
+                "kind": "Binary",
+                "span": {
+                  "line": 9,
+                  "col": 18,
+                  "end_line": 9,
+                  "end_col": 22
+                },
+                "width": 1,
+                "op": "===",
+                "left": {
                   "kind": "Ident",
                   "span": {
                     "line": 9,
@@ -253,25 +371,228 @@
                   },
                   "width": 2,
                   "name": "addr"
+                },
+                "right": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 9,
+                    "col": 18,
+                    "end_line": 9,
+                    "end_col": 22
+                  },
+                  "width": 2,
+                  "bits": "00"
                 }
-              ],
-              "part": null,
-              "unpacked": true
+              },
+              "then": {
+                "kind": "Ident",
+                "span": {
+                  "line": 9,
+                  "col": 14,
+                  "end_line": 9,
+                  "end_col": 17
+                },
+                "width": 8,
+                "name": "rom[0]"
+              },
+              "else": {
+                "kind": "Ternary",
+                "span": {
+                  "line": 9,
+                  "col": 14,
+                  "end_line": 9,
+                  "end_col": 23
+                },
+                "width": 8,
+                "cond": {
+                  "kind": "Binary",
+                  "span": {
+                    "line": 9,
+                    "col": 18,
+                    "end_line": 9,
+                    "end_col": 22
+                  },
+                  "width": 1,
+                  "op": "===",
+                  "left": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 9,
+                      "col": 18,
+                      "end_line": 9,
+                      "end_col": 22
+                    },
+                    "width": 2,
+                    "name": "addr"
+                  },
+                  "right": {
+                    "kind": "Literal",
+                    "span": {
+                      "line": 9,
+                      "col": 18,
+                      "end_line": 9,
+                      "end_col": 22
+                    },
+                    "width": 2,
+                    "bits": "01"
+                  }
+                },
+                "then": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 9,
+                    "col": 14,
+                    "end_line": 9,
+                    "end_col": 17
+                  },
+                  "width": 8,
+                  "name": "rom[1]"
+                },
+                "else": {
+                  "kind": "Ternary",
+                  "span": {
+                    "line": 9,
+                    "col": 14,
+                    "end_line": 9,
+                    "end_col": 23
+                  },
+                  "width": 8,
+                  "cond": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 9,
+                      "col": 18,
+                      "end_line": 9,
+                      "end_col": 22
+                    },
+                    "width": 1,
+                    "op": "===",
+                    "left": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 9,
+                        "col": 18,
+                        "end_line": 9,
+                        "end_col": 22
+                      },
+                      "width": 2,
+                      "name": "addr"
+                    },
+                    "right": {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 9,
+                        "col": 18,
+                        "end_line": 9,
+                        "end_col": 22
+                      },
+                      "width": 2,
+                      "bits": "10"
+                    }
+                  },
+                  "then": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 9,
+                      "col": 14,
+                      "end_line": 9,
+                      "end_col": 17
+                    },
+                    "width": 8,
+                    "name": "rom[2]"
+                  },
+                  "else": {
+                    "kind": "Ternary",
+                    "span": {
+                      "line": 9,
+                      "col": 14,
+                      "end_line": 9,
+                      "end_col": 23
+                    },
+                    "width": 8,
+                    "cond": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 9,
+                        "col": 18,
+                        "end_line": 9,
+                        "end_col": 22
+                      },
+                      "width": 1,
+                      "op": "===",
+                      "left": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 9,
+                          "col": 18,
+                          "end_line": 9,
+                          "end_col": 22
+                        },
+                        "width": 2,
+                        "name": "addr"
+                      },
+                      "right": {
+                        "kind": "Literal",
+                        "span": {
+                          "line": 9,
+                          "col": 18,
+                          "end_line": 9,
+                          "end_col": 22
+                        },
+                        "width": 2,
+                        "bits": "11"
+                      }
+                    },
+                    "then": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 9,
+                        "col": 14,
+                        "end_line": 9,
+                        "end_col": 17
+                      },
+                      "width": 8,
+                      "name": "rom[3]"
+                    },
+                    "else": {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 9,
+                        "col": 14,
+                        "end_line": 9,
+                        "end_col": 23
+                      },
+                      "width": 8,
+                      "bits": "xxxxxxxx"
+                    }
+                  }
+                }
+              }
             }
           }
         ],
         "generates": [],
         "others": [],
-        "readmemh": [
+        "cell_refs": [
           {
-            "file": "rom.hex",
-            "target": "rom",
-            "words": [
-              "00",
-              "11",
-              "22",
-              "33"
-            ]
+            "name": "rom[0]",
+            "base": "rom",
+            "index": 0
+          },
+          {
+            "name": "rom[1]",
+            "base": "rom",
+            "index": 1
+          },
+          {
+            "name": "rom[2]",
+            "base": "rom",
+            "index": 2
+          },
+          {
+            "name": "rom[3]",
+            "base": "rom",
+            "index": 3
           }
         ]
       }

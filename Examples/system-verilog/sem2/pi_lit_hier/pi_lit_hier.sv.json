@@ -453,7 +453,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           }
         ],
         "types": [],
@@ -567,15 +568,19 @@
         "decls": [],
         "processes": [
           {
-            "kind": "AlwaysPosedge",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 13,
               "col": 3,
               "end_line": 13,
               "end_col": 37
             },
-            "style": "always",
-            "clock": "clk",
+            "events": [
+              {
+                "edge": "posedge",
+                "signal": "clk"
+              }
+            ],
             "body": {
               "kind": "NonblockingAssign",
               "span": {
@@ -708,7 +713,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],

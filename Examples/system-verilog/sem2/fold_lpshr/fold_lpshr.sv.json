@@ -78,7 +78,8 @@
               "value": 16,
               "resolved_width": 32
             },
-            "resolved": 16
+            "resolved": 16,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -216,6 +217,7 @@
               }
             },
             "resolved": 9,
+            "string": false,
             "signed": false
           },
           {
@@ -364,6 +366,7 @@
               }
             },
             "resolved": 100,
+            "string": false,
             "signed": false
           },
           {
@@ -512,6 +515,7 @@
               }
             },
             "resolved": 1,
+            "string": false,
             "signed": false
           },
           {
@@ -596,6 +600,7 @@
               }
             },
             "resolved": 100,
+            "string": false,
             "signed": false
           }
         ],

@@ -317,8 +317,8 @@
                     "end_line": 7,
                     "end_col": 31
                   },
-                  "sv_kind": "SystemTask:readmemh",
-                  "text": "file=rom.hex;target=rom;data=00,11,22,33"
+                  "sv_kind": "SystemTask:readmemh:missing-file",
+                  "text": "literal file 'rom.hex' is not present beside the source"
                 }
               ]
             }
@@ -573,18 +573,6 @@
         ],
         "generates": [],
         "others": [],
-        "readmemh": [
-          {
-            "file": "rom.hex",
-            "target": "rom",
-            "words": [
-              "00",
-              "11",
-              "22",
-              "33"
-            ]
-          }
-        ],
         "cell_refs": [
           {
             "name": "rom[0]",

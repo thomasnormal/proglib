@@ -24,82 +24,6 @@
           {
             "kind": "Var",
             "span": {
-              "line": 12,
-              "col": 9,
-              "end_line": 12,
-              "end_col": 25
-            },
-            "name": "$local_array:329:dynamic_result[0]",
-            "width": 32,
-            "init": {
-              "kind": "Literal",
-              "span": null,
-              "width": 32,
-              "bits": "00000000000000000000000000000000"
-            },
-            "signed": true,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 12,
-              "col": 9,
-              "end_line": 12,
-              "end_col": 25
-            },
-            "name": "$local_array:329:dynamic_result[1]",
-            "width": 32,
-            "init": {
-              "kind": "Literal",
-              "span": null,
-              "width": 32,
-              "bits": "00000000000000000000000000000000"
-            },
-            "signed": true,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 12,
-              "col": 9,
-              "end_line": 12,
-              "end_col": 25
-            },
-            "name": "$local_array:329:dynamic_result[2]",
-            "width": 32,
-            "init": {
-              "kind": "Literal",
-              "span": null,
-              "width": 32,
-              "bits": "00000000000000000000000000000000"
-            },
-            "signed": true,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 12,
-              "col": 9,
-              "end_line": 12,
-              "end_col": 25
-            },
-            "name": "$local_array:329:dynamic_result[3]",
-            "width": 32,
-            "init": {
-              "kind": "Literal",
-              "span": null,
-              "width": 32,
-              "bits": "00000000000000000000000000000000"
-            },
-            "signed": true,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
               "line": 11,
               "col": 9,
               "end_line": 11,
@@ -180,6 +104,82 @@
                 "width": 32,
                 "bits": "00000000000000000000000000001010"
               }
+            },
+            "signed": true,
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 12,
+              "col": 9,
+              "end_line": 12,
+              "end_col": 25
+            },
+            "name": "$local_array:329:dynamic_result[0]",
+            "width": 32,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 32,
+              "bits": "00000000000000000000000000000000"
+            },
+            "signed": true,
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 12,
+              "col": 9,
+              "end_line": 12,
+              "end_col": 25
+            },
+            "name": "$local_array:329:dynamic_result[1]",
+            "width": 32,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 32,
+              "bits": "00000000000000000000000000000000"
+            },
+            "signed": true,
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 12,
+              "col": 9,
+              "end_line": 12,
+              "end_col": 25
+            },
+            "name": "$local_array:329:dynamic_result[2]",
+            "width": 32,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 32,
+              "bits": "00000000000000000000000000000000"
+            },
+            "signed": true,
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 12,
+              "col": 9,
+              "end_line": 12,
+              "end_col": 25
+            },
+            "name": "$local_array:329:dynamic_result[3]",
+            "width": 32,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 32,
+              "bits": "00000000000000000000000000000000"
             },
             "signed": true,
             "static_local_storage": true

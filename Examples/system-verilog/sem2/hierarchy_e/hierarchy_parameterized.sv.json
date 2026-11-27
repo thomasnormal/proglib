@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -742,7 +743,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -904,7 +906,8 @@
               },
               "width": 4,
               "name": "a"
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],

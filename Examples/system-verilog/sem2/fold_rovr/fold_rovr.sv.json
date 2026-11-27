@@ -78,7 +78,8 @@
               "value": 5,
               "resolved_width": 32
             },
-            "resolved": 5
+            "resolved": 5,
+            "string": false
           }
         ],
         "types": [],
@@ -349,6 +350,7 @@
               "resolved_width": 40
             },
             "resolved": 0,
+            "string": false,
             "signed": true
           }
         ],

@@ -186,7 +186,7 @@
                         },
                         "width": 32,
                         "bits": "00000000000000000000000000000000",
-                        "zero_string_length_query": true
+                        "string_literal_length_query": true
                       },
                       "right": {
                         "kind": "Literal",

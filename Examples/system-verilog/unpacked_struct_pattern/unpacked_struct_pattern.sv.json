@@ -391,15 +391,20 @@
                               "width": 1,
                               "op": "==",
                               "left": {
-                                "kind": "Ident",
+                                "kind": "AggregateMember",
                                 "span": {
                                   "line": 20,
                                   "col": 9,
                                   "end_line": 20,
                                   "end_col": 16
                                 },
-                                "width": 8,
-                                "name": "color.r"
+                                "base": "color",
+                                "path": [
+                                  {
+                                    "field": "r"
+                                  }
+                                ],
+                                "width": 8
                               },
                               "right": {
                                 "kind": "Literal",
@@ -424,15 +429,20 @@
                               "width": 1,
                               "op": "==",
                               "left": {
-                                "kind": "Ident",
+                                "kind": "AggregateMember",
                                 "span": {
                                   "line": 20,
                                   "col": 29,
                                   "end_line": 20,
                                   "end_col": 36
                                 },
-                                "width": 8,
-                                "name": "color.g"
+                                "base": "color",
+                                "path": [
+                                  {
+                                    "field": "g"
+                                  }
+                                ],
+                                "width": 8
                               },
                               "right": {
                                 "kind": "Literal",
@@ -458,15 +468,20 @@
                             "width": 1,
                             "op": "==",
                             "left": {
-                              "kind": "Ident",
+                              "kind": "AggregateMember",
                               "span": {
                                 "line": 20,
                                 "col": 49,
                                 "end_line": 20,
                                 "end_col": 56
                               },
-                              "width": 8,
-                              "name": "color.b"
+                              "base": "color",
+                              "path": [
+                                {
+                                  "field": "b"
+                                }
+                              ],
+                              "width": 8
                             },
                             "right": {
                               "kind": "Literal",
@@ -492,15 +507,20 @@
                           "width": 1,
                           "op": "==",
                           "left": {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 21,
                               "col": 9,
                               "end_line": 21,
                               "end_col": 16
                             },
-                            "width": 8,
-                            "name": "keyed.r"
+                            "base": "keyed",
+                            "path": [
+                              {
+                                "field": "r"
+                              }
+                            ],
+                            "width": 8
                           },
                           "right": {
                             "kind": "Literal",
@@ -526,15 +546,20 @@
                         "width": 1,
                         "op": "==",
                         "left": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 21,
                             "col": 29,
                             "end_line": 21,
                             "end_col": 36
                           },
-                          "width": 8,
-                          "name": "keyed.g"
+                          "base": "keyed",
+                          "path": [
+                            {
+                              "field": "g"
+                            }
+                          ],
+                          "width": 8
                         },
                         "right": {
                           "kind": "Literal",
@@ -560,15 +585,20 @@
                       "width": 1,
                       "op": "==",
                       "left": {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 21,
                           "col": 49,
                           "end_line": 21,
                           "end_col": 56
                         },
-                        "width": 8,
-                        "name": "keyed.b"
+                        "base": "keyed",
+                        "path": [
+                          {
+                            "field": "b"
+                          }
+                        ],
+                        "width": 8
                       },
                       "right": {
                         "kind": "Literal",

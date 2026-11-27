@@ -141,7 +141,9 @@
                 "width": 4,
                 "bits": "0101"
               }
-            }
+            },
+            "continuous_literal_source": true,
+            "continuous_strength": false
           }
         ],
         "others": []

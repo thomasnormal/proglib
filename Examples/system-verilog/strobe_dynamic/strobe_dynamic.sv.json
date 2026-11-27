@@ -6,7 +6,7 @@
     "family": "pyslang-11"
   },
   "source_file": "Examples/system-verilog/strobe_dynamic/strobe_dynamic.sv",
-  "source_sha256": "b4ccd1fb6153967346568fa1721408a4a03c558719853689a5b44fe1cbabfdae",
+  "source_sha256": "b2ffca02596107948cb02bfaddc7a28b9ed4b76cee03b24d8523efbfc4202629",
   "design": {
     "kind": "Design",
     "modules": [
@@ -15,7 +15,7 @@
         "span": {
           "line": 8,
           "col": 1,
-          "end_line": 17,
+          "end_line": 18,
           "end_col": 10
         },
         "name": "top",
@@ -41,7 +41,7 @@
             "span": {
               "line": 10,
               "col": 3,
-              "end_line": 16,
+              "end_line": 17,
               "end_col": 6
             },
             "body": {
@@ -49,7 +49,7 @@
               "span": {
                 "line": 10,
                 "col": 11,
-                "end_line": 16,
+                "end_line": 17,
                 "end_col": 6
               },
               "stmts": [
@@ -161,9 +161,9 @@
                 {
                   "kind": "SysCall",
                   "span": {
-                    "line": 15,
+                    "line": 16,
                     "col": 5,
-                    "end_line": 15,
+                    "end_line": 16,
                     "end_col": 13
                   },
                   "name": "$finish",

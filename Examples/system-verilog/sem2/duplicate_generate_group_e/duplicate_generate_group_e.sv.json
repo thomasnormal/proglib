@@ -78,7 +78,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           }
         ],
         "types": [],
@@ -294,7 +295,7 @@
                   "end_line": 4,
                   "end_col": 12
                 },
-                "name": "g[0].t",
+                "name": "g[$genvar:k].t",
                 "width": {
                   "kind": "PackedType",
                   "packed": [],
@@ -319,7 +320,7 @@
                     "end_col": 13
                   },
                   "width": 1,
-                  "name": "g[0].t"
+                  "name": "g[$genvar:k].t"
                 },
                 "value": {
                   "kind": "BitSel",
@@ -401,7 +402,7 @@
                     "end_col": 20
                   },
                   "width": 1,
-                  "name": "g[0].t"
+                  "name": "g[$genvar:k].t"
                 }
               }
             ]
@@ -489,7 +490,7 @@
                   "end_line": 9,
                   "end_col": 12
                 },
-                "name": "g[0].u",
+                "name": "g[$genvar:j].u",
                 "width": {
                   "kind": "PackedType",
                   "packed": [],
@@ -514,7 +515,7 @@
                     "end_col": 13
                   },
                   "width": 1,
-                  "name": "g[0].u"
+                  "name": "g[$genvar:j].u"
                 },
                 "value": {
                   "kind": "BitSel",

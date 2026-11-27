@@ -223,7 +223,19 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "m[0]",
+            "base": "m",
+            "index": 0
+          },
+          {
+            "name": "m[1]",
+            "base": "m",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

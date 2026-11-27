@@ -47,23 +47,13 @@
                 {
                   "msb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 3,
-                      "col": 23,
-                      "end_line": 3,
-                      "end_col": 24
-                    },
+                    "span": null,
                     "value": 1,
                     "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 3,
-                      "col": 25,
-                      "end_line": 3,
-                      "end_col": 26
-                    },
+                    "span": null,
                     "value": 0,
                     "resolved_width": null
                   }
@@ -296,9 +286,10 @@
                       "end_col": 41
                     },
                     "name": "$error",
-                    "format": "IDLE enum value changed",
+                    "format": null,
                     "args": [],
-                    "arg_signed": []
+                    "arg_signed": [],
+                    "initial_check_diagnostic": true
                   },
                   "else": null
                 }

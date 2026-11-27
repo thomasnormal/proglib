@@ -297,6 +297,38 @@
           {
             "kind": "Var",
             "span": {
+              "line": 11,
+              "col": 11,
+              "end_line": 11,
+              "end_col": 12
+            },
+            "name": "i",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": null,
+            "signed": true
+          },
+          {
+            "kind": "Var",
+            "span": {
               "line": 12,
               "col": 13,
               "end_line": 12,
@@ -559,13 +591,57 @@
             "always_star_lowered": "implicit"
           },
           {
-            "kind": "AlwaysComb",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 17,
               "col": 3,
               "end_line": 24,
               "end_col": 6
             },
+            "events": [
+              {
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 17,
+                    "col": 12,
+                    "end_line": 17,
+                    "end_col": 13
+                  },
+                  "width": 8,
+                  "name": "a"
+                },
+                "edge": "any"
+              },
+              {
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 17,
+                    "col": 17,
+                    "end_line": 17,
+                    "end_col": 18
+                  },
+                  "width": 8,
+                  "name": "b"
+                },
+                "edge": "any"
+              },
+              {
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 17,
+                    "col": 22,
+                    "end_line": 17,
+                    "end_col": 23
+                  },
+                  "width": 2,
+                  "name": "s"
+                },
+                "edge": "any"
+              }
+            ],
             "body": {
               "kind": "Block",
               "span": {
@@ -849,17 +925,32 @@
                   }
                 }
               ]
-            },
-            "always_star_lowered": "list"
+            }
           },
           {
-            "kind": "AlwaysComb",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 25,
               "col": 3,
               "end_line": 25,
               "end_col": 22
             },
+            "events": [
+              {
+                "edge": "any",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 25,
+                    "col": 12,
+                    "end_line": 25,
+                    "end_col": 13
+                  },
+                  "width": 8,
+                  "name": "a"
+                }
+              }
+            ],
             "body": {
               "kind": "BlockingAssign",
               "span": {
@@ -901,8 +992,7 @@
                   "name": "a"
                 }
               }
-            },
-            "always_star_lowered": "list"
+            }
           },
           {
             "kind": "AlwaysComb",

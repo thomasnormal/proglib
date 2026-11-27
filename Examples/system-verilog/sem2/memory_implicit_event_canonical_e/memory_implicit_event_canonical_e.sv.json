@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           }
         ],
         "types": [],
@@ -587,7 +589,8 @@
               }
             },
             "text": "always @* q = s[idx] ^ d;",
-            "symbolic_event_retained": true
+            "symbolic_event_retained": true,
+            "symbolic_event_reason": "R3: `s` is not a module signal of integral type"
           }
         ],
         "generates": [],

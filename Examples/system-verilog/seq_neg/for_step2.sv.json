@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -412,7 +413,8 @@
                         "bits": "00000000"
                       }
                     },
-                    "symbolic_for_parameter": true
+                    "symbolic_for_parameter": true,
+                    "symbolic_for_retained": true
                   },
                   "else": null
                 }

@@ -78,7 +78,8 @@
               "value": 7,
               "resolved_width": 32
             },
-            "resolved": 7
+            "resolved": 7,
+            "string": false
           }
         ],
         "types": [],
@@ -350,7 +351,8 @@
                   "end_col": 23
                 },
                 "width": 4,
-                "bits": "1000"
+                "bits": "1000",
+                "signed": true
               }
             }
           },
@@ -391,7 +393,8 @@
                   "end_col": 20
                 },
                 "width": 4,
-                "bits": "0011"
+                "bits": "0011",
+                "signed": true
               }
             }
           },
@@ -415,25 +418,15 @@
               "name": "o3"
             },
             "value": {
-              "kind": "SignedResize",
+              "kind": "Unsupported",
               "span": {
                 "line": 14,
                 "col": 15,
                 "end_line": 14,
                 "end_col": 23
               },
-              "width": 9,
-              "operand": {
-                "kind": "Literal",
-                "span": {
-                  "line": 14,
-                  "col": 15,
-                  "end_line": 14,
-                  "end_col": 23
-                },
-                "width": 12,
-                "bits": "111110000000"
-              }
+              "sv_kind": "ConversionExpression:signed-constant",
+              "text": "12'shF80"
             }
           }
         ],

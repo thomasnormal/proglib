@@ -49,7 +49,8 @@
               "value": 5,
               "resolved_width": 32
             },
-            "resolved": 5
+            "resolved": 5,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -72,7 +73,8 @@
               "value": 32,
               "resolved_width": 32
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -95,7 +97,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -118,7 +121,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -184,7 +188,8 @@
                 }
               }
             },
-            "resolved": 16
+            "resolved": 16,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -250,7 +255,8 @@
                 }
               }
             },
-            "resolved": 16
+            "resolved": 16,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -353,7 +359,8 @@
                 "name": "NUM_WORDS"
               }
             },
-            "resolved": 16
+            "resolved": 16,
+            "string": false
           }
         ],
         "types": [],

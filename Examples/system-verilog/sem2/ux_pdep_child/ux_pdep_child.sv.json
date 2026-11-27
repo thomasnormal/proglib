@@ -333,7 +333,8 @@
               "value": 32,
               "resolved_width": 32
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           }
         ],
         "types": [],
@@ -526,15 +527,15 @@
               "name": "o1"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "Unsupported",
               "span": {
                 "line": 14,
                 "col": 15,
                 "end_line": 14,
                 "end_col": 19
               },
-              "width": 32,
-              "bits": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx0000"
+              "sv_kind": "ConversionExpression:unsized-xz",
+              "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx0000"
             }
           },
           {
@@ -557,43 +558,20 @@
               "name": "o2"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "Unsupported",
               "span": {
                 "line": 15,
                 "col": 15,
                 "end_line": 15,
                 "end_col": 18
               },
-              "width": 32,
-              "bits": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+              "sv_kind": "ConversionExpression:unsized-xz",
+              "text": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
             }
           }
         ],
         "generates": [],
-        "others": [
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 14,
-              "col": 15,
-              "end_line": 14,
-              "end_col": 19
-            },
-            "sv_kind": "IntegerLiteral:unsized-xz-parametric",
-            "text": "'hx0"
-          },
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 15,
-              "col": 15,
-              "end_line": 15,
-              "end_col": 18
-            },
-            "sv_kind": "IntegerLiteral:unsized-xz-parametric",
-            "text": "'bz"
-          }
-        ]
+        "others": []
       }
     ],
     "others": []

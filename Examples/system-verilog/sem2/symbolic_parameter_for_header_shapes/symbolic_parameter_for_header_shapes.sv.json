@@ -78,7 +78,8 @@
               "value": 5,
               "resolved_width": 32
             },
-            "resolved": 5
+            "resolved": 5,
+            "string": false
           }
         ],
         "types": [],
@@ -391,7 +392,8 @@
                       }
                     }
                   },
-                  "symbolic_for_parameter": true
+                  "symbolic_for_parameter": true,
+                  "symbolic_for_retained": true
                 },
                 {
                   "kind": "For",
@@ -610,7 +612,8 @@
                       }
                     }
                   },
-                  "symbolic_for_parameter": true
+                  "symbolic_for_parameter": true,
+                  "symbolic_for_retained": true
                 },
                 {
                   "kind": "For",
@@ -807,7 +810,8 @@
                       }
                     }
                   },
-                  "symbolic_for_parameter": true
+                  "symbolic_for_parameter": true,
+                  "symbolic_for_retained": true
                 }
               ]
             }

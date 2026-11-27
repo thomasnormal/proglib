@@ -78,7 +78,8 @@
               "sv_kind": "ConversionExpression:unsized-xz-constant",
               "text": "'hx0"
             },
-            "resolved": 0
+            "resolved": "00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxx0000",
+            "string": false
           }
         ],
         "types": [],
@@ -536,7 +537,8 @@
               "width": 40,
               "bits": "0000000000000000000000000000000000000000"
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           }
         ],
         "types": [],

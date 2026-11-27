@@ -25,11 +25,11 @@
             "kind": "Var",
             "span": {
               "line": 9,
-              "col": 21,
+              "col": 13,
               "end_line": 9,
-              "end_col": 25
+              "end_col": 19
             },
-            "name": "full",
+            "name": "status",
             "width": 32,
             "init": null,
             "signed": true,
@@ -39,11 +39,11 @@
             "kind": "Var",
             "span": {
               "line": 9,
-              "col": 13,
+              "col": 21,
               "end_line": 9,
-              "end_col": 19
+              "end_col": 25
             },
-            "name": "status",
+            "name": "full",
             "width": 32,
             "init": null,
             "signed": true,

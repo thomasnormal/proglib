@@ -73,9 +73,11 @@
                 "width": 1,
                 "bits": "1"
               },
-              "continuous_constant_lowered": true
+              "continuous_constant_lowered": true,
+              "continuous_strength": false
             },
-            "continuous_constant_lowered": true
+            "continuous_constant_lowered": true,
+            "continuous_strength": false
           },
           {
             "kind": "Initial",

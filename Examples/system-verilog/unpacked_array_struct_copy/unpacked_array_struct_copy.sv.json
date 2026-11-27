@@ -655,16 +655,33 @@
                           "width": 1,
                           "op": "==",
                           "left": {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 17,
                               "col": 9,
                               "end_line": 17,
                               "end_col": 21
                             },
-                            "width": 32,
-                            "name": "$local_array:276:target[0].id",
-                            "signed": true
+                            "base": "target",
+                            "path": [
+                              {
+                                "index": {
+                                  "kind": "Literal",
+                                  "span": {
+                                    "line": 17,
+                                    "col": 16,
+                                    "end_line": 17,
+                                    "end_col": 17
+                                  },
+                                  "width": 32,
+                                  "bits": "00000000000000000000000000000000"
+                                }
+                              },
+                              {
+                                "field": "id"
+                              }
+                            ],
+                            "width": 32
                           },
                           "right": {
                             "kind": "Literal",
@@ -689,16 +706,33 @@
                           "width": 1,
                           "op": "==",
                           "left": {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 17,
                               "col": 30,
                               "end_line": 17,
                               "end_col": 45
                             },
-                            "width": 32,
-                            "name": "$local_array:276:target[0].value",
-                            "signed": true
+                            "base": "target",
+                            "path": [
+                              {
+                                "index": {
+                                  "kind": "Literal",
+                                  "span": {
+                                    "line": 17,
+                                    "col": 37,
+                                    "end_line": 17,
+                                    "end_col": 38
+                                  },
+                                  "width": 32,
+                                  "bits": "00000000000000000000000000000000"
+                                }
+                              },
+                              {
+                                "field": "value"
+                              }
+                            ],
+                            "width": 32
                           },
                           "right": {
                             "kind": "Literal",
@@ -724,16 +758,33 @@
                         "width": 1,
                         "op": "==",
                         "left": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 18,
                             "col": 9,
                             "end_line": 18,
                             "end_col": 21
                           },
-                          "width": 32,
-                          "name": "$local_array:276:target[1].id",
-                          "signed": true
+                          "base": "target",
+                          "path": [
+                            {
+                              "index": {
+                                "kind": "Literal",
+                                "span": {
+                                  "line": 18,
+                                  "col": 16,
+                                  "end_line": 18,
+                                  "end_col": 17
+                                },
+                                "width": 32,
+                                "bits": "00000000000000000000000000000001"
+                              }
+                            },
+                            {
+                              "field": "id"
+                            }
+                          ],
+                          "width": 32
                         },
                         "right": {
                           "kind": "Literal",
@@ -759,16 +810,33 @@
                       "width": 1,
                       "op": "==",
                       "left": {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 18,
                           "col": 30,
                           "end_line": 18,
                           "end_col": 45
                         },
-                        "width": 32,
-                        "name": "$local_array:276:target[1].value",
-                        "signed": true
+                        "base": "target",
+                        "path": [
+                          {
+                            "index": {
+                              "kind": "Literal",
+                              "span": {
+                                "line": 18,
+                                "col": 37,
+                                "end_line": 18,
+                                "end_col": 38
+                              },
+                              "width": 32,
+                              "bits": "00000000000000000000000000000001"
+                            }
+                          },
+                          {
+                            "field": "value"
+                          }
+                        ],
+                        "width": 32
                       },
                       "right": {
                         "kind": "Literal",

@@ -78,7 +78,8 @@
               "value": 7,
               "resolved_width": 32
             },
-            "resolved": 7
+            "resolved": 7,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,7 @@
               "width": 4,
               "op": "-",
               "operand": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 6,
                   "col": 77,
@@ -138,11 +139,22 @@
                   "end_col": 82
                 },
                 "width": 4,
-                "bits": "0010",
-                "signed": true
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 6,
+                    "col": 77,
+                    "end_line": 6,
+                    "end_col": 82
+                  },
+                  "width": 4,
+                  "bits": "0010",
+                  "signed": true
+                }
               }
             },
             "resolved": -2,
+            "string": false,
             "signed": true
           },
           {
@@ -185,38 +197,29 @@
               "resolved": 8
             },
             "default": {
-              "kind": "SignedResize",
+              "kind": "Unary",
               "span": {
                 "line": 7,
                 "col": 41,
                 "end_line": 7,
                 "end_col": 43
               },
-              "width": 8,
+              "width": 32,
+              "op": "-",
               "operand": {
-                "kind": "Unary",
+                "kind": "Int",
                 "span": {
                   "line": 7,
-                  "col": 41,
+                  "col": 42,
                   "end_line": 7,
                   "end_col": 43
                 },
-                "width": 32,
-                "op": "-",
-                "operand": {
-                  "kind": "Int",
-                  "span": {
-                    "line": 7,
-                    "col": 42,
-                    "end_line": 7,
-                    "end_col": 43
-                  },
-                  "value": 3,
-                  "resolved_width": 32
-                }
+                "value": 3,
+                "resolved_width": 32
               }
             },
             "resolved": -3,
+            "string": false,
             "signed": true
           }
         ],

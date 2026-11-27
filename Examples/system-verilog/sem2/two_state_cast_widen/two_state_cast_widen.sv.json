@@ -143,18 +143,23 @@
                 "name": "y"
               },
               "value": {
-                "kind": "Squash2",
-                "span": null,
+                "kind": "Resize",
+                "span": {
+                  "line": 7,
+                  "col": 19,
+                  "end_line": 7,
+                  "end_col": 27
+                },
                 "width": 8,
                 "operand": {
-                  "kind": "Resize",
+                  "kind": "Squash2",
                   "span": {
                     "line": 7,
                     "col": 19,
                     "end_line": 7,
                     "end_col": 27
                   },
-                  "width": 8,
+                  "width": 4,
                   "operand": {
                     "kind": "Ident",
                     "span": {
@@ -166,7 +171,8 @@
                     "width": 4,
                     "name": "a"
                   }
-                }
+                },
+                "explicit": true
               }
             }
           }

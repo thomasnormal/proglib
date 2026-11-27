@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -244,6 +245,7 @@
                   }
                 },
                 "resolved": 1,
+                "string": false,
                 "signed": false
               },
               {
@@ -403,6 +405,7 @@
                   }
                 },
                 "resolved": 0,
+                "string": false,
                 "signed": false
               },
               {

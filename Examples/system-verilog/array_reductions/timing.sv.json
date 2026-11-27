@@ -256,7 +256,8 @@
                         "name": "a[0]"
                       }
                     }
-                  ]
+                  ],
+                  "fixed_array_slice_copy_lowered": true
                 },
                 {
                   "kind": "NonblockingAssign",

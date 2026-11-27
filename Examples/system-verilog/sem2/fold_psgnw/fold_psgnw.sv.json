@@ -78,7 +78,8 @@
               "value": 32,
               "resolved_width": 32
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -163,6 +164,7 @@
               }
             },
             "resolved": -1,
+            "string": false,
             "signed": true
           }
         ],

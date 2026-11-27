@@ -45,23 +45,13 @@
                 {
                   "msb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 5,
-                      "col": 23,
-                      "end_line": 5,
-                      "end_col": 24
-                    },
+                    "span": null,
                     "value": 1,
                     "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 5,
-                      "col": 25,
-                      "end_line": 5,
-                      "end_col": 26
-                    },
+                    "span": null,
                     "value": 0,
                     "resolved_width": null
                   }
@@ -145,6 +135,8 @@
               "resolved": 2
             },
             "two_state": false,
+            "flat_base": "arr",
+            "flat_index": 0,
             "init": null
           },
           {
@@ -163,6 +155,8 @@
               "resolved": 2
             },
             "two_state": false,
+            "flat_base": "arr",
+            "flat_index": 1,
             "init": null
           }
         ],
@@ -232,7 +226,14 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "arr[0]",
+            "base": "arr",
+            "index": 0
+          }
+        ]
       }
     ],
     "others": []

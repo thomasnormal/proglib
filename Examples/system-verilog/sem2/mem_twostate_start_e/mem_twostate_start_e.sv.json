@@ -234,7 +234,7 @@
               "name": "q"
             },
             "value": {
-              "kind": "ArraySel",
+              "kind": "Ident",
               "span": {
                 "line": 3,
                 "col": 14,
@@ -242,27 +242,19 @@
                 "end_col": 18
               },
               "width": 8,
-              "name": "s",
-              "indices": [
-                {
-                  "kind": "Int",
-                  "span": {
-                    "line": 3,
-                    "col": 16,
-                    "end_line": 3,
-                    "end_col": 17
-                  },
-                  "value": 0,
-                  "resolved_width": 32
-                }
-              ],
-              "part": null,
-              "unpacked": true
+              "name": "s[0]"
             }
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "s[0]",
+            "base": "s",
+            "index": 0
+          }
+        ]
       }
     ],
     "others": []

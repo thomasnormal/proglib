@@ -78,7 +78,8 @@
               "value": 40,
               "resolved_width": 32
             },
-            "resolved": 40
+            "resolved": 40,
+            "string": false
           }
         ],
         "types": [],

@@ -78,7 +78,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           }
         ],
         "types": [],
@@ -320,7 +321,8 @@
               "value": 40,
               "resolved_width": 32
             },
-            "resolved": 40
+            "resolved": 40,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -394,6 +396,7 @@
               "resolved_width": 40
             },
             "resolved": 0,
+            "string": false,
             "signed": true
           }
         ],

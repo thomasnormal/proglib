@@ -80,7 +80,8 @@
               "value": 13,
               "resolved_width": 32
             },
-            "resolved": 13
+            "resolved": 13,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -138,7 +139,7 @@
                   "end_line": 9,
                   "end_col": 74
                 },
-                "name": "ceil_div",
+                "name": "vector_remainder_param_e_pkg::ceil_div",
                 "args": [
                   {
                     "kind": "ParamRef",
@@ -162,11 +163,11 @@
                     "resolved_width": 32
                   }
                 ],
-                "width": 32,
-                "symbolic_user_function_retained": true
+                "width": 32
               }
             },
-            "resolved": 3
+            "resolved": 3,
+            "string": false
           }
         ],
         "types": [],
@@ -223,7 +224,7 @@
               "end_line": 4,
               "end_col": 14
             },
-            "name": "ceil_div",
+            "name": "vector_remainder_param_e_pkg::ceil_div",
             "automatic": true,
             "return_type": {
               "kind": "PackedType",
@@ -466,7 +467,173 @@
                   "name": "b"
                 }
               }
-            }
+            },
+            "package": "vector_remainder_param_e_pkg",
+            "stmts": [
+              {
+                "kind": "FnReturn",
+                "span": {
+                  "line": 3,
+                  "col": 5,
+                  "end_line": 3,
+                  "end_col": 51
+                },
+                "value": {
+                  "kind": "Ternary",
+                  "span": {
+                    "line": 3,
+                    "col": 12,
+                    "end_line": 3,
+                    "end_col": 50
+                  },
+                  "width": 32,
+                  "cond": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 3,
+                      "col": 13,
+                      "end_line": 3,
+                      "end_col": 25
+                    },
+                    "width": 1,
+                    "op": "!=",
+                    "left": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 3,
+                        "col": 14,
+                        "end_line": 3,
+                        "end_col": 19
+                      },
+                      "width": 32,
+                      "op": "%",
+                      "left": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 2,
+                          "col": 53,
+                          "end_line": 2,
+                          "end_col": 54
+                        },
+                        "width": 32,
+                        "name": "a"
+                      },
+                      "right": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 2,
+                          "col": 70,
+                          "end_line": 2,
+                          "end_col": 71
+                        },
+                        "width": 32,
+                        "name": "b"
+                      }
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 3,
+                        "col": 24,
+                        "end_line": 3,
+                        "end_col": 25
+                      },
+                      "value": 0,
+                      "resolved_width": 32
+                    }
+                  },
+                  "then": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 3,
+                      "col": 29,
+                      "end_line": 3,
+                      "end_col": 40
+                    },
+                    "width": 32,
+                    "op": "+",
+                    "left": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 3,
+                        "col": 30,
+                        "end_line": 3,
+                        "end_col": 35
+                      },
+                      "width": 32,
+                      "op": "/",
+                      "left": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 2,
+                          "col": 53,
+                          "end_line": 2,
+                          "end_col": 54
+                        },
+                        "width": 32,
+                        "name": "a"
+                      },
+                      "right": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 2,
+                          "col": 70,
+                          "end_line": 2,
+                          "end_col": 71
+                        },
+                        "width": 32,
+                        "name": "b"
+                      }
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 3,
+                        "col": 39,
+                        "end_line": 3,
+                        "end_col": 40
+                      },
+                      "value": 1,
+                      "resolved_width": 32
+                    }
+                  },
+                  "else": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 3,
+                      "col": 44,
+                      "end_line": 3,
+                      "end_col": 49
+                    },
+                    "width": 32,
+                    "op": "/",
+                    "left": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 2,
+                        "col": 53,
+                        "end_line": 2,
+                        "end_col": 54
+                      },
+                      "width": 32,
+                      "name": "a"
+                    },
+                    "right": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 2,
+                        "col": 70,
+                        "end_line": 2,
+                        "end_col": 71
+                      },
+                      "width": 32,
+                      "name": "b"
+                    }
+                  }
+                }
+              }
+            ],
+            "return_two_state": false
           }
         ],
         "processes": [

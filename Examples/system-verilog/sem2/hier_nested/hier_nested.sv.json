@@ -78,7 +78,8 @@
               "value": 3,
               "resolved_width": 32
             },
-            "resolved": 3
+            "resolved": 3,
+            "string": false
           }
         ],
         "types": [],
@@ -848,7 +849,8 @@
                         },
                         "name": "k"
                       }
-                    }
+                    },
+                    "net": true
                   },
                   {
                     "kind": "PortConn",
@@ -933,7 +935,8 @@
                           "name": "k"
                         }
                       }
-                    }
+                    },
+                    "net": true
                   },
                   {
                     "kind": "PortConn",
@@ -1066,7 +1069,8 @@
                       "resolved_width": 32
                     }
                   }
-                }
+                },
+                "net": true
               },
               {
                 "kind": "PortConn",
@@ -1168,7 +1172,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           }
         ],
         "types": [],
@@ -1693,7 +1698,8 @@
               "value": 1,
               "resolved_width": 32
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           }
         ],
         "types": [],

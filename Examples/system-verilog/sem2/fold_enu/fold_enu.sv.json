@@ -45,23 +45,13 @@
                 {
                   "msb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 9,
-                      "col": 23,
-                      "end_line": 9,
-                      "end_col": 24
-                    },
+                    "span": null,
                     "value": 3,
                     "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 9,
-                      "col": 25,
-                      "end_line": 9,
-                      "end_col": 26
-                    },
+                    "span": null,
                     "value": 0,
                     "resolved_width": null
                   }

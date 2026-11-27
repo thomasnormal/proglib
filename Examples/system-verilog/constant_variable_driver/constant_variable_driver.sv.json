@@ -85,9 +85,11 @@
                 "width": 4,
                 "bits": "1010"
               },
-              "continuous_constant_lowered": true
+              "continuous_constant_lowered": true,
+              "continuous_strength": false
             },
-            "continuous_constant_lowered": true
+            "continuous_constant_lowered": true,
+            "continuous_strength": false
           },
           {
             "kind": "Initial",
@@ -151,9 +153,11 @@
                 "width": 2,
                 "bits": "01"
               },
-              "continuous_constant_lowered": true
+              "continuous_constant_lowered": true,
+              "continuous_strength": false
             },
-            "continuous_constant_lowered": true
+            "continuous_constant_lowered": true,
+            "continuous_strength": false
           },
           {
             "kind": "Initial",

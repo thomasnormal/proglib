@@ -22,6 +22,17 @@
         "ports": [],
         "decls": [
           {
+            "kind": "Unsupported",
+            "span": {
+              "line": 6,
+              "col": 8,
+              "end_line": 6,
+              "end_col": 20
+            },
+            "sv_kind": "AutomaticLocal:default-lifetime",
+            "text": "implicit procedural lifetime in an automatic module is not qualified"
+          },
+          {
             "kind": "Var",
             "span": {
               "line": 7,
@@ -49,17 +60,6 @@
             },
             "signed": true,
             "static_local_storage": true
-          },
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 6,
-              "col": 8,
-              "end_line": 6,
-              "end_col": 20
-            },
-            "sv_kind": "AutomaticLocal:default-lifetime",
-            "text": "implicit procedural lifetime in an automatic module is not qualified"
           },
           {
             "kind": "Var",

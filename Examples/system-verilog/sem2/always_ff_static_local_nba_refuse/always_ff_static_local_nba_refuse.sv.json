@@ -108,7 +108,7 @@
                     "end_line": 8,
                     "end_col": 12
                   },
-                  "name": "t",
+                  "name": "proc.t",
                   "width": 1,
                   "two_state": false,
                   "init": null,
@@ -219,7 +219,7 @@
                             "end_col": 8
                           },
                           "width": 1,
-                          "name": "t"
+                          "name": "proc.t"
                         },
                         "value": {
                           "kind": "Ident",
@@ -266,7 +266,7 @@
                       "end_col": 11
                     },
                     "width": 1,
-                    "name": "t"
+                    "name": "proc.t"
                   }
                 }
               ],

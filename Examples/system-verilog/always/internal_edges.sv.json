@@ -102,42 +102,54 @@
         ],
         "processes": [
           {
-            "kind": "Always",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 7,
               "col": 3,
               "end_line": 7,
               "end_col": 31
             },
+            "events": [
+              {
+                "edge": "any",
+                "signal": "trigger"
+              }
+            ],
             "body": {
-              "kind": "Block",
+              "kind": "BlockingAssign",
               "span": {
                 "line": 7,
-                "col": 10,
+                "col": 21,
                 "end_line": 7,
-                "end_col": 31
+                "end_col": 30
               },
-              "stmts": [
-                {
-                  "kind": "WaitEvent",
-                  "span": {
-                    "line": 7,
-                    "col": 10,
-                    "end_line": 7,
-                    "end_col": 31
-                  },
-                  "signal": "trigger",
-                  "edge": "any"
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 7,
+                  "col": 21,
+                  "end_line": 7,
+                  "end_col": 28
                 },
-                {
-                  "kind": "BlockingAssign",
+                "width": 32,
+                "name": "changes",
+                "signed": true
+              },
+              "value": {
+                "kind": "Squash2",
+                "span": null,
+                "width": 32,
+                "operand": {
+                  "kind": "Binary",
                   "span": {
                     "line": 7,
                     "col": 21,
                     "end_line": 7,
                     "end_col": 30
                   },
-                  "target": {
+                  "width": 32,
+                  "op": "+",
+                  "left": {
                     "kind": "Ident",
                     "span": {
                       "line": 7,
@@ -149,44 +161,15 @@
                     "name": "changes",
                     "signed": true
                   },
-                  "value": {
-                    "kind": "Squash2",
+                  "right": {
+                    "kind": "Literal",
                     "span": null,
                     "width": 32,
-                    "operand": {
-                      "kind": "Binary",
-                      "span": {
-                        "line": 7,
-                        "col": 21,
-                        "end_line": 7,
-                        "end_col": 30
-                      },
-                      "width": 32,
-                      "op": "+",
-                      "left": {
-                        "kind": "Ident",
-                        "span": {
-                          "line": 7,
-                          "col": 21,
-                          "end_line": 7,
-                          "end_col": 28
-                        },
-                        "width": 32,
-                        "name": "changes",
-                        "signed": true
-                      },
-                      "right": {
-                        "kind": "Literal",
-                        "span": null,
-                        "width": 32,
-                        "bits": "00000000000000000000000000000001"
-                      }
-                    }
+                    "bits": "00000000000000000000000000000001"
                   }
                 }
-              ]
-            },
-            "always_lowered": true
+              }
+            }
           },
           {
             "kind": "Always",

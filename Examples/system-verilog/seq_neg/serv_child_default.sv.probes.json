@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "serv_child_default",
- "envelope": "serv_child_default.sv.json",
+ "envelope": "out.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/seq_neg/serv_child_default.sv",
@@ -32,7 +32,8 @@
        "value": 2,
        "resolved_width": 32
       },
-      "resolved": 2
+      "resolved": 2,
+      "string": false
      }
     ],
     "types": [],
@@ -243,7 +244,8 @@
          "value": 2,
          "resolved_width": 32
         },
-        "resolved": 2
+        "resolved": 2,
+        "string": false
        },
        {
         "kind": "ParameterDecl",
@@ -263,7 +265,8 @@
           "name": "width"
          }
         },
-        "resolved": 4
+        "resolved": 4,
+        "string": false
        }
       ],
       "types": [],
@@ -526,7 +529,8 @@
        "value": 4,
        "resolved_width": 32
       },
-      "resolved": 4
+      "resolved": 4,
+      "string": false
      }
     ],
     "types": [],
@@ -737,7 +741,8 @@
          "value": 4,
          "resolved_width": 32
         },
-        "resolved": 4
+        "resolved": 4,
+        "string": false
        },
        {
         "kind": "ParameterDecl",
@@ -757,7 +762,8 @@
           "name": "width"
          }
         },
-        "resolved": 2
+        "resolved": 2,
+        "string": false
        }
       ],
       "types": [],

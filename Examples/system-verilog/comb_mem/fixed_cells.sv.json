@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -270,6 +271,8 @@
               "resolved": 8
             },
             "two_state": false,
+            "flat_base": "stage",
+            "flat_index": 0,
             "init": null
           },
           {
@@ -333,6 +336,8 @@
               "resolved": 8
             },
             "two_state": false,
+            "flat_base": "stage",
+            "flat_index": 1,
             "init": null
           }
         ],
@@ -432,7 +437,19 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "stage[0]",
+            "base": "stage",
+            "index": 0
+          },
+          {
+            "name": "stage[1]",
+            "base": "stage",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

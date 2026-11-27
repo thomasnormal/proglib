@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -481,7 +482,8 @@
                               "end_col": 53
                             },
                             "width": 4,
-                            "bits": "1000"
+                            "bits": "1000",
+                            "signed": true
                           }
                         }
                       }
@@ -660,7 +662,8 @@
                                 "end_col": 53
                               },
                               "width": 4,
-                              "bits": "1000"
+                              "bits": "1000",
+                              "signed": true
                             }
                           }
                         }
@@ -820,7 +823,8 @@
                             "end_col": 54
                           },
                           "width": 4,
-                          "bits": "1000"
+                          "bits": "1000",
+                          "signed": true
                         }
                       }
                     }
@@ -978,7 +982,8 @@
                             "end_col": 68
                           },
                           "width": 4,
-                          "bits": "1000"
+                          "bits": "1000",
+                          "signed": true
                         }
                       }
                     }
@@ -1136,7 +1141,8 @@
                             "end_col": 64
                           },
                           "width": 4,
-                          "bits": "1000"
+                          "bits": "1000",
+                          "signed": true
                         }
                       }
                     }
@@ -1161,7 +1167,8 @@
                     "end_col": 73
                   },
                   "width": 8,
-                  "bits": "00000010"
+                  "bits": "00000010",
+                  "signed": true
                 }
               }
             }

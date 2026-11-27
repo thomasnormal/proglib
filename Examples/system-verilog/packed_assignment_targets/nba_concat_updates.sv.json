@@ -580,106 +580,15 @@
                   "else": null
                 },
                 {
-                  "kind": "NonblockingAssign",
+                  "kind": "Unsupported",
                   "span": {
                     "line": 16,
                     "col": 5,
                     "end_line": 16,
                     "end_col": 43
                   },
-                  "target": {
-                    "kind": "ConcatTarget",
-                    "span": {
-                      "line": 16,
-                      "col": 5,
-                      "end_line": 16,
-                      "end_col": 29
-                    },
-                    "width": 6,
-                    "parts": [
-                      {
-                        "kind": "SelectTarget",
-                        "span": {
-                          "line": 16,
-                          "col": 6,
-                          "end_line": 16,
-                          "end_col": 16
-                        },
-                        "width": 3,
-                        "value": {
-                          "kind": "Ident",
-                          "span": {
-                            "line": 16,
-                            "col": 6,
-                            "end_line": 16,
-                            "end_col": 11
-                          },
-                          "width": 4,
-                          "name": "first"
-                        },
-                        "index": {
-                          "kind": "Literal",
-                          "span": {
-                            "line": 16,
-                            "col": 14,
-                            "end_line": 16,
-                            "end_col": 15
-                          },
-                          "width": 32,
-                          "bits": "00000000000000000000000000000001"
-                        },
-                        "index_signed": true,
-                        "descending": false,
-                        "two_state": false
-                      },
-                      {
-                        "kind": "SelectTarget",
-                        "span": {
-                          "line": 16,
-                          "col": 18,
-                          "end_line": 16,
-                          "end_col": 28
-                        },
-                        "width": 3,
-                        "value": {
-                          "kind": "Ident",
-                          "span": {
-                            "line": 16,
-                            "col": 18,
-                            "end_line": 16,
-                            "end_col": 23
-                          },
-                          "width": 4,
-                          "name": "first"
-                        },
-                        "index": {
-                          "kind": "Literal",
-                          "span": {
-                            "line": 16,
-                            "col": 26,
-                            "end_line": 16,
-                            "end_col": 27
-                          },
-                          "width": 32,
-                          "bits": "00000000000000000000000000000000"
-                        },
-                        "index_signed": true,
-                        "descending": false,
-                        "two_state": false
-                      }
-                    ]
-                  },
-                  "value": {
-                    "kind": "Literal",
-                    "span": {
-                      "line": 16,
-                      "col": 33,
-                      "end_line": 16,
-                      "end_col": 42
-                    },
-                    "width": 6,
-                    "bits": "101111"
-                  }
+                  "sv_kind": "AssignmentExpression:target",
+                  "text": "{first[3:1], first[2:0]} <= 6'b101111;"
                 },
                 {
                   "kind": "If",

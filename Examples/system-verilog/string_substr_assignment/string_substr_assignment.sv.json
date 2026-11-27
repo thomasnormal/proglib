@@ -191,8 +191,8 @@
                               "end_line": 14,
                               "end_col": 63
                             },
-                            "width": 8,
-                            "bits": "00000000",
+                            "width": 40,
+                            "bits": "0101011101101111011100100110110001100100",
                             "string_source_display": true
                           }
                         ],

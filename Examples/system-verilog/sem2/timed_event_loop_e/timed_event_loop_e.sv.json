@@ -113,7 +113,40 @@
             }
           }
         ],
-        "decls": [],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 2,
+              "col": 11,
+              "end_line": 2,
+              "end_col": 12
+            },
+            "name": "i",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": null,
+            "signed": true
+          }
+        ],
         "processes": [
           {
             "kind": "AlwaysComb",

@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "package_param_fixed",
- "envelope": "package_param_fixed.sv.json",
+ "envelope": "out.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/package_param_fixed/package_param_fixed.sv",
@@ -32,7 +32,8 @@
        "value": 1,
        "resolved_width": 32
       },
-      "resolved": 1
+      "resolved": 1,
+      "string": false
      }
     ],
     "package_params": [
@@ -58,12 +59,15 @@
        "resolved": 32
       },
       "resolved": 4,
+      "string": false,
       "default": {
        "kind": "Int",
        "value": 4,
        "resolved_width": 32
       },
-      "package": "package_param_fixed_pkg"
+      "package": "package_param_fixed_pkg",
+      "resolved_bits": "00000000000000000000000000000100",
+      "resolved_signed": true
      }
     ],
     "types": [],
@@ -214,7 +218,8 @@
        "value": 3,
        "resolved_width": 32
       },
-      "resolved": 3
+      "resolved": 3,
+      "string": false
      }
     ],
     "package_params": [
@@ -240,12 +245,15 @@
        "resolved": 32
       },
       "resolved": 4,
+      "string": false,
       "default": {
        "kind": "Int",
        "value": 4,
        "resolved_width": 32
       },
-      "package": "package_param_fixed_pkg"
+      "package": "package_param_fixed_pkg",
+      "resolved_bits": "00000000000000000000000000000100",
+      "resolved_signed": true
      }
     ],
     "types": [],
@@ -396,7 +404,8 @@
        "value": 5,
        "resolved_width": 32
       },
-      "resolved": 5
+      "resolved": 5,
+      "string": false
      }
     ],
     "package_params": [
@@ -422,12 +431,15 @@
        "resolved": 32
       },
       "resolved": 4,
+      "string": false,
       "default": {
        "kind": "Int",
        "value": 4,
        "resolved_width": 32
       },
-      "package": "package_param_fixed_pkg"
+      "package": "package_param_fixed_pkg",
+      "resolved_bits": "00000000000000000000000000000100",
+      "resolved_signed": true
      }
     ],
     "types": [],

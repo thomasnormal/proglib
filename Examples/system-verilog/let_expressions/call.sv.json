@@ -83,15 +83,39 @@
                     "span": null,
                     "width": 32,
                     "operand": {
-                      "kind": "Unsupported",
+                      "kind": "Binary",
                       "span": {
                         "line": 4,
                         "col": 15,
                         "end_line": 4,
                         "end_col": 19
                       },
-                      "sv_kind": "CallExpression",
-                      "text": "f(x)"
+                      "width": 32,
+                      "op": "+",
+                      "left": {
+                        "kind": "Unsupported",
+                        "span": {
+                          "line": 3,
+                          "col": 38,
+                          "end_line": 3,
+                          "end_col": 39
+                        },
+                        "sv_kind": "CallExpression",
+                        "text": "x"
+                      },
+                      "right": {
+                        "kind": "Literal",
+                        "span": {
+                          "line": 3,
+                          "col": 40,
+                          "end_line": 3,
+                          "end_col": 41
+                        },
+                        "width": 32,
+                        "bits": "00000000000000000000000000000001"
+                      },
+                      "signed": true,
+                      "literal_function_return": true
                     }
                   }
                 },
@@ -140,19 +164,7 @@
             }
           }
         ],
-        "others": [
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 3,
-              "col": 2,
-              "end_line": 3,
-              "end_col": 54
-            },
-            "sv_kind": "SubroutineSymbol:Subroutine",
-            "text": "function int f(input int x); return x+1; endfunction"
-          }
-        ]
+        "others": []
       }
     ],
     "others": []

@@ -117,7 +117,7 @@
                           },
                           "width": 32,
                           "bits": "00000000000000000000000000000000",
-                          "associative_empty_query": "num",
+                          "associative_count_query": "num",
                           "signed": true
                         },
                         "right": {
@@ -152,7 +152,7 @@
                           },
                           "width": 32,
                           "bits": "00000000000000000000000000000000",
-                          "associative_empty_query": "size",
+                          "associative_count_query": "size",
                           "signed": true
                         },
                         "right": {
@@ -188,7 +188,7 @@
                         },
                         "width": 32,
                         "bits": "00000000000000000000000000000000",
-                        "associative_empty_query": "num",
+                        "associative_count_query": "num",
                         "signed": true
                       },
                       "right": {

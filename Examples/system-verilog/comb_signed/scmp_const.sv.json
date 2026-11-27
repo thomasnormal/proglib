@@ -271,7 +271,7 @@
                 "signed": true
               },
               "right": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 17,
                   "col": 28,
@@ -279,7 +279,18 @@
                   "end_col": 33
                 },
                 "width": 8,
-                "bits": "00000000"
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 17,
+                    "col": 28,
+                    "end_line": 17,
+                    "end_col": 33
+                  },
+                  "width": 8,
+                  "bits": "00000000",
+                  "signed": true
+                }
               }
             }
           },
@@ -313,7 +324,7 @@
               "width": 1,
               "op": "s<=",
               "left": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 18,
                   "col": 23,
@@ -321,7 +332,18 @@
                   "end_col": 28
                 },
                 "width": 8,
-                "bits": "00000000"
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 18,
+                    "col": 23,
+                    "end_line": 18,
+                    "end_col": 28
+                  },
+                  "width": 8,
+                  "bits": "00000000",
+                  "signed": true
+                }
               },
               "right": {
                 "kind": "Ident",
@@ -379,7 +401,7 @@
                 "signed": true
               },
               "right": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 19,
                   "col": 27,
@@ -387,7 +409,18 @@
                   "end_col": 40
                 },
                 "width": 8,
-                "bits": "11111101"
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 19,
+                    "col": 27,
+                    "end_line": 19,
+                    "end_col": 40
+                  },
+                  "width": 8,
+                  "bits": "11111101",
+                  "signed": true
+                }
               }
             }
           },
@@ -421,7 +454,7 @@
               "width": 1,
               "op": "s>",
               "left": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 20,
                   "col": 23,
@@ -429,7 +462,18 @@
                   "end_col": 30
                 },
                 "width": 8,
-                "bits": "01100100"
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 20,
+                    "col": 23,
+                    "end_line": 20,
+                    "end_col": 30
+                  },
+                  "width": 8,
+                  "bits": "01100100",
+                  "signed": true
+                }
               },
               "right": {
                 "kind": "Ident",

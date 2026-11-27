@@ -47,7 +47,7 @@
                     "end_line": 8,
                     "end_col": 12
                   },
-                  "empty_subroutine_call": "noop"
+                  "empty_input_task_call": "noop"
                 },
                 {
                   "kind": "Empty",

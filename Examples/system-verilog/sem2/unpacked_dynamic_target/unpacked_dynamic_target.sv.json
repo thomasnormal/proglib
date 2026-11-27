@@ -277,158 +277,34 @@
                   }
                 },
                 {
-                  "kind": "If",
+                  "kind": "Unsupported",
                   "span": {
                     "line": 10,
                     "col": 5,
                     "end_line": 10,
-                    "end_col": 24
+                    "end_col": 25
                   },
-                  "cond": {
-                    "kind": "Binary",
-                    "span": {
-                      "line": 10,
-                      "col": 9,
-                      "end_line": 10,
-                      "end_col": 14
-                    },
-                    "width": 1,
-                    "op": "===",
-                    "left": {
-                      "kind": "Ident",
-                      "span": {
-                        "line": 10,
-                        "col": 9,
-                        "end_line": 10,
-                        "end_col": 14
-                      },
-                      "width": 2,
-                      "name": "index"
-                    },
-                    "right": {
-                      "kind": "Literal",
-                      "span": {
-                        "line": 10,
-                        "col": 9,
-                        "end_line": 10,
-                        "end_col": 14
-                      },
-                      "width": 2,
-                      "bits": "00"
-                    }
-                  },
-                  "then": {
-                    "kind": "BlockingAssign",
-                    "span": {
-                      "line": 10,
-                      "col": 5,
-                      "end_line": 10,
-                      "end_col": 24
-                    },
-                    "target": {
-                      "kind": "Ident",
-                      "span": {
-                        "line": 10,
-                        "col": 5,
-                        "end_line": 10,
-                        "end_col": 15
-                      },
-                      "width": 4,
-                      "name": "out[0]"
-                    },
-                    "value": {
-                      "kind": "Ident",
-                      "span": {
-                        "line": 10,
-                        "col": 18,
-                        "end_line": 10,
-                        "end_col": 24
-                      },
-                      "width": 4,
-                      "name": "source"
-                    }
-                  },
-                  "else": {
-                    "kind": "If",
-                    "span": {
-                      "line": 10,
-                      "col": 5,
-                      "end_line": 10,
-                      "end_col": 24
-                    },
-                    "cond": {
-                      "kind": "Binary",
-                      "span": {
-                        "line": 10,
-                        "col": 9,
-                        "end_line": 10,
-                        "end_col": 14
-                      },
-                      "width": 1,
-                      "op": "===",
-                      "left": {
-                        "kind": "Ident",
-                        "span": {
-                          "line": 10,
-                          "col": 9,
-                          "end_line": 10,
-                          "end_col": 14
-                        },
-                        "width": 2,
-                        "name": "index"
-                      },
-                      "right": {
-                        "kind": "Literal",
-                        "span": {
-                          "line": 10,
-                          "col": 9,
-                          "end_line": 10,
-                          "end_col": 14
-                        },
-                        "width": 2,
-                        "bits": "01"
-                      }
-                    },
-                    "then": {
-                      "kind": "BlockingAssign",
-                      "span": {
-                        "line": 10,
-                        "col": 5,
-                        "end_line": 10,
-                        "end_col": 24
-                      },
-                      "target": {
-                        "kind": "Ident",
-                        "span": {
-                          "line": 10,
-                          "col": 5,
-                          "end_line": 10,
-                          "end_col": 15
-                        },
-                        "width": 4,
-                        "name": "out[1]"
-                      },
-                      "value": {
-                        "kind": "Ident",
-                        "span": {
-                          "line": 10,
-                          "col": 18,
-                          "end_line": 10,
-                          "end_col": 24
-                        },
-                        "width": 4,
-                        "name": "source"
-                      }
-                    },
-                    "else": null
-                  }
+                  "sv_kind": "AssignmentExpression:target",
+                  "text": "out[index] = source;"
                 }
               ]
             }
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "out[0]",
+            "base": "out",
+            "index": 0
+          },
+          {
+            "name": "out[1]",
+            "base": "out",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

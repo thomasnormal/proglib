@@ -161,7 +161,8 @@
                   },
                   "width": 4,
                   "name": "a"
-                }
+                },
+                "explicit": true
               }
             }
           }

@@ -78,7 +78,8 @@
               "value": 5,
               "resolved_width": 32
             },
-            "resolved": 5
+            "resolved": 5,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,8 @@
               "value": 11,
               "resolved_width": 32
             },
-            "resolved": 11
+            "resolved": 11,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -202,7 +204,8 @@
                 "name": "P"
               }
             },
-            "resolved": 16
+            "resolved": 16,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -275,7 +278,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 10
+            "resolved": 10,
+            "string": false
           }
         ],
         "types": [],

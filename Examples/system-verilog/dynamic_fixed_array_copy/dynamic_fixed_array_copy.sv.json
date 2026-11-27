@@ -1062,7 +1062,8 @@
                         }
                       }
                     }
-                  ]
+                  ],
+                  "fixed_array_slice_copy_lowered": true
                 },
                 {
                   "kind": "If",

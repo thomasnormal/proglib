@@ -81,6 +81,7 @@
               "resolved_width": 32
             },
             "resolved": 4,
+            "string": false,
             "signed": false
           },
           {
@@ -130,7 +131,7 @@
                 "end_line": 9,
                 "end_col": 94
               },
-              "name": "vbits",
+              "name": "ibex_lockstep_offset_e_pkg::vbits",
               "args": [
                 {
                   "kind": "ParamRef",
@@ -143,10 +144,10 @@
                   "name": "LockstepOffset"
                 }
               ],
-              "width": 32,
-              "symbolic_user_function_retained": true
+              "width": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false
           }
         ],
@@ -287,7 +288,7 @@
               "end_line": 4,
               "end_col": 14
             },
-            "name": "vbits",
+            "name": "ibex_lockstep_offset_e_pkg::vbits",
             "automatic": true,
             "return_type": {
               "kind": "PackedType",
@@ -432,7 +433,108 @@
                   "resolved": null
                 }
               }
-            }
+            },
+            "package": "ibex_lockstep_offset_e_pkg",
+            "stmts": [
+              {
+                "kind": "FnReturn",
+                "span": {
+                  "line": 3,
+                  "col": 5,
+                  "end_line": 3,
+                  "end_col": 45
+                },
+                "value": {
+                  "kind": "Squash2",
+                  "span": {
+                    "line": 3,
+                    "col": 12,
+                    "end_line": 3,
+                    "end_col": 44
+                  },
+                  "width": 32,
+                  "operand": {
+                    "kind": "Ternary",
+                    "span": {
+                      "line": 3,
+                      "col": 12,
+                      "end_line": 3,
+                      "end_col": 44
+                    },
+                    "width": 32,
+                    "cond": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 3,
+                        "col": 13,
+                        "end_line": 3,
+                        "end_col": 23
+                      },
+                      "width": 1,
+                      "op": "==",
+                      "left": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 2,
+                          "col": 60,
+                          "end_line": 2,
+                          "end_col": 65
+                        },
+                        "width": 32,
+                        "name": "value"
+                      },
+                      "right": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 3,
+                          "col": 22,
+                          "end_line": 3,
+                          "end_col": 23
+                        },
+                        "value": 1,
+                        "resolved_width": 32
+                      }
+                    },
+                    "then": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 3,
+                        "col": 27,
+                        "end_line": 3,
+                        "end_col": 28
+                      },
+                      "value": 1,
+                      "resolved_width": 32
+                    },
+                    "else": {
+                      "kind": "SysCall",
+                      "span": {
+                        "line": 3,
+                        "col": 31,
+                        "end_line": 3,
+                        "end_col": 44
+                      },
+                      "name": "$clog2",
+                      "args": [
+                        {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 2,
+                            "col": 60,
+                            "end_line": 2,
+                            "end_col": 65
+                          },
+                          "width": 32,
+                          "name": "value"
+                        }
+                      ],
+                      "resolved": null
+                    }
+                  }
+                }
+              }
+            ],
+            "return_two_state": true
           }
         ],
         "processes": [

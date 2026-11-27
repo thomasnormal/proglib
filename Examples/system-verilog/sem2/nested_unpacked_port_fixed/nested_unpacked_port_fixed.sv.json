@@ -410,7 +410,7 @@
                 "name": "a[1][2]"
               },
               "right": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 6,
                   "col": 30,
@@ -418,7 +418,18 @@
                   "end_col": 35
                 },
                 "width": 4,
-                "bits": "0001"
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 6,
+                    "col": 30,
+                    "end_line": 6,
+                    "end_col": 35
+                  },
+                  "width": 4,
+                  "bits": "0001",
+                  "signed": true
+                }
               }
             }
           },
@@ -505,7 +516,7 @@
                 "name": "a[0][2]"
               },
               "right": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 8,
                   "col": 30,
@@ -513,7 +524,18 @@
                   "end_col": 35
                 },
                 "width": 4,
-                "bits": "0001"
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 8,
+                    "col": 30,
+                    "end_line": 8,
+                    "end_col": 35
+                  },
+                  "width": 4,
+                  "bits": "0001",
+                  "signed": true
+                }
               }
             }
           },
@@ -561,7 +583,49 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "y[1][2]",
+            "base": "y[1]",
+            "index": 2
+          },
+          {
+            "name": "a[1][2]",
+            "base": "a[1]",
+            "index": 2
+          },
+          {
+            "name": "y[1][1]",
+            "base": "y[1]",
+            "index": 1
+          },
+          {
+            "name": "a[1][1]",
+            "base": "a[1]",
+            "index": 1
+          },
+          {
+            "name": "y[0][2]",
+            "base": "y[0]",
+            "index": 2
+          },
+          {
+            "name": "a[0][2]",
+            "base": "a[0]",
+            "index": 2
+          },
+          {
+            "name": "y[0][1]",
+            "base": "y[0]",
+            "index": 1
+          },
+          {
+            "name": "a[0][1]",
+            "base": "a[0]",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

@@ -36,48 +36,15 @@
         ],
         "processes": [
           {
-            "kind": "Initial",
+            "kind": "Unsupported",
             "span": {
               "line": 4,
               "col": 29,
               "end_line": 4,
               "end_col": 39
             },
-            "body": {
-              "kind": "BlockingAssign",
-              "span": {
-                "line": 4,
-                "col": 29,
-                "end_line": 4,
-                "end_col": 39
-              },
-              "target": {
-                "kind": "Ident",
-                "span": {
-                  "line": 4,
-                  "col": 29,
-                  "end_line": 4,
-                  "end_col": 32
-                },
-                "width": 1,
-                "name": "bus"
-              },
-              "value": {
-                "kind": "Literal",
-                "span": {
-                  "line": 4,
-                  "col": 35,
-                  "end_line": 4,
-                  "end_col": 39
-                },
-                "width": 1,
-                "bits": "1"
-              },
-              "continuous_constant_lowered": true,
-              "continuous_strength": true
-            },
-            "continuous_constant_lowered": true,
-            "continuous_strength": true
+            "sv_kind": "ContinuousAssignSymbol:strength",
+            "text": "bus = 1'b1"
           },
           {
             "kind": "Initial",

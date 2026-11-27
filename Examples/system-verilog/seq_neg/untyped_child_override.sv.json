@@ -162,7 +162,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           }
         ],
         "types": [],

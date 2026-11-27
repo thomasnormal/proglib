@@ -45,23 +45,13 @@
                 {
                   "msb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 10,
-                      "col": 21,
-                      "end_line": 10,
-                      "end_col": 22
-                    },
+                    "span": null,
                     "value": 1,
                     "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 10,
-                      "col": 23,
-                      "end_line": 10,
-                      "end_col": 24
-                    },
+                    "span": null,
                     "value": 0,
                     "resolved_width": null
                   }
@@ -378,15 +368,35 @@
               "span": null,
               "width": 2,
               "operand": {
-                "kind": "Ident",
+                "kind": "Resize",
                 "span": {
                   "line": 13,
-                  "col": 21,
+                  "col": 18,
                   "end_line": 13,
-                  "end_col": 26
+                  "end_col": 27
                 },
                 "width": 2,
-                "name": "value"
+                "operand": {
+                  "kind": "Squash2",
+                  "span": {
+                    "line": 13,
+                    "col": 18,
+                    "end_line": 13,
+                    "end_col": 27
+                  },
+                  "width": 2,
+                  "operand": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 13,
+                      "col": 21,
+                      "end_line": 13,
+                      "end_col": 26
+                    },
+                    "width": 2,
+                    "name": "value"
+                  }
+                }
               }
             }
           },
@@ -474,7 +484,7 @@
               "name": "count_value"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "SignedResize",
               "span": {
                 "line": 16,
                 "col": 24,
@@ -482,9 +492,19 @@
                 "end_col": 35
               },
               "width": 32,
-              "bits": "00000000000000000000000000000011",
-              "enum_method_lowered": "num",
-              "signed": true
+              "operand": {
+                "kind": "Literal",
+                "span": {
+                  "line": 16,
+                  "col": 24,
+                  "end_line": 16,
+                  "end_col": 35
+                },
+                "width": 32,
+                "bits": "00000000000000000000000000000011",
+                "enum_method_lowered": "num",
+                "signed": true
+              }
             }
           },
           {

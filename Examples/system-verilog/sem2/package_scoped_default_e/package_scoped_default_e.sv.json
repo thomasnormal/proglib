@@ -81,6 +81,7 @@
               "from_package": "package_scoped_default_e_pkg"
             },
             "resolved": 16,
+            "string": false,
             "signed": false
           }
         ],
@@ -125,6 +126,7 @@
               "resolved": 32
             },
             "resolved": 16,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -137,7 +139,9 @@
               "value": 16,
               "resolved_width": 32
             },
-            "package": "package_scoped_default_e_pkg"
+            "package": "package_scoped_default_e_pkg",
+            "resolved_bits": "00000000000000000000000000010000",
+            "resolved_signed": false
           }
         ],
         "types": [],

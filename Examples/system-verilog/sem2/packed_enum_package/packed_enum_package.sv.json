@@ -47,23 +47,13 @@
                 {
                   "msb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 5,
-                      "col": 25,
-                      "end_line": 5,
-                      "end_col": 26
-                    },
+                    "span": null,
                     "value": 1,
                     "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 5,
-                      "col": 27,
-                      "end_line": 5,
-                      "end_col": 28
-                    },
+                    "span": null,
                     "value": 0,
                     "resolved_width": null
                   }
@@ -173,7 +163,8 @@
                 "member": "MODE_B",
                 "from_package": "modes_pkg"
               }
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],

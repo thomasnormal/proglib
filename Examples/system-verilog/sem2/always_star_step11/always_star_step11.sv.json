@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -376,14 +377,13 @@
         "decls": [],
         "processes": [
           {
-            "kind": "AlwaysEvent",
+            "kind": "AlwaysComb",
             "span": {
               "line": 7,
               "col": 5,
               "end_line": 15,
               "end_col": 8
             },
-            "event_kind": "ImplicitEventControl",
             "body": {
               "kind": "Block",
               "span": {
@@ -671,8 +671,7 @@
                 }
               ]
             },
-            "text": "always @* begin\n        case (sel)\n            2'b00: y_star = a;\n            2'b01: y_star = b;\n            2'b1x: y_star = a ^ b;\n            2'b1z: y_star = ~a;\n            default: y_star = '1;\n  ",
-            "symbolic_event_retained": true
+            "always_star_lowered": "implicit"
           },
           {
             "kind": "AlwaysComb",

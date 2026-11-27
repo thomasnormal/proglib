@@ -82,15 +82,19 @@
         "decls": [],
         "processes": [
           {
-            "kind": "AlwaysPosedge",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 2,
               "col": 3,
               "end_line": 2,
               "end_col": 32
             },
-            "style": "always",
-            "clock": "clk",
+            "events": [
+              {
+                "edge": "posedge",
+                "signal": "clk"
+              }
+            ],
             "body": {
               "kind": "NonblockingAssign",
               "span": {

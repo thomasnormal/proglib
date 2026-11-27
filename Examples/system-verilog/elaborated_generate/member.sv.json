@@ -69,19 +69,7 @@
             }
           }
         ],
-        "others": [
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 3,
-              "col": 5,
-              "end_line": 3,
-              "end_col": 49
-            },
-            "sv_kind": "SubroutineSymbol:Subroutine",
-            "text": "function int helper(); return 9; endfunction"
-          }
-        ],
+        "others": [],
         "elaboration_lowered": true
       }
     ],

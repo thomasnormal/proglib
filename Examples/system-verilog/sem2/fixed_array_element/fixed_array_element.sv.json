@@ -104,6 +104,8 @@
               "resolved": 4
             },
             "two_state": false,
+            "flat_base": "arr",
+            "flat_index": 0,
             "init": null
           },
           {
@@ -146,6 +148,8 @@
               "resolved": 4
             },
             "two_state": false,
+            "flat_base": "arr",
+            "flat_index": 1,
             "init": null
           }
         ],
@@ -258,7 +262,14 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "arr[0]",
+            "base": "arr",
+            "index": 0
+          }
+        ]
       }
     ],
     "others": []

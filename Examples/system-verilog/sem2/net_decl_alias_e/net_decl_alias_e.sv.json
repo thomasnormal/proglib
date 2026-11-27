@@ -65,7 +65,7 @@
         ],
         "decls": [
           {
-            "kind": "Net",
+            "kind": "Var",
             "span": {
               "line": 6,
               "col": 8,
@@ -78,7 +78,31 @@
               "packed": [],
               "resolved": 1
             },
-            "init": {
+            "init": null,
+            "net_as_variable": true
+          }
+        ],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 6,
+              "col": 12,
+              "end_line": 6,
+              "end_col": 13
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 6,
+                "col": 8,
+                "end_line": 6,
+                "end_col": 13
+              },
+              "width": 1,
+              "name": "t"
+            },
+            "value": {
               "kind": "Ident",
               "span": {
                 "line": 6,
@@ -89,10 +113,8 @@
               "width": 1,
               "name": "a"
             },
-            "net_rewrite_retained": true
-          }
-        ],
-        "processes": [
+            "net_declaration_assign": true
+          },
           {
             "kind": "Assign",
             "span": {

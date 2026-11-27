@@ -121,8 +121,8 @@
             },
             "events": [
               {
-                "signal": "clk",
                 "edge": "posedge",
+                "signal": "clk",
                 "iff": {
                   "kind": "Binary",
                   "span": {

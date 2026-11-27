@@ -131,14 +131,14 @@
         ],
         "decls": [
           {
-            "kind": "UnpackedDecl",
+            "kind": "Var",
             "span": {
               "line": 4,
               "col": 15,
               "end_line": 4,
               "end_col": 25
             },
-            "name": "slot",
+            "name": "slot[0]",
             "width": {
               "kind": "PackedType",
               "packed": [
@@ -169,32 +169,54 @@
               ],
               "resolved": 8
             },
-            "unpacked": [
-              {
-                "msb": {
-                  "kind": "Int",
-                  "span": {
-                    "line": 4,
-                    "col": 21,
-                    "end_line": 4,
-                    "end_col": 22
+            "two_state": false,
+            "flat_base": "slot",
+            "flat_index": 0,
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 4,
+              "col": 15,
+              "end_line": 4,
+              "end_col": 25
+            },
+            "name": "slot[1]",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 4,
+                      "col": 10,
+                      "end_line": 4,
+                      "end_col": 11
+                    },
+                    "value": 7,
+                    "resolved_width": null
                   },
-                  "value": 0,
-                  "resolved_width": null
-                },
-                "lsb": {
-                  "kind": "Int",
-                  "span": {
-                    "line": 4,
-                    "col": 23,
-                    "end_line": 4,
-                    "end_col": 24
-                  },
-                  "value": 1,
-                  "resolved_width": null
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 4,
+                      "col": 12,
+                      "end_line": 4,
+                      "end_col": 13
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
                 }
-              }
-            ]
+              ],
+              "resolved": 8
+            },
+            "two_state": false,
+            "flat_base": "slot",
+            "flat_index": 1,
+            "init": null
           }
         ],
         "processes": [
@@ -216,50 +238,15 @@
               },
               "stmts": [
                 {
-                  "kind": "BlockingAssign",
+                  "kind": "Unsupported",
                   "span": {
                     "line": 6,
                     "col": 5,
                     "end_line": 6,
                     "end_col": 19
                   },
-                  "target": {
-                    "kind": "ArraySel",
-                    "span": {
-                      "line": 6,
-                      "col": 5,
-                      "end_line": 6,
-                      "end_col": 14
-                    },
-                    "width": 8,
-                    "name": "slot",
-                    "indices": [
-                      {
-                        "kind": "Ident",
-                        "span": {
-                          "line": 6,
-                          "col": 10,
-                          "end_line": 6,
-                          "end_col": 13
-                        },
-                        "width": 1,
-                        "name": "idx"
-                      }
-                    ],
-                    "part": null,
-                    "unpacked": true
-                  },
-                  "value": {
-                    "kind": "Ident",
-                    "span": {
-                      "line": 6,
-                      "col": 17,
-                      "end_line": 6,
-                      "end_col": 18
-                    },
-                    "width": 8,
-                    "name": "x"
-                  }
+                  "sv_kind": "AssignmentExpression:target",
+                  "text": "slot[idx] = x;"
                 },
                 {
                   "kind": "BlockingAssign",
@@ -281,7 +268,7 @@
                     "name": "y"
                   },
                   "value": {
-                    "kind": "ArraySel",
+                    "kind": "Ternary",
                     "span": {
                       "line": 7,
                       "col": 9,
@@ -289,9 +276,17 @@
                       "end_col": 18
                     },
                     "width": 8,
-                    "name": "slot",
-                    "indices": [
-                      {
+                    "cond": {
+                      "kind": "Binary",
+                      "span": {
+                        "line": 7,
+                        "col": 14,
+                        "end_line": 7,
+                        "end_col": 17
+                      },
+                      "width": 1,
+                      "op": "===",
+                      "left": {
                         "kind": "Ident",
                         "span": {
                           "line": 7,
@@ -301,10 +296,95 @@
                         },
                         "width": 1,
                         "name": "idx"
+                      },
+                      "right": {
+                        "kind": "Literal",
+                        "span": {
+                          "line": 7,
+                          "col": 14,
+                          "end_line": 7,
+                          "end_col": 17
+                        },
+                        "width": 1,
+                        "bits": "0"
                       }
-                    ],
-                    "part": null,
-                    "unpacked": true
+                    },
+                    "then": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 7,
+                        "col": 9,
+                        "end_line": 7,
+                        "end_col": 13
+                      },
+                      "width": 8,
+                      "name": "slot[0]"
+                    },
+                    "else": {
+                      "kind": "Ternary",
+                      "span": {
+                        "line": 7,
+                        "col": 9,
+                        "end_line": 7,
+                        "end_col": 18
+                      },
+                      "width": 8,
+                      "cond": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 7,
+                          "col": 14,
+                          "end_line": 7,
+                          "end_col": 17
+                        },
+                        "width": 1,
+                        "op": "===",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 7,
+                            "col": 14,
+                            "end_line": 7,
+                            "end_col": 17
+                          },
+                          "width": 1,
+                          "name": "idx"
+                        },
+                        "right": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 7,
+                            "col": 14,
+                            "end_line": 7,
+                            "end_col": 17
+                          },
+                          "width": 1,
+                          "bits": "1"
+                        }
+                      },
+                      "then": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 7,
+                          "col": 9,
+                          "end_line": 7,
+                          "end_col": 13
+                        },
+                        "width": 8,
+                        "name": "slot[1]"
+                      },
+                      "else": {
+                        "kind": "Literal",
+                        "span": {
+                          "line": 7,
+                          "col": 9,
+                          "end_line": 7,
+                          "end_col": 18
+                        },
+                        "width": 8,
+                        "bits": "xxxxxxxx"
+                      }
+                    }
                   }
                 }
               ]
@@ -312,7 +392,19 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "slot[0]",
+            "base": "slot",
+            "index": 0
+          },
+          {
+            "name": "slot[1]",
+            "base": "slot",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

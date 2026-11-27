@@ -1091,7 +1091,39 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "a[0][0]",
+            "base": "a[0]",
+            "index": 0
+          },
+          {
+            "name": "a[0][1]",
+            "base": "a[0]",
+            "index": 1
+          },
+          {
+            "name": "a[0][2]",
+            "base": "a[0]",
+            "index": 2
+          },
+          {
+            "name": "a[1][0]",
+            "base": "a[1]",
+            "index": 0
+          },
+          {
+            "name": "a[1][1]",
+            "base": "a[1]",
+            "index": 1
+          },
+          {
+            "name": "a[1][2]",
+            "base": "a[1]",
+            "index": 2
+          }
+        ]
       }
     ],
     "others": []

@@ -120,10 +120,11 @@
               "property": {
                 "kind": "SvaDisable",
                 "guard": {
-                  "kind": "SvaNot",
-                  "arg": {
-                    "kind": "SvaExpr",
-                    "expr": {
+                  "kind": "SvaExpr",
+                  "expr": {
+                    "kind": "Unary",
+                    "op": "!",
+                    "operand": {
                       "kind": "Ident",
                       "name": "rst"
                     }

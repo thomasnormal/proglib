@@ -223,7 +223,8 @@
                         }
                       }
                     }
-                  ]
+                  ],
+                  "dynamic_array_concat_lowered": true
                 },
                 {
                   "kind": "If",

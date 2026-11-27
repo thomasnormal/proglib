@@ -83,8 +83,8 @@
             },
             "events": [
               {
-                "signal": "trigger",
-                "edge": "any"
+                "edge": "any",
+                "signal": "trigger"
               }
             ],
             "body": {

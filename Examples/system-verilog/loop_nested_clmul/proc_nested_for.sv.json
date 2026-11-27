@@ -78,7 +78,8 @@
               "value": 16,
               "resolved_width": 32
             },
-            "resolved": 16
+            "resolved": 16,
+            "string": false
           }
         ],
         "types": [],
@@ -701,11 +702,13 @@
                             }
                           ]
                         },
-                        "symbolic_for_parameter": true
+                        "symbolic_for_parameter": true,
+                        "symbolic_for_retained": true
                       }
                     ]
                   },
-                  "symbolic_for_parameter": true
+                  "symbolic_for_parameter": true,
+                  "symbolic_for_retained": true
                 }
               ]
             }

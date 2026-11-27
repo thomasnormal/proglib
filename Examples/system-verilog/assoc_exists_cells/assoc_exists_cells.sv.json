@@ -24,39 +24,6 @@
           {
             "kind": "Var",
             "span": {
-              "line": 5,
-              "col": 17,
-              "end_line": 5,
-              "end_col": 26
-            },
-            "name": "$local_array:145:code[int:7]",
-            "width": 8,
-            "init": null,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 5,
-              "col": 17,
-              "end_line": 5,
-              "end_col": 26
-            },
-            "name": "$assoc:present:$local_array:145:code[int:7]",
-            "width": 1,
-            "two_state": true,
-            "init": {
-              "kind": "Literal",
-              "span": null,
-              "width": 1,
-              "bits": "0"
-            },
-            "assoc_presence": true,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
               "line": 4,
               "col": 9,
               "end_line": 4,
@@ -82,6 +49,39 @@
               "end_col": 22
             },
             "name": "$assoc:present:$local_array:114:score[string:616e73776572]",
+            "width": 1,
+            "two_state": true,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 1,
+              "bits": "0"
+            },
+            "assoc_presence": true,
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 5,
+              "col": 17,
+              "end_line": 5,
+              "end_col": 26
+            },
+            "name": "$local_array:145:code[int:7]",
+            "width": 8,
+            "init": null,
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 5,
+              "col": 17,
+              "end_line": 5,
+              "end_col": 26
+            },
+            "name": "$assoc:present:$local_array:145:code[int:7]",
             "width": 1,
             "two_state": true,
             "init": {

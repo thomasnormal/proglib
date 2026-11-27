@@ -357,7 +357,7 @@
                     "name": "l"
                   },
                   "value": {
-                    "kind": "Literal",
+                    "kind": "SignedResize",
                     "span": {
                       "line": 14,
                       "col": 10,
@@ -365,9 +365,19 @@
                       "end_col": 18
                     },
                     "width": 32,
-                    "bits": "00000000000000000000000000000111",
-                    "signed": true,
-                    "fixed_dimension_query": "$left"
+                    "operand": {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 14,
+                        "col": 10,
+                        "end_line": 14,
+                        "end_col": 18
+                      },
+                      "width": 32,
+                      "bits": "00000000000000000000000000000111",
+                      "signed": true,
+                      "fixed_dimension_query": "$left"
+                    }
                   }
                 },
                 {
@@ -390,7 +400,7 @@
                     "name": "r"
                   },
                   "value": {
-                    "kind": "Literal",
+                    "kind": "SignedResize",
                     "span": {
                       "line": 15,
                       "col": 10,
@@ -398,9 +408,19 @@
                       "end_col": 19
                     },
                     "width": 32,
-                    "bits": "00000000000000000000000000000100",
-                    "signed": true,
-                    "fixed_dimension_query": "$right"
+                    "operand": {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 15,
+                        "col": 10,
+                        "end_line": 15,
+                        "end_col": 19
+                      },
+                      "width": 32,
+                      "bits": "00000000000000000000000000000100",
+                      "signed": true,
+                      "fixed_dimension_query": "$right"
+                    }
                   }
                 },
                 {
@@ -423,7 +443,7 @@
                     "name": "lo"
                   },
                   "value": {
-                    "kind": "Literal",
+                    "kind": "SignedResize",
                     "span": {
                       "line": 16,
                       "col": 10,
@@ -431,9 +451,19 @@
                       "end_col": 17
                     },
                     "width": 32,
-                    "bits": "00000000000000000000000000000100",
-                    "signed": true,
-                    "fixed_dimension_query": "$low"
+                    "operand": {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 16,
+                        "col": 10,
+                        "end_line": 16,
+                        "end_col": 17
+                      },
+                      "width": 32,
+                      "bits": "00000000000000000000000000000100",
+                      "signed": true,
+                      "fixed_dimension_query": "$low"
+                    }
                   }
                 },
                 {
@@ -500,7 +530,7 @@
                     "name": "inc"
                   },
                   "value": {
-                    "kind": "Literal",
+                    "kind": "SignedResize",
                     "span": {
                       "line": 18,
                       "col": 11,
@@ -508,9 +538,19 @@
                       "end_col": 24
                     },
                     "width": 32,
-                    "bits": "00000000000000000000000000000001",
-                    "signed": true,
-                    "fixed_dimension_query": "$increment"
+                    "operand": {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 18,
+                        "col": 11,
+                        "end_line": 18,
+                        "end_col": 24
+                      },
+                      "width": 32,
+                      "bits": "00000000000000000000000000000001",
+                      "signed": true,
+                      "fixed_dimension_query": "$increment"
+                    }
                   }
                 },
                 {

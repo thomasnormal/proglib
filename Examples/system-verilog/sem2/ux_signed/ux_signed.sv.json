@@ -50,7 +50,8 @@
               "bits": "00000000000000000000000000001000",
               "signed": true
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -340,7 +341,7 @@
               "name": "e1"
             },
             "value": {
-              "kind": "SignedResize",
+              "kind": "Literal",
               "span": {
                 "line": 21,
                 "col": 15,
@@ -348,17 +349,7 @@
                 "end_col": 19
               },
               "width": 8,
-              "operand": {
-                "kind": "Literal",
-                "span": {
-                  "line": 21,
-                  "col": 15,
-                  "end_line": 21,
-                  "end_col": 19
-                },
-                "width": 32,
-                "bits": "00000000000000000000000000000001"
-              }
+              "bits": "00000001"
             }
           },
           {
@@ -381,7 +372,7 @@
               "name": "e2"
             },
             "value": {
-              "kind": "SignedResize",
+              "kind": "Literal",
               "span": {
                 "line": 22,
                 "col": 15,
@@ -389,17 +380,7 @@
                 "end_col": 19
               },
               "width": 8,
-              "operand": {
-                "kind": "Literal",
-                "span": {
-                  "line": 22,
-                  "col": 15,
-                  "end_line": 22,
-                  "end_col": 19
-                },
-                "width": 32,
-                "bits": "00000000000000000000000000001000"
-              }
+              "bits": "00001000"
             }
           },
           {
@@ -462,7 +443,7 @@
                   }
                 },
                 "right": {
-                  "kind": "Literal",
+                  "kind": "Resize",
                   "span": {
                     "line": 23,
                     "col": 19,
@@ -470,7 +451,18 @@
                     "end_col": 23
                   },
                   "width": 32,
-                  "bits": "00000000000000000000000000000001"
+                  "operand": {
+                    "kind": "Literal",
+                    "span": {
+                      "line": 23,
+                      "col": 19,
+                      "end_line": 23,
+                      "end_col": 23
+                    },
+                    "width": 32,
+                    "bits": "00000000000000000000000000000001",
+                    "signed": true
+                  }
                 }
               }
             }

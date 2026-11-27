@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -528,7 +529,7 @@
               "width": 9,
               "op": "s>>>",
               "left": {
-                "kind": "SignedResize",
+                "kind": "Resize",
                 "span": {
                   "line": 14,
                   "col": 21,

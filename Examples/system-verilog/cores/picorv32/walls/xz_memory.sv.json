@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -312,32 +313,20 @@
               "unpacked": true
             },
             "value": {
-              "kind": "Literal",
+              "kind": "Unsupported",
               "span": {
                 "line": 8,
                 "col": 19,
                 "end_line": 8,
                 "end_col": 22
               },
-              "width": 32,
-              "bits": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              "sv_kind": "ConversionExpression:unsized-xz",
+              "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
             }
           }
         ],
         "generates": [],
-        "others": [
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 8,
-              "col": 19,
-              "end_line": 8,
-              "end_col": 22
-            },
-            "sv_kind": "IntegerLiteral:unsized-xz-parametric",
-            "text": "'bx"
-          }
-        ]
+        "others": []
       }
     ],
     "others": []

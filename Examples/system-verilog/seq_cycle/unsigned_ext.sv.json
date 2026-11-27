@@ -79,6 +79,7 @@
               "resolved_width": 32
             },
             "resolved": 4,
+            "string": false,
             "signed": false
           },
           {
@@ -132,6 +133,7 @@
               "resolved_width": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false
           }
         ],

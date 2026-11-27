@@ -442,16 +442,20 @@
                                       "width": 1,
                                       "op": "==",
                                       "left": {
-                                        "kind": "Ident",
+                                        "kind": "AggregateMember",
                                         "span": {
                                           "line": 15,
                                           "col": 9,
                                           "end_line": 15,
                                           "end_col": 20
                                         },
-                                        "width": 32,
-                                        "name": "def_value.A",
-                                        "signed": true
+                                        "base": "def_value",
+                                        "path": [
+                                          {
+                                            "field": "A"
+                                          }
+                                        ],
+                                        "width": 32
                                       },
                                       "right": {
                                         "kind": "Literal",
@@ -476,16 +480,23 @@
                                       "width": 1,
                                       "op": "==",
                                       "left": {
-                                        "kind": "Ident",
+                                        "kind": "AggregateMember",
                                         "span": {
                                           "line": 15,
                                           "col": 30,
                                           "end_line": 15,
                                           "end_col": 45
                                         },
-                                        "width": 32,
-                                        "name": "def_value.BC1.B",
-                                        "signed": true
+                                        "base": "def_value",
+                                        "path": [
+                                          {
+                                            "field": "BC1"
+                                          },
+                                          {
+                                            "field": "B"
+                                          }
+                                        ],
+                                        "width": 32
                                       },
                                       "right": {
                                         "kind": "Literal",
@@ -511,16 +522,23 @@
                                     "width": 1,
                                     "op": "==",
                                     "left": {
-                                      "kind": "Ident",
+                                      "kind": "AggregateMember",
                                       "span": {
                                         "line": 16,
                                         "col": 9,
                                         "end_line": 16,
                                         "end_col": 24
                                       },
-                                      "width": 32,
-                                      "name": "def_value.BC1.C",
-                                      "signed": true
+                                      "base": "def_value",
+                                      "path": [
+                                        {
+                                          "field": "BC1"
+                                        },
+                                        {
+                                          "field": "C"
+                                        }
+                                      ],
+                                      "width": 32
                                     },
                                     "right": {
                                       "kind": "Literal",
@@ -546,16 +564,23 @@
                                   "width": 1,
                                   "op": "==",
                                   "left": {
-                                    "kind": "Ident",
+                                    "kind": "AggregateMember",
                                     "span": {
                                       "line": 16,
                                       "col": 34,
                                       "end_line": 16,
                                       "end_col": 49
                                     },
-                                    "width": 32,
-                                    "name": "def_value.BC2.B",
-                                    "signed": true
+                                    "base": "def_value",
+                                    "path": [
+                                      {
+                                        "field": "BC2"
+                                      },
+                                      {
+                                        "field": "B"
+                                      }
+                                    ],
+                                    "width": 32
                                   },
                                   "right": {
                                     "kind": "Literal",
@@ -581,16 +606,23 @@
                                 "width": 1,
                                 "op": "==",
                                 "left": {
-                                  "kind": "Ident",
+                                  "kind": "AggregateMember",
                                   "span": {
                                     "line": 17,
                                     "col": 9,
                                     "end_line": 17,
                                     "end_col": 24
                                   },
-                                  "width": 32,
-                                  "name": "def_value.BC2.C",
-                                  "signed": true
+                                  "base": "def_value",
+                                  "path": [
+                                    {
+                                      "field": "BC2"
+                                    },
+                                    {
+                                      "field": "C"
+                                    }
+                                  ],
+                                  "width": 32
                                 },
                                 "right": {
                                   "kind": "Literal",
@@ -616,16 +648,23 @@
                               "width": 1,
                               "op": "==",
                               "left": {
-                                "kind": "Ident",
+                                "kind": "AggregateMember",
                                 "span": {
                                   "line": 17,
                                   "col": 34,
                                   "end_line": 17,
                                   "end_col": 46
                                 },
-                                "width": 32,
-                                "name": "span.start.x",
-                                "signed": true
+                                "base": "span",
+                                "path": [
+                                  {
+                                    "field": "start"
+                                  },
+                                  {
+                                    "field": "x"
+                                  }
+                                ],
+                                "width": 32
                               },
                               "right": {
                                 "kind": "Literal",
@@ -651,16 +690,23 @@
                             "width": 1,
                             "op": "==",
                             "left": {
-                              "kind": "Ident",
+                              "kind": "AggregateMember",
                               "span": {
                                 "line": 18,
                                 "col": 9,
                                 "end_line": 18,
                                 "end_col": 21
                               },
-                              "width": 32,
-                              "name": "span.start.y",
-                              "signed": true
+                              "base": "span",
+                              "path": [
+                                {
+                                  "field": "start"
+                                },
+                                {
+                                  "field": "y"
+                                }
+                              ],
+                              "width": 32
                             },
                             "right": {
                               "kind": "Literal",
@@ -686,16 +732,23 @@
                           "width": 1,
                           "op": "==",
                           "left": {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 18,
                               "col": 30,
                               "end_line": 18,
                               "end_col": 43
                             },
-                            "width": 32,
-                            "name": "span.finish.x",
-                            "signed": true
+                            "base": "span",
+                            "path": [
+                              {
+                                "field": "finish"
+                              },
+                              {
+                                "field": "x"
+                              }
+                            ],
+                            "width": 32
                           },
                           "right": {
                             "kind": "Literal",
@@ -721,16 +774,23 @@
                         "width": 1,
                         "op": "==",
                         "left": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 19,
                             "col": 9,
                             "end_line": 19,
                             "end_col": 22
                           },
-                          "width": 32,
-                          "name": "span.finish.y",
-                          "signed": true
+                          "base": "span",
+                          "path": [
+                            {
+                              "field": "finish"
+                            },
+                            {
+                              "field": "y"
+                            }
+                          ],
+                          "width": 32
                         },
                         "right": {
                           "kind": "Literal",
@@ -746,15 +806,20 @@
                       }
                     },
                     "right": {
-                      "kind": "Ident",
+                      "kind": "AggregateMember",
                       "span": {
                         "line": 19,
                         "col": 31,
                         "end_line": 19,
                         "end_col": 43
                       },
-                      "width": 1,
-                      "name": "span.enabled"
+                      "base": "span",
+                      "path": [
+                        {
+                          "field": "enabled"
+                        }
+                      ],
+                      "width": 1
                     }
                   },
                   "then": {

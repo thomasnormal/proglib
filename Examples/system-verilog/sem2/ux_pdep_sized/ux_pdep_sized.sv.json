@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -524,15 +525,15 @@
               "name": "y4"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "Unsupported",
               "span": {
                 "line": 20,
                 "col": 15,
                 "end_line": 20,
                 "end_col": 19
               },
-              "width": 8,
-              "bits": "xxxx0000"
+              "sv_kind": "ConversionExpression:unsized-xz",
+              "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx0000"
             }
           }
         ],
@@ -548,28 +549,6 @@
             },
             "sv_kind": "ConversionExpression:xz-literal-parametric",
             "text": "12'hxF0"
-          },
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 20,
-              "col": 15,
-              "end_line": 20,
-              "end_col": 19
-            },
-            "sv_kind": "ConversionExpression:xz-literal-parametric",
-            "text": "'hx0"
-          },
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 20,
-              "col": 15,
-              "end_line": 20,
-              "end_col": 19
-            },
-            "sv_kind": "IntegerLiteral:unsized-xz-parametric",
-            "text": "'hx0"
           }
         ]
       }

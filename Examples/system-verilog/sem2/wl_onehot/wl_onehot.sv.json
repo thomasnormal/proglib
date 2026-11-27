@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -310,7 +311,7 @@
                 "width": 32,
                 "op": "s<<",
                 "left": {
-                  "kind": "SignedResize",
+                  "kind": "Resize",
                   "span": {
                     "line": 8,
                     "col": 14,
@@ -374,7 +375,7 @@
               "width": 40,
               "op": "s<<",
               "left": {
-                "kind": "SignedResize",
+                "kind": "Resize",
                 "span": {
                   "line": 9,
                   "col": 14,

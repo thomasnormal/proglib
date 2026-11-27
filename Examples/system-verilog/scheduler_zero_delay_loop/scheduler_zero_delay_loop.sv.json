@@ -46,78 +46,61 @@
         ],
         "processes": [
           {
-            "kind": "Always",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 5,
               "col": 3,
               "end_line": 5,
               "end_col": 23
             },
+            "events": [
+              {
+                "edge": "any",
+                "signal": "a"
+              }
+            ],
             "body": {
-              "kind": "Block",
+              "kind": "NonblockingAssign",
               "span": {
                 "line": 5,
-                "col": 10,
+                "col": 15,
                 "end_line": 5,
                 "end_col": 23
               },
-              "stmts": [
-                {
-                  "kind": "WaitEvent",
-                  "span": {
-                    "line": 5,
-                    "col": 10,
-                    "end_line": 5,
-                    "end_col": 23
-                  },
-                  "signal": "a",
-                  "edge": "any"
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 5,
+                  "col": 15,
+                  "end_line": 5,
+                  "end_col": 16
                 },
-                {
-                  "kind": "NonblockingAssign",
+                "width": 1,
+                "name": "a"
+              },
+              "value": {
+                "kind": "Unary",
+                "span": {
+                  "line": 5,
+                  "col": 20,
+                  "end_line": 5,
+                  "end_col": 22
+                },
+                "width": 1,
+                "op": "~",
+                "operand": {
+                  "kind": "Ident",
                   "span": {
                     "line": 5,
-                    "col": 15,
+                    "col": 21,
                     "end_line": 5,
-                    "end_col": 23
+                    "end_col": 22
                   },
-                  "target": {
-                    "kind": "Ident",
-                    "span": {
-                      "line": 5,
-                      "col": 15,
-                      "end_line": 5,
-                      "end_col": 16
-                    },
-                    "width": 1,
-                    "name": "a"
-                  },
-                  "value": {
-                    "kind": "Unary",
-                    "span": {
-                      "line": 5,
-                      "col": 20,
-                      "end_line": 5,
-                      "end_col": 22
-                    },
-                    "width": 1,
-                    "op": "~",
-                    "operand": {
-                      "kind": "Ident",
-                      "span": {
-                        "line": 5,
-                        "col": 21,
-                        "end_line": 5,
-                        "end_col": 22
-                      },
-                      "width": 1,
-                      "name": "a"
-                    }
-                  }
+                  "width": 1,
+                  "name": "a"
                 }
-              ]
-            },
-            "always_lowered": true
+              }
+            }
           },
           {
             "kind": "Initial",

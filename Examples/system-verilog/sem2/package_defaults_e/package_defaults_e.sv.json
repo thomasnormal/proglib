@@ -72,6 +72,7 @@
               "resolved": 32
             },
             "resolved": 4,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -84,7 +85,9 @@
               "value": 4,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000100",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -126,6 +129,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -138,7 +142,9 @@
               "value": 2,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -180,6 +186,7 @@
               "resolved": 32
             },
             "resolved": 8,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -192,7 +199,9 @@
               "value": 8,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000001000",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -224,6 +233,7 @@
               "resolved": 64
             },
             "resolved": 22333915272534,
+            "string": false,
             "default": {
               "kind": "Literal",
               "span": {
@@ -235,7 +245,9 @@
               "width": 64,
               "bits": "0000000000000000000101000101000000000101000101100001010101010110"
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "0000000000000000000101000101000000000101000101100001010101010110",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -277,6 +289,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Squash2",
@@ -312,7 +325,9 @@
                 "resolved": 2
               }
             },
-            "package": "package_defaults_e_derived"
+            "package": "package_defaults_e_derived",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           }
         ],
         "types": [],
@@ -1222,6 +1237,7 @@
               "from_package": "package_defaults_e_cfg"
             },
             "resolved": 4,
+            "string": false,
             "signed": false
           }
         ],
@@ -1266,6 +1282,7 @@
               "resolved": 32
             },
             "resolved": 4,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -1278,7 +1295,9 @@
               "value": 4,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000100",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -1320,6 +1339,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -1332,7 +1352,9 @@
               "value": 2,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -1374,6 +1396,7 @@
               "resolved": 32
             },
             "resolved": 8,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -1386,7 +1409,9 @@
               "value": 8,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000001000",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -1418,6 +1443,7 @@
               "resolved": 64
             },
             "resolved": 22333915272534,
+            "string": false,
             "default": {
               "kind": "Literal",
               "span": {
@@ -1429,7 +1455,9 @@
               "width": 64,
               "bits": "0000000000000000000101000101000000000101000101100001010101010110"
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "0000000000000000000101000101000000000101000101100001010101010110",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -1471,6 +1499,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Squash2",
@@ -1506,7 +1535,9 @@
                 "resolved": 2
               }
             },
-            "package": "package_defaults_e_derived"
+            "package": "package_defaults_e_derived",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           }
         ],
         "types": [],
@@ -1735,6 +1766,7 @@
               "from_package": "package_defaults_e_derived"
             },
             "resolved": 2,
+            "string": false,
             "signed": false
           }
         ],
@@ -1779,6 +1811,7 @@
               "resolved": 32
             },
             "resolved": 4,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -1791,7 +1824,9 @@
               "value": 4,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000100",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -1833,6 +1868,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -1845,7 +1881,9 @@
               "value": 2,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -1887,6 +1925,7 @@
               "resolved": 32
             },
             "resolved": 8,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -1899,7 +1938,9 @@
               "value": 8,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000001000",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -1931,6 +1972,7 @@
               "resolved": 64
             },
             "resolved": 22333915272534,
+            "string": false,
             "default": {
               "kind": "Literal",
               "span": {
@@ -1942,7 +1984,9 @@
               "width": 64,
               "bits": "0000000000000000000101000101000000000101000101100001010101010110"
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "0000000000000000000101000101000000000101000101100001010101010110",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -1984,6 +2028,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Squash2",
@@ -2019,7 +2064,9 @@
                 "resolved": 2
               }
             },
-            "package": "package_defaults_e_derived"
+            "package": "package_defaults_e_derived",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           }
         ],
         "types": [],
@@ -2290,6 +2337,7 @@
               }
             },
             "resolved": 5200,
+            "string": false,
             "signed": false
           }
         ],
@@ -2334,6 +2382,7 @@
               "resolved": 32
             },
             "resolved": 4,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -2346,7 +2395,9 @@
               "value": 4,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000100",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -2388,6 +2439,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -2400,7 +2452,9 @@
               "value": 2,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -2442,6 +2496,7 @@
               "resolved": 32
             },
             "resolved": 8,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -2454,7 +2509,9 @@
               "value": 8,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000001000",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -2486,6 +2543,7 @@
               "resolved": 64
             },
             "resolved": 22333915272534,
+            "string": false,
             "default": {
               "kind": "Literal",
               "span": {
@@ -2497,7 +2555,9 @@
               "width": 64,
               "bits": "0000000000000000000101000101000000000101000101100001010101010110"
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "0000000000000000000101000101000000000101000101100001010101010110",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -2539,6 +2599,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Squash2",
@@ -2574,7 +2635,9 @@
                 "resolved": 2
               }
             },
-            "package": "package_defaults_e_derived"
+            "package": "package_defaults_e_derived",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           }
         ],
         "types": [],
@@ -2793,6 +2856,7 @@
               "resolved": 32
             },
             "resolved": 4,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -2805,7 +2869,9 @@
               "value": 4,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000100",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -2847,6 +2913,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -2859,7 +2926,9 @@
               "value": 2,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -2901,6 +2970,7 @@
               "resolved": 32
             },
             "resolved": 8,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -2913,7 +2983,9 @@
               "value": 8,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000001000",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -2945,6 +3017,7 @@
               "resolved": 64
             },
             "resolved": 22333915272534,
+            "string": false,
             "default": {
               "kind": "Literal",
               "span": {
@@ -2956,7 +3029,9 @@
               "width": 64,
               "bits": "0000000000000000000101000101000000000101000101100001010101010110"
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "0000000000000000000101000101000000000101000101100001010101010110",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -2998,6 +3073,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Squash2",
@@ -3033,7 +3109,9 @@
                 "resolved": 2
               }
             },
-            "package": "package_defaults_e_derived"
+            "package": "package_defaults_e_derived",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           }
         ],
         "types": [],
@@ -3242,6 +3320,7 @@
               "from_package": "package_defaults_e_cfg"
             },
             "resolved": 2,
+            "string": false,
             "signed": false
           }
         ],
@@ -3286,6 +3365,7 @@
               "resolved": 32
             },
             "resolved": 4,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -3298,7 +3378,9 @@
               "value": 4,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000100",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -3340,6 +3422,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -3352,7 +3435,9 @@
               "value": 2,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -3394,6 +3479,7 @@
               "resolved": 32
             },
             "resolved": 8,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Int",
@@ -3406,7 +3492,9 @@
               "value": 8,
               "resolved_width": 32
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "00000000000000000000000000001000",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -3438,6 +3526,7 @@
               "resolved": 64
             },
             "resolved": 22333915272534,
+            "string": false,
             "default": {
               "kind": "Literal",
               "span": {
@@ -3449,7 +3538,9 @@
               "width": 64,
               "bits": "0000000000000000000101000101000000000101000101100001010101010110"
             },
-            "package": "package_defaults_e_cfg"
+            "package": "package_defaults_e_cfg",
+            "resolved_bits": "0000000000000000000101000101000000000101000101100001010101010110",
+            "resolved_signed": false
           },
           {
             "kind": "ParameterDecl",
@@ -3491,6 +3582,7 @@
               "resolved": 32
             },
             "resolved": 2,
+            "string": false,
             "signed": false,
             "default": {
               "kind": "Squash2",
@@ -3526,7 +3618,9 @@
                 "resolved": 2
               }
             },
-            "package": "package_defaults_e_derived"
+            "package": "package_defaults_e_derived",
+            "resolved_bits": "00000000000000000000000000000010",
+            "resolved_signed": false
           }
         ],
         "types": [],

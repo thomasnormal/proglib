@@ -78,7 +78,8 @@
               "value": 5,
               "resolved_width": 32
             },
-            "resolved": 5
+            "resolved": 5,
+            "string": false
           }
         ],
         "types": [],
@@ -290,7 +291,7 @@
                       "kind": "Int",
                       "span": {
                         "line": 11,
-                        "col": 28,
+                        "col": 33,
                         "end_line": 11,
                         "end_col": 34
                       },
@@ -369,7 +370,8 @@
                       }
                     }
                   },
-                  "symbolic_for_parameter": true
+                  "symbolic_for_parameter": true,
+                  "symbolic_for_retained": true
                 }
               ]
             }

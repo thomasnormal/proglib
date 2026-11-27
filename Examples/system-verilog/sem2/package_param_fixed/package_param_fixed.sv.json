@@ -51,7 +51,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           }
         ],
         "package_params": [
@@ -95,6 +96,7 @@
               "resolved": 32
             },
             "resolved": 4,
+            "string": false,
             "default": {
               "kind": "Int",
               "span": {
@@ -106,7 +108,9 @@
               "value": 4,
               "resolved_width": 32
             },
-            "package": "package_param_fixed_pkg"
+            "package": "package_param_fixed_pkg",
+            "resolved_bits": "00000000000000000000000000000100",
+            "resolved_signed": true
           }
         ],
         "types": [],

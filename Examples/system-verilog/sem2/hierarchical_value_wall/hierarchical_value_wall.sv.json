@@ -69,15 +69,15 @@
               "name": "result"
             },
             "value": {
-              "kind": "Unsupported",
+              "kind": "Ident",
               "span": {
                 "line": 6,
                 "col": 19,
                 "end_line": 6,
                 "end_col": 35
               },
-              "sv_kind": "HierarchicalValueExpression",
-              "text": "u.internal_value"
+              "width": 1,
+              "name": "u.internal_value"
             }
           }
         ],

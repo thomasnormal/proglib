@@ -31,26 +31,88 @@
         "types": [],
         "ports": [
           {
-            "kind": "Unsupported",
+            "kind": "Port",
             "span": {
               "line": 3,
               "col": 29,
               "end_line": 3,
               "end_col": 31
             },
-            "sv_kind": "PortSymbol:signed",
-            "text": "sa"
+            "name": "sa",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 24,
+                      "end_line": 3,
+                      "end_col": 25
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 26,
+                      "end_line": 3,
+                      "end_col": 27
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "signed": true
           },
           {
-            "kind": "Unsupported",
+            "kind": "Port",
             "span": {
               "line": 3,
               "col": 33,
               "end_line": 3,
               "end_col": 35
             },
-            "sv_kind": "PortSymbol:signed",
-            "text": "sb"
+            "name": "sb",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 24,
+                      "end_line": 3,
+                      "end_col": 25
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 26,
+                      "end_line": 3,
+                      "end_col": 27
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "signed": true
           },
           {
             "kind": "Port",
@@ -126,15 +188,46 @@
             }
           },
           {
-            "kind": "Unsupported",
+            "kind": "Port",
             "span": {
               "line": 6,
               "col": 29,
               "end_line": 6,
               "end_col": 31
             },
-            "sv_kind": "PortSymbol:signed",
-            "text": "s5"
+            "name": "s5",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 24,
+                      "end_line": 6,
+                      "end_col": 25
+                    },
+                    "value": 4,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 26,
+                      "end_line": 6,
+                      "end_col": 27
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 5
+            },
+            "signed": true
           },
           {
             "kind": "Port",
@@ -178,15 +271,46 @@
             }
           },
           {
-            "kind": "Unsupported",
+            "kind": "Port",
             "span": {
               "line": 8,
               "col": 29,
               "end_line": 8,
               "end_col": 33
             },
-            "sv_kind": "PortSymbol:signed",
-            "text": "sh_r"
+            "name": "sh_r",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 24,
+                      "end_line": 8,
+                      "end_col": 25
+                    },
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 26,
+                      "end_line": 8,
+                      "end_col": 27
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "signed": true
           }
         ],
         "decls": [],
@@ -331,26 +455,48 @@
               "width": 5,
               "op": "+",
               "left": {
-                "kind": "Unsupported",
+                "kind": "SignedResize",
                 "span": {
                   "line": 12,
                   "col": 15,
                   "end_line": 12,
                   "end_col": 17
                 },
-                "sv_kind": "ConversionExpression:width",
-                "text": "sa"
+                "width": 5,
+                "operand": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 12,
+                    "col": 15,
+                    "end_line": 12,
+                    "end_col": 17
+                  },
+                  "width": 4,
+                  "name": "sa",
+                  "signed": true
+                }
               },
               "right": {
-                "kind": "Unsupported",
+                "kind": "SignedResize",
                 "span": {
                   "line": 12,
                   "col": 20,
                   "end_line": 12,
                   "end_col": 22
                 },
-                "sv_kind": "ConversionExpression:width",
-                "text": "sb"
+                "width": 5,
+                "operand": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 12,
+                    "col": 20,
+                    "end_line": 12,
+                    "end_col": 22
+                  },
+                  "width": 4,
+                  "name": "sb",
+                  "signed": true
+                }
               }
             }
           },
@@ -384,26 +530,48 @@
               "width": 5,
               "op": "+",
               "left": {
-                "kind": "Unsupported",
+                "kind": "SignedResize",
                 "span": {
                   "line": 13,
                   "col": 15,
                   "end_line": 13,
                   "end_col": 17
                 },
-                "sv_kind": "ConversionExpression:width",
-                "text": "sa"
+                "width": 5,
+                "operand": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 13,
+                    "col": 15,
+                    "end_line": 13,
+                    "end_col": 17
+                  },
+                  "width": 4,
+                  "name": "sa",
+                  "signed": true
+                }
               },
               "right": {
-                "kind": "Unsupported",
+                "kind": "SignedResize",
                 "span": {
                   "line": 13,
                   "col": 20,
                   "end_line": 13,
                   "end_col": 22
                 },
-                "sv_kind": "ConversionExpression:width",
-                "text": "sb"
+                "width": 5,
+                "operand": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 13,
+                    "col": 20,
+                    "end_line": 13,
+                    "end_col": 22
+                  },
+                  "width": 4,
+                  "name": "sb",
+                  "signed": true
+                }
               }
             }
           },

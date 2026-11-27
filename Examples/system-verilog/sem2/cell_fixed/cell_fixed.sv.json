@@ -78,7 +78,8 @@
               "value": 1,
               "resolved_width": 32
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -130,7 +131,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           }
         ],
         "types": [],
@@ -296,6 +298,8 @@
               "resolved": 1
             },
             "two_state": false,
+            "flat_base": "m",
+            "flat_index": 0,
             "init": null
           },
           {
@@ -313,6 +317,8 @@
               "resolved": 1
             },
             "two_state": false,
+            "flat_base": "m",
+            "flat_index": 1,
             "init": null
           },
           {
@@ -330,6 +336,8 @@
               "resolved": 1
             },
             "two_state": false,
+            "flat_base": "m",
+            "flat_index": 2,
             "init": null
           },
           {
@@ -347,6 +355,8 @@
               "resolved": 1
             },
             "two_state": false,
+            "flat_base": "m",
+            "flat_index": 3,
             "init": null
           }
         ],
@@ -700,7 +710,29 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "m[0]",
+            "base": "m",
+            "index": 0
+          },
+          {
+            "name": "m[1]",
+            "base": "m",
+            "index": 1
+          },
+          {
+            "name": "m[2]",
+            "base": "m",
+            "index": 2
+          },
+          {
+            "name": "m[3]",
+            "base": "m",
+            "index": 3
+          }
+        ]
       }
     ],
     "others": []

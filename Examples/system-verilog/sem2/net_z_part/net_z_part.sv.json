@@ -191,7 +191,57 @@
               "end_col": 66
             },
             "sv_kind": "PortSymbol:net-z",
-            "text": "y"
+            "text": "y",
+            "metadata": {
+              "name": "y",
+              "width": {
+                "kind": "PackedType",
+                "packed": [
+                  {
+                    "msb": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 3,
+                        "col": 60,
+                        "end_line": 3,
+                        "end_col": 61
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    },
+                    "lsb": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 3,
+                        "col": 62,
+                        "end_line": 3,
+                        "end_col": 63
+                      },
+                      "value": 0,
+                      "resolved_width": null
+                    }
+                  }
+                ],
+                "resolved": 2
+              },
+              "net_kind": "Wire",
+              "signed": false,
+              "four_state": true,
+              "is_net": true,
+              "driver_reason": "undriven bits: the net reads z there",
+              "driver_records": [
+                {
+                  "bounds": [
+                    0,
+                    0
+                  ],
+                  "owner_kind": "ContinuousAssignSymbol",
+                  "owner_name": "",
+                  "generated": true,
+                  "source": "y[0]"
+                }
+              ]
+            }
           }
         ],
         "decls": [],

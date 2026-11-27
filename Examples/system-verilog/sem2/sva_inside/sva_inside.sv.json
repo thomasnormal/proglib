@@ -194,7 +194,7 @@
                       "op": "||",
                       "left": {
                         "kind": "Binary",
-                        "op": "===",
+                        "op": "==?",
                         "left": {
                           "kind": "Ident",
                           "name": "a"
@@ -211,7 +211,7 @@
                         "op": "||",
                         "left": {
                           "kind": "Binary",
-                          "op": "===",
+                          "op": "==?",
                           "left": {
                             "kind": "Ident",
                             "name": "a"
@@ -225,7 +225,7 @@
                         },
                         "right": {
                           "kind": "Binary",
-                          "op": "===",
+                          "op": "==?",
                           "left": {
                             "kind": "Ident",
                             "name": "a"

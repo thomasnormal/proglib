@@ -78,7 +78,8 @@
               "value": 3,
               "resolved_width": 32
             },
-            "resolved": 3
+            "resolved": 3,
+            "string": false
           }
         ],
         "types": [],
@@ -435,7 +436,7 @@
               "name": "o1"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "SignedResize",
               "span": {
                 "line": 13,
                 "col": 15,
@@ -443,7 +444,19 @@
                 "end_col": 23
               },
               "width": 8,
-              "bits": "00000111"
+              "operand": {
+                "kind": "Literal",
+                "span": {
+                  "line": 13,
+                  "col": 15,
+                  "end_line": 13,
+                  "end_col": 23
+                },
+                "width": 32,
+                "bits": "00000000000000000000000000000111",
+                "signed": true,
+                "fixed_dimension_query": "$left"
+              }
             }
           },
           {
@@ -466,7 +479,7 @@
               "name": "o2"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "SignedResize",
               "span": {
                 "line": 14,
                 "col": 15,
@@ -474,7 +487,19 @@
                 "end_col": 24
               },
               "width": 8,
-              "bits": "00000100"
+              "operand": {
+                "kind": "Literal",
+                "span": {
+                  "line": 14,
+                  "col": 15,
+                  "end_line": 14,
+                  "end_col": 24
+                },
+                "width": 32,
+                "bits": "00000000000000000000000000000100",
+                "signed": true,
+                "fixed_dimension_query": "$right"
+              }
             }
           },
           {
@@ -497,7 +522,7 @@
               "name": "o3"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "SignedResize",
               "span": {
                 "line": 15,
                 "col": 15,
@@ -505,7 +530,19 @@
                 "end_col": 22
               },
               "width": 8,
-              "bits": "00000100"
+              "operand": {
+                "kind": "Literal",
+                "span": {
+                  "line": 15,
+                  "col": 15,
+                  "end_line": 15,
+                  "end_col": 22
+                },
+                "width": 32,
+                "bits": "00000000000000000000000000000100",
+                "signed": true,
+                "fixed_dimension_query": "$low"
+              }
             }
           },
           {
@@ -528,7 +565,7 @@
               "name": "o4"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "SignedResize",
               "span": {
                 "line": 16,
                 "col": 15,
@@ -536,7 +573,19 @@
                 "end_col": 28
               },
               "width": 8,
-              "bits": "00000001"
+              "operand": {
+                "kind": "Literal",
+                "span": {
+                  "line": 16,
+                  "col": 15,
+                  "end_line": 16,
+                  "end_col": 28
+                },
+                "width": 32,
+                "bits": "00000000000000000000000000000001",
+                "signed": true,
+                "fixed_dimension_query": "$increment"
+              }
             }
           },
           {

@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -130,7 +131,8 @@
               "value": 3,
               "resolved_width": 32
             },
-            "resolved": 3
+            "resolved": 3,
+            "string": false
           }
         ],
         "types": [],
@@ -713,6 +715,8 @@
               "resolved": 4
             },
             "two_state": false,
+            "flat_base": "mem",
+            "flat_index": 0,
             "init": null
           },
           {
@@ -776,6 +780,8 @@
               "resolved": 4
             },
             "two_state": false,
+            "flat_base": "mem",
+            "flat_index": 1,
             "init": null
           }
         ],
@@ -1466,7 +1472,19 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "mem[0]",
+            "base": "mem",
+            "index": 0
+          },
+          {
+            "name": "mem[1]",
+            "base": "mem",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

@@ -41,9 +41,47 @@
               "end_line": 3,
               "end_col": 25
             },
+            "name": "$assoc:present:score[int:-1]",
+            "width": 1,
+            "two_state": true,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 1,
+              "bits": "0"
+            },
+            "assoc_presence": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 3,
+              "col": 15,
+              "end_line": 3,
+              "end_col": 25
+            },
             "name": "score[int:2]",
             "width": 8,
             "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 3,
+              "col": 15,
+              "end_line": 3,
+              "end_col": 25
+            },
+            "name": "$assoc:present:score[int:2]",
+            "width": 1,
+            "two_state": true,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 1,
+              "bits": "0"
+            },
+            "assoc_presence": true
           }
         ],
         "processes": [
@@ -65,66 +103,154 @@
               },
               "stmts": [
                 {
-                  "kind": "BlockingAssign",
+                  "kind": "Block",
                   "span": {
                     "line": 6,
                     "col": 5,
                     "end_line": 6,
                     "end_col": 23
                   },
-                  "target": {
-                    "kind": "Ident",
-                    "span": {
-                      "line": 6,
-                      "col": 5,
-                      "end_line": 6,
-                      "end_col": 14
+                  "stmts": [
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 6,
+                        "col": 5,
+                        "end_line": 6,
+                        "end_col": 23
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 6,
+                          "col": 5,
+                          "end_line": 6,
+                          "end_col": 14
+                        },
+                        "width": 8,
+                        "name": "score[int:-1]"
+                      },
+                      "value": {
+                        "kind": "Literal",
+                        "span": {
+                          "line": 6,
+                          "col": 17,
+                          "end_line": 6,
+                          "end_col": 22
+                        },
+                        "width": 8,
+                        "bits": "01011010"
+                      }
                     },
-                    "width": 8,
-                    "name": "score[int:-1]"
-                  },
-                  "value": {
-                    "kind": "Literal",
-                    "span": {
-                      "line": 6,
-                      "col": 17,
-                      "end_line": 6,
-                      "end_col": 22
-                    },
-                    "width": 8,
-                    "bits": "01011010"
-                  }
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 6,
+                        "col": 5,
+                        "end_line": 6,
+                        "end_col": 22
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 6,
+                          "col": 5,
+                          "end_line": 6,
+                          "end_col": 14
+                        },
+                        "width": 1,
+                        "name": "$assoc:present:score[int:-1]"
+                      },
+                      "value": {
+                        "kind": "Literal",
+                        "span": {
+                          "line": 6,
+                          "col": 5,
+                          "end_line": 6,
+                          "end_col": 22
+                        },
+                        "width": 1,
+                        "bits": "1"
+                      },
+                      "assoc_presence_write": true
+                    }
+                  ],
+                  "assoc_presence_write": true
                 },
                 {
-                  "kind": "BlockingAssign",
+                  "kind": "Block",
                   "span": {
                     "line": 7,
                     "col": 5,
                     "end_line": 7,
                     "end_col": 22
                   },
-                  "target": {
-                    "kind": "Ident",
-                    "span": {
-                      "line": 7,
-                      "col": 5,
-                      "end_line": 7,
-                      "end_col": 13
+                  "stmts": [
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 7,
+                        "col": 5,
+                        "end_line": 7,
+                        "end_col": 22
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 7,
+                          "col": 5,
+                          "end_line": 7,
+                          "end_col": 13
+                        },
+                        "width": 8,
+                        "name": "score[int:2]"
+                      },
+                      "value": {
+                        "kind": "Literal",
+                        "span": {
+                          "line": 7,
+                          "col": 16,
+                          "end_line": 7,
+                          "end_col": 21
+                        },
+                        "width": 8,
+                        "bits": "10100101"
+                      }
                     },
-                    "width": 8,
-                    "name": "score[int:2]"
-                  },
-                  "value": {
-                    "kind": "Literal",
-                    "span": {
-                      "line": 7,
-                      "col": 16,
-                      "end_line": 7,
-                      "end_col": 21
-                    },
-                    "width": 8,
-                    "bits": "10100101"
-                  }
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 7,
+                        "col": 5,
+                        "end_line": 7,
+                        "end_col": 21
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 7,
+                          "col": 5,
+                          "end_line": 7,
+                          "end_col": 13
+                        },
+                        "width": 1,
+                        "name": "$assoc:present:score[int:2]"
+                      },
+                      "value": {
+                        "kind": "Literal",
+                        "span": {
+                          "line": 7,
+                          "col": 5,
+                          "end_line": 7,
+                          "end_col": 21
+                        },
+                        "width": 1,
+                        "bits": "1"
+                      },
+                      "assoc_presence_write": true
+                    }
+                  ],
+                  "assoc_presence_write": true
                 },
                 {
                   "kind": "If",

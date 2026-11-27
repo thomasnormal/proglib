@@ -215,27 +215,80 @@
                   }
                 },
                 {
-                  "kind": "Block",
+                  "kind": "BlockingAssign",
                   "span": {
                     "line": 9,
                     "col": 5,
                     "end_line": 9,
                     "end_col": 40
                   },
-                  "stmts": [
-                    {
-                      "kind": "LocalDecl",
+                  "target": {
+                    "kind": "SelectTarget",
+                    "span": {
+                      "line": 9,
+                      "col": 5,
+                      "end_line": 9,
+                      "end_col": 21
+                    },
+                    "width": 4,
+                    "value": {
+                      "kind": "Ident",
                       "span": {
                         "line": 9,
                         "col": 5,
                         "end_line": 9,
-                        "end_col": 40
+                        "end_col": 9
+                      },
+                      "width": 16,
+                      "name": "word"
+                    },
+                    "index": {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 9,
+                        "col": 11,
+                        "end_line": 9,
+                        "end_col": 16
                       },
                       "width": 32,
-                      "name": "$compound:244:index",
-                      "two_state": false,
-                      "init": {
-                        "kind": "MinTypMax",
+                      "bits": "00000000000000000000000000000100"
+                    },
+                    "index_signed": false,
+                    "descending": false,
+                    "two_state": false
+                  },
+                  "value": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 9,
+                      "col": 5,
+                      "end_line": 9,
+                      "end_col": 39
+                    },
+                    "width": 4,
+                    "op": "+",
+                    "left": {
+                      "kind": "CompoundRead",
+                      "span": {
+                        "line": 9,
+                        "col": 5,
+                        "end_line": 9,
+                        "end_col": 21
+                      },
+                      "width": 4,
+                      "value": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 9,
+                          "col": 5,
+                          "end_line": 9,
+                          "end_col": 9
+                        },
+                        "width": 16,
+                        "name": "word"
+                      },
+                      "index": {
+                        "kind": "Literal",
                         "span": {
                           "line": 9,
                           "col": 11,
@@ -243,124 +296,34 @@
                           "end_col": 16
                         },
                         "width": 32,
-                        "choice": "typ",
-                        "value": {
-                          "kind": "Literal",
-                          "span": {
-                            "line": 9,
-                            "col": 13,
-                            "end_line": 9,
-                            "end_col": 14
-                          },
-                          "width": 32,
-                          "bits": "00000000000000000000000000000100"
-                        },
-                        "signed": true
+                        "bits": "00000000000000000000000000000100"
                       },
-                      "automatic_compound": true
+                      "index_signed": false,
+                      "descending": false
                     },
-                    {
-                      "kind": "BlockingAssign",
+                    "right": {
+                      "kind": "MinTypMax",
                       "span": {
                         "line": 9,
-                        "col": 5,
+                        "col": 24,
                         "end_line": 9,
-                        "end_col": 40
+                        "end_col": 38
                       },
-                      "target": {
-                        "kind": "SelectTarget",
-                        "span": {
-                          "line": 9,
-                          "col": 5,
-                          "end_line": 9,
-                          "end_col": 21
-                        },
-                        "width": 4,
-                        "value": {
-                          "kind": "Ident",
-                          "span": {
-                            "line": 9,
-                            "col": 5,
-                            "end_line": 9,
-                            "end_col": 9
-                          },
-                          "width": 16,
-                          "name": "word"
-                        },
-                        "index": {
-                          "kind": "Ident",
-                          "span": null,
-                          "width": 32,
-                          "name": "$compound:244:index"
-                        },
-                        "index_signed": true,
-                        "descending": false,
-                        "two_state": false
-                      },
+                      "width": 4,
+                      "choice": "typ",
                       "value": {
-                        "kind": "Binary",
+                        "kind": "Literal",
                         "span": {
                           "line": 9,
-                          "col": 5,
+                          "col": 29,
                           "end_line": 9,
-                          "end_col": 39
+                          "end_col": 33
                         },
                         "width": 4,
-                        "op": "+",
-                        "left": {
-                          "kind": "CompoundRead",
-                          "span": {
-                            "line": 9,
-                            "col": 5,
-                            "end_line": 9,
-                            "end_col": 21
-                          },
-                          "width": 4,
-                          "value": {
-                            "kind": "Ident",
-                            "span": {
-                              "line": 9,
-                              "col": 5,
-                              "end_line": 9,
-                              "end_col": 9
-                            },
-                            "width": 16,
-                            "name": "word"
-                          },
-                          "index": {
-                            "kind": "Ident",
-                            "span": null,
-                            "width": 32,
-                            "name": "$compound:244:index"
-                          },
-                          "index_signed": true,
-                          "descending": false
-                        },
-                        "right": {
-                          "kind": "MinTypMax",
-                          "span": {
-                            "line": 9,
-                            "col": 24,
-                            "end_line": 9,
-                            "end_col": 38
-                          },
-                          "width": 4,
-                          "choice": "typ",
-                          "value": {
-                            "kind": "Literal",
-                            "span": {
-                              "line": 9,
-                              "col": 29,
-                              "end_line": 9,
-                              "end_col": 33
-                            },
-                            "width": 4,
-                            "bits": "0010"
-                          }
-                        }
+                        "bits": "0010"
                       }
                     }
-                  ],
+                  },
                   "compound_assignment_lowered": true
                 },
                 {

@@ -78,7 +78,8 @@
               "value": 32,
               "resolved_width": 32
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           }
         ],
         "types": [],
@@ -647,7 +648,8 @@
               "value": 32,
               "resolved_width": 32
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           }
         ],
         "types": [],

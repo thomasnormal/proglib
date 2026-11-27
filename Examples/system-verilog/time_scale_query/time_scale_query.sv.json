@@ -101,17 +101,15 @@
                     "span": null,
                     "width": 32,
                     "operand": {
-                      "kind": "Literal",
+                      "kind": "Unsupported",
                       "span": {
                         "line": 13,
                         "col": 17,
                         "end_line": 13,
                         "end_col": 26
                       },
-                      "width": 32,
-                      "bits": "11111111111111111111111111110111",
-                      "signed": true,
-                      "time_scale_query": "$timeunit"
+                      "sv_kind": "CallExpression:$timeunit",
+                      "text": "$timeunit"
                     }
                   }
                 },
@@ -140,17 +138,15 @@
                     "span": null,
                     "width": 32,
                     "operand": {
-                      "kind": "Literal",
+                      "kind": "Unsupported",
                       "span": {
                         "line": 14,
                         "col": 22,
                         "end_line": 14,
                         "end_col": 36
                       },
-                      "width": 32,
-                      "bits": "11111111111111111111111111110100",
-                      "signed": true,
-                      "time_scale_query": "$timeprecision"
+                      "sv_kind": "CallExpression:$timeprecision",
+                      "text": "$timeprecision"
                     }
                   }
                 },

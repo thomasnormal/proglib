@@ -112,7 +112,8 @@
               },
               "width": 1,
               "name": "x"
-            }
+            },
+            "continuous_net_target": true
           },
           {
             "kind": "Assign",

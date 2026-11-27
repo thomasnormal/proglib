@@ -24,29 +24,6 @@
           {
             "kind": "Var",
             "span": {
-              "line": 5,
-              "col": 10,
-              "end_line": 5,
-              "end_col": 20
-            },
-            "name": "$hierarchy:3:top:10:$hierarchy:1:0:4:left:135:pair",
-            "width": 8,
-            "init": {
-              "kind": "Literal",
-              "span": {
-                "line": 5,
-                "col": 15,
-                "end_line": 5,
-                "end_col": 20
-              },
-              "width": 8,
-              "bits": "00010010"
-            },
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
               "line": 3,
               "col": 15,
               "end_line": 3,
@@ -93,29 +70,6 @@
           {
             "kind": "Var",
             "span": {
-              "line": 5,
-              "col": 10,
-              "end_line": 5,
-              "end_col": 20
-            },
-            "name": "$hierarchy:3:top:10:$hierarchy:1:1:5:right:135:pair",
-            "width": 8,
-            "init": {
-              "kind": "Literal",
-              "span": {
-                "line": 5,
-                "col": 15,
-                "end_line": 5,
-                "end_col": 20
-              },
-              "width": 8,
-              "bits": "00010010"
-            },
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
               "line": 3,
               "col": 15,
               "end_line": 3,
@@ -156,6 +110,52 @@
               },
               "width": 4,
               "bits": "0011"
+            },
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 5,
+              "col": 10,
+              "end_line": 5,
+              "end_col": 20
+            },
+            "name": "$hierarchy:3:top:10:$hierarchy:1:0:4:left:135:pair",
+            "width": 8,
+            "init": {
+              "kind": "Literal",
+              "span": {
+                "line": 5,
+                "col": 15,
+                "end_line": 5,
+                "end_col": 20
+              },
+              "width": 8,
+              "bits": "00010010"
+            },
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 5,
+              "col": 10,
+              "end_line": 5,
+              "end_col": 20
+            },
+            "name": "$hierarchy:3:top:10:$hierarchy:1:1:5:right:135:pair",
+            "width": 8,
+            "init": {
+              "kind": "Literal",
+              "span": {
+                "line": 5,
+                "col": 15,
+                "end_line": 5,
+                "end_col": 20
+              },
+              "width": 8,
+              "bits": "00010010"
             },
             "static_local_storage": true
           }

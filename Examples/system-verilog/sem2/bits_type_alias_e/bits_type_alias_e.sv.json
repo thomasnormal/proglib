@@ -89,7 +89,8 @@
                 "bits_type_query": true
               }
             },
-            "resolved": 12
+            "resolved": 12,
+            "string": false
           }
         ],
         "types": [],

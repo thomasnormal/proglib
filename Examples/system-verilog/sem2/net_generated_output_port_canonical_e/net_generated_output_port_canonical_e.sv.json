@@ -78,7 +78,8 @@
               "value": 1,
               "resolved_width": 32
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           }
         ],
         "types": [],
@@ -170,7 +171,8 @@
                   },
                   "width": 1,
                   "bits": "0"
-                }
+                },
+                "continuous_net_target": true
               }
             ],
             "else": null

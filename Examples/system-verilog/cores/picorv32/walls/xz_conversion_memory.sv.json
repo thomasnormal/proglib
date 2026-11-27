@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -224,6 +225,8 @@
               "resolved": 8
             },
             "two_state": false,
+            "flat_base": "mem",
+            "flat_index": 0,
             "init": null
           },
           {
@@ -287,6 +290,8 @@
               "resolved": 8
             },
             "two_state": false,
+            "flat_base": "mem",
+            "flat_index": 1,
             "init": null
           },
           {
@@ -350,6 +355,8 @@
               "resolved": 8
             },
             "two_state": false,
+            "flat_base": "mem",
+            "flat_index": 2,
             "init": null
           },
           {
@@ -413,6 +420,8 @@
               "resolved": 8
             },
             "two_state": false,
+            "flat_base": "mem",
+            "flat_index": 3,
             "init": null
           }
         ],
@@ -468,41 +477,25 @@
               "name": "mem[0]"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "Unsupported",
               "span": {
                 "line": 8,
                 "col": 19,
                 "end_line": 8,
                 "end_col": 22
               },
-              "width": 8,
-              "bits": "xxxxxxxx"
+              "sv_kind": "ConversionExpression:unsized-xz",
+              "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
             }
           }
         ],
         "generates": [],
-        "others": [
+        "others": [],
+        "cell_refs": [
           {
-            "kind": "Unsupported",
-            "span": {
-              "line": 8,
-              "col": 19,
-              "end_line": 8,
-              "end_col": 22
-            },
-            "sv_kind": "ConversionExpression:xz-literal-parametric",
-            "text": "'bx"
-          },
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 8,
-              "col": 19,
-              "end_line": 8,
-              "end_col": 22
-            },
-            "sv_kind": "IntegerLiteral:unsized-xz-parametric",
-            "text": "'bx"
+            "name": "mem[0]",
+            "base": "mem",
+            "index": 0
           }
         ]
       }

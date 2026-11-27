@@ -92,7 +92,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -141,7 +142,7 @@
                 "end_line": 9,
                 "end_col": 34
               },
-              "name": "vbits",
+              "name": "constant_function_package_e_pkg::vbits",
               "args": [
                 {
                   "kind": "ParamRef",
@@ -154,10 +155,10 @@
                   "name": "N"
                 }
               ],
-              "width": 32,
-              "symbolic_user_function_retained": true
+              "width": 32
             },
-            "resolved": 3
+            "resolved": 3,
+            "string": false
           }
         ],
         "types": [],
@@ -277,7 +278,7 @@
               "end_line": 4,
               "end_col": 14
             },
-            "name": "vbits",
+            "name": "constant_function_package_e_pkg::vbits",
             "automatic": true,
             "return_type": {
               "kind": "PackedType",
@@ -412,7 +413,98 @@
                 "value": 1,
                 "resolved_width": 32
               }
-            }
+            },
+            "package": "constant_function_package_e_pkg",
+            "stmts": [
+              {
+                "kind": "FnReturn",
+                "span": {
+                  "line": 3,
+                  "col": 5,
+                  "end_line": 3,
+                  "end_col": 36
+                },
+                "value": {
+                  "kind": "Ternary",
+                  "span": {
+                    "line": 3,
+                    "col": 12,
+                    "end_line": 3,
+                    "end_col": 35
+                  },
+                  "width": 32,
+                  "cond": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 3,
+                      "col": 13,
+                      "end_line": 3,
+                      "end_col": 18
+                    },
+                    "width": 1,
+                    "op": "s>",
+                    "left": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 2,
+                        "col": 50,
+                        "end_line": 2,
+                        "end_col": 51
+                      },
+                      "width": 32,
+                      "name": "v"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 3,
+                        "col": 17,
+                        "end_line": 3,
+                        "end_col": 18
+                      },
+                      "value": 1,
+                      "resolved_width": 32
+                    }
+                  },
+                  "then": {
+                    "kind": "SysCall",
+                    "span": {
+                      "line": 3,
+                      "col": 22,
+                      "end_line": 3,
+                      "end_col": 31
+                    },
+                    "name": "$clog2",
+                    "args": [
+                      {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 2,
+                          "col": 50,
+                          "end_line": 2,
+                          "end_col": 51
+                        },
+                        "width": 32,
+                        "name": "v"
+                      }
+                    ],
+                    "resolved": null
+                  },
+                  "else": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 3,
+                      "col": 34,
+                      "end_line": 3,
+                      "end_col": 35
+                    },
+                    "value": 1,
+                    "resolved_width": 32
+                  }
+                }
+              }
+            ],
+            "return_two_state": false
           }
         ],
         "processes": [

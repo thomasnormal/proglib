@@ -537,7 +537,29 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "a[0]",
+            "base": "a",
+            "index": 0
+          },
+          {
+            "name": "a[1]",
+            "base": "a",
+            "index": 1
+          },
+          {
+            "name": "a[2]",
+            "base": "a",
+            "index": 2
+          },
+          {
+            "name": "a[3]",
+            "base": "a",
+            "index": 3
+          }
+        ]
       }
     ],
     "others": []

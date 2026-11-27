@@ -78,7 +78,8 @@
               "value": 3,
               "resolved_width": 32
             },
-            "resolved": 3
+            "resolved": 3,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           }
         ],
         "types": [],
@@ -319,15 +321,112 @@
         ],
         "decls": [
           {
-            "kind": "Unsupported",
+            "kind": "UnpackedDecl",
             "span": {
               "line": 11,
               "col": 17,
               "end_line": 11,
               "end_col": 28
             },
-            "sv_kind": "VariableSymbol:default-point-array",
-            "text": "mem [0:K-1]"
+            "name": "mem",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 11,
+                      "col": 10,
+                      "end_line": 11,
+                      "end_col": 13
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 11,
+                        "col": 10,
+                        "end_line": 11,
+                        "end_col": 11
+                      },
+                      "name": "N"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 11,
+                        "col": 12,
+                        "end_line": 11,
+                        "end_col": 13
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 11,
+                      "col": 14,
+                      "end_line": 11,
+                      "end_col": 15
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 3
+            },
+            "unpacked": [
+              {
+                "msb": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 11,
+                    "col": 22,
+                    "end_line": 11,
+                    "end_col": 23
+                  },
+                  "value": 0,
+                  "resolved_width": null
+                },
+                "lsb": {
+                  "kind": "Binary",
+                  "span": {
+                    "line": 11,
+                    "col": 24,
+                    "end_line": 11,
+                    "end_col": 27
+                  },
+                  "width": null,
+                  "op": "-",
+                  "left": {
+                    "kind": "ParamRef",
+                    "span": {
+                      "line": 11,
+                      "col": 24,
+                      "end_line": 11,
+                      "end_col": 25
+                    },
+                    "name": "K"
+                  },
+                  "right": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 11,
+                      "col": 26,
+                      "end_line": 11,
+                      "end_col": 27
+                    },
+                    "value": 1,
+                    "resolved_width": null
+                  }
+                }
+              }
+            ]
           }
         ],
         "processes": [
@@ -359,7 +458,7 @@
                     "end_col": 24
                   },
                   "target": {
-                    "kind": "Ident",
+                    "kind": "ArraySel",
                     "span": {
                       "line": 13,
                       "col": 5,
@@ -367,7 +466,22 @@
                       "end_col": 11
                     },
                     "width": 3,
-                    "name": "mem[0]"
+                    "name": "mem",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 13,
+                          "col": 9,
+                          "end_line": 13,
+                          "end_col": 10
+                        },
+                        "value": 0,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
                   },
                   "value": {
                     "kind": "PartSel",
@@ -452,7 +566,7 @@
                     },
                     "width": 1,
                     "value": {
-                      "kind": "Ident",
+                      "kind": "ArraySel",
                       "span": {
                         "line": 14,
                         "col": 5,
@@ -460,7 +574,22 @@
                         "end_col": 11
                       },
                       "width": 3,
-                      "name": "mem[1]"
+                      "name": "mem",
+                      "indices": [
+                        {
+                          "kind": "Int",
+                          "span": {
+                            "line": 14,
+                            "col": 9,
+                            "end_line": 14,
+                            "end_col": 10
+                          },
+                          "value": 1,
+                          "resolved_width": 32
+                        }
+                      ],
+                      "part": null,
+                      "unpacked": true
                     },
                     "index": {
                       "kind": "Int",
@@ -530,7 +659,7 @@
               "name": "q0"
             },
             "value": {
-              "kind": "Ident",
+              "kind": "ArraySel",
               "span": {
                 "line": 16,
                 "col": 15,
@@ -538,7 +667,22 @@
                 "end_col": 21
               },
               "width": 3,
-              "name": "mem[0]"
+              "name": "mem",
+              "indices": [
+                {
+                  "kind": "Int",
+                  "span": {
+                    "line": 16,
+                    "col": 19,
+                    "end_line": 16,
+                    "end_col": 20
+                  },
+                  "value": 0,
+                  "resolved_width": 32
+                }
+              ],
+              "part": null,
+              "unpacked": true
             }
           },
           {
@@ -561,7 +705,7 @@
               "name": "q1"
             },
             "value": {
-              "kind": "Ident",
+              "kind": "ArraySel",
               "span": {
                 "line": 17,
                 "col": 15,
@@ -569,7 +713,22 @@
                 "end_col": 21
               },
               "width": 3,
-              "name": "mem[1]"
+              "name": "mem",
+              "indices": [
+                {
+                  "kind": "Int",
+                  "span": {
+                    "line": 17,
+                    "col": 19,
+                    "end_line": 17,
+                    "end_col": 20
+                  },
+                  "value": 1,
+                  "resolved_width": 32
+                }
+              ],
+              "part": null,
+              "unpacked": true
             }
           }
         ],

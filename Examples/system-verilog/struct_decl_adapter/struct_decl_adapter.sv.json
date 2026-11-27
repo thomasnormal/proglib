@@ -187,16 +187,20 @@
                       "width": 1,
                       "op": "==",
                       "left": {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 17,
                           "col": 9,
                           "end_line": 17,
                           "end_col": 21
                         },
-                        "width": 32,
-                        "name": "record.score",
-                        "signed": true
+                        "base": "record",
+                        "path": [
+                          {
+                            "field": "score"
+                          }
+                        ],
+                        "width": 32
                       },
                       "right": {
                         "kind": "Literal",
@@ -211,15 +215,20 @@
                       }
                     },
                     "right": {
-                      "kind": "Ident",
+                      "kind": "AggregateMember",
                       "span": {
                         "line": 17,
                         "col": 31,
                         "end_line": 17,
                         "end_col": 45
                       },
-                      "width": 1,
-                      "name": "record.enabled"
+                      "base": "record",
+                      "path": [
+                        {
+                          "field": "enabled"
+                        }
+                      ],
+                      "width": 1
                     }
                   },
                   "then": {

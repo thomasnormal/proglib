@@ -721,7 +721,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -744,7 +745,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -767,7 +769,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           }
         ],
         "types": [],
@@ -4144,7 +4147,8 @@
               "value": 1,
               "resolved_width": 32
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -4167,7 +4171,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -5081,6 +5086,70 @@
               "resolved": 1
             },
             "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 2246,
+              "col": 10,
+              "end_line": 2246,
+              "end_col": 11
+            },
+            "name": "i",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": null,
+            "signed": true
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 2246,
+              "col": 13,
+              "end_line": 2246,
+              "end_col": 14
+            },
+            "name": "j",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": null,
+            "signed": true
           }
         ],
         "processes": [
@@ -6949,7 +7018,8 @@
                       }
                     ]
                   },
-                  "symbolic_for_parameter": true
+                  "symbolic_for_parameter": true,
+                  "symbolic_for_retained": true
                 }
               ]
             },
@@ -13426,7 +13496,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -13488,7 +13559,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -13550,7 +13622,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -13612,7 +13685,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -13674,7 +13748,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -13736,7 +13811,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -13798,7 +13874,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -13860,7 +13937,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -13922,7 +14000,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -13984,7 +14063,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14046,7 +14126,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14108,7 +14189,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14170,7 +14252,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14232,7 +14315,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14294,7 +14378,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14356,7 +14441,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14418,7 +14504,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14480,7 +14567,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14542,7 +14630,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14604,7 +14693,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14666,7 +14756,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -14719,6 +14810,7 @@
               "bits": "00000000000000000000000000000000"
             },
             "resolved": 0,
+            "string": false,
             "signed": false
           },
           {
@@ -14772,6 +14864,7 @@
               "bits": "11111111111111111111111111111111"
             },
             "resolved": 4294967295,
+            "string": false,
             "signed": false
           },
           {
@@ -14825,6 +14918,7 @@
               "bits": "00000000000000000000000000000000"
             },
             "resolved": 0,
+            "string": false,
             "signed": false
           },
           {
@@ -14878,6 +14972,7 @@
               "bits": "00000000000000000000000000010000"
             },
             "resolved": 16,
+            "string": false,
             "signed": false
           },
           {
@@ -14931,6 +15026,7 @@
               "bits": "11111111111111111111111111111111"
             },
             "resolved": 4294967295,
+            "string": false,
             "signed": false
           },
           {
@@ -14983,7 +15079,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15035,7 +15132,8 @@
               "value": 1,
               "resolved_width": 32
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15087,7 +15185,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15170,7 +15269,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15337,7 +15437,8 @@
                 }
               }
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15482,7 +15583,8 @@
                 }
               }
             },
-            "resolved": 5
+            "resolved": 5,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15567,7 +15669,8 @@
                 "name": "ENABLE_DIV"
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15642,7 +15745,8 @@
                 }
               ]
             },
-            "resolved": 4294967296
+            "resolved": 4294967296,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15717,7 +15821,8 @@
                 }
               ]
             },
-            "resolved": 8589934592
+            "resolved": 8589934592,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15792,7 +15897,8 @@
                 }
               ]
             },
-            "resolved": 34359738368
+            "resolved": 34359738368,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15815,7 +15921,8 @@
               "width": 8,
               "bits": "10000000"
             },
-            "resolved": 128
+            "resolved": 128,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15838,7 +15945,8 @@
               "width": 8,
               "bits": "01000000"
             },
-            "resolved": 64
+            "resolved": 64,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15861,7 +15969,8 @@
               "width": 8,
               "bits": "00100000"
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15884,7 +15993,8 @@
               "width": 8,
               "bits": "00010000"
             },
-            "resolved": 16
+            "resolved": 16,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15907,7 +16017,8 @@
               "width": 8,
               "bits": "00001000"
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15930,7 +16041,8 @@
               "width": 8,
               "bits": "00000100"
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15953,7 +16065,8 @@
               "width": 8,
               "bits": "00000010"
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -15976,7 +16089,8 @@
               "width": 8,
               "bits": "00000001"
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           }
         ],
         "types": [],
@@ -17723,6 +17837,38 @@
                 }
               }
             ]
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 205,
+              "col": 10,
+              "end_line": 205,
+              "end_col": 11
+            },
+            "name": "i",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": null,
+            "signed": true
           },
           {
             "kind": "Var",
@@ -22315,7 +22461,8 @@
                             "resolved_width": 32
                           }
                         },
-                        "symbolic_for_parameter": true
+                        "symbolic_for_parameter": true,
+                        "symbolic_for_retained": true
                       }
                     ]
                   },

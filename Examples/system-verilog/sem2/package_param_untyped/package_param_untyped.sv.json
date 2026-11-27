@@ -63,7 +63,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           }
         ],
         "package_params": [
@@ -78,6 +79,7 @@
             "name": "W",
             "type": null,
             "resolved": 4,
+            "string": false,
             "default": {
               "kind": "Int",
               "span": {
@@ -89,7 +91,9 @@
               "value": 4,
               "resolved_width": 32
             },
-            "package": "package_param_untyped_pkg"
+            "package": "package_param_untyped_pkg",
+            "resolved_bits": "00000000000000000000000000000100",
+            "resolved_signed": true
           },
           {
             "kind": "ParameterDecl",
@@ -102,6 +106,7 @@
             "name": "L",
             "type": null,
             "resolved": 5,
+            "string": false,
             "default": {
               "kind": "Binary",
               "span": {
@@ -135,7 +140,9 @@
                 "resolved_width": 32
               }
             },
-            "package": "package_param_untyped_pkg"
+            "package": "package_param_untyped_pkg",
+            "resolved_bits": "00000000000000000000000000000101",
+            "resolved_signed": true
           }
         ],
         "types": [],

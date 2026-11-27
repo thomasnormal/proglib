@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [
@@ -97,45 +98,14 @@
               "packed": [
                 {
                   "msb": {
-                    "kind": "Binary",
-                    "span": {
-                      "line": 11,
-                      "col": 23,
-                      "end_line": 11,
-                      "end_col": 26
-                    },
-                    "width": null,
-                    "op": "-",
-                    "left": {
-                      "kind": "ParamRef",
-                      "span": {
-                        "line": 11,
-                        "col": 23,
-                        "end_line": 11,
-                        "end_col": 24
-                      },
-                      "name": "N"
-                    },
-                    "right": {
-                      "kind": "Int",
-                      "span": {
-                        "line": 11,
-                        "col": 25,
-                        "end_line": 11,
-                        "end_col": 26
-                      },
-                      "value": 1,
-                      "resolved_width": null
-                    }
+                    "kind": "Int",
+                    "span": null,
+                    "value": 3,
+                    "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 11,
-                      "col": 27,
-                      "end_line": 11,
-                      "end_col": 28
-                    },
+                    "span": null,
                     "value": 0,
                     "resolved_width": null
                   }
@@ -169,45 +139,14 @@
               "packed": [
                 {
                   "msb": {
-                    "kind": "Binary",
-                    "span": {
-                      "line": 12,
-                      "col": 23,
-                      "end_line": 12,
-                      "end_col": 26
-                    },
-                    "width": null,
-                    "op": "-",
-                    "left": {
-                      "kind": "ParamRef",
-                      "span": {
-                        "line": 12,
-                        "col": 23,
-                        "end_line": 12,
-                        "end_col": 24
-                      },
-                      "name": "N"
-                    },
-                    "right": {
-                      "kind": "Int",
-                      "span": {
-                        "line": 12,
-                        "col": 25,
-                        "end_line": 12,
-                        "end_col": 26
-                      },
-                      "value": 1,
-                      "resolved_width": null
-                    }
+                    "kind": "Int",
+                    "span": null,
+                    "value": 3,
+                    "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 12,
-                      "col": 27,
-                      "end_line": 12,
-                      "end_col": 28
-                    },
+                    "span": null,
                     "value": 0,
                     "resolved_width": null
                   }
@@ -428,15 +367,16 @@
               },
               "width": 64,
               "operand": {
-                "kind": "Unsupported",
+                "kind": "EnumRef",
                 "span": {
                   "line": 13,
                   "col": 15,
                   "end_line": 13,
                   "end_col": 17
                 },
-                "sv_kind": "EnumValueSymbol:default-point-value",
-                "text": "SA"
+                "type": "s_t",
+                "member": "SA",
+                "from_package": null
               }
             }
           },
@@ -490,15 +430,16 @@
                     "name": "a"
                   },
                   {
-                    "kind": "Unsupported",
+                    "kind": "EnumRef",
                     "span": {
                       "line": 14,
                       "col": 19,
                       "end_line": 14,
                       "end_col": 21
                     },
-                    "sv_kind": "EnumValueSymbol:default-point-value",
-                    "text": "SA"
+                    "type": "s_t",
+                    "member": "SA",
+                    "from_package": null
                   }
                 ]
               }

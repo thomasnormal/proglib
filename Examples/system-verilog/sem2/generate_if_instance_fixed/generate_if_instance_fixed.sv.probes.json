@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "generate_if_instance_fixed",
- "envelope": "generate_if_instance_fixed.sv.json",
+ "envelope": "out.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/generate_if_instance_fixed/generate_if_instance_fixed.sv",
@@ -49,7 +49,8 @@
        "value": 3,
        "resolved_width": 32
       },
-      "resolved": 3
+      "resolved": 3,
+      "string": false
      }
     ],
     "types": [],
@@ -143,120 +144,14 @@
       }
      }
     ],
-    "generates": [
+    "generates": [],
+    "others": [
      {
-      "kind": "GenerateFor",
-      "label": "g",
-      "genvar": "i",
-      "init": {
-       "kind": "Int",
-       "value": 0,
-       "resolved_width": 32
-      },
-      "bound": {
-       "kind": "Binary",
-       "width": 1,
-       "op": "s<",
-       "left": {
-        "kind": "GenvarRef",
-        "name": "i"
-       },
-       "right": {
-        "kind": "ParamRef",
-        "name": "N"
-       }
-      },
-      "step": {
-       "kind": "Unary",
-       "width": null,
-       "op": "++",
-       "operand": {
-        "kind": "GenvarRef",
-        "name": "i"
-       }
-      },
-      "resolved_count": 3,
-      "body": [
-       {
-        "kind": "GenerateIf",
-        "label": "hit",
-        "else_label": null,
-        "cond": {
-         "kind": "Binary",
-         "width": 1,
-         "op": "==",
-         "left": {
-          "kind": "GenvarRef",
-          "name": "i"
-         },
-         "right": {
-          "kind": "Int",
-          "value": 1,
-          "resolved_width": 32
-         }
-        },
-        "then": [
-         {
-          "kind": "Instance",
-          "name": "u",
-          "module": "generate_if_instance_fixed_child",
-          "path": [
-           {
-            "label": "g",
-            "genvar": "i"
-           },
-           {
-            "label": "hit",
-            "genvar": null
-           }
-          ],
-          "params": [],
-          "ports": [
-           {
-            "kind": "PortConn",
-            "port": "a",
-            "dir": "in",
-            "expr": {
-             "kind": "BitSel",
-             "width": 1,
-             "value": {
-              "kind": "Ident",
-              "width": 3,
-              "name": "a"
-             },
-             "index": {
-              "kind": "GenvarRef",
-              "name": "i"
-             }
-            }
-           },
-           {
-            "kind": "PortConn",
-            "port": "y",
-            "dir": "out",
-            "target": {
-             "kind": "BitSel",
-             "width": 1,
-             "value": {
-              "kind": "Ident",
-              "width": 3,
-              "name": "y"
-             },
-             "index": {
-              "kind": "GenvarRef",
-              "name": "i"
-             }
-            }
-           }
-          ]
-         }
-        ],
-        "else": null
-       }
-      ]
+      "kind": "Unsupported",
+      "sv_kind": "ExtractorInternal:TypeError",
+      "text": "'NoneType' object is not iterable"
      }
-    ],
-    "others": []
+    ]
    },
    "instances": [
     {

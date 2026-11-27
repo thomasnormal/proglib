@@ -131,14 +131,14 @@
         ],
         "decls": [
           {
-            "kind": "Var",
+            "kind": "UnpackedDecl",
             "span": {
               "line": 2,
               "col": 15,
               "end_line": 2,
               "end_col": 25
             },
-            "name": "pipe[0]",
+            "name": "pipe",
             "width": {
               "kind": "PackedType",
               "packed": [
@@ -169,142 +169,64 @@
               ],
               "resolved": 8
             },
-            "two_state": false,
-            "flat_base": "pipe",
-            "flat_index": 0,
-            "init": null
+            "unpacked": [
+              {
+                "msb": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 2,
+                    "col": 21,
+                    "end_line": 2,
+                    "end_col": 22
+                  },
+                  "value": 0,
+                  "resolved_width": null
+                },
+                "lsb": {
+                  "kind": "Int",
+                  "span": {
+                    "line": 2,
+                    "col": 23,
+                    "end_line": 2,
+                    "end_col": 24
+                  },
+                  "value": 3,
+                  "resolved_width": null
+                }
+              }
+            ]
           },
           {
             "kind": "Var",
             "span": {
-              "line": 2,
-              "col": 15,
-              "end_line": 2,
-              "end_col": 25
+              "line": 3,
+              "col": 11,
+              "end_line": 3,
+              "end_col": 12
             },
-            "name": "pipe[1]",
+            "name": "i",
             "width": {
               "kind": "PackedType",
               "packed": [
                 {
                   "msb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 2,
-                      "col": 10,
-                      "end_line": 2,
-                      "end_col": 11
-                    },
-                    "value": 7,
+                    "span": null,
+                    "value": 31,
                     "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 2,
-                      "col": 12,
-                      "end_line": 2,
-                      "end_col": 13
-                    },
+                    "span": null,
                     "value": 0,
                     "resolved_width": null
                   }
                 }
               ],
-              "resolved": 8
+              "resolved": 32
             },
-            "two_state": false,
-            "flat_base": "pipe",
-            "flat_index": 1,
-            "init": null
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 2,
-              "col": 15,
-              "end_line": 2,
-              "end_col": 25
-            },
-            "name": "pipe[2]",
-            "width": {
-              "kind": "PackedType",
-              "packed": [
-                {
-                  "msb": {
-                    "kind": "Int",
-                    "span": {
-                      "line": 2,
-                      "col": 10,
-                      "end_line": 2,
-                      "end_col": 11
-                    },
-                    "value": 7,
-                    "resolved_width": null
-                  },
-                  "lsb": {
-                    "kind": "Int",
-                    "span": {
-                      "line": 2,
-                      "col": 12,
-                      "end_line": 2,
-                      "end_col": 13
-                    },
-                    "value": 0,
-                    "resolved_width": null
-                  }
-                }
-              ],
-              "resolved": 8
-            },
-            "two_state": false,
-            "flat_base": "pipe",
-            "flat_index": 2,
-            "init": null
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 2,
-              "col": 15,
-              "end_line": 2,
-              "end_col": 25
-            },
-            "name": "pipe[3]",
-            "width": {
-              "kind": "PackedType",
-              "packed": [
-                {
-                  "msb": {
-                    "kind": "Int",
-                    "span": {
-                      "line": 2,
-                      "col": 10,
-                      "end_line": 2,
-                      "end_col": 11
-                    },
-                    "value": 7,
-                    "resolved_width": null
-                  },
-                  "lsb": {
-                    "kind": "Int",
-                    "span": {
-                      "line": 2,
-                      "col": 12,
-                      "end_line": 2,
-                      "end_col": 13
-                    },
-                    "value": 0,
-                    "resolved_width": null
-                  }
-                }
-              ],
-              "resolved": 8
-            },
-            "two_state": false,
-            "flat_base": "pipe",
-            "flat_index": 3,
-            "init": null
+            "init": null,
+            "signed": true
           }
         ],
         "processes": [
@@ -336,7 +258,7 @@
                     "end_col": 18
                   },
                   "target": {
-                    "kind": "Ident",
+                    "kind": "ArraySel",
                     "span": {
                       "line": 5,
                       "col": 5,
@@ -344,7 +266,22 @@
                       "end_col": 12
                     },
                     "width": 8,
-                    "name": "pipe[0]"
+                    "name": "pipe",
+                    "indices": [
+                      {
+                        "kind": "Int",
+                        "span": {
+                          "line": 5,
+                          "col": 10,
+                          "end_line": 5,
+                          "end_col": 11
+                        },
+                        "value": 0,
+                        "resolved_width": 32
+                      }
+                    ],
+                    "part": null,
+                    "unpacked": true
                   },
                   "value": {
                     "kind": "Ident",
@@ -359,15 +296,266 @@
                   }
                 },
                 {
-                  "kind": "Unsupported",
+                  "kind": "Block",
                   "span": {
                     "line": 6,
-                    "col": 35,
+                    "col": 5,
                     "end_line": 6,
                     "end_col": 56
                   },
-                  "sv_kind": "AssignmentExpression:target",
-                  "text": "pipe[i] <= pipe[i-1];"
+                  "stmts": [
+                    {
+                      "kind": "NonblockingAssign",
+                      "span": {
+                        "line": 6,
+                        "col": 35,
+                        "end_line": 6,
+                        "end_col": 56
+                      },
+                      "target": {
+                        "kind": "ArraySel",
+                        "span": {
+                          "line": 6,
+                          "col": 35,
+                          "end_line": 6,
+                          "end_col": 42
+                        },
+                        "width": 8,
+                        "name": "pipe",
+                        "indices": [
+                          {
+                            "kind": "Int",
+                            "span": {
+                              "line": 6,
+                              "col": 40,
+                              "end_line": 6,
+                              "end_col": 41
+                            },
+                            "value": 1,
+                            "resolved_width": 32
+                          }
+                        ],
+                        "part": null,
+                        "unpacked": true
+                      },
+                      "value": {
+                        "kind": "ArraySel",
+                        "span": {
+                          "line": 6,
+                          "col": 46,
+                          "end_line": 6,
+                          "end_col": 55
+                        },
+                        "width": 8,
+                        "name": "pipe",
+                        "indices": [
+                          {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 6,
+                              "col": 51,
+                              "end_line": 6,
+                              "end_col": 54
+                            },
+                            "width": 32,
+                            "op": "-",
+                            "left": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 6,
+                                "col": 51,
+                                "end_line": 6,
+                                "end_col": 52
+                              },
+                              "value": 1,
+                              "resolved_width": 32
+                            },
+                            "right": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 6,
+                                "col": 53,
+                                "end_line": 6,
+                                "end_col": 54
+                              },
+                              "value": 1,
+                              "resolved_width": 32
+                            }
+                          }
+                        ],
+                        "part": null,
+                        "unpacked": true
+                      }
+                    },
+                    {
+                      "kind": "NonblockingAssign",
+                      "span": {
+                        "line": 6,
+                        "col": 35,
+                        "end_line": 6,
+                        "end_col": 56
+                      },
+                      "target": {
+                        "kind": "ArraySel",
+                        "span": {
+                          "line": 6,
+                          "col": 35,
+                          "end_line": 6,
+                          "end_col": 42
+                        },
+                        "width": 8,
+                        "name": "pipe",
+                        "indices": [
+                          {
+                            "kind": "Int",
+                            "span": {
+                              "line": 6,
+                              "col": 40,
+                              "end_line": 6,
+                              "end_col": 41
+                            },
+                            "value": 2,
+                            "resolved_width": 32
+                          }
+                        ],
+                        "part": null,
+                        "unpacked": true
+                      },
+                      "value": {
+                        "kind": "ArraySel",
+                        "span": {
+                          "line": 6,
+                          "col": 46,
+                          "end_line": 6,
+                          "end_col": 55
+                        },
+                        "width": 8,
+                        "name": "pipe",
+                        "indices": [
+                          {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 6,
+                              "col": 51,
+                              "end_line": 6,
+                              "end_col": 54
+                            },
+                            "width": 32,
+                            "op": "-",
+                            "left": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 6,
+                                "col": 51,
+                                "end_line": 6,
+                                "end_col": 52
+                              },
+                              "value": 2,
+                              "resolved_width": 32
+                            },
+                            "right": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 6,
+                                "col": 53,
+                                "end_line": 6,
+                                "end_col": 54
+                              },
+                              "value": 1,
+                              "resolved_width": 32
+                            }
+                          }
+                        ],
+                        "part": null,
+                        "unpacked": true
+                      }
+                    },
+                    {
+                      "kind": "NonblockingAssign",
+                      "span": {
+                        "line": 6,
+                        "col": 35,
+                        "end_line": 6,
+                        "end_col": 56
+                      },
+                      "target": {
+                        "kind": "ArraySel",
+                        "span": {
+                          "line": 6,
+                          "col": 35,
+                          "end_line": 6,
+                          "end_col": 42
+                        },
+                        "width": 8,
+                        "name": "pipe",
+                        "indices": [
+                          {
+                            "kind": "Int",
+                            "span": {
+                              "line": 6,
+                              "col": 40,
+                              "end_line": 6,
+                              "end_col": 41
+                            },
+                            "value": 3,
+                            "resolved_width": 32
+                          }
+                        ],
+                        "part": null,
+                        "unpacked": true
+                      },
+                      "value": {
+                        "kind": "ArraySel",
+                        "span": {
+                          "line": 6,
+                          "col": 46,
+                          "end_line": 6,
+                          "end_col": 55
+                        },
+                        "width": 8,
+                        "name": "pipe",
+                        "indices": [
+                          {
+                            "kind": "Binary",
+                            "span": {
+                              "line": 6,
+                              "col": 51,
+                              "end_line": 6,
+                              "end_col": 54
+                            },
+                            "width": 32,
+                            "op": "-",
+                            "left": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 6,
+                                "col": 51,
+                                "end_line": 6,
+                                "end_col": 52
+                              },
+                              "value": 3,
+                              "resolved_width": 32
+                            },
+                            "right": {
+                              "kind": "Int",
+                              "span": {
+                                "line": 6,
+                                "col": 53,
+                                "end_line": 6,
+                                "end_col": 54
+                              },
+                              "value": 1,
+                              "resolved_width": 32
+                            }
+                          }
+                        ],
+                        "part": null,
+                        "unpacked": true
+                      }
+                    }
+                  ],
+                  "symbolic_for_unrolled": true,
+                  "symbolic_for_iterations": 3
                 }
               ]
             }
@@ -392,7 +580,7 @@
               "name": "q"
             },
             "value": {
-              "kind": "Ident",
+              "kind": "ArraySel",
               "span": {
                 "line": 8,
                 "col": 14,
@@ -400,24 +588,27 @@
                 "end_col": 21
               },
               "width": 8,
-              "name": "pipe[3]"
+              "name": "pipe",
+              "indices": [
+                {
+                  "kind": "Int",
+                  "span": {
+                    "line": 8,
+                    "col": 19,
+                    "end_line": 8,
+                    "end_col": 20
+                  },
+                  "value": 3,
+                  "resolved_width": 32
+                }
+              ],
+              "part": null,
+              "unpacked": true
             }
           }
         ],
         "generates": [],
-        "others": [],
-        "cell_refs": [
-          {
-            "name": "pipe[0]",
-            "base": "pipe",
-            "index": 0
-          },
-          {
-            "name": "pipe[3]",
-            "base": "pipe",
-            "index": 3
-          }
-        ]
+        "others": []
       }
     ],
     "others": []

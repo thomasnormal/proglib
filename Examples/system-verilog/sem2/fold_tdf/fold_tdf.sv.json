@@ -78,7 +78,8 @@
               "value": 32,
               "resolved_width": 32
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -120,38 +121,29 @@
               "resolved": 8
             },
             "expr": {
-              "kind": "SignedResize",
+              "kind": "Unary",
               "span": {
                 "line": 9,
                 "col": 24,
                 "end_line": 9,
                 "end_col": 26
               },
-              "width": 8,
+              "width": 32,
+              "op": "-",
               "operand": {
-                "kind": "Unary",
+                "kind": "Int",
                 "span": {
                   "line": 9,
-                  "col": 24,
+                  "col": 25,
                   "end_line": 9,
                   "end_col": 26
                 },
-                "width": 32,
-                "op": "-",
-                "operand": {
-                  "kind": "Int",
-                  "span": {
-                    "line": 9,
-                    "col": 25,
-                    "end_line": 9,
-                    "end_col": 26
-                  },
-                  "value": 2,
-                  "resolved_width": 32
-                }
+                "value": 2,
+                "resolved_width": 32
               }
             },
             "resolved": -2,
+            "string": false,
             "signed": true
           },
           {
@@ -225,7 +217,8 @@
                 }
               }
             },
-            "resolved": 254
+            "resolved": 254,
+            "string": false
           }
         ],
         "types": [],

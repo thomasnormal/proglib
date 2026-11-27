@@ -242,7 +242,7 @@
                 "name": "a[0]"
               },
               "right": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 6,
                   "col": 24,
@@ -250,7 +250,18 @@
                   "end_col": 29
                 },
                 "width": 4,
-                "bits": "0001"
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 6,
+                    "col": 24,
+                    "end_line": 6,
+                    "end_col": 29
+                  },
+                  "width": 4,
+                  "bits": "0001",
+                  "signed": true
+                }
               }
             }
           },
@@ -298,7 +309,29 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "y[0]",
+            "base": "y",
+            "index": 0
+          },
+          {
+            "name": "a[0]",
+            "base": "a",
+            "index": 0
+          },
+          {
+            "name": "y[1]",
+            "base": "y",
+            "index": 1
+          },
+          {
+            "name": "a[1]",
+            "base": "a",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

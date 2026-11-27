@@ -199,11 +199,10 @@
                     "end_line": 12,
                     "end_col": 22
                   },
-                  "name": "t",
+                  "name": "capture.t",
                   "width": 4,
                   "two_state": false,
                   "init": null,
-                  "symbolic_local_retained": true,
                   "lifetime": "static",
                   "lexical_path": "blocking_local_always_ff_step11.capture.t",
                   "hierarchical_path": "blocking_local_always_ff_step11.capture.t",
@@ -255,7 +254,7 @@
                       "end_col": 10
                     },
                     "width": 4,
-                    "name": "t"
+                    "name": "capture.t"
                   },
                   "value": {
                     "kind": "Ident",
@@ -297,7 +296,7 @@
                       "end_col": 15
                     },
                     "width": 4,
-                    "name": "t"
+                    "name": "capture.t"
                   }
                 },
                 {
@@ -317,7 +316,7 @@
                       "end_col": 10
                     },
                     "width": 4,
-                    "name": "t"
+                    "name": "capture.t"
                   },
                   "value": {
                     "kind": "Unary",
@@ -338,7 +337,7 @@
                         "end_col": 15
                       },
                       "width": 4,
-                      "name": "t"
+                      "name": "capture.t"
                     }
                   }
                 },
@@ -370,7 +369,7 @@
                       "end_col": 19
                     },
                     "width": 4,
-                    "name": "t"
+                    "name": "capture.t"
                   }
                 }
               ],

@@ -49,7 +49,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -539,7 +540,8 @@
                 "width": 4,
                 "name": "b"
               }
-            }
+            },
+            "continuous_net_target": true
           },
           {
             "kind": "Assign",
@@ -592,7 +594,8 @@
                 "width": 4,
                 "name": "u"
               }
-            }
+            },
+            "continuous_net_target": true
           },
           {
             "kind": "Assign",
@@ -645,7 +648,8 @@
                 "width": 4,
                 "name": "u"
               }
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],

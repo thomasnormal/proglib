@@ -54,6 +54,7 @@
             "name": "PmpCfgRst",
             "type": null,
             "resolved": null,
+            "string": false,
             "aggregate": {
               "kind": "array",
               "msb": {

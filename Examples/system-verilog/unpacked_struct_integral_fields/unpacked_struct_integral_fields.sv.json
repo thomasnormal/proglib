@@ -165,7 +165,7 @@
                     },
                     "width": 32,
                     "name": "item.count",
-                    "signed": true
+                    "two_state": true
                   },
                   "value": {
                     "kind": "Squash2",
@@ -182,16 +182,20 @@
                       "width": 32,
                       "op": "+",
                       "left": {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 17,
                           "col": 5,
                           "end_line": 17,
                           "end_col": 15
                         },
-                        "width": 32,
-                        "name": "item.count",
-                        "signed": true
+                        "base": "item",
+                        "path": [
+                          {
+                            "field": "count"
+                          }
+                        ],
+                        "width": 32
                       },
                       "right": {
                         "kind": "Literal",
@@ -205,7 +209,8 @@
                         "bits": "00000000000000000000000000000100"
                       }
                     }
-                  }
+                  },
+                  "compound_assignment_lowered": true
                 },
                 {
                   "kind": "BlockingAssign",
@@ -224,7 +229,8 @@
                       "end_col": 14
                     },
                     "width": 8,
-                    "name": "item.mask"
+                    "name": "item.mask",
+                    "two_state": true
                   },
                   "value": {
                     "kind": "Squash2",
@@ -241,15 +247,20 @@
                       "width": 8,
                       "op": "u<<",
                       "left": {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 18,
                           "col": 5,
                           "end_line": 18,
                           "end_col": 14
                         },
-                        "width": 8,
-                        "name": "item.mask"
+                        "base": "item",
+                        "path": [
+                          {
+                            "field": "mask"
+                          }
+                        ],
+                        "width": 8
                       },
                       "right": {
                         "kind": "Literal",
@@ -263,7 +274,8 @@
                         "bits": "00000000000000000000000000000001"
                       }
                     }
-                  }
+                  },
+                  "compound_assignment_lowered": true
                 },
                 {
                   "kind": "If",
@@ -294,16 +306,20 @@
                       "width": 1,
                       "op": "==",
                       "left": {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 19,
                           "col": 9,
                           "end_line": 19,
                           "end_col": 19
                         },
-                        "width": 32,
-                        "name": "item.count",
-                        "signed": true
+                        "base": "item",
+                        "path": [
+                          {
+                            "field": "count"
+                          }
+                        ],
+                        "width": 32
                       },
                       "right": {
                         "kind": "Literal",
@@ -328,15 +344,20 @@
                       "width": 1,
                       "op": "==",
                       "left": {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 19,
                           "col": 28,
                           "end_line": 19,
                           "end_col": 37
                         },
-                        "width": 8,
-                        "name": "item.mask"
+                        "base": "item",
+                        "path": [
+                          {
+                            "field": "mask"
+                          }
+                        ],
+                        "width": 8
                       },
                       "right": {
                         "kind": "Literal",

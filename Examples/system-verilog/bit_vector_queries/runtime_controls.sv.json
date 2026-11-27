@@ -24,6 +24,19 @@
           {
             "kind": "Var",
             "span": {
+              "line": 3,
+              "col": 17,
+              "end_line": 3,
+              "end_col": 22
+            },
+            "name": "value",
+            "width": 6,
+            "init": null,
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
               "line": 4,
               "col": 17,
               "end_line": 4,
@@ -46,19 +59,6 @@
             "width": 32,
             "init": null,
             "signed": true,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 3,
-              "col": 17,
-              "end_line": 3,
-              "end_col": 22
-            },
-            "name": "value",
-            "width": 6,
-            "init": null,
             "static_local_storage": true
           }
         ],

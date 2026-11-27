@@ -68,7 +68,7 @@
               "resolved": 4
             },
             "default": {
-              "kind": "Concat",
+              "kind": "Repl",
               "span": {
                 "line": 2,
                 "col": 63,
@@ -76,96 +76,77 @@
                 "end_col": 79
               },
               "width": 4,
-              "parts": [
-                {
-                  "kind": "Resize",
+              "count": {
+                "kind": "Binary",
+                "span": {
+                  "line": 2,
+                  "col": 63,
+                  "end_line": 2,
+                  "end_col": 79
+                },
+                "width": null,
+                "op": "+",
+                "left": {
+                  "kind": "Binary",
                   "span": {
                     "line": 2,
-                    "col": 74,
+                    "col": 63,
                     "end_line": 2,
-                    "end_col": 78
+                    "end_col": 79
                   },
-                  "width": 1,
-                  "operand": {
-                    "kind": "Literal",
+                  "width": null,
+                  "op": "-",
+                  "left": {
+                    "kind": "Int",
                     "span": {
                       "line": 2,
-                      "col": 74,
+                      "col": 54,
                       "end_line": 2,
-                      "end_col": 78
+                      "end_col": 55
                     },
-                    "width": 4,
-                    "bits": "0000"
+                    "value": 3,
+                    "resolved_width": null
+                  },
+                  "right": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 56,
+                      "end_line": 2,
+                      "end_col": 57
+                    },
+                    "value": 0,
+                    "resolved_width": null
                   }
                 },
-                {
-                  "kind": "Resize",
+                "right": {
+                  "kind": "Int",
                   "span": {
                     "line": 2,
-                    "col": 74,
+                    "col": 63,
                     "end_line": 2,
-                    "end_col": 78
+                    "end_col": 79
                   },
-                  "width": 1,
-                  "operand": {
-                    "kind": "Literal",
-                    "span": {
-                      "line": 2,
-                      "col": 74,
-                      "end_line": 2,
-                      "end_col": 78
-                    },
-                    "width": 4,
-                    "bits": "0000"
-                  }
-                },
-                {
-                  "kind": "Resize",
-                  "span": {
-                    "line": 2,
-                    "col": 74,
-                    "end_line": 2,
-                    "end_col": 78
-                  },
-                  "width": 1,
-                  "operand": {
-                    "kind": "Literal",
-                    "span": {
-                      "line": 2,
-                      "col": 74,
-                      "end_line": 2,
-                      "end_col": 78
-                    },
-                    "width": 4,
-                    "bits": "0000"
-                  }
-                },
-                {
-                  "kind": "Resize",
-                  "span": {
-                    "line": 2,
-                    "col": 74,
-                    "end_line": 2,
-                    "end_col": 78
-                  },
-                  "width": 1,
-                  "operand": {
-                    "kind": "Literal",
-                    "span": {
-                      "line": 2,
-                      "col": 74,
-                      "end_line": 2,
-                      "end_col": 78
-                    },
-                    "width": 4,
-                    "bits": "0000"
-                  }
+                  "value": 1,
+                  "resolved_width": null
                 }
-              ],
+              },
+              "operand": {
+                "kind": "Literal",
+                "span": {
+                  "line": 2,
+                  "col": 74,
+                  "end_line": 2,
+                  "end_col": 78
+                },
+                "width": 4,
+                "bits": "0000"
+              },
               "assignment_pattern_lowered": true,
               "source_pattern": "StructuredAssignmentPatternExpression"
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           }
         ],
         "types": [],

@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -152,6 +153,7 @@
               "resolved_width": 8
             },
             "resolved": 0,
+            "string": false,
             "signed": false
           }
         ],
@@ -335,7 +337,8 @@
                 },
                 "name": "MASK"
               }
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],

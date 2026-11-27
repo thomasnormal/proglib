@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -473,15 +474,19 @@
         ],
         "processes": [
           {
-            "kind": "AlwaysPosedge",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 21,
               "col": 3,
               "end_line": 21,
               "end_col": 35
             },
-            "style": "always",
-            "clock": "clk",
+            "events": [
+              {
+                "edge": "posedge",
+                "signal": "clk"
+              }
+            ],
             "body": {
               "kind": "NonblockingAssign",
               "span": {

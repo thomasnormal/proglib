@@ -82,7 +82,8 @@
               ],
               "resolved": 4
             },
-            "resolved": 0,
+            "resolved": "1z0z",
+            "string": false,
             "default": {
               "kind": "Literal",
               "span": {
@@ -94,7 +95,9 @@
               "width": 4,
               "bits": "1z0z"
             },
-            "package": "p"
+            "package": "p",
+            "resolved_bits": "1z0z",
+            "resolved_signed": false
           }
         ],
         "types": [],

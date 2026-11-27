@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "add_proc",
- "envelope": "add_proc.sv.json",
+ "envelope": "out.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/comb_proc/add_proc.sv",
@@ -49,7 +49,8 @@
        "value": 1,
        "resolved_width": 32
       },
-      "resolved": 1
+      "resolved": 1,
+      "string": false
      }
     ],
     "types": [],
@@ -546,7 +547,8 @@
        "value": 2,
        "resolved_width": 32
       },
-      "resolved": 2
+      "resolved": 2,
+      "string": false
      }
     ],
     "types": [],
@@ -1043,7 +1045,8 @@
        "value": 3,
        "resolved_width": 32
       },
-      "resolved": 3
+      "resolved": 3,
+      "string": false
      }
     ],
     "types": [],
@@ -1540,7 +1543,8 @@
        "value": 5,
        "resolved_width": 32
       },
-      "resolved": 5
+      "resolved": 5,
+      "string": false
      }
     ],
     "types": [],

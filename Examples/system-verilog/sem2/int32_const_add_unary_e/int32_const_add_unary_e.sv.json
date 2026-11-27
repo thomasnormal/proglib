@@ -78,7 +78,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -194,7 +195,8 @@
                 }
               }
             },
-            "resolved": -47
+            "resolved": -47,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -257,7 +259,8 @@
                 "resolved_width": 32
               }
             },
-            "resolved": -2147483648
+            "resolved": -2147483648,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -319,7 +322,8 @@
                 "name": "MIN"
               }
             },
-            "resolved": -2147483648
+            "resolved": -2147483648,
+            "string": false
           }
         ],
         "types": [],

@@ -78,7 +78,8 @@
               "width": 8,
               "bits": "01011010"
             },
-            "resolved": 90
+            "resolved": 90,
+            "string": false
           }
         ],
         "types": [],

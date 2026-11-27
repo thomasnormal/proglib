@@ -40,24 +40,58 @@
               },
               "stmts": [
                 {
-                  "kind": "Empty",
+                  "kind": "SysCall",
                   "span": {
                     "line": 10,
                     "col": 5,
                     "end_line": 10,
                     "end_col": 30
                   },
-                  "severity_task": "$warning"
+                  "name": "$warning",
+                  "format": "value=%0d",
+                  "args": [
+                    {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 10,
+                        "col": 27,
+                        "end_line": 10,
+                        "end_col": 28
+                      },
+                      "width": 32,
+                      "bits": "00000000000000000000000000000111"
+                    }
+                  ],
+                  "arg_signed": [
+                    true
+                  ]
                 },
                 {
-                  "kind": "Empty",
+                  "kind": "SysCall",
                   "span": {
                     "line": 11,
                     "col": 5,
                     "end_line": 11,
                     "end_col": 28
                   },
-                  "severity_task": "$info"
+                  "name": "$info",
+                  "format": "hex=%h",
+                  "args": [
+                    {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 11,
+                        "col": 21,
+                        "end_line": 11,
+                        "end_col": 26
+                      },
+                      "width": 8,
+                      "bits": "00111010"
+                    }
+                  ],
+                  "arg_signed": [
+                    false
+                  ]
                 },
                 {
                   "kind": "SysCall",

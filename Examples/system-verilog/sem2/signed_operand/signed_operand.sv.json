@@ -78,7 +78,8 @@
               "value": 7,
               "resolved_width": 32
             },
-            "resolved": 7
+            "resolved": 7,
+            "string": false
           }
         ],
         "types": [],
@@ -206,15 +207,36 @@
                 "width": 32,
                 "op": "*",
                 "left": {
-                  "kind": "Unsupported",
+                  "kind": "SignedResize",
                   "span": {
                     "line": 8,
                     "col": 14,
                     "end_line": 8,
                     "end_col": 24
                   },
-                  "sv_kind": "ConversionExpression:width",
-                  "text": "$signed(a)"
+                  "width": 32,
+                  "operand": {
+                    "kind": "Cast",
+                    "span": {
+                      "line": 8,
+                      "col": 14,
+                      "end_line": 8,
+                      "end_col": 24
+                    },
+                    "width": 4,
+                    "signed": true,
+                    "operand": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 8,
+                        "col": 22,
+                        "end_line": 8,
+                        "end_col": 23
+                      },
+                      "width": 4,
+                      "name": "a"
+                    }
+                  }
                 },
                 "right": {
                   "kind": "Unary",

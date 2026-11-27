@@ -170,7 +170,7 @@
                     "signed": true
                   },
                   "value": {
-                    "kind": "Resize",
+                    "kind": "Cast",
                     "span": {
                       "line": 8,
                       "col": 9,
@@ -178,16 +178,27 @@
                       "end_col": 19
                     },
                     "width": 8,
+                    "signed": true,
                     "operand": {
-                      "kind": "Ident",
+                      "kind": "Resize",
                       "span": {
                         "line": 8,
-                        "col": 17,
+                        "col": 9,
                         "end_line": 8,
-                        "end_col": 18
+                        "end_col": 19
                       },
                       "width": 8,
-                      "name": "a"
+                      "operand": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 8,
+                          "col": 17,
+                          "end_line": 8,
+                          "end_col": 18
+                        },
+                        "width": 8,
+                        "name": "a"
+                      }
                     }
                   }
                 },
@@ -221,7 +232,7 @@
                     "width": 1,
                     "op": "s<",
                     "left": {
-                      "kind": "Resize",
+                      "kind": "Cast",
                       "span": {
                         "line": 9,
                         "col": 10,
@@ -229,16 +240,27 @@
                         "end_col": 20
                       },
                       "width": 8,
+                      "signed": true,
                       "operand": {
-                        "kind": "Ident",
+                        "kind": "Resize",
                         "span": {
                           "line": 9,
-                          "col": 18,
+                          "col": 10,
                           "end_line": 9,
-                          "end_col": 19
+                          "end_col": 20
                         },
                         "width": 8,
-                        "name": "a"
+                        "operand": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 9,
+                            "col": 18,
+                            "end_line": 9,
+                            "end_col": 19
+                          },
+                          "width": 8,
+                          "name": "a"
+                        }
                       }
                     },
                     "right": {

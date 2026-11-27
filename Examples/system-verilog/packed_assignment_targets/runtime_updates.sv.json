@@ -1009,7 +1009,7 @@
                       "width": 32,
                       "bits": "00000000000000000000000000000101"
                     },
-                    "index_signed": true,
+                    "index_signed": false,
                     "descending": false,
                     "two_state": false
                   },

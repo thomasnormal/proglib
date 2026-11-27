@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "ripple_add",
- "envelope": "ripple_add.sv.json",
+ "envelope": "out.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/ripple_add/ripple_add.sv",
@@ -49,7 +49,8 @@
        "value": 1,
        "resolved_width": 32
       },
-      "resolved": 1
+      "resolved": 1,
+      "string": false
      }
     ],
     "types": [],
@@ -494,7 +495,8 @@
        "value": 2,
        "resolved_width": 32
       },
-      "resolved": 2
+      "resolved": 2,
+      "string": false
      }
     ],
     "types": [],
@@ -939,7 +941,8 @@
        "value": 3,
        "resolved_width": 32
       },
-      "resolved": 3
+      "resolved": 3,
+      "string": false
      }
     ],
     "types": [],
@@ -1384,7 +1387,8 @@
        "value": 5,
        "resolved_width": 32
       },
-      "resolved": 5
+      "resolved": 5,
+      "string": false
      }
     ],
     "types": [],
@@ -1829,7 +1833,8 @@
        "value": 8,
        "resolved_width": 32
       },
-      "resolved": 8
+      "resolved": 8,
+      "string": false
      }
     ],
     "types": [],
@@ -2274,7 +2279,8 @@
        "value": 16,
        "resolved_width": 32
       },
-      "resolved": 16
+      "resolved": 16,
+      "string": false
      }
     ],
     "types": [],

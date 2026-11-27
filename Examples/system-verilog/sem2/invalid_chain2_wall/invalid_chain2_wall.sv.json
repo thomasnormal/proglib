@@ -468,7 +468,7 @@
                         "end_col": 27
                       },
                       "width": 4,
-                      "name": "chain[0].running_sum"
+                      "name": "chain[$genvar:row].running_sum"
                     },
                     "value": {
                       "kind": "Unsupported",

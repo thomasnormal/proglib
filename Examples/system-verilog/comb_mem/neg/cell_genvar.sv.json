@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -270,6 +271,8 @@
               "resolved": 8
             },
             "two_state": false,
+            "flat_base": "stage",
+            "flat_index": 0,
             "init": null
           },
           {
@@ -333,6 +336,8 @@
               "resolved": 8
             },
             "two_state": false,
+            "flat_base": "stage",
+            "flat_index": 1,
             "init": null
           },
           {
@@ -396,6 +401,8 @@
               "resolved": 8
             },
             "two_state": false,
+            "flat_base": "stage",
+            "flat_index": 2,
             "init": null
           },
           {
@@ -459,6 +466,8 @@
               "resolved": 8
             },
             "two_state": false,
+            "flat_base": "stage",
+            "flat_index": 3,
             "init": null
           }
         ],
@@ -617,7 +626,19 @@
             ]
           }
         ],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "stage[0]",
+            "base": "stage",
+            "index": 0
+          },
+          {
+            "name": "stage[3]",
+            "base": "stage",
+            "index": 3
+          }
+        ]
       }
     ],
     "others": []

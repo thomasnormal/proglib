@@ -582,7 +582,7 @@
                       "end_col": 6
                     },
                     "width": 8,
-                    "name": "blk__t"
+                    "name": "blk.t"
                   },
                   "value": {
                     "kind": "Binary",
@@ -635,7 +635,7 @@
                       "end_col": 7
                     },
                     "width": 4,
-                    "name": "blk__lo"
+                    "name": "blk.lo"
                   },
                   "value": {
                     "kind": "Binary",
@@ -665,7 +665,7 @@
                           "end_col": 11
                         },
                         "width": 8,
-                        "name": "blk__t"
+                        "name": "blk.t"
                       },
                       "msb": {
                         "kind": "Int",
@@ -752,7 +752,7 @@
                       "end_col": 7
                     },
                     "width": 4,
-                    "name": "blk__hi"
+                    "name": "blk.hi"
                   },
                   "value": {
                     "kind": "PartSel",
@@ -772,7 +772,7 @@
                         "end_col": 11
                       },
                       "width": 8,
-                      "name": "blk__t"
+                      "name": "blk.t"
                     },
                     "msb": {
                       "kind": "Int",
@@ -846,7 +846,7 @@
                             "end_col": 12
                           },
                           "width": 4,
-                          "name": "blk__hi"
+                          "name": "blk.hi"
                         },
                         "right": {
                           "kind": "Ident",
@@ -857,7 +857,7 @@
                             "end_col": 17
                           },
                           "width": 4,
-                          "name": "blk__lo"
+                          "name": "blk.lo"
                         }
                       },
                       {
@@ -869,7 +869,7 @@
                           "end_col": 21
                         },
                         "width": 4,
-                        "name": "blk__lo"
+                        "name": "blk.lo"
                       }
                     ]
                   }
@@ -910,7 +910,7 @@
                           "end_col": 8
                         },
                         "width": 8,
-                        "name": "blk__u"
+                        "name": "blk.u"
                       },
                       "value": {
                         "kind": "Unary",
@@ -931,7 +931,7 @@
                             "end_col": 13
                           },
                           "width": 8,
-                          "name": "blk__t"
+                          "name": "blk.t"
                         }
                       }
                     },
@@ -973,7 +973,7 @@
                             "end_col": 12
                           },
                           "width": 8,
-                          "name": "blk__u"
+                          "name": "blk.u"
                         },
                         "right": {
                           "kind": "Ident",
@@ -1066,7 +1066,7 @@
                               "end_col": 8
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           },
                           "value": {
                             "kind": "Binary",
@@ -1128,7 +1128,7 @@
                                   "end_col": 19
                                 },
                                 "width": 8,
-                                "name": "blk__t"
+                                "name": "blk.t"
                               },
                               "index": {
                                 "kind": "Binary",
@@ -1215,7 +1215,7 @@
                               "end_col": 15
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           }
                         }
                       ]
@@ -1256,7 +1256,7 @@
                               "end_col": 8
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           },
                           "value": {
                             "kind": "Binary",
@@ -1318,7 +1318,7 @@
                                   "end_col": 19
                                 },
                                 "width": 8,
-                                "name": "blk__t"
+                                "name": "blk.t"
                               },
                               "index": {
                                 "kind": "Binary",
@@ -1405,7 +1405,7 @@
                               "end_col": 15
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           }
                         }
                       ]
@@ -1446,7 +1446,7 @@
                               "end_col": 8
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           },
                           "value": {
                             "kind": "Binary",
@@ -1508,7 +1508,7 @@
                                   "end_col": 19
                                 },
                                 "width": 8,
-                                "name": "blk__t"
+                                "name": "blk.t"
                               },
                               "index": {
                                 "kind": "Binary",
@@ -1595,7 +1595,7 @@
                               "end_col": 15
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           }
                         }
                       ]
@@ -1636,7 +1636,7 @@
                               "end_col": 8
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           },
                           "value": {
                             "kind": "Binary",
@@ -1698,7 +1698,7 @@
                                   "end_col": 19
                                 },
                                 "width": 8,
-                                "name": "blk__t"
+                                "name": "blk.t"
                               },
                               "index": {
                                 "kind": "Binary",
@@ -1785,7 +1785,7 @@
                               "end_col": 15
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           }
                         }
                       ]
@@ -1826,7 +1826,7 @@
                               "end_col": 8
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           },
                           "value": {
                             "kind": "Binary",
@@ -1888,7 +1888,7 @@
                                   "end_col": 19
                                 },
                                 "width": 8,
-                                "name": "blk__t"
+                                "name": "blk.t"
                               },
                               "index": {
                                 "kind": "Binary",
@@ -1975,7 +1975,7 @@
                               "end_col": 15
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           }
                         }
                       ]
@@ -2016,7 +2016,7 @@
                               "end_col": 8
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           },
                           "value": {
                             "kind": "Binary",
@@ -2078,7 +2078,7 @@
                                   "end_col": 19
                                 },
                                 "width": 8,
-                                "name": "blk__t"
+                                "name": "blk.t"
                               },
                               "index": {
                                 "kind": "Binary",
@@ -2165,7 +2165,7 @@
                               "end_col": 15
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           }
                         }
                       ]
@@ -2206,7 +2206,7 @@
                               "end_col": 8
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           },
                           "value": {
                             "kind": "Binary",
@@ -2268,7 +2268,7 @@
                                   "end_col": 19
                                 },
                                 "width": 8,
-                                "name": "blk__t"
+                                "name": "blk.t"
                               },
                               "index": {
                                 "kind": "Binary",
@@ -2355,7 +2355,7 @@
                               "end_col": 15
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           }
                         }
                       ]
@@ -2396,7 +2396,7 @@
                               "end_col": 8
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           },
                           "value": {
                             "kind": "Binary",
@@ -2458,7 +2458,7 @@
                                   "end_col": 19
                                 },
                                 "width": 8,
-                                "name": "blk__t"
+                                "name": "blk.t"
                               },
                               "index": {
                                 "kind": "Binary",
@@ -2545,7 +2545,7 @@
                               "end_col": 15
                             },
                             "width": 1,
-                            "name": "blk__s"
+                            "name": "blk.s"
                           }
                         }
                       ]

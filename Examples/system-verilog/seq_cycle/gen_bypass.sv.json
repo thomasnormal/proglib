@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,8 @@
               "value": 1,
               "resolved_width": 32
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           }
         ],
         "types": [],
@@ -346,7 +348,7 @@
                   "end_line": 6,
                   "end_col": 20
                 },
-                "name": "r",
+                "name": "g_reg.r",
                 "width": {
                   "kind": "PackedType",
                   "packed": [
@@ -446,7 +448,7 @@
                         "end_col": 39
                       },
                       "width": 4,
-                      "name": "r"
+                      "name": "g_reg.r"
                     },
                     "value": {
                       "kind": "Ident",
@@ -491,7 +493,7 @@
                     "end_col": 17
                   },
                   "width": 4,
-                  "name": "r"
+                  "name": "g_reg.r"
                 }
               }
             ],

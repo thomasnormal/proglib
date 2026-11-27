@@ -91,7 +91,7 @@
                     "end_line": 7,
                     "end_col": 18
                   },
-                  "enum_name_statement": true
+                  "enum_name_statement": "name"
                 },
                 {
                   "kind": "SysCall",

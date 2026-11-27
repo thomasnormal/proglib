@@ -485,39 +485,6 @@
           {
             "kind": "ParameterDecl",
             "span": {
-              "line": 18,
-              "col": 23,
-              "end_line": 18,
-              "end_col": 38
-            },
-            "name": "SEL_INIT",
-            "type": {
-              "kind": "TypeRef",
-              "name": "my_sel_t",
-              "from_package": "pts_cfg",
-              "resolved": 4
-            },
-            "resolved": 9,
-            "string": false,
-            "signed": false,
-            "default": {
-              "kind": "Literal",
-              "span": {
-                "line": 18,
-                "col": 34,
-                "end_line": 18,
-                "end_col": 38
-              },
-              "width": 4,
-              "bits": "1001"
-            },
-            "package": "pts_cfg",
-            "resolved_bits": "1001",
-            "resolved_signed": false
-          },
-          {
-            "kind": "ParameterDecl",
-            "span": {
               "line": 21,
               "col": 27,
               "end_line": 21,

@@ -625,7 +625,8 @@
                       "unpacked": true
                     }
                   },
-                  "symbolic_for_parameter": true
+                  "symbolic_for_parameter": true,
+                  "symbolic_for_retained": true
                 },
                 {
                   "kind": "NonblockingAssign",

@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -390,16 +392,23 @@
         ],
         "processes": [
           {
-            "kind": "AlwaysPosedge",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 7,
               "col": 3,
               "end_line": 8,
               "end_col": 51
             },
-            "style": "always",
-            "clock": "clk",
-            "areset_n": "rstn",
+            "events": [
+              {
+                "signal": "clk",
+                "edge": "posedge"
+              },
+              {
+                "signal": "rstn",
+                "edge": "negedge"
+              }
+            ],
             "body": {
               "kind": "If",
               "span": {
@@ -568,7 +577,8 @@
               ],
               "part": null,
               "unpacked": true
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],

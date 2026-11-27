@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -152,6 +153,7 @@
               "bits": "00000101"
             },
             "resolved": 5,
+            "string": false,
             "signed": false
           },
           {
@@ -206,7 +208,8 @@
                 }
               }
             },
-            "resolved": 6
+            "resolved": 6,
+            "string": false
           }
         ],
         "types": [],

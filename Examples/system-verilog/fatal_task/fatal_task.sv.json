@@ -62,8 +62,34 @@
                   },
                   "name": "$finish",
                   "format": null,
-                  "args": [],
-                  "arg_signed": [],
+                  "args": [
+                    {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 11,
+                        "col": 12,
+                        "end_line": 11,
+                        "end_col": 13
+                      },
+                      "width": 32,
+                      "bits": "00000000000000000000000000000000"
+                    },
+                    {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 11,
+                        "col": 15,
+                        "end_line": 11,
+                        "end_col": 21
+                      },
+                      "width": 32,
+                      "bits": "01100100011011110110111001100101"
+                    }
+                  ],
+                  "arg_signed": [
+                    true,
+                    false
+                  ],
                   "fatal_task": true
                 },
                 {

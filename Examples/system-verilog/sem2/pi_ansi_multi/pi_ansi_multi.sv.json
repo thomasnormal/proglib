@@ -212,15 +212,19 @@
         "decls": [],
         "processes": [
           {
-            "kind": "AlwaysPosedge",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 14,
               "col": 3,
               "end_line": 17,
               "end_col": 6
             },
-            "style": "always",
-            "clock": "clk",
+            "events": [
+              {
+                "edge": "posedge",
+                "signal": "clk"
+              }
+            ],
             "body": {
               "kind": "Block",
               "span": {

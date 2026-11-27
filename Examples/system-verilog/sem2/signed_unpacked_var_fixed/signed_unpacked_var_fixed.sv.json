@@ -198,6 +198,8 @@
               "resolved": 4
             },
             "two_state": false,
+            "flat_base": "arr",
+            "flat_index": 0,
             "signed": true,
             "init": null
           },
@@ -241,6 +243,8 @@
               "resolved": 4
             },
             "two_state": false,
+            "flat_base": "arr",
+            "flat_index": 1,
             "signed": true,
             "init": null
           }
@@ -363,7 +367,7 @@
                 "name": "arr[0]"
               },
               "right": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 10,
                   "col": 24,
@@ -371,7 +375,18 @@
                   "end_col": 29
                 },
                 "width": 4,
-                "bits": "0001"
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 10,
+                    "col": 24,
+                    "end_line": 10,
+                    "end_col": 29
+                  },
+                  "width": 4,
+                  "bits": "0001",
+                  "signed": true
+                }
               }
             }
           },
@@ -417,7 +432,7 @@
                 "name": "arr[1]"
               },
               "right": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 11,
                   "col": 24,
@@ -425,13 +440,36 @@
                   "end_col": 29
                 },
                 "width": 4,
-                "bits": "0001"
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 11,
+                    "col": 24,
+                    "end_line": 11,
+                    "end_col": 29
+                  },
+                  "width": 4,
+                  "bits": "0001",
+                  "signed": true
+                }
               }
             }
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "arr[0]",
+            "base": "arr",
+            "index": 0
+          },
+          {
+            "name": "arr[1]",
+            "base": "arr",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

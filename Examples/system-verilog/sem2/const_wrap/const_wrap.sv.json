@@ -78,7 +78,8 @@
               "width": 3,
               "bits": "101"
             },
-            "resolved": 5
+            "resolved": 5,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,8 @@
               "width": 4,
               "bits": "0000"
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -183,6 +185,7 @@
               "resolved_width": 32
             },
             "resolved": 3,
+            "string": false,
             "signed": false
           }
         ],

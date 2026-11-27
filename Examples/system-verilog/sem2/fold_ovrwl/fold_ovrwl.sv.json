@@ -78,7 +78,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           }
         ],
         "types": [],
@@ -301,24 +302,14 @@
               {
                 "name": "P",
                 "expr": {
-                  "kind": "SignedResize",
+                  "kind": "ParamRef",
                   "span": {
                     "line": 16,
                     "col": 33,
                     "end_line": 16,
                     "end_col": 34
                   },
-                  "width": 40,
-                  "operand": {
-                    "kind": "ParamRef",
-                    "span": {
-                      "line": 16,
-                      "col": 33,
-                      "end_line": 16,
-                      "end_col": 34
-                    },
-                    "name": "N"
-                  }
+                  "name": "N"
                 }
               },
               {
@@ -545,7 +536,8 @@
               "value": 40,
               "resolved_width": 32
             },
-            "resolved": 40
+            "resolved": 40,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -619,6 +611,7 @@
               "resolved_width": 40
             },
             "resolved": 0,
+            "string": false,
             "signed": true
           },
           {
@@ -672,6 +665,7 @@
               "resolved_width": 40
             },
             "resolved": 0,
+            "string": false,
             "signed": true
           },
           {
@@ -724,7 +718,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           }
         ],
         "types": [],

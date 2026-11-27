@@ -49,7 +49,8 @@
               "width": 3,
               "bits": "101"
             },
-            "resolved": 5
+            "resolved": 5,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -101,7 +102,8 @@
               "width": 4,
               "bits": "1001"
             },
-            "resolved": 9
+            "resolved": 9,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -153,7 +155,7 @@
               "width": 4,
               "op": "-",
               "operand": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 13,
                   "col": 33,
@@ -161,11 +163,22 @@
                   "end_col": 38
                 },
                 "width": 4,
-                "bits": "0010",
-                "signed": true
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 13,
+                    "col": 33,
+                    "end_line": 13,
+                    "end_col": 38
+                  },
+                  "width": 4,
+                  "bits": "0010",
+                  "signed": true
+                }
               }
             },
             "resolved": -2,
+            "string": false,
             "signed": true
           },
           {
@@ -219,6 +232,7 @@
               "resolved_width": 32
             },
             "resolved": 5,
+            "string": false,
             "signed": false
           },
           {
@@ -271,7 +285,7 @@
               "width": 4,
               "op": "-",
               "operand": {
-                "kind": "Literal",
+                "kind": "SignedResize",
                 "span": {
                   "line": 15,
                   "col": 38,
@@ -279,11 +293,22 @@
                   "end_col": 43
                 },
                 "width": 4,
-                "bits": "0010",
-                "signed": true
+                "operand": {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 15,
+                    "col": 38,
+                    "end_line": 15,
+                    "end_col": 43
+                  },
+                  "width": 4,
+                  "bits": "0010",
+                  "signed": true
+                }
               }
             },
             "resolved": -2,
+            "string": false,
             "signed": true
           },
           {
@@ -336,7 +361,8 @@
               "width": 5,
               "bits": "11110"
             },
-            "resolved": 30
+            "resolved": 30,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -401,6 +427,7 @@
               }
             },
             "resolved": -3,
+            "string": false,
             "signed": true
           },
           {
@@ -424,7 +451,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -1287,7 +1315,7 @@
                     "name": "SV4"
                   },
                   "right": {
-                    "kind": "Literal",
+                    "kind": "SignedResize",
                     "span": {
                       "line": 37,
                       "col": 25,
@@ -1295,8 +1323,18 @@
                       "end_col": 30
                     },
                     "width": 4,
-                    "bits": "0111",
-                    "signed": true
+                    "operand": {
+                      "kind": "Literal",
+                      "span": {
+                        "line": 37,
+                        "col": 25,
+                        "end_line": 37,
+                        "end_col": 30
+                      },
+                      "width": 4,
+                      "bits": "0111",
+                      "signed": true
+                    }
                   }
                 },
                 "right": {

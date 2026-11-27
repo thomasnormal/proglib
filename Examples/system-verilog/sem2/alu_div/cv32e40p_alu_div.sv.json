@@ -49,7 +49,8 @@
               "value": 32,
               "resolved_width": 32
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -72,7 +73,8 @@
               "value": 6,
               "resolved_width": 32
             },
-            "resolved": 6
+            "resolved": 6,
+            "string": false
           }
         ],
         "types": [
@@ -92,23 +94,13 @@
                 {
                   "msb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 72,
-                      "col": 15,
-                      "end_line": 72,
-                      "end_col": 16
-                    },
+                    "span": null,
                     "value": 1,
                     "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 72,
-                      "col": 17,
-                      "end_line": 72,
-                      "end_col": 18
-                    },
+                    "span": null,
                     "value": 0,
                     "resolved_width": null
                   }

@@ -862,8 +862,8 @@
                 "end_line": 7,
                 "end_col": 34
               },
-              "sv_kind": "SystemTask:readmemh:missing-file",
-              "text": "literal file 'coeff.mem' is not present beside the source"
+              "sv_kind": "SystemTask:readmemh",
+              "text": "file=coeff.mem;target=rom;data="
             }
           },
           {
@@ -1765,6 +1765,13 @@
         ],
         "generates": [],
         "others": [],
+        "readmemh": [
+          {
+            "file": "coeff.mem",
+            "target": "rom",
+            "words": []
+          }
+        ],
         "cell_refs": [
           {
             "name": "rom[0]",

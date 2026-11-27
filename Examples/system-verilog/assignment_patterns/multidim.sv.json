@@ -22,15 +22,51 @@
         "ports": [],
         "decls": [
           {
-            "kind": "Unsupported",
+            "kind": "Var",
             "span": {
               "line": 2,
               "col": 20,
               "end_line": 2,
               "end_col": 41
             },
-            "sv_kind": "VariableSymbol:range",
-            "text": "value = '{4'ha, 4'h5}"
+            "name": "value",
+            "width": 8,
+            "init": {
+              "kind": "Concat",
+              "span": {
+                "line": 2,
+                "col": 28,
+                "end_line": 2,
+                "end_col": 41
+              },
+              "width": 8,
+              "parts": [
+                {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 2,
+                    "col": 30,
+                    "end_line": 2,
+                    "end_col": 34
+                  },
+                  "width": 4,
+                  "bits": "1010"
+                },
+                {
+                  "kind": "Literal",
+                  "span": {
+                    "line": 2,
+                    "col": 36,
+                    "end_line": 2,
+                    "end_col": 40
+                  },
+                  "width": 4,
+                  "bits": "0101"
+                }
+              ],
+              "assignment_pattern_lowered": true,
+              "source_pattern": "SimpleAssignmentPatternExpression"
+            }
           }
         ],
         "processes": [
@@ -63,15 +99,15 @@
                   "format": "multidim %h",
                   "args": [
                     {
-                      "kind": "Unsupported",
+                      "kind": "Ident",
                       "span": {
                         "line": 3,
                         "col": 41,
                         "end_line": 3,
                         "end_col": 46
                       },
-                      "sv_kind": "NamedValueExpression:range",
-                      "text": "value"
+                      "width": 8,
+                      "name": "value"
                     }
                   ],
                   "arg_signed": [

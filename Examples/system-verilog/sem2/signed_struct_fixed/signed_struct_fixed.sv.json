@@ -289,7 +289,7 @@
                       "signed": true
                     },
                     "right": {
-                      "kind": "Literal",
+                      "kind": "SignedResize",
                       "span": {
                         "line": 12,
                         "col": 14,
@@ -297,7 +297,18 @@
                         "end_col": 19
                       },
                       "width": 8,
-                      "bits": "00000000"
+                      "operand": {
+                        "kind": "Literal",
+                        "span": {
+                          "line": 12,
+                          "col": 14,
+                          "end_line": 12,
+                          "end_col": 19
+                        },
+                        "width": 8,
+                        "bits": "00000000",
+                        "signed": true
+                      }
                     }
                   }
                 }

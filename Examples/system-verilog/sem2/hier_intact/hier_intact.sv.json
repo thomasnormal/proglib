@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -1770,7 +1771,8 @@
                     "value": 0,
                     "resolved_width": 32
                   }
-                }
+                },
+                "net": true
               },
               {
                 "kind": "PortConn",
@@ -1871,7 +1873,8 @@
                     "value": 1,
                     "resolved_width": 32
                   }
-                }
+                },
+                "net": true
               },
               {
                 "kind": "PortConn",
@@ -1982,7 +1985,8 @@
               "value": 1,
               "resolved_width": 32
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           }
         ],
         "types": [],

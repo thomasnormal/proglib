@@ -84,15 +84,60 @@
         ],
         "processes": [
           {
-            "kind": "Unsupported",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 7,
               "col": 3,
               "end_line": 8,
               "end_col": 17
             },
-            "sv_kind": "SignalEventControl:clock",
-            "text": "always @(arr[2])\n    seen = 1'b1;"
+            "events": [
+              {
+                "edge": "any",
+                "expr": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 7,
+                    "col": 12,
+                    "end_line": 7,
+                    "end_col": 18
+                  },
+                  "width": 8,
+                  "name": "arr[2]"
+                }
+              }
+            ],
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 8,
+                "col": 5,
+                "end_line": 8,
+                "end_col": 17
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 8,
+                  "col": 5,
+                  "end_line": 8,
+                  "end_col": 9
+                },
+                "width": 1,
+                "name": "seen"
+              },
+              "value": {
+                "kind": "Literal",
+                "span": {
+                  "line": 8,
+                  "col": 12,
+                  "end_line": 8,
+                  "end_col": 16
+                },
+                "width": 1,
+                "bits": "1"
+              }
+            }
           },
           {
             "kind": "Initial",

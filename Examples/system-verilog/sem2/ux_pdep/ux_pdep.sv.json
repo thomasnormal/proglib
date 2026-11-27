@@ -78,7 +78,8 @@
               "value": 32,
               "resolved_width": 32
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           }
         ],
         "types": [],
@@ -349,15 +350,15 @@
               "name": "y1"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "Unsupported",
               "span": {
                 "line": 15,
                 "col": 15,
                 "end_line": 15,
                 "end_col": 19
               },
-              "width": 32,
-              "bits": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx0000"
+              "sv_kind": "ConversionExpression:unsized-xz",
+              "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx0000"
             }
           },
           {
@@ -380,15 +381,15 @@
               "name": "y2"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "Unsupported",
               "span": {
                 "line": 16,
                 "col": 15,
                 "end_line": 16,
                 "end_col": 19
               },
-              "width": 32,
-              "bits": "zzzzzzzzzzzzzzzzzzzzzzzzzzzz0001"
+              "sv_kind": "ConversionExpression:unsized-xz",
+              "text": "zzzzzzzzzzzzzzzzzzzzzzzzzzzz0001"
             }
           },
           {
@@ -411,54 +412,20 @@
               "name": "y3"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "Unsupported",
               "span": {
                 "line": 17,
                 "col": 15,
                 "end_line": 17,
                 "end_col": 18
               },
-              "width": 32,
-              "bits": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              "sv_kind": "ConversionExpression:unsized-xz",
+              "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
             }
           }
         ],
         "generates": [],
-        "others": [
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 15,
-              "col": 15,
-              "end_line": 15,
-              "end_col": 19
-            },
-            "sv_kind": "IntegerLiteral:unsized-xz-parametric",
-            "text": "'hx0"
-          },
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 16,
-              "col": 15,
-              "end_line": 16,
-              "end_col": 19
-            },
-            "sv_kind": "IntegerLiteral:unsized-xz-parametric",
-            "text": "'hz1"
-          },
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 17,
-              "col": 15,
-              "end_line": 17,
-              "end_col": 18
-            },
-            "sv_kind": "IntegerLiteral:unsized-xz-parametric",
-            "text": "'bx"
-          }
-        ]
+        "others": []
       }
     ],
     "others": []

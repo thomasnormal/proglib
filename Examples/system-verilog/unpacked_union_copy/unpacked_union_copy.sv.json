@@ -148,15 +148,20 @@
                     "width": 1,
                     "op": "===",
                     "left": {
-                      "kind": "Ident",
+                      "kind": "AggregateMember",
                       "span": {
                         "line": 12,
                         "col": 9,
                         "end_line": 12,
                         "end_col": 15
                       },
-                      "width": 8,
-                      "name": "copy"
+                      "base": "copy",
+                      "path": [
+                        {
+                          "field": "b"
+                        }
+                      ],
+                      "width": 8
                     },
                     "right": {
                       "kind": "Literal",
@@ -195,15 +200,20 @@
                     "format": "FAIL: copy.b=%h",
                     "args": [
                       {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 13,
                           "col": 38,
                           "end_line": 13,
                           "end_col": 44
                         },
-                        "width": 8,
-                        "name": "copy"
+                        "base": "copy",
+                        "path": [
+                          {
+                            "field": "b"
+                          }
+                        ],
+                        "width": 8
                       }
                     ],
                     "arg_signed": [

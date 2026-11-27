@@ -24,6 +24,24 @@
           {
             "kind": "Var",
             "span": {
+              "line": 13,
+              "col": 16,
+              "end_line": 13,
+              "end_col": 22
+            },
+            "name": "stream",
+            "width": 96,
+            "init": {
+              "kind": "Literal",
+              "span": null,
+              "width": 96,
+              "bits": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            },
+            "static_local_storage": true
+          },
+          {
+            "kind": "Var",
+            "span": {
               "line": 14,
               "col": 9,
               "end_line": 14,
@@ -114,24 +132,6 @@
               "bits": "00000000000000000000000000000000"
             },
             "signed": true,
-            "static_local_storage": true
-          },
-          {
-            "kind": "Var",
-            "span": {
-              "line": 13,
-              "col": 16,
-              "end_line": 13,
-              "end_col": 22
-            },
-            "name": "stream",
-            "width": 96,
-            "init": {
-              "kind": "Literal",
-              "span": null,
-              "width": 96,
-              "bits": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-            },
             "static_local_storage": true
           }
         ],

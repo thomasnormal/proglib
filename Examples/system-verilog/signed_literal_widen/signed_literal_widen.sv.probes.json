@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "signed_literal_widen",
- "envelope": "signed_literal_widen.sv.json",
+ "envelope": "out.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/signed_literal_widen/signed_literal_widen.sv",
@@ -49,7 +49,8 @@
        "value": 8,
        "resolved_width": 32
       },
-      "resolved": 8
+      "resolved": 8,
+      "string": false
      }
     ],
     "types": [],
@@ -329,7 +330,8 @@
        "value": 16,
        "resolved_width": 32
       },
-      "resolved": 16
+      "resolved": 16,
+      "string": false
      }
     ],
     "types": [],

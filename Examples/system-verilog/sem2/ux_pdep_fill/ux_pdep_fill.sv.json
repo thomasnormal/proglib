@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -287,15 +288,15 @@
               "name": "y2"
             },
             "value": {
-              "kind": "Literal",
+              "kind": "Unsupported",
               "span": {
                 "line": 15,
                 "col": 15,
                 "end_line": 15,
                 "end_col": 18
               },
-              "width": 8,
-              "bits": "zzzzzzzz"
+              "sv_kind": "ConversionExpression:unsized-xz",
+              "text": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
             }
           },
           {
@@ -452,15 +453,15 @@
                       "name": "y1"
                     },
                     "value": {
-                      "kind": "Literal",
+                      "kind": "Unsupported",
                       "span": {
                         "line": 20,
                         "col": 21,
                         "end_line": 20,
                         "end_col": 24
                       },
-                      "width": 8,
-                      "bits": "xxxxxxxx"
+                      "sv_kind": "ConversionExpression:unsized-xz",
+                      "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                     }
                   }
                 }
@@ -469,52 +470,7 @@
           }
         ],
         "generates": [],
-        "others": [
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 15,
-              "col": 15,
-              "end_line": 15,
-              "end_col": 18
-            },
-            "sv_kind": "ConversionExpression:xz-literal-parametric",
-            "text": "'bz"
-          },
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 15,
-              "col": 15,
-              "end_line": 15,
-              "end_col": 18
-            },
-            "sv_kind": "IntegerLiteral:unsized-xz-parametric",
-            "text": "'bz"
-          },
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 20,
-              "col": 21,
-              "end_line": 20,
-              "end_col": 24
-            },
-            "sv_kind": "ConversionExpression:xz-literal-parametric",
-            "text": "'bx"
-          },
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 20,
-              "col": 21,
-              "end_line": 20,
-              "end_col": 24
-            },
-            "sv_kind": "IntegerLiteral:unsized-xz-parametric",
-            "text": "'bx"
-          }
-        ]
+        "others": []
       }
     ],
     "others": []

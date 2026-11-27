@@ -57,7 +57,8 @@
               "member": "RUN",
               "from_package": "package_enum_param_fixed_pkg"
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           }
         ],
         "types": [
@@ -77,23 +78,13 @@
                 {
                   "msb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 3,
-                      "col": 23,
-                      "end_line": 3,
-                      "end_col": 24
-                    },
+                    "span": null,
                     "value": 1,
                     "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": {
-                      "line": 3,
-                      "col": 25,
-                      "end_line": 3,
-                      "end_col": 26
-                    },
+                    "span": null,
                     "value": 0,
                     "resolved_width": null
                   }

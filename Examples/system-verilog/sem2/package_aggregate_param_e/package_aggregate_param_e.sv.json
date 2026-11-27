@@ -42,6 +42,7 @@
             "name": "P",
             "type": null,
             "resolved": null,
+            "string": false,
             "aggregate": {
               "kind": "array",
               "msb": {
@@ -389,7 +390,9 @@
                 }
               ]
             ],
-            "package": "package_aggregate_param_pkg"
+            "package": "package_aggregate_param_pkg",
+            "resolved_bits": "000000101010010101111111",
+            "resolved_signed": false
           }
         ],
         "types": [],

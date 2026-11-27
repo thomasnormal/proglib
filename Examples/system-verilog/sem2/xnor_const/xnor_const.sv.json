@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,8 @@
               "sv_kind": "BinaryExpression:BinaryXnor",
               "text": "(6 ~^ 3)"
             },
-            "resolved": -6
+            "resolved": -6,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -182,7 +184,8 @@
               "sv_kind": "BinaryExpression:BinaryXnor",
               "text": "4'b1010 ~^ 4'b0110"
             },
-            "resolved": 3
+            "resolved": 3,
+            "string": false
           }
         ],
         "types": [],

@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -335,14 +336,13 @@
         "decls": [],
         "processes": [
           {
-            "kind": "AlwaysEvent",
+            "kind": "AlwaysComb",
             "span": {
               "line": 9,
               "col": 5,
               "end_line": 9,
               "end_col": 33
             },
-            "event_kind": "ImplicitEventControl",
             "body": {
               "kind": "BlockingAssign",
               "span": {
@@ -363,33 +363,18 @@
                 "name": "y_star"
               },
               "value": {
-                "kind": "FunctionCall",
+                "kind": "Unsupported",
                 "span": {
                   "line": 9,
                   "col": 24,
                   "end_line": 9,
                   "end_col": 32
                 },
-                "name": "probe",
-                "args": [
-                  {
-                    "kind": "Ident",
-                    "span": {
-                      "line": 9,
-                      "col": 30,
-                      "end_line": 9,
-                      "end_col": 31
-                    },
-                    "width": 4,
-                    "name": "a"
-                  }
-                ],
-                "width": 4,
-                "symbolic_user_function_retained": true
+                "sv_kind": "CallExpression",
+                "text": "probe(a)"
               }
             },
-            "text": "always @* y_star = probe(a);",
-            "symbolic_event_retained": true
+            "always_star_lowered": "implicit"
           },
           {
             "kind": "AlwaysComb",
@@ -419,29 +404,15 @@
                 "name": "y_comb"
               },
               "value": {
-                "kind": "FunctionCall",
+                "kind": "Unsupported",
                 "span": {
                   "line": 10,
                   "col": 26,
                   "end_line": 10,
                   "end_col": 34
                 },
-                "name": "probe",
-                "args": [
-                  {
-                    "kind": "Ident",
-                    "span": {
-                      "line": 10,
-                      "col": 32,
-                      "end_line": 10,
-                      "end_col": 33
-                    },
-                    "width": 4,
-                    "name": "a"
-                  }
-                ],
-                "width": 4,
-                "symbolic_user_function_retained": true
+                "sv_kind": "CallExpression",
+                "text": "probe(a)"
               }
             }
           }

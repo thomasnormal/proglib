@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -410,7 +411,8 @@
                     }
                   }
                 },
-                "resolved": 128
+                "resolved": 128,
+                "string": false
               },
               {
                 "kind": "Var",
@@ -420,7 +422,7 @@
                   "end_line": 5,
                   "end_col": 16
                 },
-                "name": "top_a",
+                "name": "g[$genvar:i].top_a",
                 "width": {
                   "kind": "PackedType",
                   "packed": [],
@@ -436,7 +438,7 @@
                   "end_line": 5,
                   "end_col": 23
                 },
-                "name": "top_b",
+                "name": "g[$genvar:i].top_b",
                 "width": {
                   "kind": "PackedType",
                   "packed": [],
@@ -461,7 +463,7 @@
                     "end_col": 17
                   },
                   "width": 1,
-                  "name": "top_a"
+                  "name": "g[$genvar:i].top_a"
                 },
                 "value": {
                   "kind": "BitSel",
@@ -512,7 +514,7 @@
                     "end_col": 17
                   },
                   "width": 1,
-                  "name": "top_b"
+                  "name": "g[$genvar:i].top_b"
                 },
                 "value": {
                   "kind": "Ident",
@@ -523,7 +525,7 @@
                     "end_col": 25
                   },
                   "width": 1,
-                  "name": "top_a"
+                  "name": "g[$genvar:i].top_a"
                 }
               },
               {
@@ -574,7 +576,7 @@
                     "end_col": 24
                   },
                   "width": 1,
-                  "name": "top_b"
+                  "name": "g[$genvar:i].top_b"
                 }
               }
             ]

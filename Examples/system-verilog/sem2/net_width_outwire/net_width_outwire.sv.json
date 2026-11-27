@@ -269,7 +269,8 @@
               },
               "width": 2,
               "name": "s"
-            }
+            },
+            "continuous_net_target": true
           },
           {
             "kind": "Assign",
@@ -311,7 +312,8 @@
                 "width": 2,
                 "name": "s"
               }
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [

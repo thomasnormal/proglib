@@ -87,7 +87,8 @@
               },
               "continuous_array_cell_lowered": true
             },
-            "continuous_array_cell_lowered": true
+            "continuous_array_cell_lowered": true,
+            "continuous_strength": false
           },
           {
             "kind": "Initial",
@@ -129,7 +130,8 @@
               },
               "continuous_array_cell_lowered": true
             },
-            "continuous_array_cell_lowered": true
+            "continuous_array_cell_lowered": true,
+            "continuous_strength": false
           },
           {
             "kind": "Initial",

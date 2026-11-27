@@ -105,6 +105,7 @@
                       "semaphore_literal_try_get": true,
                       "semaphore_available": 0,
                       "semaphore_request": 1,
+                      "semaphore_negative_key_normalized": false,
                       "signed": true
                     }
                   }

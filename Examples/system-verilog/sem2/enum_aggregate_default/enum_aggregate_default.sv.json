@@ -54,6 +54,7 @@
             "name": "CFG",
             "type": null,
             "resolved": null,
+            "string": false,
             "aggregate": {
               "kind": "array",
               "msb": {
@@ -168,7 +169,9 @@
                 }
               ]
             ],
-            "package": "enum_aggregate_default_pkg"
+            "package": "enum_aggregate_default_pkg",
+            "resolved_bits": "000000",
+            "resolved_signed": false
           }
         ],
         "types": [

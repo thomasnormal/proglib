@@ -128,7 +128,8 @@
               },
               "width": 1,
               "name": "t"
-            }
+            },
+            "continuous_net_target": true
           },
           {
             "kind": "AlwaysComb",

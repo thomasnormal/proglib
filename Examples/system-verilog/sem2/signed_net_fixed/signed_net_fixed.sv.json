@@ -251,7 +251,8 @@
               "width": 4,
               "name": "a",
               "signed": true
-            }
+            },
+            "continuous_net_target": true
           },
           {
             "kind": "AlwaysComb",

@@ -25,11 +25,11 @@
             "kind": "Var",
             "span": {
               "line": 6,
-              "col": 22,
+              "col": 9,
               "end_line": 6,
-              "end_col": 32
+              "end_col": 20
             },
-            "name": "back_value",
+            "name": "front_value",
             "width": 32,
             "init": {
               "kind": "Literal",
@@ -44,11 +44,11 @@
             "kind": "Var",
             "span": {
               "line": 6,
-              "col": 9,
+              "col": 22,
               "end_line": 6,
-              "end_col": 20
+              "end_col": 32
             },
-            "name": "front_value",
+            "name": "back_value",
             "width": 32,
             "init": {
               "kind": "Literal",

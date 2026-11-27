@@ -79,13 +79,23 @@
                 {
                   "msb": {
                     "kind": "Int",
-                    "span": null,
+                    "span": {
+                      "line": 6,
+                      "col": 18,
+                      "end_line": 6,
+                      "end_col": 19
+                    },
                     "value": 3,
                     "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": null,
+                    "span": {
+                      "line": 6,
+                      "col": 20,
+                      "end_line": 6,
+                      "end_col": 21
+                    },
                     "value": 0,
                     "resolved_width": null
                   }
@@ -94,6 +104,8 @@
               "resolved": 4
             },
             "two_state": false,
+            "flat_base": "arr",
+            "flat_index": 0,
             "init": null
           },
           {
@@ -111,13 +123,23 @@
                 {
                   "msb": {
                     "kind": "Int",
-                    "span": null,
+                    "span": {
+                      "line": 6,
+                      "col": 18,
+                      "end_line": 6,
+                      "end_col": 19
+                    },
                     "value": 3,
                     "resolved_width": null
                   },
                   "lsb": {
                     "kind": "Int",
-                    "span": null,
+                    "span": {
+                      "line": 6,
+                      "col": 20,
+                      "end_line": 6,
+                      "end_col": 21
+                    },
                     "value": 0,
                     "resolved_width": null
                   }
@@ -126,6 +148,8 @@
               "resolved": 4
             },
             "two_state": false,
+            "flat_base": "arr",
+            "flat_index": 1,
             "init": null
           }
         ],
@@ -238,7 +262,14 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "arr[0]",
+            "base": "arr",
+            "index": 0
+          }
+        ]
       }
     ],
     "others": []

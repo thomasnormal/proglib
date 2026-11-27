@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -386,6 +388,38 @@
                 }
               }
             ]
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 13,
+              "col": 13,
+              "end_line": 13,
+              "end_col": 14
+            },
+            "name": "i",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": null,
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "init": null,
+            "signed": true
           }
         ],
         "processes": [
@@ -555,7 +589,8 @@
                         "resolved_width": 8
                       }
                     },
-                    "symbolic_for_parameter": true
+                    "symbolic_for_parameter": true,
+                    "symbolic_for_retained": true
                   },
                   "else": {
                     "kind": "For",
@@ -673,7 +708,8 @@
                         "name": "d"
                       }
                     },
-                    "symbolic_for_parameter": true
+                    "symbolic_for_parameter": true,
+                    "symbolic_for_retained": true
                   }
                 }
               ]
@@ -723,7 +759,8 @@
               ],
               "part": null,
               "unpacked": true
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],

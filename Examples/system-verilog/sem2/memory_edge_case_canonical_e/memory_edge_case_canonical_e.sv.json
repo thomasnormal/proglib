@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -391,14 +392,14 @@
         ],
         "decls": [
           {
-            "kind": "UnpackedDecl",
+            "kind": "Var",
             "span": {
               "line": 6,
               "col": 17,
               "end_line": 6,
               "end_col": 26
             },
-            "name": "mem",
+            "name": "mem[0]",
             "width": {
               "kind": "PackedType",
               "packed": [
@@ -450,32 +451,75 @@
               ],
               "resolved": 4
             },
-            "unpacked": [
-              {
-                "msb": {
-                  "kind": "Int",
-                  "span": {
-                    "line": 6,
-                    "col": 22,
-                    "end_line": 6,
-                    "end_col": 23
+            "two_state": false,
+            "flat_base": "mem",
+            "flat_index": 0,
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 6,
+              "col": 17,
+              "end_line": 6,
+              "end_col": 26
+            },
+            "name": "mem[1]",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 13
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 6,
+                        "col": 10,
+                        "end_line": 6,
+                        "end_col": 11
+                      },
+                      "name": "W"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 6,
+                        "col": 12,
+                        "end_line": 6,
+                        "end_col": 13
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
                   },
-                  "value": 0,
-                  "resolved_width": null
-                },
-                "lsb": {
-                  "kind": "Int",
-                  "span": {
-                    "line": 6,
-                    "col": 24,
-                    "end_line": 6,
-                    "end_col": 25
-                  },
-                  "value": 1,
-                  "resolved_width": null
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 14,
+                      "end_line": 6,
+                      "end_col": 15
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
                 }
-              }
-            ]
+              ],
+              "resolved": 4
+            },
+            "two_state": false,
+            "flat_base": "mem",
+            "flat_index": 1,
+            "init": null
           }
         ],
         "processes": [
@@ -505,7 +549,7 @@
                     "end_col": 19
                   },
                   "target": {
-                    "kind": "ArraySel",
+                    "kind": "Ident",
                     "span": {
                       "line": 8,
                       "col": 5,
@@ -513,22 +557,7 @@
                       "end_col": 11
                     },
                     "width": 4,
-                    "name": "mem",
-                    "indices": [
-                      {
-                        "kind": "Int",
-                        "span": {
-                          "line": 8,
-                          "col": 9,
-                          "end_line": 8,
-                          "end_col": 10
-                        },
-                        "value": 0,
-                        "resolved_width": 32
-                      }
-                    ],
-                    "part": null,
-                    "unpacked": true
+                    "name": "mem[0]"
                   },
                   "value": {
                     "kind": "Literal",
@@ -551,7 +580,7 @@
                     "end_col": 19
                   },
                   "target": {
-                    "kind": "ArraySel",
+                    "kind": "Ident",
                     "span": {
                       "line": 9,
                       "col": 5,
@@ -559,22 +588,7 @@
                       "end_col": 11
                     },
                     "width": 4,
-                    "name": "mem",
-                    "indices": [
-                      {
-                        "kind": "Int",
-                        "span": {
-                          "line": 9,
-                          "col": 9,
-                          "end_line": 9,
-                          "end_col": 10
-                        },
-                        "value": 1,
-                        "resolved_width": 32
-                      }
-                    ],
-                    "part": null,
-                    "unpacked": true
+                    "name": "mem[1]"
                   },
                   "value": {
                     "kind": "Literal",
@@ -611,7 +625,7 @@
               "name": "q0"
             },
             "value": {
-              "kind": "ArraySel",
+              "kind": "Ident",
               "span": {
                 "line": 11,
                 "col": 15,
@@ -619,22 +633,7 @@
                 "end_col": 21
               },
               "width": 4,
-              "name": "mem",
-              "indices": [
-                {
-                  "kind": "Int",
-                  "span": {
-                    "line": 11,
-                    "col": 19,
-                    "end_line": 11,
-                    "end_col": 20
-                  },
-                  "value": 0,
-                  "resolved_width": 32
-                }
-              ],
-              "part": null,
-              "unpacked": true
+              "name": "mem[0]"
             }
           },
           {
@@ -657,7 +656,7 @@
               "name": "q1"
             },
             "value": {
-              "kind": "ArraySel",
+              "kind": "Ident",
               "span": {
                 "line": 12,
                 "col": 15,
@@ -665,22 +664,7 @@
                 "end_col": 21
               },
               "width": 4,
-              "name": "mem",
-              "indices": [
-                {
-                  "kind": "Int",
-                  "span": {
-                    "line": 12,
-                    "col": 19,
-                    "end_line": 12,
-                    "end_col": 20
-                  },
-                  "value": 1,
-                  "resolved_width": 32
-                }
-              ],
-              "part": null,
-              "unpacked": true
+              "name": "mem[1]"
             }
           },
           {
@@ -748,7 +732,7 @@
                           "end_col": 25
                         },
                         "target": {
-                          "kind": "ArraySel",
+                          "kind": "Ident",
                           "span": {
                             "line": 15,
                             "col": 13,
@@ -756,22 +740,7 @@
                             "end_col": 19
                           },
                           "width": 4,
-                          "name": "mem",
-                          "indices": [
-                            {
-                              "kind": "Int",
-                              "span": {
-                                "line": 15,
-                                "col": 17,
-                                "end_line": 15,
-                                "end_col": 18
-                              },
-                              "value": 0,
-                              "resolved_width": 32
-                            }
-                          ],
-                          "part": null,
-                          "unpacked": true
+                          "name": "mem[0]"
                         },
                         "value": {
                           "kind": "Ident",
@@ -810,7 +779,7 @@
                           "end_col": 25
                         },
                         "target": {
-                          "kind": "ArraySel",
+                          "kind": "Ident",
                           "span": {
                             "line": 16,
                             "col": 13,
@@ -818,22 +787,7 @@
                             "end_col": 19
                           },
                           "width": 4,
-                          "name": "mem",
-                          "indices": [
-                            {
-                              "kind": "Int",
-                              "span": {
-                                "line": 16,
-                                "col": 17,
-                                "end_line": 16,
-                                "end_col": 18
-                              },
-                              "value": 1,
-                              "resolved_width": 32
-                            }
-                          ],
-                          "part": null,
-                          "unpacked": true
+                          "name": "mem[1]"
                         },
                         "value": {
                           "kind": "Ident",
@@ -886,7 +840,19 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "mem[0]",
+            "base": "mem",
+            "index": 0
+          },
+          {
+            "name": "mem[1]",
+            "base": "mem",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

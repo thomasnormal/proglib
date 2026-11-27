@@ -49,7 +49,8 @@
               "value": 2,
               "resolved_width": 32
             },
-            "resolved": 2
+            "resolved": 2,
+            "string": false
           }
         ],
         "types": [],
@@ -431,7 +432,8 @@
               "value": 0,
               "resolved_width": 32
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -475,7 +477,8 @@
                 "name": "width"
               }
             },
-            "resolved": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            "resolved": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "string": false
           }
         ],
         "types": [],
@@ -709,7 +712,7 @@
               "end_line": 5,
               "end_col": 55
             },
-            "sv_kind": "InvalidStatement",
+            "sv_kind": "ProceduralBlockSymbol:NoEventControl",
             "text": "always @(posedge clk) if (wen) memory[addr] <= data;"
           },
           {

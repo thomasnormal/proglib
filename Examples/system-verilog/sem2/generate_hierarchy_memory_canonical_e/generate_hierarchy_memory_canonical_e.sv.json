@@ -78,7 +78,8 @@
               "value": 1,
               "resolved_width": 32
             },
-            "resolved": 1
+            "resolved": 1,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -130,7 +131,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -521,7 +523,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -669,14 +672,14 @@
         ],
         "decls": [
           {
-            "kind": "UnpackedDecl",
+            "kind": "Var",
             "span": {
               "line": 2,
               "col": 17,
               "end_line": 2,
               "end_col": 22
             },
-            "name": "s",
+            "name": "s[0]",
             "width": {
               "kind": "PackedType",
               "packed": [
@@ -728,39 +731,75 @@
               ],
               "resolved": 4
             },
-            "unpacked": [
-              {
-                "msb": {
-                  "kind": "Int",
-                  "span": null,
-                  "value": 0,
-                  "resolved_width": null
-                },
-                "lsb": {
-                  "kind": "Binary",
-                  "span": null,
-                  "width": null,
-                  "op": "-",
-                  "left": {
+            "two_state": false,
+            "flat_base": "s",
+            "flat_index": 0,
+            "init": null
+          },
+          {
+            "kind": "Var",
+            "span": {
+              "line": 2,
+              "col": 17,
+              "end_line": 2,
+              "end_col": 22
+            },
+            "name": "s[1]",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 2,
+                      "col": 10,
+                      "end_line": 2,
+                      "end_col": 13
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 2,
+                        "col": 10,
+                        "end_line": 2,
+                        "end_col": 11
+                      },
+                      "name": "W"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 2,
+                        "col": 12,
+                        "end_line": 2,
+                        "end_col": 13
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
                     "kind": "Int",
                     "span": {
                       "line": 2,
-                      "col": 20,
+                      "col": 14,
                       "end_line": 2,
-                      "end_col": 21
+                      "end_col": 15
                     },
-                    "value": 2,
-                    "resolved_width": null
-                  },
-                  "right": {
-                    "kind": "Int",
-                    "span": null,
-                    "value": 1,
+                    "value": 0,
                     "resolved_width": null
                   }
                 }
-              }
-            ]
+              ],
+              "resolved": 4
+            },
+            "two_state": false,
+            "flat_base": "s",
+            "flat_index": 1,
+            "init": null
           }
         ],
         "processes": [
@@ -783,7 +822,7 @@
                 "end_col": 38
               },
               "target": {
-                "kind": "ArraySel",
+                "kind": "Ident",
                 "span": {
                   "line": 3,
                   "col": 28,
@@ -791,22 +830,7 @@
                   "end_col": 32
                 },
                 "width": 4,
-                "name": "s",
-                "indices": [
-                  {
-                    "kind": "Int",
-                    "span": {
-                      "line": 3,
-                      "col": 30,
-                      "end_line": 3,
-                      "end_col": 31
-                    },
-                    "value": 0,
-                    "resolved_width": 32
-                  }
-                ],
-                "part": null,
-                "unpacked": true
+                "name": "s[0]"
               },
               "value": {
                 "kind": "Ident",
@@ -841,7 +865,7 @@
               "name": "q"
             },
             "value": {
-              "kind": "ArraySel",
+              "kind": "Ident",
               "span": {
                 "line": 4,
                 "col": 14,
@@ -849,27 +873,19 @@
                 "end_col": 18
               },
               "width": 4,
-              "name": "s",
-              "indices": [
-                {
-                  "kind": "Int",
-                  "span": {
-                    "line": 4,
-                    "col": 16,
-                    "end_line": 4,
-                    "end_col": 17
-                  },
-                  "value": 0,
-                  "resolved_width": 32
-                }
-              ],
-              "part": null,
-              "unpacked": true
+              "name": "s[0]"
             }
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "s[0]",
+            "base": "s",
+            "index": 0
+          }
+        ]
       }
     ],
     "others": []

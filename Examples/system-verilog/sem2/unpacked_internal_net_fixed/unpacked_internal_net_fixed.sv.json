@@ -229,7 +229,8 @@
               },
               "width": 4,
               "name": "a"
-            }
+            },
+            "continuous_net_target": true
           },
           {
             "kind": "Assign",
@@ -271,7 +272,8 @@
                 "width": 4,
                 "name": "a"
               }
-            }
+            },
+            "continuous_net_target": true
           },
           {
             "kind": "Assign",
@@ -328,7 +330,19 @@
           }
         ],
         "generates": [],
-        "others": []
+        "others": [],
+        "cell_refs": [
+          {
+            "name": "mem[0]",
+            "base": "mem",
+            "index": 0
+          },
+          {
+            "name": "mem[1]",
+            "base": "mem",
+            "index": 1
+          }
+        ]
       }
     ],
     "others": []

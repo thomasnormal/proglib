@@ -295,16 +295,33 @@
                           "width": 1,
                           "op": "===",
                           "left": {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 15,
                               "col": 9,
                               "end_line": 15,
                               "end_col": 19
                             },
-                            "width": 32,
-                            "name": "abkey[1].a",
-                            "signed": true
+                            "base": "abkey",
+                            "path": [
+                              {
+                                "index": {
+                                  "kind": "Literal",
+                                  "span": {
+                                    "line": 15,
+                                    "col": 15,
+                                    "end_line": 15,
+                                    "end_col": 16
+                                  },
+                                  "width": 32,
+                                  "bits": "00000000000000000000000000000001"
+                                }
+                              },
+                              {
+                                "field": "a"
+                              }
+                            ],
+                            "width": 32
                           },
                           "right": {
                             "kind": "Literal",
@@ -329,15 +346,33 @@
                           "width": 1,
                           "op": "===",
                           "left": {
-                            "kind": "Ident",
+                            "kind": "AggregateMember",
                             "span": {
                               "line": 15,
                               "col": 27,
                               "end_line": 15,
                               "end_col": 37
                             },
-                            "width": 64,
-                            "name": "abkey[1].b"
+                            "base": "abkey",
+                            "path": [
+                              {
+                                "index": {
+                                  "kind": "Literal",
+                                  "span": {
+                                    "line": 15,
+                                    "col": 33,
+                                    "end_line": 15,
+                                    "end_col": 34
+                                  },
+                                  "width": 32,
+                                  "bits": "00000000000000000000000000000001"
+                                }
+                              },
+                              {
+                                "field": "b"
+                              }
+                            ],
+                            "width": 64
                           },
                           "right": {
                             "kind": "Literal",
@@ -363,16 +398,33 @@
                         "width": 1,
                         "op": "===",
                         "left": {
-                          "kind": "Ident",
+                          "kind": "AggregateMember",
                           "span": {
                             "line": 15,
                             "col": 45,
                             "end_line": 15,
                             "end_col": 55
                           },
-                          "width": 32,
-                          "name": "abkey[0].a",
-                          "signed": true
+                          "base": "abkey",
+                          "path": [
+                            {
+                              "index": {
+                                "kind": "Literal",
+                                "span": {
+                                  "line": 15,
+                                  "col": 51,
+                                  "end_line": 15,
+                                  "end_col": 52
+                                },
+                                "width": 32,
+                                "bits": "00000000000000000000000000000000"
+                              }
+                            },
+                            {
+                              "field": "a"
+                            }
+                          ],
+                          "width": 32
                         },
                         "right": {
                           "kind": "Literal",
@@ -398,15 +450,33 @@
                       "width": 1,
                       "op": "===",
                       "left": {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 15,
                           "col": 63,
                           "end_line": 15,
                           "end_col": 73
                         },
-                        "width": 64,
-                        "name": "abkey[0].b"
+                        "base": "abkey",
+                        "path": [
+                          {
+                            "index": {
+                              "kind": "Literal",
+                              "span": {
+                                "line": 15,
+                                "col": 69,
+                                "end_line": 15,
+                                "end_col": 70
+                              },
+                              "width": 32,
+                              "bits": "00000000000000000000000000000000"
+                            }
+                          },
+                          {
+                            "field": "b"
+                          }
+                        ],
+                        "width": 64
                       },
                       "right": {
                         "kind": "Literal",
@@ -446,50 +516,120 @@
                     "format": "FAIL: abkey[1]={a=%0d,b=%0d} abkey[0]={a=%0d,b=%0d}",
                     "args": [
                       {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 19,
                           "col": 16,
                           "end_line": 19,
                           "end_col": 26
                         },
-                        "width": 32,
-                        "name": "abkey[1].a",
-                        "signed": true
+                        "base": "abkey",
+                        "path": [
+                          {
+                            "index": {
+                              "kind": "Literal",
+                              "span": {
+                                "line": 19,
+                                "col": 22,
+                                "end_line": 19,
+                                "end_col": 23
+                              },
+                              "width": 32,
+                              "bits": "00000000000000000000000000000001"
+                            }
+                          },
+                          {
+                            "field": "a"
+                          }
+                        ],
+                        "width": 32
                       },
                       {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 19,
                           "col": 28,
                           "end_line": 19,
                           "end_col": 38
                         },
-                        "width": 64,
-                        "name": "abkey[1].b"
+                        "base": "abkey",
+                        "path": [
+                          {
+                            "index": {
+                              "kind": "Literal",
+                              "span": {
+                                "line": 19,
+                                "col": 34,
+                                "end_line": 19,
+                                "end_col": 35
+                              },
+                              "width": 32,
+                              "bits": "00000000000000000000000000000001"
+                            }
+                          },
+                          {
+                            "field": "b"
+                          }
+                        ],
+                        "width": 64
                       },
                       {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 19,
                           "col": 40,
                           "end_line": 19,
                           "end_col": 50
                         },
-                        "width": 32,
-                        "name": "abkey[0].a",
-                        "signed": true
+                        "base": "abkey",
+                        "path": [
+                          {
+                            "index": {
+                              "kind": "Literal",
+                              "span": {
+                                "line": 19,
+                                "col": 46,
+                                "end_line": 19,
+                                "end_col": 47
+                              },
+                              "width": 32,
+                              "bits": "00000000000000000000000000000000"
+                            }
+                          },
+                          {
+                            "field": "a"
+                          }
+                        ],
+                        "width": 32
                       },
                       {
-                        "kind": "Ident",
+                        "kind": "AggregateMember",
                         "span": {
                           "line": 19,
                           "col": 52,
                           "end_line": 19,
                           "end_col": 62
                         },
-                        "width": 64,
-                        "name": "abkey[0].b"
+                        "base": "abkey",
+                        "path": [
+                          {
+                            "index": {
+                              "kind": "Literal",
+                              "span": {
+                                "line": 19,
+                                "col": 58,
+                                "end_line": 19,
+                                "end_col": 59
+                              },
+                              "width": 32,
+                              "bits": "00000000000000000000000000000000"
+                            }
+                          },
+                          {
+                            "field": "b"
+                          }
+                        ],
+                        "width": 64
                       }
                     ],
                     "arg_signed": [

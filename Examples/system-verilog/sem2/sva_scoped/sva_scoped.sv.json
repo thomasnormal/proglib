@@ -166,15 +166,17 @@
                 "body": {
                   "kind": "SvaAtom",
                   "test": {
-                    "kind": "SvaExpr",
-                    "expr": {
-                      "kind": "Binary",
-                      "op": "==",
-                      "left": {
+                    "kind": "SvaValueEq",
+                    "left": {
+                      "kind": "SvaCurrent",
+                      "expr": {
                         "kind": "Ident",
                         "name": "u.flag"
-                      },
-                      "right": {
+                      }
+                    },
+                    "right": {
+                      "kind": "SvaCurrent",
+                      "expr": {
                         "kind": "Ident",
                         "name": "a"
                       }

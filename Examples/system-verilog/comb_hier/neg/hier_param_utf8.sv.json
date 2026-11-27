@@ -78,7 +78,8 @@
               "value": 8,
               "resolved_width": 32
             },
-            "resolved": 8
+            "resolved": 8,
+            "string": false
           }
         ],
         "types": [],
@@ -146,15 +147,67 @@
             }
           },
           {
-            "kind": "Unsupported",
+            "kind": "Port",
             "span": {
               "line": 8,
               "col": 102,
               "end_line": 8,
               "end_col": 103
             },
-            "sv_kind": "PortSymbol:net-z",
-            "text": "y"
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 8,
+                      "col": 95,
+                      "end_line": 8,
+                      "end_col": 98
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 8,
+                        "col": 95,
+                        "end_line": 8,
+                        "end_col": 96
+                      },
+                      "name": "W"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 8,
+                        "col": 97,
+                        "end_line": 8,
+                        "end_col": 98
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 8,
+                      "col": 99,
+                      "end_line": 8,
+                      "end_col": 100
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 8
+            },
+            "net_as_variable": true
           }
         ],
         "decls": [],
@@ -690,7 +743,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -758,15 +812,67 @@
             }
           },
           {
-            "kind": "Unsupported",
+            "kind": "Port",
             "span": {
               "line": 5,
               "col": 83,
               "end_line": 5,
               "end_col": 84
             },
-            "sv_kind": "PortSymbol:net-z",
-            "text": "y"
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 5,
+                      "col": 76,
+                      "end_line": 5,
+                      "end_col": 79
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 5,
+                        "col": 76,
+                        "end_line": 5,
+                        "end_col": 77
+                      },
+                      "name": "W"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 5,
+                        "col": 78,
+                        "end_line": 5,
+                        "end_col": 79
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 5,
+                      "col": 80,
+                      "end_line": 5,
+                      "end_col": 81
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "net_as_variable": true
           }
         ],
         "decls": [],
@@ -800,7 +906,8 @@
               },
               "width": 4,
               "name": "a"
-            }
+            },
+            "continuous_net_target": true
           }
         ],
         "generates": [],

@@ -40,24 +40,30 @@
               },
               "stmts": [
                 {
-                  "kind": "Empty",
+                  "kind": "SysCall",
                   "span": {
                     "line": 10,
                     "col": 5,
                     "end_line": 10,
                     "end_col": 36
                   },
-                  "severity_task": "$info"
+                  "name": "$info",
+                  "format": "informational message",
+                  "args": [],
+                  "arg_signed": []
                 },
                 {
-                  "kind": "Empty",
+                  "kind": "SysCall",
                   "span": {
                     "line": 11,
                     "col": 5,
                     "end_line": 11,
                     "end_col": 33
                   },
-                  "severity_task": "$warning"
+                  "name": "$warning",
+                  "format": "warning message",
+                  "args": [],
+                  "arg_signed": []
                 },
                 {
                   "kind": "SysCall",

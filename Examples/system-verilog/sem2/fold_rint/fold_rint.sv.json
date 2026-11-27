@@ -78,7 +78,8 @@
               "value": 32,
               "resolved_width": 32
             },
-            "resolved": 32
+            "resolved": 32,
+            "string": false
           },
           {
             "kind": "ParameterDecl",
@@ -163,6 +164,7 @@
               }
             },
             "resolved": 4294967295,
+            "string": false,
             "signed": false
           },
           {
@@ -246,7 +248,8 @@
                 }
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -329,7 +332,8 @@
                 }
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           },
           {
             "kind": "LocalParam",
@@ -422,7 +426,8 @@
                 }
               }
             },
-            "resolved": 0
+            "resolved": 0,
+            "string": false
           }
         ],
         "types": [],

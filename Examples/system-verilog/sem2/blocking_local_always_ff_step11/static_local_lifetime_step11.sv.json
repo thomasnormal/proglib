@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
@@ -533,11 +534,10 @@
                     "end_line": 9,
                     "end_col": 24
                   },
-                  "name": "t",
+                  "name": "capture.t",
                   "width": 4,
                   "two_state": false,
                   "init": null,
-                  "symbolic_local_retained": true,
                   "lifetime": "static",
                   "lexical_path": "static_local_lifetime_step11.capture.t",
                   "hierarchical_path": "static_local_lifetime_step11.capture.t",
@@ -601,11 +601,10 @@
                     "end_line": 10,
                     "end_col": 26
                   },
-                  "name": "known",
+                  "name": "capture.known",
                   "width": 4,
                   "two_state": true,
                   "init": null,
-                  "symbolic_local_retained": true,
                   "lifetime": "static",
                   "lexical_path": "static_local_lifetime_step11.capture.known",
                   "hierarchical_path": "static_local_lifetime_step11.capture.known",
@@ -669,11 +668,11 @@
                     "end_line": 11,
                     "end_col": 45
                   },
-                  "name": "signed_t",
+                  "name": "capture.signed_t",
                   "width": 4,
                   "two_state": false,
                   "init": null,
-                  "symbolic_local_retained": true,
+                  "signed": true,
                   "lifetime": "static",
                   "lexical_path": "static_local_lifetime_step11.capture.signed_t",
                   "hierarchical_path": "static_local_lifetime_step11.capture.signed_t",
@@ -727,8 +726,7 @@
                       }
                     ],
                     "resolved": 4
-                  },
-                  "signed": true
+                  }
                 },
                 {
                   "kind": "If",
@@ -775,7 +773,7 @@
                             "end_col": 14
                           },
                           "width": 4,
-                          "name": "t"
+                          "name": "capture.t"
                         },
                         "value": {
                           "kind": "Fill",
@@ -806,7 +804,7 @@
                             "end_col": 18
                           },
                           "width": 4,
-                          "name": "known"
+                          "name": "capture.known"
                         },
                         "value": {
                           "kind": "Squash2",
@@ -842,7 +840,7 @@
                             "end_col": 21
                           },
                           "width": 4,
-                          "name": "signed_t",
+                          "name": "capture.signed_t",
                           "signed": true
                         },
                         "value": {
@@ -889,7 +887,7 @@
                       "end_col": 19
                     },
                     "width": 4,
-                    "name": "t"
+                    "name": "capture.t"
                   }
                 },
                 {
@@ -920,7 +918,7 @@
                       "end_col": 25
                     },
                     "width": 4,
-                    "name": "known"
+                    "name": "capture.known"
                   }
                 },
                 {
@@ -968,7 +966,7 @@
                             "end_col": 14
                           },
                           "width": 4,
-                          "name": "t"
+                          "name": "capture.t"
                         },
                         "value": {
                           "kind": "Ident",
@@ -999,7 +997,7 @@
                             "end_col": 18
                           },
                           "width": 4,
-                          "name": "known"
+                          "name": "capture.known"
                         },
                         "value": {
                           "kind": "Squash2",
@@ -1040,7 +1038,7 @@
                             "end_col": 21
                           },
                           "width": 4,
-                          "name": "signed_t",
+                          "name": "capture.signed_t",
                           "signed": true
                         },
                         "value": {
@@ -1098,7 +1096,7 @@
                       "end_col": 19
                     },
                     "width": 4,
-                    "name": "t"
+                    "name": "capture.t"
                   }
                 },
                 {
@@ -1138,7 +1136,7 @@
                         "end_col": 29
                       },
                       "width": 4,
-                      "name": "signed_t",
+                      "name": "capture.signed_t",
                       "signed": true
                     }
                   }
@@ -1160,11 +1158,10 @@
                         "end_line": 27,
                         "end_col": 28
                       },
-                      "name": "t",
+                      "name": "capture.shadow.t",
                       "width": 4,
                       "two_state": false,
                       "init": null,
-                      "symbolic_local_retained": true,
                       "lifetime": "static",
                       "lexical_path": "static_local_lifetime_step11.capture.shadow.t",
                       "hierarchical_path": "static_local_lifetime_step11.capture.shadow.t",
@@ -1256,7 +1253,7 @@
                             "end_col": 24
                           },
                           "width": 4,
-                          "name": "t"
+                          "name": "capture.shadow.t"
                         },
                         "value": {
                           "kind": "Unary",
@@ -1311,7 +1308,7 @@
                           "end_col": 26
                         },
                         "width": 4,
-                        "name": "t"
+                        "name": "capture.shadow.t"
                       }
                     }
                   ],

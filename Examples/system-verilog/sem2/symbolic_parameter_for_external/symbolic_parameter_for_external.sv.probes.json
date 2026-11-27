@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "symbolic_parameter_for_external",
- "envelope": "symbolic_parameter_for_external.sv.json",
+ "envelope": "out.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/symbolic_parameter_for_external/symbolic_parameter_for_external.sv",
@@ -49,7 +49,8 @@
        "value": 2,
        "resolved_width": 32
       },
-      "resolved": 2
+      "resolved": 2,
+      "string": false
      }
     ],
     "types": [],
@@ -101,7 +102,32 @@
       }
      }
     ],
-    "decls": [],
+    "decls": [
+     {
+      "kind": "Var",
+      "name": "i",
+      "width": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "Int",
+          "value": 31,
+          "resolved_width": null
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 32
+      },
+      "init": null,
+      "signed": true
+     }
+    ],
     "processes": [
      {
       "kind": "AlwaysComb",
@@ -234,7 +260,8 @@
        "value": 5,
        "resolved_width": 32
       },
-      "resolved": 5
+      "resolved": 5,
+      "string": false
      }
     ],
     "types": [],
@@ -286,7 +313,32 @@
       }
      }
     ],
-    "decls": [],
+    "decls": [
+     {
+      "kind": "Var",
+      "name": "i",
+      "width": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "Int",
+          "value": 31,
+          "resolved_width": null
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 32
+      },
+      "init": null,
+      "signed": true
+     }
+    ],
     "processes": [
      {
       "kind": "AlwaysComb",
