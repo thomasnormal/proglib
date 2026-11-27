@@ -7145,6 +7145,11 @@ theorem zeroSizePlacementAllowed_shape
     zeroSizePlacementAllowed store base = true := by
   rfl
 
+theorem zeroSizePlacementAllowed_failure_contract
+    (store : Store Tag State) (base : Nat) :
+    zeroSizePlacementAllowed store base = false ↔ False := by
+  simp [zeroSizePlacementAllowed]
+
 theorem pairedZeroSizePlacementAllowed
     (resolve : AllocId → Nat) (store : Store Tag State) (base : Nat) :
     zeroSizePlacementAllowed store base =
