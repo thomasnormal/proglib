@@ -1,0 +1,185 @@
+{
+  "schema_version": "sv-0.1",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "source_file": "Examples/system-verilog/profile_comb_self/profile_comb_self.sv",
+  "source_sha256": "ee2ef521dac4403203f256ca5ac4e0581a2e340041fba2ca5661218d6e2a8301",
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 5,
+          "end_col": 10
+        },
+        "name": "profile_comb_self",
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 38,
+              "end_line": 1,
+              "end_col": 41
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": 1
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 61,
+              "end_line": 1,
+              "end_col": 62
+            },
+            "name": "a",
+            "dir": "in",
+            "width": 4
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 31,
+              "end_line": 2,
+              "end_col": 35
+            },
+            "name": "comb",
+            "dir": "out",
+            "width": 4
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 56,
+              "end_line": 2,
+              "end_col": 57
+            },
+            "name": "q",
+            "dir": "out",
+            "width": 4
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysComb",
+            "span": {
+              "line": 3,
+              "col": 3,
+              "end_line": 3,
+              "end_col": 31
+            },
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 3,
+                "col": 15,
+                "end_line": 3,
+                "end_col": 31
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 3,
+                  "col": 15,
+                  "end_line": 3,
+                  "end_col": 19
+                },
+                "width": 4,
+                "name": "comb"
+              },
+              "value": {
+                "kind": "Binary",
+                "span": {
+                  "line": 3,
+                  "col": 22,
+                  "end_line": 3,
+                  "end_col": 30
+                },
+                "width": 4,
+                "op": "^",
+                "left": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 3,
+                    "col": 22,
+                    "end_line": 3,
+                    "end_col": 26
+                  },
+                  "width": 4,
+                  "name": "comb"
+                },
+                "right": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 3,
+                    "col": 29,
+                    "end_line": 3,
+                    "end_col": 30
+                  },
+                  "width": 4,
+                  "name": "a"
+                }
+              }
+            }
+          },
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 4,
+              "col": 3,
+              "end_line": 4,
+              "end_col": 38
+            },
+            "style": "always_ff",
+            "clock": "clk",
+            "body": {
+              "kind": "NonblockingAssign",
+              "span": {
+                "line": 4,
+                "col": 28,
+                "end_line": 4,
+                "end_col": 38
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 4,
+                  "col": 28,
+                  "end_line": 4,
+                  "end_col": 29
+                },
+                "width": 4,
+                "name": "q"
+              },
+              "value": {
+                "kind": "Ident",
+                "span": {
+                  "line": 4,
+                  "col": 33,
+                  "end_line": 4,
+                  "end_col": 37
+                },
+                "width": 4,
+                "name": "comb"
+              }
+            }
+          }
+        ],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

@@ -6,10 +6,21 @@
       "name": "m0_two_clock_refuse",
       "example": "m0_two_clock",
       "refusal": "Clock:multiple",
-      "signals": ["qa", "qb"],
+      "signals": [
+        "qa",
+        "qb"
+      ],
       "stimulus": [
-        {"clk_a": "0", "clk_b": "0", "d": "0"},
-        {"clk_a": "1", "clk_b": "0", "d": "1"}
+        {
+          "clk_a": "0",
+          "clk_b": "0",
+          "d": "0"
+        },
+        {
+          "clk_a": "1",
+          "clk_b": "0",
+          "d": "1"
+        }
       ],
       "measured": "2026-11-07: M0's one-entry-per-cycle contract cannot represent independent clk_a/clk_b arrivals; the loader refuses Clock:multiple."
     },
@@ -17,10 +28,18 @@
       "name": "m0_data_clock_refuse",
       "example": "m0_data_clock",
       "refusal": "Clock:implicit",
-      "signals": ["q"],
+      "signals": [
+        "q"
+      ],
       "stimulus": [
-        {"en": "0", "d": "0"},
-        {"en": "0", "d": "1"}
+        {
+          "en": "0",
+          "d": "0"
+        },
+        {
+          "en": "0",
+          "d": "1"
+        }
       ],
       "measured": "2026-11-07: posedge en would fire on every M0 cycle even when en is static; the canonical M0 clk guard refuses it."
     },
@@ -157,7 +176,7 @@
       "stimulus": [
         {}
       ],
-      "measured": "2026-11-09: the raw M0 theorem still exhibits both legal process orders; the route harness now refuses this blocking cross-process window at the IEEE 1800-2023 §4.7 boundary."
+      "measured": "2026-11-09: the raw M0 theorem still exhibits both legal process orders; the route harness now refuses this blocking cross-process window at the IEEE 1800-2023 \u00a74.7 boundary."
     },
     {
       "name": "swap_nba_swap",
@@ -369,10 +388,22 @@
         "lt"
       ],
       "stimulus": [
-        {"a": "11111111", "b": "00000001"},
-        {"a": "10000000", "b": "01111111"},
-        {"a": "00000001", "b": "11111111"},
-        {"a": "xxxxxxxx", "b": "00000001"}
+        {
+          "a": "11111111",
+          "b": "00000001"
+        },
+        {
+          "a": "10000000",
+          "b": "01111111"
+        },
+        {
+          "a": "00000001",
+          "b": "11111111"
+        },
+        {
+          "a": "xxxxxxxx",
+          "b": "00000001"
+        }
       ]
     },
     {
@@ -384,10 +415,18 @@
         "c"
       ],
       "stimulus": [
-        {"a": "0000"},
-        {"a": "1010"},
-        {"a": "10xz"},
-        {"a": "zzzz"}
+        {
+          "a": "0000"
+        },
+        {
+          "a": "1010"
+        },
+        {
+          "a": "10xz"
+        },
+        {
+          "a": "zzzz"
+        }
       ],
       "oracle_disagreement": {
         "id": "iverilog-unary-plus-xz",
@@ -441,13 +480,43 @@
     {
       "name": "integral_ports_directed",
       "example": "integral_ports",
-      "signals": ["unsigned_bits", "signed_bits", "signed_integer", "four_state_integer", "copied", "value", "negative", "wide", "less"],
+      "signals": [
+        "unsigned_bits",
+        "signed_bits",
+        "signed_integer",
+        "four_state_integer",
+        "copied",
+        "value",
+        "negative",
+        "wide",
+        "less"
+      ],
       "stimulus": [
-        {"unsigned_bits": "1xz1", "signed_bits": "x111", "signed_integer": "11111111111111111111111111111111", "four_state_integer": "00000000000000000000000000000001"},
-        {"unsigned_bits": "zzzz", "signed_bits": "1zx0", "signed_integer": "0000000000000000000000000000xxzz", "four_state_integer": "00000000000000000000000000000001"},
-        {"unsigned_bits": "0110", "signed_bits": "0111", "signed_integer": "00000000000000000000000000000010", "four_state_integer": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"},
+        {
+          "unsigned_bits": "1xz1",
+          "signed_bits": "x111",
+          "signed_integer": "11111111111111111111111111111111",
+          "four_state_integer": "00000000000000000000000000000001"
+        },
+        {
+          "unsigned_bits": "zzzz",
+          "signed_bits": "1zx0",
+          "signed_integer": "0000000000000000000000000000xxzz",
+          "four_state_integer": "00000000000000000000000000000001"
+        },
+        {
+          "unsigned_bits": "0110",
+          "signed_bits": "0111",
+          "signed_integer": "00000000000000000000000000000010",
+          "four_state_integer": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
         {},
-        {"unsigned_bits": "1111", "signed_bits": "1000", "signed_integer": "10000000000000000000000000000000", "four_state_integer": "00000000000000000000000000000000"}
+        {
+          "unsigned_bits": "1111",
+          "signed_bits": "1000",
+          "signed_integer": "10000000000000000000000000000000",
+          "four_state_integer": "00000000000000000000000000000000"
+        }
       ]
     },
     {
@@ -463,11 +532,162 @@
         "red_xnor"
       ],
       "stimulus": [
-        {"a": "0000"},
-        {"a": "000x"},
-        {"a": "100x"},
-        {"a": "1111"},
-        {"a": "zzzz"}
+        {
+          "a": "0000"
+        },
+        {
+          "a": "000x"
+        },
+        {
+          "a": "100x"
+        },
+        {
+          "a": "1111"
+        },
+        {
+          "a": "zzzz"
+        }
+      ]
+    },
+    {
+      "name": "profile_comb_defaults_x_first",
+      "example": "profile_comb_defaults",
+      "signals": [
+        "sel",
+        "a",
+        "b",
+        "comb",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "sel": "x",
+          "a": "0001",
+          "b": "0010"
+        },
+        {
+          "sel": "1",
+          "a": "0001",
+          "b": "0010"
+        },
+        {
+          "sel": "0",
+          "a": "0011",
+          "b": "0100"
+        }
+      ]
+    },
+    {
+      "name": "profile_comb_case_default_x_first",
+      "example": "profile_comb_case_default",
+      "signals": [
+        "sel",
+        "a",
+        "b",
+        "comb",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "sel": "xx",
+          "a": "0001",
+          "b": "0010"
+        },
+        {
+          "sel": "01",
+          "a": "0001",
+          "b": "0010"
+        },
+        {
+          "sel": "00",
+          "a": "0011",
+          "b": "0100"
+        }
+      ]
+    },
+    {
+      "name": "profile_comb_chain3_x_first",
+      "example": "profile_comb_chain3",
+      "signals": [
+        "a",
+        "c1",
+        "c2",
+        "comb",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "a": "xxxx"
+        },
+        {
+          "a": "0101"
+        },
+        {
+          "a": "zzzz"
+        }
+      ]
+    },
+    {
+      "name": "profile_comb_reg_port_x_first",
+      "example": "profile_comb_reg_port",
+      "signals": [
+        "a",
+        "d",
+        "comb",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "a": "xxxx",
+          "d": "0001"
+        },
+        {
+          "a": "0011",
+          "d": "x101"
+        },
+        {
+          "a": "zzzz",
+          "d": "1111"
+        }
+      ]
+    },
+    {
+      "name": "profile_comb_latch_refused",
+      "example": "profile_comb_latch",
+      "refusal": "Schedule:preemptive",
+      "signals": [
+        "en",
+        "d",
+        "comb",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "en": "x",
+          "d": "0001"
+        },
+        {
+          "en": "1",
+          "d": "0010"
+        }
+      ]
+    },
+    {
+      "name": "profile_comb_self_refused",
+      "example": "profile_comb_self",
+      "refusal": "Schedule:preemptive",
+      "signals": [
+        "a",
+        "comb",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "a": "xxxx"
+        },
+        {
+          "a": "0101"
+        }
       ]
     }
   ]

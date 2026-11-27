@@ -1,0 +1,252 @@
+{
+  "schema_version": "sv-0.1",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "source_file": "Examples/system-verilog/profile_comb_reg_port/profile_comb_reg_port.sv",
+  "source_sha256": "009be46cce24b18852919890c6031c3ed09c79e8bca8ee3f3ebc24506c77f05f",
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 9,
+          "end_col": 10
+        },
+        "name": "profile_comb_reg_port",
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 42,
+              "end_line": 1,
+              "end_col": 45
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": 1
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 65,
+              "end_line": 1,
+              "end_col": 66
+            },
+            "name": "a",
+            "dir": "in",
+            "width": 4
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 1,
+              "col": 86,
+              "end_line": 1,
+              "end_col": 87
+            },
+            "name": "d",
+            "dir": "in",
+            "width": 4
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 31,
+              "end_line": 2,
+              "end_col": 35
+            },
+            "name": "comb",
+            "dir": "out",
+            "width": 4
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 56,
+              "end_line": 2,
+              "end_col": 57
+            },
+            "name": "q",
+            "dir": "out",
+            "width": 4
+          }
+        ],
+        "decls": [
+          {
+            "kind": "Var",
+            "span": {
+              "line": 3,
+              "col": 15,
+              "end_line": 3,
+              "end_col": 16
+            },
+            "name": "r",
+            "width": 4,
+            "init": null
+          }
+        ],
+        "processes": [
+          {
+            "kind": "AlwaysComb",
+            "span": {
+              "line": 4,
+              "col": 3,
+              "end_line": 4,
+              "end_col": 28
+            },
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 4,
+                "col": 15,
+                "end_line": 4,
+                "end_col": 28
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 4,
+                  "col": 15,
+                  "end_line": 4,
+                  "end_col": 19
+                },
+                "width": 4,
+                "name": "comb"
+              },
+              "value": {
+                "kind": "Binary",
+                "span": {
+                  "line": 4,
+                  "col": 22,
+                  "end_line": 4,
+                  "end_col": 27
+                },
+                "width": 4,
+                "op": "^",
+                "left": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 4,
+                    "col": 22,
+                    "end_line": 4,
+                    "end_col": 23
+                  },
+                  "width": 4,
+                  "name": "r"
+                },
+                "right": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 4,
+                    "col": 26,
+                    "end_line": 4,
+                    "end_col": 27
+                  },
+                  "width": 4,
+                  "name": "a"
+                }
+              }
+            }
+          },
+          {
+            "kind": "AlwaysPosedge",
+            "span": {
+              "line": 5,
+              "col": 3,
+              "end_line": 8,
+              "end_col": 6
+            },
+            "style": "always_ff",
+            "clock": "clk",
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 5,
+                "col": 28,
+                "end_line": 8,
+                "end_col": 6
+              },
+              "stmts": [
+                {
+                  "kind": "NonblockingAssign",
+                  "span": {
+                    "line": 6,
+                    "col": 5,
+                    "end_line": 6,
+                    "end_col": 12
+                  },
+                  "target": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 6,
+                      "col": 5,
+                      "end_line": 6,
+                      "end_col": 6
+                    },
+                    "width": 4,
+                    "name": "r"
+                  },
+                  "value": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 6,
+                      "col": 10,
+                      "end_line": 6,
+                      "end_col": 11
+                    },
+                    "width": 4,
+                    "name": "d"
+                  }
+                },
+                {
+                  "kind": "NonblockingAssign",
+                  "span": {
+                    "line": 7,
+                    "col": 5,
+                    "end_line": 7,
+                    "end_col": 12
+                  },
+                  "target": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 7,
+                      "col": 5,
+                      "end_line": 7,
+                      "end_col": 6
+                    },
+                    "width": 4,
+                    "name": "q"
+                  },
+                  "value": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 7,
+                      "col": 10,
+                      "end_line": 7,
+                      "end_col": 11
+                    },
+                    "width": 4,
+                    "name": "d"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
