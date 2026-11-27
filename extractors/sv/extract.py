@@ -31867,6 +31867,7 @@ class SymCtx:
         self.enum_by_key = {}         # (name, from_package) -> node
         self.packages = set()         # package names actually referenced
         self.instance_modules = []    # definitions instantiated (F3), first-use order
+        self.inactive_instance_modules = []
         # Source ranges of unsized x/z conversions that remain as the
         # parser's source-shaped marker.  The family-wide x/z metadata scan
         # runs after expression conversion and must not turn these already
@@ -37399,6 +37400,7 @@ def _sym_instance_definitions(tree, source_map, top, module):
         tree.root.visit(collect_module)
     except Exception:
         source_modules = []
+    inactive_definitions = set(getattr(_SYM, "inactive_instance_modules", []))
     pending = list(_SYM.instance_modules)
     pending.extend(name for name in referenced_modules
                    if name in source_modules and name != top)
@@ -37412,6 +37414,13 @@ def _sym_instance_definitions(tree, source_map, top, module):
             tree, source_map, name, retain_loops=_RETAIN_LOOPS,
             retain_proc_rewrites=_RETAIN_PROC_REWRITES)
         if node is None:
+            # IEEE 1800-2023 §27.5 instantiates only the selected generate
+            # arm.  Slang still exposes an unresolved child from an inactive
+            # arm as an UninstantiatedDefSymbol.  Keep the source-shaped
+            # instance in that arm so a later parameter point can refuse it,
+            # but do not make the default point fail before expansion.
+            if name in inactive_definitions:
+                continue
             others.append({"kind": "Unsupported", "span": None,
                            "sv_kind": "ModuleDefinition:elaboration",
                            "text": name})
@@ -37882,6 +37891,8 @@ def convert_module_sym(sm, inst):
     for name in _sym_uninstantiated_definition_names(inst):
         if name not in _SYM.instance_modules:
             _SYM.instance_modules.append(name)
+        if name not in _SYM.inactive_instance_modules:
+            _SYM.inactive_instance_modules.append(name)
     lower_proc.begin_module(sys.modules[__name__], body)      # WP-PROC L1: hoisted block-local declarations
     del _SYM_CONST_FUNCS[:]
     del _SYM_SUBROUTINE_MARKERS[:]

@@ -1,0 +1,197 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "inactive_child_definition",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/sem2/inactive_child_definition_e/inactive_child_definition.sv",
+      "sha256": "ef1bed953eda2530278882213e26cf7b0e4d9510de4ca4d025f1af670db19ad1"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 1,
+          "col": 1,
+          "end_line": 14,
+          "end_col": 10
+        },
+        "name": "inactive_child_definition",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 2,
+              "col": 19,
+              "end_line": 2,
+              "end_col": 33
+            },
+            "name": "USE_VENDOR",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 19,
+                      "end_line": 2,
+                      "end_col": 33
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 19,
+                      "end_line": 2,
+                      "end_col": 33
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 2,
+                "col": 32,
+                "end_line": 2,
+                "end_col": 33
+              },
+              "value": 0,
+              "resolved_width": 32
+            },
+            "resolved": 0,
+            "string": false
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 17,
+              "end_line": 4,
+              "end_col": 18
+            },
+            "name": "a",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 18,
+              "end_line": 5,
+              "end_col": 19
+            },
+            "name": "y",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [],
+        "generates": [
+          {
+            "kind": "GenerateIf",
+            "span": {
+              "line": 8,
+              "col": 9,
+              "end_line": 12,
+              "end_col": 12
+            },
+            "label": "vendor",
+            "else_label": "portable",
+            "cond": {
+              "kind": "ParamRef",
+              "span": {
+                "line": 8,
+                "col": 13,
+                "end_line": 8,
+                "end_col": 23
+              },
+              "name": "USE_VENDOR"
+            },
+            "then": [
+              {
+                "kind": "Unsupported",
+                "span": {
+                  "line": 9,
+                  "col": 34,
+                  "end_line": 9,
+                  "end_col": 54
+                },
+                "sv_kind": "UninstantiatedDefSymbol:ports",
+                "text": "child (.a(a), .y(y))"
+              }
+            ],
+            "else": [
+              {
+                "kind": "Assign",
+                "span": {
+                  "line": 11,
+                  "col": 20,
+                  "end_line": 11,
+                  "end_col": 25
+                },
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 11,
+                    "col": 20,
+                    "end_line": 11,
+                    "end_col": 21
+                  },
+                  "width": 1,
+                  "name": "y"
+                },
+                "value": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 11,
+                    "col": 24,
+                    "end_line": 11,
+                    "end_col": 25
+                  },
+                  "width": 1,
+                  "name": "a"
+                }
+              }
+            ]
+          }
+        ],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}
