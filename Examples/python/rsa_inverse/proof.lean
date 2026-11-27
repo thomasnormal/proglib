@@ -368,6 +368,8 @@ theorem extended_gcd_zero (a : PyInt) (ha : 0 ≤ a) :
     Run.leaveCallDepth, Run.toPublic, Run.toPublic_ok, RVal.freezeB]
 
 set_option maxHeartbeats 4000000 in
+-- `String.mk` (deprecated) is the form the module-init fold leaves for the import's name
+set_option linter.deprecated false in
 /-- `Int`-typed core of `inverse_spec` — TOTAL correctness on coprime
 inputs. Coprimality rewrites the callee fact's gcd to 1, and the closing
 `py_vcgen` consumes it as a local `CallsTo` hypothesis at the call site;
@@ -387,13 +389,19 @@ private theorem inverse_core (x n : Int) (hx : 0 < x) (hn : 1 < n)
   refine ⟨i, hi0, hib, himod, ?_⟩
   obtain ⟨f₀, hcall⟩ := hcall.at_least
   have hcall' := hcall (f₀ + 11) (by omega)
-  have hw : initWorld rsa_inverse = ({ heap := #[], globals := [] } : World) := by
+  have hw : initWorld rsa_inverse =
+      ({ heap := #[], globals := [("typing", .callable "<opaque:typing:typing>")] } : World) := by
     rfl
   rw [hw] at hcall'
-  change callIn rsa_inverse (f₀ + 11) ({ heap := #[], globals := [], callDepth := 1 } : World)
+  change callIn rsa_inverse (f₀ + 11)
+      ({ heap := #[], globals := [("typing", .callable "<opaque:typing:typing>")],
+         callDepth := 1 } : World)
       "extended_gcd" #[.int x, .int n] = _ at hcall'
   have hcallU := hcall'
   simp [rsa_inverse, RVal.thawArgs, RVal.thawList_eq_map] at hcallU
+  -- `import typing` is an admitted opaque import (a module global since d55f9e0dd)
+  have hopq : opaqueImportAllowed "typing" = true := by decide
+  have htyp : String.mk ['t', 'y', 'p', 'i', 'n', 'g'] = "typing" := rfl
   refine CallsTo.intro (f₀ + 16) ?_
   unfold callFunction
   simp only [callIn.eq_2]
@@ -404,12 +412,12 @@ private theorem inverse_core (x n : Int) (hx : 0 < x) (hn : 1 < n)
     Stmt.genAllocFree, Stmt.genAllocFreeList, starArgBuiltinName,
     starListBuiltinName, starTupleBuiltinName, fstringFormatBuiltinName,
     flattenStarRun, flattenStarCallArgs, Run.bind, Run.withLocals, Run.liftRes, Run.toPublic,
-    RVal.freezeB, hcallU]
+    RVal.freezeB, hcallU, hopq, htyp, opaqueCallableName]
   simp [pythonTopCallDepth, pythonRecursionLimit, Run.finishCallAt,
     Run.leaveCallDepth, Run.toPublic, RVal.freezeB]
   py_simp [rsa_inverse, evalBinOpH, PyVCGen.binOpBeqBitAnd,
     PyVCGen.binOpBeqMult, setLikeRefH, Run.bind, Run.withLocals, Run.liftRes,
-    Run.toPublic, RVal.freezeB, hco, Int.natCast_one]
+    Run.toPublic, RVal.freezeB, hco, Int.natCast_one, hopq, htyp, opaqueCallableName]
 
 /-- **Total correctness of the shipped `inverse`** (python-rsa 4.9.1): on
 coprime inputs `0 < x`, `1 < n`, it terminates and returns the modular
