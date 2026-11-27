@@ -9985,6 +9985,12 @@ theorem placementAgreementOfStores_agreesAt_failure_contract
       placementOf left id ≠ placementOf right id := by
   simp [placementAgreementOfStores, PlacementAgreement.agreesAt, beq_iff_eq]
 
+theorem placementAgreementOfStores_agrees_contract
+    (left right : Store Tag State) (exposed : AllocId → Bool) :
+    (placementAgreementOfStores left right exposed).agrees ↔
+      ∀ id, placementOf left id = placementOf right id := by
+  simp [placementAgreementOfStores, PlacementAgreement.agrees]
+
 def exposedPlacementAgreement (resolve : AllocId → Nat)
     (store : Store Tag State) (exposed : AllocId → Bool) : PlacementAgreement :=
   { left := placementOf store
