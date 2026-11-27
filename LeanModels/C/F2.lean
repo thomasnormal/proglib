@@ -7132,6 +7132,24 @@ theorem placementAllowed_result_contract
       simp [hstate, haddress] at hentry ⊢
     exact hentry
 
+theorem placementAllowed_failure_contract
+    (store : Store Tag State) (base size : Nat) :
+    placementAllowed store base size = false ↔
+      ¬ (∀ entry ∈ store.allocations,
+        match entry.2.live, entry.2.address with
+        | true, some otherBase =>
+            intervalOverlap base size otherBase entry.2.bytes.length = false
+        | _, _ => True) := by
+  constructor
+  · intro hfalse hgood
+    have htrue := (placementAllowed_result_contract store base size).mpr hgood
+    rw [hfalse] at htrue
+    simp at htrue
+  · intro hnot
+    by_cases htrue : placementAllowed store base size = true
+    · exact False.elim (hnot ((placementAllowed_result_contract store base size).mp htrue))
+    · exact Bool.eq_false_iff.mpr htrue
+
 theorem placementAllowed_empty
     (base size : Nat) :
     placementAllowed ({ allocations := [], nextId := 0 } : Store Tag State)
