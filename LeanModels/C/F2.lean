@@ -13631,6 +13631,13 @@ theorem pairedAllocateZeroSize_contract
   · exact pairedAllocateZeroSize_true resolve state placement
   · exact pairedAllocateZeroSize_sound_wellFormed resolve state placement
 
+theorem pairedAllocateZeroSize_failure_contract
+    {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
+    (placement : Placement) :
+    pairedAllocateZeroSize (Tag := Tag) (State := State) (TypeId := TypeId)
+      resolve state placement = false ↔ False := by
+  cases placement <;> simp [pairedAllocateZeroSize, allocateZeroSize]
+
 theorem pairedAllocateAligned_contract
     (resolve : AllocId → Nat) (store : Store Tag State)
     (request : AllocationRequest Tag State) (placement : Placement)
