@@ -160,7 +160,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 
 | wall | sole | present | example files |
 | --- | ---: | ---: | --- |
-| `frontend` | 432 | 432 | 00162.c, 00209.c, 00210.c, 20000112-1.c, 20000227-1.c |
+| `frontend` | 395 | 395 | 00210.c, 20000227-1.c, 20000412-3.c, 20000717-3.c, 20000822-1.c |
 | `undefined-behavior` | 47 | 47 | 00032.c, 00141.c, 00144.c, 00200.c, 00216.c |
 | `unsupported:extern object 'inside_main' has no definition in the translation unit` | 39 | 39 | builtins/20010124-1-lib.c, builtins/fputs-lib.c, builtins/lib/abs.c, builtins/lib/bfill.c, builtins/lib/bzero.c |
 | `unsupported:pointer bit-cast across incompatible effective types` | 20 | 20 | 00103.c, 00170.c, 20060412-1.c, 991228-1.c, alias-1.c |
@@ -173,7 +173,6 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `unsupported:floating cast has incompatible source and destination` | 6 | 6 | 00204.c, 20020413-1.c, 990413-2.c, align-2.c, ieee/20011123-1.c |
 | `unsupported:extern object 'b' has no definition in the translation unit` | 4 | 4 | alias-2.c, alias-3.c, alias-4.c, gcc/testsuite/gcc.dg/c23-bool-2.c |
 | `libc-call: __builtin_setjmp` | 3 | 3 | built-in-setjmp.c, pr64242.c, pr84521.c |
-| `unsupported:ExprWithCleanups` | 3 | 3 | 950628-1.c, gcc/testsuite/gcc.dg/c23-stdarg-9.c, pr30185.c |
 | `unsupported:arithmetic on bit-fields wider than int requires exact promotion semantics` | 3 | 3 | bitfld-3.c, pr32244-1.c, pr34971.c |
 | `unsupported:break, continue or goto escaped a function body` | 3 | 3 | 00199.c, 00213.c, 20040704-1.c |
 | `unsupported:call to '__builtin_inff' in a context with no program — call it through 'callByName'` | 3 | 3 | gcc/testsuite/gcc.dg/c23-float-3.c, ieee/copysign1.c, ieee/copysign2.c |
@@ -205,6 +204,7 @@ The run's first refusal, normalized by construct; `sole` counts rows whose first
 | `libc-call: qsort` | 1 | 1 | pr34456.c |
 | `libc-call: signal` | 1 | 1 | 20101011-1.c |
 | `unsupported:AlignedAttr` | 1 | 1 | pr108064.c |
+| `unsupported:ExprWithCleanups` | 1 | 1 | gcc/testsuite/gcc.dg/c23-stdarg-9.c |
 | `unsupported:TypeTraitExpr` | 1 | 1 | builtin-types-compatible-p.c |
 | `unsupported:__builtin_infl` | 1 | 1 | ieee/inf-1.c |
 | `unsupported:block-scope storage class 'extern' is outside the tier` | 1 | 1 | scope-1.c |
