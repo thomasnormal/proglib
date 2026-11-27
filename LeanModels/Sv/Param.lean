@@ -460,12 +460,12 @@ structure PEnumType where
   members : List PEnumMember
 deriving Repr, BEq, Inhabited
 
-/-- A port / variable / net declaration with a symbolic type. Ports come
-first (port-list order), then module-body declarations — the M0 decl
-order. -/
 /- The symbolic frontend may flatten a fixed unpacked cell into a scalar
 declaration for a legacy store.  Keep the source cell identity as metadata so
 the memory route never has to recover it by parsing the display name. -/
+/-- A port / variable / net declaration with a symbolic type. Ports come
+first (port-list order), then module-body declarations — the M0 decl
+order. -/
 structure PDecl where
   name : String
   type : PType
