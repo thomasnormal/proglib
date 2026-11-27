@@ -13795,6 +13795,21 @@ theorem pairedEndLifetime_sound
           exact ⟨sourceResult, targetResult, rfl, by simpa using hs,
             by simpa using ht⟩
 
+theorem pairedEndLifetime_success_contract
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
+    (result : (Store Tag State × Footprint) ×
+      (Store Tag State × Footprint)) :
+    pairedEndLifetime resolve store id = some result ↔
+      ∃ sourceResult targetResult,
+        result = (sourceResult, targetResult) ∧
+        endLifetime store id = some sourceResult ∧
+        endLifetime (renameStore resolve store) id = some targetResult := by
+  constructor
+  · exact pairedEndLifetime_sound resolve store id result
+  · rintro ⟨sourceResult, targetResult, hpair, hsource, htarget⟩
+    subst result
+    simp [pairedEndLifetime, hsource, htarget]
+
 theorem pairedEndLifetime_refusal
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
     (hrefusal : endLifetime store id = none ∨
