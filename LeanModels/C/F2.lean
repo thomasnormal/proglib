@@ -12820,6 +12820,18 @@ theorem pairedEndLifetime_decompose
             simpa only [Option.bind_some] using Option.some.inj hresult
           exact ⟨sourceResult, targetResult, hpair.symm⟩
 
+theorem pairedEndLifetime_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId) :
+    pairedEndLifetime resolve store id = none ↔
+      endLifetime store id = none ∨
+      endLifetime (renameStore resolve store) id = none := by
+  cases hs : endLifetime store id with
+  | none => simp [pairedEndLifetime, hs]
+  | some sourceResult =>
+      cases ht : endLifetime (renameStore resolve store) id with
+      | none => simp [pairedEndLifetime, hs, ht]
+      | some targetResult => simp [pairedEndLifetime, hs, ht]
+
 theorem pairedEndLifetime_sound
     (resolve : AllocId → Nat) (store : Store Tag State) (id : AllocId)
     (result : (Store Tag State × Footprint) ×
