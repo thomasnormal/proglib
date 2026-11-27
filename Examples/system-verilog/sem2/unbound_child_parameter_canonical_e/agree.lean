@@ -4,6 +4,8 @@ open LeanModels.Sv
 open LeanModels.Sv.Kernel
 load_design_sv2 unboundChild
   from "Examples/system-verilog/sem2/unbound_child_parameter_canonical_e/unbound_child_parameter_top.sv.json"
+
+#guard unboundChild.pdesign.crossCheckFull == ([], 2)
 def stimulus : List SvState := [
   [("x", LVec.ofNat 8 0)], [("x", LVec.ofNat 8 1)],
   [("x", LVec.ofNat 8 42)], [("x", LVec.ofNat 8 255)],

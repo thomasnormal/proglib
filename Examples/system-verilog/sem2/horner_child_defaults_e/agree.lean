@@ -10,6 +10,7 @@ load_design_sv2 horner from
 
 private def romStyle : Nat := 121390560208617634159420772
 #guard horner.pdesign.defaultArgs == .ok [8, 2, 2, romStyle]
+#guard horner.pdesign.crossCheckFull == ([], 6)
 #guard match horner.e 8 2 2 romStyle with | .ok d => CoreMemDesign.Structure d | _ => false
 
 def rows : IO (Res (List String)) := do
