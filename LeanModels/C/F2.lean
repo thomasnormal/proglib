@@ -7930,7 +7930,21 @@ theorem recoverAddress_empty_contract
         candidate.2.1 ≤ address && address < candidate.2.2.1) = none := by
   cases hfind : live.find? (fun candidate =>
       candidate.2.1 ≤ address && address < candidate.2.2.1) with
-  | some entry => simp [recoverAddress, hfind]
+  | some entry => simp [recoverAddress, hfind, eq_comm]
+  | none => simp [recoverAddress, hfind]
+
+theorem recoverAddress_recovered_contract
+    (address : Nat) (live : List (AllocId × Nat × Nat × Tag))
+    (pointer : Pointer Tag) :
+    recoverAddress address live = .recovered pointer ↔
+      ∃ entry,
+        live.find? (fun candidate =>
+          candidate.2.1 ≤ address && address < candidate.2.2.1) = some entry ∧
+        pointer = { provenance := some { allocation := entry.1, tag := entry.2.2.2 },
+                    address := address } := by
+  cases hfind : live.find? (fun candidate =>
+      candidate.2.1 ≤ address && address < candidate.2.2.1) with
+  | some entry => simp [recoverAddress, hfind, eq_comm]
   | none => simp [recoverAddress, hfind]
 
 theorem recoverAddress_result_contract
