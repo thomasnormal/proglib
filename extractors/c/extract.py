@@ -76,7 +76,9 @@ EXPRS = {"IntegerLiteral", "CharacterLiteral", "StringLiteral", "FloatingLiteral
          "ChooseExpr",
          "DeclRefExpr", "MemberExpr", "ArraySubscriptExpr", "CallExpr",
          "BinaryOperator", "CompoundAssignOperator", "UnaryOperator",
-         "ConditionalOperator", "ParenExpr", "ImplicitCastExpr", "CStyleCastExpr",
+         "ConditionalOperator", "ParenExpr", "ExprWithCleanups",
+         "MaterializeTemporaryExpr",
+         "ImplicitCastExpr", "CStyleCastExpr",
          "InitListExpr", "DesignatedInitUpdateExpr", "ImplicitValueInitExpr", "CompoundLiteralExpr", "UnaryExprOrTypeTraitExpr",
          "ConstantExpr", "VAArgExpr", "OffsetOfExpr"}
 TYPES = {"BuiltinType", "PointerType", "RecordType", "TypedefType",
@@ -931,6 +933,18 @@ class Extractor:
     def e_ParenExpr(self, n):
         c = kids(n)
         return {"sub": self.node(c[0]) if c else None, "type": qual(n)}
+
+    def e_ExprWithCleanups(self, n):
+        c = kids(n)
+        if len(c) != 1:
+            raise SystemExit("extract.py: ExprWithCleanups did not retain its child")
+        return {"sub": self.node(c[0]), "type": qual(n)}
+
+    def e_MaterializeTemporaryExpr(self, n):
+        c = kids(n)
+        if len(c) != 1:
+            raise SystemExit("extract.py: MaterializeTemporaryExpr did not retain its child")
+        return {"sub": self.node(c[0]), "type": qual(n)}
 
     def e_ImplicitCastExpr(self, n):
         c = kids(n)

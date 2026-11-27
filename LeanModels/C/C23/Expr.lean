@@ -1584,6 +1584,35 @@ private def Layout.trailingArrayExtent (layout : Layout) (m : Mem) (p : Ptr)
 
 mutual
 
+def evalCall (ctx : Ctx) (callee : Expr) (args : List Expr) : EvalM CVal := do
+  if functionPointerBitCast callee then
+    refuseUnsupported "call through an incompatible function-pointer cast"
+  if hasArgConflict args then
+    refuseUnsupported "unsequenced side effects in call arguments"
+  match calleeName callee with
+  | some _ =>
+      match calleeName callee with
+      | some "__builtin_constant_p" =>
+          let placeholders := args.map (fun e =>
+            { value := .undef, promotedType := e.structuredType?, sourceExpr := some e })
+          ctx.call callee none placeholders
+      | _ =>
+          let vs ← evalArgs ctx args
+          ctx.call callee none (args.zipWith (fun e v =>
+            { value := v, promotedType := e.structuredType?, sourceExpr := some e }) vs)
+  | none =>
+      let target ← evalExpr ctx callee
+      let vs ← evalArgs ctx args
+      ctx.call callee (some target) (args.zipWith (fun e v =>
+        { value := v, promotedType := e.structuredType?, sourceExpr := some e }) vs)
+  termination_by 2 * (callee.size + Expr.sizes args) + 2
+  decreasing_by
+    all_goals simp_wf
+    all_goals have hc := Expr.size_pos callee
+    all_goals have hcle : 1 ≤ callee.size := by omega
+    all_goals simp [Expr.sizes_cons, Expr.sizes, Expr.size] at *
+    all_goals omega
+
 /-- §6.3.2.1p1 — an expression in LVALUE position, yielding the address
 it designates.
 
@@ -1595,6 +1624,8 @@ same kinds. Anything else in lvalue position is a refusal, never a
 fallthrough. -/
 def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
   | .paren sub _ _ .. => evalLValue ctx sub
+  | .exprWithCleanups sub _ _ .. => evalLValue ctx sub
+  | .materializeTemporary sub _ _ .. => evalLValue ctx sub
   | .strLit value decoded _ _ .. => do
       let bs ← match decoded with
         | some bytes => pure (bytes.map (fun b => CByte.conc (UInt8.ofNat b)))
@@ -1642,6 +1673,16 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
   -- §6.5.3.2p2: `a[i]` is DEFINED as `*(a + i)`. The base arrives already
   -- decayed (clang inserts ArrayToPointerDecay), so it is a VALUE here.
   | .index base idx ty _ .. => indexAddr ctx base idx ty
+  | .call callee args ty _ _ => do
+      let value ← evalCall ctx callee args
+      match value with
+      | .aggregate _ bytes => do
+          let m ← get
+          let (m', fresh) := m.alloc .automatic bytes.length (some ty)
+          set m'
+          writeMem (fun m => m.storeBytes (Ptr.toObjectBound fresh bytes.length) bytes)
+          pure (Ptr.toObjectBound fresh bytes.length)
+      | _ => refuseUnsupported "call result is not an aggregate lvalue"
   -- §6.5.4.2p4: the operand of unary `*` is a pointer VALUE.
   | .unop op sub _ _ _ .. =>
       if op == "*" then (do let v ← evalExpr ctx sub; asPtr v)
@@ -1668,6 +1709,11 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
 /-- §6.5 — an expression in VALUE position. -/
 def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   | .paren sub _ _ .. => evalExpr ctx sub
+  | .exprWithCleanups sub _ _ .. =>
+      -- C has no temporary-destructor cleanup action. Preserve Clang's
+      -- full-expression node and evaluate its child under C23's rules.
+      evalExpr ctx sub
+  | .materializeTemporary sub _ _ .. => evalExpr ctx sub
   | .compoundLit init ty span structured => do
       match ctx.layout.sizeAtStructured none ty structured with
       | none => refuseUnsupported s!"no layout for compound literal type '{ty}'"
@@ -2132,30 +2178,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
   -- §6.5.3.3p4 — the arguments are evaluated HERE, in the caller's scope,
   -- and the handler receives VALUES. Still fuel-free: `evalArgs` is in this
   -- mutual block and shrinks the same `Expr` measure.
-  | .call callee args _ _ .. => do
-      if functionPointerBitCast callee then
-        refuseUnsupported "call through an incompatible function-pointer cast"
-      if hasArgConflict args then
-        refuseUnsupported "unsequenced side effects in call arguments"
-      match calleeName callee with
-      | some _ =>
-          match calleeName callee with
-          | some "__builtin_constant_p" =>
-              let placeholders := args.map (fun e =>
-                { value := .undef, promotedType := e.structuredType?, sourceExpr := some e })
-              ctx.call callee none placeholders
-          | _ =>
-              let vs ← evalArgs ctx args
-              ctx.call callee none (args.zipWith (fun e v =>
-                { value := v, promotedType := e.structuredType?, sourceExpr := some e }) vs)
-      | none =>
-          let target ← evalArgs ctx [callee]
-          let vs ← evalArgs ctx args
-          match target with
-          | [value] =>
-              ctx.call callee (some value) (args.zipWith (fun e v =>
-                { value := v, promotedType := e.structuredType?, sourceExpr := some e }) vs)
-          | _ => refuseUnsupported "indirect call lost its callee value"
+  | .call callee args _ _ .. => evalCall ctx callee args
 
   -- N3220 §6.5.4.4p2–5: fixed-size operands and alignof operands are
   -- unevaluated. The pinned ABI supplies the size/alignment and size_t.
@@ -3066,6 +3089,22 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       | paren s _ _ _ =>
           obtain ⟨i1, i2⟩ := ih s (by simp only [Expr.size_paren] at he; omega)
             (Expr.isPure_paren hp)
+          exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | exprWithCleanups s _ _ _ =>
+          have hp' := hp
+          simp only [Expr.isPure, Expr.subexprs, List.all_cons,
+            Bool.and_eq_true] at hp'
+          have hsub : Expr.isPure s = true := by
+            exact hp'.2
+          obtain ⟨i1, i2⟩ := ih s (by simp only [Expr.size_exprWithCleanups] at he; omega) hsub
+          exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | materializeTemporary s _ _ _ =>
+          have hp' := hp
+          simp only [Expr.isPure, Expr.subexprs, List.all_cons,
+            Bool.and_eq_true] at hp'
+          have hsub : Expr.isPure s = true := by
+            exact hp'.2
+          obtain ⟨i1, i2⟩ := ih s (by simp only [Expr.size_materializeTemporary] at he; omega) hsub
           exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | implicitCast _ s _ _ _ =>
           obtain ⟨i1, i2⟩ := ih s (by simp only [Expr.size_implicitCast] at he; omega)

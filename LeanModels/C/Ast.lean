@@ -246,6 +246,15 @@ inductive Expr where
       (structuredType : Option LeanModels.Clang.QualType)
   | paren (sub : Expr) (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
+  /-- Clang's full-expression cleanup wrapper. C has no cleanup actions for
+      the admitted rows, so the node evaluates its child and preserves the
+      parser node in the envelope. -/
+  | exprWithCleanups (sub : Expr) (ty : String) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
+  /-- Clang's temporary-materialization node. C's value model uses the
+      materialized child directly and retains the parser node. -/
+  | materializeTemporary (sub : Expr) (ty : String) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   /-- An implicit conversion, carrying clang's `castKind`. The 8 kinds are
   the whole conversion lattice and they arrive PRE-SOLVED — the tier never
   re-derives a promotion, it reads one off. -/
@@ -292,6 +301,8 @@ def Expr.span : Expr → CSpan
   | .declRef _ _ _ _ span .. | .member _ _ _ _ span _ .. | .index _ _ _ span ..
   | .call _ _ _ span .. | .binop _ _ _ _ span .. | .compoundAssign _ _ _ _ _ _ span ..
   | .unop _ _ _ _ span .. | .cond _ _ _ _ span .. | .paren _ _ span ..
+  | .exprWithCleanups _ _ span ..
+  | .materializeTemporary _ _ span ..
   | .implicitCast _ _ _ span .. | .cast _ _ _ span .. | .initList _ _ _ span ..
   | .arrayInitList _ _ _ _ span .. | .designatedUpdate _ _ _ span ..
   | .implicitValueInit _ span .. | .compoundLit _ _ span ..
@@ -474,7 +485,8 @@ def Expr.ty : Expr → String
   | .declRef _ _ _ t _ .. => t
   | .member _ _ _ t _ _ .. | .index _ _ t _ .. | .call _ _ t _ .. => t
   | .binop _ _ _ t _ .. | .compoundAssign _ _ _ _ _ t _ .. => t
-  | .unop _ _ _ t _ .. | .cond _ _ _ t _ .. | .paren _ t _ .. => t
+  | .unop _ _ _ t _ .. | .cond _ _ _ t _ .. | .paren _ t _ ..
+  | .exprWithCleanups _ t _ .. | .materializeTemporary _ t _ .. => t
   | .implicitCast _ _ t _ .. | .cast _ _ t _ .. => t
   | .initList _ _ t _ .. | .compoundLit _ t _ .. | .implicitValueInit t _ .. => t
   | .arrayInitList _ _ _ t _ .. | .designatedUpdate _ _ t _ .. => t
@@ -492,6 +504,7 @@ def Expr.structuredType? : Expr → Option LeanModels.Clang.QualType
   | .implicitCast _ _ _ _ q | .cast _ _ _ _ q | .initList _ _ _ _ q
   | .arrayInitList _ _ _ _ _ q | .designatedUpdate _ _ _ _ q
   | .implicitValueInit _ _ q | .compoundLit _ _ _ q
+  | .exprWithCleanups _ _ _ q | .materializeTemporary _ _ _ q
   | .typeTrait _ _ _ _ _ _ _ _ q | .constExpr _ _ _ _ q | .vaArg _ _ _ q => q
   | .offsetOf _ _ _ q => q
   | .unsupported .. => none
@@ -514,6 +527,8 @@ def Expr.kindName : Expr → String
   | .unop .. => "UnaryOperator"
   | .cond .. => "ConditionalOperator"
   | .paren .. => "ParenExpr"
+  | .exprWithCleanups .. => "ExprWithCleanups"
+  | .materializeTemporary .. => "MaterializeTemporaryExpr"
   | .implicitCast .. => "ImplicitCastExpr"
   | .cast .. => "CStyleCastExpr"
   | .initList .. => "InitListExpr"
@@ -541,7 +556,8 @@ def Expr.subexprs (e : Expr) (includeTraitOperands : Bool := true) : List Expr :
   | .cond c t f _ _ .. | .choose c t f _ _ .. =>
       e :: (c.subexprs includeTraitOperands ++ t.subexprs includeTraitOperands ++
         f.subexprs includeTraitOperands)
-  | .paren s _ _ .. | .implicitCast _ s _ _ .. | .cast _ s _ _ .. =>
+  | .paren s _ _ .. | .exprWithCleanups s _ _ .. | .materializeTemporary s _ _ ..
+  | .implicitCast _ s _ _ .. | .cast _ s _ _ .. =>
       e :: s.subexprs includeTraitOperands
   | .initList xs _ _ _ .. => e :: xs.flatMap (·.subexprs includeTraitOperands)
   | .arrayInitList xs filler _ _ _ .. =>
@@ -596,6 +612,16 @@ def Expr.sizes (es : List Expr) : Nat := (es.flatMap (·.subexprs)).length
 
 @[simp] theorem Expr.size_paren (sub : Expr) (t : String) (s : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.paren sub t s q).size = sub.size + 1 := by
+  simp [Expr.size, Expr.subexprs]
+
+@[simp] theorem Expr.size_exprWithCleanups (sub : Expr) (t : String) (s : CSpan)
+    (q : Option LeanModels.Clang.QualType) :
+    (Expr.exprWithCleanups sub t s q).size = sub.size + 1 := by
+  simp [Expr.size, Expr.subexprs]
+
+@[simp] theorem Expr.size_materializeTemporary (sub : Expr) (t : String) (s : CSpan)
+    (q : Option LeanModels.Clang.QualType) :
+    (Expr.materializeTemporary sub t s q).size = sub.size + 1 := by
   simp [Expr.size, Expr.subexprs]
 
 @[simp] theorem Expr.size_call (c : Expr) (args : List Expr) (t : String) (s : CSpan) (q : Option LeanModels.Clang.QualType) :

@@ -319,6 +319,10 @@ partial def parseExpr (j : Json) : Except String Expr := do
     | "ConditionalOperator" =>
         return .cond (← sub "cond") (← sub "then") (← sub "else") (← ty) span structuredType
     | "ParenExpr" => return .paren (← sub "sub") (← ty) span structuredType
+    | "ExprWithCleanups" =>
+        return .exprWithCleanups (← sub "sub") (← ty) span structuredType
+    | "MaterializeTemporaryExpr" =>
+        return .materializeTemporary (← sub "sub") (← ty) span structuredType
     | "ImplicitCastExpr" =>
         return .implicitCast (← getStr j "cast") (← sub "sub") (← ty) span structuredType
     | "CStyleCastExpr" =>
