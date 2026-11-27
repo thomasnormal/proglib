@@ -5022,6 +5022,15 @@ theorem CoreMemDesign.step_seqIM {E : CoreMemDesign} (hP : E.SeqProfileI)
 
 #print axioms CoreMemDesign.step_seqI
 
+theorem CoreMemDesign.step_seqI_prev {E : CoreMemDesign}
+    (hP : E.SeqProfileI_prev) (hO : E.seqOblI = true)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry) {v' : SvState} {mv' : MemV}
+    (hv : E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry = .ok (v', mv')) :
+    ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
+      E.memOf st'.memory = mv' ∧ E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  exact CoreMemDesign.step_seqI hP.toSeqProfileI hO hc hmc hty hv
+
 /-! The concrete confluence bridge for the first honest clocked class.  The
 continuous-assignment region is settled before and after the edge, and the
 only schedule choice is the order of the edge processes' NBA evaluations.
@@ -5248,6 +5257,15 @@ theorem CoreMemDesign.SeqProfileI.initialState {E : CoreMemDesign} (hP : E.SeqPr
   exact hs
 
 #print axioms CoreMemDesign.SeqProfileI.initialState
+
+theorem CoreMemDesign.SeqProfileI_prev.initialState {E : CoreMemDesign}
+    (hP : E.SeqProfileI_prev) (ht : E.topoC = true)
+    (hrm : E.readmemh = []) (hdi : E.declInitializers = []) {v : SvState}
+    (hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok v)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body) :
+    ∃ st, E.initialState = .ok st ∧ E.scalar.view st.scalar = v ∧ st.memory = E.initial.memory ∧
+      E.Coherent st ∧ E.MemCoherent st.memory := by
+  exact hP.toSeqProfileI.initialState ht hrm hdi hv hno
 
 /-- `SeqProfileI.initialState` on the single-clock profile. -/
 theorem CoreMemDesign.SeqProfile.initialState {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
