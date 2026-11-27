@@ -2976,6 +2976,14 @@ def CoreMemDesign.readChangedImplicitAt (E : CoreMemDesign)
 
 mutual
 
+def CoreMemDesign.execImplicitLoopValuesFuel (E : CoreMemDesign) (env : IEnv)
+    (elems : List (String × Nat)) (st : CoreMemState) : Nat → List Int → PStmt → String → Res CoreMemState
+  | 0, _, _, _ => .timeout
+  | fuel + 1, [], _, _ => .ok st
+  | fuel + 1, i :: rest, body, iterator => do
+      let st' ← E.execImplicitStmtFuel (env.bindVal iterator i) elems st fuel body
+      E.execImplicitLoopValuesFuel env elems st' fuel rest body iterator
+
 def CoreMemDesign.execImplicitStmtFuel (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) : Nat → PStmt → Res CoreMemState
   | 0, _ => .timeout
@@ -3015,8 +3023,11 @@ def CoreMemDesign.execImplicitStmtFuel (E : CoreMemDesign) (env : IEnv)
         | none => .ok st
         | some stmt => E.execImplicitStmtFuel env elems st fuel stmt
   | fuel + 1, .block body => E.execImplicitStmtsFuel env elems st fuel body
-  | fuel + 1, .forLoop .. =>
-      .unsupported "9.2.2.2: procedural loop in implicit memory body is outside this slice"
+  | fuel + 1, .forLoop iterator init condition step body =>
+      match forValues2 env iterator init condition step with
+      | .timeout => .timeout
+      | .unsupported e => .unsupported s!"ForLoopStatement: {e}"
+      | .ok values => E.execImplicitLoopValuesFuel env elems st fuel values body iterator
   | fuel + 1, .caseStmt subject items default? mode check => do
       let sv ← E.evalExpr env elems st none subject
       match check with
