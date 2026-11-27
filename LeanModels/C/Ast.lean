@@ -292,6 +292,11 @@ inductive Expr where
   | offsetOf (ty : String) (span : CSpan)
       (offsetBytes : Option Nat)
       (structuredType : Option LeanModels.Clang.QualType)
+  /-- C11 §6.5.1.1 generic selection. The parser marks the selected
+      association. The controlling expression remains unevaluated. -/
+  | genericSelection (control selected : Expr) (associations : List (Bool × Expr))
+      (ty : String) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   /-- Outside the pinned vocabulary: clang's own class name and ≤200 chars
   of source. Never silently dropped, never guessed at. -/
   | unsupported (cKind : String) (text : String) (span : CSpan)
@@ -310,6 +315,7 @@ def Expr.span : Expr → CSpan
   | .implicitValueInit _ span .. | .compoundLit _ _ span ..
   | .typeTrait _ _ _ _ span .. | .constExpr _ _ _ span .. | .vaArg _ _ span ..
   | .offsetOf _ span ..
+  | .genericSelection _ _ _ _ span ..
   | .unsupported _ _ span => span
 
 /-- C declarations that can appear at BLOCK scope as well as file scope —
@@ -494,6 +500,7 @@ def Expr.ty : Expr → String
   | .arrayInitList _ _ _ t _ .. | .designatedUpdate _ _ t _ .. => t
   | .typeTrait _ _ _ t _ .. | .constExpr _ _ t _ .. | .vaArg _ t _ ..
   | .offsetOf t _ _ _ => t
+  | .genericSelection _ _ _ t _ _ => t
   | .unsupported .. => ""
 
 /-- The parser-native QualType carried directly by an expression node. -/
@@ -509,6 +516,7 @@ def Expr.structuredType? : Expr → Option LeanModels.Clang.QualType
   | .exprWithCleanups _ _ _ q | .materializeTemporary _ _ _ q
   | .typeTrait _ _ _ _ _ _ _ _ q | .constExpr _ _ _ _ q | .vaArg _ _ _ q => q
   | .offsetOf _ _ _ q => q
+  | .genericSelection _ _ _ _ _ q => q
   | .unsupported .. => none
 
 /-- clang's own class name for this node, for diagnostics. A refusal a
@@ -543,6 +551,7 @@ def Expr.kindName : Expr → String
   | .constExpr .. => "ConstantExpr"
   | .vaArg .. => "VAArgExpr"
   | .offsetOf .. => "OffsetOfExpr"
+  | .genericSelection .. => "GenericSelectionExpr"
   | .unsupported k _ _ => k
 
 /-- Sub-expressions, including the expression itself. Effect checks can omit
@@ -568,6 +577,8 @@ def Expr.subexprs (e : Expr) (includeTraitOperands : Bool := true) : List Expr :
         filler.flatMap (·.subexprs includeTraitOperands))
   | .designatedUpdate base update _ _ .. =>
       e :: (base.subexprs includeTraitOperands ++ update.subexprs includeTraitOperands)
+  | .genericSelection control selected _ _ .. =>
+      e :: (control.subexprs includeTraitOperands ++ selected.subexprs includeTraitOperands)
   | .compoundLit i _ _ .. => e :: i.subexprs includeTraitOperands
   | .typeTrait _ _ (some s) _ _ .. =>
       if includeTraitOperands then e :: s.subexprs includeTraitOperands else [e]
@@ -651,6 +662,13 @@ def Expr.sizes (es : List Expr) : Nat := (es.flatMap (·.subexprs)).length
 @[simp] theorem Expr.size_choose (c a b : Expr) (t : String) (sp : CSpan) (q : Option LeanModels.Clang.QualType) :
     (Expr.choose c a b t sp q).size = c.size + a.size + b.size + 1 := by
   simp [Expr.size, Expr.subexprs] <;> omega
+
+@[simp] theorem Expr.size_genericSelection (control selected : Expr)
+    (associations : List (Bool × Expr)) (t : String) (sp : CSpan)
+    (q : Option LeanModels.Clang.QualType) :
+    (Expr.genericSelection control selected associations t sp q).size =
+      control.size + selected.size + 1 := by
+  simp [Expr.size, Expr.subexprs]
 
 @[simp] theorem Expr.size_implicitCast (sub : Expr) (ck : String) (t : String) (sp : CSpan)
     (q : Option LeanModels.Clang.QualType) :

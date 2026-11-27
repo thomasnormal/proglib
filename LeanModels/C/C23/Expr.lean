@@ -1687,6 +1687,7 @@ same kinds. Anything else in lvalue position is a refusal, never a
 fallthrough. -/
 def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
   | .paren sub _ _ .. => evalLValue ctx sub
+  | .genericSelection _ selected _ _ _ .. => evalLValue ctx selected
   | .exprWithCleanups sub _ _ .. => evalLValue ctx sub
   | .materializeTemporary sub _ _ .. => evalLValue ctx sub
   | .strLit value decoded _ _ .. => do
@@ -2202,6 +2203,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       | some true => evalExpr ctx yes
       | some false => evalExpr ctx no
       | none => refuseUnsupported "ChooseExpr condition is not a folded integer constant"
+  | .genericSelection _ selected _ _ _ .. =>
+      -- C11 §6.5.1.1 evaluates only the selected association. The
+      -- controlling expression and unselected associations are unevaluated.
+      evalExpr ctx selected
   | .charLit v _ _ structuredType => do
       let t ← intTyOfNode structuredType
       match v.toInt? with
@@ -3139,6 +3144,17 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       | boolLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | nullPtrLit _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | choose _ _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
+      | genericSelection control selected associations ty span structuredType =>
+          have hs : selected.size ≤ n := by
+            simp only [Expr.size_genericSelection] at he
+            omega
+          have hp' := hp
+          simp only [Expr.isPure, Expr.subexprs, List.all_cons, List.all_append,
+            Bool.and_eq_true] at hp'
+          have hselected : Expr.isPure selected = true := by
+            exact hp'.2.2
+          obtain ⟨i1, i2⟩ := ih selected hs hselected
+          exact ⟨by open_eval; exact i1, by open_lvalue; exact i2⟩
       | charLit value _ _ structuredType => exact ⟨by open_eval; exact MemInvariant.charLiteralNode' value structuredType, by open_lvalue; mem_inv⟩
       | strLit _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | floatLit _ bitsHex bitWidth ty _ _ =>

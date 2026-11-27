@@ -294,6 +294,15 @@ partial def parseExpr (j : Json) : Except String Expr := do
         return .boolLit (← getBool j "value") (← ty) span structuredType
     | "CXXNullPtrLiteralExpr" =>
         return .nullPtrLit (← ty) span structuredType
+    | "GenericSelectionExpr" =>
+        let selected ← sub "selected"
+        let associations ← (← getArr j "associations").mapM fun row => do
+          let selected ← getBool row "selected"
+          let value ← match row.getObjVal? "value" with
+            | .ok value => parseExpr value
+            | .error error => .error error
+          pure (selected, value)
+        return .genericSelection (← sub "control") selected associations (← ty) span structuredType
     | "ChooseExpr" =>
         return .choose (← sub "cond") (← sub "then") (← sub "else") (← ty) span structuredType
     | "DeclRefExpr" =>

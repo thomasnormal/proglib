@@ -74,6 +74,7 @@ STMTS = {"CompoundStmt", "DeclStmt", "IfStmt", "ForStmt", "WhileStmt", "DoStmt",
 EXPRS = {"IntegerLiteral", "CharacterLiteral", "StringLiteral", "FloatingLiteral",
          "CXXBoolLiteralExpr",
          "CXXNullPtrLiteralExpr",
+         "GenericSelectionExpr",
          "ChooseExpr",
          "DeclRefExpr", "MemberExpr", "ArraySubscriptExpr", "CallExpr",
          "BinaryOperator", "CompoundAssignOperator", "UnaryOperator",
@@ -814,6 +815,30 @@ class Extractor:
         c = kids(n)
         return {"label": n.get("name"),
                 "body": self.node(c[0]) if c else None}
+
+    def e_GenericSelectionExpr(self, n):
+        c = kids(n)
+        if not c:
+            raise SystemExit("extract.py: GenericSelectionExpr has no controlling expression")
+        associations = []
+        selected = None
+        for association in c[1:]:
+            inner = kids(association)
+            value_node = next((child for child in reversed(inner)
+                               if child.get("kind") in EXPRS), None)
+            if value_node is None:
+                # Clang's default association has no child when it is not
+                # selected. It carries no runtime node to retain.
+                continue
+            value = self.node(value_node)
+            is_selected = bool(association.get("selected"))
+            associations.append({"selected": is_selected, "value": value})
+            if is_selected:
+                selected = value
+        if selected is None:
+            raise SystemExit("extract.py: GenericSelectionExpr has no selected association")
+        return {"control": self.node(c[0]), "selected": selected,
+                "associations": associations, "type": qual(n)}
 
     # ---- expressions ---------------------------------------------------
     def e_IntegerLiteral(self, n):
