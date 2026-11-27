@@ -1,6 +1,7 @@
 import LeanModels.Sv.Ingest2
 import LeanModels.Sv.SeqCycleStages
 import LeanModels.Sv.SeqCycleObl
+import LeanModels.Sv.SeqCycleRuns
 import LeanModels.Sv.Kernel.EdgePhaseConfluence
 
 namespace Examples.«system-verilog».sem2.edge_order_memory_e
@@ -259,5 +260,27 @@ example (E : CoreMemDesign) (hP : E.SeqProfileI) (hO : E.seqOblIM = true)
     ∃ st', E.step st entry = .ok st' ∧ E.scalar.view st'.scalar = v' ∧
       E.memOf st'.memory = mv' ∧ E.Coherent st' ∧ E.MemCoherent st'.memory := by
   exact CoreMemDesign.step_seqIM hP hO hc hmc hty hv
+
+end Examples.«system-verilog».sem2.edge_order_memory_e
+
+namespace Examples.«system-verilog».sem2.edge_order_memory_e
+open LeanModels.Sv LeanModels.Sv.Kernel
+
+/-! Hand acceptance of the memory-aware run route: the FIFO-shaped fixture
+supplies `seqOblIM`, and the published run judgment carries the cycle existence
+through every finite input list without scalar-only edge-order assumptions. -/
+example {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
+    (hr : r = .ok E) (hP : E.SeqProfile clk) (hO : E.seqOblIM = true)
+    (hclk : E.scalar.toDesign2.declWidth clk = some 1)
+    (hstep : ∀ σ d, True → E.DataTyped clk d →
+      ∃ pre post, E.cycleMV clk σ d = .ok (pre, post) ∧ True)
+    (hrun : ∀ σ ins tr, True → (∀ d ∈ ins, E.DataTyped clk d) →
+      E.runMV clk σ ins = .ok tr → True) :
+    SeqRunsM r clk (fun _ => True) := by
+  apply SeqRunsM.introIM hr hP hO hclk (fun _ => True)
+  · intro _ _ _
+    trivial
+  · exact hstep
+  · exact hrun
 
 end Examples.«system-verilog».sem2.edge_order_memory_e
