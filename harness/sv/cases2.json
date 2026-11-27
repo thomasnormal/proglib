@@ -1353,7 +1353,7 @@
         "source_sha256": "59a7be5dcb11c54287493e0ba8156d5e21c007a21a1149e6c6322f35945c9364",
         "envelope_sha256": "2e1a0033fc8382664318476fd3578474cd8f9a54db18df41b982224bf7cc7731",
         "case_sha256": "6d93d26729431967496896a49eec34e455859add3b86d18f15939c19fd9b34dc",
-        "testbench_sha256": "1baddc71032a8d50c94d1a2f2e71dfb3d2cc3d3ad2732fe50cfa8dc5f0e45664",
+        "testbench_sha256": "5367f60c88671f0c5c9edfdb059591ac2aac243f6dbb6aef42eff3e67bba3f1e",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 source=0000 flag=0 value=z0zzzz0z",
@@ -1514,7 +1514,7 @@
         "source_sha256": "8bbb5821d858e04b76cb9b335bab1e46f823b8e101f190232768ee9bb7685a67",
         "envelope_sha256": "c83b3ae954fd2f8ac61851c53c2f5e5aec1cdec39205377ee6dfc07b6e5f32de",
         "case_sha256": "cc80b28a3a73ef41fbed220e7630f343c5bdc627ce68eb1d817a4dd12f13d011",
-        "testbench_sha256": "ed6484d42233f841a7c51a14bae606e2ea460183aac2239f38b56b5ccb5c1c90",
+        "testbench_sha256": "7a2c21a0c10c9b39d297246d19c22f53ab3671cd6f992e628b74b562b8d81e01",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 source=10100101 value=1zzzzzz1",
@@ -1570,7 +1570,7 @@
         "source_sha256": "e949c83750095533b0430fe9b64ece4f521076d547bc4b6afd7c84c7e4b384ce",
         "envelope_sha256": "69321eef476b027bc08508e19b66fa88c0e64154dfa996bbda5d0e060c49e730",
         "case_sha256": "6b4aa2014cbac45301f9464b17747749ac862f6d5a7f2b649b8b43e734b6a4a5",
-        "testbench_sha256": "8c5fa20b22ebfce757ee1360bb98df83f7f5b6989c67cf9d17bc8c0eec217eef",
+        "testbench_sha256": "ed4c4af69cc4b3ee00cb9f29c29d1f4c65c9d57f13b90be4e3ef59d9b4a81203",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 source=11 out=zz11",
@@ -1608,7 +1608,7 @@
         "source_sha256": "0decd26a88510d788f832e684c372abe8045d63c29b1854b4f32c9e8e70674c3",
         "envelope_sha256": "888bb6afab49b2054e197dbfd30fcf50f49c06b1832a6f33084462de9180712c",
         "case_sha256": "3ab4772385bc6e5231e0c68c202384866ad3a0c84603b1b7956905426ca56ba4",
-        "testbench_sha256": "d8637e2e58b26e25c42a1834fd6b3eaef4e5ed4c4bfa6ed5f63ff82d1a222710",
+        "testbench_sha256": "dd332c9e7191e39cffc92a312838ef34c5271a82a2bbe720da56df4706d3ba2f",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 source=1 out=zzz1",
@@ -1646,7 +1646,7 @@
         "source_sha256": "bfb65271bb66c2e26e6561f4c421b254ccd27dc63c0fad966d63b6da0820e524",
         "envelope_sha256": "1f4d27016a2a6525964c8a31103d7c0e2ca2303fc39841fb019ee6ed8e59cb27",
         "case_sha256": "0d61e011b4480ab2c23f1f84ac43cd94d7dd63c1d8926d1056b5e181415f208d",
-        "testbench_sha256": "2dd23e573292d83ad4a2255b7b96c5325d4c7fd0a5334f41172b965666100da9",
+        "testbench_sha256": "da54600b8648abcdac163039f3d46b5217401782e0572006c19bfd96ab405e29",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 source=11 out=zz11",
@@ -1684,7 +1684,7 @@
         "source_sha256": "f5aa22b992d1b5b3e51d9d00d25be5602b4e300230fd679caa044f2cb2ee2116",
         "envelope_sha256": "abeb3845cfd7e3a4d4a81aef620d4f99ce5127d114d31f450aaf5dbc746c8180",
         "case_sha256": "19014851eca602139dd5e008792016a15521d8a37a353a81a99d4b771bfb2e80",
-        "testbench_sha256": "4730ff79cdcb29bb1206ed412cabda79dbced5d35750cf337050918dc94defed",
+        "testbench_sha256": "09f3932dc5a550f91a81b64156fc9bcc895675df2485cabeadfd16312a69f7e4",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 source=1 out=zzz1",
@@ -1724,7 +1724,7 @@
         "source_sha256": "d3bc39f1f29761d2c8d5e2581485bc2ed5261305a13da8aa5cb03ed3da554341",
         "envelope_sha256": "8cf9998ec90cfd4fdf03cccd89c0d37730f0c41514d9690d88897022f43c8a13",
         "case_sha256": "f3f94ebb28ec103212ba0b8ebaeab7f706401cb0f4d4ba6435fb5ebd995f2bb4",
-        "testbench_sha256": "a645c12ff39fa4909ac016913a605d64bd9b59a621726f75534922518d227bba",
+        "testbench_sha256": "feceaf25ebd895446c89553b1e0b4cb19c0adbe291a0466fc015da76d5d0599a",
         "failures": [
           {
             "stage": "compile",
@@ -1763,7 +1763,7 @@
         "source_sha256": "6d09d45572d5cbdf8f6d76274e43ed9e0744f53db8675801c55a91c2e394c802",
         "envelope_sha256": "5a720356dc296fd9f7060c0d7a391b41c0fb4397bdce696807e5ae24f22a898f",
         "case_sha256": "1764162af18144c33bb6789edac114738662915d8e35d98d3b8840cdad342b71",
-        "testbench_sha256": "1470db7fad5fddbf1f52e69f2c3b4c7d5529354cf847c24a136b7b33d9d8f05d",
+        "testbench_sha256": "a16f467a31796220a4e95bd9b0d0e65aca877f3e8cb75a2315354149c2b02d3b",
         "failures": [
           {
             "stage": "compile",
@@ -1799,7 +1799,7 @@
         "source_sha256": "17bd663093b3796f7cae3b5871eccbe352681902df4e8dec6a9c0e4ec6fe713d",
         "envelope_sha256": "1ddcf980ea65323c40dc71298fe15570de29ab6e8398400a7e49aa4151931eec",
         "case_sha256": "bfaf3f8479b107e77812f47970259965e9669f03d8a7046bc9e0446bf8f471be",
-        "testbench_sha256": "6b66fa047d75ac46cb3555f1572ffe8f751977e908376ee1f84094835b966859",
+        "testbench_sha256": "f4910084e7405c3a424636e85bf1f611c5ec9913ffaf39feb03104b64e94602a",
         "failures": [
           {
             "stage": "compile",
@@ -1841,7 +1841,7 @@
         "source_sha256": "19283563b15949489484c6751142f16d80e7c7914ed6a9a368f058d8a1fce8fd",
         "envelope_sha256": "d419a16d5df4d0750d6dea48cd4d778294a795f2c18f6bb52e1d11218914736e",
         "case_sha256": "d10f23c7d308b74993ea7d99f5ced6723a692ac195c774c4956fc1bf097342f4",
-        "testbench_sha256": "ba705631ca3e7f3d94b9abdada5d82c4259bda24fb5486286162b62bdc05bab0",
+        "testbench_sha256": "36ec935d476c07330aef8eb47efbb24cc819eba389ad9852625278f6b221875f",
         "failures": [
           {
             "stage": "compile",
@@ -1883,7 +1883,7 @@
         "source_sha256": "859309c1bf716e0e790c238646bdcffc38c51e4b7bda3b69ce60144e7a5525fd",
         "envelope_sha256": "e75fe5034a1beeac28e8aead7524193d8bc8d7fd26ec8d512eafafef39109b7b",
         "case_sha256": "ec5e1996554f39e266e4637e117e9ae89b1957ebcf05a935d084d96e59aca539",
-        "testbench_sha256": "0127df4888afd1575a0d0599a0ac7cf9813aa1defd31bd22c30b46c680905689",
+        "testbench_sha256": "c77a74135a609f4aaaea53571f7fdf6755bd0f86c2349cf6d8b4b297649803c0",
         "failures": [
           {
             "stage": "runtime",
@@ -1925,7 +1925,7 @@
         "source_sha256": "d7dee59526b10cd363cd2eee5afa87dbd6e6cb31b6bc28c9be2559321c4f32d2",
         "envelope_sha256": "0d8394594808e5cb6026124560a120076ea4febfb35f6c5cc819acd01a21bdff",
         "case_sha256": "c076b22256f103c7eb291c9470138357269aea9848acc8a64eebacb9bff0d2ae",
-        "testbench_sha256": "c8e0edd7a8568a0c05594d2d657d77e4259e2a5a78419507b47b9da86ca0865e",
+        "testbench_sha256": "bd68f358b5145ebe776edbaffe226304edc210a29e677be9c1152b704ad692e6",
         "failures": [
           {
             "stage": "runtime",
@@ -1967,7 +1967,7 @@
         "source_sha256": "2511f119f707807835837af6f9eb59e72c00e40628837a13c6804393edc52aec",
         "envelope_sha256": "d779ea788c1fe9958c6267120d3da7c2dbe37fa0829bd29a5cdf5e3e68a7795e",
         "case_sha256": "d62fef3846ac2755a94bc758387b883f031fc2216862039e717ec35e811e01ac",
-        "testbench_sha256": "14bc0bf8e9b97c6b98a425208d9071ddc6127cf02ddc2f6e182aee8b91da1d56",
+        "testbench_sha256": "74effde42962379549af6b63e213f47fad9d4eea6db3f296d05c15d93d040ad8",
         "failures": [
           {
             "stage": "compile",
@@ -2003,7 +2003,7 @@
         "source_sha256": "800ed82daa8c85635aa4da42917ab2ccf070694d4cbddcd6daa26490954ab632",
         "envelope_sha256": "e8e0f12549b43c9d2026b788ae9e85506cb8a02d0b60619136dee0056389a3e3",
         "case_sha256": "46501d2b750d66c0601e5fb6a5f7df0ed5191cf87259c72902ce825093156ceb",
-        "testbench_sha256": "4e4e322dbfb43259ff7093c98454a8ba4a14d6caed1922b5630f1db8be53f921",
+        "testbench_sha256": "5ce232950c4e4494e953d2ca5dec9e2929cd32d1cba1d66a49d16c16a3be7264",
         "failures": [
           {
             "stage": "compile",
@@ -2039,7 +2039,7 @@
         "source_sha256": "a4242c0c62329bee2b1dd11b6f7b9d63e9ddda10b00360badce68c14cc61f0ae",
         "envelope_sha256": "8d433f14739be9fbe51918eef30ee2fa0e1b3f561ce7f4f50ee05974e5fbfcc5",
         "case_sha256": "60dbd70362a112fdcbe9f143e1b66573ab210b676c5d53127d2e60da521c75b9",
-        "testbench_sha256": "78bcbc188762f46f27eb935cccdfdb31df8c7746fff234428e31b1b86a2c6072",
+        "testbench_sha256": "f9d3c242047db03e1629e7f9277edd81eb97f03377973e672d68cc96cb8b4ec6",
         "failures": [
           {
             "stage": "compile",
@@ -2081,7 +2081,7 @@
         "source_sha256": "953e4aa70c62065a57845ee5906e6993a9eceda585860b2afbf51e862563cd05",
         "envelope_sha256": "5cb79871f6cf4160b8b4a8847578bbafa3ddbb78e31aa3715dead389ae2f5c6c",
         "case_sha256": "7fb09d2df09645024664eb0ddf08970c69f2599a3ad043e268a0f13057b2051e",
-        "testbench_sha256": "3ef6de011703608f61cb2ba31f3638c4cb098cd651cd072c6c4b36a57e348ac2",
+        "testbench_sha256": "b22915b4774eb7aa3136cea717e8ee66cede22c0025b38a139b2237ecff6c693",
         "failures": [
           {
             "stage": "compile",
@@ -2123,7 +2123,7 @@
         "source_sha256": "52982946ae75a9b48e4d7bd5447d11ba53502e4cf91fd8cfb68cc8ae1894c6a1",
         "envelope_sha256": "169a46f264f6c493d0899d20ba87eeed4077438e1513634288dda3b2eb976ca0",
         "case_sha256": "56afb08d140ec32c36c6d54c0ce8880f50cd00f3976cf9039fb496f6b9c523c6",
-        "testbench_sha256": "d7949de75947a729e2f324466a1dc57467f269544339a8c651793b37742d2fe8",
+        "testbench_sha256": "a7a3e4f54cf3b9690a6e3b211a24e1c478e058a7e96a558af1a5a5bef1a9480d",
         "failures": [
           {
             "stage": "compile",
@@ -2165,7 +2165,7 @@
         "source_sha256": "73523a83189353cee387a0fe2bb50b6b0c121b38e5ebfc67b82b33dd5c7274e3",
         "envelope_sha256": "25c8b164fd8e10c016e0cd99a1e145e7609565ab48b78c3354b847f4fec8faf9",
         "case_sha256": "e4ff1050a86cfbe70c57613731384d3e699e797f0ee5d0abb83f676685c8d040",
-        "testbench_sha256": "915f4e92e67d699fac90430b4f05924f46b3b266910e4e7e7e775d483ad409cb",
+        "testbench_sha256": "45c7fdf3127886d61109fe6fe499684c30e1456d8c8b7354851076a9531cdca9",
         "failures": [
           {
             "stage": "compile",
@@ -2207,7 +2207,7 @@
         "source_sha256": "a5fc6cc217e181806c0e112debd79508be6949889fbfc48a84ee8b016cf01a8e",
         "envelope_sha256": "6f3e16cadfcc19c7f9baf7e2f3335792e8c055c7f8912ecb0698915d8411bc37",
         "case_sha256": "7fe00f115f3e46147125d25d10feb8b80c7fa1aab2004a722607903f7dafc58b",
-        "testbench_sha256": "86b18db400b99ee37d8c495df6c71c8c0fbe74eb3e250689e9a6c42fd2bf7534",
+        "testbench_sha256": "213425ce68d75cbbcbd7bffaab661b9ea6b7bc148435030652a8a5c3128a533b",
         "failures": [
           {
             "stage": "compile",
@@ -2244,7 +2244,7 @@
         "source_sha256": "8e8385fdb9db3d6e1e5d33bc8b34155de728011af8c0bea10ebd0c2ec7f817d0",
         "envelope_sha256": "ea408888287bd02355739185451bb8c8dc0baa798a5375dfc53b4311bc676e3a",
         "case_sha256": "349e7f0d0c518317396e3e2d1d58b3a52fdafe3b8ac9911e7bd15cccb4fcdfd0",
-        "testbench_sha256": "2cd9b033fd7211efd4fbaca11b0c3adf3235a7a4f75ef0cefee0addb45dac08f",
+        "testbench_sha256": "50d03ddd0cd51bf05d937d6df06ffe2bba354ec094844c0ff7c6923df1bcb444",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 source=1 out=zzz1",
@@ -2281,7 +2281,7 @@
         "source_sha256": "3217fa41b45ee6a7f56e2d8439f6225816142fdecb699bcf3ee2f34f5d1b4fb1",
         "envelope_sha256": "6359b8f4861bd6e22e4a6f1de705afc4cfc58283294d631ad899e2f9c62134b9",
         "case_sha256": "1205bc746eb3fb5cf999f6ebc9da7852d7a4509fe8626bb04e0c4b9fe09f2fda",
-        "testbench_sha256": "3bd21a611b4efb3ae7d6381d4a3e4eeb13b8fbd3d5a56c793ab45ffcf93d8b39",
+        "testbench_sha256": "265e357172c27c4d95ad0ad684bd536eb0964f3d380b9908bc55ec08032f2be1",
         "failures": [
           {
             "stage": "runtime",
@@ -2323,7 +2323,7 @@
         "source_sha256": "5d34a5949270f7e20c88809cebf325054dbd82202769ec00c62de08ed237e334",
         "envelope_sha256": "579e3f500f53fa2336d1aa6ab8b4994127089e4091de6f34d7aed69bd9f63187",
         "case_sha256": "de0c0472312a4c893b3a3db0cf518dcb25ac8e09bb6a641136a1afd196847500",
-        "testbench_sha256": "5585cc51cdd28e0cbe526cd5edb01355db33e6eef01f0516ba245f1211798c34",
+        "testbench_sha256": "15481e1f2086295c8294284186aa9d3e797ecaa9f9544eeb045d7d12c51e7466",
         "failures": [
           {
             "stage": "compile",
@@ -2367,7 +2367,7 @@
         "source_sha256": "9834c5765904706745cd0dc2b464a836e2df7a4b29f96911d20efef55b49ebc9",
         "envelope_sha256": "031f99717efb5719db8b6170ff2f7596f7e5b17435117f626c15fe65597e3e44",
         "case_sha256": "182c1aaaef3c0de49fff070673168c8f1a9b95824de400f773eda151d826b778",
-        "testbench_sha256": "efcf786d3684f5656956dfe1ca8a2c43dc85d10908fcb85c8dd0d3d94e62f851",
+        "testbench_sha256": "63f7fd9d0f2ed001ddd3fc58e9092d535b1b42913fb9b265302e7b987afd1c13",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 source=1010 hi=zz10 lo=zz10",
@@ -2406,7 +2406,7 @@
         "source_sha256": "c67935ff5813df146304253a7bf99a03f785f0d3b7b547280a4b20d03bbfe11b",
         "envelope_sha256": "c3435fb70d1d6bad113b48b71af4c0ad03116491dd11222db078af0f1932c08e",
         "case_sha256": "5bb7727b32b700cda156115e237393e1e9013e6ff73c29bb7b66bc7028fc7d5a",
-        "testbench_sha256": "c0ac833c9489f3656cb638721a743b728d0c5202733ccd6cd900672e27ecf885",
+        "testbench_sha256": "12276bc4273bbee5c831148564afce21d957253f341f72c80fc6be1216cb4e43",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 source=1010 hi=zz10 lo=zz10",
@@ -2444,7 +2444,7 @@
         "source_sha256": "49a967236ba04ff57c355eb7272c400389591d6869b895b727fc9d1e8b29d4c9",
         "envelope_sha256": "5b66e12315f221037a4a610e7bf75be84fef88e870ffb12c29779d748fd647f9",
         "case_sha256": "ab2194af24a8e1eedf953d444d8ef56eceb9ceeb7b3aa279d5a8b42a9c588223",
-        "testbench_sha256": "699187ea853e50844825444e6614a848b59ed29d4348686780dc5931f79fb8b3",
+        "testbench_sha256": "f5d8f5bdd4b1cd954c4dae60c81ea2f0c8e53d75c0fe27bd2d44f07162c4d59b",
         "failures": [
           {
             "stage": "compile",
@@ -2505,9 +2505,9 @@
         "observed": "Exact-source probes with Icarus 12.0-2build2 on Ubuntu 24.04; repeated with default and zero core-size limits. Some noncanonical packed-member forms alternate between compiler rejection and runtime assertion.",
         "retirement_condition": "Successful Icarus simulation must fail this declaration until it is retired after review.",
         "source_sha256": "6e495fced3045d464447d199f4a3ef2bbcfd3a28477275b220953ac8a44cf919",
-        "envelope_sha256": "164b10b27f915706f85ea74a0e6c3cd2545d81d73b64cce85aef22a472224306",
+        "envelope_sha256": "8cb6d6538e029fea3a0589e8ee0bf04493e9a6c61cfd741a1e0dd74bd5c038d2",
         "case_sha256": "74fa020ebc85d355d24b3fc41950dacb99da5fcaf407f40296ecee4999b2e8e2",
-        "testbench_sha256": "359d2e17b66f3a869681d1bc9ae045020808721a813c4d8f04fcfd6899974799",
+        "testbench_sha256": "32f596d9255812cf0bfdc70504c355375039fd4f31cfebb5c729c41763710aa4",
         "failures": [
           {
             "stage": "compile",
@@ -2580,9 +2580,9 @@
         "observed": "Icarus 12.0 (Debian 13) and 12.0-2build2 (Ubuntu 24.04): partially continuously assigned logic is represented as a net and untouched bits become z; the independent variable/procedural/net diagnostic reproduces this lowering difference. Xcelium 24.03-s004 (the reference simulator; pinned in harness/sv/xcelium_golden.json, row fixed_array_noncanonical_slice) keeps the variable's initial x in the untouched bits and equals the model's trace exactly in every cycle, so only Icarus departs (docs/sv-xcelium-audit.md, D1). In Xcelium a variable reads x and a net reads z; Icarus re-declares a variable with a continuously driven bit as a net.",
         "retirement_condition": "When Icarus retains x in the untouched variable bits, this row must fail until its declaration is removed after review.",
         "source_sha256": "65a39ebd9650ef7f21c5dd45b20e5b663b2434ad640a097b193353968d989432",
-        "envelope_sha256": "068fe5822e5a7d3180310e6166201df77c4c802490323b34a111df877883b770",
+        "envelope_sha256": "64a38e282898115c449af730f19cd3130f0b69bab351ad5acf7eedb3bebf2420",
         "case_sha256": "cd8c7723dc3abd29633dc0cdfe9d110b2c51b6eca23794c1d663ca7bdd71c315",
-        "testbench_sha256": "81923a9b83c3989b59be1b46b1bb4c5bbc5adb7a21fa03781c8446253cae6ea0",
+        "testbench_sha256": "5809f52b31bae0498d705c1bc265b380e6fe74d614dd3667a7538e6b3e424225",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 source=11 out=11zz",
@@ -2638,9 +2638,9 @@
         "observed": "Exact-source probes with Icarus 12.0-2build2 on Ubuntu 24.04; repeated with default and zero core-size limits. Some noncanonical packed-member forms alternate between compiler rejection and runtime assertion.",
         "retirement_condition": "Successful Icarus simulation must fail this declaration until it is retired after review.",
         "source_sha256": "390bfb6bd645182c80574b81845a5c93d9d4fc629130234bf7c6511a4d7ab9c3",
-        "envelope_sha256": "090ce3f32b8a35dfbd165039a1abfe080659702763491fb00684bd4f1a5fa51d",
+        "envelope_sha256": "b87e31e9e3507eb896377a2462764ede73291e1dbbb25b1060679b34ce3f227e",
         "case_sha256": "d16797e68fa92eaa1e9347f7b552c82449b7a5bfd91191e5da4983e69fad1df5",
-        "testbench_sha256": "50ece902bf71e9f5397cedff364e1e5ad3a7ae009ac60142f11e8628e9224879",
+        "testbench_sha256": "cd6267a8e03455970e735fc0d6b7653086dc0e89691856d8255d7cd989bd5734",
         "failures": [
           {
             "stage": "compile",
@@ -2675,9 +2675,9 @@
         "observed": "Exact-source probes with Icarus 12.0-2build2 on Ubuntu 24.04; repeated with default and zero core-size limits. Some noncanonical packed-member forms alternate between compiler rejection and runtime assertion.",
         "retirement_condition": "Successful Icarus simulation must fail this declaration until it is retired after review.",
         "source_sha256": "6c92e2ce1a01318cc7a7ba70bf3422650f6091751293aea99e0c4991628e7193",
-        "envelope_sha256": "4cbb79a1a0bc69a2db26b60e1ab9f6112be164776cff27d0c7e0d2514e6caa03",
+        "envelope_sha256": "6fbf72369363aabbe98dc5e9488803b2f70211ffedcb4669bd67f42794d13e9d",
         "case_sha256": "1c299a7606269d799551f9b4195587563bf5c571ef0f9538d4a27fccf02204aa",
-        "testbench_sha256": "2b847bb5d684636527bfecff6f29c7ec450d698039fb3e41730d4cb07d1917e1",
+        "testbench_sha256": "8d857f4682cfd4aaea6a9dfaf9d8ce276f81e3302eae653844e3cae44905e22a",
         "failures": [
           {
             "stage": "compile",
@@ -2782,7 +2782,6 @@
       "name": "streaming_leading_bits",
       "example": "sem2/streaming_leading_bits",
       "top": "streaming_leading_bits",
-      "refusal": "10.4.1",
       "signals": [
         "source",
         "hi",
@@ -2810,7 +2809,7 @@
         "source_sha256": "8817985e28f8c09d2eb3b8085b1ae80d841dfaac6256f4c539a89bd40239ffff",
         "envelope_sha256": "6d4ee8f5085e2b021adc41721c2d63287b923ae84726f0105041e28e7c2b4325",
         "case_sha256": "dcfc8f320a755761adab98bca75f3fbc6397a012d3b9f194ddbee9805608216a",
-        "testbench_sha256": "fb4492e6e8553be96b8897e10982dc8da32a2659220a616d66d5f4bcd39ec1c3",
+        "testbench_sha256": "d8dd7631e05eeaa1f3ae725a0b65abd80de3fa966506d7cc615cfb1da3ddf0ae",
         "failures": [
           {
             "stage": "compile",
@@ -2850,9 +2849,9 @@
         "observed": "Exact-source probes with Icarus 12.0-2build2 on Ubuntu 24.04; repeated with default and zero core-size limits. Some noncanonical packed-member forms alternate between compiler rejection and runtime assertion.",
         "retirement_condition": "Successful Icarus simulation must fail this declaration until it is retired after review.",
         "source_sha256": "106383331f28194a7f01e63570bde319ca74a1d3c21406525cccfd8ae60259f3",
-        "envelope_sha256": "ad70c3f8fb75acbc14fc63c892abad359530e0ad3dc669ebef688ce12cd3fbef",
+        "envelope_sha256": "d54c2530649410fd6e78c4d8099c6b9f63ab19e554e01ff014dc3a3381adfd9d",
         "case_sha256": "149092dfe73a44eece29460c9d55cf766194dc7948b5d0188ce742f9b165cd8d",
-        "testbench_sha256": "9b96b097ef2ea5c51f6e52fcd05f8539436383e18de217c2a168c62fd19e4732",
+        "testbench_sha256": "b866c70db9741d08dbf98bc3a4e9906e4ca29638b8a88b31caa361417fd3830a",
         "failures": [
           {
             "stage": "compile",
@@ -6258,7 +6257,7 @@
         "source_sha256": "39cb070d2c3bc98db2b95a5e459f708a1b071b38e79d3e2be12391d3b562b92c",
         "envelope_sha256": "fbda6a47f2ad824c0edd7652c2ce4cadcb4dd1d796ff4d7764af47e2b0249508",
         "case_sha256": "af271ee941cb15a6a17e7c341db4c6f571fc82e3f14a4317beee5127747b514c",
-        "testbench_sha256": "2e4fd27cf08ef17d6b25b2440603e766337ba4a0cb407c5f7373673a7cd6bfa3",
+        "testbench_sha256": "ba2575c2bbdc213b521b0be6686e2677d1d0c3e70a9f4f4a23cddd59c35f69b0",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 a=0110 w_flat=00100000 z=1",
@@ -8010,10 +8009,10 @@
         "reference": "IEEE 1800-2023 11.5.1 and 11.8.1: indexed part-select bases are evaluated in their self-determined unsigned 32-bit expression type; a run-time select that is partly out of range returns x only in the out-of-range bits. The E model now follows that rule; Xcelium 24.03-s004 returns all x for the partly overhanging cells.",
         "observed": "After the E fix for the unsigned 32-bit base, Icarus Verilog 13.0 matches the model on every dyn32 cycle. Xcelium 24.03-s004 matches in-range and wholly out-of-range cells but returns all x for the partly overhanging run-time reads, the same departure recorded by dyn32_part.",
         "retirement_condition": "When Xcelium reads partly overhanging run-time part-selects with the per-bit IEEE value, the declaration must be removed; it is also removed if the E tier refuses run-time bases that can leave the vector.",
-        "source_sha256": "02199565c1267c22d3623943e4f66b30353cbe3b3632cbf4bb41a0f8105e2a0c",
-        "envelope_sha256": "5b052f72bc0293fc7291979263ba2e6c93ed554e3c73e48b190208fd11d3b32b",
+        "source_sha256": "6dc5388e81dcc3f789c6b8aa830ff54ff19562ad0996ffa6e694319e5855ccb4",
+        "envelope_sha256": "26e99aa57c48edc121b3dff5890f6f1d0793575d515a08559bab141d06b63270",
         "case_sha256": "bbbcc225f9cc7de732a5f751c93bfd5992f139450e9c231ad48f74af10589d3b",
-        "testbench_sha256": "723e13bcb4b5061e7da01c68fc0b1d16038853336b7ae1798dba88b6af958334",
+        "testbench_sha256": "03c06aa5047dd8d182587a4a77742dd9941e7317437631c583489906e497c7c1",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 v=10110111 s=0000 b32=11111111111111111111111111111110 minus2=xxxx minus2_dn=xxxx m32=xxxx o32=xxxx d32=xxxx",
@@ -14137,7 +14136,7 @@
         "source_sha256": "b2c6a01a5e9d9aef3d28081b7087df80a3c404b38c25238a586f283a777666bf",
         "envelope_sha256": "14e1dd2639bbf34f7417e8aebfafb20a62969218574121a9b726b3f8ceeb1b7c",
         "case_sha256": "be59fd5999a9174d42e6197effef56199d4737342aebd5972984654e6cb88d43",
-        "testbench_sha256": "bd536bbf67eb8c7bf221a52a5c3b25accf347d82d6bdb35d0469a90c300670eb",
+        "testbench_sha256": "76397af7a8b91008d73f57e5be9418660d0a4c00db33a4c4617b7672458653c7",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 a=00 b=00 s=0 xor1=0011 or1=0011 tern1=0000 orx=00xx xorz=00xx ternz=0000 and11=0001 orb=0011 cxor=0001 ctern=0000",
@@ -14442,7 +14441,7 @@
         "source_sha256": "8c517a443dae532c29bde051e5773515a54ba3b8b574bff49ef64b1f8e376af0",
         "envelope_sha256": "42dbe032d29c9f43a0a80c0a2271b0cc9915a60145bb9ea96d0f484a390194fc",
         "case_sha256": "daf9e80b529efd794dc5aac147b6d5ef189ece8abd68d5f0055c1a545e24c39c",
-        "testbench_sha256": "5a1a9ae3887a3f3a103a059843c91b754b101ce419238402875b48b3d115eeb4",
+        "testbench_sha256": "2b0062c69e5ddf34786383de731bb62be43a8ab8ed46b1e0bd4ec37c123618ce",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 x=101 y=10zz z=1",
@@ -14496,9 +14495,9 @@
         "observed": "At L = 7 the input u is logic [7:7] and w = u[L+1 -: 2] = u[8 -: 2]. Icarus 12.0 (macOS, Homebrew) evaluates a -: part-select over a single-element range as the +: part-select with the same base (labels b+w-1 down to b, here 9:8, all out of range), so w reads xx in every cycle; the LRM selects labels 8:7, w = {x, u[7]}, which the model gives (x1, x0, xx, xz). Yosys 0.53 chparam -set L 7; prep; eval agrees with the model (w = x1 at u = 1, x0 at u = 0). Xcelium 24.03-s004 (the reference simulator; pinned in harness/sv/xcelium_golden.json, row array_param_labels_l7; xmelab warns BNDWRN) reads w = xx in every cycle, the same as Icarus, but only because Xcelium returns all x for ANY part-select that is partly out of range (docs/sv-xcelium-audit.md, P1: a departure from 11.5.1 that the model does not follow): its value trace neither confirms nor contradicts the Icarus lowering described here. Its elaboration diagnostic does corroborate the label set: for the same select as a continuous-assign target xmelab prints BNDIPERR with the LRM range (u[8 -: 2] over [7:7] is [8:7], never Icarus's 9:8; 38 of 38 -: cases over [7:7] and 38 of 38 over [0:0], verifier run of the audit, docs/sv-xcelium-audit.md, DX2).",
         "retirement_condition": "When Icarus reads u[8 -: 2] over [7:7] as labels 8:7 (w = {x, u[7]}), this row must fail until its declaration is removed after review.",
         "source_sha256": "00352f50c7f3ec598b8a0fc48d3f87ce0f3211a3c9903a8353c327bd9f6d30c7",
-        "envelope_sha256": "2351b939697d9893fa18417ded89075b9d21f92d6c8a2d43f7c54073ee41ca74",
+        "envelope_sha256": "a1a43312c557ef1a75aeb7df5962032bc25392bc52bcf698793af933e22549a4",
         "case_sha256": "c22ef39546fe138a6166f3efa3931b251fe14178247b3143e8d15057da9e7ceb",
-        "testbench_sha256": "e0ab2b853ec98b16084a6d3e16108ae81bfd55e53a37be8f10d4a317c5adf578",
+        "testbench_sha256": "3c157686e792c8c35a4d78f9ed8ce2194b0c14891a4672bfac1ebcd13dc99e09",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 x=10110100 u=1 y=11 v=x w=xx",
@@ -17772,7 +17771,7 @@
         "source_sha256": "9e919b41754a2749e80d419be0272337f14e5fabdfdeee1dfa9fe4c6e0f48405",
         "envelope_sha256": "2dc43250450b13724023e7aa8a166ffcefcb1a56b0cace4d9090865247bf418b",
         "case_sha256": "9aab06e45a4157f3024a911d8a8e2407fe56f3c2da3ace4e1df32c9aef52b2ac",
-        "testbench_sha256": "6e1bc911d43bf30ada337011535d57f9b7c3088a39873b94f4e373964ea593ff",
+        "testbench_sha256": "7c88f977a732ee3d60ef58a847c44865677f1ea6bb031b87d9210b5b5d2cb5b1",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 a=0 b=0 y=00",
@@ -29108,9 +29107,9 @@
         "observed": "Xcelium 24.03-s004 (the reference simulator, default flags; pinned in harness/sv/xcelium_golden.json, row partsel_dyn) treats an indexed part-select READ whose RUN-TIME base leaves the vector for some of its bits and not for others as wholly invalid and returns all x for the whole select, where the model, Icarus 12.0 and Yosys 0.53 return the in-range bits and x only for the out-of-range ones. dyn_up = v[sel +: 4] at sel = 5, 6, 7 and dyn_dn = v[sel -: 4] at sel = 0, 1, 2 (v = 10000001, sel = 101: dyn_up is x100 in the model, xxxx in Xcelium). 6 of the 22 part-select cells of this row are partly out of range: Xcelium is all x on those 6 and equals the LRM value on the other 16 (in range, wholly out of range, x/z base), and the model equals an independent LRM oracle on all 22; Icarus equals the model in every cycle. Xcelium prints no warning by default (IIFAOB / IIRAOB only under -ii_warn -ii_rwarn); the result is not a time-zero race and does not depend on the stimulus order or on the context (verifier probes: 864 cells in assign, always, function and testbench contexts). The same Xcelium rule drops the whole write and reads all x for CONSTANT bases, where it is REFUSED (ArraySel:partial-overhang); a run-time base cannot be refused statically, so the departure is declared, not followed. svGolf's fourstate stage refuses run-time selects that can leave their declared range (svgolf/README.md). -ii_val does not repair module-level reads (docs/sv-xcelium-reference.md, section 6).",
         "retirement_condition": "When Xcelium reads a run-time-base part-select that is partly out of range per bit like the LRM (in-range bits kept, x for the out-of-range ones: another Xcelium version, or a flag that applies at module level), the pinned trace equals the model's and the harness fails ('disagreement resolved'; diff_test2.py --golden, or a live xrun run) until the declaration is removed after review; it is also removed, and the row becomes a refusal row, when ls-sv refuses a part-select whose run-time base can leave the vector.",
         "source_sha256": "24ff9567e17f665b7f56e50933b9042265994fbe1ef123777cca0595ce7765fb",
-        "envelope_sha256": "b026e0a09292c01f2f571c5707885cb6f2440aa37e35bfc5a27a998aec8bdcdc",
+        "envelope_sha256": "d57bb3f8bd63a3067ddb0e9abec4eee7e571b0bf261b85febbb0b72fb596a601",
         "case_sha256": "24776571a475f2893ea4bf2369d2fb3dfe69e0681b2cc6340993bc80d3b7d5a2",
-        "testbench_sha256": "7023921086d849e13ecbf2f74b3d80428b7b97cf52fce6c507e369e24e270ea1",
+        "testbench_sha256": "29fa1741bbb8fb0c7610cc158b4db737cebfbcd4cbcceae1589bf637cc6725f7",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 a=101101110001 v=10110100 sel=000 rev_up=001110101101 rev_dn=001110101101 top=1011 dyn_up=0100 dyn_dn=xxxx dyn_lane=001",
@@ -29218,9 +29217,9 @@
         "observed": "Xcelium 24.03-s004 (the reference simulator, default flags; pinned in harness/sv/xcelium_golden.json, row partsel_dyn_n2_w5) treats an indexed part-select READ whose RUN-TIME base leaves the vector for some of its bits and not for others as wholly invalid and returns all x for the whole select, where the model, Icarus 12.0 and Yosys 0.53 return the in-range bits and x only for the out-of-range ones. dyn_up = v[sel +: 4] at sel = 5, 6, 7 and dyn_dn = v[sel -: 4] at sel = 0, 1, 2 (v = 10000001, sel = 101: dyn_up is x100 in the model, xxxx in Xcelium). 6 of the 22 part-select cells of this row are partly out of range: Xcelium is all x on those 6 and equals the LRM value on the other 16 (in range, wholly out of range, x/z base), and the model equals an independent LRM oracle on all 22; Icarus equals the model in every cycle. Xcelium prints no warning by default (IIFAOB / IIRAOB only under -ii_warn -ii_rwarn); the result is not a time-zero race and does not depend on the stimulus order or on the context (verifier probes: 864 cells in assign, always, function and testbench contexts). The same Xcelium rule drops the whole write and reads all x for CONSTANT bases, where it is REFUSED (ArraySel:partial-overhang); a run-time base cannot be refused statically, so the departure is declared, not followed. svGolf's fourstate stage refuses run-time selects that can leave their declared range (svgolf/README.md). -ii_val does not repair module-level reads (docs/sv-xcelium-reference.md, section 6).",
         "retirement_condition": "When Xcelium reads a run-time-base part-select that is partly out of range per bit like the LRM (in-range bits kept, x for the out-of-range ones: another Xcelium version, or a flag that applies at module level), the pinned trace equals the model's and the harness fails ('disagreement resolved'; diff_test2.py --golden, or a live xrun run) until the declaration is removed after review; it is also removed, and the row becomes a refusal row, when ls-sv refuses a part-select whose run-time base can leave the vector.",
         "source_sha256": "24ff9567e17f665b7f56e50933b9042265994fbe1ef123777cca0595ce7765fb",
-        "envelope_sha256": "b026e0a09292c01f2f571c5707885cb6f2440aa37e35bfc5a27a998aec8bdcdc",
+        "envelope_sha256": "d57bb3f8bd63a3067ddb0e9abec4eee7e571b0bf261b85febbb0b72fb596a601",
         "case_sha256": "402e32a1f6a963fa332b12642759e8a0d5e66dbd9ad6150b32bd4d2c4e10a62e",
-        "testbench_sha256": "f905c39ea2aa3541e07af0b8d6394e71719544f8fe272d4a03d6d32917da96fc",
+        "testbench_sha256": "d7b4b73a2f593bbd2ebf70dc4678985d6da0ec08e8580c55edf8770c4bef941d",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 a=1011011100 v=10110100 sel=000 rev_up=1110010110 rev_dn=1110010110 top=10 dyn_up=0100 dyn_dn=xxxx dyn_lane=11100",
@@ -29328,9 +29327,9 @@
         "observed": "Xcelium 24.03-s004 (the reference simulator, default flags; pinned in harness/sv/xcelium_golden.json, row partsel_dyn_n6_w2) treats an indexed part-select READ whose RUN-TIME base leaves the vector for some of its bits and not for others as wholly invalid and returns all x for the whole select, where the model, Icarus 12.0 and Yosys 0.53 return the in-range bits and x only for the out-of-range ones. dyn_up = v[sel +: 4] at sel = 5, 6, 7 and dyn_dn = v[sel -: 4] at sel = 0, 1, 2 (v = 10000001, sel = 101: dyn_up is x100 in the model, xxxx in Xcelium). 6 of the 22 part-select cells of this row are partly out of range: Xcelium is all x on those 6 and equals the LRM value on the other 16 (in range, wholly out of range, x/z base), and the model equals an independent LRM oracle on all 22; Icarus equals the model in every cycle. Xcelium prints no warning by default (IIFAOB / IIRAOB only under -ii_warn -ii_rwarn); the result is not a time-zero race and does not depend on the stimulus order or on the context (verifier probes: 864 cells in assign, always, function and testbench contexts). The same Xcelium rule drops the whole write and reads all x for CONSTANT bases, where it is REFUSED (ArraySel:partial-overhang); a run-time base cannot be refused statically, so the departure is declared, not followed. svGolf's fourstate stage refuses run-time selects that can leave their declared range (svgolf/README.md). -ii_val does not repair module-level reads (docs/sv-xcelium-reference.md, section 6).",
         "retirement_condition": "When Xcelium reads a run-time-base part-select that is partly out of range per bit like the LRM (in-range bits kept, x for the out-of-range ones: another Xcelium version, or a flag that applies at module level), the pinned trace equals the model's and the harness fails ('disagreement resolved'; diff_test2.py --golden, or a live xrun run) until the declaration is removed after review; it is also removed, and the row becomes a refusal row, when ls-sv refuses a part-select whose run-time base can leave the vector.",
         "source_sha256": "24ff9567e17f665b7f56e50933b9042265994fbe1ef123777cca0595ce7765fb",
-        "envelope_sha256": "b026e0a09292c01f2f571c5707885cb6f2440aa37e35bfc5a27a998aec8bdcdc",
+        "envelope_sha256": "d57bb3f8bd63a3067ddb0e9abec4eee7e571b0bf261b85febbb0b72fb596a601",
         "case_sha256": "8757f507a0cf5eb1eb470e0858adc7c1a1a647caf9faede2a74f890a476982c0",
-        "testbench_sha256": "c203835b645e0d58a1c5383e113a6a9a4b044b4f9f925cfdcb12a53dd082c1f6",
+        "testbench_sha256": "59d89edb62aeebf4d86afdd117c7c37eaece49415740151d7ee6f5aca91fd1ae",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 a=101101110001 v=10110100 sel=000 rev_up=010011011110 rev_dn=010011011110 top=101101 dyn_up=0100 dyn_dn=xxxx dyn_lane=01",
@@ -29438,9 +29437,9 @@
         "observed": "Xcelium 24.03-s004 (the reference simulator, default flags; pinned in harness/sv/xcelium_golden.json, row partsel_dyn_n5_w1) treats an indexed part-select READ whose RUN-TIME base leaves the vector for some of its bits and not for others as wholly invalid and returns all x for the whole select, where the model, Icarus 12.0 and Yosys 0.53 return the in-range bits and x only for the out-of-range ones. dyn_up = v[sel +: 4] at sel = 5, 6, 7 and dyn_dn = v[sel -: 4] at sel = 0, 1, 2 (v = 10000001, sel = 101: dyn_up is x100 in the model, xxxx in Xcelium). 6 of the 22 part-select cells of this row are partly out of range: Xcelium is all x on those 6 and equals the LRM value on the other 16 (in range, wholly out of range, x/z base), and the model equals an independent LRM oracle on all 22; Icarus equals the model in every cycle. Xcelium prints no warning by default (IIFAOB / IIRAOB only under -ii_warn -ii_rwarn); the result is not a time-zero race and does not depend on the stimulus order or on the context (verifier probes: 864 cells in assign, always, function and testbench contexts). The same Xcelium rule drops the whole write and reads all x for CONSTANT bases, where it is REFUSED (ArraySel:partial-overhang); a run-time base cannot be refused statically, so the departure is declared, not followed. svGolf's fourstate stage refuses run-time selects that can leave their declared range (svgolf/README.md). -ii_val does not repair module-level reads (docs/sv-xcelium-reference.md, section 6).",
         "retirement_condition": "When Xcelium reads a run-time-base part-select that is partly out of range per bit like the LRM (in-range bits kept, x for the out-of-range ones: another Xcelium version, or a flag that applies at module level), the pinned trace equals the model's and the harness fails ('disagreement resolved'; diff_test2.py --golden, or a live xrun run) until the declaration is removed after review; it is also removed, and the row becomes a refusal row, when ls-sv refuses a part-select whose run-time base can leave the vector.",
         "source_sha256": "24ff9567e17f665b7f56e50933b9042265994fbe1ef123777cca0595ce7765fb",
-        "envelope_sha256": "b026e0a09292c01f2f571c5707885cb6f2440aa37e35bfc5a27a998aec8bdcdc",
+        "envelope_sha256": "d57bb3f8bd63a3067ddb0e9abec4eee7e571b0bf261b85febbb0b72fb596a601",
         "case_sha256": "4ed2a39a36c612e6ea2add75934d0ba956d9bf7d5d4adc566597513b1ed6ad4c",
-        "testbench_sha256": "ae07ef14cf1fb3c838d7cde5d93a36bca23cc6faa6a47fdaf3f8665b03985f1b",
+        "testbench_sha256": "c81916b5e6ca602686b8ac800d27ba8bdaaa649b167bf4e0bd57f60129e8ffcc",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 a=10110 v=10110100 sel=000 rev_up=01101 rev_dn=01101 top=10110 dyn_up=0100 dyn_dn=xxxx dyn_lane=0",
@@ -29548,9 +29547,9 @@
         "observed": "Xcelium 24.03-s004 (the reference simulator, default flags; pinned in harness/sv/xcelium_golden.json, row partsel_dyn_n1_w4) treats an indexed part-select READ whose RUN-TIME base leaves the vector for some of its bits and not for others as wholly invalid and returns all x for the whole select, where the model, Icarus 12.0 and Yosys 0.53 return the in-range bits and x only for the out-of-range ones. dyn_up = v[sel +: 4] at sel = 5, 6, 7 and dyn_dn = v[sel -: 4] at sel = 0, 1, 2 (v = 10000001, sel = 101: dyn_up is x100 in the model, xxxx in Xcelium). 6 of the 22 part-select cells of this row are partly out of range: Xcelium is all x on those 6 and equals the LRM value on the other 16 (in range, wholly out of range, x/z base), and the model equals an independent LRM oracle on all 22; Icarus equals the model in every cycle. Xcelium prints no warning by default (IIFAOB / IIRAOB only under -ii_warn -ii_rwarn); the result is not a time-zero race and does not depend on the stimulus order or on the context (verifier probes: 864 cells in assign, always, function and testbench contexts). The same Xcelium rule drops the whole write and reads all x for CONSTANT bases, where it is REFUSED (ArraySel:partial-overhang); a run-time base cannot be refused statically, so the departure is declared, not followed. svGolf's fourstate stage refuses run-time selects that can leave their declared range (svgolf/README.md). -ii_val does not repair module-level reads (docs/sv-xcelium-reference.md, section 6).",
         "retirement_condition": "When Xcelium reads a run-time-base part-select that is partly out of range per bit like the LRM (in-range bits kept, x for the out-of-range ones: another Xcelium version, or a flag that applies at module level), the pinned trace equals the model's and the harness fails ('disagreement resolved'; diff_test2.py --golden, or a live xrun run) until the declaration is removed after review; it is also removed, and the row becomes a refusal row, when ls-sv refuses a part-select whose run-time base can leave the vector.",
         "source_sha256": "24ff9567e17f665b7f56e50933b9042265994fbe1ef123777cca0595ce7765fb",
-        "envelope_sha256": "b026e0a09292c01f2f571c5707885cb6f2440aa37e35bfc5a27a998aec8bdcdc",
+        "envelope_sha256": "d57bb3f8bd63a3067ddb0e9abec4eee7e571b0bf261b85febbb0b72fb596a601",
         "case_sha256": "71a6383fdc6d2cfb1a6d2feec1b49de6d24a0f8a27a1369f9cbaf08ffd8453a7",
-        "testbench_sha256": "f0a20d1cc40d8563a73ff0f2c7e283a7453beedc6a684b73ca64514ce6b15eb1",
+        "testbench_sha256": "43a958f1f30aaa976c6ffb993dbbd33a453a50ee3267547135c651b96acc6e62",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 a=1011 v=10110100 sel=000 rev_up=1011 rev_dn=1011 top=1 dyn_up=0100 dyn_dn=xxxx dyn_lane=1011",
@@ -29612,7 +29611,7 @@
         "source_sha256": "e618ffbb6f939fb0924e5922f9dcc1b87009d0aa16d55d6dfbc6adc3676af7bc",
         "envelope_sha256": "fdd6c5088e925ba26d7592f2273dee80f305eea850173df95642aafc5595128d",
         "case_sha256": "6968a57a03d3e87920c9b59e2f193682071119474ad25e9c4d52160081d84219",
-        "testbench_sha256": "98292a9d50eafa686702b148224cfc499ae3c871dcabf47b7fe020ef7847422e",
+        "testbench_sha256": "c534a3a781e9701b0b0def7e3d35efe35acd2150230c5f712614b581d271c434",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 src=10110110 asc_oob=0",
@@ -29808,10 +29807,10 @@
         "reference": "IEEE 1800-2023 11.5.1 (Vector bit-select and part-select addressing, printed page 296): 'Part-selects that are partially out of range shall, when read, return x for the bits that are out of range', with the base expressions evaluated in a self-determined context; slang, Icarus 12.0 and Yosys 0.53 follow it; docs/sv-oracle-disagreements.md, 'Run-time part-select bases that leave the vector'; docs/sv-xcelium-audit.md, cluster P2 and 6.1",
         "observed": "Xcelium 24.03-s004 (the reference simulator, default flags; pinned in harness/sv/xcelium_golden.json, row dyn32_part) treats an indexed part-select READ whose RUN-TIME base leaves the vector for some of its bits and not for others as wholly invalid and returns all x for the whole select, where the model, Icarus 12.0 and Yosys 0.53 return the in-range bits and x only for the out-of-range ones. The five 32-bit-base selects of dyn32 (v[s - 2 +: 4], v[s - 2 -: 4], v[{28'b0, s} - 32'd2 +: 4], v[b32 +: 4], v[b32 -: 4]) at bases 0..9, e.g. v = 10110111, b32 = 5: o32 is x011 in the model, xxxx in Xcelium. The stimulus of this row keeps every 32-bit base non-negative, so no cell involves how a 32-bit UNSIGNED base is typed (row dyn32 does, and is not declared: Xcelium reads such a base as unsigned, the model, Icarus and Yosys as two's complement; docs/sv-xcelium-audit.md, 6.4). 15 of the 55 part-select cells of this row are partly out of range: Xcelium is all x on those 15 and equals the LRM value on the other 40 (in range, wholly out of range, x/z base), and the model equals an independent LRM oracle on all 55; Icarus equals the model in every cycle. Xcelium prints no warning by default (IIFAOB / IIRAOB only under -ii_warn -ii_rwarn); the result is not a time-zero race and does not depend on the stimulus order or on the context (verifier probes: 864 cells in assign, always, function and testbench contexts). The same Xcelium rule drops the whole write and reads all x for CONSTANT bases, where it is REFUSED (ArraySel:partial-overhang); a run-time base cannot be refused statically, so the departure is declared, not followed. svGolf's fourstate stage refuses run-time selects that can leave their declared range (svgolf/README.md). -ii_val does not repair module-level reads (docs/sv-xcelium-reference.md, section 6).",
         "retirement_condition": "When Xcelium reads a run-time-base part-select that is partly out of range per bit like the LRM (in-range bits kept, x for the out-of-range ones: another Xcelium version, or a flag that applies at module level), the pinned trace equals the model's and the harness fails ('disagreement resolved'; diff_test2.py --golden, or a live xrun run) until the declaration is removed after review; it is also removed, and the row becomes a refusal row, when ls-sv refuses a part-select whose run-time base can leave the vector.",
-        "source_sha256": "02199565c1267c22d3623943e4f66b30353cbe3b3632cbf4bb41a0f8105e2a0c",
-        "envelope_sha256": "5b052f72bc0293fc7291979263ba2e6c93ed554e3c73e48b190208fd11d3b32b",
+        "source_sha256": "6dc5388e81dcc3f789c6b8aa830ff54ff19562ad0996ffa6e694319e5855ccb4",
+        "envelope_sha256": "26e99aa57c48edc121b3dff5890f6f1d0793575d515a08559bab141d06b63270",
         "case_sha256": "cf1f4660fc5d19222bbcd97fc292fd5c4df7fd075f26553ae06a21136bc791bd",
-        "testbench_sha256": "782ae65122d95e5ae25b669b06e5add861809377921d05d7276be43555202a61",
+        "testbench_sha256": "99b5f7b6ccf7b698b2bcbea734a25d51b75a22628ea441277f0eb4abf6142b56",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 v=10110111 s=0010 b32=00000000000000000000000000000101 minus2=0111 minus2_dn=xxxx m32=0111 o32=xxxx d32=1101",
@@ -31244,7 +31243,7 @@
         "source_sha256": "d4569d2db5a5973cc0306d65803b66298ac484d99f3db79b8c14a078dcc968fc",
         "envelope_sha256": "c65d93d32c5c3ffd645a30f90dd304d2c9884d7282bf8cacc04f7ad043c97585",
         "case_sha256": "b4435c986f0b174f92420dc9fbe20918b9f19c0a16489d27f0c434e50e37805e",
-        "testbench_sha256": "92fe8594af30a086c49f319bbdce05a5528baff4d13fd7d7c94a31fa3c0f7243",
+        "testbench_sha256": "c08936f43729e45389f95fb4794e9aafcee040b57c8851c76a6c24bdba0f9516",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 a_i=10100101 b_i=01011010 c_i=1100001100111100 w_o=zzzzzzzzzzzzzz10 v_o=zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz01",
@@ -45470,9 +45469,9 @@
         "observed": "Xcelium 24.03-s004 (the reference simulator, default flags; pinned in harness/sv/xcelium_golden.json, row lit_str_ctl) reads the escape sequences \\a, \\v and \\f of a string literal as the plain letters a, v and f (0x61, 0x76, 0x66) where the model, Icarus 12.0, Verilator 5.042 and Yosys 0.53 produce 7, 11 and 12. ya = \"\\a\" is 8'h07 in the model and 8'h61 in Xcelium; yall = \"\\a\\v\\f\" is 24'h070b0c against 24'h617666; yloc, yx = a ^ \"\\f\" and eq = (a == \"\\v\") follow (at a = 8'h76 eq is 0 in the model and 1 in Xcelium, at a = 8'h0b the reverse). Xcelium prints no diagnostic by default. The octal spellings (\\007 \\013 \\014), \\n, \\t, an escaped backslash before a letter and an escaped quote agree in every simulator (row lit_str_ctl_ok, XREF-MATCH), so the departure is exactly the three named control escapes. The model keeps the LRM reading. The hex escape \\xdd stays refused (row lit-string-hex): there Yosys, which produces the scored netlist, dissents from slang and the LRM, a proof/score split and not an oracle dissent.",
         "retirement_condition": "When Xcelium reads \\a, \\v and \\f of a string literal as Table 5-1 does (another Xcelium version), the pinned trace equals the model's and the harness fails ('disagreement resolved'; diff_test2.py --golden, or a live xrun run) until the declaration is removed after review.",
         "source_sha256": "9379812b4e20537153287de8cc0c168645b80d04989e6e4e66cb989772aeeec8",
-        "envelope_sha256": "23990b2687a87ab3a1377aecb3e5c68de470288ffd19bb9d7ddbaebe14e5fb7a",
+        "envelope_sha256": "8538dffba38768a2be6f617af33b4a6d62ee6ebfbe959916546bbabbfe67ce74",
         "case_sha256": "686bb1f5f52fc2c69477911316553c5aad6de26e55d31f81cffae5b413647155",
-        "testbench_sha256": "bc5a9c5f3aa41629fa8f3b8df71d740aeb598eba3122148a136c4a7ac0bd32c4",
+        "testbench_sha256": "73e9b7ea0c4bfa93dff15351f284c90f948de1e2dc93f6f4a486ce856fec3bb5",
         "sigma": "src",
         "sim_trace": [
           "CYCLE 0 a=00000000 ya=01100001 yv=01110110 yf=01100110 yall=011000010111011001100110 yloc=01100010 yx=01100110 eq=0",
@@ -60546,7 +60545,7 @@
         "source_sha256": "70261e0d9501632700dbfb5b5d2c6fb20598270cc2279d958b0fe2ada05be481",
         "envelope_sha256": "ec2694f7b6cd3add895fe52744d177112d2d7af7aa0e4a1581ecfcb1787a13a7",
         "case_sha256": "d5005bbf8df36c9c2fae0f2e0ef9622b0beb4abf76d08cb14f28b9456abf89b7",
-        "testbench_sha256": "c998b9ac6843e48d78c34c38f37758b1bb559562c4f539633a6e9c03a8d9d423",
+        "testbench_sha256": "fb211bd16796d761e731c73990c44623ef2ad810ad7b44d7c750b8202826f906",
         "failures": [
           {
             "stage": "runtime",
@@ -63291,7 +63290,7 @@
         "source_sha256": "4a89593f7a3be78a8ed5809337dfac1d60daebd21fefbf0b24e99822c69b9374",
         "envelope_sha256": "5cb40073133919cce4e7c733766783af9f0d1e9bc86de74139df72bcc2209702",
         "case_sha256": "226a0900eec900305fae0f3789aaed0f182f4dba8346140353e74ca4e25a1a3c",
-        "testbench_sha256": "7298f1fa7aa97cb373e578a75b9ff8a75aad0a315f0230dc246baaaa95516ba1",
+        "testbench_sha256": "b138d221b388a6e938ef03853878d4bab0a8446e73fac441930cff0a630a9345",
         "failures": [
           {
             "stage": "runtime",
@@ -70634,7 +70633,7 @@
         "source_sha256": "5c9d9e55d2a4c7c764d253b84555b989fdff3bc89e258efd003c86fbc93059a5",
         "envelope_sha256": "b850d39e595b2f7b63b819ed089b1a6c4d098977bdcdfd735b19fbfd2252cecd",
         "case_sha256": "b467fee5b62c9f599f037cece7ed3a722980aa428b6a5b4b28374c52bb7aca79",
-        "testbench_sha256": "5b5fc63c6c9c776f51e1fbe17a186a4a6c070fe96861054c6a9381f136a4a897",
+        "testbench_sha256": "874f6c23c924e8b54dd09ca2dc42c44a9afac5b5dfa43d1b9a448e2b77cfe208",
         "failures": [
           {
             "stage": "compile",

@@ -397,7 +397,7 @@
         "observed": "Icarus 12.0-2build2, hosted run 39272617564, job 118128606532; reproduced with Icarus 12.0 in Debian 13",
         "retirement_condition": "When Icarus produces the standard all-x result, this row must fail until its declaration is removed after review.",
         "source_sha256": "8dee65b68ffea2911c2a01850a2db74b9cd5f9da14a34d67b117116499b62004",
-        "envelope_sha256": "bae231a2ba8cde144f40c5228b2d4f1d01ccecce6b84a9c6c2493a2a5b00148a",
+        "envelope_sha256": "6ed9d86b1b434a8f58db2397b169dc9d462a028cc7842998430416013bce99ae",
         "case_sha256": "c7268562cb757e09bc916bd652ba87ff88f4aa69a5959ca9b27e44fc03b54e0d",
         "testbench_sha256": "a4f430b01ae4db2e032089d1c99704200ef337146871197685e86bbc7b9d6cbc",
         "sigma": "src",
