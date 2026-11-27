@@ -13593,6 +13593,15 @@ theorem pairedAllocateFailure_contract
         (renamedPlacement resolve store.nextId placement) = none := by
   exact pairedAllocateFailure_sound resolve store request placement h
 
+theorem pairedAllocateFailure_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (request : AllocationRequest Tag State) (placement : Placement) :
+    pairedAllocateFailure resolve store request placement = true ↔
+      allocate store request placement = none ∧
+        allocate (renameStore resolve store) (renameAllocationRequest resolve request)
+          (renamedPlacement resolve store.nextId placement) = none := by
+  simp [pairedAllocateFailure, Bool.and_eq_true]
+
 theorem pairedAllocateZeroSize_contract
     {Tag State TypeId : Type} (resolve : AllocId → Nat) (state : State)
     (placement : Placement) :
