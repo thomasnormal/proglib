@@ -776,8 +776,11 @@ def enumBindingsDecl : Decl → List (DeclarationId × Int)
 
 def enumBindings (u : TranslationUnit) : List (DeclarationId × Int) :=
   u.items.flatMap fun item => match item with
+    | .fn f => (f.body.map (fun body => body.substmts.flatMap fun stmt =>
+        match stmt with
+        | .decl decls _ => decls.flatMap enumBindingsDecl
+        | _ => [])).getD []
     | .decl d => enumBindingsDecl d
-    | _ => []
 
 /-- Every statement in the unit (function bodies only — C has no
 statements outside one). -/
