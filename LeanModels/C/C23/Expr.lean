@@ -1337,6 +1337,14 @@ def evalArith (ctx : Ctx) (op : String) (lv rv : CVal) (ty : String)
             pure (.ptr q)
         | none => refuseUnsupported s!"no size for pointee of '{ty}'"
       else refuseUnsupported s!"operator '{op}' on an integer and a pointer"
+  | .ptr _, .funPtr _ | .funPtr _, .ptr _ =>
+      if op == "==" then pure (ofBool false)
+      else if op == "!=" then pure (ofBool true)
+      else refuseUnsupported s!"operator '{op}' on mixed object and function pointers"
+  | .funPtr a, .funPtr b =>
+      if op == "==" then pure (ofBool (a == b))
+      else if op == "!=" then pure (ofBool (a != b))
+      else refuseUnsupported s!"operator '{op}' on function pointers"
   -- §6.5.10p7 vs §6.5.9p6 — the asymmetry: `==`/`!=` across unrelated
   -- objects is DEFINED, `<` and friends are UNDEFINED.
   | .ptr a, .ptr b =>
