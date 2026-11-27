@@ -2,9 +2,28 @@ module nd_rows_swap(input logic clk_a, clk_b, input logic seed, output logic a, 
   always_ff @(posedge clk_a) if (seed) a <= 1'b0; else a <= b;
   always_ff @(posedge clk_b) if (seed) b <= 1'b1; else b <= a;
 endmodule
+module nd_rows_xclock(input logic clk_a, clk_b, output logic a, b);
+  always_ff @(posedge clk_a) a <= b;
+  always_ff @(posedge clk_b) b <= a;
+endmodule
+module nd_rows_race01(input logic clk, output logic a);
+  initial a = 1'bx;
+  always @(posedge clk) a = 1'b0;
+  always @(posedge clk) a = 1'b1;
+endmodule
+module nd_rows_race10(input logic clk, output logic a);
+  initial a = 1'bx;
+  always @(posedge clk) a = 1'b1;
+  always @(posedge clk) a = 1'b0;
+endmodule
 module nd_rows_caseeq(input logic clk, input logic a, output logic b);
   always_ff @(posedge clk)
     if (a === a) b <= 1'b1; else b <= 1'b0;
+endmodule
+module nd_rows_caseeq_index(input logic clk, output logic [3:0] a);
+  logic b;
+  initial begin a = 4'b0; b = 1'bx; end
+  always @(posedge clk) a[b === b] <= 1'b1;
 endmodule
 module nd_rows_unknown_index(input logic clk, input logic idx, output logic [3:0] a);
   always_ff @(posedge clk) a[idx] <= 1'b1;
@@ -20,6 +39,11 @@ module nd_rows_ternary(input logic clk, input logic a, output logic b);
 endmodule
 module nd_rows_xor(input logic clk, input logic a, output logic b);
   always_ff @(posedge clk) b <= a ^ a;
+endmodule
+module nd_rows_nba_xclock(input logic clk, output logic g);
+  logic a;
+  initial a = 1'bx;
+  always_ff @(posedge clk) g <= a;
 endmodule
 module nd_rows_wake(input logic clk, output logic g, output integer count);
   always @(posedge clk) begin g = 1'b0; g <= 1'b1; end

@@ -13,40 +13,108 @@ ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT / "harness/sv"))
 from xcelium_probe import probe_xcelium  # noqa: E402
 
-EXPECTED = [
-    "ROW swap-seed a=0 b=1",
-    "ROW swap-after a=1 b=0",
-    "ROW caseeq a=x b=1",
-    "ROW unknown-index idx=x a=xxxx",
-    "ROW x-if a=x p=0 q=0",
-    "ROW ternary a=x b=x",
-    "ROW xor a=x b=x",
-    "ROW wake g=1 count=3",
-]
+EXPECTED = {
+    "iverilog": [
+        "ROW R1 xclock a=x b=x",
+        "ROW R2 xclock a=x b=x",
+        "ROW R3 xclock a=x b=x",
+        "ROW R4 xclock a=x b=x",
+        "ROW R5 xclock a=x b=x",
+        "ROW R6 xclock a=x b=x",
+        "ROW R7 swap a=0 b=1",
+        "ROW R8 swap a=1 b=0",
+        "ROW R9 swap a=1 b=0",
+        "ROW R10 swap a=1 b=0",
+        "ROW R11 no-edge a=1 b=0",
+        "ROW R12 race a=0",
+        "ROW R13 race a=1",
+        "ROW R14 caseeq a=x b=1",
+        "ROW R15 wake g=1 count=3",
+        "ROW R16 wake g=1 count=4",
+        "ROW R17 unknown-index idx=x a=xxxx",
+        "ROW R18 caseeq-index a=0010",
+        "ROW R19 x-if a=x p=0 q=0",
+        "ROW R20 x-if a=x p=0 q=0",
+        "ROW R21 ternary a=x b=x",
+        "ROW R22 xor a=x b=x",
+        "ROW R23 nba-xclock g=x",
+    ],
+    "xrun": [
+        "ROW R1 xclock a=x b=x",
+        "ROW R2 xclock a=x b=x",
+        "ROW R3 xclock a=x b=x",
+        "ROW R4 xclock a=x b=x",
+        "ROW R5 xclock a=x b=x",
+        "ROW R6 xclock a=x b=x",
+        "ROW R7 swap a=0 b=1",
+        "ROW R8 swap a=1 b=0",
+        "ROW R9 swap a=1 b=0",
+        "ROW R10 swap a=1 b=0",
+        "ROW R11 no-edge a=1 b=0",
+        "ROW R12 race a=1",
+        "ROW R13 race a=0",
+        "ROW R14 caseeq a=x b=1",
+        "ROW R15 wake g=1 count=3",
+        "ROW R16 wake g=1 count=4",
+        "ROW R17 unknown-index idx=x a=xxxx",
+        "ROW R18 caseeq-index a=0010",
+        "ROW R19 x-if a=x p=0 q=0",
+        "ROW R20 x-if a=x p=0 q=0",
+        "ROW R21 ternary a=x b=x",
+        "ROW R22 xor a=x b=x",
+        "ROW R23 nba-xclock g=x",
+    ],
+}
 
 TB = r'''module nd_rows_tb;
   logic ca=0, cb=0, c=0, a_in=0, idx=0, seed=1; wire sa, sb;
-  logic case_a; wire case_b; wire [3:0] mem_a; wire p,q; wire ternary_b,xor_b;
+  logic xca=1'bx, xcb=1'bx; wire xa, xb;
+  logic case_a; wire case_b; wire [3:0] mem_a, case_idx_a; wire p,q; wire ternary_b,xor_b;
   logic wake_clk=0; wire wake_g; wire [31:0] wake_count;
+  wire race01_a, race10_a, nba_xg;
   nd_rows_swap swap(.clk_a(ca),.clk_b(cb),.seed(seed),.a(sa),.b(sb));
+  nd_rows_xclock xclock(.clk_a(xca),.clk_b(xcb),.a(xa),.b(xb));
+  nd_rows_race01 race01(.clk(c),.a(race01_a));
+  nd_rows_race10 race10(.clk(c),.a(race10_a));
   nd_rows_caseeq caseeq(.clk(c),.a(case_a),.b(case_b));
+  nd_rows_caseeq_index caseeq_index(.clk(c),.a(case_idx_a));
   nd_rows_unknown_index unknown_index(.clk(c),.idx(idx),.a(mem_a));
   nd_rows_x_if x_if(.clk(c),.a(a_in),.p(p),.q(q));
   nd_rows_ternary ternary(.clk(c),.a(a_in),.b(ternary_b));
   nd_rows_xor xor_case(.clk(c),.a(a_in),.b(xor_b));
+  nd_rows_nba_xclock nba_xclock(.clk(c),.g(nba_xg));
   nd_rows_wake wake(.clk(wake_clk),.g(wake_g),.count(wake_count));
   initial begin
     case_a=1'bx; a_in=1'bx; idx=1'bx;
-    ca=1; cb=1; #1; $display("ROW swap-seed a=%b b=%b",sa,sb); ca=0; cb=0;
-    seed=0; #1; ca=1; cb=1; #1; $display("ROW swap-after a=%b b=%b",sa,sb); ca=0; cb=0;
+    #1; $display("ROW R1 xclock a=%b b=%b",xa,xb);
+    xca=1; xcb=1; #1;
+    $display("ROW R2 xclock a=%b b=%b",xa,xb);
+    xca=0; xcb=0; #1; xca=1; xcb=1; #1;
+    $display("ROW R3 xclock a=%b b=%b",xa,xb);
+    $display("ROW R4 xclock a=%b b=%b",xa,xb);
+    xca=0; xcb=0; #1;
+    $display("ROW R5 xclock a=%b b=%b",xa,xb);
+    $display("ROW R6 xclock a=%b b=%b",xa,xb);
+    ca=1; cb=1; #1; $display("ROW R7 swap a=%b b=%b",sa,sb); ca=0; cb=0;
+    seed=0; #1; ca=1; cb=1; #1; $display("ROW R8 swap a=%b b=%b",sa,sb); ca=0; cb=0;
+    seed=1; #1; ca=1; cb=1; #1; seed=0; ca=0; cb=0; #1; ca=1; cb=1; #1;
+    $display("ROW R9 swap a=%b b=%b",sa,sb); $display("ROW R10 swap a=%b b=%b",sa,sb);
+    ca=0; cb=0; #1; $display("ROW R11 no-edge a=%b b=%b",sa,sb);
     c=1; #1;
-    $display("ROW caseeq a=%b b=%b",case_a,case_b);
-    $display("ROW unknown-index idx=%b a=%b",idx,mem_a);
-    $display("ROW x-if a=%b p=%b q=%b",a_in,p,q);
-    $display("ROW ternary a=%b b=%b",a_in,ternary_b);
-    $display("ROW xor a=%b b=%b",a_in,xor_b);
+    $display("ROW R12 race a=%b",race01_a);
+    $display("ROW R13 race a=%b",race10_a);
+    $display("ROW R14 caseeq a=%b b=%b",case_a,case_b);
     c=0; #1;
-    wake_clk=1; #1; $display("ROW wake g=%b count=%0d",wake_g,wake_count);
+    wake_clk=1; #1; $display("ROW R15 wake g=%b count=%0d",wake_g,wake_count);
+    wake_clk=0; #1; wake_clk=1; #1; $display("ROW R16 wake g=%b count=%0d",wake_g,wake_count);
+    c=1; #1;
+    $display("ROW R17 unknown-index idx=%b a=%b",idx,mem_a);
+    $display("ROW R18 caseeq-index a=%b",case_idx_a);
+    $display("ROW R19 x-if a=%b p=%b q=%b",a_in,p,q);
+    $display("ROW R20 x-if a=%b p=%b q=%b",a_in,p,q);
+    $display("ROW R21 ternary a=%b b=%b",a_in,ternary_b);
+    $display("ROW R22 xor a=%b b=%b",a_in,xor_b);
+    $display("ROW R23 nba-xclock g=%b",nba_xg);
     $finish;
   end
 endmodule
@@ -104,8 +172,9 @@ def main():
                 output = run(["xrun", "-sv", "-q", "-timescale", "1ns/1ps",
                               "-top", "nd_rows_tb", source, str(tb)], work)
         actual = rows(output)
-        if actual != EXPECTED:
-            raise RuntimeError(f"{simulator}: expected {EXPECTED!r}, got {actual!r}")
+        expected = EXPECTED[simulator]
+        if actual != expected:
+            raise RuntimeError(f"{simulator}: expected {expected!r}, got {actual!r}")
         print(f"{simulator}: {len(actual)} rows MATCH")
 
 
