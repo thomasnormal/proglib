@@ -16,6 +16,9 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
 * `CoreMemDesign.compileAssigns_getElem_of_scalar` projects one scalar
   continuous assignment from the source process array into the corresponding
   compiled-expression cache entry without unfolding the cache globally.
+* `docs/sv-partial-drivers.md` records the planned source-shaped certificate
+  and settle/frame theorem for disjoint packed-bit continuous drivers; its
+  implementation remains a separate, audited change.
 * `GenItem.expandH_genFor_ascending_flatMap` gives one structural induction
   step for an ascending generate-for; `generated_child_family`,
   `generated_child_nested_family`, and `generated_child_at_prefix` expose the
