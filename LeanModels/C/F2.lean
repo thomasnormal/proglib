@@ -5538,6 +5538,20 @@ theorem renameZeroSizeOutcome_idempotent
           | mk live address bytes state =>
               cases address <;> rfl
 
+theorem renameZeroSizeOutcome_comp
+    (first second : AllocId → Nat)
+    (outcome : ZeroSizeOutcome Tag State TypeId) :
+    renameZeroSizeOutcome second (renameZeroSizeOutcome first outcome) =
+      renameZeroSizeOutcome second outcome := by
+  cases outcome with
+  | null => rfl
+  | token metadata =>
+      cases metadata with
+      | mk allocation locations =>
+          cases allocation with
+          | mk live address bytes state =>
+              cases address <;> rfl
+
 def pairedZeroTokenEqual (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId) : Bool :=
   zeroTokenEqual (renameZeroTokenMetadata resolve left)
