@@ -230,4 +230,36 @@ theorem picorv32_regs_zero_wen_step {E : CoreMemDesign} (hE : regs.e = .ok E)
 #print axioms picorv32_regs_zero_write_step
 #print axioms picorv32_regs_zero_wen_step
 
+/-! The zero-enable boundary is universal over the loaded leaf's address and
+data vectors.  The concrete rows above pin the complement-address mapping.
+This theorem carries the same fact for every typed read/write address and
+value, which is the memory-preservation clause needed by a whole-core
+register-file invariant. -/
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 8000000 in
+theorem picorv32_regs_zero_wen_universal {E : CoreMemDesign} (hE : regs.e = .ok E)
+    (wa ra1 ra2 wd rd1 rd2 : LVec) (mv : MemV)
+    (hwa : wa.width = 6) (hra1 : ra1.width = 6) (hra2 : ra2.width = 6)
+    (hwd : wd.width = 32) (hrd1 : rd1.width = 32) (hrd2 : rd2.width = 32)
+    (hmv : ∀ k, (mv "regs" k).width = 32) :
+    ∃ v', E.slotV (picorv32_regs_write_view (LVec.ofNat 1 0) (LVec.ofNat 1 0)
+        wa ra1 ra2 wd rd1 rd2) mv
+        [("clk", LVec.ofNat 1 1), ("wen", LVec.ofNat 1 0), ("waddr", wa),
+         ("raddr1", ra1), ("raddr2", ra2), ("wdata", wd)] = .ok (v', mv) := by
+  obtain ⟨E', hE', hP, hO⟩ := (show SeqDesignI regs.e by sv_structure)
+  rw [hE] at hE'
+  cases hE'
+  sv_seq_inst [regs.e, regs.pdesign] at hE
+  sv_seq_cycle hcyc : E.slotV (picorv32_regs_write_view (LVec.ofNat 1 0) (LVec.ofNat 1 0)
+      wa ra1 ra2 wd rd1 rd2) mv
+      [("clk", LVec.ofNat 1 1), ("wen", LVec.ofNat 1 0), ("waddr", wa),
+       ("raddr1", ra1), ("raddr2", ra2), ("wdata", wd)] using hE
+      [picorv32_regs_write_view, hwa, hra1, hra2, hwd, hrd1, hrd2,
+       regs_evalSized_not_signal, LVec.xVec]
+  rw [hcyc]
+  refine ⟨_, rfl⟩
+
+#print axioms picorv32_regs_zero_wen_universal
+
 end Examples.«system-verilog».cores.picorv32
