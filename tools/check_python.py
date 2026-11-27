@@ -34,11 +34,17 @@ def acceptance_gates(root):
     runner = ".lake/build/bin/leanmodels-run"
     lean_paths = [root / ".lake/build/lib/lean"]
     lean_paths.extend(sorted((root / ".lake/packages").glob("*/.lake/build/lib/lean")))
-    axiom_modules = [
-        "Examples.python." + example + "." + component
-        for example in CURATED_EXAMPLES
-        for component in ("spec", "proof")
-    ]
+    # A split example's proof.lean only imports its proof_part*.lean workers
+    # and declares nothing; the census refuses an empty module (as in ci.sh).
+    axiom_modules = []
+    for example in CURATED_EXAMPLES:
+        axiom_modules.append("Examples.python." + example + ".spec")
+        parts = sorted((root / "Examples/python" / example).glob("proof_part*.lean"))
+        if parts:
+            axiom_modules.extend(
+                "Examples.python." + example + "." + part.stem for part in parts)
+        else:
+            axiom_modules.append("Examples.python." + example + ".proof")
     tests = (
         ("ci-entrypoint-tests", "tools/test_ci_entrypoint.py"),
         ("python-check-tests", "tools/test_python_check.py"),

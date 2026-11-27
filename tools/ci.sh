@@ -750,10 +750,19 @@ step  "language-progress-fresh" python3 harness/language_progress.py --check
 # Curated examples (Examples/python/README.md), plus scalar and sequence proofs:
 # none of their declarations may rest on `sorryAx` or native computation.
 # Reads the oleans the build step produced.
+# A SPLIT example's proof.lean only imports its proof_part*.lean workers and
+# declares nothing, and the census refuses an empty module, so a split
+# example is scanned through its parts (c9539a362 split float_lab).
 py_examples_axioms() {
-  local mods=() e lp
+  local mods=() e lp p parts
   for e in add my_abs midpoint tri gcd fib nested_flow rsa_inverse bench_bisect bench_statistics int_string string_repeat tuple_repeat decimal_render range_render bool_lab divmod_lab repr_lab fstring_repr ellipsis_lab float_lab exc_handlers_lab exc_ancestors_lab; do
-    mods+=("Examples.python.$e.spec" "Examples.python.$e.proof")
+    mods+=("Examples.python.$e.spec")
+    parts=(Examples/python/"$e"/proof_part*.lean)
+    if [ -e "${parts[0]}" ]; then
+      for p in "${parts[@]}"; do mods+=("Examples.python.$e.$(basename "$p" .lean)"); done
+    else
+      mods+=("Examples.python.$e.proof")
+    fi
   done
   lp=$(ls -d .lake/build/lib/lean .lake/packages/*/.lake/build/lib/lean 2>/dev/null | paste -sd:)
   python3 harness/lean_axiom_census.py --modules "${mods[@]}" --lean-path "$lp" --gate -o /dev/null
