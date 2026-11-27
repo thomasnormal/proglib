@@ -1508,6 +1508,16 @@ theorem CoreMemDesign.runCombQuiesceV_of_noComb
             (ih (before := current) (current := E.matV current)
               hcurrent hmat)
 
+theorem CoreMemDesign.runCombV_of_noComb
+    {E : CoreMemDesign} {before current : SvState}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hbefore : E.matV before = before) (hcurrent : E.matV current = current)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    (hconverted : ∀ p ∈ E.processes.toList, ∀ kind text, p ≠ .unsupported kind text) :
+    E.runCombV before current E.processes.toList = .ok (E.matV current) := by
+  unfold CoreMemDesign.runCombV
+  exact E.runCombQuiesceV_of_noComb hnd h4 hbefore hcurrent hno hconverted
+
 /-! The view-only quiescence loop preserves a coherent realization of its
 returned view.  The materialization premises are explicit because the view
 runner compares source-shaped views, while the retained state stores the
