@@ -14319,6 +14319,32 @@ theorem loadByte_footprint
         rcases hpair with rfl
         rfl
 
+theorem pairedLoadByte_result_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat)
+    (result : (Byte Tag × Footprint) × (Byte Tag × Footprint)) :
+    pairedLoadByte resolve store id offset = some result ↔
+      result.2.1 = renameByte resolve result.1.1 ∧
+      result.1.2 = footprint .read { allocation := id, offset := offset, width := 1 } ∧
+      result.2.2 = footprint .read { allocation := id, offset := offset, width := 1 } ∧
+      ∃ sourceResult targetResult,
+        result = (sourceResult, targetResult) ∧
+        loadByte store id offset = some sourceResult ∧
+        loadByte (renameStore resolve store) id offset = some targetResult := by
+  constructor
+  · intro hresult
+    rcases (pairedLoadByte_success_contract resolve store id offset result).mp hresult with
+      ⟨sourceResult, targetResult, hpair, hsource, htarget, hcorrespondence⟩
+    subst result
+    exact ⟨hcorrespondence,
+      loadByte_footprint _ _ _ _ hsource,
+      loadByte_footprint _ _ _ _ htarget,
+      ⟨sourceResult, targetResult, rfl, hsource, htarget⟩⟩
+  · rintro ⟨hcorrespondence, _, _, ⟨sourceResult, targetResult,
+      hpair, hsource, htarget⟩⟩
+    exact (pairedLoadByte_success_contract resolve store id offset result).mpr
+      ⟨sourceResult, targetResult, hpair, hsource, htarget, hcorrespondence⟩
+
 theorem loadByte_success
     (store : Store Tag State) (id offset : Nat)
     (allocation : Allocation Tag State) (byte : Byte Tag)
