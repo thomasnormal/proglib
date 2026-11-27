@@ -26,7 +26,9 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 180
+    # The step limit is below the job limit so that the build is still saved
+    # when the check runs out of time.
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - name: Install elan (pinned toolchain comes from lean-toolchain)
@@ -42,11 +44,17 @@ jobs:
           python-version: |
             3.9
             3.12
-      - name: Cache lake build
-        uses: actions/cache@v4
+      # Restore the newest build of this toolchain and save again at the end
+      # even when the check fails or times out. A cache saved only on success
+      # was never saved: a cold full build does not fit the time limit, so no
+      # run completed and every run started cold again.
+      - name: Restore lake build
+        uses: actions/cache/restore@v4
         with:
-          path: .lake
-          key: lake-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lakefile.toml') }}
+          path: .lake/build
+          key: lake-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lakefile.toml') }}-${{ github.sha }}
+          restore-keys: |
+            lake-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lakefile.toml') }}-
       - name: Notebook and pinned SV frontend dependencies
         run: |
           python3 -m pip install --user nbformat nbclient jupyter-core ipykernel
@@ -63,7 +71,14 @@ jobs:
           # full target set and all gates, but serialize Lean's elaboration so
           # the peak stays below the runner's resource limit.
           LEAN_NUM_THREADS: 1
+        timeout-minutes: 320
         run: ./check.sh
+      - name: Save lake build
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .lake/build
+          key: lake-build-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lakefile.toml') }}-${{ github.sha }}
 
   # The README quickstart, verbatim, on both platforms it promises. Nothing
   # else: the full check above is Linux-only. A red macOS row here means the
