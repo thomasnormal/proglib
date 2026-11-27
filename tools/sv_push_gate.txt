@@ -400,3 +400,4 @@ Examples/system-verilog/sem2/clocked_tick_assign_e/agree.lean
 Examples/system-verilog/sem2/duplicate_generate_group_e/agree.lean
 
 Examples/system-verilog/sem2/packed_dimension_crosscheck_e/agree.lean
+Examples/system-verilog/sem2/constant_fn_size_cast_e/agree.lean

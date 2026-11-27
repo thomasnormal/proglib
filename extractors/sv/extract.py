@@ -8849,6 +8849,17 @@ def _convert_integral_cast(sm, expr):
     except Exception:
         return node
     if source_width == target_width:
+        # A fixed explicit size cast remains a source-shaped cast even when
+        # Slang gives both sides the same width.  In a constant position the
+        # envelope parser turns this marker into Param.sizeCastName, so the
+        # evaluator applies §6.24.1 to calls such as 32'($clog2(n)) instead
+        # of losing the cast while simplifying the equal-width conversion.
+        if node.get("kind") == "Resize" and node.get("explicit"):
+            return node
+        if _cast_size_is_fixed(expr):
+            return {"kind": "Resize", "span": node_span(sm, expr),
+                    "width": target_width, "operand": node,
+                    "explicit": True}
         if source_signed != target_signed:
             return {"kind": "Cast", "span": node_span(sm, expr), "width": target_width,
                     "signed": target_signed, "operand": node}
@@ -8876,6 +8887,21 @@ def _convert_integral_cast_node(sm, expr):
     are measured."""
     source_width, _, source_reason = type_width_2s(expr.operand.type)
     target_width, two_state, target_reason = type_width_2s(expr.type)
+    # A fixed explicit size cast may wrap a parser-native system call whose
+    # converted node has no standalone width metadata (`$clog2` is the
+    # constant-function case).  The frontend has already resolved the
+    # operand's self-determined width, so retain the cast boundary and let
+    # the constant evaluator perform the §6.24.1 resize.
+    if (_SYM is not None and source_reason is None and target_reason is None
+            and source_width is not None and target_width is not None
+            and source_width > 0 and target_width > 0
+            and expr.type.isIntegral and _cast_size_is_fixed(expr)):
+        operand = _convert_expr(sm, expr.operand)
+        if (operand is not None and operand.get("kind") != "Unsupported"
+                and (width_of(operand) in (None, source_width))):
+            return {"kind": "Resize", "span": node_span(sm, expr),
+                    "width": target_width, "operand": operand,
+                    "explicit": True}
     # A sized explicit cast can have an INT-class parameter or localparam as
     # its operand (`DepthW'(Depth)`, IEEE 1800-2023 §§6.24, 11.8.2).  The
     # target width is point-dependent, so slang's default-point folded
