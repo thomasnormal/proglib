@@ -4804,9 +4804,30 @@ private def checkDecls (env : IEnv) : List PDecl → List String
               else s!"decl '{pd.name}': our width {w} ≠ resolved {r}" :: tail
           | none => tail
 
+private def checkGenerateLocals (env : IEnv) (iterFuel : Nat) : Nat → List GenItem → List String
+  | 0, _ => []
+  | fuel + 1, [] => []
+  | fuel + 1, .localParam p :: rest =>
+      let (msgs, env') := checkLocals env [p]
+      msgs ++ checkGenerateLocals env' iterFuel fuel rest
+  | fuel + 1, .genIf cond thenB elseB :: rest =>
+      let branch := match evalGenGuard env cond with
+        | .ok v => if v != 0 then thenB else elseB
+        | .error _ => []
+      checkGenerateLocals env iterFuel fuel branch ++ checkGenerateLocals env iterFuel fuel rest
+  | fuel + 1, .genFor _label g initE bound step _rc body :: rest =>
+      let branch := match evalInt env initE, stepDelta g step with
+        | .ok i0, .ok δ =>
+            match genvarSeq env g bound δ iterFuel i0 with
+            | .ok (i :: _) => checkGenerateLocals (env.bindVal g i) iterFuel fuel body
+            | .ok [] | .timeout | .unsupported _ => []
+        | .error _, _ | _, .error _ => []
+      branch ++ checkGenerateLocals env iterFuel fuel rest
+  | fuel + 1, _ :: rest => checkGenerateLocals env iterFuel fuel rest
+
 private def checkGenerates (env : IEnv) (iterFuel : Nat) : List GenItem → List String
   | [] => []
-  | .genFor label g initE bound step rc? _body :: rest =>
+  | .genFor label g initE bound step rc? body :: rest =>
       let name := label.getD g
       let here :=
         match evalInt env initE, stepDelta g step with
@@ -4819,7 +4840,12 @@ private def checkGenerates (env : IEnv) (iterFuel : Nat) : List GenItem → List
             | .timeout, _ => [s!"generate '{name}': iteration fuel exhausted"]
             | .unsupported e, _ => [s!"generate '{name}': {e}"]
         | .error e, _ | _, .error e => [s!"generate '{name}': {e}"]
-      here ++ checkGenerates env iterFuel rest
+      here ++ checkGenerateLocals env iterFuel 64 [.genFor label g initE bound step rc? body] ++
+        checkGenerates env iterFuel rest
+  | .genIf cond thenB elseB :: rest =>
+      checkGenerateLocals env iterFuel 64 [.genIf cond thenB elseB] ++ checkGenerates env iterFuel rest
+  | .localParam p :: rest =>
+      checkGenerateLocals env iterFuel 64 [.localParam p] ++ checkGenerates env iterFuel rest
   | _ :: rest => checkGenerates env iterFuel rest
 
 /-- Replay the defaults elaboration and compare against every `resolved`
