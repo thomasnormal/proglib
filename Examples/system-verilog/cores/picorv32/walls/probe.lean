@@ -63,7 +63,7 @@ def pairCount : List PProcess → Nat
 #guard picorv32_step_wall.pdesign.processes.length == 45
 #guard pairCount picorv32_step_wall.pdesign.processes == 14
 #guard match picorv32_step_wall.e 1 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 0 0 4294967295 0 16 4294967295 with
-  | .unsupported msg => msg.startsWith "Event:multiple-write"
+  | .unsupported msg => msg.startsWith "Schedule:preemptive"
   | _ => false
 
 set_option maxRecDepth 100000 in

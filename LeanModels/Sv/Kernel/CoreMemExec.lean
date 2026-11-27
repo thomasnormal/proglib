@@ -571,7 +571,11 @@ def coreMemArrayIndicesMayOverlap : List PExpr → List PExpr → Bool
       | _, _ => true
   | _, _ => true
 
-def coreMemLhsMayOverlap (lhs rhs : PLhs) : Bool :=
+def coreMemLhsParts : PLhs → List PLhs
+  | .concat parts => parts.flatMap coreMemLhsParts
+  | lhs => [lhs]
+
+def coreMemLhsMayOverlapAtom (lhs rhs : PLhs) : Bool :=
   match lhs, rhs with
   | .ident left, .ident right => left == right
   | .ident left, .bitSel right _ | .ident left, .partSel right _ _
@@ -611,7 +615,11 @@ def coreMemLhsMayOverlap (lhs rhs : PLhs) : Bool :=
   | .aggregateMember left _, .arrayBitSel right _ _
   | .aggregateMember left _, .arrayPart right _ .. | .aggregateMember left _, .aggregateMember right _ =>
       left == right
-  | .concat _, _ | _, .concat _ => true
+  | .concat _, _ | _, .concat _ => false
+
+def coreMemLhsMayOverlap (lhs rhs : PLhs) : Bool :=
+  (coreMemLhsParts lhs).any fun left =>
+    (coreMemLhsParts rhs).any (coreMemLhsMayOverlapAtom left)
 
 def coreMemEventSources : List PProcess → List String
   | [] => []

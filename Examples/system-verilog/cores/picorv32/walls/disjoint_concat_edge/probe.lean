@@ -11,10 +11,10 @@ def result : Res CoreMemDesign :=
   disjoint_concat_edge.e
 
 #guard match result with
-  | .unsupported msg => msg.startsWith "Event:multiple-write"
+  | .ok d => d.processes.size == 2
   | _ => false
 
 #guard disjoint_concat_edge.pdesign.processes.length == 2
-#guard coreMemEdgeMultipleWritePair
+#guard !coreMemEdgeMultipleWritePair
   disjoint_concat_edge.pdesign.processes[0]!
   disjoint_concat_edge.pdesign.processes[1]!
