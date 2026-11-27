@@ -38,6 +38,8 @@ EXPECTED = {
         "ROW R21 ternary a=x b=x",
         "ROW R22 xor a=x b=x",
         "ROW R23 nba-xclock g=x",
+        "ROW R24 casez a=x b=1",
+        "ROW R25 casex a=x b=1",
     ],
     "xrun": [
         "ROW R1 xclock a=x b=x",
@@ -63,13 +65,15 @@ EXPECTED = {
         "ROW R21 ternary a=x b=x",
         "ROW R22 xor a=x b=x",
         "ROW R23 nba-xclock g=x",
+        "ROW R24 casez a=x b=1",
+        "ROW R25 casex a=x b=1",
     ],
 }
 
 TB = r'''module nd_rows_tb;
   logic ca=0, cb=0, c=0, a_in=0, idx=0, seed=1; wire sa, sb;
   logic xca=1'bx, xcb=1'bx; wire xa, xb;
-  logic case_a; wire case_b; wire [3:0] mem_a, case_idx_a; wire p,q; wire ternary_b,xor_b;
+  logic case_a; wire case_b, casez_b, casex_b; wire [3:0] mem_a, case_idx_a; wire p,q; wire ternary_b,xor_b;
   logic wake_clk=0; wire wake_g; wire [31:0] wake_count;
   wire race01_a, race10_a, nba_xg;
   nd_rows_swap swap(.clk_a(ca),.clk_b(cb),.seed(seed),.a(sa),.b(sb));
@@ -77,6 +81,8 @@ TB = r'''module nd_rows_tb;
   nd_rows_race01 race01(.clk(c),.a(race01_a));
   nd_rows_race10 race10(.clk(c),.a(race10_a));
   nd_rows_caseeq caseeq(.clk(c),.a(case_a),.b(case_b));
+  nd_rows_casez casez_case(.clk(c),.a(case_a),.b(casez_b));
+  nd_rows_casex casex_case(.clk(c),.a(case_a),.b(casex_b));
   nd_rows_caseeq_index caseeq_index(.clk(c),.a(case_idx_a));
   nd_rows_unknown_index unknown_index(.clk(c),.idx(idx),.a(mem_a));
   nd_rows_x_if x_if(.clk(c),.a(a_in),.p(p),.q(q));
@@ -115,6 +121,8 @@ TB = r'''module nd_rows_tb;
     $display("ROW R21 ternary a=%b b=%b",a_in,ternary_b);
     $display("ROW R22 xor a=%b b=%b",a_in,xor_b);
     $display("ROW R23 nba-xclock g=%b",nba_xg);
+    $display("ROW R24 casez a=%b b=%b",case_a,casez_b);
+    $display("ROW R25 casex a=%b b=%b",case_a,casex_b);
     $finish;
   end
 endmodule

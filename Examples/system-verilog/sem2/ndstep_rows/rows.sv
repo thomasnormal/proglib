@@ -20,6 +20,14 @@ module nd_rows_caseeq(input logic clk, input logic a, output logic b);
   always_ff @(posedge clk)
     if (a === a) b <= 1'b1; else b <= 1'b0;
 endmodule
+module nd_rows_casez(input logic clk, input logic a, output logic b);
+  always_ff @(posedge clk)
+    casez (a) 1'bx: b <= 1'b1; default: b <= 1'b0; endcase
+endmodule
+module nd_rows_casex(input logic clk, input logic a, output logic b);
+  always_ff @(posedge clk)
+    casex (a) 1'bx: b <= 1'b1; default: b <= 1'b0; endcase
+endmodule
 module nd_rows_caseeq_index(input logic clk, output logic [3:0] a);
   logic b;
   initial begin a = 4'b0; b = 1'bx; end
