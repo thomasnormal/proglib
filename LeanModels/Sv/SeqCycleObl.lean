@@ -1428,6 +1428,7 @@ theorem CoreMemDesign.runCombQuiesceV_coherent_of_each
                 rw [← hnextView]
                 exact CoreMemDesign.matV_view hnd h4 hnext.typed
               obtain ⟨st', hc', hv'⟩ := ih (before := current) (current := nextView)
+              obtain ⟨st', hs', hc', hv'⟩ := ih (before := current) (current := nextView)
                 (v' := v') hcurrent hmatNext h
               exact ⟨st', hc', hv'⟩
 
