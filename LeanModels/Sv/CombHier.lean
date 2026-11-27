@@ -1323,6 +1323,19 @@ affine bound/start), and refuses every other step or expression. -/
 def GeneratedLoop.toHdr? (l : GeneratedLoop) : Option Hdr :=
   (hdrOf? l.label l.genvar l.initE l.bound l.step).toOption
 
+theorem GeneratedLoop.toHdr?_spec
+    {l : GeneratedLoop} {h : Hdr} (hh : l.toHdr? = some h) :
+    h.lbl = l.label ∧ h.g = l.genvar ∧ h.Wf ∧
+      l.initE = h.initE ∧ l.bound = .binary .slt (.genvarRef h.g) h.bndE ∧
+      l.step = .unary .inc (.genvarRef h.g) := by
+  unfold GeneratedLoop.toHdr? at hh
+  cases he : hdrOf? l.label l.genvar l.initE l.bound l.step with
+  | error e => simp [he] at hh; contradiction
+  | ok h' =>
+    simp [he] at hh
+    cases hh
+    exact hdrOf?_spec he
+
 /-! The summary's `LSite.blk` is the innermost enclosing block.  Label
 qualification for reused labels is a property of the whole generate tree, so
 the source-shaped reader keeps that policy at the caller; this helper is the
