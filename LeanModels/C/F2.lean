@@ -9667,6 +9667,12 @@ theorem zeroTokenPlacementAgreement_agreesAt_contract
       left.allocation.address = right.allocation.address := by
   simp [zeroTokenPlacementAgreement, PlacementAgreement.agreesAt, beq_iff_eq]
 
+theorem zeroTokenPlacementAgreement_agreesAt_failure_contract
+    (left right : AllocationMetadata Tag State TypeId) (id : AllocId) :
+    (zeroTokenPlacementAgreement left right).agreesAt id = false ↔
+      left.allocation.address ≠ right.allocation.address := by
+  simp [zeroTokenPlacementAgreement, PlacementAgreement.agreesAt, beq_iff_eq]
+
 def placementOf (store : Store Tag State) (id : AllocId) : Option Nat :=
   (lookup store id).bind Allocation.address
 
@@ -9739,6 +9745,13 @@ theorem exposedPlacementAgreement_agreesAt_contract
     (exposed : AllocId → Bool) (id : AllocId) :
     (exposedPlacementAgreement resolve store exposed).agreesAt id = true ↔
       placementOf store id = (placementOf store id).map (fun _ => resolve id) := by
+  simp [exposedPlacementAgreement, PlacementAgreement.agreesAt, beq_iff_eq]
+
+theorem exposedPlacementAgreement_agreesAt_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (exposed : AllocId → Bool) (id : AllocId) :
+    (exposedPlacementAgreement resolve store exposed).agreesAt id = false ↔
+      placementOf store id ≠ (placementOf store id).map (fun _ => resolve id) := by
   simp [exposedPlacementAgreement, PlacementAgreement.agreesAt, beq_iff_eq]
 
 theorem exposedPlacementAgreement_empty_agrees
