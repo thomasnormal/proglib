@@ -14512,6 +14512,24 @@ theorem endLifetime_footprint
       rcases hresult with ⟨_, hEq⟩
       exact congrArg (fun pair => pair.2) hEq.symm
 
+theorem endLifetime_success_contract
+    (store : Store Tag State) (id : AllocId)
+    (result : Store Tag State × Footprint) :
+    endLifetime store id = some result ↔
+      ∃ allocation,
+        lookup store id = some allocation ∧
+        allocation.live = true ∧
+        result = ({ store with allocations := store.allocations.map (fun entry =>
+          if entry.1 == id then
+            (id, { allocation with live := false })
+          else entry) },
+          footprint .metadata (Region.mk id 0 allocation.bytes.length)) := by
+  constructor
+  · exact endLifetime_result_contract store id result
+  · rintro ⟨allocation, hlookup, hlive, hresult⟩
+    subst result
+    simp [endLifetime, hlookup, hlive]
+
 theorem pairedStoreByte_footprints
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) (byte : Byte Tag)
