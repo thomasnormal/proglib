@@ -33,7 +33,7 @@ class Audit4Rows(unittest.TestCase):
         """
         cases = json.loads(CASES.read_text())["cases"]
         names = ["audit4_dep3i", "audit4_dep10i", "audit4_nest_dep_p1k",
-                 "a5_long_answer"]
+                 "audit4_q_init_mem", "a5_long_answer"]
         available = {case["name"] for case in cases}
         self.assertTrue(set(names) <= available)
         command = [sys.executable, str(REPO / "harness/sv/diff_test2.py"),
