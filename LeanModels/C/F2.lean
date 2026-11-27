@@ -12997,6 +12997,25 @@ theorem storeByte_result_contract
           · refine ⟨allocation, rfl, hlive, Nat.lt_of_not_ge hoffset, ?_⟩
             simpa [storeByte, hlookup, hlive, hoffset] using hresult.symm
 
+theorem storeByte_success_contract
+    (store : Store Tag State) (id offset : Nat) (byte : Byte Tag)
+    (result : Store Tag State × Footprint) :
+    storeByte store id offset byte = some result ↔
+      ∃ allocation,
+        lookup store id = some allocation ∧
+        allocation.live = true ∧
+        offset < allocation.bytes.length ∧
+        result = ({ store with allocations := store.allocations.map (fun entry =>
+          if entry.1 == id then
+            (id, { allocation with bytes := listSet allocation.bytes offset byte })
+          else entry) },
+          footprint .write { allocation := id, offset := offset, width := 1 }) := by
+  constructor
+  · exact storeByte_result_contract store id offset byte result
+  · rintro ⟨allocation, hlookup, hlive, hoffset, hresult⟩
+    subst result
+    simp [storeByte, hlookup, hlive, hoffset]
+
 theorem storeByte_failure_contract
     (store : Store Tag State) (id offset : Nat) (byte : Byte Tag) :
     storeByte store id offset byte = none ↔
