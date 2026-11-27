@@ -456,7 +456,7 @@ def main():
         wanted = set(args.case)
         cases = [c for c in cases if c["name"] in wanted]
         if not cases:
-            print("no case named %r" % args.case)
+            print("no case named %s" % ", ".join("'%s'" % c for c in args.case))
             return 2
 
     # OPS-148 shape (d): this printed "all 0 case(s) passed" and exited 0.
