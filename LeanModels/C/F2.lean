@@ -3431,6 +3431,20 @@ theorem mergeBytes_contract
   rcases hresult with ⟨hconditions, hEq⟩
   exact ⟨hconditions.1.1, hconditions.1.2, hconditions.2, hEq.symm⟩
 
+theorem mergeBytes_failure_contract
+    (old : List (Byte Tag)) (values masks choices : List UInt8) :
+    mergeBytes old values masks choices = none ↔
+      old.length ≠ values.length ∨
+      values.length ≠ masks.length ∨
+      masks.length ≠ choices.length := by
+  by_cases hold : old.length = values.length
+  · by_cases hvalues : values.length = masks.length
+    · by_cases hmasks : masks.length = choices.length
+      · simp [mergeBytes, hold, hvalues, hmasks]
+      · simp [mergeBytes, hold, hvalues, hmasks]
+    · simp [mergeBytes, hold, hvalues]
+  · simp [mergeBytes, hold]
+
 theorem mergeFootprint_access_count
     (allocation offset width : Nat) :
     (mergeFootprint allocation offset width).accesses.length = 1 := by
