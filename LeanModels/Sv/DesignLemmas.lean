@@ -13,6 +13,9 @@ They are the hand-proof entry points used by hierarchy and generate proofs.
 
 * `PDesign.instantiateRec_of_ok` splits one hierarchical instantiation into
   its parameter environment, declarations, elements, and generated processes.
+* `CoreMemDesign.compileAssigns_getElem_of_scalar` projects one scalar
+  continuous assignment from the source process array into the corresponding
+  compiled-expression cache entry without unfolding the cache globally.
 * `GenItem.expandH_genFor_ascending_flatMap` gives one structural induction
   step for an ascending generate-for; `generated_child_family`,
   `generated_child_nested_family`, and `generated_child_at_prefix` expose the
