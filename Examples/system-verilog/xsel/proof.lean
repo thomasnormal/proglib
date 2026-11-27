@@ -30,10 +30,12 @@ The design literal below is a hand-built copy of the extracted envelope;
 equal to `Examples/system-verilog/xsel/xsel.sv.json`.
 -/
 import LeanModels.Sv.ToggleExample
+import LeanModels.Sv.Kernel.XResolve
 
 namespace Examples.«system-verilog».xsel.proof
 
 open LeanModels.Sv
+open LeanModels.Sv.Kernel
 
 /-- `Examples/system-verilog/xsel/xsel.sv` (`always_comb` if/else mux on `sel`),
 hand-transcribed. -/
