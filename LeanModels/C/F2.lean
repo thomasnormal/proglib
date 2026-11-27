@@ -7436,6 +7436,15 @@ theorem pointerEqual_contract (left right : Pointer Tag) (choice : EqualityChoic
     | .unequal => pointerEqual left right choice = false := by
   cases choice <;> rfl
 
+theorem pointerEqual_failure_contract (left right : Pointer Tag) (choice : EqualityChoice) :
+    pointerEqual left right choice = false ↔
+      match choice with
+      | .equal => left.address ≠ right.address
+      | .unequal => True := by
+  cases choice
+  · simp [pointerEqual, beq_iff_eq]
+  · simp [pointerEqual]
+
 def pairedPointerEqual (resolve : AllocId → Nat)
     (left right : Pointer Tag) (choice : EqualityChoice) : Bool :=
   pointerEqual (renamePointer resolve left) (renamePointer resolve right) choice =
