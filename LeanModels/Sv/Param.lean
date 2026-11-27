@@ -1463,7 +1463,13 @@ same mutual block as `ctype` so the kernel sees the recursion through the
 def ctypeList (env : IEnv) : List PExpr → Except String (List (Nat × Bool))
   | [] => .ok []
   | p :: ps => do
-      let ty ← ctype env p
+      -- IEEE 1800-2023 §5.7.1 gives an unbased unsized literal one bit
+      -- when it is an operand of a concatenation.  Keep that exception
+      -- local to this list worker.  A fill outside a concatenation still
+      -- needs its assignment context and remains loud in `ctype`.
+      let ty ← match p with
+        | .fill _ => .ok (1, false)
+        | _ => ctype env p
       let rest ← ctypeList env ps
       .ok (ty :: rest)
 
@@ -1471,14 +1477,22 @@ def ctypeList (env : IEnv) : List PExpr → Except String (List (Nat × Bool))
 def evalAtList (env : IEnv) : List PExpr → Except String (List (Nat × Int))
   | [] => .ok []
   | p :: ps => do
-      let pty ← ctype env p
+      let pty ← match p with
+        | .fill _ => .ok (1, false)
+        | _ => ctype env p
       -- A concatenation operand is self-determined, so a conversion on one
       -- is a real conversion to the width it writes (a member of an
       -- assignment pattern, §10.9.2).  `ctype` reads conversions as
       -- transparent; where the written width is not the operand's own at
       -- THIS point the two readings differ, and the operand is refused.
       convPartOk p pty.1
-      let v ← evalAt env pty p
+      let v ← match p with
+        | .fill b =>
+            match b with
+            | .l0 => .ok 0
+            | .l1 => .ok 1
+            | .lx | .lz => .error "x/z literal in a constant context"
+        | _ => evalAt env pty p
       let rest ← evalAtList env ps
       .ok ((pty.1, v) :: rest)
 

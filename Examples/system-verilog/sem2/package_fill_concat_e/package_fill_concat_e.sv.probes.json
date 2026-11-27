@@ -1,0 +1,666 @@
+{
+ "schema_version": "sv-0.2-probes",
+ "top": "package_fill_concat_e",
+ "envelope": "package_fill_concat_e.sv.json",
+ "source_files": [
+  {
+   "path": "Examples/system-verilog/sem2/package_fill_concat_e/package_fill_concat_e.sv",
+   "sha256": "e8a4656d764c61f42b968d025594026d6f007d47a539b541d28d5604234d8610"
+  }
+ ],
+ "probe_points": "W=4;W=8",
+ "points": [
+  {
+   "overrides": [
+    {
+     "name": "W",
+     "value": 4
+    }
+   ],
+   "frontend_errors": 0,
+   "module": {
+    "kind": "Module",
+    "name": "package_fill_concat_e",
+    "imports": [],
+    "params": [
+     {
+      "kind": "ParameterDecl",
+      "name": "W",
+      "type": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "Int",
+          "value": 31,
+          "resolved_width": 32
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": 32
+         }
+        }
+       ],
+       "resolved": 32
+      },
+      "default": {
+       "kind": "Int",
+       "value": 4,
+       "resolved_width": 32
+      },
+      "resolved": 4,
+      "string": false
+     },
+     {
+      "kind": "LocalParam",
+      "name": "K0",
+      "type": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "ParamRef",
+          "name": "W"
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 5
+      },
+      "expr": {
+       "kind": "Resize",
+       "width": 5,
+       "operand": {
+        "kind": "Concat",
+        "width": 2,
+        "parts": [
+         {
+          "kind": "Fill",
+          "bit": "0",
+          "resolved_width": 1
+         },
+         {
+          "kind": "Literal",
+          "width": 1,
+          "bits": "1"
+         }
+        ]
+       }
+      },
+      "resolved": 1,
+      "string": false,
+      "signed": false
+     },
+     {
+      "kind": "LocalParam",
+      "name": "K1",
+      "type": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "ParamRef",
+          "name": "W"
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 5
+      },
+      "expr": {
+       "kind": "Resize",
+       "width": 5,
+       "operand": {
+        "kind": "Concat",
+        "width": 2,
+        "parts": [
+         {
+          "kind": "Literal",
+          "width": 1,
+          "bits": "1"
+         },
+         {
+          "kind": "Fill",
+          "bit": "0",
+          "resolved_width": 1
+         }
+        ]
+       }
+      },
+      "resolved": 2,
+      "string": false,
+      "signed": false
+     },
+     {
+      "kind": "LocalParam",
+      "name": "U0",
+      "type": null,
+      "expr": {
+       "kind": "Concat",
+       "width": 2,
+       "parts": [
+        {
+         "kind": "Fill",
+         "bit": "0",
+         "resolved_width": 1
+        },
+        {
+         "kind": "Literal",
+         "width": 1,
+         "bits": "1"
+        }
+       ]
+      },
+      "resolved": 1,
+      "string": false
+     },
+     {
+      "kind": "LocalParam",
+      "name": "U1",
+      "type": null,
+      "expr": {
+       "kind": "Concat",
+       "width": 2,
+       "parts": [
+        {
+         "kind": "Literal",
+         "width": 1,
+         "bits": "1"
+        },
+        {
+         "kind": "Fill",
+         "bit": "1",
+         "resolved_width": 1
+        }
+       ]
+      },
+      "resolved": 3,
+      "string": false
+     }
+    ],
+    "types": [],
+    "ports": [
+     {
+      "kind": "Port",
+      "name": "k0",
+      "dir": "out",
+      "width": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "ParamRef",
+          "name": "W"
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 5
+      }
+     },
+     {
+      "kind": "Port",
+      "name": "k1",
+      "dir": "out",
+      "width": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "ParamRef",
+          "name": "W"
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 5
+      }
+     },
+     {
+      "kind": "Port",
+      "name": "u0",
+      "dir": "out",
+      "width": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "Int",
+          "value": 1,
+          "resolved_width": null
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 2
+      }
+     },
+     {
+      "kind": "Port",
+      "name": "u1",
+      "dir": "out",
+      "width": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "Int",
+          "value": 1,
+          "resolved_width": null
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 2
+      }
+     }
+    ],
+    "decls": [],
+    "processes": [
+     {
+      "kind": "Assign",
+      "target": {
+       "kind": "Ident",
+       "width": 5,
+       "name": "k0"
+      },
+      "value": {
+       "kind": "ParamRef",
+       "name": "K0"
+      }
+     },
+     {
+      "kind": "Assign",
+      "target": {
+       "kind": "Ident",
+       "width": 5,
+       "name": "k1"
+      },
+      "value": {
+       "kind": "ParamRef",
+       "name": "K1"
+      }
+     },
+     {
+      "kind": "Assign",
+      "target": {
+       "kind": "Ident",
+       "width": 2,
+       "name": "u0"
+      },
+      "value": {
+       "kind": "ParamRef",
+       "name": "U0"
+      }
+     },
+     {
+      "kind": "Assign",
+      "target": {
+       "kind": "Ident",
+       "width": 2,
+       "name": "u1"
+      },
+      "value": {
+       "kind": "ParamRef",
+       "name": "U1"
+      }
+     }
+    ],
+    "generates": [],
+    "others": []
+   },
+   "instances": []
+  },
+  {
+   "overrides": [
+    {
+     "name": "W",
+     "value": 8
+    }
+   ],
+   "frontend_errors": 0,
+   "module": {
+    "kind": "Module",
+    "name": "package_fill_concat_e",
+    "imports": [],
+    "params": [
+     {
+      "kind": "ParameterDecl",
+      "name": "W",
+      "type": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "Int",
+          "value": 31,
+          "resolved_width": 32
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": 32
+         }
+        }
+       ],
+       "resolved": 32
+      },
+      "default": {
+       "kind": "Int",
+       "value": 8,
+       "resolved_width": 32
+      },
+      "resolved": 8,
+      "string": false
+     },
+     {
+      "kind": "LocalParam",
+      "name": "K0",
+      "type": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "ParamRef",
+          "name": "W"
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 9
+      },
+      "expr": {
+       "kind": "Resize",
+       "width": 9,
+       "operand": {
+        "kind": "Concat",
+        "width": 2,
+        "parts": [
+         {
+          "kind": "Fill",
+          "bit": "0",
+          "resolved_width": 1
+         },
+         {
+          "kind": "Literal",
+          "width": 1,
+          "bits": "1"
+         }
+        ]
+       }
+      },
+      "resolved": 1,
+      "string": false,
+      "signed": false
+     },
+     {
+      "kind": "LocalParam",
+      "name": "K1",
+      "type": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "ParamRef",
+          "name": "W"
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 9
+      },
+      "expr": {
+       "kind": "Resize",
+       "width": 9,
+       "operand": {
+        "kind": "Concat",
+        "width": 2,
+        "parts": [
+         {
+          "kind": "Literal",
+          "width": 1,
+          "bits": "1"
+         },
+         {
+          "kind": "Fill",
+          "bit": "0",
+          "resolved_width": 1
+         }
+        ]
+       }
+      },
+      "resolved": 2,
+      "string": false,
+      "signed": false
+     },
+     {
+      "kind": "LocalParam",
+      "name": "U0",
+      "type": null,
+      "expr": {
+       "kind": "Concat",
+       "width": 2,
+       "parts": [
+        {
+         "kind": "Fill",
+         "bit": "0",
+         "resolved_width": 1
+        },
+        {
+         "kind": "Literal",
+         "width": 1,
+         "bits": "1"
+        }
+       ]
+      },
+      "resolved": 1,
+      "string": false
+     },
+     {
+      "kind": "LocalParam",
+      "name": "U1",
+      "type": null,
+      "expr": {
+       "kind": "Concat",
+       "width": 2,
+       "parts": [
+        {
+         "kind": "Literal",
+         "width": 1,
+         "bits": "1"
+        },
+        {
+         "kind": "Fill",
+         "bit": "1",
+         "resolved_width": 1
+        }
+       ]
+      },
+      "resolved": 3,
+      "string": false
+     }
+    ],
+    "types": [],
+    "ports": [
+     {
+      "kind": "Port",
+      "name": "k0",
+      "dir": "out",
+      "width": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "ParamRef",
+          "name": "W"
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 9
+      }
+     },
+     {
+      "kind": "Port",
+      "name": "k1",
+      "dir": "out",
+      "width": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "ParamRef",
+          "name": "W"
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 9
+      }
+     },
+     {
+      "kind": "Port",
+      "name": "u0",
+      "dir": "out",
+      "width": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "Int",
+          "value": 1,
+          "resolved_width": null
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 2
+      }
+     },
+     {
+      "kind": "Port",
+      "name": "u1",
+      "dir": "out",
+      "width": {
+       "kind": "PackedType",
+       "packed": [
+        {
+         "msb": {
+          "kind": "Int",
+          "value": 1,
+          "resolved_width": null
+         },
+         "lsb": {
+          "kind": "Int",
+          "value": 0,
+          "resolved_width": null
+         }
+        }
+       ],
+       "resolved": 2
+      }
+     }
+    ],
+    "decls": [],
+    "processes": [
+     {
+      "kind": "Assign",
+      "target": {
+       "kind": "Ident",
+       "width": 9,
+       "name": "k0"
+      },
+      "value": {
+       "kind": "ParamRef",
+       "name": "K0"
+      }
+     },
+     {
+      "kind": "Assign",
+      "target": {
+       "kind": "Ident",
+       "width": 9,
+       "name": "k1"
+      },
+      "value": {
+       "kind": "ParamRef",
+       "name": "K1"
+      }
+     },
+     {
+      "kind": "Assign",
+      "target": {
+       "kind": "Ident",
+       "width": 2,
+       "name": "u0"
+      },
+      "value": {
+       "kind": "ParamRef",
+       "name": "U0"
+      }
+     },
+     {
+      "kind": "Assign",
+      "target": {
+       "kind": "Ident",
+       "width": 2,
+       "name": "u1"
+      },
+      "value": {
+       "kind": "ParamRef",
+       "name": "U1"
+      }
+     }
+    ],
+    "generates": [],
+    "others": []
+   },
+   "instances": []
+  }
+ ]
+}
