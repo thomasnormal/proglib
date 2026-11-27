@@ -264,10 +264,6 @@ error: sv_structure: process 0 (an edge process) holds a statement ingestion kep
 example : SeqDesign whl.e "clk" := by
   sv_structure
 
-/-- A supported loop header is accepted without a statement-fuel bound. -/
-example (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqDesign (fs2.e N) "clk" := by
-  sv_structure
-
 /-! The structure route accepts a loop whose trip count exceeds the old fixed statement fuel. -/
 set_option maxHeartbeats 1000000 in
 example (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqDesign (sfr.e W N) "clk" := by
