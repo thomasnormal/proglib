@@ -12726,6 +12726,16 @@ def storeTransitionCorresponds (resolve : AllocId → Nat)
     targetResult.1 = renameStore resolve sourceResult.1 ∧
     targetResult.2 = sourceResult.2
 
+theorem storeTransitionCorresponds_contract
+    (resolve : AllocId → Nat)
+    (source target : Store Tag State)
+    (sourceResult targetResult : Store Tag State × Footprint) :
+    storeTransitionCorresponds resolve source target sourceResult targetResult ↔
+      target = renameStore resolve source ∧
+      targetResult.1 = renameStore resolve sourceResult.1 ∧
+      targetResult.2 = sourceResult.2 := by
+  rfl
+
 def pairedStoreByte (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : AllocId) (byte : Byte Tag) :
     Option ((Store Tag State × Footprint) × (Store Tag State × Footprint)) := do
@@ -12978,6 +12988,16 @@ def loadTransitionCorresponds (resolve : AllocId → Nat)
   target = renameStore resolve source ∧
     targetResult.1 = renameByte resolve sourceResult.1 ∧
     targetResult.2 = sourceResult.2
+
+theorem loadTransitionCorresponds_contract
+    (resolve : AllocId → Nat)
+    (source target : Store Tag State)
+    (sourceResult targetResult : Byte Tag × Footprint) :
+    loadTransitionCorresponds resolve source target sourceResult targetResult ↔
+      target = renameStore resolve source ∧
+      targetResult.1 = renameByte resolve sourceResult.1 ∧
+      targetResult.2 = sourceResult.2 := by
+  rfl
 
 def pairedLoadByte (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat) :
