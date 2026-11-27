@@ -2284,8 +2284,9 @@ def isCharacterType : QualType → Bool
   | .cBuiltinKind .char | .cBuiltinKind .signedChar | .cBuiltinKind .unsignedChar => true
   | _ => false
 
-def cAliasCompatibleStructured : QualType → QualType → Bool := fun used eff =>
-  isCharacterType used || used.unqualified == eff.unqualified
+def cAliasCompatibleStructured : QualType → QualType → Bool
+  | used, .array element _ => cAliasCompatibleStructured used element
+  | used, effective => isCharacterType used || used.unqualified == effective.unqualified
 
 def cAliasModel : AliasModel where
   compatible := fun _ _ => false

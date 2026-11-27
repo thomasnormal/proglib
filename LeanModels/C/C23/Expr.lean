@@ -1123,7 +1123,14 @@ def loadPtrIntOrInt (m : Mem) (alias : Mem.AliasModel) (p : Ptr)
     (structured : Option LeanModels.Clang.QualType := none) : MRes CVal :=
   match Mem.loadPtrInt m p with
   | .ok q => .ok (.ptrInt q)
-  | .error _ => Mem.loadIntChecked m alias p t ty structured
+  | .error _ =>
+      -- A parser-observed uintptr_t/intptr_t object carries either the
+      -- preserved pointer token or its ordinary integer representation.
+      -- Its declared type is already the access type, so use the raw integer
+      -- decoder after the token probe.  Applying the unrelated pointee
+      -- effective-type check here rejects typedef-backed pointer round trips
+      -- before the representation rule can run.
+      Mem.loadInt m p t
 
 /-- C23 §6.5.1p7 permits reading pointer representations through a character
 lvalue. The current store lacks a placement oracle for non-null addresses
