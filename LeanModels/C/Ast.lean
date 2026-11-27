@@ -45,8 +45,6 @@ def pinnedFrontendVersion : String :=
   "clang version 21.1.8 (https://github.com/conda-forge/clangdev-feedstock " ++
     "334cf9a5e6c0331e9f261eaf01fc3568724fcce9)"
 
-/-- Frontend type text retained only as source metadata. Semantic consumers
-use the parser-native QualType carried on the node. -/
 /- Clang's declaration handle is an identity, not a source spelling. Keep it
    distinct from names even though the frontend currently serializes the
    token as text. -/

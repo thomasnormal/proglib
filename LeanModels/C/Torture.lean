@@ -159,7 +159,7 @@ returned unchanged rather than dividing by zero. -/
 def roundUp (off al : Nat) : Nat :=
   if al == 0 then off else ((off + al - 1) / al) * al
 
-/-- The unit's record declarations, tag → members in DECLARATION ORDER.
+/- The unit's record declarations, tag → members in DECLARATION ORDER.
 §6.7.2.1p18 requires increasing addresses in declaration order, so the order
 is the standard's and not a convenience.
 
