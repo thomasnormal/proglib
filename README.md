@@ -432,7 +432,12 @@ theorem counter_refines
     (hknown : ∀ (σ : ScheduleOracle) (stim tr : List SvState), Runs counterDesign σ stim tr →
       ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ResetKnownFrom tr i) :
     counterDesign ⊑@clk[from rst] counterModel := by
-  sv_prove [counter_from_reset, sampledRst_eq, counterModelRun_eq, counter_firstOutput, hknown]
+  refine RefinesFromReset.of_reset_column 0 (fun _ => rfl) ?_
+  intro σ fuel stim tr hrun i s hi hr
+  have hcol := counter_from_reset σ hrun hi hr
+  rw [sampledRst_eq] at hcol
+  simpa [counter_firstOutput, counterModelRun_eq] using
+    (hcol (hknown σ stim tr ⟨fuel, hrun⟩ i s hi hr))
 ```
 
 All six extracted designs are proved in this layout: `swap_nba`
