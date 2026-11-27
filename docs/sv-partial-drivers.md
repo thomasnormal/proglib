@@ -37,6 +37,23 @@ signals. It also supplies a frame equality outside the root. A generated loop
 is handled by induction on its symbolic index range; it is never unrolled at a
 fixed parameter.
 
+## Output concatenations
+
+An output concatenation is a related but distinct certificate. Its target is an
+ordered list of packed leaves, not one root: for
+`assign {out_mask, out_data} = row_q`, the certificate records each leaf's
+root and static width, proves that the leaves have distinct roots and that the
+sum of their widths is the source width, and records the source slice assigned
+to each leaf. The source expression is evaluated once at the source width;
+the target leaves receive their ordered slices as one source-shaped operation.
+
+The settle theorem for this certificate is an atomic concat-window equation:
+the ordinary `settleAssign` result equals the state obtained by applying the
+ordered slices to the target leaves, with a frame equality for every unrelated
+signal. A concat with overlapping leaves, unresolved widths, dynamic bounds,
+or a target that mixes a whole signal with one of its slices remains refused;
+it must not be silently rewritten into independent assignments.
+
 Overlapping windows, dynamic indices, mixed whole/partial drivers, unresolved
 bounds, and reads of a target that create a real dependency cycle remain
 refusals. Output concatenations are a separate source-shaped certificate and
