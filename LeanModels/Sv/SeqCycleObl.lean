@@ -1152,6 +1152,33 @@ theorem CoreMemDesign.combStateOfView_coherent (E : CoreMemDesign) (v : SvState)
       (fun j hj => (E.scalarStore_cacheOf (E.storeFromView v) j hj).symm)
     exact E.typed_storeFromView v
 
+/-- The view-only comb runner exposes the coherent state run it projects. -/
+theorem CoreMemDesign.runCombAtV_coherent_of_each
+    {E : CoreMemDesign} {before beforeView current currentView : SvState}
+    {index : Nat} {procs : List CoreMemProc} {v' : SvState}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hm0 : E.MemCoherent E.initial.memory)
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body
+      | .latch _ => False
+      | _ => True)
+    (h : E.runCombAtV before beforeView current currentView index procs = .ok v') :
+    ∃ st', E.runCombAt (E.combStateOfView beforeView) beforeView
+        (E.combStateOfView currentView) currentView index procs = .ok st' ∧
+      E.Coherent st' ∧ E.scalar.view st'.scalar = v' := by
+  unfold CoreMemDesign.runCombAtV at h
+  cases hr : E.runCombAt (E.combStateOfView beforeView) beforeView
+      (E.combStateOfView currentView) currentView index procs with
+  | timeout => simp [hr] at h
+  | unsupported msg => simp [hr] at h
+  | ok st' =>
+      simp only [hr, Res.ok_bind, Res.ok.injEq] at h
+      obtain rfl := h
+      have hc := E.combStateOfView_coherent currentView
+      have hrun := E.runCombAt_coherent_of_each hnd h4 hc
+        (by simpa [CoreMemDesign.combStateOfView] using hm0) hproc hr
+      exact ⟨st', hr, hrun.1, rfl⟩
+
 /-! The comb-process runner only changes state through an admitted source
 statement.  This induction is the process-level hand lemma needed by the
 active-region profile: scheduling readiness may skip a process, while a
