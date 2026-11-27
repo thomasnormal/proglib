@@ -2892,6 +2892,35 @@ theorem pairedStoreUnionLoadMetadataByte_refusal_target_load
     pairedStoreUnionLoadMetadataByte resolve id metadata offset byte = none := by
   simp [pairedStoreUnionLoadMetadataByte, htarget, hload]
 
+theorem pairedStoreUnionLoadMetadataByte_guard_refusal
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (byte : Byte Tag)
+    (sourceStore targetStore : AllocationMetadata Tag State TypeId × Footprint)
+    (sourceLoad targetLoad : Byte Tag × Footprint)
+    (hsource : storeMetadataByte metadata offset byte = some sourceStore)
+    (htarget : storeMetadataByte (renameMetadata resolve id metadata) offset
+      (renameByte resolve byte) = some targetStore)
+    (hsourceLoad : unionLoadMetadataByte sourceStore.1 offset = some sourceLoad)
+    (htargetLoad : unionLoadMetadataByte targetStore.1 offset = some targetLoad)
+    (hguard : (targetStore.1 == renameMetadata resolve id sourceStore.1 &&
+      targetStore.2 == sourceStore.2 &&
+      targetLoad.1 == renameByte resolve sourceLoad.1 &&
+      targetLoad.2 == sourceLoad.2) = false) :
+    pairedStoreUnionLoadMetadataByte resolve id metadata offset byte = none := by
+  have hguard' :
+      (targetStore.1 == renameMetadata resolve id sourceStore.1 &&
+        targetStore.2 == sourceStore.2 &&
+        targetLoad.1 == renameByte resolve sourceLoad.1 &&
+        targetLoad.2 == sourceLoad.2) ≠ true := by
+    intro htrue
+    rw [htrue] at hguard
+    simp at hguard
+  simp [pairedStoreUnionLoadMetadataByte, hsource, htarget, hsourceLoad,
+    htargetLoad]
+  grind
+
 theorem pairedStoreUnionLoadMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
