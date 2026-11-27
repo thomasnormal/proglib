@@ -1389,6 +1389,64 @@ theorem CoreMemDesign.runCombAtV_of_noComb
           have hbad := hconverted (.unsupported kind text) (by simp) kind text
           simp at hbad
 
+theorem CoreMemDesign.runCombPassV_of_noComb
+    {E : CoreMemDesign} {before current : SvState} {procs : List CoreMemProc}
+    (hno : ∀ p ∈ procs, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    (hconverted : ∀ p ∈ procs, ∀ kind text, p ≠ .unsupported kind text) :
+    E.runCombPassV before current procs = .ok (E.matV current) := by
+  unfold CoreMemDesign.runCombPassV
+  exact E.runCombAtV_of_noComb hno hconverted
+
+theorem CoreMemDesign.runCombQuiesceV_of_noComb
+    {E : CoreMemDesign} {n : Nat} {before current : SvState} {procs : List CoreMemProc}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hbefore : E.matV before = before) (hcurrent : E.matV current = current)
+    (hno : ∀ p ∈ procs, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    (hconverted : ∀ p ∈ procs, ∀ kind text, p ≠ .unsupported kind text) :
+    E.runCombQuiesceV (n + 2) before current procs = .ok (E.matV current) := by
+  induction n generalizing before current with
+  | zero =>
+      change (do
+        let next ← E.runCombPassV before current procs
+        if before == next then .ok next
+        else E.runCombQuiesceV 1 current next procs) = .ok (E.matV current)
+      rw [E.runCombPassV_of_noComb hno hconverted]
+      cases heq : before == E.matV current with
+      | true =>
+          have hEq : before = E.matV current := beq_iff_eq.mp heq
+          simp [hEq]
+      | false =>
+          have hNe : before ≠ E.matV current := beq_eq_false_iff_ne.mp heq
+          simp only [Res.ok_bind, heq, Bool.false_eq_true, ↓reduceIte]
+          change (do
+            let next ← E.runCombPassV current (E.matV current) procs
+            if current == next then .ok next
+            else E.runCombQuiesceV 0 (E.matV current) next procs) = .ok (E.matV current)
+          rw [E.runCombPassV_of_noComb hno hconverted]
+          have hmat : E.matV (E.matV current) = E.matV current :=
+            by simpa [hcurrent]
+          have hcurEq : current = E.matV current := hcurrent.symm
+          have hcur : (current == E.matV current) = true := beq_iff_eq.mpr hcurEq
+          simp only [Res.ok_bind, hmat, hcur, ↓reduceIte]
+  | succ n ih =>
+      change (do
+        let next ← E.runCombPassV before current procs
+        if before == next then .ok next
+        else E.runCombQuiesceV (n + 2) current next procs) = .ok (E.matV current)
+      rw [E.runCombPassV_of_noComb hno hconverted]
+      cases heq : before == E.matV current with
+      | true =>
+          have hEq : before = E.matV current := beq_iff_eq.mp heq
+          simp [hEq]
+      | false =>
+          have hNe : before ≠ E.matV current := beq_eq_false_iff_ne.mp heq
+          simp only [Res.ok_bind, heq, Bool.false_eq_true, ↓reduceIte]
+          have hmat : E.matV (E.matV current) = E.matV current :=
+            by simpa [hcurrent]
+          simpa [hcurrent, hmat] using
+            (ih (before := current) (current := E.matV current)
+              hcurrent hmat)
+
 /-! The view-only quiescence loop preserves a coherent realization of its
 returned view.  The materialization premises are explicit because the view
 runner compares source-shaped views, while the retained state stores the
