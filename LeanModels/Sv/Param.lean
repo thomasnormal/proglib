@@ -4852,7 +4852,13 @@ where
           | .ok p => p
           | .unsupported _ | .timeout => env0
       | .unsupported _ | .timeout => env0
-    let (localMsgs, env1) := checkLocals envP d.localParams
+    -- Keep every parameter that succeeded before the failing default in the
+    -- environment used by the independent declaration checks.  Dropping
+    -- those bindings would turn a real width into a spurious "unbound
+    -- parameter" diagnostic and would prevent the hierarchy sidecar's
+    -- memory-only exception from recognising the intended default failure.
+    let envD := bindDefaultParams envP d.params
+    let (localMsgs, env1) := checkLocals envD d.localParams
     let env2 :=
       match bindEnums env1 d.enums with
       | .ok e => e
@@ -4862,6 +4868,19 @@ where
       { env2 with widths := declWidths env2 d.decls }
       (PDesign.surfaceFuel []) d.generates
     packageNotes d (head :: (checkPackageParams envP d.packageParams ++ localMsgs ++ declMsgs ++ genMsgs))
+
+  bindDefaultParams (env : IEnv) : List PParam → IEnv
+    | [] => env
+    | p :: ps =>
+        match p.default? with
+        | none => bindDefaultParams env ps
+        | some e =>
+            match defaultValAt env p e with
+            | .error _ => bindDefaultParams env ps
+            | .ok v =>
+                match bindParams env [p] [v] with
+                | .ok env' => bindDefaultParams env' ps
+                | .error _ => bindDefaultParams env ps
 
   declWidths (env : IEnv) (decls : List PDecl) : List (String × Nat) :=
     match buildDecls env decls with

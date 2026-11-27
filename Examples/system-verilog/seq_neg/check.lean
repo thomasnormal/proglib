@@ -79,7 +79,7 @@ default differential refusal, even though the probe sidecar records valid
 W=2 and W=4 child observations. This is the SERV register-file wall. -/
 /--
 error: load_design_sv2: 'Examples/system-verilog/seq_neg/serv_child_default.sv.json' REFUSED — module 'serv_child_ram' of the hierarchy: our defaults elaboration disagrees with the envelope's `resolved` metadata (Lean vs slang differential):
-  defaults: parameter 'depth' default: division by zero in a constant context (reads x)
+  defaults: parameter 'depth' default: division by zero
 -/
 #guard_msgs in
 load_design_sv2 servChildDefault from "Examples/system-verilog/seq_neg/serv_child_default.sv.json"
