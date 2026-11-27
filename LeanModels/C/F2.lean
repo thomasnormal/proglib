@@ -3519,6 +3519,24 @@ theorem pairedMergeByte_failure_contract
         renameByte resolve (mergeByte old mask value choice)) = false := by
   simp [pairedMergeByte]
 
+theorem pairedMergeByte_success_contract
+    [BEq Tag] (resolve : AllocId → Nat) (old : Byte Tag)
+    (mask value choice : UInt8) (result : Byte Tag × Byte Tag) :
+    pairedMergeByte resolve old mask value choice = some result ↔
+      (mergeByte (renameByte resolve old) mask value choice ==
+        renameByte resolve (mergeByte old mask value choice)) = true ∧
+      result = (mergeByte old mask value choice,
+        mergeByte (renameByte resolve old) mask value choice) := by
+  by_cases hguard :
+      (mergeByte (renameByte resolve old) mask value choice ==
+        renameByte resolve (mergeByte old mask value choice)) = true
+  · simp [pairedMergeByte, hguard, eq_comm]
+  · have hguard' :
+        (mergeByte (renameByte resolve old) mask value choice ==
+          renameByte resolve (mergeByte old mask value choice)) = false := by
+      exact Bool.eq_false_iff.mpr hguard
+    simp [pairedMergeByte, hguard, hguard']
+
 def copySnapshot (source destination : List (Byte Tag)) : Option (List (Byte Tag)) :=
   if source.length == destination.length then some source else none
 
