@@ -887,8 +887,12 @@ macro "sv_seq_inst_pass_cfg" d:ident " [" ls:Lean.Parser.Tactic.simpLemma,* "]" 
       LeanModels.Sv.Kernel.coreMemSignalNamesList,
       $ls,*] at $h:ident)
 
+/-! The admission predicates in the first pass are closed Boolean checks.  Asking simp's generic `decide` discharge to
+re-prove them at every process also unfolds the whole process list repeatedly; ordinary reduction plus the named
+equations above is sufficient and keeps each check local to the term being normalized.  The follow-up pass retains
+`decide` for sized constants and conditional-generate arms, where it is part of the arithmetic normalization route. -/
 macro "sv_seq_inst_pass" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" " at " h:ident : tactic =>
-  `(tactic| sv_seq_inst_pass_cfg true [$ls,*] at $h:ident)
+  `(tactic| sv_seq_inst_pass_cfg false [$ls,*] at $h:ident)
 
 /-- The arithmetic pass: side conditions on the parameters, by `omega` from the context. -/
 macro "sv_seq_arith_pass" " at " h:ident : tactic =>
