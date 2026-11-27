@@ -9768,6 +9768,19 @@ theorem placementOf_result_contract
       left
       exact ⟨allocation, rfl, by simpa [placementOf, hlookup] using hresult.symm⟩
 
+theorem placementOf_failure_contract
+    (store : Store Tag State) (id : AllocId) :
+    placementOf store id = none ↔
+      lookup store id = none ∨
+      (∃ allocation,
+        lookup store id = some allocation ∧ allocation.address = none) := by
+  cases hlookup : lookup store id with
+  | none => simp [placementOf, hlookup]
+  | some allocation =>
+      cases haddress : allocation.address with
+      | none => simp [placementOf, hlookup, haddress]
+      | some address => simp [placementOf, hlookup, haddress]
+
 theorem placementOf_empty
     {Tag State : Type} (id : AllocId) :
     placementOf (Tag := Tag) (State := State)
