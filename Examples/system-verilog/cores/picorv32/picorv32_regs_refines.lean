@@ -65,6 +65,11 @@ private theorem regs_evalSized_not_signal (env : IEnv) (n : String) (msb lsb : P
       .error s!"signal '{n}' in a constant context" := by
   rfl
 
+private theorem regs_zero_scan :
+    (Array.ofFn (n := 32) (fun _ : Fin 32 => Logic.l0)).any
+        (fun a => a == Logic.l1) 0 1 = false := by
+  simp [Array.any, Array.anyM, Array.anyM.loop]
+
 def picorv32_regs_quiet_view (wd rd1 rd2 : LVec) : SvState :=
   [("clk", LVec.ofNat 1 0), ("wen", LVec.ofNat 1 0), ("waddr", LVec.ofNat 6 1),
    ("raddr1", LVec.ofNat 6 1), ("raddr2", LVec.ofNat 6 2), ("wdata", wd),
@@ -125,12 +130,18 @@ theorem picorv32_regs_write_read_step {E : CoreMemDesign} (hE : regs.e = .ok E)
       (LVec.ofNat 6 1) (LVec.ofNat 6 1) (LVec.ofNat 6 2) wd rd1 rd2) mv
       [("clk", LVec.ofNat 1 1), ("wen", LVec.ofNat 1 1), ("waddr", LVec.ofNat 6 1),
        ("raddr1", LVec.ofNat 6 1), ("raddr2", LVec.ofNat 6 2), ("wdata", wd)] using hE
-      [picorv32_regs_write_view, hwd, hrd1, hrd2, regs_evalSized_not_signal]
+      [picorv32_regs_write_view, hwd, hrd1, hrd2, regs_evalSized_not_signal,
+       LVec.xVec]
   rw [hcyc]
   have hpos : isPosedge (LVec.ofBitVec 0#1).bits[0] (LVec.ofBitVec 1#1).bits[0] = true := by rfl
   simp [hpos, picorv32_regs_write_view, memRd, memIss, commitMemV,
     seqK_index?, hmv, LVec.resizeU_of_width]
-  all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv, isPosedge]
+  all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv, isPosedge,
+    Array.any, Array.anyM, Array.anyM.loop]
+  all_goals
+    change (Array.ofFn (n := 32) (fun _ : Fin 32 => Logic.l0)).any
+      (fun a => a == Logic.l1) 0 1 = false
+    simp [Array.any, Array.anyM, Array.anyM.loop]
 
 /-! A concrete zero-register row of the loaded register-file leaf.  The
     source's `~address[4:0]` maps address zero to the out-of-range label 31.
@@ -167,7 +178,8 @@ theorem picorv32_regs_zero_write_step {E : CoreMemDesign} (hE : regs.e = .ok E)
   have hpos : isPosedge (LVec.ofBitVec 0#1).bits[0] (LVec.ofBitVec 1#1).bits[0] = true := by rfl
   simp [hpos, picorv32_regs_zero_view, memRd, memIss, commitMemV,
     seqK_index?, hmv, LVec.resizeU_of_width]
-  all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv, isPosedge]
+  all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv, isPosedge,
+    Array.any, Array.anyM, Array.anyM.loop]
 
 /-! The executor-side no-write corollary is restricted to a known zero write-enable.
     Unknown write-enable behavior belongs to the relation and is not asserted by this theorem. -/
@@ -193,14 +205,24 @@ theorem picorv32_regs_zero_wen_step {E : CoreMemDesign} (hE : regs.e = .ok E)
       (LVec.ofNat 6 1) (LVec.ofNat 6 1) (LVec.ofNat 6 2) wd rd1 rd2) mv
       [("clk", LVec.ofNat 1 1), ("wen", LVec.ofNat 1 0), ("waddr", LVec.ofNat 6 1),
        ("raddr1", LVec.ofNat 6 1), ("raddr2", LVec.ofNat 6 2), ("wdata", wd)] using hE
-      [picorv32_regs_write_view, hwd, hrd1, hrd2, regs_evalSized_not_signal]
+      [picorv32_regs_write_view, hwd, hrd1, hrd2, regs_evalSized_not_signal,
+       LVec.xVec,
+       (by
+          change (Array.ofFn (n := 32) (fun _ : Fin 32 => Logic.l0)).any
+            (fun a => a == Logic.l1) 0 1 = false
+          exact regs_zero_scan)]
   rw [hcyc]
   have hx : (LVec.ofNat 1 0).condTrue = false := by
-    simp [LVec.condTrue, LVec.ofNat]
+    simp [LVec.condTrue, LVec.ofNat, Array.any, Array.anyM, Array.anyM.loop]
   have hpos : isPosedge (LVec.ofBitVec 0#1).bits[0] (LVec.ofBitVec 1#1).bits[0] = true := by rfl
   simp [hx, hpos, picorv32_regs_write_view, memRd, memIss, commitMemV,
     seqK_index?, hmv, LVec.resizeU_of_width]
-  all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv, isPosedge]
+  all_goals simp [MemShape.inRange, LVec.resizeU_of_width, hmv, isPosedge,
+    Array.any, Array.anyM, Array.anyM.loop]
+  all_goals try
+    change (Array.ofFn (n := 32) (fun _ : Fin 32 => Logic.l0)).any
+      (fun a => a == Logic.l1) 0 1 = false
+    simp [Array.any, Array.anyM, Array.anyM.loop]
 
 #print axioms picorv32_regs_wdata_undriven
 #print axioms picorv32_regs_quiet_read_step

@@ -308,6 +308,7 @@ Examples/system-verilog/sem2/kogge_output_declared_target_e/agree.lean
 Examples/system-verilog/sem2/duplicate_active_scope_e/agree.lean
 Examples/system-verilog/cores/picorv32/walls/probe.lean
 Examples/system-verilog/cores/picorv32/walls/unpacked_cpuregs_rows.lean
+Examples/system-verilog/cores/picorv32/picorv32_regs_refines.lean
 Examples/system-verilog/cores/darkriscv/walls/dynamic_memory_nba_rows.lean
 Examples/system-verilog/cores/darkriscv/walls/case_memory_probe.lean
 Examples/system-verilog/cores/darkriscv/walls/selects_probe.lean
