@@ -22,4 +22,12 @@ resolves its run-time index against the native one-rank `MemState` (§7.4.6,
   | .ok _ => true
   | _ => false
 
+def outputs : Res (List String) := do
+  let d ← PDesign.instantiateCoreMem unpackedArrayTarget.pdesign []
+  let states ← runCoreMemRows d d.initial [
+    [("x", LVec.ofNat 8 90), ("idx", LVec.ofNat 1 0)],
+    [("x", LVec.ofNat 8 165), ("idx", LVec.ofNat 1 1)],
+    [("x", LVec.lit "xxxxxxxx"), ("idx", LVec.lit "x")]]
+  .ok (states.map fun s => SvState.showSignal (CoreMemState.view d s) "y")
+
 end Examples.«system-verilog».sem2.unpacked_array_target_canonical_e

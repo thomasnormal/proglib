@@ -384,3 +384,5 @@ Examples/system-verilog/sem2/generate_if_unpacked_array_canonical_e/probe.lean
 Examples/system-verilog/sem2/invalid_chain2_wall/agree.lean
 
 Examples/system-verilog/sem2/picorv32_alu_case_canonical_e/agree.lean
+
+Examples/system-verilog/sem2/unpacked_array_target_canonical_e/oracle.lean
