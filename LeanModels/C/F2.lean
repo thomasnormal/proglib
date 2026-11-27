@@ -13303,6 +13303,22 @@ theorem loadByte_failure_contract
     · simp [loadByte, hlookup, hlive]
     · simp [loadByte, hlookup, hbyte]
 
+theorem loadByte_success_contract
+    (store : Store Tag State) (id offset : Nat)
+    (result : Byte Tag × Footprint) :
+    loadByte store id offset = some result ↔
+      ∃ allocation byte,
+        lookup store id = some allocation ∧
+        allocation.live = true ∧
+        allocation.bytes[offset]? = some byte ∧
+        result = (byte, footprint .read
+          { allocation := id, offset := offset, width := 1 }) := by
+  constructor
+  · exact loadByte_result_contract store id offset result
+  · rintro ⟨allocation, byte, hlookup, hlive, hbyte, hresult⟩
+    subst result
+    simp [loadByte, hlookup, hlive, hbyte]
+
 def loadTransitionCorresponds (resolve : AllocId → Nat)
     (source target : Store Tag State)
     (sourceResult targetResult : Byte Tag × Footprint) : Prop :=
