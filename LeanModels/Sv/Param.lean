@@ -4727,10 +4727,25 @@ def checkPackageParams (env : IEnv) : List (String × PParam) → List String
                       else s!"{who}: ours {canonInt w s k} ≠ resolved {r}" :: tail
                   | none => s!"{who}: ours has x/z bits, resolved {r}" :: tail
 
+def checkPackageAggs (env : IEnv) : List (String × PParam) → List String
+  | [] => []
+  | (pkg, p) :: rest =>
+      let tail := checkPackageAggs env rest
+      match p.aggregate?, p.resolvedBits?, env.packageAgg? pkg p.name with
+      | some _, some bits, some agg =>
+          let ours := String.intercalate "" (agg.elements.map (·.toBinString))
+          (if ours == bits then []
+           else [s!"package aggregate '{pkg}::{p.name}': ours {ours} ≠ resolved {bits}"]) ++ tail
+      | _, _, _ => tail
+
 /-- How many package constants `checkPackageParams` compares. -/
 def comparablePackageParams (env : IEnv) (ps : List (String × PParam)) : Nat :=
   (ps.filter fun (pkg, p) =>
     (p.resolved?.isSome || p.resolvedBits?.isSome) && (env.packageFVal pkg p.name).isSome).length
+
+def comparablePackageAggs (env : IEnv) (ps : List (String × PParam)) : Nat :=
+  (ps.filter fun (pkg, p) =>
+    p.aggregate?.isSome && p.resolvedBits?.isSome && (env.packageAgg? pkg p.name).isSome).length
 
 /-- A refusal is reported with the package constants that are not bound and
 why: a read of one of them is the usual cause. -/
@@ -4828,7 +4843,7 @@ def PDesign.crossCheck (d₀ : PDesign) : List String :=
           | _ => {}
         | _ => {}
       let env0 : IEnv := (bindParams envP d.params args).toOption.getD envP
-      let pkgMsgs := checkPackageParams envP d.packageParams
+      let pkgMsgs := checkPackageParams envP d.packageParams ++ checkPackageAggs envP d.packageParams
       let (localMsgs, env1) := checkLocals env0 d.localParams
       let restMsgs := match bindEnums env1 d.enums with
         | .ok env2 =>
@@ -4867,7 +4882,7 @@ where
     let genMsgs := checkGenerates
       { env2 with widths := declWidths env2 d.decls }
       (PDesign.surfaceFuel []) d.generates
-    packageNotes d (head :: (checkPackageParams envP d.packageParams ++ localMsgs ++ declMsgs ++ genMsgs))
+    packageNotes d (head :: (checkPackageParams envP d.packageParams ++ checkPackageAggs envP d.packageParams ++ localMsgs ++ declMsgs ++ genMsgs))
 
   bindDefaultParams (env : IEnv) : List PParam → IEnv
     | [] => env
@@ -4923,7 +4938,7 @@ def PDesign.crossCheckFull (d : PDesign) : List String × Nat :=
     match bindPackageEnums { int32 := true, functions := d.functions } d.enums with
     | .ok e =>
         match bindPackageParams e d.packageParams with
-        | .ok envP => comparablePackageParams envP d.packageParams
+        | .ok envP => comparablePackageParams envP d.packageParams + comparablePackageAggs envP d.packageParams
         | .unsupported _ | .timeout => 0
     | .unsupported _ | .timeout => 0)
 

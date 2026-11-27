@@ -33478,7 +33478,7 @@ def _aggregate_shape_sym(sm, t, type_syntax=None, declarator=None, depth=0,
     try:
         ct = t.canonicalType
         cname = type(ct).__name__
-        if cname in ("UnpackedStructType", "PackedStructType"):
+        if cname == "UnpackedStructType":
             fields = []
             for field in ct:
                 fsyntax = getattr(getattr(field, "declaredType", None), "typeSyntax", None)
@@ -37709,6 +37709,31 @@ def _sym_package_param_entry(sm, package, member):
         sm, t, _decl_type_syntax(member),
         getattr(member, "syntax", None),
         scope=getattr(member, "parentScope", None))
+    if not isinstance(node, dict):
+        return _sym_package_param_loud(node or {}, package, "PackageParameter:unconvertible")
+    def has_package_param_ref(value):
+        if not isinstance(value, dict):
+            return False
+        if value.get("kind") == "ParamRef":
+            return True
+        return any(has_package_param_ref(v) for v in value.values())
+
+    packed_type = node.get("type") or {}
+    has_parametric_width = any(
+        has_package_param_ref(bound)
+        for dim in (packed_type.get("packed") or [])
+        for bound in (dim.get("msb", {}), dim.get("lsb", {})))
+    if ((aggregate_shape is None or aggregate_shape.get("kind") == "scalar")
+            and packed_type.get("kind") == "PackedType"
+            and has_parametric_width):
+        return None
+    # A standalone packed type whose bounds depend on another package
+    # parameter has no source-shaped width at extraction time.  Preserve the
+    # long-standing loud omission for this case rather than binding its
+    # default-point width as a TypeRef.
+    if (aggregate_shape is None
+            and type(getattr(t, "canonicalType", None)).__name__ == "PackedStructType"):
+        return None
     if (aggregate_shape is not None and
             aggregate_shape.get("kind") in ("array", "struct")):
         node = dict(node)
@@ -37855,6 +37880,8 @@ def _sym_package_params(sm):
                     continue
                 try:
                     entry = _sym_package_param_entry(sm, package, member)
+                    if entry is None:
+                        continue
                 except Exception:
                     try:
                         entry = _sym_package_param_loud(
@@ -37875,6 +37902,23 @@ def _sym_package_params(sm):
                         entry = dict(entry)
                         entry["resolved_bits"] = svint_bits(value).lower()
                         entry["resolved_signed"] = bool(member.type.isSigned)
+                    elif (getattr(member.value, "isContainer", lambda: False)()
+                          and isinstance(entry, dict)
+                          and entry.get("aggregate_default") is not None):
+                        # Package aggregate defaults are parser-resolved
+                        # constants too.  Preserve their bitstream in source
+                        # order so Param2 can compare the aggregate value
+                        # independently of re-evaluating its assignment
+                        # pattern (§6.20.2, §10.9.2).
+                        parts = []
+                        for element in value:
+                            raw = getattr(element, "value", None)
+                            if type(raw).__name__ == "SVInt":
+                                parts.append(svint_bits(raw).lower())
+                        if parts:
+                            entry = dict(entry)
+                            entry["resolved_bits"] = "".join(parts)
+                            entry["resolved_signed"] = bool(member.type.isSigned)
                 except Exception:
                     pass
                 result.append(entry)
