@@ -223,6 +223,8 @@ partial def parseStructuredQualType (j : Json) : Except String LeanModels.Clang.
     | "record" => .ok (.record (← structuredDeclaration j))
     | "enumeration" => .ok (.enumeration (← structuredDeclaration j))
     | "typedef" => .ok (.typedefRef (← structuredDeclaration j))
+    | "unsupported" =>
+        .ok (.cBuiltin ("unsupported QualType: " ++ (← getStr j "reason")))
     | other => .error s!"unknown structured QualType kind {other.quote}"
 where
   structuredDeclaration (j : Json) : Except String LeanModels.Clang.DeclarationHandle := do

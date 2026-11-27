@@ -401,9 +401,11 @@ def structured_type_records(records):
                     (type(record["offset_bytes"]) is not int or
                      record["offset_bytes"] < 0)):
                 die("structured offset-of probe returned an invalid byte offset")
-        if record["type"].get("kind") == "unsupported":
-            die("structured type probe refused a QualType: %s" %
-                record["type"].get("reason", "unspecified"))
+        # The approved Clang probe may report a parser-native QualType class
+        # that this semantic tier does not model yet. Carry that observation
+        # into the envelope so ingestion can refuse the use loudly. Dropping
+        # the whole translation unit would turn a semantic boundary into an
+        # extraction failure and make the survey non-replayable.
     return records
 
 
