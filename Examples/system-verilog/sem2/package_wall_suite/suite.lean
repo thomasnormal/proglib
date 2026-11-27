@@ -58,17 +58,17 @@ private def rows : List Row := [
   { pack := "walls-1126c/W1", name := "w1m_gfor_pkgproc_bare", expected := "constant-function generate-local evaluation", current := "passes: loads with the packet's values (constant-evaluator series, 2026-11-26)" },
   { pack := "walls-1126c/W1", name := "w1n_module_fnret_clog2", expected := "constant-function generate-local evaluation", current := "passes: loads with the packet's values (constant-evaluator series, 2026-11-26)" },
   { pack := "walls-1126c/W1", name := "w1o_gif_fnret_bare", expected := "constant-function generate-local evaluation", current := "passes: loads with the packet's values (constant-evaluator series, 2026-11-26)" },
-  { pack := "walls-1126c/W2", name := "w2a_gfor_scalar", expected := "load at N=1; per-instance names at N>=2", current := "known-failing at 2026-11-26 pack baseline" },
-  { pack := "walls-1126c/W2", name := "w2b_gfor_vector", expected := "load at N=1; per-instance names at N>=2", current := "known-failing at 2026-11-26 pack baseline" },
-  { pack := "walls-1126c/W2", name := "w2c_gfor_unpacked", expected := "load at N=1; per-instance names at N>=2", current := "known-failing at 2026-11-26 pack baseline" },
-  { pack := "walls-1126c/W2", name := "w2d_gif_else_same_name", expected := "load at N=1; per-instance names at N>=2", current := "known-failing at 2026-11-26 pack baseline" },
-  { pack := "walls-1126c/W2", name := "w2e_two_loops_same_name", expected := "load at N=1; per-instance names at N>=2", current := "known-failing at 2026-11-26 pack baseline" },
-  { pack := "walls-1126c/W2", name := "w2f_shadow_module_name", expected := "load at N=1; per-instance names at N>=2", current := "known-failing at 2026-11-26 pack baseline" },
-  { pack := "walls-1126c/W2", name := "w2g_gfor_if_decl", expected := "load at N=1; per-instance names at N>=2", current := "known-failing at 2026-11-26 pack baseline" },
-  { pack := "walls-1126c/W2", name := "w2h_gfor_no_decl", expected := "load at N=1; per-instance names at N>=2", current := "known-failing at 2026-11-26 pack baseline" },
-  { pack := "walls-1126d", name := "implicit_event_loop", expected := "simulator-accepted source-shaped construct", current := "known-failing at 2026-11-26 pack baseline" },
-  { pack := "walls-1126d", name := "readmemh_parameter_file", expected := "simulator-accepted source-shaped construct", current := "known-failing at 2026-11-26 pack baseline" },
-  { pack := "walls-1126d", name := "inactive_child_definition", expected := "load when inactive; loud refusal when selected", current := "known-failing at 2026-11-26 pack baseline" },
+  { pack := "walls-1126c/W2", name := "w2a_gfor_scalar", expected := "load at N=1; per-instance names at N>=2", current := "passes: names g[0].t and g[1].t (W2 per-instance landing, 2026-11-27)" },
+  { pack := "walls-1126c/W2", name := "w2b_gfor_vector", expected := "load at N=1; per-instance names at N>=2", current := "passes: vector declarations retain per-instance names (W2 per-instance landing, 2026-11-27)" },
+  { pack := "walls-1126c/W2", name := "w2c_gfor_unpacked", expected := "load at N=1; per-instance names at N>=2", current := "passes: names g[0].t[0] through g[1].t[1] (W2 per-instance landing, 2026-11-27)" },
+  { pack := "walls-1126c/W2", name := "w2d_gif_else_same_name", expected := "load at N=1; per-instance names at N>=2", current := "passes: one active generate-if arm has the correct scope (W2 per-instance landing, 2026-11-27)" },
+  { pack := "walls-1126c/W2", name := "w2e_two_loops_same_name", expected := "load at N=1; per-instance names at N>=2", current := "passes: sibling loops retain distinct g/h scopes (W2 per-instance landing, 2026-11-27)" },
+  { pack := "walls-1126c/W2", name := "w2f_shadow_module_name", expected := "load at N=1; per-instance names at N>=2", current := "passes: module-level shadowing remains distinct (W2 per-instance landing, 2026-11-27)" },
+  { pack := "walls-1126c/W2", name := "w2g_gfor_if_decl", expected := "loud GenerateDecl:instance-name refusal", current := "passes: nested generate-if declaration refuses before misnaming (W2 misnaming landing, 2026-11-26)" },
+  { pack := "walls-1126c/W2", name := "w2h_gfor_no_decl", expected := "load at N=1; per-instance names at N>=2", current := "passes: no-declaration control loads at N=2 (W2 per-instance landing, 2026-11-27)" },
+  { pack := "walls-1126d", name := "implicit_event_loop", expected := "simulator-accepted source-shaped construct", current := "passes: ordinary E returns five rows (implicit-event landing, 2026-11-27)" },
+  { pack := "walls-1126d", name := "readmemh_parameter_file", expected := "simulator-accepted source-shaped construct", current := "passes: ordinary E retains x memory for missing file (readmemh landing, 2026-11-27)" },
+  { pack := "walls-1126d", name := "inactive_child_definition", expected := "load when inactive; loud refusal when selected", current := "passes: USE_VENDOR=0 loads and USE_VENDOR=1 refuses (inactive-child landing, 2026-11-27)" },
   { pack := "walls-1126e", name := "h4c_unused", expected := "loads with the exact 64-bit constant (o = 7 read, o = 5 unread)", current := "passes: loads with the packet's values (constant-evaluator series, 2026-11-26)" },
   { pack := "walls-1126e", name := "h4c_read", expected := "loads with the exact 64-bit constant (o = 7 read, o = 5 unread)", current := "passes: loads with the packet's values (constant-evaluator series, 2026-11-26)" },
   { pack := "walls-1126e", name := "h4s_unused", expected := "loads with the exact 64-bit constant (o = 7 read, o = 5 unread)", current := "passes: loads with the packet's values (constant-evaluator series, 2026-11-26)" },
@@ -78,11 +78,8 @@ private def rows : List Row := [
 #guard rows.length == 65
 #guard (rows.map (fun r => r.pack ++ "/" ++ r.name)).eraseDups.length == rows.length
 #guard rows.all (fun r => !r.expected.isEmpty && !r.current.isEmpty)
--- The rows still marked known-failing: walls-1126c/W2 (8) and walls-1126d (3).
-#guard ((rows.filter (fun r => r.current.startsWith "known-failing")).map (·.pack)).eraseDups ==
-  ["walls-1126c/W2", "walls-1126d"]
-#guard (rows.filter (fun r => r.current.startsWith "known-failing")).length == 11
-#guard (rows.filter (fun r => r.current.startsWith "passes")).length == 54
+#guard (rows.filter (fun r => r.current.startsWith "known-failing")).length == 0
+#guard (rows.filter (fun r => r.current.startsWith "passes")).length == 65
 #guard rows.any (fun r => r.pack == "walls-1125b")
 #guard rows.any (fun r => r.pack == "walls-1126")
 #guard rows.any (fun r => r.pack == "walls-1126c/W1")
