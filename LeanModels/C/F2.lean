@@ -717,6 +717,28 @@ theorem renameAllocation_size_contract (resolve : AllocId → Nat)
     renameAllocation_preserves_liveness resolve entry,
     renameAllocation_preserves_state resolve entry⟩
 
+theorem renameAllocation_idempotent (resolve : AllocId → Nat)
+    (entry : AllocId × Allocation Tag State) :
+    renameAllocation resolve (renameAllocation resolve entry) =
+      renameAllocation resolve entry := by
+  cases entry with
+  | mk id allocation =>
+      cases allocation with
+      | mk live address bytes state =>
+          cases address <;>
+            simp [renameAllocation, renameByte_idempotent]
+
+theorem renameAllocation_comp (first second : AllocId → Nat)
+    (entry : AllocId × Allocation Tag State) :
+    renameAllocation second (renameAllocation first entry) =
+      renameAllocation second entry := by
+  cases entry with
+  | mk id allocation =>
+      cases allocation with
+      | mk live address bytes state =>
+          cases address <;>
+            simp [renameAllocation, renameByte_comp]
+
 theorem renameStore_idempotent (resolve : AllocId → Nat) (store : Store Tag State) :
     renameStore resolve (renameStore resolve store) = renameStore resolve store := by
   cases store with
