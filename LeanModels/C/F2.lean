@@ -7085,6 +7085,19 @@ theorem intervalOverlap_contract
   · rintro ⟨hleft, hright⟩
     exact ⟨decide_eq_true hleft, decide_eq_true hright⟩
 
+theorem intervalOverlap_failure_contract
+    (leftBase leftSize rightBase rightSize : Nat) :
+    intervalOverlap leftBase leftSize rightBase rightSize = false ↔
+      leftBase ≥ rightBase + rightSize ∨
+      rightBase ≥ leftBase + leftSize := by
+  by_cases hleft : leftBase < rightBase + rightSize
+  · by_cases hright : rightBase < leftBase + leftSize
+    · simp [intervalOverlap, hleft, hright]
+    · have hright' : rightBase ≥ leftBase + leftSize := Nat.le_of_not_gt hright
+      simp [intervalOverlap, hleft, hright, hright']
+  · have hleft' : leftBase ≥ rightBase + rightSize := Nat.le_of_not_gt hleft
+    simp [intervalOverlap, hleft, hleft']
+
 def placementAllowed (store : Store Tag State) (base size : Nat) : Bool :=
   store.allocations.all fun entry =>
     let allocation := entry.2
