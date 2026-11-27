@@ -1512,6 +1512,7 @@ def coreMemReadNamesThroughDrivers (processes : List PProcess) : Nat → List St
 
 def coreMemPProcessReactive : PProcess → Bool
   | .alwaysComb _ | .alwaysLatch _ | .alwaysImplicit _ => true
+  | .alwaysEvent events _ => events.any (fun e => e.edge == .any)
   | _ => false
 
 def coreMemPreemptiveBlockingPair (p q : PProcess) : Bool :=
