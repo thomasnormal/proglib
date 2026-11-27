@@ -28,7 +28,9 @@ def run(args, cwd=ROOT):
 def main():
     source = HERE / "horner_child_defaults.sv"
     tb = HERE / "horner_child_defaults_tb.sv"
-    with tempfile.TemporaryDirectory(prefix="sv-horner-child-", dir="/scratch/thomas-ahle/tmp") as work:
+    with tempfile.TemporaryDirectory(
+            prefix="sv-horner-child-",
+            dir=os.environ.get("SV_SCRATCH_DIR")) as work:
         work = Path(work)
         exe = work / "sim"
         run(["iverilog", "-g2012", "-s", "tb", "-o", str(exe),
