@@ -7201,6 +7201,22 @@ theorem renameStore_preserves_wellFormed
               simp [WellFormed, renameStore, allocationsWf] at h ⊢
               exact ⟨bytesWf_rename resolve id allocation.bytes h.1, ih h.2⟩
 
+theorem renameStore_wellFormed_iff
+    (resolve : AllocId → Nat) (store : Store Tag State) :
+    WellFormed (renameStore resolve store) ↔ WellFormed store := by
+  constructor
+  · intro h
+    cases store with
+    | mk allocations nextId =>
+        induction allocations with
+        | nil => simp [WellFormed, renameStore, allocationsWf]
+        | cons entry rest ih =>
+            rcases entry with ⟨id, allocation⟩
+            simp [WellFormed, renameStore, allocationsWf] at h ⊢
+            exact ⟨(bytesWf_rename_iff resolve id allocation.bytes).mp h.1,
+              ih h.2⟩
+  · exact renameStore_preserves_wellFormed resolve store
+
 def intervalOverlap (leftBase leftSize rightBase rightSize : Nat) : Bool :=
   leftBase < rightBase + rightSize && rightBase < leftBase + leftSize
 
