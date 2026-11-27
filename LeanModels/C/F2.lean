@@ -12529,6 +12529,19 @@ theorem pairedLoadByte_refusal
   · simp [pairedLoadByte, hsource]
   · simp [pairedLoadByte, htarget]
 
+theorem pairedLoadByte_failure_contract
+    (resolve : AllocId → Nat) (store : Store Tag State)
+    (id offset : Nat) :
+    pairedLoadByte resolve store id offset = none ↔
+      loadByte store id offset = none ∨
+      loadByte (renameStore resolve store) id offset = none := by
+  cases hs : loadByte store id offset with
+  | none => simp [pairedLoadByte, hs]
+  | some sourceResult =>
+      cases ht : loadByte (renameStore resolve store) id offset with
+      | none => simp [pairedLoadByte, hs, ht]
+      | some targetResult => simp [pairedLoadByte, hs, ht]
+
 theorem pairedLoadByte_value_correspondence
     (resolve : AllocId → Nat) (store : Store Tag State)
     (id offset : Nat)
