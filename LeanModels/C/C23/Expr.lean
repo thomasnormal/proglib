@@ -1886,6 +1886,10 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
         | some 32 => pure (.float32 (Float32.Model.ofInt n))
         | some 64 => pure (.float64 (Float.Model.ofInt n))
         | _ => refuseUnsupported "integer-to-floating conversion lacks parser-native destination type"
+      else if ck == "ToVoid" then
+        do
+          let _ ← evalExpr ctx sub
+          pure .undef
       else if ck == "FloatingCast" then
         do
           let v ← evalExpr ctx sub
