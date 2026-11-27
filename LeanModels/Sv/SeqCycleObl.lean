@@ -2781,6 +2781,40 @@ theorem CoreMemDesign.matV_settleV {E : CoreMemDesign} (hnd : (E.scalar.decls.to
   rw [← E.view_storeFromView r]
   exact CoreMemDesign.matV_view hnd h4 (E.typed_storeFromView r)
 
+theorem CoreMemDesign.runCombSettleQuiesceV_of_noComb_result
+    {E : CoreMemDesign} {n : Nat} {mv : MemV} {before current settled : SvState}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hbefore : E.matV before = before) (hcurrent : E.matV current = current)
+    (hsettle : E.settleV mv current = .ok settled)
+    (hsettled : E.settleV mv settled = .ok settled)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    (hconverted : ∀ p ∈ E.processes.toList, ∀ kind text, p ≠ .unsupported kind text) :
+    E.runCombSettleQuiesceV (n + 2) mv before current E.processes.toList = .ok settled := by
+  have hmat : E.matV settled = settled := E.matV_settleV hnd h4 hsettle
+  induction n generalizing before current with
+  | zero =>
+      simp only [CoreMemDesign.runCombSettleQuiesceV,
+        E.runCombV_of_noComb hnd h4 hbefore hcurrent hno hconverted, Res.ok_bind]
+      rw [hcurrent, hsettle]
+      by_cases heq : current = settled
+      · have hEq : (current == settled) = true := beq_iff_eq.mpr heq
+        simp only [Res.ok_bind, Res.pure_eq, hEq, ↓reduceIte]
+      · have hNe : (current == settled) = false := beq_eq_false_iff_ne.mpr heq
+        simp only [Res.ok_bind, Res.pure_eq, hNe, Bool.false_eq_true, ↓reduceIte]
+        change E.runCombSettleQuiesceV 1 mv current settled E.processes.toList = .ok settled
+        exact E.runCombSettleQuiesceV_of_noComb hnd h4 hcurrent hmat hsettled hno hconverted
+  | succ n ih =>
+      simp only [CoreMemDesign.runCombSettleQuiesceV,
+        E.runCombV_of_noComb hnd h4 hbefore hcurrent hno hconverted, Res.ok_bind]
+      rw [hcurrent, hsettle]
+      by_cases heq : current = settled
+      · have hEq : (current == settled) = true := beq_iff_eq.mpr heq
+        simp only [Res.ok_bind, Res.pure_eq, hEq, ↓reduceIte]
+      · have hNe : (current == settled) = false := beq_eq_false_iff_ne.mpr heq
+        simp only [Res.ok_bind, Res.pure_eq, hNe, Bool.false_eq_true, ↓reduceIte]
+        change E.runCombSettleQuiesceV (n + 2) mv current settled E.processes.toList = .ok settled
+        exact ih (before := current) (current := settled) hcurrent hmat hsettled
+
 /-- The view a slot commits its edge updates on is materialized (it is the view of a typed store). -/
 theorem CoreMemDesign.matV_commit_of_slot {E : CoreMemDesign} (hP : E.SeqProfileI)
     {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory) {entry : SvState}
@@ -2815,6 +2849,57 @@ theorem CoreMemDesign.matV_commit_of_slot {E : CoreMemDesign} (hP : E.SeqProfile
   show E.matV (commitNba2 r1 r2) = commitNba2 r1 r2
   rw [← hvc]
   exact CoreMemDesign.matV_view hP.names hP.four hTc
+
+theorem CoreMemDesign.slotCombV_eq_slotV_of_noComb {E : CoreMemDesign}
+    (hP : E.SeqProfileI) (ht : E.topoC = true)
+    {st : CoreMemState} (hc : E.Coherent st) (hmc : E.MemCoherent st.memory)
+    {entry : SvState} (hty : EntryTyped E.scalar.toDesign2 entry)
+    (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    (hconverted : ∀ p ∈ E.processes.toList, ∀ kind text, p ≠ .unsupported kind text) :
+    E.slotCombV (E.scalar.view st.scalar) (E.memOf st.memory) entry =
+      E.slotV (E.scalar.view st.scalar) (E.memOf st.memory) entry := by
+  have hview : E.matV (E.scalar.view st.scalar) = E.scalar.view st.scalar :=
+    CoreMemDesign.matV_view hP.names hP.four hc.typed
+  have hin : E.matV (applyInputs2 E.scalar.toDesign2 entry (E.scalar.view st.scalar)) =
+      applyInputs2 E.scalar.toDesign2 entry (E.scalar.view st.scalar) := by
+    rw [← Elab.view_applyInputs hP.names hP.four hc.typed hty]
+    exact CoreMemDesign.matV_view hP.names hP.four (hc.typed.applyInputs entry)
+  simp only [CoreMemDesign.slotCombV, CoreMemDesign.slotV]
+  cases hp : E.settleV (E.memOf st.memory)
+      (applyInputs2 E.scalar.toDesign2 entry (E.scalar.view st.scalar)) with
+  | timeout => rfl
+  | unsupported msg => rfl
+  | ok p0 =>
+      have hpfix : E.settleV (E.memOf st.memory) p0 = .ok p0 :=
+        CoreMemDesign.settleV_idem ht hin hp
+      have hmatp0 : E.matV p0 = p0 := CoreMemDesign.matV_settleV hP.names hP.four hp
+      have hpre := CoreMemDesign.runCombSettleQuiesceV_of_noComb_result
+        (n := 4094) hP.names hP.four hview hmatp0 hpfix hpfix hno hconverted
+      have hpre' : E.runCombSettleQuiesceV 4096 (E.memOf st.memory)
+          (E.scalar.view st.scalar) p0 E.processes.toList = .ok p0 := by
+        simpa using hpre
+      simp only [hp, Res.ok_bind, Res.pure_eq]
+      rw [hpre', hpfix]
+      cases hr : E.edgesV (E.scalar.view st.scalar) p0 p0 (E.memOf st.memory) E.processes.toList with
+      | timeout => simp only [hpfix, hr, Res.ok_bind, Res.pure_eq, Res.timeout_bind]
+      | unsupported msg => simp only [hpfix, hr, Res.ok_bind, Res.pure_eq, Res.unsupported_bind]
+      | ok r =>
+          cases hs : E.settleV (commitMemV (E.memOf st.memory) r.2.2)
+              (commitNba2 r.1 r.2.1) with
+          | timeout => simp only [hpfix, hr, hs, Res.ok_bind, Res.pure_eq, Res.timeout_bind]
+          | unsupported msg => simp only [hpfix, hr, hs, Res.ok_bind, Res.pure_eq, Res.unsupported_bind]
+          | ok s1 =>
+              have hmatc := CoreMemDesign.matV_commit_of_slot hP hc hmc hty hp hr
+              have hsfix := CoreMemDesign.settleV_idem ht hmatc hs
+              have hmats1 := CoreMemDesign.matV_settleV hP.names hP.four hs
+              have hpost := CoreMemDesign.runCombSettleQuiesceV_of_noComb_result
+                (n := 4094) hP.names hP.four hmatp0 hmats1 hsfix hsfix hno hconverted
+              have hpost' : E.runCombSettleQuiesceV 4096
+                  (commitMemV (E.memOf st.memory) r.2.2) p0 s1 E.processes.toList = .ok s1 := by
+                simpa using hpost
+              simp only [hpfix, hr, hs, Res.ok_bind, Res.pure_eq]
+              rw [hpost', hsfix]
+
 
 /-- **THE SLOT UNDER THE OBLIGATIONS**: from a coherent state's view and memory view and a typed entry, the route's slot
 (four settle passes) and the one-pass slot agree. -/
