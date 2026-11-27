@@ -735,7 +735,6 @@ FIXTURES: tuple[Fixture, ...] = (
             expected_source_refusals=("iverilog",), retain_proc_rewrites=True),
     Fixture("typed_nested_repro.sv", "typed_nested_repro",
             (Port("source", 4),), (Port("result", 4),),
-            expected_ordinary_refusal="AssignmentExpression:target",
             expected_source_refusals=("iverilog", "xrun")),
     Fixture("aggregate_member_hierarchy_index.sv", "agg_parent",
             (), (Port("y", 4),),

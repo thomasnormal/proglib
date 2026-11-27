@@ -25906,6 +25906,23 @@ def _convert_assignment_expr(sm, expr, span_node=None):
             ok = True
         else:
             target, ok = select_target(sm, expr.left)
+            if not ok:
+                # A whole unpacked aggregate assignment is a source-shaped
+                # value copy (§10.6).  Keep both roots as AggregateMember
+                # expressions so canonical E's aggregate store performs the
+                # copy.  Recovering scalar fields here would lower the
+                # assignment before its own semantic case sees it.
+                aggregate_target = _sym_aggregate_root_target(sm, expr.left)
+                aggregate_source = _sym_aggregate_root_target(sm, expr.right)
+                if aggregate_target is not None and aggregate_source is not None:
+                    target, ok = aggregate_target, True
+                    value = aggregate_source
+                    return {
+                        "kind": "NonblockingAssign" if expr.isNonBlocking else "BlockingAssign",
+                        "span": node_span(sm, span_node or expr),
+                        "target": target,
+                        "value": value,
+                    }
     if not ok:
         return unsupported(sm, span_node or expr, "AssignmentExpression:target")
     if _SYM is None and _concat_target_order_unsafe(target):
@@ -33398,6 +33415,24 @@ def _dtype_sym(sm, t, type_syntax, allow_signed=False, scope=None):
                 walked = _type_packed_dims(sm, t, declared_syntax, declared_scope)
                 if walked is not None and len(walked) == ndims:
                     packed = walked
+            if packed is None and getattr(ct.elementType, "syntax", None) is None:
+                # Fields of a packed struct can expose only the canonical
+                # PackedArrayType, with no separate syntax wrapper.  Its
+                # fixed ranges are parser-resolved type structure, so retain
+                # them directly instead of emitting an unrecoverable width.
+                ranges = []
+                current = ct
+                while type(current).__name__ == "PackedArrayType":
+                    rng = current.range
+                    ranges.append({
+                        "msb": {"kind": "Int", "span": None,
+                                "value": int(rng.left), "resolved_width": None},
+                        "lsb": {"kind": "Int", "span": None,
+                                "value": int(rng.right), "resolved_width": None},
+                    })
+                    current = current.elementType.canonicalType
+                if len(ranges) == ndims:
+                    packed = ranges
             return {
                 "kind": "PackedType",
                 "packed": packed,
@@ -33443,7 +33478,7 @@ def _aggregate_shape_sym(sm, t, type_syntax=None, declarator=None, depth=0,
     try:
         ct = t.canonicalType
         cname = type(ct).__name__
-        if cname == "UnpackedStructType":
+        if cname in ("UnpackedStructType", "PackedStructType"):
             fields = []
             for field in ct:
                 fsyntax = getattr(getattr(field, "declaredType", None), "typeSyntax", None)
@@ -33480,6 +33515,15 @@ def _aggregate_shape_sym(sm, t, type_syntax=None, declarator=None, depth=0,
         dtype, reason = _dtype_sym(
             sm, t, type_syntax, allow_signed=True,
             scope=getattr(t, "parentScope", None) or _SYM.scope)
+        if (dtype is not None and dtype.get("kind") == "PackedType"
+                and dtype.get("packed") is None):
+            # A packed-struct field reached through a typedef can expose the
+            # typedef syntax instead of its field declarator.  Reproject the
+            # parser-resolved canonical width, retaining a source-shaped
+            # scalar type with recoverable bounds for the aggregate bridge.
+            dtype, reason = _dtype_sym(
+                sm, t, None, allow_signed=True,
+                scope=getattr(t, "parentScope", None) or _SYM.scope)
         if dtype is None or reason is not None:
             return None
         return {"kind": "scalar", "type": dtype,

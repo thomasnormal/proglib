@@ -148,7 +148,7 @@ class SymbolicUnpackedPorts(unittest.TestCase):
         self.assertEqual(aggregate["fields"][0]["type"]["kind"], "array")
         self.assertEqual(aggregate["fields"][0]["type"]["elem"]["kind"], "struct")
         members = find(module, lambda n: n.get("kind") == "AggregateMember")
-        self.assertEqual(len(members), 1)
+        self.assertEqual(len(members), 3)
         self.assertEqual(members[-1]["base"], "source")
         path = members[-1]["path"]
         self.assertEqual(path[0], {"field": "words"})

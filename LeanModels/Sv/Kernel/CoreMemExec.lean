@@ -3121,6 +3121,21 @@ def CoreMemDesign.execCombLoopValuesFuel (E : CoreMemDesign) (env : IEnv)
         E.execCombStmtFuel (env.bindVal iterator i) elems st view locals fuel body
       E.execCombLoopValuesFuel env elems st' view' locals' fuel rest body iterator
 
+def CoreMemDesign.copyAggregateRoot (E : CoreMemDesign) (st : CoreMemState)
+    (target source : String) : Res CoreMemState :=
+  match E.aggregateDecl? target, E.aggregateDecl? source with
+  | some targetDecl, some sourceDecl =>
+      match st.aggregates.cells targetDecl.id, st.aggregates.cells sourceDecl.id with
+      | some targetCell, some sourceCell =>
+          let aggregates' := { cells := fun id =>
+            if id == targetDecl.id then some { targetCell with value := sourceCell.value }
+            else st.aggregates.cells id }
+          .ok { st with aggregates := aggregates' }
+      | none, _ => .unsupported s!"23.2.2: aggregate output target '{target}' has no state cell"
+      | _, none => .unsupported s!"23.2.2: aggregate output source '{source}' has no state cell"
+  | none, _ => .unsupported s!"23.2.2: aggregate output target '{target}' is undeclared"
+  | _, none => .unsupported s!"23.2.2: aggregate output source '{source}' is undeclared"
+
 def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
     (elems : List (String × Nat)) (st : CoreMemState) (view locals : SvState) :
     Nat → PStmt → Res (CoreMemState × SvState × SvState)
@@ -3179,16 +3194,21 @@ def CoreMemDesign.execCombStmtFuel (E : CoreMemDesign) (env : IEnv)
           match E.aggregateDecl? base with
           | none => .unsupported s!"9.2.2.2: aggregate always_comb target '{base}' is undeclared"
           | some decl => do
-              let steps ← E.evalAggPath env elems st view path
-              match decl.ty.resolve? steps with
-              | none => .unsupported "9.2.2.2: aggregate always_comb target path is invalid"
-              | some ty => do
-                  let v ← if LeanModels.Sv.PExpr.hasTestPlusargs value then
-                    E.evalRuntimeExpr env elems st (some ty.width) value
-                  else E.evalExprLocals env elems st (some ty.width) locals value
-                  match st.aggregates.write? decl.id steps (Val.ofLVec ty v) with
-                  | none => .unsupported "9.2.2.2: aggregate always_comb target path is not writable"
-                  | some aggregates' => .ok ({ st with aggregates := aggregates' }, view, locals)
+              match path, value with
+              | [], .aggregateMember source [] => do
+                  let st' ← E.copyAggregateRoot st base source
+                  .ok (st', E.scalar.view st'.scalar, locals)
+              | _, _ =>
+                  let steps ← E.evalAggPath env elems st view path
+                  match decl.ty.resolve? steps with
+                  | none => .unsupported "9.2.2.2: aggregate always_comb target path is invalid"
+                  | some ty => do
+                      let v ← if LeanModels.Sv.PExpr.hasTestPlusargs value then
+                        E.evalRuntimeExpr env elems st (some ty.width) value
+                      else E.evalExprLocals env elems st (some ty.width) locals value
+                      match st.aggregates.write? decl.id steps (Val.ofLVec ty v) with
+                      | none => .unsupported "9.2.2.2: aggregate always_comb target path is not writable"
+                      | some aggregates' => .ok ({ st with aggregates := aggregates' }, view, locals)
       | .bitSel .. => do
           let st' ← E.execScalarTarget env elems st target value
           .ok (st', E.scalar.view st'.scalar, locals)
@@ -3415,7 +3435,13 @@ def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
   | .primitive _ _ _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .comb body :: rest => do
       let reads := coreMemCombExternalReadExprs body
-      let ready ← E.readChangedAt before current beforeView currentView index reads
+      let ready ← if reads.any LeanModels.Sv.PExpr.hasAggregateMember then
+        -- Aggregate reads are stored outside the scalar view.  Their exact
+        -- source-shaped value is checked by the aggregate executor, so the
+        -- scalar sensitivity cache cannot compare them without reparsing or
+        -- flattening the aggregate (§9.2.2.2.1).
+        .ok true
+      else E.readChangedAt before current beforeView currentView index reads
       if !ready then
         E.runCombAt before beforeView current currentView (index + 1) rest
       else
@@ -3430,7 +3456,9 @@ def CoreMemDesign.runCombAt (E : CoreMemDesign) (before : CoreMemState)
   | .event _ _ :: rest => E.runCombAt before beforeView current currentView (index + 1) rest
   | .latch body :: rest => do
       let reads := coreMemCombExternalReadExprs body
-      let ready ← E.readChangedAt before current beforeView currentView index reads
+      let ready ← if reads.any LeanModels.Sv.PExpr.hasAggregateMember then
+        .ok true
+      else E.readChangedAt before current beforeView currentView index reads
       if !ready then
         E.runCombAt before beforeView current currentView (index + 1) rest
       else
@@ -3634,21 +3662,6 @@ def CoreMemProc.firesIn (a b : SvState) : CoreMemProc → Bool
   | .edge q => q.fires a b
   | .event events _ => coreMemEventsFire a b events
   | _ => false
-
-def CoreMemDesign.copyAggregateRoot (E : CoreMemDesign) (st : CoreMemState)
-    (target source : String) : Res CoreMemState :=
-  match E.aggregateDecl? target, E.aggregateDecl? source with
-  | some targetDecl, some sourceDecl =>
-      match st.aggregates.cells targetDecl.id, st.aggregates.cells sourceDecl.id with
-      | some targetCell, some sourceCell =>
-          let aggregates' := { cells := fun id =>
-            if id == targetDecl.id then some { targetCell with value := sourceCell.value }
-            else st.aggregates.cells id }
-          .ok { st with aggregates := aggregates' }
-      | none, _ => .unsupported s!"23.2.2: aggregate output target '{target}' has no state cell"
-      | _, none => .unsupported s!"23.2.2: aggregate output source '{source}' has no state cell"
-  | none, _ => .unsupported s!"23.2.2: aggregate output target '{target}' is undeclared"
-  | _, none => .unsupported s!"23.2.2: aggregate output source '{source}' is undeclared"
 
 /-! Verbatim pre-arrayBitSel definition retained for the conservativity audit. -/
 def CoreMemDesign.settleAssignAtBeforeArrayBitSel (E : CoreMemDesign) (env : IEnv) (elems : List (String × Nat))
