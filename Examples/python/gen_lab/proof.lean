@@ -897,7 +897,7 @@ per-round `IterSteps` obligations are `upto_iter`/`upto_iter_done`. -/
 theorem total_calls (N : Nat) :
     CallsTo gen_lab "total" #[.int (N : Int)] (.int (sumUpto N)) :=
   PyTriple.callsTo_ofRet (f := totalF) rfl rfl rfl rfl rfl
-    (total_body_triple _ N (by simp))
+    (h := total_body_triple _ N (by simp))
 
 /-! ### Non-vacuity: the symbolic theorem against the differential row -/
 
@@ -1213,7 +1213,7 @@ at configuration 1, which is `break`-suspends as a theorem. -/
 theorem two_phase_calls (N : Nat) (hN : 2 ≤ N) :
     CallsTo gen_lab "two_phase" #[.int (N : Int)] (.int 1) :=
   PyTriple.callsTo_ofRet (f := twoPhaseF) rfl rfl rfl rfl rfl
-    (two_phase_body_triple _ N hN (by simp))
+    (h := two_phase_body_triple _ N hN (by simp))
 
 /-! ### Non-vacuity: the symbolic theorem against the differential row -/
 

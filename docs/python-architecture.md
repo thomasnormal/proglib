@@ -67,12 +67,17 @@ the runner executes.
 The stateful proof splice has two distinct boundaries. `EvalsState.callIn` and
 `PyStmtTriple.callState` in `VC2.lean` accept a `CallsIn` after-world and do
 not require `Module.heapFree`; that is the rule for a nested heap mutation.
-The existing `PyTriple.callsTo*` bridge still targets the public `CallsTo`
-frame theorem and therefore requires heap-free entry geometry. A heapful
-whole-function theorem, such as `rsa_inverse.extended_gcd`, needs a separate
-top-level `PyTriple` to `CallsIn` bridge that accounts for argument thawing and
-the caller's depth. Until that bridge exists, the RSA loop's concrete
-two-interpreter witnesses remain valid while its symbolic proof stays parked.
+The `EvalsTo.call` rule splices a callee through the public `CallsTo` frame
+theorem and therefore still requires heap-free entry geometry. The
+whole-function `PyTriple.callsTo*` bridges need less: only that the public
+wrapper thaws the arguments without allocating,
+`(Val.listFreeArgs args || m.heapFree) = true` (`publicThawArgs_of_pure`),
+which holds for an int-only call in any module. That is how
+`rsa_inverse.extended_gcd`, whose module is not heap-free, is bridged by
+`py_vcgen`; its caller `inverse` reaches it through the `CallsIn` route above.
+A heapful whole-function theorem over list arguments still needs a top-level
+`PyTriple` to `CallsIn` bridge that accounts for the heap thaw of the
+arguments.
 
 **How the proof interpreter is checked against CPython.**
 `python3 harness/diff_test.py --proof-interpreter` runs the same

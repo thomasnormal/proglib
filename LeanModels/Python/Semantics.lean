@@ -12339,6 +12339,21 @@ theorem publicThawArgs_of_heapFree {m : Module} {h : Heap} {args : Array Val}
   unfold publicThawArgs
   simp [hm]
 
+/-- The public wrapper's argument thaw is the PURE one (`RVal.thawArgs`, no
+allocation) whenever `publicThawArgs` takes its pure branch: the arguments
+carry no list, or the module is heap-free. This is the bridges' entry
+hypothesis `hm`. It computes by `rfl` at literal arguments and modules, and
+an int-only call (`f(a, b)`) satisfies it whatever the module allocates,
+which is what lets `py_vcgen` bridge a function in a module that is not
+heap-free (a `*` anywhere, a generator, an opaque import). -/
+theorem publicThawArgs_of_pure {m : Module} {h : Heap} {args : Array Val}
+    (hp : (Val.listFreeArgs args || m.heapFree) = true) :
+    publicThawArgs m h args = (h, RVal.thawArgs args) := by
+  cases hl : Val.listFreeArgs args
+  · rw [hl, Bool.false_or] at hp
+    exact publicThawArgs_of_heapFree hp
+  · exact publicThawArgs_of_listFree hl
+
 def callFunction (m : Module) (fname : String) (args : Array Val) (fuel : Nat) : Res Val :=
   let w0 := initWorld m
   let (h0, rargs) := publicThawArgs m w0.heap args
