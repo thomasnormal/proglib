@@ -2182,6 +2182,36 @@ theorem pairedTypedStoreLoadMetadataByte_refusal
   · rcases htargetLoad with ⟨targetStore, hstore, hload⟩
     simp [pairedTypedStoreLoadMetadataByte, hstore, hload]
 
+theorem pairedTypedStoreLoadMetadataByte_guard_refusal
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag)
+    (sourceStore : AllocationMetadata Tag State TypeId × Footprint)
+    (targetStore : AllocationMetadata Tag State TypeId × Footprint)
+    (sourceLoad targetLoad : Byte Tag × Footprint)
+    (hsource : typedStoreMetadataByte metadata offset typeId byte = some sourceStore)
+    (htarget : typedStoreMetadataByte (renameMetadata resolve id metadata) offset typeId
+      (renameByte resolve byte) = some targetStore)
+    (hsourceLoad : typedLoadMetadataByte sourceStore.1 offset typeId = some sourceLoad)
+    (htargetLoad : typedLoadMetadataByte targetStore.1 offset typeId = some targetLoad)
+    (hguard : (targetStore.1 == renameMetadata resolve id sourceStore.1 &&
+      targetStore.2 == sourceStore.2 &&
+      targetLoad.1 == renameByte resolve sourceLoad.1 &&
+      targetLoad.2 == sourceLoad.2) = false) :
+    pairedTypedStoreLoadMetadataByte resolve id metadata offset typeId byte = none := by
+  have hguard' :
+      (targetStore.1 == renameMetadata resolve id sourceStore.1 &&
+        targetStore.2 == sourceStore.2 &&
+        targetLoad.1 == renameByte resolve sourceLoad.1 &&
+        targetLoad.2 == sourceLoad.2) ≠ true := by
+    intro htrue
+    rw [htrue] at hguard
+    simp at hguard
+  simp [pairedTypedStoreLoadMetadataByte, hsource, htarget, hsourceLoad,
+    htargetLoad]
+  grind
+
 theorem pairedTypedStoreLoadMetadataByte_sound
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
