@@ -3631,6 +3631,10 @@ theorem pairedCopyFootprint_contract (source destination : Region) (width : Nat)
     pairedCopyFootprint source destination width = true := by
   exact pairedCopyFootprint_sound source destination width
 
+theorem pairedCopyFootprint_failure_contract (source destination : Region) (width : Nat) :
+    pairedCopyFootprint source destination width = false ↔ False := by
+  simp [pairedCopyFootprint, copyFootprint]
+
 def regionsOverlap (source destination : Region) (width : Nat) : Bool :=
   source.allocation == destination.allocation &&
     source.offset < destination.offset + width &&
@@ -3798,6 +3802,10 @@ theorem pairedMemmoveFootprint_sound (source destination : Region) (width : Nat)
 theorem pairedMemmoveFootprint_contract (source destination : Region) (width : Nat) :
     pairedMemmoveFootprint source destination width = true := by
   exact pairedMemmoveFootprint_sound source destination width
+
+theorem pairedMemmoveFootprint_failure_contract (source destination : Region) (width : Nat) :
+    pairedMemmoveFootprint source destination width = false ↔ False := by
+  simp [pairedMemmoveFootprint, copyFootprint]
 
 structure AllocationRequest (Tag State : Type) where
   bytes : List (Byte Tag)
@@ -5167,6 +5175,10 @@ theorem pairedReallocZero_true (resolve : AllocId → Nat) :
 theorem pairedReallocZero_contract (resolve : AllocId → Nat) :
     pairedReallocZero resolve = true := by
   exact pairedReallocZero_true resolve
+
+theorem pairedReallocZero_failure_contract (resolve : AllocId → Nat) :
+    pairedReallocZero resolve = false ↔ False := by
+  simp [pairedReallocZero, reallocZeroAgrees, reallocZeroGNU17]
 
 def isZeroToken (metadata : AllocationMetadata Tag State TypeId) : Bool :=
   metadata.allocation.live && metadata.allocation.bytes.isEmpty
@@ -9488,6 +9500,12 @@ theorem pairedPlacementWithin_contract
     (resolve : AllocId → Nat) (id size limit base : Nat) :
     pairedPlacementWithin resolve id size limit base = true ↔
       placementWithin base size limit = placementWithin (resolve id) size limit := by
+  simp [pairedPlacementWithin, beq_iff_eq]
+
+theorem pairedPlacementWithin_failure_contract
+    (resolve : AllocId → Nat) (id size limit base : Nat) :
+    pairedPlacementWithin resolve id size limit base = false ↔
+      placementWithin base size limit ≠ placementWithin (resolve id) size limit := by
   simp [pairedPlacementWithin, beq_iff_eq]
 
 def placementWithinComposition (first second : AllocId → Nat)
