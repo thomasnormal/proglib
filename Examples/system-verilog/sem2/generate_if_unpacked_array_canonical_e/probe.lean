@@ -11,6 +11,7 @@ def kinds : CoreMemProc → String
   | .edge _ => "edge"
   | .assign _ _ => "assign"
   | .event _ _ => "event"
+  | .primitive _ _ _ => "primitive"
   | .initial _ => "initial"
   | .implicit _ => "implicit"
   | .unsupported k _ => k
