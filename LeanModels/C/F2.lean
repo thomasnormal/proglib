@@ -7780,6 +7780,24 @@ def replayObservation (fixture : ReplayFixture) : ReplayObservation :=
   { stdout := replayStdout fixture.events
     ending := fixture.ending }
 
+theorem replayObservation_eq_iff (fixture : ReplayFixture)
+    (observation : ReplayObservation) :
+    replayObservation fixture = observation ↔
+      observation.stdout = replayStdout fixture.events ∧
+      observation.ending = fixture.ending := by
+  cases fixture with
+  | mk sourceHash compilerVersion targetTriple placements events ending =>
+      cases observation with
+      | mk stdout observedEnding =>
+          constructor
+          · intro h
+            cases h
+            exact ⟨rfl, rfl⟩
+          · rintro ⟨hstdout, hending⟩
+            cases hstdout
+            cases hending
+            rfl
+
 theorem renameReplayFixture_preserves_metadata
     (resolve : AllocId → Nat) (fixture : ReplayFixture) :
     (renameReplayFixture resolve fixture).sourceHash = fixture.sourceHash ∧
