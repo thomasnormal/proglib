@@ -8537,6 +8537,22 @@ theorem allocate_result_contract
   | unaddressable =>
       simp [allocate]
 
+theorem allocate_failure_contract
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) :
+    allocate store request placement = none ↔
+      placement = .fail ∨
+      (∃ base,
+        placement = .address base ∧
+        placementAllowed store base request.bytes.length = false) := by
+  cases placement with
+  | fail => simp [allocate]
+  | unaddressable => simp [allocate]
+  | address base =>
+      by_cases hallowed : placementAllowed store base request.bytes.length = true
+      · simp [allocate, hallowed]
+      · simp [allocate, hallowed]
+
 theorem allocate_preserves_wellFormed
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (placement : Placement) (result : Store Tag State × Footprint)
