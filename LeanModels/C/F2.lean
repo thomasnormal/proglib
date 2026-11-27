@@ -901,6 +901,17 @@ theorem renameHookRequest_comp
   | mk choice footprint =>
       simp [renameHookRequest, renameFootprint_comp]
 
+theorem renameHookRequest_result_iff
+    (resolve : AllocId → Nat) (request result : HookRequest) :
+    renameHookRequest resolve request = result ↔
+      result.choice = request.choice ∧
+      result.footprint = renameFootprint resolve request.footprint := by
+  cases request with
+  | mk choice footprint =>
+      cases result with
+      | mk resultChoice resultFootprint =>
+          simp [renameHookRequest, eq_comm]
+
 structure Fault (F : Type) where
   value : F
 deriving Repr
