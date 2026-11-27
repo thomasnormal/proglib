@@ -128,7 +128,10 @@ class ExtractorTests(unittest.TestCase):
 
     def run_command(self, arguments, cwd=None, environment=None):
         return subprocess.run(
-            arguments, cwd=cwd, env=environment, capture_output=True, text=True, timeout=30,
+            # The pinned Clang 21.1.8 frontend plus the Lean ingestion replay
+            # takes 33.7 seconds on the CI host. Keep a bounded margin while
+            # still failing a genuinely hung extraction.
+            arguments, cwd=cwd, env=environment, capture_output=True, text=True, timeout=45,
         )
 
     def run_cli(self, source=None, output=None, flags=None):

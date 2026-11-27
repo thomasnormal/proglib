@@ -4,3 +4,6 @@ Examples.cpp.tinyxml2.BaseGetLineNum
 Examples.cpp.tinyxml2.AttributeGetLineNum
 Examples.cpp.tinyxml2.IsUTF8Continuation
 Examples.cpp.tinyxml2.NodeGetLineNum
+# Fresh cross-lane generated artifacts required by the full CI gate.
+# language-progress-fresh: python3 harness/language_progress.py --check
+# backlog-index-fresh: bash tools/backlog-index.sh --check
