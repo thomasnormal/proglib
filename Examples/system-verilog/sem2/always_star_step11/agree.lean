@@ -138,9 +138,7 @@ private def eventJson (kind : String) (extra : List (String × Lean.Json) := [])
   (parsePProcess (eventJson "ImplicitEventControl" [(field, .bool true)])).toOption.isNone
 #guard [Lean.Json.str "always_ff", .str "always_comb", .bool true].all fun style =>
   (parsePProcess (eventJson "ImplicitEventControl" [("style", style)])).toOption.isNone
-#guard match (parsePProcess (eventJson "SignalEventControl")).toOption with
-  | some (.unsupported "ProceduralBlockSymbol:Always" _) => true
-  | _ => false
+#guard (parsePProcess (eventJson "SignalEventControl")).toOption.isNone
 #guard (parsePProcess (.mkObj [("kind", .str "AlwaysEvent"),
   ("event_kind", .str "ImplicitEventControl")])).toOption.isNone
 
