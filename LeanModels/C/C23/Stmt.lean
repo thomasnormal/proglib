@@ -607,7 +607,22 @@ parser-owned subtree and returns the tail beginning at that label. It is used
 only after ordinary block-tail search fails, so declarations on the resumed
 tail remain checked by the existing lifetime rule. -/
 def findLabelDeep (name : String) (statements : List Stmt) : Option (List Stmt) :=
-  findLabel name (statements.flatMap Stmt.substmts)
+  let rec seek : List Stmt → List Stmt → Option (List Stmt)
+    | [], _ => none
+    | s :: rest, seen =>
+        match s with
+        | .label n body sp =>
+            if n == name then some (seen.reverse ++ (.label n body sp :: rest))
+            else seek rest []
+        | .decl _ _ => seek rest (s :: seen)
+        | _ => seek rest []
+  seek (statements.flatMap Stmt.substmts) []
+
+def stmtHasInitializer : Stmt → Bool
+  | .decl decls _ => decls.any fun decl => match decl with
+      | .var _ _ _ _ (some _) _ _ _ _ => true
+      | _ => false
+  | _ => false
 
 def hasDecl : List Stmt → Bool
   | [] => false
@@ -851,8 +866,8 @@ def execBlock : Nat → Ctx → List Stmt → ExecM Flow
                   | some functionStatements =>
                       match findLabelDeep l functionStatements with
                       | some tail =>
-                          if hasDecl tail then
-                            refuseUnsupported "goto skips a block declaration"
+                          if tail.any stmtHasInitializer then
+                            refuseUnsupported "goto skips an initialized block declaration"
                           else execBlock fuel ctx tail
                       | none => pure (.goto l)
                   | none => pure (.goto l)
