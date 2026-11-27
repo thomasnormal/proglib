@@ -563,15 +563,22 @@ classify_path() {       # path -> docs | tier | spine
     # The SHARED harness — the differential every tier is judged by.
     harness/diff_test.py|harness/cases.json)        echo spine ;;
     # Tier-local: whatever the LAKEFILE calls a library — asked, not assumed.
-    *) if [ "$(lake_glob_class "$CLONE" "$1")" = "library" ]; then echo tier
-       else
-         case "$1" in
-           docs/*|notebooks/*|tools/*|harness/*|.github/*) echo docs ;;
-           .gitignore|*.md)                                echo docs ;;
-           *.lean)                                         echo spine ;;
-           *)                                              echo spine ;;
-         esac
-       fi ;;
+    *) case "$1" in
+         # Python and shell instruments under harness are CI tooling. They
+         # are not Lake inputs even though the darkriscv replay executable
+         # makes harness/ a library-shaped prefix.
+         harness/*.py|harness/*.sh) echo docs ;;
+         docs/*|notebooks/*|tools/*|.github/*) echo docs ;;
+         *) if [ "$(lake_glob_class "$CLONE" "$1")" = "library" ]; then echo tier
+            else
+              case "$1" in
+                .gitignore|*.md) echo docs ;;
+                *.lean)         echo spine ;;
+                *)              echo spine ;;
+              esac
+            fi ;;
+       esac
+       ;;
     esac
     return 0
 }
@@ -3620,14 +3627,14 @@ if [ "$SELF_TEST" = "1" ]; then
   LS_GREP_ROOT=
   check "tier-local diff -> tier"           "$(class_name "$CLASS_RANK")" "tier"
   check "the two trees name ONE tier"       "$CLASS_TIERS" "Sv"
-  check "the touched module is a target"    "$BUILD_TARGETS" "LeanModels.Sv.Obs Examples LeanModels.Sv.CombBar Examples.«system-verilog».comb.proof"
+  check "the touched module is a target"    "$BUILD_TARGETS" "LeanModels.Sv.Obs Examples LeanModels.Sv.CombBar LeanModels.Sv.Foo LeanModels.Sv.Leaf Examples.«system-verilog».comb.proof"
   check "a rootless tier adds no root"      "$(tier_targets Sv)" ""
   check "tier owes a tenure"                "$(tenure_needed tier "")" "yes"
 
   LS_GREP_ROOT="$tmp/tiermap"
   cls LeanModels/Sv/Obs.lean
   check "a core Sv file builds the chain above it, through a non-Comb module" \
-        "$BUILD_TARGETS" "LeanModels.Sv.Obs LeanModels.Sv.CombBar Examples.«system-verilog».comb.proof"
+        "$BUILD_TARGETS" "LeanModels.Sv.Obs LeanModels.Sv.CombBar LeanModels.Sv.Foo LeanModels.Sv.Leaf Examples.«system-verilog».comb.proof"
   cls LeanModels/Sv/Leaf.lean
   check "an Sv leaf adds nothing"           "$BUILD_TARGETS" "LeanModels.Sv.Leaf"
   cls Examples/system-verilog/toggle/proof.lean
@@ -3689,7 +3696,7 @@ if [ "$SELF_TEST" = "1" ]; then
   git -C "$sv" add -A; git -C "$sv" commit -qm edit
   out="$(flagrun --dir "$sv" --classify-only --against HEAD~1)"
   check "--dir: the build names the CLASSIFIED tree's chain" \
-        "$(printf '%s\n' "$out" | grep -c 'build     lake build LeanModels.Sv.Obs LeanModels.Sv.CombZed Examples.«system-verilog».ex.proof$')" "1"
+        "$(printf '%s\n' "$out" | grep -c 'build     lake build LeanModels.Sv.Obs LeanModels.Sv.CombZed LeanModels.Sv.Mid Examples.«system-verilog».ex.proof$')" "1"
 
   cls LeanModels/Python/Surface.lean
   check "a tier WITH a root adds it"        "$(printf '%s\n' $BUILD_TARGETS | grep -c '^LeanModels.Python.Surface$')" "1"

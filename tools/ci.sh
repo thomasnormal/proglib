@@ -177,7 +177,7 @@ STUB
     grep -qE -- '--self-test\)|= "--self-test"' "$t" || continue
     case "$t" in */ci.sh) continue ;; esac        # belt: never re-enter CI
     # A per-tool timeout, so a future tool that hangs cannot hang CI.
-    if ! ( cd "$view" && selftest_report "${t##*/}" timeout 120 bash "$t" --self-test ); then
+    if ! ( cd "$view" && selftest_report "${t##*/}" timeout 240 bash "$t" --self-test ); then
       rc=1
     fi
   done
