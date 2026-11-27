@@ -10279,6 +10279,23 @@ theorem unaddressableToken_contract
   · rintro ⟨allocation, hlookup, hlive, haddress⟩
     exact unaddressableToken_true store id allocation hlookup hlive haddress
 
+theorem unaddressableToken_failure_contract
+    (store : Store Tag State) (id : AllocId) :
+    unaddressableToken store id = false ↔
+      lookup store id = none ∨
+      (∃ allocation,
+        lookup store id = some allocation ∧
+        (allocation.live = false ∨ allocation.address ≠ none)) := by
+  cases hlookup : lookup store id with
+  | none => simp [unaddressableToken, hlookup]
+  | some allocation =>
+      cases hlive : allocation.live with
+      | false => simp [unaddressableToken, hlookup, hlive]
+      | true =>
+          cases haddress : allocation.address with
+          | none => simp [unaddressableToken, hlookup, hlive, haddress]
+          | some address => simp [unaddressableToken, hlookup, hlive, haddress]
+
 theorem unaddressableToken_empty_false
     {Tag State : Type} (id : AllocId) :
     unaddressableToken ({ allocations := [], nextId := 0 } : Store Tag State) id = false := by
