@@ -1085,6 +1085,19 @@ theorem bytesWf_cons_contract
       | none => simp [bytesWf]
       | some provenance => simp [bytesWf]
 
+theorem bytesWf_append
+    (id : AllocId) (left right : List (Byte Tag)) :
+    bytesWf id (left ++ right) ↔ bytesWf id left ∧ bytesWf id right := by
+  induction left with
+  | nil => simp [bytesWf]
+  | cons byte rest ih =>
+      cases byte with
+      | uninitialized => simp [bytesWf, ih]
+      | value bits provenance fragment =>
+          cases provenance with
+          | none => simp [bytesWf, ih]
+          | some provenance => simp [bytesWf, ih, and_assoc]
+
 def AllocationMetadata.wellFormed (metadata : AllocationMetadata Tag State TypeId)
     (id : AllocId) : Prop :=
   bytesWf id metadata.allocation.bytes ∧
