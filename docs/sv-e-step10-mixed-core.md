@@ -9,8 +9,8 @@ second settle after the edge commits `q`.
 
 The source follows IEEE 1800-2023 §§9.2.2.2.1, 9.2.2.4 and 10.4.2. The
 fixture's parser/profile proof confirms three retained processes and the
-existing mixed profile. `agree.lean` deliberately makes no E execution claim:
-the mixed executor is the Step 10 semantic work. `check.py` compares the
+existing mixed profile. `agree.lean` now runs the same source-shaped rows
+through canonical E's memory elaborator and executor. `check.py` compares the
 source rows from Icarus 13.0 with Xcelium through the simulator readiness gate;
 rows that change `q` at an edge must also show the post-edge `n` and `post`
 values after comb re-settling.
@@ -22,6 +22,8 @@ pre-edge rows are `en1_d3: q=1111 n=1100 post=1101`,
 and `en0_z0: q=x101 n=x101 post=xxxx`. The corresponding post-edge rows
 are `en1_d3: q=0011 n=0000 post=0001`, `en0_da: q=0101 n=1111 post=0000`,
 `en1_x5: q=x101 n=x000 post=xxxx`, and `en0_z0: q=x111 n=x111 post=xxxx`.
+Canonical E produces the same nine rows, including the startup row, from
+`runCoreMemRows` over the source-shaped mixed design.
 The clean-room source SHA-256 is
 `95f5977842c56ab28f7fd36af045b0086fcf68696a5266280d2c67cf473f9dec` and
 the regenerated envelope SHA-256 is
