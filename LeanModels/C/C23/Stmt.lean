@@ -638,23 +638,54 @@ fuel is a bound on total work rather than on iterations alone. The
 `∃ n, ∀ fuel ≥ n` threshold form is unaffected: it quantifies over fuel
 from outside. -/
 
+/- C23 §6.8.4p3 permits a case label in a nested statement.  Dispatch
+   transfers directly to that label, while fallthrough from an earlier label
+   still executes the enclosing control statement normally. -/
+inductive SwitchTarget where
+  | label (value : Option Expr) (tail : List Stmt)
+  | rangeLabel (lo hi : Expr) (tail : List Stmt)
+
 inductive SwitchItem where
   | label (value : Option Expr)
   | rangeLabel (lo hi : Expr)
   | stmt (s : Stmt)
+  | nested (s : Stmt) (targets : List SwitchTarget)
 
-def switchCaseTail : Stmt → List SwitchItem
-  | .caseS v b _ => .label (some v) :: switchCaseTail b
-  | .caseRange lo hi b _ => .rangeLabel lo hi :: switchCaseTail b
-  | .defaultS b _ => .label none :: switchCaseTail b
-  | s => [.stmt s]
+def directStmts : Stmt → List Stmt
+  | .compound body _ => body
+  | s => [s]
+
+def collectSwitchTargets : Stmt → List SwitchTarget
+  | .compound body _ => body.flatMap collectSwitchTargets
+  | .caseS value body _ =>
+      .label (some value) (directStmts body) :: collectSwitchTargets body
+  | .caseRange lo hi body _ =>
+      .rangeLabel lo hi (directStmts body) :: collectSwitchTargets body
+  | .defaultS body _ =>
+      .label none (directStmts body) :: collectSwitchTargets body
+  | .ifS _ thenBranch elseBranch _ =>
+      match elseBranch with
+      | none => collectSwitchTargets thenBranch
+      | some elseBranch => collectSwitchTargets thenBranch ++ collectSwitchTargets elseBranch
+  | _ => []
+
+mutual
 
 def switchItems : Stmt → List SwitchItem
   | .compound body _ => body.flatMap switchItems
   | .caseS v b _ => .label (some v) :: switchCaseTail b
   | .caseRange lo hi b _ => .rangeLabel lo hi :: switchCaseTail b
   | .defaultS b _ => .label none :: switchCaseTail b
-  | s => [.stmt s]
+  | s =>
+      match collectSwitchTargets s with
+      | [] => [.stmt s]
+      | targets => [.nested s targets]
+
+def switchCaseTail : Stmt → List SwitchItem
+  | .compound body _ => body.flatMap switchItems
+  | s => switchItems s
+
+end
 
 def containsCaseLabel (s : Stmt) : Bool :=
   s.substmts.any fun t => match t with
@@ -673,6 +704,28 @@ def switchHasLoopNestedLabel (s : Stmt) : Bool :=
     match t with
     | .forS .. | .whileS .. | .doS .. => containsCaseLabel t
     | _ => false
+
+def switchFindNestedAux (ctx : Ctx) (cv : CVal) :
+    List SwitchTarget → Option (List Stmt) →
+      EvalM (Option (List Stmt) × Option (List Stmt))
+  | [], fallback => pure (none, fallback)
+  | .label label tail :: rest, fallback =>
+      match label with
+      | none => switchFindNestedAux ctx cv rest (some tail.reverse)
+      | some e => do
+          let v ← evalExpr ctx e
+          let (_, a) ← asInt cv
+          let (_, b) ← asInt v
+          if a == b then pure (some tail.reverse, fallback)
+          else switchFindNestedAux ctx cv rest fallback
+  | .rangeLabel lo hi tail :: rest, fallback => do
+      let lv ← evalExpr ctx lo
+      let hv ← evalExpr ctx hi
+      let (_, a) ← asInt cv
+      let (_, l) ← asInt lv
+      let (_, h) ← asInt hv
+      if l ≤ a && a ≤ h then pure (some tail.reverse, fallback)
+      else switchFindNestedAux ctx cv rest fallback
 
 def switchFindAux (ctx : Ctx) (cv : CVal) :
     List SwitchItem → Option (List Stmt) → Option (List Stmt) → EvalM (Option (List Stmt))
@@ -706,6 +759,15 @@ def switchFindAux (ctx : Ctx) (cv : CVal) :
       | some acc, _ => switchFindAux ctx cv rest (some (s :: acc)) fallback
       | none, some acc => switchFindAux ctx cv rest none (some (s :: acc))
       | none, none => switchFindAux ctx cv rest none none
+  | .nested original targets :: rest, selected, fallback =>
+      match selected with
+      | some acc => switchFindAux ctx cv rest (some (original :: acc)) fallback
+      | none => do
+          let (nestedSelected, nestedFallback) ←
+            switchFindNestedAux ctx cv targets fallback
+          match nestedSelected with
+          | some acc => switchFindAux ctx cv rest (some acc) nestedFallback
+          | none => switchFindAux ctx cv rest none nestedFallback
   termination_by items _ _ => items.length
 
 def switchFind (ctx : Ctx) (cv : CVal) (body : Stmt) : EvalM (Option (List Stmt)) :=
