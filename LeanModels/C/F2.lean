@@ -8035,6 +8035,40 @@ theorem pairedOffsetPointer_refusal
   · cases fault <;> simp [pairedOffsetPointer, hsource, htarget]
   · cases fault <;> simp [pairedOffsetPointer, hsource, htarget]
 
+theorem pairedOffsetPointer_failure_contract
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat) :
+    pairedOffsetPointer resolve pointer elementSize delta bound = false ↔
+      (∃ fault target,
+        offsetPointer pointer elementSize delta bound = .error fault ∧
+        offsetPointer (renamePointer resolve pointer) elementSize delta bound = .ok target) ∨
+      (∃ source fault,
+        offsetPointer pointer elementSize delta bound = .ok source ∧
+        offsetPointer (renamePointer resolve pointer) elementSize delta bound = .error fault) ∨
+      (∃ sourceFault targetFault,
+        offsetPointer pointer elementSize delta bound = .error sourceFault ∧
+        offsetPointer (renamePointer resolve pointer) elementSize delta bound = .error targetFault ∧
+        sourceFault ≠ targetFault) ∨
+      (∃ source target,
+        offsetPointer pointer elementSize delta bound = .ok source ∧
+        offsetPointer (renamePointer resolve pointer) elementSize delta bound = .ok target ∧
+        (renamePointer resolve source).address ≠ target.address) := by
+  cases hs : offsetPointer pointer elementSize delta bound with
+  | error sourceFault =>
+      cases ht : offsetPointer (renamePointer resolve pointer) elementSize delta bound with
+      | error targetFault =>
+          cases sourceFault <;> cases targetFault <;> simp [pairedOffsetPointer, hs, ht]
+      | ok target =>
+          simp [pairedOffsetPointer, hs, ht]
+  | ok source =>
+      cases ht : offsetPointer (renamePointer resolve pointer) elementSize delta bound with
+      | error targetFault =>
+          simp [pairedOffsetPointer, hs, ht]
+      | ok target =>
+          by_cases hsame : (renamePointer resolve source).address = target.address
+          · simp [pairedOffsetPointer, hs, ht, hsame]
+          · simp [pairedOffsetPointer, hs, ht, hsame]
+
 theorem pairedOffsetPointer_sound
     (resolve : AllocId → Nat) (pointer : Pointer Tag)
     (elementSize : Nat) (delta : Int) (bound : Nat)
