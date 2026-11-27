@@ -10959,6 +10959,28 @@ theorem renameBoundedResult_success_shape
       .ok (renameStore resolve store, footprint) := by
   rfl
 
+theorem renameBoundedResult_success_contract
+    (resolve : AllocId → Nat)
+    (result : Except PlacementFault (Store Tag State × Footprint))
+    (target : Store Tag State × Footprint) :
+    renameBoundedResult resolve result = .ok target ↔
+      ∃ store footprint,
+        result = .ok (store, footprint) ∧
+        target = (renameStore resolve store, footprint) := by
+  cases result with
+  | error sourceFault => simp [renameBoundedResult]
+  | ok sourceResult =>
+      cases sourceResult with
+      | mk sourceStore sourceFootprint =>
+          constructor
+          · intro htarget
+            refine ⟨sourceStore, sourceFootprint, rfl, ?_⟩
+            simpa [renameBoundedResult] using htarget.symm
+          · rintro ⟨store, footprint, hresult, htarget⟩
+            cases hresult
+            cases htarget
+            rfl
+
 theorem renameBoundedResult_kind_preserved
     (resolve : AllocId → Nat)
     (result : Except PlacementFault (Store Tag State × Footprint)) :
