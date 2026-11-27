@@ -275,7 +275,7 @@ example (W N : Nat) (hW1 : 1 ≤ W) (hW2 : W < 2 ^ 30) (h1 : 1 ≤ N) (h2 : N < 
 
 /-! A non-unit loop step remains outside the clocked profile. -/
 /--
-error: sv_structure: process 0 (an edge process) has a procedural `for` loop whose header the clocked stages do not evaluate: they read `for (i = a; i < P; i++)` and `i <= P` (the step `i++` or `i = i + 1`) as the route's value list in closed form; any other header (another step, a bound that is not a parameter, a descending loop) is refused
+error: sv_structure: process 0 (an edge process) has a procedural `for` loop whose header the clocked stages do not evaluate: they read `for (i = a; i < P; i++)` and `i <= P` (a literal start `a`, a parameter bound `P`, a unit step `i++` or `i = i + 1`) as the route's value list in closed form; any other header (another step, a bound that is not a parameter, a descending loop) is refused
 -/
 #guard_msgs (whitespace := lax) in
 example (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) : SeqDesign (fs2.e N) "clk" := by
