@@ -22,9 +22,9 @@ ENVELOPE_SHA256 = "17ea7b66ab8ea9b6844c317928f0430cff8b8a5b53f658f7a929bf1aa6cdc
 TESTBENCH_SHA256 = "9c9ab2cd5f91849bcc19b8cb81ab828da1082ce55d14b3716b24ea012a83e87a"
 TRANSCRIPT_SHA256 = "7eaef1b04e2fa561b6de06cca91a96d3148a1ab9858cf10a3f07dcf259c31721"
 EXPECTED_LOAD_REFUSAL = (
-    "Schedule:preemptive: IEEE 1800-2023 §4.7 permits suspension between "
-    "blocking writes; canonical E refuses a multi-write reactive process "
-    "whose intermediate value another process can read"
+    "Event:multiple-write: 4.7/10.4.1: same-event processes write the same "
+    "variable; the standard leaves the update order open and canonical E "
+    "refuses the race"
 )
 RESET_CYCLES = 4
 CASE_CYCLES = {"program": 300, "counters": 23}

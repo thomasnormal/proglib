@@ -6,7 +6,7 @@ ISA instruction must reach its first valid retirement within a uniform bound.
 An ADDI retirement must agree with the ISA on its source, destination, value,
 instruction, order and PCs. The post-edge comparison covers initialized
 physical register cells and the external byte memory. Canonical E currently
-refuses the top with `Schedule:preemptive` before reset. The whole-core ADDI obligation remains open. [Obligation](R2.lean) · [Loaded design](input_drive_core.lean)
+refuses the top with `Event:multiple-write` before reset. The whole-core ADDI obligation remains open. [Obligation](R2.lean) · [Loaded design](input_drive_core.lean)
 
 The source-shaped unpacked `cpuregs` slice has a six-row canonical-E receipt
 covering two NBA writes, runtime reads, and an unknown read index. Icarus
@@ -2100,7 +2100,7 @@ fourth cycle. The transcript preserves four-state signals and the RAM response
 sampled before each rising edge, as well as the outputs after the NBA updates.
 [RV32UI checker](rv32ui_check.py) · [Simulator transcript and tool versions](rv32ui/simulator_rows.txt.gz)
 
-At all 26 defaults the loaded family returns `Schedule:preemptive` before
+At all 26 defaults the loaded family returns `Event:multiple-write` before
 reset. Canonical E therefore compares **0/42 RV32UI images** and **0/331
 samples** in the two fixed programs. Replay uses the loaded core's own
 initial state and step. The RV32UI command exits 2 on this exact load
@@ -2351,3 +2351,25 @@ their zeroes are `not reached`, not admissions.
 
 No construct-specific fixture is attributed to this run.  The measurement used
 the clocked stages and did not use `#reduce`.
+
+## 2026-11-27 current whole-core re-probe
+
+At the pinned RISCV_FORMAL envelope and all 26 named defaults, the canonical-E
+loader now reaches the same-event writer guard and returns:
+
+```text
+Event:multiple-write: 4.7/10.4.1: same-event processes write the same variable; the standard leaves the update order open and canonical E refuses the race
+```
+
+The loaded envelope has 45 procedural processes and 14 detected blocking
+same-event writer pairs. This is the first refusal on the current route, before
+reset or any cycle executes. The ordinary register-file leaf remains admitted
+through its separate one-rank memory profile, but this does not admit the
+whole core.
+
+Icarus Verilog 13.0 (`s20250103-64-gdad78d525`) and Xcelium 24.03-s004 agree on
+all 2000 sampled rows of the input-driven program and on all 331 rows of the
+counter program. The normalized output-row SHA-256 is
+`d2c84048e684bf82b502f2362d112b454f27c0864fbe3923c75d5c180c0b8b1d`. Canonical
+E therefore compares 0/331 rows and refuses at `Event:multiple-write`.
+[Input-driven receipt](e_run_input_check.py) · [Whole-core receipt](e_run_check.py)
