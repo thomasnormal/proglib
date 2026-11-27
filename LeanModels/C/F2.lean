@@ -7034,6 +7034,23 @@ theorem pairedAlignmentAllowed_refusal (resolve : AllocId → Nat)
   · simp [pairedAlignmentAllowed, hsource, htarget]
   · simp [pairedAlignmentAllowed, hsource, htarget]
 
+theorem pairedAlignmentAllowed_failure_contract (resolve : AllocId → Nat)
+    (id alignment : Nat) :
+    pairedAlignmentAllowed resolve id alignment = false ↔
+      alignmentAllowed id alignment ≠ alignmentAllowed (resolve id) alignment := by
+  by_cases hsource : alignmentAllowed id alignment = true
+  · by_cases htarget : alignmentAllowed (resolve id) alignment = true
+    · simp [pairedAlignmentAllowed, hsource, htarget]
+    · have htarget' : alignmentAllowed (resolve id) alignment = false :=
+          Bool.eq_false_iff.mpr htarget
+      simp [pairedAlignmentAllowed, hsource, htarget']
+  · have hsource' : alignmentAllowed id alignment = false := Bool.eq_false_iff.mpr hsource
+    by_cases htarget : alignmentAllowed (resolve id) alignment = true
+    · simp [pairedAlignmentAllowed, hsource', htarget]
+    · have htarget' : alignmentAllowed (resolve id) alignment = false :=
+          Bool.eq_false_iff.mpr htarget
+      simp [pairedAlignmentAllowed, hsource', htarget']
+
 def alignmentComposition (first second : AllocId → Nat)
     (id alignment : Nat) : Bool :=
   alignmentAllowed (first id) alignment == alignmentAllowed (second id) alignment
