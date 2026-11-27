@@ -5524,6 +5524,20 @@ theorem renameZeroSizeOutcome_token_contract
       · exact renameZeroTokenMetadata_preserves_wellFormed resolve metadata
           (hmetadata metadata rfl)
 
+theorem renameZeroSizeOutcome_idempotent
+    (resolve : AllocId → Nat)
+    (outcome : ZeroSizeOutcome Tag State TypeId) :
+    renameZeroSizeOutcome resolve (renameZeroSizeOutcome resolve outcome) =
+      renameZeroSizeOutcome resolve outcome := by
+  cases outcome with
+  | null => rfl
+  | token metadata =>
+      cases metadata with
+      | mk allocation locations =>
+          cases allocation with
+          | mk live address bytes state =>
+              cases address <;> rfl
+
 def pairedZeroTokenEqual (resolve : AllocId → Nat)
     (left right : AllocationMetadata Tag State TypeId) : Bool :=
   zeroTokenEqual (renameZeroTokenMetadata resolve left)
