@@ -7908,6 +7908,15 @@ theorem renameReplayFixture_idempotent
       simp [renameReplayFixture, renameReplayPlacement_idempotent,
         renameReplayEvents_identity]
 
+theorem renameReplayFixture_comp
+    (first second : AllocId → Nat) (fixture : ReplayFixture) :
+    renameReplayFixture second (renameReplayFixture first fixture) =
+      renameReplayFixture second fixture := by
+  cases fixture with
+  | mk sourceHash compilerVersion targetTriple placements events ending =>
+      simp [renameReplayFixture, renameReplayPlacement_comp,
+        renameReplayEvents_identity]
+
 theorem renameReplayFixture_contract
     (resolve : AllocId → Nat) (fixture : ReplayFixture) :
     (renameReplayFixture resolve fixture).sourceHash = fixture.sourceHash ∧
