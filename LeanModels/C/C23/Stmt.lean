@@ -1216,7 +1216,8 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
           refuseUnsupported "unnamed pointer parameter (array-bound effects are not retained by clang)"
         if hasUnretainedParamArrayEffects prog.layout f.params then
           refuseUnsupported "parameter array-bound effects are not retained by clang"
-        if hasGotoControlledPointerIncrement body then
+        if hasGotoControlledPointerIncrement body &&
+            body.substmts.any (fun s => match s with | .switchS .. => true | _ => false) then
           refuseUnsupported "goto-controlled pointer increment lacks an exact parser path"
         let m₀ ← get
         let base := m₀.count
