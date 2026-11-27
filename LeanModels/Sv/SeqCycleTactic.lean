@@ -1105,6 +1105,75 @@ macro "sv_seq_obligations" : tactic =>
       (try split) <;>
       (try simp [LeanModels.Sv.Expr2.idents]))
 
+/-! The memory-aware variant keeps the same normalization set but exposes
+`seqOblIM` and its semantic edge-order certificate. -/
+macro "sv_seq_obligationsIM" : tactic =>
+  `(tactic| simp (config := {maxSteps := 4000000, decide := true}) [
+      LeanModels.Sv.Kernel.CoreMemDesign.seqOblIM,
+      LeanModels.Sv.Kernel.CoreMemDesign.seqOblI,
+      LeanModels.Sv.Kernel.CoreMemDesign.oblEdgeOrderMemory,
+      LeanModels.Sv.Kernel.CoreMemDesign.oblInputsUndriven,
+      LeanModels.Sv.Kernel.CoreMemDesign.oblSources,
+      LeanModels.Sv.Kernel.CoreMemDesign.oblNoSourceRead,
+      LeanModels.Sv.Kernel.CoreMemProc.sourceReadOk,
+      LeanModels.Sv.Kernel.CoreMemDesign.sources,
+      LeanModels.Sv.Kernel.CoreMemDesign.events,
+      LeanModels.Sv.Kernel.CoreMemProc.events,
+      LeanModels.Sv.Kernel.coreMemEventEdge?,
+      LeanModels.Sv.Kernel.CoreMemEvent.clockEdge?,
+      LeanModels.Sv.Kernel.CoreMemEdge.events,
+      LeanModels.Sv.Kernel.CoreMemEdge.clockEvent,
+      LeanModels.Sv.Kernel.CoreMemEdge.resetEvent?,
+      LeanModels.Sv.Kernel.CoreMemDesign.inputPorts,
+      LeanModels.Sv.Kernel.CoreMemDesign.driven,
+      LeanModels.Sv.Kernel.CoreMemDesign.inputNamesL,
+      LeanModels.Sv.Kernel.CoreMemDesign.oblDrivers,
+      LeanModels.Sv.Kernel.CoreMemDesign.oblConverted,
+      LeanModels.Sv.Kernel.CoreMemDesign.topoC,
+      LeanModels.Sv.Kernel.CoreMemDesign.topoFrom,
+      LeanModels.Sv.Kernel.assignTargets,
+      LeanModels.Sv.Kernel.CoreMemDesign.compileAssigns,
+      LeanModels.Sv.Expr2.idents,
+      LeanModels.Sv.Expr2.listIdents,
+      LeanModels.Sv.Expr2.idents_ite,
+      LeanModels.Sv.intLit2_eq,
+      LeanModels.Sv.PExpr.sigNames,
+      LeanModels.Sv.PExpr.sigNamesList,
+      LeanModels.Sv.PLhs.baseNames,
+      LeanModels.Sv.PLhs.baseNamesList,
+      LeanModels.Sv.PLhs.indexNames,
+      LeanModels.Sv.PLhs.indexNamesList,
+      LeanModels.Sv.PStmt.writes,
+      LeanModels.Sv.PStmt.optWrites,
+      LeanModels.Sv.PStmt.listWrites,
+      LeanModels.Sv.PStmt.itemsWrites,
+      LeanModels.Sv.Kernel.CoreMemProc.unconverted,
+      LeanModels.Sv.PExpr.unconverted,
+      LeanModels.Sv.PExpr.unconvertedList,
+      LeanModels.Sv.PStmt.unconverted,
+      LeanModels.Sv.PStmt.optUnconverted,
+      LeanModels.Sv.PStmt.listUnconverted,
+      LeanModels.Sv.PStmt.itemsUnconverted,
+      LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?,
+      LeanModels.Sv.Kernel.CoreMemDesign.readsV,
+      LeanModels.Sv.Kernel.CoreMemDesign.readsIdxV,
+      LeanModels.Sv.Kernel.CoreMemDesign.readsListV,
+      LeanModels.Sv.Kernel.CoreMemDesign.memDecl?,
+      LeanModels.Sv.Kernel.CoreMemDesign.widthsOf,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryRead,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasMemoryReadList,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCall,
+      LeanModels.Sv.Kernel.LeanModels.Sv.PExpr.hasFunctionCallList,
+      LeanModels.Sv.Kernel.Elab.resolve,
+      LeanModels.Sv.Kernel.resolveAux,
+      LeanModels.Sv.Kernel.Elab.declOf,
+      LeanModels.Sv.instExpr2,
+      LeanModels.Sv.evalInt,
+      LeanModels.Sv.Kernel.seqE_except_ok_bind,
+      LeanModels.Sv.Kernel.seqE_except_pure] <;>
+      (try split) <;>
+      (try simp [LeanModels.Sv.Expr2.idents]))
+
 /-- **`sv_seq_ports`**: the ports of a normal form. -/
 macro "sv_seq_ports" : tactic =>
   `(tactic| simp [LeanModels.Sv.Kernel.CoreMemDesign.inputPorts, LeanModels.Sv.Kernel.CoreMemDesign.outputPorts])

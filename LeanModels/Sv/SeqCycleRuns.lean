@@ -87,6 +87,36 @@ theorem CoreMemDesign.runRowsM_seq {E : CoreMemDesign} {clk : String} (hP : E.Se
 
 #print axioms CoreMemDesign.runRowsM_seq
 
+/-- **The memory-aware run refinement**: the route's cycle rows refine the
+view-level run when the semantic memory-NBA edge-order certificate holds. -/
+theorem CoreMemDesign.runRowsM_seqIM {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
+    (hO : E.seqOblIM = true) (hclk : E.scalar.toDesign2.declWidth clk = some 1) :
+    ∀ (ins : List SvState) (st : CoreMemState)
+      (tr : List ((SvState × MemV) × (SvState × MemV))), E.Coherent st →
+      E.MemCoherent st.memory → (∀ d ∈ ins, E.DataTyped clk d) →
+      E.runMV clk (E.scalar.view st.scalar, E.memOf st.memory) ins = .ok tr →
+      ∃ rows, runCoreMemRows E st (cycleRows clk ins) = .ok rows ∧
+        cyclePairs (rows.map fun s => (E.scalar.view s.scalar, E.memOf s.memory)) = tr
+  | [], st, tr, _, _, _, hv => by
+      simp only [CoreMemDesign.runMV, Res.ok.injEq] at hv
+      subst hv
+      exact ⟨[], rfl, rfl⟩
+  | d :: ds, st, tr, hc, hmc, hd, hv => by
+      simp only [CoreMemDesign.runMV, Res.bind_eq_ok, Res.ok.injEq] at hv
+      obtain ⟨⟨pre, post⟩, hcyc, rest, hrest, rfl⟩ := hv
+      obtain ⟨s1, s2, hs1, hs2, hv1, hv2, hc1, hc2, hmc1, hmc2⟩ :=
+        CoreMemDesign.cycleMV_refines_IM hP hO hc hmc (hd d (by simp))
+          (CoreMemDesign.highEntry_typed hclk) hcyc
+      obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRowsM_seqIM hP hO hclk ds s2 rest hc2 hmc2
+        (fun d' hd' => hd d' (by simp [hd'])) (by rw [hv2]; exact hrest)
+      refine ⟨s1 :: s2 :: rows, ?_, ?_⟩
+      · simp only [cycleRows, runCoreMemRows_cons (show (lowEntry clk d).isEmpty = false from rfl),
+          runCoreMemRows_cons (show (highEntry clk).isEmpty = false from rfl), hs1, hs2,
+          Res.ok_bind, hrows]
+      · simp [cyclePairs, hv1, hv2, hpairs]
+
+#print axioms CoreMemDesign.runRowsM_seqIM
+
 /-- **THE RUN REFINEMENT, without memories**: from every coherent state and every typed data list, when the view-level
 run succeeds the route's own run of the cycles succeeds and its samples are exactly the view-level run's. -/
 theorem CoreMemDesign.runRows_seq {E : CoreMemDesign} {clk : String} (hP : E.SeqProfile clk)
@@ -242,6 +272,40 @@ theorem SeqRunsM.intro {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String
   exact hrun _ ins tr hσ0 hd htr
 
 #print axioms SeqRunsM.intro
+
+/-- The same run introduction rule with the semantic memory-NBA obligation.
+It is deliberately separate from `SeqRunsM.intro`: callers cannot
+accidentally discharge `seqOblIM` through the older scalar-only bit. -/
+theorem SeqRunsM.introIM {r : Res CoreMemDesign} {E : CoreMemDesign} {clk : String}
+    {P : List ((SvState × MemV) × (SvState × MemV)) → Prop} (hr : r = .ok E) (hP : E.SeqProfile clk)
+    (hO : E.seqOblIM = true) (hclk : E.scalar.toDesign2.declWidth clk = some 1)
+    (Inv : SvState × MemV → Prop)
+    (hinv : ∀ st, E.Coherent st → E.MemCoherent st.memory → Inv (E.scalar.view st.scalar, E.memOf st.memory))
+    (hstep : ∀ σ d, Inv σ → E.DataTyped clk d →
+      ∃ pre post, E.cycleMV clk σ d = .ok (pre, post) ∧ Inv post)
+    (hrun : ∀ σ ins tr, Inv σ → (∀ d ∈ ins, E.DataTyped clk d) →
+      E.runMV clk σ ins = .ok tr → P tr) :
+    SeqRunsM r clk P := by
+  refine ⟨E, hr, fun st ins hc hmc hd _ => ?_⟩
+  have hex : ∀ (ins : List SvState) (σ : SvState × MemV), Inv σ →
+      (∀ d ∈ ins, E.DataTyped clk d) → ∃ tr, E.runMV clk σ ins = .ok tr := by
+    intro ins
+    induction ins with
+    | nil => intro σ _ _; exact ⟨[], rfl⟩
+    | cons d ds ih =>
+        intro σ hσ hd
+        obtain ⟨pre, post, hcyc, hpost⟩ := hstep σ d hσ (hd d (by simp))
+        obtain ⟨tr, htr⟩ := ih post hpost fun d' hd' => hd d' (by simp [hd'])
+        exact ⟨(pre, post) :: tr, by simp [CoreMemDesign.runMV, hcyc, htr]⟩
+  have hσ0 := hinv st hc hmc
+  obtain ⟨tr, htr⟩ := hex ins _ hσ0 hd
+  obtain ⟨rows, hrows, hpairs⟩ := CoreMemDesign.runRowsM_seqIM hP hO hclk ins st tr hc hmc hd htr
+  refine ⟨rows, hrows, ?_⟩
+  show P (cyclePairs _)
+  rw [hpairs]
+  exact hrun _ ins tr hσ0 hd htr
+
+#print axioms SeqRunsM.introIM
 
 /-- **How a `SeqRuns` claim is proved, for a design without memories**: from the profile, an invariant every shaped
 view has, the cycle's success from the invariant keeping it (the cycle equations), and the claim about every view-level
