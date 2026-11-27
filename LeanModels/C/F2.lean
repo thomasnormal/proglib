@@ -8803,6 +8803,26 @@ theorem allocateAligned_result_contract
   | fail =>
       simp [allocateAligned, allocate_failure_shape]
 
+theorem allocateAligned_failure_contract
+    (store : Store Tag State) (request : AllocationRequest Tag State)
+    (placement : Placement) (alignment : Nat) :
+    allocateAligned store request placement alignment = none ↔
+      match placement with
+      | .address base =>
+          alignmentAllowed base alignment = false ∨
+          allocate store request (.address base) = none
+      | .unaddressable => allocate store request .unaddressable = none
+      | .fail => True := by
+  cases placement with
+  | fail => simp [allocateAligned, allocate]
+  | unaddressable => simp [allocateAligned]
+  | address base =>
+      by_cases haligned : alignmentAllowed base alignment = true
+      · simp [allocateAligned, haligned]
+      · have haligned' : alignmentAllowed base alignment = false :=
+          Bool.eq_false_iff.mpr haligned
+        simp [allocateAligned, haligned, haligned']
+
 theorem allocateAligned_rejects_misaligned
     (store : Store Tag State) (request : AllocationRequest Tag State)
     (base alignment : Nat)
