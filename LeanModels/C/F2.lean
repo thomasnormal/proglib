@@ -7669,6 +7669,44 @@ def replayStdout (events : List ReplayEvent) : String :=
     | .io _ "stdout" data => output ++ data
     | _ => output) ""
 
+theorem replayStdout_append (left right : List ReplayEvent) :
+    replayStdout (left ++ right) = replayStdout left ++ replayStdout right := by
+  have hprefix : ∀ (acc : String) (events : List ReplayEvent),
+      List.foldl (fun output event =>
+        match event with
+        | .io _ "stdout" data => output ++ data
+        | _ => output) acc events = acc ++ replayStdout events := by
+    intro acc events
+    induction events generalizing acc with
+    | nil => simp [replayStdout]
+    | cons event rest ih =>
+        cases event with
+        | io operation channel data =>
+            by_cases hchannel : channel = "stdout"
+            · simp only [List.foldl_cons, replayStdout]
+              simp [hchannel]
+              rw [ih (acc ++ data), ih data]
+              simp [String.append_assoc]
+            · simp only [List.foldl_cons, replayStdout]
+              simp [hchannel]
+              exact ih acc
+        | volatileRead data =>
+            simp only [List.foldl_cons, replayStdout]
+            exact ih acc
+        | volatileWrite data =>
+            simp only [List.foldl_cons, replayStdout]
+            exact ih acc
+  change List.foldl (fun output event =>
+      match event with
+      | .io _ "stdout" data => output ++ data
+      | _ => output) "" (left ++ right) =
+    List.foldl (fun output event =>
+      match event with
+      | .io _ "stdout" data => output ++ data
+      | _ => output) "" left ++ replayStdout right
+  rw [List.foldl_append]
+  exact hprefix _ right
+
 def renameReplayEvent (resolve : AllocId → Nat) : ReplayEvent → ReplayEvent
   | .io operation channel data => .io operation channel data
   | .volatileRead data => .volatileRead data
