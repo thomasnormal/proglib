@@ -71,7 +71,7 @@ DECLS = {"FunctionDecl", "VarDecl", "ParmVarDecl", "FieldDecl", "RecordDecl",
 STMTS = {"CompoundStmt", "DeclStmt", "IfStmt", "ForStmt", "WhileStmt", "DoStmt",
          "ReturnStmt", "BreakStmt", "ContinueStmt", "GotoStmt", "LabelStmt",
          "NullStmt", "SwitchStmt", "CaseStmt", "DefaultStmt"}
-EXPRS = {"IntegerLiteral", "CharacterLiteral", "StringLiteral", "FloatingLiteral",
+EXPRS = {"IntegerLiteral", "CharacterLiteral", "StringLiteral", "PredefinedExpr", "FloatingLiteral",
          "CXXBoolLiteralExpr",
          "CXXNullPtrLiteralExpr",
          "GenericSelectionExpr",
@@ -870,6 +870,14 @@ class Extractor:
             if record.get("kind_name") in ("ordinary", "wide") and type(width) is int and width > 0:
                 out["decoded_bytes"] = (record.get("bytes") or []) + [0] * width
         return out
+
+    def e_PredefinedExpr(self, n):
+        value = next((child.get("value") for child in kids(n)
+                      if child.get("kind") == "StringLiteral"), None)
+        if value is None:
+            raise SystemExit("extract.py: PredefinedExpr lacks parser string value")
+        return {"name": n.get("name", ""), "value": value,
+                "decoded_bytes": None, "type": qual(n)}
 
     def e_FloatingLiteral(self, n):
         out = {"value": n.get("value"), "type": qual(n)}

@@ -1708,7 +1708,7 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
   | .genericSelection _ selected _ _ _ .. => evalLValue ctx selected
   | .exprWithCleanups sub _ _ .. => evalLValue ctx sub
   | .materializeTemporary sub _ _ .. => evalLValue ctx sub
-  | .strLit value decoded _ _ .. => do
+  | .strLit value decoded _ _ .. | .predefined _ value decoded _ _ .. => do
       let bs ← match decoded with
         | some bytes => pure (bytes.map (fun b => CByte.conc (UInt8.ofNat b)))
         | none => match plainStringBytes value with
@@ -2234,7 +2234,7 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       match v.toInt? with
       | some n => pure (.int t (if t == IntTy.int_ then charLiteralValue n else n))
       | none => refuseUnsupported s!"character literal spelling '{v}'"
-  | .strLit value decoded _ _ .. => do
+  | .strLit value decoded _ _ .. | .predefined _ value decoded _ _ .. => do
       let bs ← match decoded with
         | some bytes => pure (bytes.map (fun b => CByte.conc (UInt8.ofNat b)))
         | none => match plainStringBytes value with
@@ -2631,7 +2631,7 @@ def Expr.nodeIsPure : Expr → Bool
   -- §6.7.11 — aggregate initialization writes through the layout.
   | .initList .. | .arrayInitList .. | .implicitValueInit .. | .compoundLit .. => false
   | .designatedUpdate .. => false
-  | .strLit .. => false
+  | .strLit .. | .predefined .. => false
   -- Out of tier: unknown, therefore not pure.
   | .unsupported .. => false
   | .implicitCast _ (.paren (.unop "*" _ _ _ _ ..) _ _ ..) _ _ .. => false
@@ -3163,6 +3163,7 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       have hnode := Expr.nodeIsPure_of_isPure hp
       cases e with
       | intLit value _ _ structuredType => exact ⟨by open_eval; exact MemInvariant.intLiteralNode' value structuredType, by open_lvalue; mem_inv⟩
+      | predefined _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | boolLit _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | nullPtrLit _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩
       | choose _ _ _ _ _ _ => exact ⟨by open_eval; mem_inv, by open_lvalue; mem_inv⟩

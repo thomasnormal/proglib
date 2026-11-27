@@ -282,6 +282,9 @@ partial def parseExpr (j : Json) : Except String Expr := do
         let decoded ← getOptNatList j "decoded_bytes"
         let typ ← ty
         return .strLit value decoded typ span structuredType
+    | "PredefinedExpr" =>
+        return .predefined (← getStr j "name") (← getStr j "value")
+          (← getOptNatList j "decoded_bytes") (← ty) span structuredType
     | "FloatingLiteral" =>
         let v ← getField j "value"
         let bitsHex ← getOptStr j "float_bits_hex"
