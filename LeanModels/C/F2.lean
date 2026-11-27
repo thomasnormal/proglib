@@ -1070,6 +1070,21 @@ def bytesWf (id : AllocId) : List (Byte Tag) → Prop
   | .value _ (some provenance) _ :: rest =>
       provenance.allocation == id ∧ bytesWf id rest
 
+theorem bytesWf_cons_contract
+    (id : AllocId) (byte : Byte Tag) (rest : List (Byte Tag)) :
+    bytesWf id (byte :: rest) ↔
+      match byte with
+      | .uninitialized => bytesWf id rest
+      | .value _ none _ => bytesWf id rest
+      | .value _ (some provenance) _ =>
+          provenance.allocation == id ∧ bytesWf id rest := by
+  cases byte with
+  | uninitialized => simp [bytesWf]
+  | value bits provenance fragment =>
+      cases provenance with
+      | none => simp [bytesWf]
+      | some provenance => simp [bytesWf]
+
 def AllocationMetadata.wellFormed (metadata : AllocationMetadata Tag State TypeId)
     (id : AllocId) : Prop :=
   bytesWf id metadata.allocation.bytes ∧
