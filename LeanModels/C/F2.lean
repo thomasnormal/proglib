@@ -1548,6 +1548,46 @@ theorem pairedTypedStoreMetadataByte_guard_refusal
   simp [pairedTypedStoreMetadataByte, hsource, htarget]
   grind
 
+theorem pairedTypedStoreMetadataByte_failure_contract
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId)
+    (offset : Nat) (typeId : TypeId) (byte : Byte Tag) :
+    pairedTypedStoreMetadataByte resolve id metadata offset typeId byte = none ↔
+      typedStoreMetadataByte metadata offset typeId byte = none ∨
+      typedStoreMetadataByte (renameMetadata resolve id metadata) offset typeId
+        (renameByte resolve byte) = none ∨
+      (∃ sourceResult targetResult,
+        typedStoreMetadataByte metadata offset typeId byte = some sourceResult ∧
+        typedStoreMetadataByte (renameMetadata resolve id metadata) offset typeId
+          (renameByte resolve byte) = some targetResult ∧
+        ((targetResult.1 == renameMetadata resolve id sourceResult.1) = false ∨
+          (targetResult.2 == sourceResult.2) = false)) := by
+  constructor
+  · intro hnone
+    cases hs : typedStoreMetadataByte metadata offset typeId byte with
+    | none => exact Or.inl rfl
+    | some sourceResult =>
+        cases ht : typedStoreMetadataByte (renameMetadata resolve id metadata)
+            offset typeId (renameByte resolve byte) with
+        | none => exact Or.inr (Or.inl rfl)
+        | some targetResult =>
+            by_cases hmetadata :
+                (targetResult.1 == renameMetadata resolve id sourceResult.1) = false
+            · exact Or.inr (Or.inr ⟨sourceResult, targetResult, by simpa using hs,
+                by simpa using ht, Or.inl hmetadata⟩)
+            · by_cases hfootprint : (targetResult.2 == sourceResult.2) = false
+              · exact Or.inr (Or.inr ⟨sourceResult, targetResult, by simpa using hs,
+                  by simpa using ht, Or.inr hfootprint⟩)
+              · simp [pairedTypedStoreMetadataByte, hs, ht, hmetadata, hfootprint] at hnone
+  · rintro (hsource | htarget | hguard)
+    · simp [pairedTypedStoreMetadataByte, hsource]
+    · simp [pairedTypedStoreMetadataByte, htarget]
+    · rcases hguard with ⟨sourceResult, targetResult, hsource, htarget, hcondition⟩
+      rcases hcondition with hmetadata | hfootprint
+      · simp [pairedTypedStoreMetadataByte, hsource, htarget, hmetadata]
+      · simp [pairedTypedStoreMetadataByte, hsource, htarget, hfootprint]
+
 theorem pairedTypedStoreMetadataByte_footprints
     [BEq Tag] [BEq State] [BEq TypeId]
     (resolve : AllocId → Nat) (id : AllocId)
