@@ -136,4 +136,21 @@ theorem CoreMemDesign.ProcShapeI_prev_conservative {E : CoreMemDesign} {p : Core
   | primitive _ _ _ | initial _ | implicit _ | latch _ | unsupported _ _ =>
       simp [CoreMemDesign.ProcShapeI_prev] at h
 
+/-- The pre-`always_comb` instant profile, retained as a compatibility witness.
+It is intentionally source-shaped: its only difference from `SeqProfileI` is
+the old per-process predicate, which rejected every combinational process. -/
+structure CoreMemDesign.SeqProfileI_prev (E : CoreMemDesign) : Prop where
+  mems : E.memOkB = true
+  base : E.scalarEdge.base = E.scalar
+  names : (E.scalar.decls.toList.map Decl.name).Nodup
+  four : AllFour E.scalar
+  noResolved : E.resolvedNets = []
+  procs : ∀ (i : Nat) (p : CoreMemProc), E.processes[i]? = some p → E.ProcOkI_prev i p
+
+theorem CoreMemDesign.SeqProfileI_prev.toSeqProfileI {E : CoreMemDesign}
+    (hP : E.SeqProfileI_prev) : E.SeqProfileI := by
+  refine ⟨hP.mems, hP.base, hP.names, hP.four, hP.noResolved, ?_⟩
+  intro i p hp
+  exact CoreMemDesign.ProcOkI_prev_conservative (hP.procs i p hp)
+
 end LeanModels.Sv.Kernel
