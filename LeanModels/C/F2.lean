@@ -7371,6 +7371,13 @@ theorem alignmentComposition_contract (first second : AllocId → Nat)
         alignmentAllowed (second id) alignment := by
   simp [alignmentComposition, beq_iff_eq]
 
+theorem alignmentComposition_failure_contract
+    (first second : AllocId → Nat) (id alignment : Nat) :
+    alignmentComposition first second id alignment = false ↔
+      alignmentAllowed (first id) alignment ≠
+        alignmentAllowed (second id) alignment := by
+  simp [alignmentComposition, beq_iff_eq]
+
 theorem alignmentComposition_zero
     (first second : AllocId → Nat) (id : Nat) :
     alignmentComposition first second id 0 = true := by
