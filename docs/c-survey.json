@@ -1,8 +1,8 @@
 {
  "by_corpus": {
   "c-testsuite/single-exec": {
-   "not-parsed": 3,
-   "passed": 193,
+   "not-parsed": 1,
+   "passed": 195,
    "refused-libc": 1,
    "refused-ub": 5,
    "refused-unsupported": 17,
@@ -10,12 +10,12 @@
   },
   "gcc.c-torture/execute": {
    "not-ingested": 1,
-   "not-parsed": 395,
+   "not-parsed": 360,
    "oracle-tests-compiler": 3,
-   "passed": 1184,
+   "passed": 1221,
    "refused-libc": 18,
    "refused-ub": 41,
-   "refused-unsupported": 178,
+   "refused-unsupported": 176,
    "runner-error": 10
   },
   "gcc.c23-run": {
@@ -30,13 +30,102 @@
  "counts": {
   "no-entry-point": 100,
   "not-ingested": 1,
-  "not-parsed": 432,
+  "not-parsed": 395,
   "oracle-tests-compiler": 3,
-  "passed": 1387,
+  "passed": 1426,
   "refused-libc": 20,
   "refused-ub": 47,
-  "refused-unsupported": 313,
+  "refused-unsupported": 311,
   "runner-error": 11
+ },
+ "dialect_replay": {
+  "compiler": "clang version 21.1.8 (https://github.com/conda-forge/clangdev-feedstock 334cf9a5e6c0331e9f261eaf01fc3568724fcce9)",
+  "count": 39,
+  "files": [
+   "00162.c",
+   "00209.c",
+   "20000112-1.c",
+   "20000314-3.c",
+   "20000726-1.c",
+   "20000808-1.c",
+   "20000815-1.c",
+   "20001024-1.c",
+   "20001026-1.c",
+   "20080506-2.c",
+   "20090623-1.c",
+   "20170401-2.c",
+   "920501-2.c",
+   "920604-1.c",
+   "921112-1.c",
+   "931005-1.c",
+   "941015-1.c",
+   "941021-1.c",
+   "941025-1.c",
+   "950221-1.c",
+   "950628-1.c",
+   "960209-1.c",
+   "960419-1.c",
+   "960608-1.c",
+   "960909-1.c",
+   "961026-1.c",
+   "970923-1.c",
+   "980506-1.c",
+   "980506-3.c",
+   "980526-3.c",
+   "981130-1.c",
+   "ieee/fp-cmp-4.c",
+   "loop-9.c",
+   "mode-dependent-address.c",
+   "pending-4.c",
+   "pr30185.c",
+   "pr34982.c",
+   "pr38212.c",
+   "va-arg-2.c"
+  ],
+  "files_changed": [
+   "00162.c",
+   "00209.c",
+   "20000112-1.c",
+   "20000314-3.c",
+   "20000726-1.c",
+   "20000808-1.c",
+   "20000815-1.c",
+   "20001024-1.c",
+   "20001026-1.c",
+   "20080506-2.c",
+   "20090623-1.c",
+   "20170401-2.c",
+   "920501-2.c",
+   "920604-1.c",
+   "921112-1.c",
+   "931005-1.c",
+   "941015-1.c",
+   "941021-1.c",
+   "941025-1.c",
+   "950221-1.c",
+   "950628-1.c",
+   "960209-1.c",
+   "960419-1.c",
+   "960608-1.c",
+   "960909-1.c",
+   "961026-1.c",
+   "970923-1.c",
+   "980506-1.c",
+   "980506-3.c",
+   "980526-3.c",
+   "981130-1.c",
+   "ieee/fp-cmp-4.c",
+   "loop-9.c",
+   "mode-dependent-address.c",
+   "pending-4.c",
+   "pr30185.c",
+   "pr34982.c",
+   "pr38212.c",
+   "va-arg-2.c"
+  ],
+  "native_model_match": 39,
+  "note": "Focused replay of rows that pinned Clang accepts under C17. Full weekly replay remains the headline.",
+  "standard": "c17"
  },
  "dynamic_wall_ranking": [
   {
@@ -1310,8 +1399,8 @@
   "no-entry-point": 100
  },
  "manifest_hash": "722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363",
- "measured_at_utc": "2026-11-24T22:54:08Z",
- "measured_commit": "db6f3e238",
+ "measured_at_utc": "2026-11-27T12:12:00Z",
+ "measured_commit": "a2357ed50",
  "pin": "C1-C3",
  "rows": [
   {
@@ -3090,13 +3179,14 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "extract.py: structured type probe refused a QualType: Clang QualType has unsupported qualifiers",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "00162.c",
    "sha256": "3dc04176e6f3ce454ce3b961339733ff9b29f3b2b26ff77cb105e789197fa008",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -3714,13 +3804,14 @@
   },
   {
    "corpus": "c-testsuite/single-exec",
-   "detail": "src/00209.c:24:16: error: too many arguments to function call, expected 0, have 1",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "00209.c",
    "sha256": "c6e49de1a1042f763ef0a443865b655ccfae63e374755924820423ff7914fc75",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "c-testsuite/single-exec",
@@ -3872,13 +3963,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/20000112-1.c:7:17: error: unknown type name 'fmt'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "20000112-1.c",
    "sha256": "ed81908d74dd6f920ee3cfa46c06fbb2f469310f48f3e7c6d39707b088d5af6f",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -4002,13 +4094,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/20000314-3.c:24:10: error: unknown type name 'name'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "20000314-3.c",
    "sha256": "06bd1936f096dda238eebe9d0cf19d0045686205e7c02c03fe03af39cd80660d",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -4421,13 +4514,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/20000726-1.c:30:12: error: unknown type name 'x'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "20000726-1.c",
    "sha256": "f2332b741c1dc67c2e44c1983630503eaa71b6dd7a3d08d4752b5f9503ab93bd",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -4501,23 +4595,25 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/20000808-1.c:14:4: error: unknown type name 'p0'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "20000808-1.c",
    "sha256": "9587ac2547140cf096915e059dc4c5605778185b000f95d67ca0918e01802d49",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/20000815-1.c:33:20: error: unknown type name 'writes'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "20000815-1.c",
    "sha256": "187e949d8da043e7536179a7ca04f5e5d0337a3cec9bcf3612d784ba0a8235c0",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -4669,23 +4765,25 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: structured type probe refused a QualType: Clang QualType has unsupported qualifiers",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "20001024-1.c",
    "sha256": "90bd17e0644b562983a2778d2184e132ed1dc12247a8fdfd72c7d276aec59e8a",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/20001026-1.c:27:28: error: unknown type name 'data'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "20001026-1.c",
    "sha256": "e368d8a4fefb57c20cfbe79f4fe0e5a4822e4e7cb719f64868439643db932c83",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8327,13 +8425,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: structured type probe refused a QualType: Clang QualType has unsupported qualifiers",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "20080506-2.c",
    "sha256": "0a514eb4fd81cd38ff9ca1f487ce7baae38aaf3426b0ed7f7393a316d7caf2a7",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8522,13 +8621,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: structured type probe refused a QualType: Clang QualType has unsupported qualifiers",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "20090623-1.c",
    "sha256": "dca542fe29e200637bb35fb3fa3bc9e46c104b5b351dc0dc375a00f86d722f3f",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -8982,13 +9082,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/20170401-2.c:28:12: error: unknown type name 'x'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "20170401-2.c",
    "sha256": "a3745f4dd83d768de318635057f1fd8df12a1664b1a9b97fe0e29cd75e0e931b",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9342,13 +9443,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/920501-2.c:51:8: error: unknown type name 't'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "920501-2.c",
    "sha256": "8c6b9532202bfeebc626121c8b10a36410385e65d338a18c297058e165fd1572",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9465,13 +9567,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/920604-1.c:4:6: error: unknown type name 'a'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "920604-1.c",
    "sha256": "d9ffd9d4c15e4b62c12d49341ae42769201f89166dc2eb33692f460e87b5ae57",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -9827,13 +9930,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/921112-1.c:10:4: error: unknown type name 'x'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "921112-1.c",
    "sha256": "48eae00775562f119d027a680cd7a47e9decf5b693fc83e8117dd5ebe00fdf33",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10577,13 +10681,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/931005-1.c:10:4: error: unknown type name 's1'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "931005-1.c",
    "sha256": "0b6ee7e6b9324fe4473f522b2338bf6a45ce1ec9bb58cf269c711d1c3aeedc92",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10747,33 +10852,36 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/941015-1.c:5:7: error: unknown type name 'value'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "941015-1.c",
    "sha256": "72434740e03a14eb8f8399a39ee8463706f806c26f86080662d2e89167417561",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/941021-1.c:7:4: error: unknown type name 'pdbl'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "941021-1.c",
    "sha256": "02edbb4e717f3304408d76c8d1a181af0965167073e4d94b16a4dc5d3a19a136",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/941025-1.c:4:9: error: unknown type name 'x'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "941025-1.c",
    "sha256": "c77cca036c29a733a7c0fee664fa46e4e5d691b4c0cd99ba3ec9107104491d6f",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10817,13 +10925,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/950221-1.c:21:5: error: unknown type name 'a'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "950221-1.c",
    "sha256": "f6a8c353c345293df9d70ad696351de1b2d49b21d43ef3f9c55134c77fc3e09b",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -10941,16 +11050,17 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "out of tier: ExprWithCleanups",
-   "dynamic_wall": "unsupported:ExprWithCleanups",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "950628-1.c",
    "sha256": "fe06b6bc5b4e45c6a604f37165181ccc845e0757cdcd2450055ac126c7fab854",
+   "standard": "c17",
    "static_walls": [
     "type-layout",
     "unsupported:ExprWithCleanups"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11099,13 +11209,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/960209-1.c:14:4: error: unknown type name 'a'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "960209-1.c",
    "sha256": "5d33f700691c3a9e4c6abebcec95753117be5c91cc5776ded82e4e96dd728a2b",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11286,13 +11397,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/960419-1.c:7:7: error: unknown type name 'x'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "960419-1.c",
    "sha256": "ff74f3f66f754262ba87fad2662c8b7df116b5e49bb9f2a93a581179bcd6bf22",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11338,13 +11450,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/960608-1.c:14:6: error: unknown type name 'flags'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "960608-1.c",
    "sha256": "aa862abc34900560fda1095219421213dfd37a182a5afe44915dd4f4b342a690",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11378,13 +11491,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/960909-1.c:5:6: error: unknown type name 'x'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "960909-1.c",
    "sha256": "73201b7ef3827531016043632de78d5f51fa930653128e3b255672ccab2a5a8d",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11418,13 +11532,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/961026-1.c:5:7: error: unknown type name 'arg'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "961026-1.c",
    "sha256": "bb9bc83f164ed0b3901bc512d5996ae26e88ef0c1ec8880318f725048625dbbe",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11537,13 +11652,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/970923-1.c:5:4: error: unknown type name 'a'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "970923-1.c",
    "sha256": "73bc74112e9e16d63ad3a760d123acb9db36c1faf45bec7c2ad5c5f4bdf1f891",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11605,13 +11721,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/980506-1.c:11:14: error: unknown type name 'p'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "980506-1.c",
    "sha256": "52ddbd0e4b743cae90223460d4cc3337aaffa37483dca2603129efdf400b2b42",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11627,13 +11744,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/980506-3.c:7:15: error: unknown type name 'pattern'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "980506-3.c",
    "sha256": "4084e640ff4402df02bc1614665961f054137d1eefb3ad0c59e487154deb1867",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11667,13 +11785,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/980526-3.c:4:13: error: unknown type name 'x'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "980526-3.c",
    "sha256": "969abcbd2cfb8d0dcfdeea6bfe189b8fec5f30bb30945b5b2f01db8ed7832288",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -11853,13 +11972,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/981130-1.c:9:8: error: unknown type name 'a'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "981130-1.c",
    "sha256": "2ea419b7b761423bc19a5417f60d8e2f84a0a2bfd5ca834a374763a548153f61",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -16368,13 +16488,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/ieee/fp-cmp-4.c:12:40: error: invalid parameter name: 'true' is a keyword",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "ieee/fp-cmp-4.c",
    "sha256": "893ffaf92751c977c481ee29c311d64d17d7a08c9c24d591f19d9aa75b094f16",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17229,13 +17350,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/loop-9.c:4:5: error: expected identifier or '('",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "loop-9.c",
    "sha256": "54bdbc85e3110ad2728c4ab8817a1f309708ffd5306e2a315710b4bc818fdb43",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17513,13 +17635,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: structured type probe refused a QualType: Clang QualType has unsupported qualifiers",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "mode-dependent-address.c",
    "sha256": "efa53beeba8203d1790308f7f01e9809f6146b3937bdf56e831865a2d7aeced2",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -17698,13 +17821,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/pending-4.c:4:13: error: unknown type name 'x'",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "pending-4.c",
    "sha256": "c8d69da8db6c6d7bc9652effa9082bbbe41d9732c44569cbb6a3c51b9619cf93",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19501,16 +19625,17 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "out of tier: ExprWithCleanups",
-   "dynamic_wall": "unsupported:ExprWithCleanups",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "parsed",
    "name": "pr30185.c",
    "sha256": "bc44c15d979a47f5ff815b4944c68de53df60f22a6da887901834d1797168654",
+   "standard": "c17",
    "static_walls": [
     "type-layout",
     "unsupported:ExprWithCleanups"
    ],
-   "verdict": "refused-unsupported"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -19865,13 +19990,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/pr34982.c:9:13: error: too many arguments to function call, expected 0, have 1",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "pr34982.c",
    "sha256": "8d285eafcf8a8ee7b6ca3660bcfaadbacafcc3752b23e823dd49b2e03d9b8708",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -20175,13 +20301,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "extract.py: structured type probe refused a QualType: Clang QualType has unsupported qualifiers",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "pr38212.c",
    "sha256": "0efbd52487ae3655e9d5185bca79d375ee85f61ef41adcf6cd55bd8d1ff84c31",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",
@@ -25793,13 +25920,14 @@
   },
   {
    "corpus": "gcc.c-torture/execute",
-   "detail": "src/va-arg-2.c:29:15: error: too many arguments to function call, expected 0, have 1",
-   "dynamic_wall": "frontend",
+   "detail": "",
+   "dynamic_wall": null,
    "manifest_status": "rejected",
    "name": "va-arg-2.c",
    "sha256": "3f1f43cf070b5103f384bda5e96482340b8a21bdb2d801bcce3a2b459fbde81e",
+   "standard": "c17",
    "static_walls": [],
-   "verdict": "not-parsed"
+   "verdict": "passed"
   },
   {
    "corpus": "gcc.c-torture/execute",

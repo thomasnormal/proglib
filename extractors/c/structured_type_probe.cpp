@@ -199,6 +199,16 @@ std::optional<Json> unqualifiedType(clang::QualType unqualified,
                               {"parameters", std::move(parameters)},
                               {"variadic", function->isVariadic()}};
   }
+  if (const auto *function = llvm::dyn_cast<clang::FunctionNoProtoType>(type)) {
+    // C17 6.7.6.3 permits an old-style function type with no prototype.
+    // Preserve the parser node as a function with an empty parameter list.
+    auto result = typeTree(function->getReturnType(), context, depth + 1);
+    if (!result) return std::nullopt;
+    return llvm::json::Object{{"kind", "function"},
+                              {"result", std::move(*result)},
+                              {"parameters", llvm::json::Array{}},
+                              {"variadic", false}};
+  }
   if (const auto *record = llvm::dyn_cast<clang::RecordType>(type)) {
     auto declaration = declarationType(record->getDecl(), context);
     if (!declaration) return std::nullopt;

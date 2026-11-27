@@ -2,11 +2,11 @@
 
 Generated from the pinned `gcc.c-torture/execute` manifest.
 
-- verdicts: 1387/2114 MATCH (passed 1387, failed 0, oracle 0)
+- verdicts: 1426/2114 MATCH (passed 1426, failed 0, oracle 0)
 - excluded from denominator: no-entry-point 100
 - manifest SHA-256: `722004ac2230d76ffb8f1cc321ccc877bfa7be6449cf8edc0af6cc34bb3c1363`
-- measured commit: `db6f3e238`
-- measured at: `2026-11-24T22:54:08Z`
+- measured commit: `a2357ed50`
+- measured at: `2026-11-27T12:12:00Z`
 
 ## Verdict counts
 
@@ -14,31 +14,31 @@ Generated from the pinned `gcc.c-torture/execute` manifest.
 | --- | ---: |
 | `no-entry-point` | 100 |
 | `not-ingested` | 1 |
-| `not-parsed` | 432 |
+| `not-parsed` | 395 |
 | `oracle-tests-compiler` | 3 |
-| `passed` | 1387 |
+| `passed` | 1426 |
 | `refused-libc` | 20 |
 | `refused-ub` | 47 |
-| `refused-unsupported` | 313 |
+| `refused-unsupported` | 311 |
 | `runner-error` | 11 |
 
 ## Counts by corpus
 
 | corpus | verdict | files |
 | --- | --- | ---: |
-| `c-testsuite/single-exec` | `not-parsed` | 3 |
-| `c-testsuite/single-exec` | `passed` | 193 |
+| `c-testsuite/single-exec` | `not-parsed` | 1 |
+| `c-testsuite/single-exec` | `passed` | 195 |
 | `c-testsuite/single-exec` | `refused-libc` | 1 |
 | `c-testsuite/single-exec` | `refused-ub` | 5 |
 | `c-testsuite/single-exec` | `refused-unsupported` | 17 |
 | `c-testsuite/single-exec` | `runner-error` | 1 |
 | `gcc.c-torture/execute` | `not-ingested` | 1 |
-| `gcc.c-torture/execute` | `not-parsed` | 395 |
+| `gcc.c-torture/execute` | `not-parsed` | 360 |
 | `gcc.c-torture/execute` | `oracle-tests-compiler` | 3 |
-| `gcc.c-torture/execute` | `passed` | 1184 |
+| `gcc.c-torture/execute` | `passed` | 1221 |
 | `gcc.c-torture/execute` | `refused-libc` | 18 |
 | `gcc.c-torture/execute` | `refused-ub` | 41 |
-| `gcc.c-torture/execute` | `refused-unsupported` | 178 |
+| `gcc.c-torture/execute` | `refused-unsupported` | 176 |
 | `gcc.c-torture/execute` | `runner-error` | 10 |
 | `gcc.c23-run` | `not-parsed` | 34 |
 | `gcc.c23-run` | `passed` | 10 |
