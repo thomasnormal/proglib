@@ -6,7 +6,7 @@ import LeanModels.Refine.Rv32i
 
 The obligation starts with successful loading and initialization of the actual
 core. At the pinned parameters, the loader currently refuses with
-`Schedule:preemptive` before reset. The executable reference and the protected
+`Event:multiple-write` before reset. The executable reference and the protected
 byte preservation theorem below can be checked independently of core admission.
 -/
 

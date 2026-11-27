@@ -2,9 +2,8 @@
 """Reproduce the PicoRV32 input-driven simulator and canonical-E receipt.
 
 The pinned simulators must agree on every sampled row. Canonical E is then
-loaded at the same 26-parameter point. The parser-native phase scheduler keeps
-the 14 preemptive writer/reader choices explicit, so canonical E records its
-Schedule:preemptive refusal before reset. The full input trace remains a
+loaded at the same 26-parameter point. The parser-native scheduler records the
+same-event multiple-write race before reset. The full input trace remains a
 separate comparison artifact.
 """
 
@@ -59,8 +58,8 @@ set_option maxRecDepth 100000 in
 load_design_sv2 picorv32_step_wall from "{envelope}"
 #eval match picorv32_step_wall.e {ARGS} with
 | .unsupported msg =>
-  if msg.startsWith "Schedule:preemptive" then
-    "E-RUN: design refused at Schedule:preemptive"
+  if msg.startsWith "Event:multiple-write" then
+    "E-RUN: design refused at Event:multiple-write"
   else "unexpected canonical-E refusal: " ++ msg
 | .ok d => match d.initialState with
   | .ok _ => "E-RUN: design admitted; reactive region quiesces"
@@ -88,7 +87,7 @@ def main() -> int:
     if "agree on 2000/2000 cycles" not in simulator:
         raise RuntimeError("simulator receipt did not report 2000/2000 agreement")
     e_run = canonical_e_receipt()
-    expected = "E-RUN: design refused at Schedule:preemptive"
+    expected = "E-RUN: design refused at Event:multiple-write"
     if expected not in e_run:
         raise RuntimeError("canonical-E receipt did not reproduce the pinned wall\n" + e_run)
     print("source SHA-256: " + SOURCE_SHA256)
