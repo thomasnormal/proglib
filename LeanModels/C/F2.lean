@@ -2605,6 +2605,26 @@ theorem pairedUnionLoadMetadataByte_refusal_target
     pairedUnionLoadMetadataByte resolve id metadata offset = none := by
   simp [pairedUnionLoadMetadataByte, htarget]
 
+theorem pairedUnionLoadMetadataByte_guard_refusal
+    [BEq Tag] [BEq State] [BEq TypeId]
+    (resolve : AllocId → Nat) (id : AllocId)
+    (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
+    (sourceResult targetResult : Byte Tag × Footprint)
+    (hsource : unionLoadMetadataByte metadata offset = some sourceResult)
+    (htarget : unionLoadMetadataByte (renameMetadata resolve id metadata) offset =
+      some targetResult)
+    (hguard : (targetResult.1 == renameByte resolve sourceResult.1 &&
+      targetResult.2 == sourceResult.2) = false) :
+    pairedUnionLoadMetadataByte resolve id metadata offset = none := by
+  have hguard' :
+      (targetResult.1 == renameByte resolve sourceResult.1 &&
+        targetResult.2 == sourceResult.2) ≠ true := by
+    intro htrue
+    rw [htrue] at hguard
+    simp at hguard
+  simp [pairedUnionLoadMetadataByte, hsource, htarget]
+  grind
+
 theorem unionLoadMetadataByte_success
     (metadata : AllocationMetadata Tag State TypeId) (offset : Nat)
     (byte : Byte Tag) (location : LocationState TypeId)
