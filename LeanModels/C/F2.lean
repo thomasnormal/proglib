@@ -7070,6 +7070,13 @@ def allocationsWf : List (AllocId × Allocation Tag State) → Prop
   | (id, allocation) :: rest =>
       bytesWf id allocation.bytes ∧ allocationsWf rest
 
+theorem allocationsWf_cons_contract
+    (id : AllocId) (allocation : Allocation Tag State)
+    (rest : List (AllocId × Allocation Tag State)) :
+    allocationsWf ((id, allocation) :: rest) ↔
+      bytesWf id allocation.bytes ∧ allocationsWf rest := by
+  rfl
+
 def WellFormed (store : Store Tag State) : Prop :=
   allocationsWf store.allocations
 
