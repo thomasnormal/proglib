@@ -2087,25 +2087,6 @@ theorem packedWindowDisjoint_symm {a b : PackedWindow}
     (h : packedWindowDisjoint a b) : packedWindowDisjoint b a := by
   rcases h with h | h <;> simp [packedWindowDisjoint, h]
 
-theorem CoreMemDesign.PartialDriverCertificate.window_disjoint
-    {E : CoreMemDesign} (h : E.PartialDriverCertificate)
-    {a b : PackedWindow} (ha : a ∈ h.windows) (hb : b ∈ h.windows) (hne : a ≠ b) :
-    packedWindowDisjoint a b := by
-  induction h.windows with
-  | nil => simp at ha
-  | cons head rest ih =>
-      simp only [List.pairwise_cons] at h.disjoint
-      simp only [List.mem_cons] at ha hb
-      rcases ha with rfl | ha
-      · rcases hb with rfl | hb
-        · exact False.elim (hne rfl)
-        · exact h.disjoint.1 _ hb
-      · rcases hb with rfl | hb
-        · exact packedWindowDisjoint_symm (ih h.disjoint.2 ha (by simp) (by
-            intro heq
-            exact hne (by simp [heq])))
-        · exact ih h.disjoint.2 ha hb hne
-
 /-- No process drives an input or the clock. -/
 def CoreMemDesign.oblNoInputWrite (E : CoreMemDesign) (clk : String) : Bool :=
   E.driven.all fun t => !E.inputNamesL.contains t && t != clk
