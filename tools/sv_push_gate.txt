@@ -373,3 +373,4 @@ Examples/system-verilog/sem2/package_typedef_shapes/agree.lean
 Examples/system-verilog/sem2/package_const_repairs/agree.lean
 Examples/system-verilog/sem2/package_function_width_e/agree.lean
 Examples/system-verilog/sem2/package_fill_concat_e/agree.lean
+Examples/system-verilog/sem2/package_array_function_e/agree.lean
