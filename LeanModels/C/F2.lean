@@ -8599,6 +8599,35 @@ theorem pairedOffsetPointer_failure_contract
           · simp [pairedOffsetPointer, hs, ht, hsame]
           · simp [pairedOffsetPointer, hs, ht, hsame]
 
+theorem pairedOffsetPointer_success_contract [BEq Tag]
+    (resolve : AllocId → Nat) (pointer : Pointer Tag)
+    (elementSize : Nat) (delta : Int) (bound : Nat) :
+    pairedOffsetPointer resolve pointer elementSize delta bound = true ↔
+      (∃ fault,
+        offsetPointer pointer elementSize delta bound = .error fault ∧
+        offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+          .error fault) ∨
+      (∃ source target,
+        offsetPointer pointer elementSize delta bound = .ok source ∧
+        offsetPointer (renamePointer resolve pointer) elementSize delta bound =
+          .ok target ∧ target.address = (renamePointer resolve source).address) := by
+  cases hs : offsetPointer pointer elementSize delta bound with
+  | error sourceFault =>
+      cases ht : offsetPointer (renamePointer resolve pointer) elementSize delta bound with
+      | error targetFault =>
+          cases sourceFault <;> cases targetFault <;>
+            simp [pairedOffsetPointer, hs, ht]
+      | ok target => simp [pairedOffsetPointer, hs, ht]
+  | ok source =>
+      cases ht : offsetPointer (renamePointer resolve pointer) elementSize delta bound with
+      | error fault => simp [pairedOffsetPointer, hs, ht]
+      | ok target =>
+          by_cases hsame : target.address = (renamePointer resolve source).address
+          · simp [pairedOffsetPointer, hs, ht, hsame]
+          · have hsame' : (renamePointer resolve source).address ≠ target.address := by
+              exact Ne.symm hsame
+            simp [pairedOffsetPointer, hs, ht, hsame, hsame']
+
 theorem pairedOffsetPointer_sound
     (resolve : AllocId → Nat) (pointer : Pointer Tag)
     (elementSize : Nat) (delta : Int) (bound : Nat)
