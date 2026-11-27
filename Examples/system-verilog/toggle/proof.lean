@@ -33,10 +33,12 @@ The design literal below is a hand-built copy of the extracted envelope;
 equal to `Examples/system-verilog/toggle/toggle.sv.json`.
 -/
 import LeanModels.Sv.ToggleExample
+import LeanModels.Sv.Kernel.XResolve
 
 namespace Examples.«system-verilog».toggle.proof
 
 open LeanModels.Sv
+open LeanModels.Sv.Kernel
 
 /-! ## The design (extractor-certified literal) -/
 
@@ -306,7 +308,7 @@ theorem toggle_refines_model
               (fun b => some (LVec.ofBool b)) := by
   refine Models.of_run fun σ fuel stim tr hrun => ?_
   intro i s hi hr q₀
-  have hknown' := hknown σ fuel stim tr hrun i s hi hr
+  have hknown' := hknown σ fuel stim tr ⟨fuel, hrun⟩ i s hi hr
   have hcol := toggle_from_reset σ hrun hi hr hknown'
   obtain ⟨hlt, hs⟩ := List.getElem?_eq_some_iff.mp hi
   have hdrop : tr.drop i = s :: tr.drop (i + 1) := by
