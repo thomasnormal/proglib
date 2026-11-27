@@ -1320,21 +1320,8 @@ reader keeps the original expressions, but profile obligations are stated on
 It only recognizes the generate-for form used by the summary (`g++` and an
 affine bound/start), and refuses every other step or expression. -/
 
-def GeneratedLoop.toHdr? (l : GeneratedLoop) : Option Hdr := do
-  let bound ← affOf? l.bound
-  let st ← match l.initE with
-    | .int c => pure (none, c)
-    | e =>
-        let a ← affOf? e
-        pure (some (e, a), 0)
-  match l.step with
-  | .unary .inc (.genvarRef g) =>
-      if g == l.genvar then
-        some
-          { lbl := l.label, g := l.genvar, c0 := st.2, bound := bound,
-            bndE := l.bound, gs := [], qn := none, st := st.1 }
-      else none
-  | _ => none
+def GeneratedLoop.toHdr? (l : GeneratedLoop) : Option Hdr :=
+  (hdrOf? l.label l.genvar l.initE l.bound l.step).toOption
 
 /-! The summary's `LSite.blk` is the innermost enclosing block.  Label
 qualification for reused labels is a property of the whole generate tree, so

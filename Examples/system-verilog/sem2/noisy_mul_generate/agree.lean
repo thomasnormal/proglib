@@ -516,14 +516,6 @@ def ppLoops : List CombHier.GeneratedLoop :=
    { label := some "g_pp_j", genvar := "j", initE := .int 0,
      bound := .paramRef "N" none, step := .unary .inc (.genvarRef "j"), rc := some 4 }]
 
-/-! The generated-loop reader now crosses into the ordinary `Hdr` profile
-representation without choosing a loop valuation. -/
-#guard (ppLoops.mapM CombHier.GeneratedLoop.toHdr?).isSome
-
-theorem noisy_pp_loop_headers_present :
-    (ppLoops.mapM CombHier.GeneratedLoop.toHdr?).isSome = true := by
-  decide
-
 theorem noisy_generated_child_ref :
     CombHier.generatedChildRefs noisyMul.plib ppLoops [.inst andInst] =
       .ok [{ loops := ppLoops, inst := andInst, child := andDef }] := by
@@ -937,6 +929,15 @@ def ppSourceLoops : List CombHier.GeneratedLoop :=
    { label := some "g_pp_j", genvar := "j", initE := .int 0,
      bound := .binary .slt (.genvarRef "j") (.paramRef "N" none),
      step := .unary .inc (.genvarRef "j"), rc := some 4 }]
+
+/-! The generated-loop reader crosses into the ordinary `Hdr` profile
+representation by delegating the source comparison to `hdrOf?`; no loop
+valuation is selected. -/
+#guard (ppSourceLoops.mapM CombHier.GeneratedLoop.toHdr?).isSome
+
+theorem noisy_pp_source_loop_headers_present :
+    (ppSourceLoops.mapM CombHier.GeneratedLoop.toHdr?).isSome = true := by
+  decide
 
 def rowSourceLoop : CombHier.GeneratedLoop :=
   { label := some "g_row", genvar := "i", initE := .int 1,
