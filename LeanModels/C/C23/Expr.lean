@@ -405,6 +405,10 @@ def noCalls : CallHandler := fun callee _ args =>
       pure (.float32 (Float32.Model.ofBits (UInt32.ofNat 0x7f800000)))
   | "__builtin_inf", [] =>
       pure (.float64 (Float.Model.ofBits (UInt64.ofNat 0x7ff0000000000000)))
+  | "__builtin_nanf", _ :: _ =>
+      pure (.float32 (Float32.Model.ofBits (UInt32.ofNat 0x7fc00000)))
+  | "__builtin_nan", _ :: _ =>
+      pure (.float64 (Float.Model.ofBits (UInt64.ofNat 0x7ff8000000000000)))
   | _, _ =>
       refuseUnsupported
         s!"call to '{calleeNameOf callee}' in a context with no program — call it through 'callByName'"
