@@ -87,7 +87,11 @@ theorem toggle_det : Deterministic toggleDesign := by proofs
 sorry, no native_decide — standard axioms only) -/
 
 /--
-info: toggle_refines_model (hknown : ∀ (σ : ScheduleOracle) (fuel : Nat) (stim tr : List SvState), Runs toggleDesign σ stim tr → ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ControlsKnownFrom tr i) :
+info: toggle_refines_model
+  (hknown :
+    ∀ (σ : ScheduleOracle) (fuel : Nat) (stim tr : List SvState),
+      toggleDesign / stim ⇓[σ] tr →
+        ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ControlsKnownFrom tr i) :
   toggleDesign ⊨
     spec fun _stim tr =>
       ∀ (i : Nat) (s : SvState),

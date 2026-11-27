@@ -67,7 +67,14 @@ theorem counter_runs (σ : ScheduleOracle) (stim : List SvState) :
 /-! ## Pinned renderings + axiom pins (the surface prints as written; no
 sorry, no native_decide — standard axioms only) -/
 
-/-- info: counter_refines (hknown : ∀ (σ : ScheduleOracle) (stim tr : List SvState), Runs counterDesign σ stim tr → ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ResetKnownFrom tr i) : counterDesign ⊑@clk[from rst] counterModel -/
+/--
+info: counter_refines
+  (hknown :
+    ∀ (σ : ScheduleOracle) (stim tr : List SvState),
+      counterDesign / stim ⇓[σ] tr →
+        ∀ (i : Nat) (s : SvState), tr[i]? = some s → sampled s "rst" = true → ResetKnownFrom tr i) :
+  counterDesign ⊑@clk[from rst] counterModel
+-/
 #guard_msgs in
 #check counter_refines
 
