@@ -7881,6 +7881,19 @@ def ReplayFixture.wellFormed (fixture : ReplayFixture) : Prop :=
     fixture.placements.Pairwise (fun left right =>
       left.base + left.size ≤ right.base ∨ right.base + right.size ≤ left.base)
 
+theorem renameReplayFixture_wellFormed_contract
+    (resolve : AllocId → Nat) (fixture : ReplayFixture) :
+    (renameReplayFixture resolve fixture).wellFormed ↔
+      fixture.sourceHash ≠ "" ∧ fixture.compilerVersion ≠ "" ∧
+        fixture.targetTriple ≠ "" ∧
+        (fixture.placements.map (renameReplayPlacement resolve)).Pairwise
+          (fun left right =>
+            left.base + left.size ≤ right.base ∨
+              right.base + right.size ≤ left.base) := by
+  cases fixture with
+  | mk sourceHash compilerVersion targetTriple placements events ending =>
+      simp [ReplayFixture.wellFormed, renameReplayFixture]
+
 inductive Recovery (Tag : Type) where
   | recovered (pointer : Pointer Tag)
   | empty (address : Nat)
