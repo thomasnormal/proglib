@@ -1298,6 +1298,67 @@ theorem CoreMemDesign.runCombPass_coherent_of_each
   unfold CoreMemDesign.runCombPass at h
   exact E.runCombAt_coherent_of_each hnd h4 hc hm hproc h
 
+theorem CoreMemDesign.runCombAt_of_noComb
+    {E : CoreMemDesign} {before : CoreMemState} {beforeView : SvState}
+    {current : CoreMemState} {currentView : SvState}
+    {index : Nat} {procs : List CoreMemProc}
+    (hno : ∀ p ∈ procs, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    (hconverted : ∀ p ∈ procs, ∀ kind text, p ≠ .unsupported kind text) :
+    E.runCombAt before beforeView current currentView index procs = .ok current := by
+  induction procs generalizing index with
+  | nil => rfl
+  | cons p rest ih =>
+      have hrest : ∀ q ∈ rest, ∀ body, q ≠ .comb body ∧ q ≠ .latch body := by
+        intro q hq body
+        exact hno q (by simp [hq]) body
+      have hrest' : ∀ q ∈ rest, ∀ kind text, q ≠ .unsupported kind text := by
+        intro q hq kind text
+        exact hconverted q (by simp [hq]) kind text
+      cases p with
+      | comb body => exact False.elim ((hno (.comb body) (by simp) body).1 rfl)
+      | latch body => exact False.elim ((hno (.latch body) (by simp) body).2 rfl)
+      | primitive kind name width =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (index := index + 1) hrest hrest'
+      | assign target value =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (index := index + 1) hrest hrest'
+      | edge f =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (index := index + 1) hrest hrest'
+      | initial body =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (index := index + 1) hrest hrest'
+      | implicit body =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (index := index + 1) hrest hrest'
+      | event events body =>
+          simp only [CoreMemDesign.runCombAt]
+          exact ih (index := index + 1) hrest hrest'
+      | unsupported kind text =>
+          exact False.elim (hconverted (.unsupported kind text) (by simp) kind text rfl)
+
+theorem CoreMemDesign.runCombPass_of_noComb
+    {E : CoreMemDesign} {before current : CoreMemState} {procs : List CoreMemProc}
+    (hno : ∀ p ∈ procs, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    (hconverted : ∀ p ∈ procs, ∀ kind text, p ≠ .unsupported kind text) :
+    E.runCombPass before current procs = .ok current := by
+  unfold CoreMemDesign.runCombPass
+  exact E.runCombAt_of_noComb hno hconverted
+
+theorem CoreMemDesign.runCombQuiesce_of_noComb
+    {E : CoreMemDesign} {n : Nat} {before current : CoreMemState}
+    {procs : List CoreMemProc}
+    (hview : E.scalar.view before.scalar = E.scalar.view current.scalar)
+    (hno : ∀ p ∈ procs, ∀ body, p ≠ .comb body ∧ p ≠ .latch body)
+    (hconverted : ∀ p ∈ procs, ∀ kind text, p ≠ .unsupported kind text) :
+    E.runCombQuiesce (n + 1) before current procs = .ok current := by
+  induction n generalizing before current with
+  | zero =>
+      simp [CoreMemDesign.runCombQuiesce, E.runCombPass_of_noComb hno hconverted, hview]
+  | succ n ih =>
+      simp [CoreMemDesign.runCombQuiesce, E.runCombPass_of_noComb hno hconverted, hview]
+
 /-! The view wrappers expose the same coherent state runs while preserving the
 projected scalar view. -/
 theorem CoreMemDesign.runCombAtV_coherent_of_each
