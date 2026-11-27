@@ -404,6 +404,10 @@ private structure HChild where
   pfx : String
   parentPfx : String
   generated : List PProcess
+  /-- Active declarations from the child's generate tree.  They are
+      elaborated in the child's scope before hierarchy prefixing, then kept
+      as declarations in the merged canonical memory design (§27.4). -/
+  generatedDecls : List PDecl
 
 private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) (parentPfx : String := "") :
     Res HChild :=
@@ -425,13 +429,8 @@ private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) (parentPfx : 
               let child'' := hParamDesign (hParamVals cenv) child'
               let generated ← generatedParentList cenv
                 (PDesign.surfaceFuel cargs) [] child''.generates
-              -- A child declaration or port boundary is discovered before
-              -- its processes are hoisted into the parent.  Letting an
-              -- unsupported aggregate node reach the process compiler loses
-              -- the parser-native wall (and previously hit an incomplete
-              -- constructor match on the child path).  Preserve the exact
-              -- child member refusal under IEEE 1800-2023 §23.3.3 instead
-              -- of flattening or re-parsing the aggregate.
+              let (generatedDecls, _) ← coreMemGeneratedDeclsList cenv
+                (PDesign.surfaceFuel cargs) {} child''.generates
               match coreMemFirstUnsupportedOther child'' generated child''.others with
               | some (kind, text) =>
                   .unsupported s!"E memory route does not yet admit module member '{kind}' ({text})"
@@ -441,7 +440,7 @@ private def childFor (env : IEnv) (lib : List PDesign) (i : PInst) (parentPfx : 
                   let instances ← generatedInstances cenv (PDesign.surfaceFuel cargs) child'.generates
                   let inst := { i with conns := i.conns.map (hParamConn (hParamVals env)) }
                   .ok { child := child'', instances, inst,
-                        pfx := parentPfx ++ pfx, parentPfx, generated }
+                        pfx := parentPfx ++ pfx, parentPfx, generated, generatedDecls }
           | .error e => .unsupported e
 
 /-! Whole aggregate output ports are continuous drivers of the parent
@@ -472,7 +471,7 @@ def CoreMemDesign.ofHierarchy (top : PDesign) (lib : List PDesign) (args : List 
     .ok (here ++ tails.flatten)
   let tails ← direct.mapM (nested (PDesign.surfaceFuel args))
   let children := direct ++ tails.flatten
-  let childDecls := children.flatMap fun c => c.child.decls.map fun pd => { pd with
+  let childDecls := children.flatMap fun c => (c.child.decls ++ c.generatedDecls).map fun pd => { pd with
       name := c.pfx ++ pd.name
       isInput := false
       isOutput := false }
