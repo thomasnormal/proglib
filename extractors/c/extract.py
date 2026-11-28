@@ -1155,22 +1155,38 @@ def extract(path, source_name=None, standard="c23"):
     string_bytes = string_byte_records(path)
     floating_bits = floating_bit_records(path)
     record_layouts = record_layout_records(path)
-    joined = canonicalize_ids({"ast": raw_tu, "structured": raw_structured_types,
-                               "layouts": record_layouts})
+    # The layout probe runs in a separate Clang process. Its pointer-shaped
+    # declaration IDs live in a different address space and must never enter
+    # the AST canonicalization map. Canonicalize the AST and the structured
+    # QualType observations together so their declaration references retain
+    # identity, then join layouts by the parser traversal ordinal below.
+    joined = canonicalize_ids({"ast": raw_tu, "structured": raw_structured_types})
+    joined["layouts"] = record_layouts
     tu = joined["ast"]
     # The record-layout plugin runs in its own Clang invocation, so its
     # pointer identities cannot equal the JSON dump's process addresses.
     # Both are parser traversals, however, and the plugin records the stable
     # RecordDecl traversal ordinal. Join that ordinal to the JSON node id.
-    # Count every RecordDecl, including incomplete declarations and
+    # Count every located RecordDecl, including incomplete declarations and
     # redeclarations. The plugin's visitor increments its ordinal before its
     # complete-definition/source-file filters, so filtering here would shift
-    # every later layout observation.
+    # every later layout observation. Clang's JSON also contains implicit
+    # built-in records with no source location. RecursiveASTVisitor does not
+    # visit those, while anonymous header records can carry their location in
+    # spellingLoc or expansionLoc. Count the latter and exclude the former.
     record_ids = []
+    def has_record_location(value):
+        if not isinstance(value, dict):
+            return False
+        if isinstance(value.get("offset"), int):
+            return True
+        return (has_record_location(value.get("spellingLoc")) or
+                has_record_location(value.get("expansionLoc")))
     def collect_record_ids(value):
         if isinstance(value, dict):
             if (value.get("kind") == "RecordDecl" and
-                    isinstance(value.get("id"), str)):
+                    isinstance(value.get("id"), str) and
+                    has_record_location(value.get("loc"))):
                 record_ids.append(value["id"])
             for child in value.values():
                 collect_record_ids(child)
