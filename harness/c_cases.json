@@ -447,9 +447,8 @@
   {
     "id": "global-tentative",
     "source": "int x; int *p = &x; int x = 3; int main(void) { return *p; }",
-    "expect": "refuse",
-    "return_value": 3,
-    "error": "unbound declaration 'id16' (name 'p')"
+    "expect": "match",
+    "return_value": 3
   },
   {
     "id": "goto-skips-decl",
