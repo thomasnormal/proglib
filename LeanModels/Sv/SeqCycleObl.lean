@@ -2527,7 +2527,7 @@ than merely being a projection of a state run. -/
 theorem CoreMemDesign.runCombQuiesce_of_view_success_of_each
     {E : CoreMemDesign} {limit : Nat}
     {before current : CoreMemState} {beforeView currentView : SvState}
-    {procs : List CoreMemProc} {st' : CoreMemState} {v' : SvState}
+    {procs : List CoreMemProc} {v' : SvState}
     (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
     (hm0 : E.MemCoherent E.initial.memory)
     (hbeforeC : E.Coherent before) (hcurrentC : E.Coherent current)
@@ -5852,6 +5852,119 @@ theorem CoreMemDesign.runCombSettleQuiesce_coherent_of_each
                   simp only [heqv, Bool.false_eq_true, ↓reduceIte] at h
                   exact ih (before := combed) (current := settled) (st' := st') hc'
                     (by rw [hm']; exact hcm) h
+
+theorem CoreMemDesign.runCombSettleQuiesce_of_view_success_of_each
+    {E : CoreMemDesign} {limit : Nat}
+    {before current : CoreMemState} {beforeView currentView : SvState}
+    {procs : List CoreMemProc} {v' : SvState} {mv : MemV}
+    (hP : E.SeqProfileI) (htopo : E.topoC = true)
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hm0 : E.MemCoherent E.initial.memory)
+    (hbeforeC : E.Coherent before) (hcurrentC : E.Coherent current)
+    (hbeforeM : E.MemCoherent before.memory) (hcurrentM : E.MemCoherent current.memory)
+    (hbeforeView : beforeView = E.scalar.view before.scalar)
+    (hcurrentView : currentView = E.scalar.view current.scalar)
+    (hmv : mv = E.memOf current.memory)
+    (hprocs : procs = E.processes.toList)
+    (hmem : ∀ {before current st : CoreMemState},
+      E.runComb before current procs = .ok st → st.memory = current.memory)
+    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {bv₁ bv₂ cv₁ cv₂ : SvState}
+      {i : Nat} {body : PStmt},
+      E.Coherent b₁ → E.Coherent b₂ → E.MemCoherent b₁.memory → E.MemCoherent b₂.memory →
+      E.Coherent c₁ → E.Coherent c₂ → E.MemCoherent c₁.memory → E.MemCoherent c₂.memory →
+      E.scalar.view b₁.scalar = E.scalar.view b₂.scalar →
+      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar → bv₁ = bv₂ → cv₁ = cv₂ →
+      E.readChangedAt b₁ c₁ bv₁ cv₁ i (coreMemCombExternalReadExprs body) =
+        E.readChangedAt b₂ c₂ bv₂ cv₂ i (coreMemCombExternalReadExprs body))
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewRefines E.env body
+      | .latch _ => False
+      | _ => True)
+    (hview : E.runCombSettleQuiesceV limit mv beforeView currentView procs = .ok v') :
+    ∃ st', E.runCombSettleQuiesce limit before current procs = .ok st' ∧
+      E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  subst procs
+  induction limit generalizing before current beforeView currentView v' with
+  | zero =>
+      simp [CoreMemDesign.runCombSettleQuiesceV] at hview
+  | succ n ih =>
+      simp only [CoreMemDesign.runCombSettleQuiesceV, CoreMemDesign.runCombSettleQuiesce] at hview
+      cases hvcomb : E.runCombV beforeView currentView E.processes.toList with
+      | timeout => simp [hvcomb] at hview
+      | unsupported msg => simp [hvcomb] at hview
+      | ok combedView =>
+          have hcombView : E.runCombQuiesceV 4096 beforeView currentView E.processes.toList =
+              .ok combedView := by
+            simpa [CoreMemDesign.runCombV] using hvcomb
+          obtain ⟨combed, hcomb, hcombedView, hcombedC, hcombedM⟩ :=
+            E.runCombQuiesce_of_view_success_of_each
+              (limit := 4096) hnd h4 hm0 hbeforeC hcurrentC hbeforeM hcurrentM
+              hbeforeView hcurrentView hread hproc hcombView
+          have hcombedMem : combed.memory = current.memory := hmem hcomb
+          have hmvCombed : mv = E.memOf combed.memory := by
+            rw [hmv, hcombedMem]
+          simp only [hvcomb, Res.ok_bind] at hview
+          rw [hmvCombed] at hview
+          cases hvset : E.settleV (E.memOf combed.memory) combedView with
+          | timeout => simp [hvset] at hview
+          | unsupported msg => simp [hvset] at hview
+          | ok settledView =>
+              have hvset' := hvset
+              rw [← hcombedView] at hvset'
+              obtain ⟨settled, hsettled, hsettledView, hsettledC, hsettledMem⟩ :=
+                E.settleCanonical_seq hP htopo hcombedC hcombedM hvset'
+              have hsettledM : E.MemCoherent settled.memory := by
+                rw [hsettledMem]
+                exact hcombedM
+              simp only [hvset, Res.ok_bind] at hview
+              cases heq : currentView == settledView with
+              | true =>
+                  simp only [heq, ↓reduceIte, Res.ok.injEq] at hview
+                  obtain rfl := hview
+                  have heq' : (E.scalar.view current.scalar == E.scalar.view settled.scalar) = true := by
+                    apply beq_iff_eq.mpr
+                    exact hcurrentView.symm.trans ((beq_iff_eq.mp heq).trans hsettledView.symm)
+                  have hrun : E.runCombSettleQuiesce (n + 1) before current E.processes.toList =
+                      .ok settled := by
+                    change (do
+                      let combed ← E.runComb before current E.processes.toList
+                      let settled ← E.settleCanonical E.env E.elems combed E.processes.toList
+                      if E.scalar.view current.scalar == E.scalar.view settled.scalar then
+                        .ok settled
+                      else E.runCombSettleQuiesce n combed settled E.processes.toList) = .ok settled
+                    rw [CoreMemDesign.runComb, hcomb]
+                    simp only [hsettled, Res.ok_bind]
+                    simp [heq']
+                  exact ⟨settled, hrun, hsettledView, hsettledC, hsettledM⟩
+              | false =>
+                  simp only [heq, Bool.false_eq_true, ↓reduceIte] at hview
+                  have hsettledView' : settledView = E.scalar.view settled.scalar := hsettledView.symm
+                  have hmvSettled : mv = E.memOf settled.memory := by
+                    rw [hmvCombed, hsettledMem]
+                  have hview' : E.runCombSettleQuiesceV n mv combedView settledView
+                      E.processes.toList = .ok v' := by
+                    simpa [hmvSettled, hsettledMem] using hview
+                  obtain ⟨tail, htail, htailView, htailC, htailM⟩ :=
+                    ih (before := combed) (current := settled)
+                      (beforeView := combedView) (currentView := settledView)
+                      (v' := v') hcombedC hsettledC hcombedM hsettledM
+                      hcombedView.symm hsettledView' hmvSettled hview'
+                  have hrun : E.runCombSettleQuiesce (n + 1) before current E.processes.toList =
+                      .ok tail := by
+                    change (do
+                      let combed ← E.runComb before current E.processes.toList
+                      let settled ← E.settleCanonical E.env E.elems combed E.processes.toList
+                      if E.scalar.view current.scalar == E.scalar.view settled.scalar then
+                        .ok settled
+                      else E.runCombSettleQuiesce n combed settled E.processes.toList) = .ok tail
+                    rw [CoreMemDesign.runComb, hcomb]
+                    simp only [hsettled, Res.ok_bind]
+                    have hne : E.scalar.view current.scalar ≠ E.scalar.view settled.scalar := by
+                      intro hs
+                      apply beq_eq_false_iff_ne.mp heq
+                      exact hcurrentView.trans (hs.trans hsettledView'.symm)
+                    simp [hne, htail]
+                  exact ⟨tail, hrun, htailView, htailC, htailM⟩
 
 /-! ### The frame: a slot changes only the names its processes drive -/
 
