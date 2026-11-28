@@ -37786,6 +37786,24 @@ def _sym_package_param_entry(sm, package, member):
         return None
     if (aggregate_shape is not None and
             aggregate_shape.get("kind") in ("array", "struct")):
+        # A signed packed-struct leaf in an unpacked package array is a
+        # source-shaped four-state value whose sign extension is not retained
+        # consistently by the parser metadata.  IEEE 1800-2023 §§6.24.1 and
+        # 7.2.1 require the operand's signedness to survive a size cast.  The
+        # ordinary route refuses this family until the envelope carries an
+        # unambiguous signed aggregate value, rather than silently following
+        # the parser's zero-extension metadata.
+        def aggregate_has_signed_leaf(shape):
+            if shape.get("kind") == "scalar":
+                return bool(shape.get("signed", False))
+            if shape.get("kind") == "array":
+                return aggregate_has_signed_leaf(shape.get("elem", {}))
+            return False
+        if (aggregate_shape.get("kind") == "array"
+                and aggregate_has_signed_leaf(aggregate_shape.get("elem", {}))):
+            return _sym_package_param_loud(
+                node, package,
+                "PackageParameter:signed-packed-aggregate-element: IEEE 1800-2023 §§6.24.1 and 7.2.1 require sign extension, but the parser envelope does not retain an unambiguous signed aggregate value")
         node = dict(node)
         node["type"] = None
         node["aggregate"] = aggregate_shape
