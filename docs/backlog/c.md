@@ -4206,3 +4206,14 @@ declaration or enters no lifetime-bearing scope. Treating the jump as an
 ordinary label tail could create or bypass automatic storage. Keep these rows
 loudly refused until declaration-aware CFG transfer and lifetime entry/exit
 semantics are carried together.
+
+## 2026-11-28-c-open-filesystem — filesystem calls remain refused
+
+The survey has two sole rows whose first refusal is `libc-call: open`:
+`loop-2f.c` and `loop-2g.c`. C23 §7.21.3 specifies stream and file-system
+operations through an implementation environment whose descriptors, paths,
+permissions, and I/O errors are external state. The evaluator has no filesystem
+or descriptor state and no pinned environment oracle. Inventing a descriptor or
+assuming a successful open would choose an outcome the language environment
+leaves open. Keep these calls refused until an explicit environment model and
+profiled filesystem oracle are defined.
