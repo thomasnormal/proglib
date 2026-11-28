@@ -935,7 +935,7 @@
   {
     "id": "structured-array-index",
     "source": "int main(void) { int a[2] = {4, 5}; return a[1] == 5 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
@@ -947,7 +947,7 @@
   {
     "id": "structured-array-partial-init",
     "source": "int main(void) { int a[4] = {7}; return a[0] == 7 && a[1] == 0 && a[3] == 0 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -1002,7 +1002,7 @@
   {
     "id": "structured-array-zero-init",
     "source": "int main(void) { int a[4] = {}; return a[0] == 0 && a[2] == 0 && a[3] == 0 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -1018,7 +1018,7 @@
   {
     "id": "structured-nested-array-partial-init",
     "source": "int main(void) { int a[2][3] = {{1}, {2, 3}}; return a[0][1] == 0 && a[1][1] == 3 && a[1][2] == 0 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -1186,7 +1186,7 @@
   {
     "id": "structured-array-compound-literal",
     "source": "int main(void) { int *p = (int[3]){4, 5, 6}; return p[2] == 6 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -1603,13 +1603,12 @@
   {
     "id": "pointer-array-subobject-comparison",
     "source": "/* PR tree-optimization/36008 */\n\nextern void abort (void);\n\nint g[48][3][3];\n\nvoid __attribute__ ((noinline))\nbar (int x[3][3], int y[3][3])\n{\n  static int i;\n  if (x != g[i + 8] || y != g[i++])\n    abort ();\n}\n\nstatic inline void __attribute__ ((always_inline))\nfoo (int x[][3][3])\n{\n  int i;\n  for (i = 0; i < 8; i++)\n    {\n      int k = i + 8;\n      bar (x[k], x[k - 8]);\n    }\n}\n\nint\nmain ()\n{\n  foo (g);\n  return 0;\n}\n",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
     ],
-    "structured_expect": "refuse",
-    "structured_error": "outOfBounds"
+    "structured_expect": "match"
   },
   {
     "id": "switch-name-subscript-wall",
