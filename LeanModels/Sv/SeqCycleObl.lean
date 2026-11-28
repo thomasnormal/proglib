@@ -2045,34 +2045,6 @@ theorem CoreMemDesign.runCombAt_coherent_of_each
                           (current := E.compactScalar after afterView)
                           (currentView := afterView) (st' := st') hcompact.2
                           (by rw [E.compactScalar_memory]; exact hcoh.2) hrest hnext
-          cases hr : E.readChangedAt before current beforeView currentView index
-              (coreMemCombExternalReadExprs body) with
-          | timeout => simp [hr] at h
-          | unsupported msg => simp [hr] at h
-          | ok ready =>
-              cases ready with
-              | false =>
-                  simp [hr] at h
-                  exact ih (index := index + 1) (current := current) (currentView := currentView)
-                    (st' := st') hc hm hrest h
-              | true =>
-                  simp only [hr, Bool.not_true, ↓reduceIte, Res.bind_eq_ok] at h
-                  cases he : E.execCombStmtAtView E.env E.elems current currentView body with
-                  | timeout => simp [he] at h
-                  | unsupported msg => simp [he] at h
-                  | ok result =>
-                      simp only [he, Res.ok_bind] at h
-                      obtain ⟨after, afterView⟩ := result
-                      have hcoh := CoreMemDesign.execCombStmtAtView_coherent_of_stmt (E := E) hb hc hm he
-                      have hcompact := E.compactScalar_view hnd h4 hcoh.1 afterView
-                      obtain ⟨ready, hready, hnext⟩ := h
-                      have hready' : ready = true := (Res.ok.inj hready).symm
-                      subst ready
-                      simp only [Bool.not_true, ↓reduceIte] at hnext
-                      exact ih (index := index + 1)
-                        (current := E.compactScalar after afterView)
-                        (currentView := afterView) (st' := st') hcompact.2
-                        (by rw [E.compactScalar_memory]; exact hcoh.2) hrest hnext
       | primitive kind name =>
           simp only [CoreMemDesign.runCombAt] at h
           exact ih (index := index + 1) (current := current) (currentView := currentView)
@@ -2150,59 +2122,93 @@ theorem CoreMemDesign.runCombAt_view_congr_of_each
       | comb body =>
           have hb := hproc (.comb body) (by simp)
           simp only [CoreMemDesign.runCombAt] at h₁ h₂
-          have hready := hread
-            (b₁ := before₁) (b₂ := before₂) (c₁ := current₁) (c₂ := current₂)
-            (bv₁ := beforeView₁) (bv₂ := beforeView₂) (cv₁ := currentView₁) (cv₂ := currentView₂)
-            (i := index) (body := body)
-            hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
-            hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent hbeforeView hcurrentView
-          cases hr₁ : E.readChangedAt before₁ current₁ beforeView₁ currentView₁ index
-              (coreMemCombExternalReadExprs body) with
-          | timeout => simp [hr₁] at h₁
-          | unsupported msg => simp [hr₁] at h₁
-          | ok ready₁ =>
-              have hr₂ : E.readChangedAt before₂ current₂ beforeView₂ currentView₂ index
-                  (coreMemCombExternalReadExprs body) = .ok ready₁ := by
-                rw [← hready, hr₁]
-              cases ready₁ with
-              | false =>
-                  simp only [hr₁, hr₂, Bool.not_false, ↓reduceIte] at h₁ h₂
-                  exact ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
-                    (currentView₁ := currentView₁) (currentView₂ := currentView₂)
-                    (st₁' := st₁') (st₂' := st₂') hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂
-                    hcurrent hcurrentView hrest h₁ h₂
-              | true =>
-                  simp only [hr₁, hr₂, Bool.not_true, ↓reduceIte, Res.ok_bind] at h₁ h₂
-                  cases he₁ : E.execCombStmtAtView E.env E.elems current₁ currentView₁ body with
-                  | timeout => simp [he₁] at h₁
-                  | unsupported msg => simp [he₁] at h₁
-                  | ok result₁ =>
-                      cases he₂ : E.execCombStmtAtView E.env E.elems current₂ currentView₂ body with
-                      | timeout => simp [he₂] at h₂
-                      | unsupported msg => simp [he₂] at h₂
-                      | ok result₂ =>
-                          simp only [he₁, he₂, Res.ok_bind, Res.ok.injEq] at h₁ h₂
-                          obtain ⟨after₁, afterView₁⟩ := result₁
-                          obtain ⟨after₂, afterView₂⟩ := result₂
-                          have hstable := hb.2 current₁ current₂ currentView₁ currentView₂
-                            after₁ after₂ afterView₁ afterView₂ hcurrentC₁ hcurrentC₂
-                            hcurrentM₁ hcurrentM₂ hcurrent hcurrentView he₁ he₂
-                          have hcoh₁ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
-                            (E := E) hb.1 hcurrentC₁ hcurrentM₁ he₁
-                          have hcoh₂ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
-                            (E := E) hb.1 hcurrentC₂ hcurrentM₂ he₂
-                          have hcompact₁ := E.compactScalar_view hnd h4 hcoh₁.1 afterView₁
-                          have hcompact₂ := E.compactScalar_view hnd h4 hcoh₂.1 afterView₂
-                          simp only [Bool.false_eq_true, ↓reduceIte] at h₁ h₂
-                          exact ih (index := index + 1)
-                            (current₁ := E.compactScalar after₁ afterView₁)
-                            (current₂ := E.compactScalar after₂ afterView₂)
-                            (currentView₁ := afterView₁) (currentView₂ := afterView₂)
-                            (st₁' := st₁') (st₂' := st₂') hcompact₁.2 hcompact₂.2
-                            (by rw [E.compactScalar_memory]; exact hcoh₁.2)
-                            (by rw [E.compactScalar_memory]; exact hcoh₂.2)
-                            (by rw [hcompact₁.1, hcompact₂.1, hstable])
-                            hstable hrest h₁ h₂
+          by_cases hagg : (coreMemCombExternalReadExprs body).any PExpr.hasAggregateMember = true
+          · simp only [hagg] at h₁ h₂
+            cases he₁ : E.execCombStmtAtView E.env E.elems current₁ currentView₁ body with
+            | timeout => simp [he₁] at h₁
+            | unsupported msg => simp [he₁] at h₁
+            | ok result₁ =>
+                cases he₂ : E.execCombStmtAtView E.env E.elems current₂ currentView₂ body with
+                | timeout => simp [he₂] at h₂
+                | unsupported msg => simp [he₂] at h₂
+                | ok result₂ =>
+                    obtain ⟨after₁, afterView₁⟩ := result₁
+                    obtain ⟨after₂, afterView₂⟩ := result₂
+                    simp only [he₁, he₂, Res.ok_bind] at h₁ h₂
+                    have hstable := hb.2 current₁ current₂ currentView₁ currentView₂
+                      after₁ after₂ afterView₁ afterView₂ hcurrentC₁ hcurrentC₂
+                      hcurrentM₁ hcurrentM₂ hcurrent hcurrentView he₁ he₂
+                    have hcoh₁ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+                      (E := E) hb.1 hcurrentC₁ hcurrentM₁ he₁
+                    have hcoh₂ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+                      (E := E) hb.1 hcurrentC₂ hcurrentM₂ he₂
+                    have hcompact₁ := E.compactScalar_view hnd h4 hcoh₁.1 afterView₁
+                    have hcompact₂ := E.compactScalar_view hnd h4 hcoh₂.1 afterView₂
+                    exact ih (index := index + 1)
+                      (current₁ := E.compactScalar after₁ afterView₁)
+                      (current₂ := E.compactScalar after₂ afterView₂)
+                      (currentView₁ := afterView₁) (currentView₂ := afterView₂)
+                      (st₁' := st₁') (st₂' := st₂') hcompact₁.2 hcompact₂.2
+                      (by rw [E.compactScalar_memory]; exact hcoh₁.2)
+                      (by rw [E.compactScalar_memory]; exact hcoh₂.2)
+                      (by rw [hcompact₁.1, hcompact₂.1, hstable])
+                      hstable hrest h₁ h₂
+          · have hagg' : (coreMemCombExternalReadExprs body).any PExpr.hasAggregateMember = false := by
+              cases hv : (coreMemCombExternalReadExprs body).any PExpr.hasAggregateMember <;> simp_all
+            simp only [hagg', Bool.false_eq_true, ↓reduceIte] at h₁ h₂
+            have hready := hread
+              (b₁ := before₁) (b₂ := before₂) (c₁ := current₁) (c₂ := current₂)
+              (bv₁ := beforeView₁) (bv₂ := beforeView₂) (cv₁ := currentView₁) (cv₂ := currentView₂)
+              (i := index) (body := body)
+              hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
+              hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent hbeforeView hcurrentView
+            cases hr₁ : E.readChangedAt before₁ current₁ beforeView₁ currentView₁ index
+                (coreMemCombExternalReadExprs body) with
+            | timeout => simp [hr₁] at h₁
+            | unsupported msg => simp [hr₁] at h₁
+            | ok ready₁ =>
+                have hr₂ : E.readChangedAt before₂ current₂ beforeView₂ currentView₂ index
+                    (coreMemCombExternalReadExprs body) = .ok ready₁ := by
+                  rw [← hready, hr₁]
+                cases ready₁ with
+                | false =>
+                    simp only [hr₁, hr₂, Bool.not_false, ↓reduceIte] at h₁ h₂
+                    exact ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
+                      (currentView₁ := currentView₁) (currentView₂ := currentView₂)
+                      (st₁' := st₁') (st₂' := st₂') hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂
+                      hcurrent hcurrentView hrest h₁ h₂
+                | true =>
+                    simp only [hr₁, hr₂, Bool.not_true, ↓reduceIte, Res.ok_bind] at h₁ h₂
+                    cases he₁ : E.execCombStmtAtView E.env E.elems current₁ currentView₁ body with
+                    | timeout => simp [he₁] at h₁
+                    | unsupported msg => simp [he₁] at h₁
+                    | ok result₁ =>
+                        cases he₂ : E.execCombStmtAtView E.env E.elems current₂ currentView₂ body with
+                        | timeout => simp [he₂] at h₂
+                        | unsupported msg => simp [he₂] at h₂
+                        | ok result₂ =>
+                            simp only [he₁, he₂, Res.ok_bind, Res.ok.injEq] at h₁ h₂
+                            obtain ⟨after₁, afterView₁⟩ := result₁
+                            obtain ⟨after₂, afterView₂⟩ := result₂
+                            have hstable := hb.2 current₁ current₂ currentView₁ currentView₂
+                              after₁ after₂ afterView₁ afterView₂ hcurrentC₁ hcurrentC₂
+                              hcurrentM₁ hcurrentM₂ hcurrent hcurrentView he₁ he₂
+                            have hcoh₁ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+                              (E := E) hb.1 hcurrentC₁ hcurrentM₁ he₁
+                            have hcoh₂ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+                              (E := E) hb.1 hcurrentC₂ hcurrentM₂ he₂
+                            have hcompact₁ := E.compactScalar_view hnd h4 hcoh₁.1 afterView₁
+                            have hcompact₂ := E.compactScalar_view hnd h4 hcoh₂.1 afterView₂
+                            simp only [Bool.false_eq_true, ↓reduceIte] at h₁ h₂
+                            exact ih (index := index + 1)
+                              (current₁ := E.compactScalar after₁ afterView₁)
+                              (current₂ := E.compactScalar after₂ afterView₂)
+                              (currentView₁ := afterView₁) (currentView₂ := afterView₂)
+                              (st₁' := st₁') (st₂' := st₂') hcompact₁.2 hcompact₂.2
+                              (by rw [E.compactScalar_memory]; exact hcoh₁.2)
+                              (by rw [E.compactScalar_memory]; exact hcoh₂.2)
+                              (by rw [hcompact₁.1, hcompact₂.1, hstable])
+                              hstable hrest h₁ h₂
       | primitive kind name | assign target value | edge _ | initial _ | implicit _ | event _ _ =>
           simp only [CoreMemDesign.runCombAt] at h₁ h₂
           exact ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
@@ -2260,56 +2266,87 @@ theorem CoreMemDesign.runCombAt_of_view_success_of_each
       | comb body =>
           have hb := hproc (.comb body) (by simp)
           simp only [CoreMemDesign.runCombAt] at h₂
-          have hready := hread
-            (b₁ := before₁) (b₂ := before₂) (c₁ := current₁) (c₂ := current₂)
-            (bv₁ := beforeView₁) (bv₂ := beforeView₂) (cv₁ := currentView₁) (cv₂ := currentView₂)
-            (i := index) (body := body)
-            hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
-            hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent hbeforeView hcurrentView
-          cases hr₂ : E.readChangedAt before₂ current₂ beforeView₂ currentView₂ index
-              (coreMemCombExternalReadExprs body) with
-          | timeout => simp [hr₂] at h₂
-          | unsupported msg => simp [hr₂] at h₂
-          | ok ready₂ =>
-              have hr₁ : E.readChangedAt before₁ current₁ beforeView₁ currentView₁ index
-                  (coreMemCombExternalReadExprs body) = .ok ready₂ := by
-                rw [hready, hr₂]
-              cases ready₂ with
-              | false =>
-                  simp only [hr₁, hr₂, Bool.not_false, ↓reduceIte] at h₂
-                  have htail := ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
-                    (currentView₁ := currentView₁) (currentView₂ := currentView₂) (st₂' := st₂')
-                    hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hcurrent hcurrentView hrest h₂
-                  simpa [CoreMemDesign.runCombAt, hr₁] using htail
-              | true =>
-                  simp only [hr₂, Bool.not_true, ↓reduceIte, Res.ok_bind] at h₂
-                  cases he₂ : E.execCombStmtAtView E.env E.elems current₂ currentView₂ body with
-                  | timeout => simp [he₂] at h₂
-                  | unsupported msg => simp [he₂] at h₂
-                  | ok result₂ =>
-                      simp only [he₂, Res.ok_bind] at h₂
-                      obtain ⟨after₂, afterView₂⟩ := result₂
-                      obtain ⟨after₁, afterView₁, he₁, hview₁⟩ := hb.2
-                        current₁ current₂ currentView₁ currentView₂ after₂ afterView₂
-                        hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hcurrent hcurrentView he₂
-                      have hcoh₁ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
-                        (E := E) hb.1 hcurrentC₁ hcurrentM₁ he₁
-                      have hcoh₂ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
-                        (E := E) hb.1 hcurrentC₂ hcurrentM₂ he₂
-                      have hcompact₁ := E.compactScalar_view hnd h4 hcoh₁.1 afterView₁
-                      have hcompact₂ := E.compactScalar_view hnd h4 hcoh₂.1 afterView₂
-                      simp only [Bool.false_eq_true, ↓reduceIte] at h₂
-                      obtain ⟨st₁', hrun₁, hview₁', hcoh₁', hm₁'⟩ := ih
-                        (index := index + 1)
-                        (current₁ := E.compactScalar after₁ afterView₁)
-                        (current₂ := E.compactScalar after₂ afterView₂)
-                        (currentView₁ := afterView₁) (currentView₂ := afterView₂) (st₂' := st₂')
-                        hcompact₁.2 hcompact₂.2
-                        (by rw [E.compactScalar_memory]; exact hcoh₁.2)
-                        (by rw [E.compactScalar_memory]; exact hcoh₂.2)
-                        (by rw [hcompact₁.1, hcompact₂.1, hview₁]) hview₁ hrest h₂
-                      refine ⟨st₁', ?_, hview₁', hcoh₁', hm₁'⟩
-                      simpa [CoreMemDesign.runCombAt, hr₁, he₁] using hrun₁
+          by_cases hagg : (coreMemCombExternalReadExprs body).any PExpr.hasAggregateMember = true
+          · simp only [hagg] at h₂
+            cases he₂ : E.execCombStmtAtView E.env E.elems current₂ currentView₂ body with
+            | timeout => simp [he₂] at h₂
+            | unsupported msg => simp [he₂] at h₂
+            | ok result₂ =>
+                obtain ⟨after₂, afterView₂⟩ := result₂
+                simp only [he₂, Res.ok_bind] at h₂
+                obtain ⟨after₁, afterView₁, he₁, hview₁⟩ := hb.2
+                  current₁ current₂ currentView₁ currentView₂ after₂ afterView₂
+                  hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hcurrent hcurrentView he₂
+                have hcoh₁ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+                  (E := E) hb.1 hcurrentC₁ hcurrentM₁ he₁
+                have hcoh₂ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+                  (E := E) hb.1 hcurrentC₂ hcurrentM₂ he₂
+                have hcompact₁ := E.compactScalar_view hnd h4 hcoh₁.1 afterView₁
+                have hcompact₂ := E.compactScalar_view hnd h4 hcoh₂.1 afterView₂
+                obtain ⟨st₁', hrun₁, hview₁', hcoh₁', hm₁'⟩ := ih
+                  (index := index + 1)
+                  (current₁ := E.compactScalar after₁ afterView₁)
+                  (current₂ := E.compactScalar after₂ afterView₂)
+                  (currentView₁ := afterView₁) (currentView₂ := afterView₂) (st₂' := st₂')
+                  hcompact₁.2 hcompact₂.2
+                  (by rw [E.compactScalar_memory]; exact hcoh₁.2)
+                  (by rw [E.compactScalar_memory]; exact hcoh₂.2)
+                  (by rw [hcompact₁.1, hcompact₂.1, hview₁]) hview₁ hrest h₂
+                refine ⟨st₁', ?_, hview₁', hcoh₁', hm₁'⟩
+                simpa [CoreMemDesign.runCombAt, hagg, he₁] using hrun₁
+          · have hagg' : (coreMemCombExternalReadExprs body).any PExpr.hasAggregateMember = false := by
+              cases hv : (coreMemCombExternalReadExprs body).any PExpr.hasAggregateMember <;> simp_all
+            simp only [hagg', Bool.false_eq_true, ↓reduceIte] at h₂
+            have hready := hread
+              (b₁ := before₁) (b₂ := before₂) (c₁ := current₁) (c₂ := current₂)
+              (bv₁ := beforeView₁) (bv₂ := beforeView₂) (cv₁ := currentView₁) (cv₂ := currentView₂)
+              (i := index) (body := body)
+              hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
+              hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent hbeforeView hcurrentView
+            cases hr₂ : E.readChangedAt before₂ current₂ beforeView₂ currentView₂ index
+                (coreMemCombExternalReadExprs body) with
+            | timeout => simp [hr₂] at h₂
+            | unsupported msg => simp [hr₂] at h₂
+            | ok ready₂ =>
+                have hr₁ : E.readChangedAt before₁ current₁ beforeView₁ currentView₁ index
+                    (coreMemCombExternalReadExprs body) = .ok ready₂ := by
+                  rw [hready, hr₂]
+                cases ready₂ with
+                | false =>
+                    simp only [hr₁, hr₂, Bool.not_false, ↓reduceIte] at h₂
+                    have htail := ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
+                      (currentView₁ := currentView₁) (currentView₂ := currentView₂) (st₂' := st₂')
+                      hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hcurrent hcurrentView hrest h₂
+                    simpa [CoreMemDesign.runCombAt, hagg', hr₁] using htail
+                | true =>
+                    simp only [hr₂, Bool.not_true, ↓reduceIte, Res.ok_bind] at h₂
+                    cases he₂ : E.execCombStmtAtView E.env E.elems current₂ currentView₂ body with
+                    | timeout => simp [he₂] at h₂
+                    | unsupported msg => simp [he₂] at h₂
+                    | ok result₂ =>
+                        simp only [he₂, Res.ok_bind] at h₂
+                        obtain ⟨after₂, afterView₂⟩ := result₂
+                        obtain ⟨after₁, afterView₁, he₁, hview₁⟩ := hb.2
+                          current₁ current₂ currentView₁ currentView₂ after₂ afterView₂
+                          hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hcurrent hcurrentView he₂
+                        have hcoh₁ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+                          (E := E) hb.1 hcurrentC₁ hcurrentM₁ he₁
+                        have hcoh₂ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+                          (E := E) hb.1 hcurrentC₂ hcurrentM₂ he₂
+                        have hcompact₁ := E.compactScalar_view hnd h4 hcoh₁.1 afterView₁
+                        have hcompact₂ := E.compactScalar_view hnd h4 hcoh₂.1 afterView₂
+                        simp only [Bool.false_eq_true, ↓reduceIte] at h₂
+                        obtain ⟨st₁', hrun₁, hview₁', hcoh₁', hm₁'⟩ := ih
+                          (index := index + 1)
+                          (current₁ := E.compactScalar after₁ afterView₁)
+                          (current₂ := E.compactScalar after₂ afterView₂)
+                          (currentView₁ := afterView₁) (currentView₂ := afterView₂) (st₂' := st₂')
+                          hcompact₁.2 hcompact₂.2
+                          (by rw [E.compactScalar_memory]; exact hcoh₁.2)
+                          (by rw [E.compactScalar_memory]; exact hcoh₂.2)
+                          (by rw [hcompact₁.1, hcompact₂.1, hview₁]) hview₁ hrest h₂
+                        refine ⟨st₁', ?_, hview₁', hcoh₁', hm₁'⟩
+                        simpa [CoreMemDesign.runCombAt, hr₁, he₁] using hrun₁
       | primitive kind name | assign target value | edge _ | initial _ | implicit _ | event _ _ =>
           simp only [CoreMemDesign.runCombAt] at h₂
           exact ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
