@@ -340,7 +340,7 @@ open LeanModels.Cpp
 private def h (value : String) : FrontendHandle := ⟨value⟩
 private def access : IntegralMemberThisFieldAccess := {
   method := h "method", definition := h "method", owner := h "owner", field := h "field",
-  name := "value", receiverType := "Sample *", fieldType := "Error", methodName := "get"}
+  name := "value", receiverType := "Sample *", fieldType := "Error", methodName := "set"}
 private def profile : IntegralMemberEnumProfile := {
   field := h "field", enum := h "enum", name := "Error", constantCount := 3,
   explicitValueCount := 3, underlyingType := some "unsigned int"}
