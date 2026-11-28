@@ -2939,7 +2939,10 @@ def evalInt (env : IEnv) : PExpr → Except String Int
       if a.isInt env then do
         let v ← evalInt env a
         match op with
-        | .m0 .neg => .ok (-v)
+        | .m0 .neg =>
+            if v == (2147483648 : Int) || v == (-2147483648 : Int) then
+              .ok (-2147483648 : Int)
+            else .ok (-v)
         | .m0 .lnot => .ok (b2i (v == 0))
         | .m0 .bnot => .error "'~' in a constant context (width-dependent)"
         | .m0 .pos | .plus => .ok v
@@ -3142,6 +3145,18 @@ def evalIntExact (env : IEnv) (e : PExpr) : Except String Int :=
     (.binary (.m0 .add) (.paramRef "N" none) (.int 1))).toOption == some 6
 #guard (evalIntExact ({ nvals := [("N", (2147483647, 32, true))], int32 := true } : IEnv)
     (.binary (.m0 .add) (.paramRef "N" none) (.int 1))).toOption == some (-2147483648)
+
+/- Unary minus on an INT-class operand keeps the IEEE 1800 signed 32-bit
+   minimum (§§11.6 and 11.8).  Both spellings cover the parser's retained
+   operand and the already-folded boundary value. -/
+#guard (match evalInt ({} : IEnv)
+    (.unary (.m0 .neg) (.int (2147483648 : Int))) with
+  | .ok v => v == (-2147483648 : Int)
+  | _ => false)
+#guard (match evalInt ({} : IEnv)
+    (.unary (.m0 .neg) (.int (-2147483648 : Int))) with
+  | .ok v => v == (-2147483648 : Int)
+  | _ => false)
 
 /-- Generate-time integer arithmetic uses the declared `integer`/`int`
 32-bit signed type (§27.4, §6.11). -/
@@ -4112,7 +4127,11 @@ conservativity theorem is stated here.  For example, the old evaluator reads
 final-value evaluator required by §§6.20.2, 11.6, and 11.8. -/
 def evalUntypedLegacy (env : IEnv) (e : PExpr) : Except String Int := do
   if e.icarusWidens env then throw untypedWidthMsg
-  let v ← evalInt env e
+  let v ← match e with
+    | .unary (.m0 .neg) a =>
+        let av ← evalInt env a
+        .ok (if av == (-2147483648 : Int) then (2147483648 : Int) else -av)
+    | _ => evalInt env e
   if e.isInt env then .ok v
   else
     let (w, s) ← ctype env e
