@@ -2018,5 +2018,12 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "corpus-c23-labels-1",
+    "source": "/* Tests for labels before declarations and at ends of compound statements.  */\n/* { dg-do run } */\n/* { dg-options \"-std=c23 -pedantic-errors\" } */\n\nint f(int x) \n{ \n\tgoto b;\n\ta: int i = 2 * x;\n\taa: int u = 0; int v = 0;\n           goto c;\n\tb: goto a;\n\t{ i *= 3; c: }\n\treturn i + u + v;\n        d:\n}\n\nint main(void)\n{\n\tif (2 != f(1))\n\t\t__builtin_abort();\n\n\treturn 0;\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
