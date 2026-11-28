@@ -1636,6 +1636,35 @@ theorem CoreMemDesign.runCombPass_view_congr_of_each
     hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent hbeforeView hcurrentView
     hread hproc h₁ h₂
 
+theorem CoreMemDesign.runCombPass_view_independent_of_state
+    {E : CoreMemDesign}
+    {before₁ before₂ current₁ current₂ : CoreMemState}
+    {beforeView currentView : SvState} {procs : List CoreMemProc}
+    {st₁' st₂' : CoreMemState}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hbeforeC₁ : E.Coherent before₁) (hbeforeC₂ : E.Coherent before₂)
+    (hbeforeM₁ : E.MemCoherent before₁.memory) (hbeforeM₂ : E.MemCoherent before₂.memory)
+    (hcurrentC₁ : E.Coherent current₁) (hcurrentC₂ : E.Coherent current₂)
+    (hcurrentM₁ : E.MemCoherent current₁.memory) (hcurrentM₂ : E.MemCoherent current₂.memory)
+    (hbefore : E.scalar.view before₁.scalar = E.scalar.view before₂.scalar)
+    (hcurrent : E.scalar.view current₁.scalar = E.scalar.view current₂.scalar)
+    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {body : PStmt} {i : Nat},
+      E.Coherent b₁ → E.Coherent b₂ → E.MemCoherent b₁.memory → E.MemCoherent b₂.memory →
+      E.Coherent c₁ → E.Coherent c₂ → E.MemCoherent c₁.memory → E.MemCoherent c₂.memory →
+      E.scalar.view b₁.scalar = E.scalar.view b₂.scalar →
+      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar →
+      E.readChangedAt b₁ c₁ beforeView currentView i (coreMemCombExternalReadExprs body) =
+        E.readChangedAt b₂ c₂ beforeView currentView i (coreMemCombExternalReadExprs body))
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewCongr E.env body
+      | .latch _ => False
+      | _ => True)
+    (h₁ : E.runCombAt before₁ beforeView current₁ currentView 0 procs = .ok st₁')
+    (h₂ : E.runCombAt before₂ beforeView current₂ currentView 0 procs = .ok st₂') :
+    E.scalar.view st₁'.scalar = E.scalar.view st₂'.scalar := by
+  exact (E.runCombAt_view_congr_of_each hnd h4 hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
+    hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent rfl rfl hread hproc h₁ h₂).1
+
 /-- The process-list coherence receipt specializes to one active-region pass. -/
 theorem CoreMemDesign.runCombPass_coherent_of_each
     {E : CoreMemDesign} {before current st' : CoreMemState} {procs : List CoreMemProc}
