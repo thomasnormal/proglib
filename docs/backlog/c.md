@@ -4240,3 +4240,15 @@ value representation to be preserved across the operation. Reusing the
 binary64 `copysign` path would silently change precision and payload bits.
 Keep these calls refused until the separately held long-double representation,
 rounding, and pinned differential rows are implemented.
+
+## 2026-11-28-c-builtin-stpcpy — string-copy return pointers remain refused
+
+The static ranking has two sole rows for `libc-call: __builtin_stpcpy`:
+`builtins/strpcpy-2.c` and `builtins/strpcpy.c`. C23 §7.24.2.4 defines
+`strcpy`-family copying through the terminating null character, while this GNU
+builtin additionally returns a pointer to the copied terminator. The evaluator
+has no admitted string-object storage, overlap rule, or provenance-preserving
+pointer result for this libc call. Treating it as a no-op or returning the
+source pointer would lose the destination write and pointer identity. Keep the
+builtin refused until bounded string storage, copy effects, and the returned
+subobject pointer are modeled together.
