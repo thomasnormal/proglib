@@ -1,7 +1,7 @@
 # Fresh C replay receipt — 2026-11-28
 
 The pinned Clang 21.1.8 toolchain and all four approved parser plugins were
-loaded from `/scratch/thomas-ahle/tools/clangdev-21.1.8/env.sh`. The gate ran
+loaded from the host's pinned Clang 21.1.8 environment script (`env.sh`). The gate ran
 with one Lean thread and a 24 GiB cgroup.
 
 The approved offline manifest for the 300-row C1 gate found **0 parsed source
