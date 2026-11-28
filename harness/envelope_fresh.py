@@ -296,51 +296,51 @@ def check_tier(man: dict, root: str, frontend: str) -> tuple[int, list]:
         # path string in the output matches -- and so nothing is ever written
         # into the repository, including the `<source>.json` an sv-0.1
         # invocation drops beside its input.
-        tmp = tempfile.mkdtemp(prefix="envfresh.")
-        # WHETHER TO MIRROR IS A PER-TIER FACT, not a universal one: it depends
-        # on whether the extractor rewrites the recorded path and on where it
-        # puts its output.  The manifest is where per-tier facts live.
-        cwd = tmp if man.get("mirror") else root
-        if man.get("mirror"):
-            for rec, real in zip(recorded, resolved):
-                dst = os.path.join(tmp, rec)
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
-                shutil.copyfile(real, dst)
-        # THE SCRIPT IS ABSOLUTE, THE SOURCES ARE NOT.  Extraction runs with
-        # cwd=mirror so the recorded path strings reproduce; that same cwd
-        # makes a repo-relative extractor path unopenable, which turned all 61
-        # python pairs into EXTRACT-FAILED the moment the mirror landed.
-        subst = {"frontend": frontend, "repo": os.path.abspath(root),
-                 "src": recorded[0], "out": os.path.join(tmp, "_out.json"),
-                 "tmp": tmp, "top": str(env.get("top") or "")}
-        argv = []
-        for part in recipe["argv"]:
-            if part == "{srcs}":
-                argv.extend(recorded)
+        with tempfile.TemporaryDirectory(prefix="envfresh.") as tmp:
+            # WHETHER TO MIRROR IS A PER-TIER FACT, not a universal one: it depends
+            # on whether the extractor rewrites the recorded path and on where it
+            # puts its output.  The manifest is where per-tier facts live.
+            cwd = tmp if man.get("mirror") else root
+            if man.get("mirror"):
+                for rec, real in zip(recorded, resolved):
+                    dst = os.path.join(tmp, rec)
+                    os.makedirs(os.path.dirname(dst), exist_ok=True)
+                    shutil.copyfile(real, dst)
+            # THE SCRIPT IS ABSOLUTE, THE SOURCES ARE NOT.  Extraction runs with
+            # cwd=mirror so the recorded path strings reproduce; that same cwd
+            # makes a repo-relative extractor path unopenable, which turned all 61
+            # python pairs into EXTRACT-FAILED the moment the mirror landed.
+            subst = {"frontend": frontend, "repo": os.path.abspath(root),
+                     "src": recorded[0], "out": os.path.join(tmp, "_out.json"),
+                     "tmp": tmp, "top": str(env.get("top") or "")}
+            argv = []
+            for part in recipe["argv"]:
+                if part == "{srcs}":
+                    argv.extend(recorded)
+                else:
+                    argv.append(part.format(**subst))
+            if man is MANIFESTS["sv"] and env.get("schema_version") == "sv-0.2":
+                if _sv_retain_loops(env):
+                    # Keep the option beside --top; argparse accepts it anywhere,
+                    # but this mirrors the recorded symbolic invocation clearly.
+                    top_pos = argv.index(subst["top"])
+                    argv.insert(top_pos + 1, "--retain-loops")
+                if _sv_retain_proc_rewrites(env):
+                    top_pos = argv.index(subst["top"])
+                    argv.insert(top_pos + 1, "--retain-proc-rewrites")
+            outp = recipe["out"].format(**subst)
+            if not os.path.isabs(outp):
+                outp = os.path.join(tmp, outp)
+            r = subprocess.run(argv, capture_output=True, text=True, cwd=cwd)
+            if r.returncode != 0 or not os.path.isfile(outp):
+                tail = (r.stderr or "").strip().splitlines()
+                rows.append(("EXTRACT-FAILED", rel, tail[-1] if tail else "rc=%d" % r.returncode))
+                continue
+            new_env = json.load(open(outp, encoding="utf-8"))
+            if _strip(env, man["stamp"]) == _strip(new_env, man["stamp"]):
+                rows.append(("FRESH", rel, ""))
             else:
-                argv.append(part.format(**subst))
-        if man is MANIFESTS["sv"] and env.get("schema_version") == "sv-0.2":
-            if _sv_retain_loops(env):
-                # Keep the option beside --top; argparse accepts it anywhere,
-                # but this mirrors the recorded symbolic invocation clearly.
-                top_pos = argv.index(subst["top"])
-                argv.insert(top_pos + 1, "--retain-loops")
-            if _sv_retain_proc_rewrites(env):
-                top_pos = argv.index(subst["top"])
-                argv.insert(top_pos + 1, "--retain-proc-rewrites")
-        outp = recipe["out"].format(**subst)
-        if not os.path.isabs(outp):
-            outp = os.path.join(tmp, outp)
-        r = subprocess.run(argv, capture_output=True, text=True, cwd=cwd)
-        if r.returncode != 0 or not os.path.isfile(outp):
-            tail = (r.stderr or "").strip().splitlines()
-            rows.append(("EXTRACT-FAILED", rel, tail[-1] if tail else "rc=%d" % r.returncode))
-            continue
-        new_env = json.load(open(outp, encoding="utf-8"))
-        if _strip(env, man["stamp"]) == _strip(new_env, man["stamp"]):
-            rows.append(("FRESH", rel, ""))
-        else:
-            rows.append(("STALE", rel, "content differs from a re-extraction"))
+                rows.append(("STALE", rel, "content differs from a re-extraction"))
     bad = sum(1 for v, _, _ in rows
               if v in ("STALE", "EXTRACT-FAILED", "UNREADABLE", "SOURCES-MISSING", "NO-RECIPE", "UNSAFE-SOURCE"))
     return bad, rows
