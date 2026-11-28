@@ -23,6 +23,9 @@ private def edge (clk a q : Nat) : CycleObs PortSample :=
     | .error _ => false
   | none => false
 
+#guard (SvaBool.evalLogic [[("a", LVec.lit "0x01")]] 0
+    (.oneHot (.ident "a"))).toOption == some (some .lx)
+
 
 #guard match onehotProp.pdesign.properties[0]? with
   | some p => match SvaContract.ofProperty env [] p with
