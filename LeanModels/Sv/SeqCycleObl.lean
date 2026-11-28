@@ -1449,6 +1449,16 @@ theorem CoreMemDesign.combStmtViewRefinesFuel_blockingL_ident
       refine ⟨st₁', view₁', locals₁', ?_, hview'⟩
       simpa [CoreMemDesign.execCombStmtFuel] using h₁'
 
+theorem CoreMemDesign.execCombStmtFuel_blockingL_ident_succ
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {view locals : SvState} {fuel : Nat}
+    {n : String} {value : PExpr} :
+    E.execCombStmtFuel env elems st view locals (fuel + 2)
+        (.blockingAssignL (.ident n) value) =
+      E.execCombStmtFuel env elems st view locals (fuel + 1)
+        (.blockingAssign n value) := by
+  simp [CoreMemDesign.execCombStmtFuel]
+
 theorem CoreMemDesign.combStmtViewRefines_of_fuel
     {E : CoreMemDesign} {env : IEnv} {stmt : PStmt}
     (hstmt : E.CombStmtViewRefinesFuel env 4096 stmt) :
