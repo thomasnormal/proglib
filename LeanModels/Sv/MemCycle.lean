@@ -796,6 +796,7 @@ def runMemComb (d : MemDesign2) (fuel : Nat) (st : MemCycleState) : Res MemCycle
         "ProceduralBlockSymbol:Always: source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
     | .alwaysEvent _ _ => .unsupported
         "ProceduralBlockSymbol:Always: source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
+    | .unsupported k t => .unsupported s!"{k}: {t}"
     | _ => .ok st
 
 def memStep (d : MemDesign2) (fuel : Nat) (inputs : SvState)
