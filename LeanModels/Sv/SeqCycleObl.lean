@@ -1242,6 +1242,43 @@ def CoreMemDesign.CombStmtViewRefines (E : CoreMemDesign) (env : IEnv) (stmt : P
     ∃ st₁' view₁',
       E.execCombStmtAtView env E.elems st₁ view₁ stmt = .ok (st₁', view₁') ∧ view₁' = view₂'
 
+/-! Fuel-indexed refinement keeps statement composition honest: a source block
+consumes one fuel cell before its child, so a child receipt must be available at
+the remaining fuel rather than silently reusing the public fixed-fuel wrapper. -/
+def CoreMemDesign.CombStmtViewRefinesFuel (E : CoreMemDesign) (env : IEnv)
+    (fuel : Nat) (stmt : PStmt) : Prop :=
+  ∀ (st₁ st₂ : CoreMemState) (view₁ view₂ : SvState)
+    (st₂' : CoreMemState) (view₂' locals₂' : SvState),
+    E.Coherent st₁ → E.Coherent st₂ → E.MemCoherent st₁.memory → E.MemCoherent st₂.memory →
+    E.scalar.view st₁.scalar = E.scalar.view st₂.scalar → view₁ = view₂ →
+    E.execCombStmtFuel env E.elems st₂ view₂ [] fuel stmt = .ok (st₂', view₂', locals₂') →
+    ∃ st₁' view₁' locals₁',
+      E.execCombStmtFuel env E.elems st₁ view₁ [] fuel stmt = .ok (st₁', view₁', locals₁') ∧
+        view₁' = view₂'
+
+theorem CoreMemDesign.combStmtViewRefinesFuel_block_single
+    {E : CoreMemDesign} {env : IEnv} {fuel : Nat} {stmt : PStmt}
+    (hstmt : E.CombStmtViewRefinesFuel env fuel stmt) :
+    E.CombStmtViewRefinesFuel env (fuel + 2) (.block [stmt]) := by
+  intro st₁ st₂ view₁ view₂ st₂' view₂' locals₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₂
+  simp [CoreMemDesign.execCombStmtFuel, CoreMemDesign.execCombStmtsFuel] at h₂
+  obtain ⟨midSt₂, midView₂, midLocals₂, hchild₂, hrest₂⟩ := h₂
+  cases fuel with
+  | zero => simp [CoreMemDesign.execCombStmtsFuel] at hrest₂
+  | succ fuel =>
+      simp [CoreMemDesign.execCombStmtsFuel] at hrest₂
+      obtain ⟨hstate₂, hview₂eq, hlocals₂⟩ := hrest₂
+      subst st₂'
+      subst view₂'
+      subst locals₂'
+      obtain ⟨st₁', view₁', locals₁', hchild₁, hviews'⟩ :=
+        hstmt st₁ st₂ view₁ view₂ midSt₂ midView₂ midLocals₂
+          hc₁ hc₂ hm₁ hm₂ hview hviews hchild₂
+      refine ⟨st₁', view₁', locals₁', ?_, hviews'.trans rfl⟩
+      simp only [CoreMemDesign.execCombStmtFuel, CoreMemDesign.execCombStmtsFuel,
+        Res.bind_eq_ok]
+      exact ⟨(st₁', view₁', locals₁'), hchild₁, rfl⟩
+
 /-! A scalar blocking assignment can be replayed from any coherent state
 carrying the same scalar view.  This is the success-transfer receipt needed by
 the state-side active-region runner. -/
