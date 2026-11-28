@@ -16,7 +16,7 @@ with ids `YYYY-MM-DD-<lane>-<n>` that need no reservation. Everything before
 the split is in [`docs/backlog-archive.md`](../backlog-archive.md), frozen,
 and every existing `§Lnn` reference still resolves there.
 
-**1647 entries across 19 lanes.** Regenerate with
+**1648 entries across 19 lanes.** Regenerate with
 `tools/backlog-index.sh`; check with `--check` (exit 1 on drift).
 
 | id | class | title | lane |
@@ -1637,6 +1637,7 @@ and every existing `§Lnn` reference still resolves there.
 | `G11` |  | THE WALKER IS PROVED THROUGH A MUTATION, and the blocker moved again (2026-08-23) | go |
 | `G10` |  | THE SEAM: one lemma opens the stack, and §G8's three "unprovable" lemmas are four lines each (2026-08-23) | go |
 | `2026-11-28-c-wide-bitfield-arithmetic` |  | wide bit-field promotions remain refused | c |
+| `2026-11-28-c-inline-assembly` |  | GNU assembly remains refused | c |
 | `2026-11-28-c-floating-environment` |  | floating environment remains refused | c |
 | `2026-11-28-c-floating-casts` |  | long-double casts remain refused | c |
 | `2026-11-28-c-external-object-linkage` |  | external objects remain refused | c |
@@ -1669,4 +1670,4 @@ and every existing `§Lnn` reference still resolves there.
 | `2026-11-10-c-array-filler-designators` |  | Clang array initializer positions | c |
 | `2026-08-26` |  | PARKED (indefinite). Read this first on resumption. | analog |
 
-**73 heading(s) do not use the §9.5 id scheme** and sort last.
+**74 heading(s) do not use the §9.5 id scheme** and sort last.

@@ -4106,3 +4106,14 @@ the field as a full `unsigned long long` or silently truncating the result.
 The refusal remains until the parser-native width, promotion type, and
 assignment reduction are modeled as one operation family. The unchanged
 rows are native-clean and have no UB witness claim.
+
+## 2026-11-28-c-inline-assembly — GNU assembly remains refused
+
+Two sole C1 rows (`20071211-1.c` and `pr81588.c`) contain Clang's
+`GCCAsmStmt` node. GNU inline assembly is outside ISO C23 and its constraints,
+clobbers, volatile ordering, and target instructions affect both values and
+memory. The C evaluator has no target-machine instruction semantics or
+register/memory-clobber oracle. Treating an asm node as a no-op would erase
+observable effects, while inventing a generic effect would be unsound. The
+parser node therefore remains a loud refusal until a target-specific assembly
+semantics and differential contract exist.
