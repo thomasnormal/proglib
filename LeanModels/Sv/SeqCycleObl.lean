@@ -1302,6 +1302,30 @@ theorem CoreMemDesign.combStmtViewCongr_if
           · exact hno stmt hno'.symm st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂'
               hc₁ hc₂ hm₁ hm₂ hview hviews hchild₁ hchild₂
 
+theorem CoreMemDesign.combStmtViewCongr_block_single
+    {E : CoreMemDesign} {env : IEnv} {stmt : PStmt}
+    (hstmt : E.CombStmtViewCongr env stmt) :
+    E.CombStmtViewCongr env (.block [stmt]) := by
+  intro st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₁ h₂
+  simp only [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel,
+    CoreMemDesign.execCombStmtsFuel, Res.bind_eq_ok] at h₁ h₂
+  obtain ⟨mid₁, hs₁, hr₁⟩ := h₁
+  obtain ⟨mid₂, hs₂, hr₂⟩ := h₂
+  obtain ⟨midSt₁, midView₁, midLocals₁⟩ := mid₁
+  obtain ⟨midSt₂, midView₂, midLocals₂⟩ := mid₂
+  have hchild₁ : E.execCombStmtAtView env E.elems st₁ view₁ stmt =
+      .ok (midSt₁, midView₁) := by
+    simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using hs₁
+  have hchild₂ : E.execCombStmtAtView env E.elems st₂ view₂ stmt =
+      .ok (midSt₂, midView₂) := by
+    simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using hs₂
+  have hmidView := hstmt st₁ st₂ view₁ view₂ midSt₁ midSt₂ midView₁ midView₂
+    hc₁ hc₂ hm₁ hm₂ hview hviews hchild₁ hchild₂
+  simp only [CoreMemDesign.execCombStmtsFuel, Res.ok.injEq, Prod.mk.injEq] at hr₁ hr₂
+  obtain ⟨rfl, rfl, rfl⟩ := hr₁
+  obtain ⟨rfl, rfl, rfl⟩ := hr₂
+  exact hmidView
+
 /-- The public view executor is the fixed-fuel, empty-local-frame wrapper around
 the source-shaped statement executor.  A statement coherence receipt therefore
 applies directly to any successful `execCombStmtAtView` run. -/
