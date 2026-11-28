@@ -497,7 +497,7 @@
     "id": "order-index-write",
     "source": "int main(void) { int i = 0; int a[2] = {0, 0}; a[i++] = i++; return a[0]; }",
     "expect": "refuse",
-    "error": "no layout for declared type 'int[2]'"
+    "error": "unsequenced side effects in assignment"
   },
   {
     "id": "order-call-write-write",
