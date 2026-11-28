@@ -28,3 +28,5 @@ uses remain refused until their parser identities and corresponding layout
 observations are carried in the same envelope. No oracle result is claimed
 for a registry run until the approved structured-type plugin has been rebuilt
 with dependency-file observations enabled.
+
+CPP-DESIGN READY header-registry 5e4985662
