@@ -10,6 +10,7 @@ construction, and one canonical-E step in one process.
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import argparse
 import collections
+import datetime
 import json
 from pathlib import Path
 import re
@@ -89,6 +90,7 @@ def extract_one(item, source_root, envelope_root):
         "top": top, "source": source.relative_to(source_root).as_posix(),
         "extracts": True, "envelope": str(output),
         "extractor_refusal": unsupported[0] if unsupported else None,
+        "extractor_walls": unsupported,
     }
 
 
@@ -130,6 +132,30 @@ def detail(row):
     return message[:260] + ("…" if len(message) > 260 else "")
 
 
+def wall_family_from_tag(tag):
+    """Group parser walls by the Slang node family that caused them."""
+    if not tag:
+        return "unknown"
+    return tag.split(":", 1)[0]
+
+
+def all_walls(row):
+    """Return parser-visible walls plus the ordinary route's first wall."""
+    walls = []
+    for tag, text in row.get("extractor_walls", []):
+        if tag and tag not in walls:
+            walls.append(tag)
+    ordinary = row.get("ordinary", "")
+    if ordinary and not ordinary.startswith("ADMITTED|"):
+        message = ordinary.split("|", 1)[1] if "|" in ordinary else ordinary
+        label = f"ordinary: {family(row)}"
+        if label not in walls:
+            walls.append(label)
+    if not walls and row.get("extracts") is False:
+        walls.append("extractor timeout")
+    return walls
+
+
 def classify(rows):
     for row in rows:
         status = row.get("ordinary", "")
@@ -141,10 +167,25 @@ def classify(rows):
             row.update(loads="NO", step="NO", profile="NO")
         row["family"] = family(row)
         row["detail"] = detail(row)
+        row["all_walls"] = all_walls(row)
+        row["wall_families"] = sorted({
+            wall_family_from_tag(tag)
+            for tag, _text in row.get("extractor_walls", [])
+        } | ({row["family"]} if row["loads"] == "NO" else set()))
 
 
 def render(rows, commit):
     families = collections.Counter(row["family"] for row in rows)
+    wall_modules = collections.Counter()
+    sole_walls = collections.Counter()
+    for row in rows:
+        if row["loads"] == "YES":
+            continue
+        groups = set(row["wall_families"])
+        for group in groups:
+            wall_modules[group] += 1
+        if len(groups) == 1:
+            sole_walls[next(iter(groups))] += 1
     lines = [
         "# OpenTitan primitive and small-IP survey", "",
         f"Pinned source: `lowRISC/opentitan` at commit `{commit}` from "
@@ -159,29 +200,37 @@ def render(rows, commit):
         "admission path, and, when admitted, given one empty-input "
         "`CoreMemDesign.step` call. Sources that timed out during extraction "
         "remain explicit rows. No source was changed and no simulator result "
-        "is claimed by this survey.", "", "## Counts", "",
+        "is claimed by this survey. The measurement date is "
+        f"{datetime.datetime.now(datetime.timezone.utc).date().isoformat()}.",
+        "", "## Counts", "",
         "| outcome | count |", "| --- | ---: |",
         f"| modules surveyed | {len(rows)} |",
         f"| extracts | {sum(row.get('extracts', False) for row in rows)} |",
         f"| ordinary loads | {sum(row['loads'] == 'YES' for row in rows)} |",
         f"| one-cycle steps | {sum(row['step'] == 'YES' for row in rows)} |",
         f"| profile admitted | {sum(row['profile'] == 'YES' for row in rows)} |", "",
-        "Refusal families are counted by the first ordinary-route diagnostic.", "",
+        "First-wall families are counted by the ordinary-route diagnostic. The all-wall table also includes every parser-visible Unsupported node.", "",
         "| family | count |", "| --- | ---: |",
     ]
     for key, count in sorted(families.items()):
         if key != "admitted":
             lines.append(f"| {key} | {count} |")
+    lines += ["", "## All-wall feature families", "",
+              "Counts use refused modules as the denominator. `modules` counts every refused module exposing the family, and `sole-wall` counts modules exposing that family only.", "",
+              "| feature family | modules | sole-wall |", "| --- | ---: | ---: |"]
+    for key in sorted(wall_modules):
+        lines.append(f"| {key} | {wall_modules[key]} | {sole_walls[key]} |")
     lines += ["", "## Module rows", "",
-              "| area | module | source | extracts | loads | one cycle | profile | first refusal |",
-              "| --- | --- | --- | :---: | :---: | :---: | :---: | --- |"]
+              "| area | module | source | extracts | loads | one cycle | profile | first refusal | all walls |",
+              "| --- | --- | --- | :---: | :---: | :---: | :---: | --- | --- |"]
     for row in rows:
         area = row["source"].split("/")[2]
         message = row["detail"].replace("|", "\\|")
+        walls = "<br>".join(wall.replace("|", "\\|") for wall in row["all_walls"])
         lines.append(
             f"| {area} | `{row['top']}` | `{row['source']}` | "
             f"{'YES' if row.get('extracts') else 'NO'} | {row['loads']} | "
-            f"{row['step']} | {row['profile']} | {message} |"
+            f"{row['step']} | {row['profile']} | {message} | {walls} |"
         )
     return "\n".join(lines) + "\n"
 
