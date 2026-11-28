@@ -1951,5 +1951,13 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "function-scope-enum-bindings",
+    "source": "#include <stdio.h>\nint main(void) { enum { a, b, c }; typedef enum { e, f, g } h; typedef enum { i, j, k } m; printf(\"a=%d\\n\", a); printf(\"b=%d\\n\", b); printf(\"c=%d\\n\", c); printf(\"e=%d\\n\", e); printf(\"f=%d\\n\", f); printf(\"g=%d\\n\", g); printf(\"i=%d\\n\", i); printf(\"j=%d\\n\", j); printf(\"k=%d\\n\", k); return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "a=0\nb=1\nc=2\ne=0\nf=1\ng=2\ni=0\nj=1\nk=2\n",
+    "sanitize": true
   }
 ]
