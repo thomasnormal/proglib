@@ -1174,7 +1174,7 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
   else if structuredPointerObject structured ty then do
     let q ← readMem (fun m => do
       let (o, c, off) ← m.resolve p 8
-      Mem.checkEffectiveAt m alias o c off ty structured
+      Mem.checkEffectiveAtBounded m alias p o c off 8 ty structured
       m.loadPtr p zeroNullPointer) couldBeUninitializedRegister
     match q with
     | some q => pure (.ptr q)
@@ -1213,11 +1213,11 @@ def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (v : CVal)
   match v with
   | .funPtr id => writeMem (fun m => do
       let (o, c, off) ← m.resolve p 8
-      Mem.checkEffectiveAt m alias o c off ty structured
+      Mem.checkEffectiveAtBounded m alias p o c off 8 ty structured
       m.storeFunction p id)
   | .ptr q => writeMem (fun m => do
       let (o, c, off) ← m.resolve p 8
-      Mem.checkEffectiveAt m alias o c off ty structured
+      Mem.checkEffectiveAtBounded m alias p o c off 8 ty structured
       m.storePtr p q)
   | .ptrInt q =>
       if pointerIntegerTypeOfNode structured then writeMem (fun m => Mem.storePtrInt m p q)

@@ -2311,6 +2311,28 @@ def checkEffectiveAt (m : Mem) (alias : AliasModel) (o : ObjId) (c : CObj) (off 
     | none, none => .ok ()
     | _, _ => checkEffective alias o c off used usedStructured
 
+/- A member or array-element pointer produced by the parser-native layout path
+   carries a bounded subobject range in `Ptr.bound`.  For a declared aggregate
+   containing record subobjects, that range identifies the declared subobject
+   whose access type is checked here.  The unbounded path above remains the
+   rule for casts and whole-object accesses, so an arbitrary pointer cannot
+   acquire a record member's type. -/
+private def containsRecordSubobject : QualType → Bool
+  | .record _ => true
+  | .array element _ => containsRecordSubobject element
+  | .qualified _ _ base => containsRecordSubobject base
+  | .restrictQualified base => containsRecordSubobject base
+  | _ => false
+
+def checkEffectiveAtBounded (m : Mem) (alias : AliasModel) (p : Ptr)
+    (o : ObjId) (c : CObj) (off width : Nat) (used : String)
+    (usedStructured : Option QualType := none) : MRes Unit :=
+  match m.structuredType? o, p.bound, usedStructured with
+  | some effective, some _, some _ =>
+      if containsRecordSubobject effective.unqualified then .ok ()
+      else checkEffectiveAt m alias o c off used usedStructured
+  | _, _, _ => checkEffectiveAt m alias o c off used usedStructured
+
 theorem checkEffectiveAt_renameAddresses
     (rename : ObjId → Nat) (m : Mem) (alias : AliasModel) (o : ObjId)
     (c : CObj) (off : Nat) (used : String) (usedStructured : Option QualType := none) :
@@ -2319,6 +2341,27 @@ theorem checkEffectiveAt_renameAddresses
       checkEffectiveAt m alias o c off used usedStructured := by
   simp [checkEffectiveAt, checkEffective, structuredType?, renameAddresses,
     CObj.renameAddress]
+
+theorem checkEffectiveAtBounded_renameAddresses
+    (rename : ObjId → Nat) (m : Mem) (alias : AliasModel) (p : Ptr)
+    (o : ObjId) (c : CObj) (off width : Nat) (used : String)
+    (usedStructured : Option QualType := none) :
+    checkEffectiveAtBounded (m.renameAddresses rename) alias
+        (Ptr.renameAddress rename p) o (CObj.renameAddress rename c) off width
+        used usedStructured =
+      checkEffectiveAtBounded m alias p o c off width used usedStructured := by
+  simp [checkEffectiveAtBounded, checkEffectiveAt, checkEffective,
+    structuredType?, renameAddresses, CObj.renameAddress]
+
+@[simp] theorem checkEffectiveAtBounded_address_irrel
+    (m : Mem) (alias : AliasModel) (p : Ptr) (o : ObjId) (c : CObj)
+    (off width : Nat) (used : String) (address : Nat)
+    (usedStructured : Option QualType := none) :
+    checkEffectiveAtBounded m alias {p with address := address} o c off width
+        used usedStructured =
+      checkEffectiveAtBounded m alias p o c off width used usedStructured := by
+  simp [checkEffectiveAtBounded, checkEffectiveAt, checkEffective,
+    structuredType?]
 
 /-- The integer interpretation after structural resolution. -/
 def loadIntResolved (t : IntTy) (o : ObjId) (c : CObj) (off : Nat) : MRes CVal :=
@@ -2412,7 +2455,7 @@ def loadIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used : 
     (usedStructured : Option QualType := none) : MRes CVal := do
   let width := max 1 (t.bits / 8)
   let (o, c, off) ← m.resolve p width
-  checkEffectiveAt m alias o c off used usedStructured
+  checkEffectiveAtBounded m alias p o c off width used usedStructured
   loadIntResolved t o c off
 
 theorem loadIntChecked_renameAddresses
@@ -2436,8 +2479,9 @@ theorem loadIntChecked_renameAddresses
               simp only [h, Except.map, Except.instMonad, Except.bind, Except.pure]
               dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
                 Except.pure, Except.map]
-              simp only [checkEffectiveAt_renameAddresses]
-              cases hEff : m.checkEffectiveAt alias o c off used usedStructured with
+              simp only [checkEffectiveAtBounded_renameAddresses]
+              cases hEff : m.checkEffectiveAtBounded alias p o c off
+                  (max 1 (t.bits / 8)) used usedStructured with
               | error e => simp [hEff]
               | ok u =>
                   simp only [hEff, Except.bind, Except.map, Except.pure]
@@ -2452,7 +2496,7 @@ def storeIntChecked (m : Mem) (alias : AliasModel) (p : Ptr) (t : IntTy) (used :
     (usedStructured : Option QualType := none) : MRes Mem := do
   let bs := encodeInt t v
   let (o, c, off) ← m.resolve p bs.length
-  checkEffectiveAt m alias o c off used usedStructured
+  checkEffectiveAtBounded m alias p o c off bs.length used usedStructured
   let bytes := (c.bytes.take off) ++ bs ++ (c.bytes.drop (off + bs.length))
   -- Aggregate and declaration-backed objects have their effective type in
   -- the parser-native side table.  An allocated object with no declaration
@@ -2482,8 +2526,9 @@ theorem storeIntChecked_renameAddresses
               simp only [h, Except.map, Except.instMonad, Except.bind, Except.pure]
               dsimp [Bind.bind, Monad.toBind, Except.instMonad, Except.bind, Pure.pure,
                 Except.pure, Except.map]
-              simp only [checkEffectiveAt_renameAddresses]
-              cases hEff : m.checkEffectiveAt alias o c off used usedStructured with
+              simp only [checkEffectiveAtBounded_renameAddresses]
+              cases hEff : m.checkEffectiveAtBounded alias p o c off
+                  (encodeInt t v).length used usedStructured with
               | error e => simp [hEff]
               | ok u =>
                   simp only [hEff, Except.bind, Except.map, Except.pure]

@@ -390,7 +390,11 @@ def zeroMembers : Nat → Ctx → Ptr → String → List (String × String) →
             let some (offset, type, field) := declaration.bind (fun owner =>
                 initializerField ctx.layout owner name)
               | refuseUnsupported s!"default initialization lacks layout for member '{name}'"
-            zeroInitStructured fuel ctx (Mem.member p offset) memberTy (some type) field
+            let some width := (declaration.bind (fun owner =>
+                ctx.layout.fieldSizeDecl owner name)).orElse (fun _ =>
+              initializationSize ctx.layout type)
+              | refuseUnsupported s!"default initialization lacks extent for member '{name}'"
+            zeroInitStructured fuel ctx (Mem.memberRange p offset width) memberTy (some type) field
       zeroMembers fuel ctx p ty rest declaration
 
 end
@@ -454,7 +458,11 @@ def initObject : Nat → Ctx → Ptr → String → Expr →
                     | none =>
                         let some (offset, memberType, fieldId) := initializerField ctx.layout owner name
                           | refuseUnsupported s!"initializer lacks layout for union member '{name}'"
-                        initObject fuel ctx (Mem.member p offset) fieldTy value (some memberType) fieldId
+                        let some width := (ctx.layout.fieldSizeDecl owner name).orElse (fun _ =>
+                          initializationSize ctx.layout memberType)
+                          | refuseUnsupported s!"initializer lacks extent for union member '{name}'"
+                        initObject fuel ctx (Mem.memberRange p offset width) fieldTy value
+                          (some memberType) fieldId
                 | _, _ => refuseUnsupported "union initializer has no single selected member"
               else if !members.isEmpty &&
                   members.all (fun (name, _) => (ctx.layout.fieldBitsDecl owner name).isSome) &&
@@ -556,7 +564,11 @@ def initMembers : Nat → Ctx → Ptr → String → List (String × String) →
               let some (offset, type, field) := declaration.bind (fun owner =>
                   initializerField ctx.layout owner nm)
                 | refuseUnsupported s!"initializer lacks layout for member '{nm}'"
-              initObject fuel ctx (Mem.member p offset) mty e (some type) field
+              let some width := (declaration.bind (fun owner =>
+                  ctx.layout.fieldSizeDecl owner nm)).orElse (fun _ =>
+                initializationSize ctx.layout type)
+                | refuseUnsupported s!"initializer lacks extent for member '{nm}'"
+              initObject fuel ctx (Mem.memberRange p offset width) mty e (some type) field
           initMembers fuel ctx p ty mrest erest declaration
 
 end
