@@ -481,13 +481,14 @@
         ],
         "processes": [
           {
-            "kind": "AlwaysComb",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 6,
               "col": 5,
               "end_line": 6,
               "end_col": 30
             },
+            "event_kind": "ImplicitEventControl",
             "body": {
               "kind": "BlockingAssign",
               "span": {
@@ -541,7 +542,8 @@
                 }
               }
             },
-            "always_star_lowered": "implicit"
+            "text": "always @* y_star = a ^ b;",
+            "symbolic_event_retained": true
           },
           {
             "kind": "AlwaysComb",
@@ -606,15 +608,47 @@
             }
           },
           {
-            "kind": "Unsupported",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 10,
               "col": 5,
               "end_line": 10,
               "end_col": 41
             },
-            "sv_kind": "TimedStatement:ImplicitEventControl",
-            "text": "always @*: R3: the body reads no signal it does not write: an `@*` block would not run at time zero -- always @* y_constant_star = 4'b0110;"
+            "event_kind": "ImplicitEventControl",
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 10,
+                "col": 15,
+                "end_line": 10,
+                "end_col": 41
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 10,
+                  "col": 15,
+                  "end_line": 10,
+                  "end_col": 30
+                },
+                "width": 4,
+                "name": "y_constant_star"
+              },
+              "value": {
+                "kind": "Literal",
+                "span": {
+                  "line": 10,
+                  "col": 33,
+                  "end_line": 10,
+                  "end_col": 40
+                },
+                "width": 4,
+                "bits": "0110"
+              }
+            },
+            "text": "always @* y_constant_star = 4'b0110;",
+            "symbolic_event_retained": true
           },
           {
             "kind": "AlwaysComb",

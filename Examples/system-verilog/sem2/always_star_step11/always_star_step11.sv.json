@@ -377,13 +377,14 @@
         "decls": [],
         "processes": [
           {
-            "kind": "AlwaysComb",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 7,
               "col": 5,
               "end_line": 15,
               "end_col": 8
             },
+            "event_kind": "ImplicitEventControl",
             "body": {
               "kind": "Block",
               "span": {
@@ -671,7 +672,8 @@
                 }
               ]
             },
-            "always_star_lowered": "implicit"
+            "text": "always @* begin\n        case (sel)\n            2'b00: y_star = a;\n            2'b01: y_star = b;\n            2'b1x: y_star = a ^ b;\n            2'b1z: y_star = ~a;\n            default: y_star = '1;\n  ",
+            "symbolic_event_retained": true
           },
           {
             "kind": "AlwaysComb",

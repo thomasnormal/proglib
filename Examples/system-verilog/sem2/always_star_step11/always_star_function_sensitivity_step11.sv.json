@@ -334,15 +334,236 @@
           }
         ],
         "decls": [],
+        "functions": [
+          {
+            "kind": "Function",
+            "span": {
+              "line": 6,
+              "col": 5,
+              "end_line": 8,
+              "end_col": 16
+            },
+            "name": "probe",
+            "automatic": true,
+            "return_type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 6,
+                      "col": 31,
+                      "end_line": 6,
+                      "end_col": 34
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 6,
+                        "col": 31,
+                        "end_line": 6,
+                        "end_col": 32
+                      },
+                      "name": "W"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 6,
+                        "col": 33,
+                        "end_line": 6,
+                        "end_col": 34
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 6,
+                      "col": 35,
+                      "end_line": 6,
+                      "end_col": 36
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 4
+            },
+            "signed": false,
+            "formals": [
+              {
+                "kind": "Var",
+                "span": {
+                  "line": 6,
+                  "col": 64,
+                  "end_line": 6,
+                  "end_col": 69
+                },
+                "name": "value",
+                "width": {
+                  "kind": "PackedType",
+                  "packed": [
+                    {
+                      "msb": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 6,
+                          "col": 57,
+                          "end_line": 6,
+                          "end_col": 60
+                        },
+                        "width": null,
+                        "op": "-",
+                        "left": {
+                          "kind": "ParamRef",
+                          "span": {
+                            "line": 6,
+                            "col": 57,
+                            "end_line": 6,
+                            "end_col": 58
+                          },
+                          "name": "W"
+                        },
+                        "right": {
+                          "kind": "Int",
+                          "span": {
+                            "line": 6,
+                            "col": 59,
+                            "end_line": 6,
+                            "end_col": 60
+                          },
+                          "value": 1,
+                          "resolved_width": null
+                        }
+                      },
+                      "lsb": {
+                        "kind": "Int",
+                        "span": {
+                          "line": 6,
+                          "col": 61,
+                          "end_line": 6,
+                          "end_col": 62
+                        },
+                        "value": 0,
+                        "resolved_width": null
+                      }
+                    }
+                  ],
+                  "resolved": 4
+                },
+                "dir": "in",
+                "init": null,
+                "signed": false
+              }
+            ],
+            "body": {
+              "kind": "Binary",
+              "span": {
+                "line": 7,
+                "col": 17,
+                "end_line": 7,
+                "end_col": 31
+              },
+              "width": 4,
+              "op": "^",
+              "left": {
+                "kind": "Ident",
+                "span": {
+                  "line": 6,
+                  "col": 64,
+                  "end_line": 6,
+                  "end_col": 69
+                },
+                "width": 4,
+                "name": "value"
+              },
+              "right": {
+                "kind": "Ident",
+                "span": {
+                  "line": 7,
+                  "col": 25,
+                  "end_line": 7,
+                  "end_col": 31
+                },
+                "width": 4,
+                "name": "hidden"
+              }
+            },
+            "stmts": [
+              {
+                "kind": "FnAssign",
+                "span": {
+                  "line": 7,
+                  "col": 9,
+                  "end_line": 7,
+                  "end_col": 32
+                },
+                "target": {
+                  "kind": "Ident",
+                  "span": {
+                    "line": 6,
+                    "col": 5,
+                    "end_line": 8,
+                    "end_col": 16
+                  },
+                  "width": 4,
+                  "name": "probe"
+                },
+                "value": {
+                  "kind": "Binary",
+                  "span": {
+                    "line": 7,
+                    "col": 17,
+                    "end_line": 7,
+                    "end_col": 31
+                  },
+                  "width": 4,
+                  "op": "^",
+                  "left": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 6,
+                      "col": 64,
+                      "end_line": 6,
+                      "end_col": 69
+                    },
+                    "width": 4,
+                    "name": "value"
+                  },
+                  "right": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 7,
+                      "col": 25,
+                      "end_line": 7,
+                      "end_col": 31
+                    },
+                    "width": 4,
+                    "name": "hidden"
+                  }
+                }
+              }
+            ],
+            "return_two_state": false
+          }
+        ],
         "processes": [
           {
-            "kind": "AlwaysComb",
+            "kind": "AlwaysEvent",
             "span": {
               "line": 9,
               "col": 5,
               "end_line": 9,
               "end_col": 33
             },
+            "event_kind": "ImplicitEventControl",
             "body": {
               "kind": "BlockingAssign",
               "span": {
@@ -363,18 +584,33 @@
                 "name": "y_star"
               },
               "value": {
-                "kind": "Unsupported",
+                "kind": "FunctionCall",
                 "span": {
                   "line": 9,
                   "col": 24,
                   "end_line": 9,
                   "end_col": 32
                 },
-                "sv_kind": "CallExpression",
-                "text": "probe(a)"
+                "name": "probe",
+                "args": [
+                  {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 9,
+                      "col": 30,
+                      "end_line": 9,
+                      "end_col": 31
+                    },
+                    "width": 4,
+                    "name": "a"
+                  }
+                ],
+                "width": 4,
+                "symbolic_user_function_retained": true
               }
             },
-            "always_star_lowered": "implicit"
+            "text": "always @* y_star = probe(a);",
+            "symbolic_event_retained": true
           },
           {
             "kind": "AlwaysComb",
@@ -404,33 +640,35 @@
                 "name": "y_comb"
               },
               "value": {
-                "kind": "Unsupported",
+                "kind": "FunctionCall",
                 "span": {
                   "line": 10,
                   "col": 26,
                   "end_line": 10,
                   "end_col": 34
                 },
-                "sv_kind": "CallExpression",
-                "text": "probe(a)"
+                "name": "probe",
+                "args": [
+                  {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 10,
+                      "col": 32,
+                      "end_line": 10,
+                      "end_col": 33
+                    },
+                    "width": 4,
+                    "name": "a"
+                  }
+                ],
+                "width": 4,
+                "symbolic_user_function_retained": true
               }
             }
           }
         ],
         "generates": [],
-        "others": [
-          {
-            "kind": "Unsupported",
-            "span": {
-              "line": 6,
-              "col": 5,
-              "end_line": 8,
-              "end_col": 16
-            },
-            "sv_kind": "SubroutineSymbol:Subroutine",
-            "text": "function automatic logic [W-1:0] probe(input logic [W-1:0] value);\n        probe = value ^ hidden;\n    endfunction"
-          }
-        ]
+        "others": []
       }
     ],
     "others": []
