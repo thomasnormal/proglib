@@ -1,5 +1,8 @@
 """Port-shape admission for the legacy/self-check envelope."""
 
+import json
+import os
+import tempfile
 import unittest
 
 import extract
@@ -130,3 +133,47 @@ class Ports(unittest.TestCase):
         self.assertTrue(any(
             node.get("sv_kind") == "PortSymbol:2state" for node in nodes(design)
         ))
+
+    def test_comma_separated_ansi_ports_retain_inherited_packed_width(self):
+        # IEEE 1800-2023 §23.2.2.3: a later identifier in an ANSI port list
+        # inherits the direction, port kind, data type and packed dimensions
+        # of the port before it.
+        design = lower(
+            'module e #(parameter int W = 4) '
+            '(input wire [W-1:0] a, b, output logic [W-1:0] c, d); '
+            'assign c = a; assign d = b; endmodule'
+        )
+        self.assertEqual([port["width"] for port in design["modules"][0]["ports"]],
+                         [4, 4, 4, 4])
+        self.assertFalse(any(node.get("kind") == "Unsupported" for node in nodes(design)))
+
+    def test_comma_separated_ansi_ports_inherit_symbolic_packed_dimensions(self):
+        # The same rule in the symbolic (`--top`) envelope: every identifier of
+        # a net list and of a variable list carries the first identifier's
+        # parameter-dependent packed dimension.  A `packed: null` here is what
+        # the Lean loader refuses as "unrecoverable packed dimensions".
+        source = ('module e #(parameter integer P = 3, parameter integer Q = 4) '
+                  '(input wire clk, input wire [P+Q:0] a, b, '
+                  'output logic [P+Q:0] x, y); '
+                  'assign x = a ^ b; always_ff @(posedge clk) y <= a + b; endmodule\n')
+        with tempfile.TemporaryDirectory() as directory:
+            src = os.path.join(directory, "e.sv")
+            out = os.path.join(directory, "e.sv.json")
+            with open(src, "w") as handle:
+                handle.write(source)
+            extract.process_symbolic("e", [src], [], out)
+            with open(out) as handle:
+                module = json.load(handle)["design"]["modules"][0]
+        ports = {port["name"]: port["width"] for port in module["ports"]}
+
+        def shape(node):
+            if isinstance(node, dict):
+                return {k: shape(v) for k, v in node.items() if k != "span"}
+            if isinstance(node, list):
+                return [shape(v) for v in node]
+            return node
+
+        for first, later in (("a", "b"), ("x", "y")):
+            self.assertIsNotNone(ports[later]["packed"])
+            self.assertEqual(shape(ports[first]), shape(ports[later]))
+            self.assertEqual(ports[later]["resolved"], 8)

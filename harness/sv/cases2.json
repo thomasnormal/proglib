@@ -74308,6 +74308,84 @@
       ],
       "refusal": "ForLoopStatement",
       "measured": "2026-11-28: nested loops reuse one module-scope integer iterator. The inner loop overwrites the outer iterator, so the outer post-step revisits its condition and the simulators do not terminate. Canonical E retains the source-shaped loops and refuses this shared mutable control state."
+    },
+    {
+      "name": "ansi_port_inherit_default",
+      "example": "ansi_port_inherit",
+      "top": "ansi_port_inherit",
+      "clock": "clk",
+      "signals": [
+        "a",
+        "b",
+        "x",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "a": "00000001",
+          "b": "00000010"
+        },
+        {
+          "a": "10100101",
+          "b": "01011010"
+        },
+        {
+          "a": "11111111",
+          "b": "00000001"
+        },
+        {
+          "a": "xxxx0000",
+          "b": "00001111"
+        },
+        {
+          "a": "zzzzzzzz",
+          "b": "11110000"
+        },
+        {
+          "a": "01111111",
+          "b": "01111111"
+        }
+      ],
+      "measured": "2026-11-28: comma-separated ANSI port lists inherit the first identifier's packed dimension (IEEE 1800-2023 §23.2.2.3) for a net list (a, b) and a variable list (x, y), both [P+Q:0]; at the defaults run2 and canonical E match Icarus Verilog 13.0 and Xcelium 26.09 on all six rows, x and z inputs included."
+    },
+    {
+      "name": "ansi_port_inherit_narrow",
+      "example": "ansi_port_inherit",
+      "top": "ansi_port_inherit",
+      "params": {
+        "P": 1,
+        "Q": 2
+      },
+      "clock": "clk",
+      "signals": [
+        "a",
+        "b",
+        "x",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "a": "0001",
+          "b": "0010"
+        },
+        {
+          "a": "1010",
+          "b": "0101"
+        },
+        {
+          "a": "1111",
+          "b": "0001"
+        },
+        {
+          "a": "xx00",
+          "b": "0011"
+        },
+        {
+          "a": "zzzz",
+          "b": "1100"
+        }
+      ],
+      "measured": "2026-11-28: the same ports at P=1, Q=2 (four bits), so the inherited dimension is evaluated symbolically rather than read off the default; run2 (with the multi-point cross-check) and canonical E match Icarus Verilog 13.0 and Xcelium 26.09 on all five rows."
     }
   ]
 }
