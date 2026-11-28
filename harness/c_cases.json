@@ -612,16 +612,14 @@
   {
     "id": "type-function-pointer",
     "source": "int f(int x) { return x; } int main(void) { int (*p)(int) = f; return p(1); }",
-    "expect": "refuse",
-    "error": "no layout for declared type 'int (*)(int)'",
+    "expect": "match",
     "layout_expect": "match",
     "layout_return_value": 1
   },
   {
     "id": "function-pointer-call-wall",
     "source": "int f(int x) { return x + 1; } int main(void) { int (*p)(int) = f; return p(1) == 2 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "no layout for declared type 'int (*)(int)'",
+    "expect": "match",
     "layout_expect": "match",
     "layout_return_value": 0
   },
@@ -687,29 +685,23 @@
   {
     "id": "pointer-long-roundtrip",
     "source": "int main(void) { int x = 3; unsigned long u = (unsigned long)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation",
-    "error": "no layout for declared type 'int *'"
+    "structured_expect": "match"
   },
   {
     "id": "pointer-signed-long-roundtrip",
     "source": "int main(void) { int x = 3; long u = (long)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation",
-    "error": "no layout for declared type 'int *'"
+    "structured_expect": "match"
   },
   {
     "id": "pointer-long-long-roundtrip",
     "source": "int main(void) { int x = 3; unsigned long long u = (unsigned long long)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation",
-    "error": "no layout for declared type 'int *'"
+    "structured_expect": "match"
   },
   {
     "id": "pointer-integer-compound-literal-index",
@@ -869,21 +861,19 @@
   {
     "id": "void-pointer-roundtrip",
     "source": "int main(void) { int x = 3; void *q = &x; int *p = q; return *p == 3 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "error": "no layout for declared type 'void *'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
   {
     "id": "structured-function-pointer-qualtype",
     "source": "int add(int x, const int *p) { return x + *p; } int main(void) { int y = 2; return add(3, &y) == 5 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
     ],
-    "error": "no layout for parameter type 'const int *'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
@@ -1411,12 +1401,11 @@
   {
     "id": "structured-typedef-pointer",
     "source": "typedef int *IntPtr; int main(void) { int x = 5; IntPtr p = &x; return *p == 5 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
     ],
-    "error": "no layout for declared type 'IntPtr'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
