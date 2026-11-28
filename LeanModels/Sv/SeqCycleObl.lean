@@ -1315,6 +1315,43 @@ theorem CoreMemDesign.combStmtViewRefinesFuel_if
           simp only [CoreMemDesign.execCombStmtFuel, hb₁, Res.ok_bind]
           exact h₁
 
+theorem CoreMemDesign.combStmtViewRefinesFuel_case
+    {E : CoreMemDesign} {env : IEnv} {fuel : Nat} {subject : PExpr}
+    {items : List (List PExpr × PStmt)} {default? : Option PStmt}
+    {mode : CaseMode} {check : CaseCheck}
+    (hbranchEq : ∀ (st₁ st₂ : CoreMemState) (locals : SvState),
+      E.Coherent st₁ → E.Coherent st₂ → E.MemCoherent st₁.memory →
+      E.MemCoherent st₂.memory → E.scalar.view st₁.scalar = E.scalar.view st₂.scalar →
+      E.combCaseBranch env E.elems st₁ locals subject items default? mode check =
+        E.combCaseBranch env E.elems st₂ locals subject items default? mode check)
+    (hchild : ∀ (st : CoreMemState), E.Coherent st → E.MemCoherent st.memory →
+      ∀ {body}, E.combCaseBranch env E.elems st [] subject items default? mode check =
+        .ok (some body) → E.CombStmtViewRefinesFuel env fuel body) :
+    E.CombStmtViewRefinesFuel env (fuel + 1)
+      (.caseStmt subject items default? mode check) := by
+  intro st₁ st₂ view₁ view₂ st₂' view₂' locals₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₂
+  cases hb₂ : E.combCaseBranch env E.elems st₂ [] subject items default? mode check with
+  | timeout => simp [CoreMemDesign.execCombStmtFuel, hb₂] at h₂
+  | unsupported msg => simp [CoreMemDesign.execCombStmtFuel, hb₂] at h₂
+  | ok branch =>
+      have hb₁ := hbranchEq st₁ st₂ [] hc₁ hc₂ hm₁ hm₂ hview
+      rw [hb₂] at hb₁
+      cases branch with
+      | none =>
+          simp [CoreMemDesign.execCombStmtFuel, hb₂] at h₂
+          obtain ⟨rfl, rfl, rfl⟩ := h₂
+          refine ⟨st₁, view₁, [], ?_, hviews⟩
+          simp [CoreMemDesign.execCombStmtFuel, hb₁]
+      | some body =>
+          simp [CoreMemDesign.execCombStmtFuel, hb₂] at h₂
+          have hbody := hchild st₂ hc₂ hm₂ hb₂
+          obtain ⟨st₁', view₁', locals₁', h₁, hview'⟩ :=
+            hbody st₁ st₂ view₁ view₂ st₂' view₂' locals₂'
+              hc₁ hc₂ hm₁ hm₂ hview hviews h₂
+          refine ⟨st₁', view₁', locals₁', ?_, hview'⟩
+          simp only [CoreMemDesign.execCombStmtFuel, hb₁, Res.ok_bind]
+          exact h₁
+
 /-! A scalar blocking assignment can be replayed from any coherent state
 carrying the same scalar view.  This is the success-transfer receipt needed by
 the state-side active-region runner. -/
