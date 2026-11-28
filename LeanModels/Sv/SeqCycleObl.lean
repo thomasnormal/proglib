@@ -2521,6 +2521,109 @@ theorem CoreMemDesign.runCombQuiesce_view_refines_of_each
                     (st' := st') (v' := v') hcurrentC hnext.1 hcurrentM hnext.2
                     hcurrentView hnextView hmatCurrent hmatNext hstate hview
 
+/-! The reverse direction is the hand-usable entry point for a comb-aware
+slot proof: a successful view pass reconstructs the retained-state pass, rather
+than merely being a projection of a state run. -/
+theorem CoreMemDesign.runCombQuiesce_of_view_success_of_each
+    {E : CoreMemDesign} {limit : Nat}
+    {before current : CoreMemState} {beforeView currentView : SvState}
+    {procs : List CoreMemProc} {st' : CoreMemState} {v' : SvState}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hm0 : E.MemCoherent E.initial.memory)
+    (hbeforeC : E.Coherent before) (hcurrentC : E.Coherent current)
+    (hbeforeM : E.MemCoherent before.memory) (hcurrentM : E.MemCoherent current.memory)
+    (hbeforeView : beforeView = E.scalar.view before.scalar)
+    (hcurrentView : currentView = E.scalar.view current.scalar)
+    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {bv₁ bv₂ cv₁ cv₂ : SvState}
+      {i : Nat} {body : PStmt},
+      E.Coherent b₁ → E.Coherent b₂ → E.MemCoherent b₁.memory → E.MemCoherent b₂.memory →
+      E.Coherent c₁ → E.Coherent c₂ → E.MemCoherent c₁.memory → E.MemCoherent c₂.memory →
+      E.scalar.view b₁.scalar = E.scalar.view b₂.scalar →
+      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar → bv₁ = bv₂ → cv₁ = cv₂ →
+      E.readChangedAt b₁ c₁ bv₁ cv₁ i (coreMemCombExternalReadExprs body) =
+        E.readChangedAt b₂ c₂ bv₂ cv₂ i (coreMemCombExternalReadExprs body))
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewRefines E.env body
+      | .latch _ => False
+      | _ => True)
+    (hview : E.runCombQuiesceV limit beforeView currentView procs = .ok v') :
+    ∃ st', E.runCombQuiesce limit before current procs = .ok st' ∧
+      E.scalar.view st'.scalar = v' ∧ E.Coherent st' ∧ E.MemCoherent st'.memory := by
+  induction limit generalizing before current beforeView currentView v' with
+  | zero =>
+      simp [CoreMemDesign.runCombQuiesceV] at hview
+  | succ n ih =>
+      simp only [CoreMemDesign.runCombQuiesceV, CoreMemDesign.runCombQuiesce] at hview
+      cases hvp : E.runCombPassV beforeView currentView procs with
+      | timeout => simp [hvp] at hview
+      | unsupported msg => simp [hvp] at hview
+      | ok nextView =>
+          have hvp' : E.runCombAtV beforeView beforeView currentView currentView 0 procs = .ok nextView := by
+            simpa [CoreMemDesign.runCombPassV] using hvp
+          cases hrv : E.runCombAt (E.combStateOfView beforeView) beforeView
+              (E.combStateOfView currentView) currentView 0 procs with
+          | timeout => simp [CoreMemDesign.runCombPassV, CoreMemDesign.runCombAtV, hrv] at hvp'
+          | unsupported msg => simp [CoreMemDesign.runCombPassV, CoreMemDesign.runCombAtV, hrv] at hvp'
+          | ok nextState =>
+              simp only [CoreMemDesign.runCombAtV, hrv, Res.ok_bind, Res.ok.injEq] at hvp'
+              have hrun := E.runCombAt_of_view_success_of_each
+                (beforeView₁ := E.scalar.view before.scalar) (beforeView₂ := beforeView)
+                (currentView₁ := E.scalar.view current.scalar) (currentView₂ := currentView)
+                (st₂' := nextState)
+                hnd h4 hbeforeC (E.combStateOfView_coherent beforeView)
+                hbeforeM (by simpa [CoreMemDesign.combStateOfView] using hm0)
+                hcurrentC (E.combStateOfView_coherent currentView)
+                hcurrentM (by simpa [CoreMemDesign.combStateOfView] using hm0)
+                (by
+                  rw [hbeforeView]
+                  calc
+                    E.scalar.view before.scalar = E.matV (E.scalar.view before.scalar) :=
+                      (E.matV_view hnd h4 hbeforeC.typed).symm
+                    _ = E.scalar.view (E.combStateOfView (E.scalar.view before.scalar)).scalar :=
+                      (E.combStateOfView_view).symm)
+                (by
+                  rw [hcurrentView]
+                  calc
+                    E.scalar.view current.scalar = E.matV (E.scalar.view current.scalar) :=
+                      (E.matV_view hnd h4 hcurrentC.typed).symm
+                    _ = E.scalar.view (E.combStateOfView (E.scalar.view current.scalar)).scalar :=
+                      (E.combStateOfView_view).symm)
+                hbeforeView.symm hcurrentView.symm hread hproc hrv
+              obtain ⟨next, hnext, hnextView, hnextC, hnextM⟩ := hrun
+              have hnext' : E.runCombPass before current procs = .ok next := by
+                simpa [CoreMemDesign.runCombPass] using hnext
+              simp only [hvp, Res.ok_bind] at hview
+              cases heq : beforeView == nextView with
+              | true =>
+                  simp only [heq, ↓reduceIte, Res.ok.injEq] at hview
+                  obtain rfl := hview
+                  have heq' : (E.scalar.view before.scalar == E.scalar.view next.scalar) = true := by
+                    apply beq_iff_eq.mpr
+                    exact hbeforeView.symm.trans ((beq_iff_eq.mp heq).trans
+                      (hnextView.trans hvp').symm)
+                  have hrun : E.runCombQuiesce (n + 1) before current procs = .ok next := by
+                    simp only [CoreMemDesign.runCombQuiesce, hnext', heq', ↓reduceIte, Res.ok_bind,
+                      Res.pure_eq]
+                  exact ⟨next, hrun, hnextView.trans hvp', hnextC, hnextM⟩
+              | false =>
+                  simp only [heq, Bool.false_eq_true, ↓reduceIte] at hview
+                  have hnextView' : nextView = E.scalar.view next.scalar := hvp'.symm.trans hnextView.symm
+                  have heq' : (E.scalar.view before.scalar == E.scalar.view next.scalar) = false := by
+                    apply beq_eq_false_iff_ne.mpr
+                    intro hs
+                    apply beq_eq_false_iff_ne.mp heq
+                    exact hbeforeView.trans (hs.trans hnextView'.symm)
+                  obtain ⟨tail, htail, htailView, htailC, htailM⟩ :=
+                    ih (before := current) (current := next)
+                    (beforeView := currentView) (currentView := nextView)
+                    (v' := v') hcurrentC hnextC hcurrentM hnextM
+                    hcurrentView hnextView' hview
+                  have hrun : E.runCombQuiesce (n + 1) before current procs = .ok tail := by
+                    simp only [CoreMemDesign.runCombQuiesce, hnext', heq', Bool.false_eq_true,
+                      ↓reduceIte, Res.ok_bind]
+                    exact htail
+                  exact ⟨tail, hrun, htailView, htailC, htailM⟩
+
 /-- The process-list coherence receipt specializes to one active-region pass. -/
 theorem CoreMemDesign.runCombPass_coherent_of_each
     {E : CoreMemDesign} {before current st' : CoreMemState} {procs : List CoreMemProc}
