@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "symbolic_parameter_for_header_shapes",
- "envelope": "symbolic_parameter_for_header_shapes.sv.json",
+ "envelope": "symbolic_parameter_for_header_shapes.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/symbolic_parameter_for_header_shapes/symbolic_parameter_for_header_shapes.sv",
@@ -195,7 +195,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         },
         {
          "kind": "For",
@@ -288,7 +289,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         },
         {
          "kind": "For",
@@ -371,7 +373,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
@@ -567,7 +570,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         },
         {
          "kind": "For",
@@ -660,7 +664,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         },
         {
          "kind": "For",
@@ -743,7 +748,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
@@ -939,7 +945,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         },
         {
          "kind": "For",
@@ -1032,7 +1039,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         },
         {
          "kind": "For",
@@ -1115,7 +1123,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }

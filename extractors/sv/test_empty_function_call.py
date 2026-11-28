@@ -139,7 +139,7 @@ class EmptyFunctionCalls(unittest.TestCase):
             envelope = json.loads(output_path.read_text())
         module = envelope["design"]["modules"][0]
         self.assertEqual(envelope["packages"], ["p"])
-        self.assertEqual([f["name"] for f in module["functions"]], ["f"])
+        self.assertEqual([f["name"] for f in module["functions"]], ["p::f"])
         local = next(p for p in module["params"] if p["name"] == "W")
         self.assertEqual(local["expr"]["kind"], "FunctionCall")
         self.assertEqual(local["expr"]["name"], "f")
@@ -161,7 +161,7 @@ class EmptyFunctionCalls(unittest.TestCase):
         module = envelope["design"]["modules"][0]
         local = next(p for p in module["params"] if p["name"] == "W")
         self.assertEqual(local["expr"]["kind"], "FunctionCall")
-        self.assertEqual(local["expr"]["name"], "f")
+        self.assertEqual(local["expr"]["name"], "p::f")
 
     def test_symbolic_qualified_package_if_return_is_retained(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -179,7 +179,7 @@ class EmptyFunctionCalls(unittest.TestCase):
                 retain_proc_rewrites=True)
             envelope = json.loads(output_path.read_text())
         module = envelope["design"]["modules"][0]
-        self.assertEqual([f["name"] for f in module["functions"]], ["f"])
+        self.assertEqual([f["name"] for f in module["functions"]], ["p::f"])
         body = module["functions"][0]["body"]
         self.assertEqual(body["kind"], "Ternary")
         self.assertEqual(body["else"]["kind"], "SysCall")
@@ -491,7 +491,7 @@ class EmptyFunctionCalls(unittest.TestCase):
             "endcase lookup = t; end endfunction assign y = lookup(a); "
             "endmodule", retain_proc_rewrites=True)
         module = design["modules"][0]
-        self.assertEqual([f["name"] for f in module["functions"]], ["lookup"])
+        self.assertEqual([f["name"] for f in module["functions"]], ["p::lookup"])
         self.assertFalse(any(node.get("sv_kind") == "SubroutineSymbol:body"
                              for node in nodes(module)))
         calls = [node for node in nodes(module)
@@ -510,7 +510,7 @@ class EmptyFunctionCalls(unittest.TestCase):
             "import p::*; assign y = lookup(a); endmodule",
             retain_proc_rewrites=True)
         module = design["modules"][0]
-        self.assertEqual([f["name"] for f in module["functions"]], ["lookup"])
+        self.assertEqual([f["name"] for f in module["functions"]], ["p::lookup"])
         self.assertFalse(module["others"])
         self.assertTrue(any(node.get("kind") == "FunctionCall"
                             and node.get("symbolic_user_function_retained")

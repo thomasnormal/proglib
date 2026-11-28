@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "symbolic_nested_parameter_for_shadow",
- "envelope": "symbolic_nested_parameter_for_shadow.sv.json",
+ "envelope": "symbolic_nested_parameter_for_shadow.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/symbolic_nested_parameter_for_shadow/symbolic_nested_parameter_for_shadow.sv",
@@ -155,61 +155,55 @@
           "kind": "Block",
           "stmts": [
            {
-            "kind": "Block",
-            "stmts": [
-             {
-              "kind": "BlockingAssign",
-              "target": {
-               "kind": "BitSel",
-               "width": 1,
-               "value": {
-                "kind": "Ident",
-                "width": 16,
-                "name": "y"
-               },
-               "index": {
-                "kind": "Int",
-                "value": 0,
-                "resolved_width": 32
-               }
-              },
+            "kind": "For",
+            "iterator": "i",
+            "init": {
+             "kind": "Int",
+             "value": 0,
+             "resolved_width": 32
+            },
+            "condition": {
+             "kind": "Binary",
+             "width": 1,
+             "op": "s<",
+             "left": {
+              "kind": "GenvarRef",
+              "name": "i"
+             },
+             "right": {
+              "kind": "Int",
+              "value": 2,
+              "resolved_width": 32
+             }
+            },
+            "step": {
+             "kind": "Unary",
+             "op": "++",
+             "operand": {
+              "kind": "GenvarRef",
+              "name": "i"
+             }
+            },
+            "body": {
+             "kind": "BlockingAssign",
+             "target": {
+              "kind": "BitSel",
+              "width": 1,
               "value": {
-               "kind": "Binary",
-               "width": 1,
-               "op": "^",
-               "left": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "y"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 0,
-                 "resolved_width": 32
-                }
-               },
-               "right": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "a"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 0,
-                 "resolved_width": 32
-                }
-               }
+               "kind": "Ident",
+               "width": 16,
+               "name": "y"
+              },
+              "index": {
+               "kind": "GenvarRef",
+               "name": "i"
               }
              },
-             {
-              "kind": "BlockingAssign",
-              "target": {
+             "value": {
+              "kind": "Binary",
+              "width": 1,
+              "op": "^",
+              "left": {
                "kind": "BitSel",
                "width": 1,
                "value": {
@@ -218,52 +212,32 @@
                 "name": "y"
                },
                "index": {
-                "kind": "Int",
-                "value": 1,
-                "resolved_width": 32
+                "kind": "GenvarRef",
+                "name": "i"
                }
               },
-              "value": {
-               "kind": "Binary",
+              "right": {
+               "kind": "BitSel",
                "width": 1,
-               "op": "^",
-               "left": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "y"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 1,
-                 "resolved_width": 32
-                }
+               "value": {
+                "kind": "Ident",
+                "width": 16,
+                "name": "a"
                },
-               "right": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "a"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 1,
-                 "resolved_width": 32
-                }
+               "index": {
+                "kind": "GenvarRef",
+                "name": "i"
                }
               }
              }
-            ],
-            "symbolic_for_unrolled": true,
-            "symbolic_for_iterations": 2
+            },
+            "symbolic_for_parameter": true,
+            "symbolic_for_retained": true
            }
           ]
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
@@ -419,61 +393,55 @@
           "kind": "Block",
           "stmts": [
            {
-            "kind": "Block",
-            "stmts": [
-             {
-              "kind": "BlockingAssign",
-              "target": {
-               "kind": "BitSel",
-               "width": 1,
-               "value": {
-                "kind": "Ident",
-                "width": 16,
-                "name": "y"
-               },
-               "index": {
-                "kind": "Int",
-                "value": 0,
-                "resolved_width": 32
-               }
-              },
+            "kind": "For",
+            "iterator": "i",
+            "init": {
+             "kind": "Int",
+             "value": 0,
+             "resolved_width": 32
+            },
+            "condition": {
+             "kind": "Binary",
+             "width": 1,
+             "op": "s<",
+             "left": {
+              "kind": "GenvarRef",
+              "name": "i"
+             },
+             "right": {
+              "kind": "Int",
+              "value": 2,
+              "resolved_width": 32
+             }
+            },
+            "step": {
+             "kind": "Unary",
+             "op": "++",
+             "operand": {
+              "kind": "GenvarRef",
+              "name": "i"
+             }
+            },
+            "body": {
+             "kind": "BlockingAssign",
+             "target": {
+              "kind": "BitSel",
+              "width": 1,
               "value": {
-               "kind": "Binary",
-               "width": 1,
-               "op": "^",
-               "left": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "y"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 0,
-                 "resolved_width": 32
-                }
-               },
-               "right": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "a"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 0,
-                 "resolved_width": 32
-                }
-               }
+               "kind": "Ident",
+               "width": 16,
+               "name": "y"
+              },
+              "index": {
+               "kind": "GenvarRef",
+               "name": "i"
               }
              },
-             {
-              "kind": "BlockingAssign",
-              "target": {
+             "value": {
+              "kind": "Binary",
+              "width": 1,
+              "op": "^",
+              "left": {
                "kind": "BitSel",
                "width": 1,
                "value": {
@@ -482,52 +450,32 @@
                 "name": "y"
                },
                "index": {
-                "kind": "Int",
-                "value": 1,
-                "resolved_width": 32
+                "kind": "GenvarRef",
+                "name": "i"
                }
               },
-              "value": {
-               "kind": "Binary",
+              "right": {
+               "kind": "BitSel",
                "width": 1,
-               "op": "^",
-               "left": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "y"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 1,
-                 "resolved_width": 32
-                }
+               "value": {
+                "kind": "Ident",
+                "width": 16,
+                "name": "a"
                },
-               "right": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "a"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 1,
-                 "resolved_width": 32
-                }
+               "index": {
+                "kind": "GenvarRef",
+                "name": "i"
                }
               }
              }
-            ],
-            "symbolic_for_unrolled": true,
-            "symbolic_for_iterations": 2
+            },
+            "symbolic_for_parameter": true,
+            "symbolic_for_retained": true
            }
           ]
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
@@ -683,61 +631,55 @@
           "kind": "Block",
           "stmts": [
            {
-            "kind": "Block",
-            "stmts": [
-             {
-              "kind": "BlockingAssign",
-              "target": {
-               "kind": "BitSel",
-               "width": 1,
-               "value": {
-                "kind": "Ident",
-                "width": 16,
-                "name": "y"
-               },
-               "index": {
-                "kind": "Int",
-                "value": 0,
-                "resolved_width": 32
-               }
-              },
+            "kind": "For",
+            "iterator": "i",
+            "init": {
+             "kind": "Int",
+             "value": 0,
+             "resolved_width": 32
+            },
+            "condition": {
+             "kind": "Binary",
+             "width": 1,
+             "op": "s<",
+             "left": {
+              "kind": "GenvarRef",
+              "name": "i"
+             },
+             "right": {
+              "kind": "Int",
+              "value": 2,
+              "resolved_width": 32
+             }
+            },
+            "step": {
+             "kind": "Unary",
+             "op": "++",
+             "operand": {
+              "kind": "GenvarRef",
+              "name": "i"
+             }
+            },
+            "body": {
+             "kind": "BlockingAssign",
+             "target": {
+              "kind": "BitSel",
+              "width": 1,
               "value": {
-               "kind": "Binary",
-               "width": 1,
-               "op": "^",
-               "left": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "y"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 0,
-                 "resolved_width": 32
-                }
-               },
-               "right": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "a"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 0,
-                 "resolved_width": 32
-                }
-               }
+               "kind": "Ident",
+               "width": 16,
+               "name": "y"
+              },
+              "index": {
+               "kind": "GenvarRef",
+               "name": "i"
               }
              },
-             {
-              "kind": "BlockingAssign",
-              "target": {
+             "value": {
+              "kind": "Binary",
+              "width": 1,
+              "op": "^",
+              "left": {
                "kind": "BitSel",
                "width": 1,
                "value": {
@@ -746,52 +688,32 @@
                 "name": "y"
                },
                "index": {
-                "kind": "Int",
-                "value": 1,
-                "resolved_width": 32
+                "kind": "GenvarRef",
+                "name": "i"
                }
               },
-              "value": {
-               "kind": "Binary",
+              "right": {
+               "kind": "BitSel",
                "width": 1,
-               "op": "^",
-               "left": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "y"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 1,
-                 "resolved_width": 32
-                }
+               "value": {
+                "kind": "Ident",
+                "width": 16,
+                "name": "a"
                },
-               "right": {
-                "kind": "BitSel",
-                "width": 1,
-                "value": {
-                 "kind": "Ident",
-                 "width": 16,
-                 "name": "a"
-                },
-                "index": {
-                 "kind": "Int",
-                 "value": 1,
-                 "resolved_width": 32
-                }
+               "index": {
+                "kind": "GenvarRef",
+                "name": "i"
                }
               }
              }
-            ],
-            "symbolic_for_unrolled": true,
-            "symbolic_for_iterations": 2
+            },
+            "symbolic_for_parameter": true,
+            "symbolic_for_retained": true
            }
           ]
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }

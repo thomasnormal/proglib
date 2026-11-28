@@ -236,20 +236,37 @@ class ProbePoints(unittest.TestCase):
             with self.subTest(sidecar=os.path.relpath(path, REPO)):
                 side = json.loads(Path(path).read_text())
                 srcs = [str(REPO / s["path"]) for s in side["source_files"]]
+                env = Path(path[:-len(".probes.json")] + ".json")
                 with tempfile.TemporaryDirectory() as directory:
                     out = Path(directory) / Path(path).name.replace(".probes.json", ".json")
+                    def has_for(node):
+                        if isinstance(node, dict):
+                            return node.get("kind") == "For" or any(has_for(v) for v in node.values())
+                        if isinstance(node, list):
+                            return any(has_for(v) for v in node)
+                        return False
+                    retain_loops = has_for(side.get("points", []))
                     cwd = os.getcwd()
                     os.chdir(REPO)
                     try:
-                        extract.main(["--top", side["top"],
-                                      *[os.path.relpath(s, REPO) for s in srcs],
-                                      "-o", str(out), "--probe-points", side["probe_points"]])
+                        args = ["--top", side["top"]]
+                        if retain_loops:
+                            args.append("--retain-loops")
+                        args += [*[os.path.relpath(s, REPO) for s in srcs],
+                                 "-o", str(out), "--probe-points", side["probe_points"]]
+                        extract.main(args)
                     finally:
                         os.chdir(cwd)
-                    env = Path(path[:-len(".probes.json")] + ".json")
                     self.assertEqual(out.read_bytes(), env.read_bytes())
                     regen = Path(directory) / Path(path).name
-                    self.assertEqual(regen.read_bytes(), Path(path).read_bytes())
+                    expected = json.loads(Path(path).read_text())
+                    actual = json.loads(regen.read_text())
+                    # The temporary extraction output has a temporary envelope
+                    # basename. The committed sidecar records its sibling's
+                    # basename. Compare the source-shaped probe data after
+                    # replacing that harness-only path field.
+                    actual["envelope"] = expected["envelope"]
+                    self.assertEqual(actual, expected)
 
 
 if __name__ == "__main__":

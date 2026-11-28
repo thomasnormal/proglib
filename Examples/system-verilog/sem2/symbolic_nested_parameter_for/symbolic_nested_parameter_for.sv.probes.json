@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "symbolic_nested_parameter_for",
- "envelope": "symbolic_nested_parameter_for.sv.json",
+ "envelope": "symbolic_nested_parameter_for.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/symbolic_nested_parameter_for/symbolic_nested_parameter_for.sv",
@@ -227,9 +227,11 @@
             }
            }
           },
-          "symbolic_for_parameter": true
+          "symbolic_for_parameter": true,
+          "symbolic_for_retained": true
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
@@ -457,9 +459,11 @@
             }
            }
           },
-          "symbolic_for_parameter": true
+          "symbolic_for_parameter": true,
+          "symbolic_for_retained": true
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
@@ -687,9 +691,11 @@
             }
            }
           },
-          "symbolic_for_parameter": true
+          "symbolic_for_parameter": true,
+          "symbolic_for_retained": true
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }

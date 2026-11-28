@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "symbolic_parameter_for_large",
- "envelope": "symbolic_parameter_for_large.sv.json",
+ "envelope": "symbolic_parameter_for_large.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/symbolic_parameter_for_large/symbolic_parameter_for_large.sv",
@@ -180,7 +180,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
@@ -361,7 +362,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
@@ -542,7 +544,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
@@ -723,7 +726,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
@@ -904,7 +908,8 @@
            }
           }
          },
-         "symbolic_for_parameter": true
+         "symbolic_for_parameter": true,
+         "symbolic_for_retained": true
         }
        ]
       }
