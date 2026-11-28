@@ -1,5 +1,19 @@
 [
   {
+    "id": "forward-declaration-definition",
+    "source": "int f(int); int f(int x) { return x; } int main(void) { return f(3) == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "redeclared-definition",
+    "source": "int f(int); int f(int); int f(int x) { return x + 1; } int main(void) { return f(2) == 3 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
     "id": "multifile-user-header-definition-registry",
     "headers": {
       "registry_header.h": "static int registry_helper(int x) { return x + 1; }\nint registry_api(int x);\nint registry_api(int x) { return registry_helper(x); }"

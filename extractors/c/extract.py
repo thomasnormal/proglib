@@ -113,7 +113,7 @@ def canonicalize_ids(tree):
                 item = value[key]
                 if (isinstance(key, str) and
                     (key == "id" or key.endswith("Id") or key.endswith("_id") or
-                        key in ("init", "referencedMemberDecl")) and isinstance(item, str)):
+                        key in ("init", "referencedMemberDecl", "previousDecl")) and isinstance(item, str)):
                     value[key] = canon(item)
                 else:
                     walk(item)
