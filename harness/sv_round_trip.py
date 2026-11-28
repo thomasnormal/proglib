@@ -132,7 +132,7 @@ def envelopes():
 def plan(env_path):
     """Read the envelope's OWN record of how it was produced.
 
-    Returns (schema, top, retain_loops, [abs source paths]).  Raises Skip if a recorded
+    Returns (schema, top, retain_loops, retain_proc_rewrites, [abs source paths]).  Raises Skip if a recorded
     source is not present in this tree.
     """
     with open(env_path, encoding="utf-8") as f:
@@ -155,6 +155,7 @@ def plan(env_path):
         recorded = [env.get("source_file")]
         top = None
         retain_loops = False
+        retain_proc_rewrites = False
     else:
         top = env.get("top")
         if not top:
@@ -165,6 +166,7 @@ def plan(env_path):
         # `For` node. This keeps old envelopes reproducible after the CLI default
         # returned to unrolling, without guessing from a filename or source.
         retain_loops = bool(env.get("retain_loops", has_for(env)))
+        retain_proc_rewrites = bool(env.get("retain_proc_rewrites", False))
     if not recorded or any(s is None for s in recorded):
         raise ValueError("envelope records no usable source list")
 
@@ -182,10 +184,10 @@ def plan(env_path):
             resolved.append(sib)
             continue
         raise Skip(s)
-    return schema, top, retain_loops, recorded, resolved
+    return schema, top, retain_loops, retain_proc_rewrites, recorded, resolved
 
 
-def regenerate(schema, top, retain_loops, recorded, sources, workdir):
+def regenerate(schema, top, retain_loops, retain_proc_rewrites, recorded, sources, workdir):
     """Run the extractor as a subprocess; return the produced bytes.
 
     THE PATH STRING IS PART OF THE ENVELOPE.  ``source_file`` /
@@ -213,6 +215,8 @@ def regenerate(schema, top, retain_loops, recorded, sources, workdir):
         cmd = [SV_PYTHON, EXTRACT, "--top", top]
         if retain_loops:
             cmd.append("--retain-loops")
+        if retain_proc_rewrites:
+            cmd.append("--retain-proc-rewrites")
         cmd += list(recorded) + ["-o", out_path]
     else:
         # sv-0.1 has no -o: it writes <source>.json beside the source, which
@@ -275,7 +279,7 @@ def main():
     for env_path in found:
         rel = os.path.relpath(env_path, REPO)
         try:
-            schema, top, retain_loops, recorded, sources = plan(env_path)
+            schema, top, retain_loops, retain_proc_rewrites, recorded, sources = plan(env_path)
         except Skip as exc:
             rows.append(("REFUSE", False, rel,
                          "sources-not-in-tree: %s" % exc))
@@ -289,13 +293,16 @@ def main():
 
         if args.list:
             mode = "--retain-loops" if retain_loops else "--no-retain-loops"
+            if retain_proc_rewrites:
+                mode += " --retain-proc-rewrites"
             rows.append((schema, True, rel,
                          ("--top %s " % top if top else "(single-file) ") + mode))
             continue
 
         workdir = tempfile.mkdtemp(prefix="sv_round_trip.")
         try:
-            produced = regenerate(schema, top, retain_loops, recorded, sources, workdir)
+            produced = regenerate(schema, top, retain_loops, retain_proc_rewrites,
+                                  recorded, sources, workdir)
         except RuntimeError as exc:
             detail = str(exc)
             if "timed out" in detail:

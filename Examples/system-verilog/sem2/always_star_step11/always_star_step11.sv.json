@@ -978,5 +978,6 @@
     ],
     "others": []
   },
-  "lean_blocks": []
+  "lean_blocks": [],
+  "retain_proc_rewrites": true
 }

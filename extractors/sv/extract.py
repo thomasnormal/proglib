@@ -38397,6 +38397,10 @@ def process_symbolic(top, sources, incdirs, out_path, probed=False,
                        "others": def_others},
             "lean_blocks": [],
         }
+        if retain_proc_rewrites:
+            # Preserve the selected source-shaped procedural mode in the
+            # envelope while leaving legacy lowered envelopes byte-stable.
+            envelope["retain_proc_rewrites"] = True
     finally:
         _SYM = None
         _RETAIN_LOOPS = previous_retain_loops

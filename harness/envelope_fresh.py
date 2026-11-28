@@ -243,6 +243,11 @@ def _sv_retain_loops(env: dict) -> bool:
     return has_for(env)
 
 
+def _sv_retain_proc_rewrites(env: dict) -> bool:
+    """Recover source-shaped procedural rewrite mode from an envelope."""
+    return bool(env.get("retain_proc_rewrites", False))
+
+
 def check_tier(man: dict, root: str, frontend: str) -> tuple[int, list]:
     rows = []
     for envpath in sorted(glob.glob(os.path.join(root, man["corpus"]), recursive=True)):
@@ -320,6 +325,9 @@ def check_tier(man: dict, root: str, frontend: str) -> tuple[int, list]:
                 # but this mirrors the recorded symbolic invocation clearly.
                 top_pos = argv.index(subst["top"])
                 argv.insert(top_pos + 1, "--retain-loops")
+            if _sv_retain_proc_rewrites(env):
+                top_pos = argv.index(subst["top"])
+                argv.insert(top_pos + 1, "--retain-proc-rewrites")
         outp = recipe["out"].format(**subst)
         if not os.path.isabs(outp):
             outp = os.path.join(tmp, outp)
