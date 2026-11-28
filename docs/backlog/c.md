@@ -4094,3 +4094,15 @@ header-owned objects or a separate translation-unit object set. Treating an
 unbound object as a zero object or joining it by spelling would change the
 program. These rows remain loud refusals until object declarations, storage,
 and source-hash linkage are carried in one approved parser registry.
+
+## 2026-11-28-c-wide-bitfield-arithmetic — wide bit-field promotions remain refused
+
+Three sole C1 rows (`bitfld-3.c`, `pr32244-1.c`, and `pr34971.c`) use
+arithmetic or shifts on `unsigned long long` bit-fields wider than `int`.
+C23 §6.3.1.1 integer promotions and §6.7.3.2 bit-field rules require the
+promotion width and value range to follow the parser's declared bit-field
+width. The evaluator currently refuses these operations rather than treating
+the field as a full `unsigned long long` or silently truncating the result.
+The refusal remains until the parser-native width, promotion type, and
+assignment reduction are modeled as one operation family. The unchanged
+rows are native-clean and have no UB witness claim.
