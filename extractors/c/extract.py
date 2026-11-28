@@ -1215,6 +1215,33 @@ def extract(path, source_name=None, standard="c23"):
     collect_member_records(tu)
     target = os.path.basename(path)
     structured_types = structured_type_records(joined["structured"])
+    header_decl_files = {}
+    for row in structured_types:
+        source_file = row.get("source_file")
+        declaration_id = row.get("decl_id")
+        owner_id = member_record_ids.get(declaration_id)
+        if isinstance(source_file, str) and owner_id:
+            header_decl_files.setdefault(owner_id, source_file)
+        if isinstance(source_file, str) and isinstance(declaration_id, str):
+            header_decl_files.setdefault(declaration_id, source_file)
+
+    def header_file_for_decl(node):
+        declaration_id = node.get("id")
+        if declaration_id in header_decl_files:
+            return header_decl_files[declaration_id]
+        if node.get("kind") == "EnumDecl":
+            for child in kids(node):
+                if child.get("kind") == "EnumConstantDecl":
+                    source_file = header_decl_files.get(child.get("id"))
+                    if source_file:
+                        return source_file
+        if node.get("kind") == "RecordDecl":
+            for child in kids(node):
+                if child.get("kind") == "FieldDecl":
+                    source_file = header_decl_files.get(child.get("id"))
+                    if source_file:
+                        return source_file
+        return None
     # Preserve Clang's redeclaration identity without matching declarations
     # by spelling. Every FunctionDecl points either at its own body or along
     # `previousDecl` to the body-bearing declaration in this AST.
@@ -1258,12 +1285,53 @@ def extract(path, source_name=None, standard="c23"):
     # Top-level decls attributed to the censused file, in document order.
     loc = Loc(target)
     top = []
+    header_records = []
+    source_dir = os.path.dirname(os.path.abspath(path))
+    system_header_roots = ("/usr/include", "/usr/local/include")
+    configured_headers = os.environ.get("LEAN_C_HEADERS")
+    if configured_headers:
+        system_header_roots += (os.path.abspath(configured_headers),)
+
+    def source_file_for(raw):
+        raw_loc = Loc(target)
+        raw_loc.absorb(raw.get("loc"))
+        raw_loc.absorb((raw.get("range") or {}).get("begin"))
+        return raw_loc.file
+
+    def is_user_header(file_name):
+        if not file_name or os.path.basename(file_name) == target:
+            return False
+        absolute = os.path.abspath(file_name)
+        return not any(absolute == root or absolute.startswith(root + os.sep)
+                       for root in system_header_roots)
+
     for d in kids(tu):
         loc.absorb(d.get("loc"))
         loc.absorb((d.get("range") or {}).get("begin"))
         if loc.mine():
             ex.loc.file, ex.loc.line = loc.file, loc.line
             top.append(ex.node(d))
+        else:
+            if d.get("kind") == "FunctionDecl":
+                continue
+            header_file = header_file_for_decl(d)
+            if is_user_header(header_file):
+                try:
+                    header_text = open(header_file, "rb").read().decode(
+                        "utf-8", errors="surrogateescape")
+                except OSError as error:
+                    die("header declaration source unavailable %s: %s" %
+                        (os.path.basename(header_file), error))
+                header_ex = Extractor(os.path.basename(header_file), header_text,
+                                      string_bytes, floating_bits, record_layouts,
+                                      member_record_ids)
+                header_ex.collect_labels(tu)
+                header_records.append(header_ex.node(d))
+
+    # Header record declarations are parser-owned type facts in the same
+    # translation unit. Keep them ahead of source declarations so layout
+    # construction sees the declaration identity before its uses.
+    top = header_records + top
 
     # Clang's translation-unit AST also contains definitions from included
     # headers.  Keep those parser nodes in a separate registry instead of

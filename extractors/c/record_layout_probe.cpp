@@ -141,7 +141,10 @@ public:
     if (!record->isCompleteDefinition()) return true;
     const auto &sources = context->getSourceManager();
     const auto loc = sources.getExpansionLoc(record->getBeginLoc());
-    if (!sources.isWrittenInMainFile(loc)) return true;
+    // User-header records are part of the same parser translation unit and
+    // must retain their layout identity. System-header declarations remain
+    // outside the envelope because their implementation ABI is external.
+    if (sources.isInSystemHeader(loc)) return true;
     const auto end_loc = clang::Lexer::getLocForEndOfToken(
         sources.getExpansionLoc(record->getEndLoc()), 0, sources,
         clang::LangOptions());

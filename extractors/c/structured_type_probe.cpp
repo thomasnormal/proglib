@@ -308,6 +308,14 @@ public:
     // and join it by Clang's identity just like a named parameter.
     const auto occurrence = sourceOffset(decl, context->getSourceManager());
     if (!occurrence) return true;
+    const auto sourceFile = [&]() -> std::optional<std::string> {
+      const auto location = context->getSourceManager().getExpansionLoc(
+          decl->getBeginLoc());
+      if (context->getSourceManager().isInSystemHeader(location)) return std::nullopt;
+      const auto filename = context->getSourceManager().getFilename(location);
+      if (filename.empty()) return std::nullopt;
+      return filename.str();
+    }();
     clang::QualType qualified;
     if (const auto *value = llvm::dyn_cast<clang::ValueDecl>(decl))
       qualified = value->getType();
@@ -317,17 +325,21 @@ public:
       return true;
     auto tree = typeTree(qualified, *context, 0);
     if (!tree) {
-      rows.push_back(llvm::json::Object{
+      llvm::json::Object row{
           {"kind", "StructuredType"}, {"decl_id", nodeId(decl)},
           {"offset", *occurrence},
           {"type", llvm::json::Object{{"kind", "unsupported"},
-                                       {"reason", "unrepresented Clang QualType"}}}});
+                                       {"reason", "unrepresented Clang QualType"}}}};
+      if (sourceFile) row["source_file"] = *sourceFile;
+      rows.push_back(std::move(row));
       return true;
     }
-    rows.push_back(llvm::json::Object{{"kind", "StructuredType"},
-                                      {"decl_id", nodeId(decl)},
-                                      {"offset", *occurrence},
-                                      {"type", std::move(*tree)}});
+    llvm::json::Object row{{"kind", "StructuredType"},
+                           {"decl_id", nodeId(decl)},
+                           {"offset", *occurrence},
+                           {"type", std::move(*tree)}};
+    if (sourceFile) row["source_file"] = *sourceFile;
+    rows.push_back(std::move(row));
     return true;
   }
 

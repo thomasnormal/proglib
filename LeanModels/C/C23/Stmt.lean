@@ -1696,6 +1696,18 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                     let (_, n) ← asInt a
                     let tail ← format rest as
                     pure (CByte.conc (UInt8.ofNat n.toNat) :: tail)
+                | .conc 37 :: .conc 46 :: .conc 42 :: .conc 115 :: rest,
+                    precision :: a :: as => do
+                    let (_, n) ← asInt precision
+                    let sp ← asPtr a
+                    let current ← get
+                    let (_, string, stringOff) ← liftEval (current.resolve sp 0)
+                    let chars ← match takePrintfString (string.bytes.drop stringOff) with
+                      | some bytes => pure bytes
+                      | none => refuseUnsupported "printf: non-concrete or unterminated string argument"
+                    let rendered := if n < 0 then chars else chars.take n.toNat
+                    let tail ← format rest as
+                    pure (rendered ++ tail)
                 | .conc 37 :: .conc 115 :: rest, a :: as => do
                     let sp ← asPtr a
                     let current ← get
