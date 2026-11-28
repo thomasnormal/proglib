@@ -4041,3 +4041,16 @@ one that passes is rule-independent, so no wrong answer exists today).
 `defaultTargets` — filed as 2026-08-26-c-33 in QoL's ledger. That same change
 means `check.sh --iterate` refuses the file, so the lane's fast loop now
 costs a tenure.
+## 2026-11-28-c-floating-environment — floating environment remains refused
+
+The frozen C1–C3 corpus contains 62 files including `<fenv.h>`. Fifty use
+`fetestexcept`, ten use `fesetround`, and the set also contains
+`feclearexcept`, `feraiseexcept`, `fegetenv`, and `fesetenv` calls. These
+operations observe or mutate the floating environment specified by C23
+§7.6 and the IEC 60559 bindings in §F.7. The current C semantics has no
+rounding-mode or exception-flag state, so every such family remains a loud
+refusal. Floating arithmetic continues to use the pinned profile's fixed
+round-to-nearest model. Admitting this family requires explicit environment
+state, sequencing of environment accesses, and differential rows for each
+supported mode and flag; no approximation or host-state observation is
+permitted.
