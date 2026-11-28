@@ -1429,6 +1429,26 @@ theorem CoreMemDesign.combStmtViewRefinesFuel_blocking
       refine ⟨E.setScalarState st₁ n a, SvState.set view₁ n a, [], h₁, ?_⟩
       simpa [hviews] using hview₂'
 
+theorem CoreMemDesign.combStmtViewRefinesFuel_blockingL_ident
+    {E : CoreMemDesign} {env : IEnv} {fuel : Nat} {n : String} {value : PExpr}
+    (hbody : E.combBodyB (.blockingAssignL (.ident n) value) = true) :
+    E.CombStmtViewRefinesFuel env (fuel + 1) (.blockingAssignL (.ident n) value) := by
+  have hblock : E.combBodyB (.blockingAssign n value) = true := by
+    simpa [CoreMemDesign.combBodyB, CoreMemDesign.combTargetB] using hbody
+  intro st₁ st₂ view₁ view₂ st₂' view₂' locals₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₂
+  cases fuel with
+  | zero =>
+      simp [CoreMemDesign.execCombStmtFuel] at h₂
+  | succ fuel =>
+      have h₂' : E.execCombStmtFuel env E.elems st₂ view₂ [] (fuel + 1)
+          (.blockingAssign n value) = .ok (st₂', view₂', locals₂') := by
+        simpa [CoreMemDesign.execCombStmtFuel] using h₂
+      obtain ⟨st₁', view₁', locals₁', h₁', hview'⟩ :=
+        CoreMemDesign.combStmtViewRefinesFuel_blocking hblock
+          st₁ st₂ view₁ view₂ st₂' view₂' locals₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₂'
+      refine ⟨st₁', view₁', locals₁', ?_, hview'⟩
+      simpa [CoreMemDesign.execCombStmtFuel] using h₁'
+
 theorem CoreMemDesign.combStmtViewRefines_of_fuel
     {E : CoreMemDesign} {env : IEnv} {stmt : PStmt}
     (hstmt : E.CombStmtViewRefinesFuel env 4096 stmt) :
