@@ -4129,3 +4129,17 @@ rows also exercise packed record layouts and `long double`, which remain held
 families with their own loud refusals. Keep this builtin refused until its
 category mapping is defined from clang's AST and covered by pinned-clang
 differential rows for every admitted category.
+
+## 2026-11-28-c-builtin-setjmp — nonlocal control transfer remains refused
+
+The current dynamic ranking has three sole rows whose first refusal is
+`libc-call: __builtin_setjmp`: `built-in-setjmp.c`, `pr64242.c`, and
+`pr84521.c`. C23 §7.13 specifies `setjmp` and `longjmp` as nonlocal control
+transfers with saved execution state and restrictions on objects modified
+between the calls. The evaluator has no continuation, saved-frame, or
+`longjmp` transfer state, so treating the builtin as an ordinary call would
+change observable control flow. Pinned Clang 21.1.8 gives clean O0/O2/UBSan
+runs for two rows. `pr64242.c` exits 0 at O0 and aborts at O2 and under
+sanitizer without a diagnostic, so no single value is claimed. Keep this
+family as a loud refusal until a profile-stable external control-transfer
+semantics and differential rows are implemented.
