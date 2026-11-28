@@ -16,7 +16,7 @@ with ids `YYYY-MM-DD-<lane>-<n>` that need no reservation. Everything before
 the split is in [`docs/backlog-archive.md`](../backlog-archive.md), frozen,
 and every existing `§Lnn` reference still resolves there.
 
-**1648 entries across 19 lanes.** Regenerate with
+**1649 entries across 19 lanes.** Regenerate with
 `tools/backlog-index.sh`; check with `--check` (exit 1 on drift).
 
 | id | class | title | lane |
@@ -1642,6 +1642,7 @@ and every existing `§Lnn` reference still resolves there.
 | `2026-11-28-c-floating-casts` |  | long-double casts remain refused | c |
 | `2026-11-28-c-external-object-linkage` |  | external objects remain refused | c |
 | `2026-11-28-c-computed-goto` |  | GNU label addresses remain refused | c |
+| `2026-11-28-c-builtin-classify-type` |  | GNU type introspection remains refused | c |
 | `2026-11-18-pyfoundation-float-lab-floor-infinite` |  | park concrete proof over hosted memory | python-completeness |
 | `2026-11-12-p2-library-boundary` |  | heap-threaded public list mutation | python-completeness |
 | `2026-11-11-c-union-init` |  | designated union members | c |
@@ -1670,4 +1671,4 @@ and every existing `§Lnn` reference still resolves there.
 | `2026-11-10-c-array-filler-designators` |  | Clang array initializer positions | c |
 | `2026-08-26` |  | PARKED (indefinite). Read this first on resumption. | analog |
 
-**74 heading(s) do not use the §9.5 id scheme** and sort last.
+**75 heading(s) do not use the §9.5 id scheme** and sort last.

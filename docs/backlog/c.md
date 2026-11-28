@@ -4117,3 +4117,15 @@ register/memory-clobber oracle. Treating an asm node as a no-op would erase
 observable effects, while inventing a generic effect would be unsound. The
 parser node therefore remains a loud refusal until a target-specific assembly
 semantics and differential contract exist.
+
+## 2026-11-28-c-builtin-classify-type — GNU type introspection remains refused
+
+The current survey has two sole rows (`20040709-1.c` and `20040709-2.c`) whose
+first dynamic wall is `__builtin_classify_type`. This GNU extension reports a
+compiler type category and is outside ISO C23. A sound implementation needs
+parser-native type identity and category evidence, rather than guessing from a
+type spelling or assigning an integer category from a neighbouring type. Both
+rows also exercise packed record layouts and `long double`, which remain held
+families with their own loud refusals. Keep this builtin refused until its
+category mapping is defined from clang's AST and covered by pinned-clang
+differential rows for every admitted category.
