@@ -1959,5 +1959,34 @@
     "return_value": 0,
     "expected_stdout": "a=0\nb=1\nc=2\ne=0\nf=1\ng=2\ni=0\nj=1\nk=2\n",
     "sanitize": true
+  },
+  {
+    "id": "goto-forward-loop-label",
+    "source": "int main(void) { for (; 0;) { __builtin_abort(); label: return 0; } goto label; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "goto-uninitialized-block-tail",
+    "source": "#include <stdio.h>\nvoid f(void) { printf(\"f\\n\"); goto done; done: printf(\"done\\n\"); } int main(void) { int a; f(); goto inner; { int b; inner: b = 1234; printf(\"b = %d\\n\", b); } return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "f\ndone\nb = 1234\n",
+    "sanitize": true
+  },
+  {
+    "id": "predefined-function-name-string",
+    "source": "extern int strcmp(const char *, const char *); int f(const char *a) { return strcmp(a, \"main\"); } int main(void) { return f(__FUNCTION__); }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "mixed-function-object-pointer-equality",
+    "source": "void *f(void) __attribute__((noinline)); void *f(void) { return f; } int main(void) { return f() != f; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
