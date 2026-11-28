@@ -49,8 +49,14 @@ theorem qa_time_zero : ∃ E, qa.e = .ok E ∧ ∃ st, E.initialState = .ok st �
   have hrm : E.readmemh = [] := by subst hE0; rfl
   have hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok [("y", LVec.ofNat 1 1)] := by
     subst hE0; rfl
+  have hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body := by
+    intro p hp body
+    have h := CoreMemDesign.seqOblI_noComb hO
+    simp only [CoreMemDesign.hasComb, List.any_eq_false] at h
+    have := h p hp
+    cases p <;> simp_all
   obtain ⟨st, hs, hvs, -, hc, hmc⟩ :=
-    hP.initialState (CoreMemDesign.seqOblI_spec hO).2.1 hrm hdi hv
+    hP.initialState (CoreMemDesign.seqOblI_spec hO).2.1 hrm hdi hv hno
   exact ⟨st, hs, hvs, hc, hmc⟩
 
 /-- **The time-zero state is settled**: one more pass changes nothing, and the route's continuous-assign region run
@@ -69,8 +75,14 @@ theorem qa_time_zero_settled : ∃ E, qa.e = .ok E ∧ ∃ st, E.initialState = 
   have hrm : E.readmemh = [] := by subst hE0; rfl
   have hv : E.settleV (E.memOf E.initial.memory) (E.scalar.view E.initial.scalar) = .ok [("y", LVec.ofNat 1 1)] := by
     subst hE0; rfl
+  have hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body := by
+    intro p hp body
+    have h := CoreMemDesign.seqOblI_noComb hO
+    simp only [CoreMemDesign.hasComb, List.any_eq_false] at h
+    have := h p hp
+    cases p <;> simp_all
   obtain ⟨st, hs, hvs, -, st', hs', hv'⟩ :=
-    hP.initialState_settled (CoreMemDesign.seqOblI_spec hO).2.1 hrm hdi hv
+    hP.initialState_settled (CoreMemDesign.seqOblI_spec hO).2.1 hrm hdi hno hv
   exact ⟨st, hs, hvs, st', hs', hv'⟩
 
 /-- **The time-zero state is not the x start** here: the statement the clocked theory made before the route's
