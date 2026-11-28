@@ -4217,3 +4217,15 @@ or descriptor state and no pinned environment oracle. Inventing a descriptor or
 assuming a successful open would choose an outcome the language environment
 leaves open. Keep these calls refused until an explicit environment model and
 profiled filesystem oracle are defined.
+
+## 2026-11-28-c-builtin-trap — abnormal termination remains refused
+
+The static ranking contains two sole rows for `libc-call: __builtin_trap`:
+`20020418-1.c` and `pr125291.c`. GNU `__builtin_trap` is outside ISO C23
+and transfers to an implementation-defined abnormal termination mechanism.
+The evaluator's observable result model represents normal returns, specified
+exceptions, and named undefined-behaviour refusals, but it has no target trap
+or signal state. Treating the call as `return 0`, as an ordinary exception, or
+as a silent no-op would erase the program's termination behavior. Keep this
+builtin refused until a target-specific trap observation and pinned oracle
+contract are defined.
