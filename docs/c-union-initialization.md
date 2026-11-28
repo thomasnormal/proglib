@@ -26,3 +26,5 @@ contract. Empty unions with no named first member remain a loud refusal until
 their C23 default-initialization and aggregate effective-type rules are
 implemented together. No source rewrite or arbitrary active-member choice is
 permitted.
+
+CPP-DESIGN READY union-initialization 545a4a1ca
