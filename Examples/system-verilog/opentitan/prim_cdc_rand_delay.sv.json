@@ -1,0 +1,375 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "prim_cdc_rand_delay",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/opentitan/source/prim_cdc_rand_delay.sv",
+      "sha256": "6b0f9f46a5559a354c9770e6eb7a4721b50b09d40d34b4efb62218c7a777829c"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 17,
+          "col": 1,
+          "end_line": 67,
+          "end_col": 10
+        },
+        "name": "prim_cdc_rand_delay",
+        "imports": [],
+        "params": [
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 18,
+              "col": 19,
+              "end_line": 18,
+              "end_col": 32
+            },
+            "name": "DataWidth",
+            "type": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 18,
+                      "col": 19,
+                      "end_line": 18,
+                      "end_col": 32
+                    },
+                    "value": 31,
+                    "resolved_width": 32
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 18,
+                      "col": 19,
+                      "end_line": 18,
+                      "end_col": 32
+                    },
+                    "value": 0,
+                    "resolved_width": 32
+                  }
+                }
+              ],
+              "resolved": 32
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 18,
+                "col": 31,
+                "end_line": 18,
+                "end_col": 32
+              },
+              "value": 1,
+              "resolved_width": 32
+            },
+            "resolved": 1,
+            "string": false
+          },
+          {
+            "kind": "ParameterDecl",
+            "span": {
+              "line": 19,
+              "col": 19,
+              "end_line": 19,
+              "end_col": 29
+            },
+            "name": "Enable",
+            "type": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            },
+            "default": {
+              "kind": "Int",
+              "span": {
+                "line": 19,
+                "col": 28,
+                "end_line": 19,
+                "end_col": 29
+              },
+              "value": 1,
+              "resolved_width": 1
+            },
+            "resolved": 1,
+            "string": false
+          }
+        ],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 21,
+              "col": 35,
+              "end_line": 21,
+              "end_col": 40
+            },
+            "name": "clk_i",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 22,
+              "col": 35,
+              "end_line": 22,
+              "end_col": 41
+            },
+            "name": "rst_ni",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 23,
+              "col": 35,
+              "end_line": 23,
+              "end_col": 46
+            },
+            "name": "prev_data_i",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 23,
+                      "col": 18,
+                      "end_line": 23,
+                      "end_col": 29
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 23,
+                        "col": 18,
+                        "end_line": 23,
+                        "end_col": 27
+                      },
+                      "name": "DataWidth"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 23,
+                        "col": 28,
+                        "end_line": 23,
+                        "end_col": 29
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 23,
+                      "col": 30,
+                      "end_line": 23,
+                      "end_col": 31
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 24,
+              "col": 35,
+              "end_line": 24,
+              "end_col": 45
+            },
+            "name": "src_data_i",
+            "dir": "in",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 24,
+                      "col": 18,
+                      "end_line": 24,
+                      "end_col": 29
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 24,
+                        "col": 18,
+                        "end_line": 24,
+                        "end_col": 27
+                      },
+                      "name": "DataWidth"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 24,
+                        "col": 28,
+                        "end_line": 24,
+                        "end_col": 29
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 24,
+                      "col": 30,
+                      "end_line": 24,
+                      "end_col": 31
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 1
+            }
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 25,
+              "col": 35,
+              "end_line": 25,
+              "end_col": 45
+            },
+            "name": "dst_data_o",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Binary",
+                    "span": {
+                      "line": 25,
+                      "col": 19,
+                      "end_line": 25,
+                      "end_col": 30
+                    },
+                    "width": null,
+                    "op": "-",
+                    "left": {
+                      "kind": "ParamRef",
+                      "span": {
+                        "line": 25,
+                        "col": 19,
+                        "end_line": 25,
+                        "end_col": 28
+                      },
+                      "name": "DataWidth"
+                    },
+                    "right": {
+                      "kind": "Int",
+                      "span": {
+                        "line": 25,
+                        "col": 29,
+                        "end_line": 25,
+                        "end_col": 30
+                      },
+                      "value": 1,
+                      "resolved_width": null
+                    }
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 25,
+                      "col": 31,
+                      "end_line": 25,
+                      "end_col": 32
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 1
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Assign",
+            "span": {
+              "line": 65,
+              "col": 12,
+              "end_line": 65,
+              "end_col": 35
+            },
+            "target": {
+              "kind": "Ident",
+              "span": {
+                "line": 65,
+                "col": 12,
+                "end_line": 65,
+                "end_col": 22
+              },
+              "width": 1,
+              "name": "dst_data_o"
+            },
+            "value": {
+              "kind": "Ident",
+              "span": {
+                "line": 65,
+                "col": 25,
+                "end_line": 65,
+                "end_col": 35
+              },
+              "width": 1,
+              "name": "src_data_i"
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

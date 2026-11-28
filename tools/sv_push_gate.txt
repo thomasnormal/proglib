@@ -415,3 +415,4 @@ Examples.«system-verilog».sem2.package_signed_struct_elem_e.agree
 Examples/system-verilog/sem2/mixed_array_edge_e/agree.lean
 Examples/system-verilog/sem2/unsupported_part_target_e/agree.lean
 Examples/system-verilog/sem2/signed_packed_array_target_e/agree.lean
+Examples/system-verilog/opentitan/proof.lean
