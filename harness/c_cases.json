@@ -1990,5 +1990,33 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "corpus-00129",
+    "source": "typedef struct s s;\n\nstruct s {\n\tstruct s1 {\n\t\tint s;\n\t\tstruct s2 {\n\t\t\tint s;\n\t\t} s1;\n\t} s;\n} s2;\n\n#define s s\n\nint\nmain(void)\n{\n#undef s\n\tgoto s;\n\tstruct s s;\n\t\t{\n\t\t\tint s;\n\t\t\treturn s;\n\t\t}\n\treturn s.s.s + s.s.s1.s;\n\ts:\n\t\t{\n\t\t\treturn 0;\n\t\t}\n\treturn 1;\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "corpus-00199",
+    "source": "#include <stdio.h>\n\nvoid fred()\n{\n   printf(\"In fred()\\n\");\n   goto done;\n   printf(\"In middle\\n\");\ndone:\n   printf(\"At end\\n\");\n}\n\nvoid joe()\n{\n   int b = 5678;\n\n   printf(\"In joe()\\n\");\n\n   {\n      int c = 1234;\n      printf(\"c = %d\\n\", c);\n      goto outer;\n      printf(\"uh-oh\\n\");\n   }\n\nouter:    \n\n   printf(\"done\\n\");\n}\n\nvoid henry()\n{\n   int a;\n\n   printf(\"In henry()\\n\");\n   goto inner;\n\n   {\n      int b;\ninner:    \n      b = 1234;\n      printf(\"b = %d\\n\", b);\n   }\n\n   printf(\"done\\n\");\n}\n\nint main()\n{\n   fred();\n   joe();\n   henry();\n\n   return 0;\n}\n\n/* vim: set expandtab ts=4 sw=3 sts=3 tw=80 :*/\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "corpus-20040704_1",
+    "source": "/* PR 16348: Make sure that condition-first false loops DTRT.  */\n\nextern void abort ();\n\nint main()\n{\n  for (; 0 ;)\n    {\n      abort ();\n    label:\n      return 0;\n    }\n  goto label;\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "corpus-950714_1",
+    "source": "void abort (void);\nvoid exit (int);\n\nint array[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};\n\nint\nmain (void)\n{\n  int i, j;\n  int *p;\n\n  for (i = 0; i < 10; i++)\n    for (p = &array[0]; p != &array[9]; p++)\n      if (*p == i)\n\tgoto label;\n\n label:\n  if (i != 1)\n    abort ();\n  exit (0);\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
