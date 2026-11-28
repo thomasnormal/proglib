@@ -2039,5 +2039,12 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "corpus-00051",
+    "source": "int x = 0;\n\nint\nmain()\n{\n\tswitch(x)\n\t\tcase 0:\n\t\t\t;\n\tswitch(x)\n\t\tcase 0:\n\t\t\tswitch(x) {\n\t\t\t\tcase 0:\n\t\t\t\t\tgoto next;\n\t\t\t\tdefault:\n\t\t\t\t\treturn 1;\n\t\t\t}\n\treturn 1;\n\tnext:\n\tswitch(x)\n\t\tcase 1:\n\t\t\treturn 1;\n\tswitch(x) {\n\t\t{\n\t\t\tx = 1 + 1;\n\t\t\tfoo:\n\t\t\tcase 1:\n\t\t\t\treturn 1;\n\t\t}\n\t}\n\tswitch(x) {\n\t\tcase 0:\n\t\t\treturn x;\n\t\tcase 1:\n\t\t\treturn 1;\n\t\tdefault:\n\t\t\treturn 1;\n\t}\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
