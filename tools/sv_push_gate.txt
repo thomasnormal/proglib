@@ -411,3 +411,4 @@ Examples/system-verilog/sem2/legacy_event_writer_race_e/agree.lean
 Examples/system-verilog/sem2/time_zero_input_comb_e/agree.lean
 Examples.«system-verilog».sem2.comb_default_override_e.agree
 Examples.«system-verilog».sem2.package_signed_struct_elem_e.agree
+Examples/system-verilog/sem2/mixed_array_edge_e/agree.lean

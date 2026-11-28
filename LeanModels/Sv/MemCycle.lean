@@ -762,9 +762,45 @@ def memResetFires (prev cur : SvState) (rstn : String) (resetHigh : Bool) : Bool
   else
     isNegedge (SvState.bit0 prev rstn) (SvState.bit0 cur rstn)
 
+/-- Settle source-shaped continuous and combinational processes at the
+current simulation instant.  IEEE 1800-2023 §§4.5 and 9.2 run these active
+processes before an edge-triggered process samples its RHS, and again after
+the NBA update. -/
+def runMemComb (d : MemDesign2) (fuel : Nat) (st : MemCycleState) : Res MemCycleState :=
+  d.processes.foldlM (init := st) fun st p =>
+    match p with
+    | .assign target e =>
+        match d.decls.find? (·.name == target) with
+        | none => .unsupported s!"assign target '{target}' is not declared"
+        | some dc =>
+            match SvState.lookup st.scalar target with
+            | none => .unsupported s!"assign target '{target}' is not present"
+            | some old => do
+                let v ← evalMemExpr d fuel st (some dc.width) e
+                let scalar := SvState.set st.scalar target
+                  (old.insertAt 0 (v.resizeU dc.width))
+                return { st with scalar }
+    | .alwaysComb _ =>
+        match runMemProcess d fuel st ([], []) p with
+        | .ok (st', ([], [])) => .ok st'
+        | .ok (_, _) => .unsupported "AlwaysComb:memory cycle route does not admit NBA"
+        | .unsupported e => .unsupported e
+        | .timeout => .timeout
+    | p@(.assignL _ _) =>
+        match runMemProcess d fuel st ([], []) p with
+        | .ok (st', ([], [])) => .ok st'
+        | .ok (_, _) => .unsupported "AssignL:memory cycle route does not admit NBA"
+        | .unsupported e => .unsupported e
+        | .timeout => .timeout
+    | .alwaysImplicit _ => .unsupported
+        "ProceduralBlockSymbol:Always: source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
+    | .alwaysEvent _ _ => .unsupported
+        "ProceduralBlockSymbol:Always: source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
+    | _ => .ok st
+
 def memStep (d : MemDesign2) (fuel : Nat) (inputs : SvState)
     (prev : MemCycleState) : Res MemCycleState := do
-  let st0 := d.applyInputs inputs prev
+  let st0 ← runMemComb d fuel (d.applyInputs inputs prev)
   let q0 : MemPending := ([], [])
   let (st1, q1) ← if d.processes.any (fun p =>
       match p with
@@ -795,36 +831,7 @@ def memStep (d : MemDesign2) (fuel : Nat) (inputs : SvState)
         else .ok acc
     | _ => .ok acc
   let st2 ← commitMemPending d st2 q2
-  d.processes.foldlM (init := st2) fun st p =>
-    match p with
-    | .assign target e =>
-        match d.decls.find? (·.name == target) with
-        | none => .unsupported s!"assign target '{target}' is not declared"
-        | some dc =>
-            match SvState.lookup st.scalar target with
-            | none => .unsupported s!"assign target '{target}' is not present"
-            | some old => do
-                let v ← evalMemExpr d fuel st (some dc.width) e
-                let scalar := SvState.set st.scalar target
-                  (old.insertAt 0 (v.resizeU dc.width))
-                return { st with scalar }
-    | .alwaysComb _ =>
-        match runMemProcess d fuel st ([], []) p with
-        | .ok (st', ([], [])) => .ok st'
-        | .ok (_, _) => .unsupported "AlwaysComb:memory cycle route does not admit NBA"
-        | .unsupported e => .unsupported e
-        | .timeout => .timeout
-    | p@(.assignL _ _) =>
-        match runMemProcess d fuel st ([], []) p with
-        | .ok (st', ([], [])) => .ok st'
-        | .ok (_, _) => .unsupported "AssignL:memory cycle route does not admit NBA"
-        | .unsupported e => .unsupported e
-        | .timeout => .timeout
-    | .alwaysImplicit _ => .unsupported
-        "ProceduralBlockSymbol:Always: source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
-    | .alwaysEvent _ _ => .unsupported
-        "ProceduralBlockSymbol:Always: source-level event-controlled always is retained; the frozen process AST has no event-list constructor"
-    | _ => .ok st
+  runMemComb d fuel st2
 
 def runMemFrom (d : MemDesign2) (fuel : Nat) (st : MemCycleState)
     (stim : List SvState) : Res (List SvState) :=
