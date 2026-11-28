@@ -55,10 +55,11 @@ theorem shreg_bridge (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesi
   have hO := CoreMemDesign.seqOblB_I hOB
   obtain ⟨hdrivers, htopo, hinputs, hsources, hreads, hedge, hconverted⟩ :=
     CoreMemDesign.seqOblI_spec hO
+  have hcomb := CoreMemDesign.seqOblI_noComb hO
   rw [hE] at hE'
   cases hE'
   exact CoreMemDesign.edge_schedule_refines_step_guarded hP hdrivers htopo hinputs hsources hreads hedge hconverted
-    hc hmc hty hslot hσ
+    hcomb hc hmc hty hslot hσ
 
 theorem cnt_bridge (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign}
     (hE : cnt.e N = .ok E) {st : CoreMemState} (hc : E.Coherent st)
@@ -84,10 +85,11 @@ theorem cnt_bridge (N : Nat) (h1 : 1 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesign
   have hO := CoreMemDesign.seqOblB_I hOB
   obtain ⟨hdrivers, htopo, hinputs, hsources, hreads, hedge, hconverted⟩ :=
     CoreMemDesign.seqOblI_spec hO
+  have hcomb := CoreMemDesign.seqOblI_noComb hO
   rw [hE] at hE'
   cases hE'
   exact CoreMemDesign.edge_schedule_refines_step_guarded hP hdrivers htopo hinputs hsources hreads hedge hconverted
-    hc hmc hty hslot hσ
+    hcomb hc hmc hty hslot hσ
 
 theorem case_bridge {E : CoreMemDesign} (hE : caseF.e = .ok E) {st : CoreMemState}
     (hc : E.Coherent st) (hmc : E.MemCoherent st.memory) {entry : SvState}
@@ -112,10 +114,11 @@ theorem case_bridge {E : CoreMemDesign} (hE : caseF.e = .ok E) {st : CoreMemStat
   have hO := CoreMemDesign.seqOblB_I hOB
   obtain ⟨hdrivers, htopo, hinputs, hsources, hreads, hedge, hconverted⟩ :=
     CoreMemDesign.seqOblI_spec hO
+  have hcomb := CoreMemDesign.seqOblI_noComb hO
   rw [hE] at hE'
   cases hE'
   exact CoreMemDesign.edge_schedule_refines_step_guarded hP hdrivers htopo hinputs hsources hreads hedge hconverted
-    hc hmc hty hslot hσ
+    hcomb hc hmc hty hslot hσ
 
 /-! Concrete scheduler-path receipts for the three source-shaped envelopes.
     The queue, disjointness, and evaluator receipts remain explicit premises.
