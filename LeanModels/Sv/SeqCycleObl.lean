@@ -1088,6 +1088,44 @@ theorem CoreMemDesign.coreMemCaseHits_congr_of_pure {E : CoreMemDesign} {env : I
       simp only [coreMemCaseHits, hlist]
       rw [ih hrest]
 
+theorem CoreMemDesign.coreMemSelectCase_congr_of_pure {E : CoreMemDesign} {env : IEnv}
+    {st₁ st₂ : CoreMemState} {subject : LVec} {mode : CaseMode}
+    {items : List (List PExpr × PStmt)} {default? : Option PStmt}
+    (hm₁ : E.MemCoherent st₁.memory) (hm₂ : E.MemCoherent st₂.memory)
+    (hview : E.scalar.view st₁.scalar = E.scalar.view st₂.scalar)
+    (hitems : ∀ patterns body, (patterns, body) ∈ items →
+      ∀ expr ∈ patterns,
+        PExpr.hasMemoryRead expr = false ∧ PExpr.hasFunctionCall expr = false) :
+    coreMemSelectCase E env E.elems st₁ subject mode items default? =
+      coreMemSelectCase E env E.elems st₂ subject mode items default? := by
+  induction items with
+  | nil => rfl
+  | cons item rest ih =>
+      obtain ⟨patterns, body⟩ := item
+      have hpatterns := hitems patterns body (by simp)
+      have hrest : ∀ ps b, (ps, b) ∈ rest → ∀ expr ∈ ps,
+          PExpr.hasMemoryRead expr = false ∧ PExpr.hasFunctionCall expr = false := by
+        intro ps b hmem
+        exact hitems ps b (by simp [hmem])
+      have hlist := CoreMemDesign.evalMemExprList_congr_of_pure
+        (E := E) (env := env) hm₁ hm₂ hview (fun expr he => hpatterns expr he)
+      cases hv₁ : evalMemExprList E env E.elems st₁ patterns with
+      | timeout =>
+          have hv₂ : evalMemExprList E env E.elems st₂ patterns = .timeout := by
+            rw [← hlist, hv₁]
+          simp [coreMemSelectCase, hv₁, hv₂]
+      | unsupported msg =>
+          have hv₂ : evalMemExprList E env E.elems st₂ patterns = .unsupported msg := by
+            rw [← hlist, hv₁]
+          simp [coreMemSelectCase, hv₁, hv₂]
+      | ok values =>
+          have hv₂ : evalMemExprList E env E.elems st₂ patterns = .ok values := by
+            rw [← hlist, hv₁]
+          simp [coreMemSelectCase, hv₁, hv₂]
+          split
+          · rfl
+          · exact ih hrest
+
 theorem CoreMemDesign.evalExpr_congr_of_pure {E : CoreMemDesign} {env : IEnv}
     {st₁ st₂ : CoreMemState} {e : PExpr}
     (hm₁ : E.MemCoherent st₁.memory) (hm₂ : E.MemCoherent st₂.memory)
