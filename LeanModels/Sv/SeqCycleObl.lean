@@ -1712,6 +1712,36 @@ theorem CoreMemDesign.combStmtViewCongr_blockingL_ident
     simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₂
   exact (CoreMemDesign.execCombStmtAtView_blocking_frame hc₁ hc₂ hm₁ hm₂ hview hviews hblock h₁' h₂').2
 
+theorem CoreMemDesign.combIfBranch_result_early
+    {E : CoreMemDesign} {env : IEnv} {cond : PExpr} {yes : PStmt} {no : Option PStmt}
+    {st : CoreMemState} {locals : SvState} {result : Option PStmt}
+    (h : E.combIfBranch env E.elems st locals cond yes no = .ok result) :
+    result = some yes ∨ result = no := by
+  unfold CoreMemDesign.combIfBranch at h
+  by_cases ht : PExpr.hasTestPlusargs cond = true
+  · simp only [ht] at h
+    cases he : E.evalRuntimeExpr env E.elems st (some 1) cond with
+    | timeout => simp [he] at h
+    | unsupported msg => simp [he] at h
+    | ok cv =>
+        simp only [he, Res.ok_bind, Res.pure_eq] at h
+        by_cases hcv : cv.condTrue = true
+        · simp [hcv] at h
+          exact Or.inl h.symm
+        · simp [hcv] at h
+          exact Or.inr h.symm
+  · simp only [ht] at h
+    cases he : E.evalExprLocals env E.elems st (some 1) locals cond with
+    | timeout => simp [he] at h
+    | unsupported msg => simp [he] at h
+    | ok cv =>
+        simp only [he, Res.ok_bind, Res.pure_eq] at h
+        by_cases hcv : cv.condTrue = true
+        · simp [hcv] at h
+          exact Or.inl h.symm
+        · simp [hcv] at h
+          exact Or.inr h.symm
+
 theorem CoreMemDesign.combStmtViewCongr_if
     {E : CoreMemDesign} {env : IEnv} {cond : PExpr} {yes : PStmt} {no : Option PStmt}
     (hne : E.elems ≠ []) (hcond : CoreMemDesign.combExprB cond = true)
@@ -1743,7 +1773,7 @@ theorem CoreMemDesign.combStmtViewCongr_if
           have hchild₂ : E.execCombStmtAtView env E.elems st₂ view₂ stmt =
               .ok (st₂', view₂') := by
             simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₂
-          rcases CoreMemDesign.combIfBranch_result hb₁ with hyes' | hno'
+          rcases CoreMemDesign.combIfBranch_result_early hb₁ with hyes' | hno'
           · have hstmt : stmt = yes := Option.some.inj hyes'
             subst stmt
             exact hyes st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂'
