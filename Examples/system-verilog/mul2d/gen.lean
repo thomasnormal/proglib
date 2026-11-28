@@ -178,7 +178,7 @@ def mulScope (N : Int) : IEnv :=
 
 /-- The parameter environment of `mul2d` at `N` (by `rfl`): the declaration
 scope plus the geometry table evaluated in it. -/
-def mulEnv (N : Int) : IEnv := { mulScope N with dims := dimTable (mulScope N) mul2d.pdesign.decls }
+def mulEnv (N : Int) : IEnv := { mulScope N with dims := dimTableFast (mulScope N) mul2d.pdesign.decls }
 
 theorem mul2d_paramEnv (N : Int) : mul2d.pdesign.paramEnv2 [N] = .ok (mulEnv N) := rfl
 
@@ -216,9 +216,26 @@ private theorem mulScope_nM1' (N : Nat) (hR : (N : Int) < 2147483648) (ws : List
 /-- The geometry table's `pp` entry: `[N-1:0][N-1:0]` evaluated. -/
 theorem mulEnv_pp (N : Nat) (hR : (N : Int) < 2147483648) :
     (mulEnv N).dims.lookup "pp" = some (ppGeom N) :=
-  PDesign.dimTable_lookup_of mul2d_pp_dims fun ws =>
-    evalDims_cons_of (d := ⟨nM1, .int 0⟩) (mulScope_nM1' N hR ws) (evalInt_int 0)
-      (evalDims_cons_of (d := ⟨nM1, .int 0⟩) (mulScope_nM1' N hR ws) (evalInt_int 0) evalDims_nil)
+by
+  have hCanon : canonInt 32 true (N : Int) = N := canonN N hR
+  have hsum := @CombView.dimTableFast_summary (fun _ => (N : Int))
+      mul2d.pdesign.decls _ (by rfl) (mulScope (N : Int)) (by
+        intro dt hdt n hn
+        simp [CombView.declsOf?, CombView.declOf?, CombView.dimOf?, CombView.affOf?] at hdt
+        rcases hdt with hdt | hdt | hdt | hdt | hdt | hdt | hdt <;>
+          subst dt <;>
+          simp_all [CombView.DeclT.affNames, CombView.Aff.names, CombView.Aff.var,
+            CombView.Aff.const, CombView.Aff.sub, CombView.Aff.scale, CombView.Aff.add,
+            CombView.Aff.neg, CombView.Aff.negTerms, CombView.Aff.scaleTerms,
+            CombView.Aff.scaleQs, CombView.Aff.scaleXs, CombView.Aff.xsNames,
+            CombView.Aff.negQs, CombView.Aff.negXs, CombView.XAt.names,
+            mulScope, IEnv.intVal?, hCanon]) "pp"
+  simpa [mulEnv, mulScope, hCanon, CombView.DeclT.vals, CombView.Aff.eval,
+    CombView.Aff.evalTerms, CombView.Aff.evalQs, CombView.Aff.evalXs,
+    CombView.Aff.sub, CombView.Aff.add, CombView.Aff.neg, CombView.Aff.negTerms,
+    CombView.Aff.negQs, CombView.Aff.negXs, CombView.Aff.var, CombView.Aff.const,
+    CombView.Aff.scale, CombView.Aff.scaleTerms, CombView.Aff.scaleQs,
+    CombView.Aff.scaleXs, List.map, List.append, Int.sub_eq_add_neg, ppGeom] using hsum
 
 /-- **The partial-product block of the instantiated multiplier, for every
 `N ≥ 1`** — at the declaration environment of ANY declaration list and any
@@ -259,9 +276,26 @@ def rectGeom (N : Nat) : List (Int × Int) := [((N : Int) - 1, 0), ((N : Int), 0
 /-- The geometry table's `t`/`s`/`c` entries. -/
 theorem mulEnv_t (N : Nat) (hR : (N : Int) < 2147483648) :
     (mulEnv N).dims.lookup "t" = some (ppGeom N) :=
-  PDesign.dimTable_lookup_of mul2d_t_dims fun ws =>
-    evalDims_cons_of (d := ⟨nM1, .int 0⟩) (mulScope_nM1' N hR ws) (evalInt_int 0)
-      (evalDims_cons_of (d := ⟨nM1, .int 0⟩) (mulScope_nM1' N hR ws) (evalInt_int 0) evalDims_nil)
+by
+  have hCanon : canonInt 32 true (N : Int) = N := canonN N hR
+  have hsum := @CombView.dimTableFast_summary (fun _ => (N : Int))
+      mul2d.pdesign.decls _ (by rfl) (mulScope (N : Int)) (by
+        intro dt hdt n hn
+        simp [CombView.declsOf?, CombView.declOf?, CombView.dimOf?, CombView.affOf?] at hdt
+        rcases hdt with hdt | hdt | hdt | hdt | hdt | hdt | hdt <;>
+          subst dt <;>
+          simp_all [CombView.DeclT.affNames, CombView.Aff.names, CombView.Aff.var,
+            CombView.Aff.const, CombView.Aff.sub, CombView.Aff.scale, CombView.Aff.add,
+            CombView.Aff.neg, CombView.Aff.negTerms, CombView.Aff.scaleTerms,
+            CombView.Aff.scaleQs, CombView.Aff.scaleXs, CombView.Aff.xsNames,
+            CombView.Aff.negQs, CombView.Aff.negXs, CombView.XAt.names,
+            mulScope, IEnv.intVal?, hCanon]) "t"
+  simpa [mulEnv, mulScope, hCanon, CombView.DeclT.vals, CombView.Aff.eval,
+    CombView.Aff.evalTerms, CombView.Aff.evalQs, CombView.Aff.evalXs,
+    CombView.Aff.sub, CombView.Aff.add, CombView.Aff.neg, CombView.Aff.negTerms,
+    CombView.Aff.negQs, CombView.Aff.negXs, CombView.Aff.var, CombView.Aff.const,
+    CombView.Aff.scale, CombView.Aff.scaleTerms, CombView.Aff.scaleQs,
+    CombView.Aff.scaleXs, List.map, List.append, Int.sub_eq_add_neg, ppGeom] using hsum
 
 private theorem rect_eval (N : Nat) (hR : (N : Int) < 2147483648) (ws : List (String × Nat)) :
     evalDims { mulScope N with widths := ws } rectDims = .ok (rectGeom N) :=
@@ -272,11 +306,49 @@ private theorem rect_eval (N : Nat) (hR : (N : Int) < 2147483648) (ws : List (St
 
 theorem mulEnv_s (N : Nat) (hR : (N : Int) < 2147483648) :
     (mulEnv N).dims.lookup "s" = some (rectGeom N) :=
-  PDesign.dimTable_lookup_of mul2d_s_dims (rect_eval N hR)
+by
+  have hCanon : canonInt 32 true (N : Int) = N := canonN N hR
+  have hsum := @CombView.dimTableFast_summary (fun _ => (N : Int))
+      mul2d.pdesign.decls _ (by rfl) (mulScope (N : Int)) (by
+        intro dt hdt n hn
+        simp [CombView.declsOf?, CombView.declOf?, CombView.dimOf?, CombView.affOf?] at hdt
+        rcases hdt with hdt | hdt | hdt | hdt | hdt | hdt | hdt <;>
+          subst dt <;>
+          simp_all [CombView.DeclT.affNames, CombView.Aff.names, CombView.Aff.var,
+            CombView.Aff.const, CombView.Aff.sub, CombView.Aff.scale, CombView.Aff.add,
+            CombView.Aff.neg, CombView.Aff.negTerms, CombView.Aff.scaleTerms,
+            CombView.Aff.scaleQs, CombView.Aff.scaleXs, CombView.Aff.xsNames,
+            CombView.Aff.negQs, CombView.Aff.negXs, CombView.XAt.names,
+            mulScope, IEnv.intVal?, hCanon]) "s"
+  simpa [mulEnv, mulScope, hCanon, CombView.DeclT.vals, CombView.Aff.eval,
+    CombView.Aff.evalTerms, CombView.Aff.evalQs, CombView.Aff.evalXs,
+    CombView.Aff.sub, CombView.Aff.add, CombView.Aff.neg, CombView.Aff.negTerms,
+    CombView.Aff.negQs, CombView.Aff.negXs, CombView.Aff.var, CombView.Aff.const,
+    CombView.Aff.scale, CombView.Aff.scaleTerms, CombView.Aff.scaleQs,
+    CombView.Aff.scaleXs, List.map, List.append, Int.sub_eq_add_neg, rectGeom] using hsum
 
 theorem mulEnv_c (N : Nat) (hR : (N : Int) < 2147483648) :
     (mulEnv N).dims.lookup "c" = some (rectGeom N) :=
-  PDesign.dimTable_lookup_of mul2d_c_dims (rect_eval N hR)
+by
+  have hCanon : canonInt 32 true (N : Int) = N := canonN N hR
+  have hsum := @CombView.dimTableFast_summary (fun _ => (N : Int))
+      mul2d.pdesign.decls _ (by rfl) (mulScope (N : Int)) (by
+        intro dt hdt n hn
+        simp [CombView.declsOf?, CombView.declOf?, CombView.dimOf?, CombView.affOf?] at hdt
+        rcases hdt with hdt | hdt | hdt | hdt | hdt | hdt | hdt <;>
+          subst dt <;>
+          simp_all [CombView.DeclT.affNames, CombView.Aff.names, CombView.Aff.var,
+            CombView.Aff.const, CombView.Aff.sub, CombView.Aff.scale, CombView.Aff.add,
+            CombView.Aff.neg, CombView.Aff.negTerms, CombView.Aff.scaleTerms,
+            CombView.Aff.scaleQs, CombView.Aff.scaleXs, CombView.Aff.xsNames,
+            CombView.Aff.negQs, CombView.Aff.negXs, CombView.XAt.names,
+            mulScope, IEnv.intVal?, hCanon]) "c"
+  simpa [mulEnv, mulScope, hCanon, CombView.DeclT.vals, CombView.Aff.eval,
+    CombView.Aff.evalTerms, CombView.Aff.evalQs, CombView.Aff.evalXs,
+    CombView.Aff.sub, CombView.Aff.add, CombView.Aff.neg, CombView.Aff.negTerms,
+    CombView.Aff.negQs, CombView.Aff.negXs, CombView.Aff.var, CombView.Aff.const,
+    CombView.Aff.scale, CombView.Aff.scaleTerms, CombView.Aff.scaleQs,
+    CombView.Aff.scaleXs, List.map, List.append, Int.sub_eq_add_neg, rectGeom] using hsum
 
 /-- `2*N-1`, the msb label of `p`. -/
 def pMsb : PExpr := .binary (.m0 .sub) (.binary .mul (.int 2) (.paramRef "N" none)) (.int 1)
@@ -295,9 +367,26 @@ theorem evalInt_pMsb {E : IEnv} {N : Int} (hN : E.intVal? "N" = some N) :
 /-- The geometry table's `p` entry. -/
 theorem mulEnv_p (N : Nat) (hR : (N : Int) < 2147483648) :
     (mulEnv N).dims.lookup "p" = some [(2 * (N : Int) - 1, 0)] :=
-  PDesign.dimTable_lookup_of mul2d_p_dims fun ws =>
-    evalDims_cons_of (d := ⟨pMsb, .int 0⟩) (evalInt_pMsb (mulScope_intVal' N hR ws))
-      (evalInt_int 0) evalDims_nil
+by
+  have hCanon : canonInt 32 true (N : Int) = N := canonN N hR
+  have hsum := @CombView.dimTableFast_summary (fun _ => (N : Int))
+      mul2d.pdesign.decls _ (by rfl) (mulScope (N : Int)) (by
+        intro dt hdt n hn
+        simp [CombView.declsOf?, CombView.declOf?, CombView.dimOf?, CombView.affOf?] at hdt
+        rcases hdt with hdt | hdt | hdt | hdt | hdt | hdt | hdt <;>
+          subst dt <;>
+          simp_all [CombView.DeclT.affNames, CombView.Aff.names, CombView.Aff.var,
+            CombView.Aff.const, CombView.Aff.sub, CombView.Aff.scale, CombView.Aff.add,
+            CombView.Aff.neg, CombView.Aff.negTerms, CombView.Aff.scaleTerms,
+            CombView.Aff.scaleQs, CombView.Aff.scaleXs, CombView.Aff.xsNames,
+            CombView.Aff.negQs, CombView.Aff.negXs, CombView.XAt.names,
+            mulScope, IEnv.intVal?, hCanon]) "p"
+  simpa [mulEnv, mulScope, hCanon, CombView.DeclT.vals, CombView.Aff.eval,
+    CombView.Aff.evalTerms, CombView.Aff.evalQs, CombView.Aff.evalXs,
+    CombView.Aff.sub, CombView.Aff.add, CombView.Aff.neg, CombView.Aff.negTerms,
+    CombView.Aff.negQs, CombView.Aff.negXs, CombView.Aff.var, CombView.Aff.const,
+    CombView.Aff.scale, CombView.Aff.scaleTerms, CombView.Aff.scaleQs,
+    CombView.Aff.scaleXs, List.map, List.append, Int.sub_eq_add_neg, pMsb] using hsum
 
 /-- The 1-bit literal `1'b0`. -/
 def zero1 : LVec := LVec.ofNat 1 0
