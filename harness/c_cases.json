@@ -157,8 +157,7 @@
   {
     "id": "bitfield-assignment-expression-converts",
     "source": "void abort(void); void exit(int); int main(void) { int j = 1081; struct { signed int m:11; } l; if ((l.m = j) == j) abort(); exit(0); }",
-    "expect": "refuse",
-    "error": "no layout for declared type",
+    "expect": "match",
     "layout_expect": "match",
     "layout_return_value": 0
   },
@@ -723,8 +722,7 @@
   {
     "id": "signed-bitfield-layout-wall",
     "source": "struct S { signed int x : 3; }; int main(void) { struct S s = {0}; s.x = 7; return s.x == -1 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "no layout for declared type",
+    "expect": "match",
     "layout_expect": "match",
     "layout_return_value": 0,
     "layout_envelope_checks": [
@@ -734,8 +732,7 @@
   {
     "id": "signed-bitfield-in-range",
     "source": "struct S { signed int x : 3; }; int main(void) { struct S s = {0}; s.x = -3; return s.x == -3 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "no layout for declared type",
+    "expect": "match",
     "layout_expect": "match",
     "layout_return_value": 0,
     "layout_envelope_checks": [
@@ -745,8 +742,7 @@
   {
     "id": "unsigned-bitfield-in-range",
     "source": "struct S { unsigned int x : 3; }; int main(void) { struct S s = {0}; s.x = 7; return s.x == 7 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "no layout for declared type",
+    "expect": "match",
     "layout_expect": "match",
     "layout_return_value": 0,
     "layout_envelope_checks": [
@@ -756,8 +752,7 @@
   {
     "id": "signed-bitfield-negative-wrap",
     "source": "struct S { signed int x : 3; }; int main(void) { struct S s = {0}; s.x = -5; return s.x == 3 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "no layout for declared type",
+    "expect": "match",
     "layout_expect": "match",
     "layout_return_value": 0,
     "layout_envelope_checks": [
