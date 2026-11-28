@@ -4069,3 +4069,15 @@ lifetimes. The family remains a loud refusal until a dedicated label value,
 parser-identity lookup, storage representation, and indirect-jump flow rule
 are implemented together. No source rewriting or fabricated function pointer
 is permitted.
+
+## 2026-11-28-c-floating-casts — long-double casts remain refused
+
+The current survey has six sole rows whose first dynamic wall is
+`floating cast has incompatible source and destination`. The rows use
+`long double` in the source or destination, including the 80-bit profile
+family in `20020413-1.c`, `align-2.c`, and `ieee/20011123-1.c`; the approved
+value model admits only exact binary32 and binary64 conversions. C23
+§6.3.1.5 requires conversion between real floating types, and the profile's
+`long double` representation and parser-rounded conversion are not carried
+yet. The existing five-row Clang 21.1.8 O0/O2/UBSan/ASan receipt is clean and
+claims no UB. Keep the refusal until the separate long-double family lands.
