@@ -1263,6 +1263,45 @@ theorem CoreMemDesign.combStmtViewCongr_blockingL_ident
     simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₂
   exact (CoreMemDesign.execCombStmtAtView_blocking_frame hc₁ hc₂ hm₁ hm₂ hview hviews hblock h₁' h₂').2
 
+theorem CoreMemDesign.combStmtViewCongr_if
+    {E : CoreMemDesign} {env : IEnv} {cond : PExpr} {yes : PStmt} {no : Option PStmt}
+    (hne : E.elems ≠ []) (hcond : CoreMemDesign.combExprB cond = true)
+    (hyes : E.CombStmtViewCongr env yes)
+    (hno : ∀ stmt, no = some stmt → E.CombStmtViewCongr env stmt) :
+    E.CombStmtViewCongr env (.ifStmt cond yes no) := by
+  intro st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₁ h₂
+  simp only [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] at h₁ h₂
+  cases hb₁ : E.combIfBranch env E.elems st₁ [] cond yes no with
+  | timeout => simp [hb₁] at h₁
+  | unsupported msg => simp [hb₁] at h₁
+  | ok branch₁ =>
+      have hbranch : E.combIfBranch env E.elems st₁ [] cond yes no =
+          E.combIfBranch env E.elems st₂ [] cond yes no := by
+        exact CoreMemDesign.combIfBranch_congr_of_pure hview hne hcond
+      have hb₂ : E.combIfBranch env E.elems st₂ [] cond yes no = .ok branch₁ := by
+        rw [← hbranch, hb₁]
+      simp only [hb₁, hb₂, Res.ok_bind] at h₁ h₂
+      cases branch₁ with
+      | none =>
+          simp only [Res.ok.injEq, Prod.mk.injEq] at h₁ h₂
+          obtain ⟨rfl, rfl, rfl⟩ := h₁
+          obtain ⟨rfl, rfl, rfl⟩ := h₂
+          exact hviews
+      | some stmt =>
+          have hchild₁ : E.execCombStmtAtView env E.elems st₁ view₁ stmt =
+              .ok (st₁', view₁') := by
+            simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₁
+          have hchild₂ : E.execCombStmtAtView env E.elems st₂ view₂ stmt =
+              .ok (st₂', view₂') := by
+            simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₂
+          rcases CoreMemDesign.combIfBranch_result hb₁ with hyes' | hno'
+          · have hstmt : stmt = yes := Option.some.inj hyes'
+            subst stmt
+            exact hyes st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂'
+              hc₁ hc₂ hm₁ hm₂ hview hviews hchild₁ hchild₂
+          · exact hno stmt hno'.symm st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂'
+              hc₁ hc₂ hm₁ hm₂ hview hviews hchild₁ hchild₂
+
 /-- The public view executor is the fixed-fuel, empty-local-frame wrapper around
 the source-shaped statement executor.  A statement coherence receipt therefore
 applies directly to any successful `execCombStmtAtView` run. -/
