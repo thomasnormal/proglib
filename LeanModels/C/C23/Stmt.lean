@@ -1004,10 +1004,29 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
             match type.unqualified with
             | .array _ none => true
             | _ => false
-          if variableLength then
-            refuseUnsupported
-              s!"variable-length array '{ty}' lacks parser-native bound expression"
-          match if vaList then some 1 else ctx.layout.sizeAt id ty with
+          let size? ← if vaList then pure (some 1) else if variableLength then
+            match ctx.layout.vlaBoundDeclAt id, id.bind ctx.layout.elementSizeDecl with
+            | some boundId, some elementSize =>
+                match ctx.idEnv.lookup? boundId with
+                | some boundObj =>
+                    let boundSize := ctx.layout.sizeAt (some boundId) "int"
+                    let boundPtr := match boundSize with
+                      | some size => Ptr.toObjectBound boundObj size
+                      | none => Ptr.toObject boundObj
+                    let boundType := ctx.layout.structuredTypeDecl boundId
+                    let boundValue ← ctx.loadAt boundPtr "int" boundSize boundType
+                    let (_, count) ← asInt boundValue
+                    if count ≤ 0 then
+                      refuseUnsupported "variable-length array bound is not positive"
+                    else pure (some (count.toNat * elementSize))
+                | none =>
+                    refuseUnsupported
+                      "variable-length array bound declaration is not in scope"
+            | _, _ =>
+                refuseUnsupported
+                  s!"variable-length array '{ty}' lacks parser-native bound expression"
+          else pure (ctx.layout.sizeAt id ty)
+          match size? with
           | none => refuseUnsupported s!"no layout for declared type '{ty}'"
           | some sz => do
             -- §6.2.4p6: an automatic object lives from block entry, with

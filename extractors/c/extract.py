@@ -111,8 +111,9 @@ def canonicalize_ids(tree):
         if isinstance(value, dict):
             for key in list(value):
                 item = value[key]
-                if (key == "id" or key.endswith("Id") or key.endswith("_id") or
-                        key in ("init", "referencedMemberDecl")) and isinstance(item, str):
+                if (isinstance(key, str) and
+                    (key == "id" or key.endswith("Id") or key.endswith("_id") or
+                        key in ("init", "referencedMemberDecl")) and isinstance(item, str)):
                     value[key] = canon(item)
                 else:
                     walk(item)
@@ -337,6 +338,10 @@ def record_layout_records(path):
                     (type(record["element_size_bytes"]) is not int or
                      record["element_size_bytes"] < 0)):
                 die("record layout probe returned an invalid element size")
+            if (record.get("bound_decl_offset") is not None and
+                    (type(record["bound_decl_offset"]) is not int or
+                     record["bound_decl_offset"] < 0)):
+                die("record layout probe returned an invalid VLA bound declaration offset")
             type_layouts.append(record)
             continue
         if record.get("kind") == "EnumValue":
@@ -1114,7 +1119,11 @@ def extract(path, source_name=None, standard="c23"):
     check_profile()
     src = open(path, "rb").read()
     raw_tu, raw_structured_types, zero_null_pointer = clang_json(path)
-    joined = canonicalize_ids({"ast": raw_tu, "structured": raw_structured_types})
+    string_bytes = string_byte_records(path)
+    floating_bits = floating_bit_records(path)
+    record_layouts = record_layout_records(path)
+    joined = canonicalize_ids({"ast": raw_tu, "structured": raw_structured_types,
+                               "layouts": record_layouts})
     tu = joined["ast"]
     member_record_ids = {}
     def collect_member_records(node, record_id=None):
@@ -1129,9 +1138,6 @@ def extract(path, source_name=None, standard="c23"):
                 collect_member_records(child, record_id)
     collect_member_records(tu)
     target = os.path.basename(path)
-    string_bytes = string_byte_records(path)
-    floating_bits = floating_bit_records(path)
-    record_layouts = record_layout_records(path)
     structured_types = structured_type_records(joined["structured"])
     # Clang accepts source bytes inside literals that are not UTF-8.  Keep
     # those parser-owned bytes available for diagnostic slicing without
@@ -1229,6 +1235,11 @@ def extract(path, source_name=None, standard="c23"):
             record["decl_id"] = candidates[0][1]
         elif offset in var_decl_ids_by_offset and not candidates:
             record["decl_id"] = var_decl_ids_by_offset[offset]
+        bound_offset = record.get("bound_decl_offset")
+        if isinstance(bound_offset, int):
+            bound_id = decl_ids_by_offset.get(bound_offset)
+            if bound_id is not None:
+                record["bound_decl_id"] = bound_id
 
     # Join structured QualType observations by the parser node IDs from the
     # same Clang invocation.  Offsets remain provenance for diagnostics only.
@@ -1343,7 +1354,9 @@ def extract(path, source_name=None, standard="c23"):
                           **({"element_type": r["element_type"]}
                              if r.get("element_type") is not None else {}),
                           **({"element_size_bytes": r["element_size_bytes"]}
-                             if r.get("element_size_bytes") is not None else {})}
+                             if r.get("element_size_bytes") is not None else {}),
+                          **({"bound_decl_id": r["bound_decl_id"]}
+                             if r.get("bound_decl_id") is not None else {})}
                          for r in ex.type_layouts],
         "structured_types": structured_rows,
         "structured_expr_types": structured_expr_rows,

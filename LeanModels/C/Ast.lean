@@ -176,6 +176,9 @@ structure TypeLayout where
   elementType : Option String := none
   /-- For a declared array object, Clang's exact byte size of one element. -/
   elementSizeBytes : Option Nat := none
+  /-- For a variable-length array whose parser bound is a declaration
+  identity, the declaration supplying that bound. -/
+  boundDeclaration : Option DeclarationId := none
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 /-! A recursive `QualType` observation joined to a parser declaration ID. -/

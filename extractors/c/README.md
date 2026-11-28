@@ -68,6 +68,9 @@ parser-provided source offset. Compound-literal facts intentionally have no
 declaration identity and are consumed by their parser-attached type. The
 displayed type text is metadata only and is never parsed or used as the join
 key.
+For a variable-length array whose bound is a declaration reference, the same
+parser observation carries that declaration's source identity as
+`bound_decl_id`; bounds with other expression shapes remain unrepresented.
 
 ```sh
 export LEAN_C_RECORD_LAYOUT_PLUGIN=/outside/the/repo/record_layout_probe.so

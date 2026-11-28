@@ -66,6 +66,16 @@ public:
         item["element_size_bytes"] =
             static_cast<int64_t>(elementSize.getQuantity());
       }
+      if (const auto *variable = llvm::dyn_cast<clang::VariableArrayType>(
+              type.getTypePtrOrNull())) {
+        if (const auto *bound = llvm::dyn_cast<clang::DeclRefExpr>(
+                variable->getSizeExpr()->IgnoreParenImpCasts())) {
+          const auto boundLoc = sources.getExpansionLoc(bound->getDecl()->getBeginLoc());
+          if (sources.isWrittenInMainFile(boundLoc))
+            item["bound_decl_offset"] =
+                static_cast<int64_t>(sources.getFileOffset(boundLoc));
+        }
+      }
     }
     records.push_back(std::move(item));
   }

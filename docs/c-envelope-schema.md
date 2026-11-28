@@ -101,6 +101,10 @@ a declared pointer-to-array object, the optional
 array observations may carry `element_type` and `element_size_bytes` from the
 same parser node. Pointer arithmetic and aggregate initialization consume
 these parser facts without parsing the flat type spelling.
+Variable-length array observations may also carry `bound_decl_id`, the
+parser declaration identity of a simple declaration reference in the runtime
+bound. More general bound expressions remain absent and are refused by the
+semantic tier.
 
 `record_kinds` is an optional list of parser-native `RecordDecl.tagUsed`
 facts keyed by declaration identity. `is_union` is Clang's own struct/union

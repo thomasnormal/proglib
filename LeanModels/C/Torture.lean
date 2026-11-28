@@ -617,7 +617,8 @@ def layoutFor (envl : Envelope) : Layout :=
   let observedTypeSize := fun t : String =>
     envl.typeLayouts.find? (fun row => row.ty == t) |>.map (·.sizeBytes)
   let observedDeclSize := fun id : DeclarationId =>
-    envl.typeLayouts.find? (fun row => row.declaration == some id) |>.map (·.sizeBytes)
+    envl.typeLayouts.find? (fun row => row.declaration == some id) |>.bind fun row =>
+      if row.boundDeclaration.isSome then none else some row.sizeBytes
   let observedRecordSizeDecl := fun id : DeclarationId =>
     observedRecordLayout? envl id |>.map (·.sizeBytes)
   let observedPointeeSize := fun t : String =>
@@ -626,6 +627,8 @@ def layoutFor (envl : Envelope) : Layout :=
     envl.typeLayouts.find? (fun row => row.declaration == some id) |>.bind (·.pointeeSizeBytes)
   let observedDeclElementSize := fun id : DeclarationId =>
     envl.typeLayouts.find? (fun row => row.declaration == some id) |>.bind (·.elementSizeBytes)
+  let observedVlaBoundDecl := fun id : DeclarationId =>
+    envl.typeLayouts.find? (fun row => row.declaration == some id) |>.bind (·.boundDeclaration)
   let observedExprType := fun offset : Nat =>
     envl.structuredExprTypes.find? (fun row => row.offset == offset) |>.map (·.type)
   let observedExprTypeAt := fun (offset : Nat) (endOffset : Option Nat) (kind : String) (_expected : String) =>
@@ -680,6 +683,7 @@ def layoutFor (envl : Envelope) : Layout :=
     structuredExprTypeAt := observedExprTypeAt
     pointeeSizeDecl := observedDeclPointeeSize
     elementSizeDecl := observedDeclElementSize
+    vlaBoundDecl := observedVlaBoundDecl
     fieldSizeDecl := observedFieldSizeDeclFor
     fieldStructuredDecl := observedFieldStructuredDeclFor
     fieldDecl := observedFieldDeclFor
