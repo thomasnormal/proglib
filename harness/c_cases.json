@@ -1976,5 +1976,19 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "corpus-c23-tag-alias-1",
+    "source": "/* { dg-do run }\n * { dg-options \"-std=c23 -O2\" }\n */\n\n\n/* These tests check that redefinitions of tagged\n   types can alias the original definitions.  */\n\nstruct foo { int x; };\n\nint test_foo(struct foo* a, void* b)\n{\n\ta->x = 1;\n\n\tstruct foo { int x; }* p = b;\n\tp->x = 2;\n\n\treturn a->x;\n}\n\n\nenum bar { A = 1, B = 3 };\n\nint test_bar(enum bar* a, void* b)\n{\n\t*a = A;\n\n\tenum bar { A = 1, B = 3 }* p = b;\n\t*p = B;\n\n\treturn *a;\n}\n\n\nint main()\n{\n\tstruct foo y;\n\n\tif (2 != test_foo(&y, &y))\n\t\t__builtin_abort();\n\n\tenum bar z;\n\n\tif (B != test_bar(&z, &z))\n\t\t__builtin_abort();\n\n\treturn 0;\n}\n\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "corpus-c23-tag-alias-2",
+    "source": "/* { dg-do run { target lto } }\n * { dg-options \"-std=c23 -flto -O2\" }\n */\n\n/* These tests check that compatible definitions of\n   tagged types can alias the original definitions\n   with LTO.  */\n\nstruct foo { int x; };\n\nint test_foo(struct foo* a, void* b)\n{\n\ta->x = 1;\n\n\tstruct foo { int x; }* p = b;\n\tp->x = 2;\n\n\treturn a->x;\n}\n\n\nenum bar { A = 1, B = 3 };\n\nint test_bar(enum bar* a, void* b)\n{\n\t*a = A;\n\n\tenum bar { A = 1, B = 3 }* p = b;\n\t*p = B;\n\n\treturn *a;\n}\n\n\nint main()\n{\n\tstruct foo y;\n\n\tif (2 != test_foo(&y, &y))\n\t\t__builtin_abort();\n\n\tenum bar z;\n\n\tif (B != test_bar(&z, &z))\n\t\t__builtin_abort();\n\n\treturn 0;\n}\n\n\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
