@@ -380,6 +380,12 @@ partial def parseExpr (j : Json) : Except String Expr := do
         return .vaArg (← sub "ap") (← ty) span structuredType
     | "OffsetOfExpr" =>
         return .offsetOf (← ty) span (← getOptNat j "offset_bytes") structuredType
+    | "StmtExpr" =>
+        let body ← match ← getField j "body" with
+          | .null => pure none
+          | .arr values => some <$> values.toList.mapM parseExpr
+          | _ => throw "field 'body' is not an array or null"
+        return .stmtExpr body (← ty) span structuredType
     | "Unsupported" =>
         return .unsupported (← getStr j "c_kind") (← getStr j "text") span
     | other =>

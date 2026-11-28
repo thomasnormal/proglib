@@ -303,6 +303,11 @@ inductive Expr where
   | genericSelection (control selected : Expr) (associations : List (Bool × Expr))
       (ty : String) (span : CSpan)
       (structuredType : Option LeanModels.Clang.QualType)
+  /-- GNU statement expression. The extractor retains expression-only
+      bodies. Bodies containing declarations or control statements remain
+      loud parser leaves until statement scope is represented here. -/
+  | stmtExpr (body : Option (List Expr)) (ty : String) (span : CSpan)
+      (structuredType : Option LeanModels.Clang.QualType)
   /-- Outside the pinned vocabulary: clang's own class name and ≤200 chars
   of source. Never silently dropped, never guessed at. -/
   | unsupported (cKind : String) (text : String) (span : CSpan)
@@ -323,6 +328,7 @@ def Expr.span : Expr → CSpan
   | .typeTrait _ _ _ _ span .. | .constExpr _ _ _ span .. | .vaArg _ _ span ..
   | .offsetOf _ span ..
   | .genericSelection _ _ _ _ span ..
+  | .stmtExpr _ _ span ..
   | .unsupported _ _ span => span
 
 /-- C declarations that can appear at BLOCK scope as well as file scope —
@@ -533,6 +539,7 @@ def Expr.ty : Expr → String
   | .typeTrait _ _ _ t _ .. | .constExpr _ _ t _ .. | .vaArg _ t _ ..
   | .offsetOf t _ _ _ => t
   | .genericSelection _ _ _ t _ _ => t
+  | .stmtExpr _ t _ _ => t
   | .unsupported .. => ""
 
 /-- The parser-native QualType carried directly by an expression node. -/
@@ -550,6 +557,7 @@ def Expr.structuredType? : Expr → Option LeanModels.Clang.QualType
   | .typeTrait _ _ _ _ _ _ _ _ q | .constExpr _ _ _ _ q | .vaArg _ _ _ q => q
   | .offsetOf _ _ _ q => q
   | .genericSelection _ _ _ _ _ q => q
+  | .stmtExpr _ _ _ q => q
   | .unsupported .. => none
 
 /-- clang's own class name for this node, for diagnostics. A refusal a
@@ -586,6 +594,7 @@ def Expr.kindName : Expr → String
   | .vaArg .. => "VAArgExpr"
   | .offsetOf .. => "OffsetOfExpr"
   | .genericSelection .. => "GenericSelectionExpr"
+  | .stmtExpr .. => "StmtExpr"
   | .unsupported k _ _ => k
 
 /-- Sub-expressions, including the expression itself. Effect checks can omit
@@ -613,6 +622,7 @@ def Expr.subexprs (e : Expr) (includeTraitOperands : Bool := true) : List Expr :
       e :: (base.subexprs includeTraitOperands ++ update.subexprs includeTraitOperands)
   | .genericSelection control selected _ _ .. =>
       e :: (control.subexprs includeTraitOperands ++ selected.subexprs includeTraitOperands)
+  | .stmtExpr (some body) _ _ .. => e :: body.flatMap (·.subexprs includeTraitOperands)
   | .compoundLit i _ _ .. => e :: i.subexprs includeTraitOperands
   | .typeTrait _ _ (some s) _ _ .. =>
       if includeTraitOperands then e :: s.subexprs includeTraitOperands else [e]

@@ -82,7 +82,7 @@ EXPRS = {"IntegerLiteral", "CharacterLiteral", "StringLiteral", "PredefinedExpr"
          "MaterializeTemporaryExpr",
          "ImplicitCastExpr", "CStyleCastExpr",
          "InitListExpr", "DesignatedInitUpdateExpr", "ImplicitValueInitExpr", "CompoundLiteralExpr", "UnaryExprOrTypeTraitExpr",
-         "ConstantExpr", "VAArgExpr", "OffsetOfExpr"}
+         "ConstantExpr", "VAArgExpr", "OffsetOfExpr", "StmtExpr"}
 TYPES = {"BuiltinType", "PointerType", "RecordType", "TypedefType",
          "ElaboratedType", "ParenType", "FunctionProtoType"}
 VOCAB = DECLS | STMTS | EXPRS | TYPES
@@ -1075,6 +1075,26 @@ class Extractor:
             v = folded(c[0])
         return {"value": None if v is None else str(v),
                 "sub": self.node(c[0]) if c else None, "type": qual(n)}
+
+    def e_StmtExpr(self, n):
+        """Retain GNU StmtExpr's parser body without source-level rewriting.
+
+        The value of a GNU statement expression is the last expression
+        statement in its compound body.  Expression-only bodies are admitted
+        here.  A declaration or control statement remains an explicit parser
+        node with no admitted body, so ingestion refuses it loudly rather than
+        dropping the scope-bearing child.
+        """
+        compounds = [child for child in kids(n) if child.get("kind") == "CompoundStmt"]
+        if len(compounds) != 1:
+            raise SystemExit("extract.py: StmtExpr did not retain one CompoundStmt body")
+        body = kids(compounds[0])
+        if any(child.get("kind") not in EXPRS for child in body):
+            return {"body": None, "unsupported_body":
+                    next(child.get("kind", "?") for child in body if child.get("kind") not in EXPRS),
+                    "type": qual(n)}
+        return {"body": [self.node(child) for child in body], "unsupported_body": None,
+                "type": qual(n)}
 
 
 def externals(tu, target, loc_cls):

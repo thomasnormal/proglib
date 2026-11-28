@@ -1,0 +1,12 @@
+{
+ "schema": "c-statement-expr-audit-1",
+ "compiler": "clang version 21.1.8 (https://github.com/conda-forge/clangdev-feedstock 334cf9a5e6c0331e9f261eaf01fc3568724fcce9)",
+ "rows": [
+  {"name": "20000703-1.c", "body": "declaration", "model": "REFUSE"},
+  {"name": "20000917-1.c", "body": "expression-only nested", "model": "REFUSE", "reason": "aggregate value representation"},
+  {"name": "20020206-1.c", "body": "expression-only nested", "model": "REFUSE", "reason": "aggregate value representation"},
+  {"name": "20020320-1.c", "body": "declaration", "model": "REFUSE"},
+  {"name": "930406-1.c", "body": "declaration/control", "model": "REFUSE"},
+  {"name": "950906-1.c", "body": "expression-only", "model": "0", "native": "0/O0/O2/UBSan-ASan"}
+ ]
+}

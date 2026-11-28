@@ -1778,6 +1778,23 @@ def evalCall (ctx : Ctx) (callee : Expr) (args : List Expr) : EvalM CVal := do
     all_goals simp [Expr.sizes_cons, Expr.sizes, Expr.size] at *
     all_goals omega
 
+/- GNU C statement expressions evaluate their compound body in order and
+   produce the value of its final expression statement.  The extractor keeps
+   only expression-only bodies in this arm.  Scope-bearing bodies stay as an
+   explicit `none` payload and refuse below. -/
+def evalStmtExprBody (ctx : Ctx) : List Expr → EvalM CVal
+  | [] => refuseUnsupported "statement expression has no final expression value"
+  | [e] => evalExpr ctx e
+  | e :: rest => do
+      let _ ← evalExpr ctx e
+      evalStmtExprBody ctx rest
+  termination_by es => 2 * Expr.sizes es + 2
+  decreasing_by
+    all_goals simp_wf
+    all_goals have he := Expr.size_pos e
+    all_goals simp [Expr.sizes_cons, Expr.sizes, Expr.size] at *
+    all_goals omega
+
 /-- §6.3.2.1p1 — an expression in LVALUE position, yielding the address
 it designates.
 
@@ -1880,6 +1897,8 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
       -- full-expression node and evaluate its child under C23's rules.
       evalExpr ctx sub
   | .materializeTemporary sub _ _ .. => evalExpr ctx sub
+  | .stmtExpr (some body) _ _ .. => evalStmtExprBody ctx body
+  | .stmtExpr none _ _ .. => refuseUnsupported "statement expression body contains a declaration or control statement"
   | .compoundLit init ty span structured => do
       match ctx.layout.sizeAtStructured none ty structured with
       | none => refuseUnsupported s!"no layout for compound literal type '{ty}'"
@@ -2715,6 +2734,7 @@ def Expr.nodeIsPure : Expr → Bool
   -- §6.7.11 — aggregate initialization writes through the layout.
   | .initList .. | .arrayInitList .. | .implicitValueInit .. | .compoundLit .. => false
   | .designatedUpdate .. => false
+  | .stmtExpr .. => false
   | .strLit .. | .predefined .. => false
   -- Out of tier: unknown, therefore not pure.
   | .unsupported .. => false
@@ -2736,6 +2756,13 @@ once, which is the same reason `Expr.size` is defined that way
 (`LeanModels/C/Ast.lean`). -/
 def Expr.isPure (e : Expr) : Bool := e.subexprs.all Expr.nodeIsPure
 
+@[simp] theorem Expr.isPure_stmtExpr (body : Option (List Expr))
+    (ty : String) (span : CSpan) (structuredType : Option LeanModels.Clang.QualType) :
+    Expr.isPure (.stmtExpr body ty span structuredType) = false := by
+  cases body with
+  | none => simp [Expr.isPure, Expr.subexprs, Expr.nodeIsPure, List.all]
+  | some body => simp [Expr.isPure, Expr.subexprs, Expr.nodeIsPure, List.all]
+
 /-! ### Reading a purity fact off a node
 
 One general lemma for the HEAD, and one extraction per constructor the
@@ -2746,8 +2773,16 @@ is why none of these is stated as an equivalence. -/
 head. -/
 theorem Expr.nodeIsPure_of_isPure {e : Expr} (h : Expr.isPure e = true) :
     Expr.nodeIsPure e = true := by
-  cases e <;>
-    simp_all [Expr.isPure, Expr.subexprs, Expr.nodeIsPure, List.all_cons, List.all_append]
+  cases e with
+  | stmtExpr body ty span structuredType =>
+      simp only [Expr.isPure_stmtExpr] at h
+      contradiction
+  | _ =>
+      simp_all [Expr.isPure, Expr.subexprs, Expr.nodeIsPure, List.all_cons, List.all_append] <;>
+        try
+          have hs := h _ (by simp [Expr.subexprs])
+          simp [Expr.nodeIsPure] at hs
+        <;> try simp [Expr.isPure, Expr.subexprs, Expr.nodeIsPure] at h
 
 theorem Expr.isPure_paren {s : Expr} {t : String} {sp : CSpan} {q : Option LeanModels.Clang.QualType}
     (h : Expr.isPure (.paren s t sp q) = true) : Expr.isPure s = true := by
@@ -3381,6 +3416,7 @@ private theorem memInvariant_core (ctx : Ctx) : ∀ (n : Nat) (e : Expr), e.size
       | designatedUpdate _ _ _ _ _ => simp [Expr.nodeIsPure] at hnode
       | implicitValueInit _ _ _ => simp [Expr.nodeIsPure] at hnode
       | compoundLit _ _ _ _ => simp [Expr.nodeIsPure] at hnode
+      | stmtExpr _ _ _ _ => simp [Expr.nodeIsPure] at hnode
       | unsupported _ _ _ => simp [Expr.nodeIsPure] at hnode
 
 /-- **RUNG A.** A pure expression's evaluation leaves memory exactly as it
