@@ -705,18 +705,20 @@ def Layout.valueBytesKnown? (layout : Layout) (fuel : Nat)
           | none => none
           | some members =>
               if members.all (fun (name, _) =>
-                match layout.fieldOffDecl owner name,
-                  layout.fieldStructuredDecl owner name with
-                | some off, some fieldType =>
-                    (layout.valueBytesKnown? fuel fieldType bytes (base + off)) == some true
-                | _, _ => false) then
+                if (layout.fieldBitsDecl owner name).isSome then true else
+                  match layout.fieldOffDecl owner name,
+                    layout.fieldStructuredDecl owner name with
+                  | some off, some fieldType =>
+                      (layout.valueBytesKnown? fuel fieldType bytes (base + off)) == some true
+                  | _, _ => false) then
                 some true
               else if members.any (fun (name, _) =>
-                match layout.fieldOffDecl owner name,
-                  layout.fieldStructuredDecl owner name with
-                | some off, some fieldType =>
-                    (layout.valueBytesKnown? fuel fieldType bytes (base + off)) == some false
-                | _, _ => false) then
+                if (layout.fieldBitsDecl owner name).isSome then false else
+                  match layout.fieldOffDecl owner name,
+                    layout.fieldStructuredDecl owner name with
+                  | some off, some fieldType =>
+                      (layout.valueBytesKnown? fuel fieldType bytes (base + off)) == some false
+                  | _, _ => false) then
                 some false
               else none
       | .array element (some extent) =>
