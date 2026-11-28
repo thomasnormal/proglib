@@ -1233,6 +1233,15 @@ def CoreMemDesign.CombStmtViewCongr (E : CoreMemDesign) (env : IEnv) (stmt : PSt
     E.execCombStmtAtView env E.elems st₂ view₂ stmt = .ok (st₂', view₂') →
     view₁' = view₂'
 
+def CoreMemDesign.CombStmtViewRefines (E : CoreMemDesign) (env : IEnv) (stmt : PStmt) : Prop :=
+  ∀ (st₁ st₂ : CoreMemState) (view₁ view₂ : SvState)
+    (st₂' : CoreMemState) (view₂' : SvState),
+    E.Coherent st₁ → E.Coherent st₂ → E.MemCoherent st₁.memory → E.MemCoherent st₂.memory →
+    E.scalar.view st₁.scalar = E.scalar.view st₂.scalar → view₁ = view₂ →
+    E.execCombStmtAtView env E.elems st₂ view₂ stmt = .ok (st₂', view₂') →
+    ∃ st₁' view₁',
+      E.execCombStmtAtView env E.elems st₁ view₁ stmt = .ok (st₁', view₁') ∧ view₁' = view₂'
+
 theorem CoreMemDesign.combStmtAtViewStable_blocking
     {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
     (hbody : E.combBodyB (.blockingAssign n value) = true) :
@@ -1601,6 +1610,112 @@ theorem CoreMemDesign.runCombAt_view_congr_of_each
           simp at hbad
       | unsupported kind text =>
           simp [CoreMemDesign.runCombAt] at h₁
+
+theorem CoreMemDesign.runCombAt_of_view_success_of_each
+    {E : CoreMemDesign}
+    {before₁ before₂ current₁ current₂ : CoreMemState}
+    {beforeView₁ beforeView₂ currentView₁ currentView₂ : SvState}
+    {index : Nat} {procs : List CoreMemProc} {st₂' : CoreMemState}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hbeforeC₁ : E.Coherent before₁) (hbeforeC₂ : E.Coherent before₂)
+    (hbeforeM₁ : E.MemCoherent before₁.memory) (hbeforeM₂ : E.MemCoherent before₂.memory)
+    (hcurrentC₁ : E.Coherent current₁) (hcurrentC₂ : E.Coherent current₂)
+    (hcurrentM₁ : E.MemCoherent current₁.memory) (hcurrentM₂ : E.MemCoherent current₂.memory)
+    (hbefore : E.scalar.view before₁.scalar = E.scalar.view before₂.scalar)
+    (hcurrent : E.scalar.view current₁.scalar = E.scalar.view current₂.scalar)
+    (hbeforeView : beforeView₁ = beforeView₂) (hcurrentView : currentView₁ = currentView₂)
+    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {bv₁ bv₂ cv₁ cv₂ : SvState}
+      {body : PStmt} {i : Nat},
+      E.Coherent b₁ → E.Coherent b₂ → E.MemCoherent b₁.memory → E.MemCoherent b₂.memory →
+      E.Coherent c₁ → E.Coherent c₂ → E.MemCoherent c₁.memory → E.MemCoherent c₂.memory →
+      E.scalar.view b₁.scalar = E.scalar.view b₂.scalar →
+      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar → bv₁ = bv₂ → cv₁ = cv₂ →
+      E.readChangedAt b₁ c₁ bv₁ cv₁ i (coreMemCombExternalReadExprs body) =
+        E.readChangedAt b₂ c₂ bv₂ cv₂ i (coreMemCombExternalReadExprs body))
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewRefines E.env body
+      | .latch _ => False
+      | _ => True)
+    (h₂ : E.runCombAt before₂ beforeView₂ current₂ currentView₂ index procs = .ok st₂') :
+    ∃ st₁', E.runCombAt before₁ beforeView₁ current₁ currentView₁ index procs = .ok st₁' ∧
+      E.scalar.view st₁'.scalar = E.scalar.view st₂'.scalar ∧
+      E.Coherent st₁' ∧ E.MemCoherent st₁'.memory := by
+  induction procs generalizing index current₁ current₂ currentView₁ currentView₂ st₂' with
+  | nil =>
+      simp only [CoreMemDesign.runCombAt, Res.ok.injEq] at h₂
+      obtain rfl := h₂
+      exact ⟨current₁, rfl, hcurrent, hcurrentC₁, hcurrentM₁⟩
+  | cons p rest ih =>
+      have hrest : ∀ q ∈ rest, match q with
+          | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewRefines E.env body
+          | .latch _ => False
+          | _ => True := by
+        intro q hq
+        exact hproc q (by simp [hq])
+      cases p with
+      | comb body =>
+          have hb := hproc (.comb body) (by simp)
+          simp only [CoreMemDesign.runCombAt] at h₂
+          have hready := hread
+            (b₁ := before₁) (b₂ := before₂) (c₁ := current₁) (c₂ := current₂)
+            (bv₁ := beforeView₁) (bv₂ := beforeView₂) (cv₁ := currentView₁) (cv₂ := currentView₂)
+            (i := index) (body := body)
+            hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
+            hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent hbeforeView hcurrentView
+          cases hr₂ : E.readChangedAt before₂ current₂ beforeView₂ currentView₂ index
+              (coreMemCombExternalReadExprs body) with
+          | timeout => simp [hr₂] at h₂
+          | unsupported msg => simp [hr₂] at h₂
+          | ok ready₂ =>
+              have hr₁ : E.readChangedAt before₁ current₁ beforeView₁ currentView₁ index
+                  (coreMemCombExternalReadExprs body) = .ok ready₂ := by
+                rw [hready, hr₂]
+              cases ready₂ with
+              | false =>
+                  simp only [hr₁, hr₂, Bool.not_false, ↓reduceIte] at h₂
+                  exact ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
+                    (currentView₁ := currentView₁) (currentView₂ := currentView₂) (st₂' := st₂')
+                    hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hcurrent hcurrentView hrest h₂
+              | true =>
+                  simp only [hr₂, Bool.not_true, ↓reduceIte, Res.ok_bind] at h₂
+                  cases he₂ : E.execCombStmtAtView E.env E.elems current₂ currentView₂ body with
+                  | timeout => simp [he₂] at h₂
+                  | unsupported msg => simp [he₂] at h₂
+                  | ok result₂ =>
+                      simp only [he₂, Res.ok_bind] at h₂
+                      obtain ⟨after₂, afterView₂⟩ := result₂
+                      obtain ⟨after₁, afterView₁, he₁, hview₁⟩ := hb.2
+                        current₁ current₂ currentView₁ currentView₂ after₂ afterView₂
+                        hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hcurrent hcurrentView he₂
+                      have hcoh₁ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+                        (E := E) hb.1 hcurrentC₁ hcurrentM₁ he₁
+                      have hcoh₂ := CoreMemDesign.execCombStmtAtView_coherent_of_stmt
+                        (E := E) hb.1 hcurrentC₂ hcurrentM₂ he₂
+                      have hcompact₁ := E.compactScalar_view hnd h4 hcoh₁.1 afterView₁
+                      have hcompact₂ := E.compactScalar_view hnd h4 hcoh₂.1 afterView₂
+                      simp only [Bool.false_eq_true, ↓reduceIte] at h₂
+                      obtain ⟨st₁', hrun₁, hview₁', hcoh₁', hm₁'⟩ := ih
+                        (index := index + 1)
+                        (current₁ := E.compactScalar after₁ afterView₁)
+                        (current₂ := E.compactScalar after₂ afterView₂)
+                        (currentView₁ := afterView₁) (currentView₂ := afterView₂) (st₂' := st₂')
+                        hcompact₁.2 hcompact₂.2
+                        (by rw [E.compactScalar_memory]; exact hcoh₁.2)
+                        (by rw [E.compactScalar_memory]; exact hcoh₂.2)
+                        (by rw [hcompact₁.1, hcompact₂.1, hview₁]) hview₁ hrest h₂
+                      refine ⟨st₁', ?_, hview₁', hcoh₁', hm₁'⟩
+                      simp only [hr₁, Bool.not_true, ↓reduceIte, Res.ok_bind, he₁]
+                      exact hrun₁
+      | primitive kind name | assign target value | edge _ | initial _ | implicit _ | event _ _ =>
+          simp only [CoreMemDesign.runCombAt] at h₂
+          exact ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
+            (currentView₁ := currentView₁) (currentView₂ := currentView₂) (st₂' := st₂')
+            hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hcurrent hcurrentView hrest h₂
+      | latch body =>
+          have hbad := hproc (.latch body) (by simp)
+          simp at hbad
+      | unsupported kind text =>
+          simp [CoreMemDesign.runCombAt] at h₂
 
 theorem CoreMemDesign.runCombPass_view_congr_of_each
     {E : CoreMemDesign}
