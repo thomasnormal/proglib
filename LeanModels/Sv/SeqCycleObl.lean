@@ -1463,11 +1463,11 @@ theorem CoreMemDesign.combStmtViewRefinesFuel_case
     {E : CoreMemDesign} {env : IEnv} {fuel : Nat} {subject : PExpr}
     {items : List (List PExpr × PStmt)} {default? : Option PStmt}
     {mode : CaseMode} {check : CaseCheck}
-    (hbranchEq : ∀ (st₁ st₂ : CoreMemState) (locals : SvState),
+    (hbranchEq : ∀ (st₁ st₂ : CoreMemState),
       E.Coherent st₁ → E.Coherent st₂ → E.MemCoherent st₁.memory →
       E.MemCoherent st₂.memory → E.scalar.view st₁.scalar = E.scalar.view st₂.scalar →
-      E.combCaseBranch env E.elems st₁ locals subject items default? mode check =
-        E.combCaseBranch env E.elems st₂ locals subject items default? mode check)
+      E.combCaseBranch env E.elems st₁ [] subject items default? mode check =
+        E.combCaseBranch env E.elems st₂ [] subject items default? mode check)
     (hchild : ∀ (st : CoreMemState), E.Coherent st → E.MemCoherent st.memory →
       ∀ {body}, E.combCaseBranch env E.elems st [] subject items default? mode check =
         .ok (some body) → E.CombStmtViewRefinesFuel env fuel body) :
@@ -1478,7 +1478,7 @@ theorem CoreMemDesign.combStmtViewRefinesFuel_case
   | timeout => simp [CoreMemDesign.execCombStmtFuel, hb₂] at h₂
   | unsupported msg => simp [CoreMemDesign.execCombStmtFuel, hb₂] at h₂
   | ok branch =>
-      have hb₁ := hbranchEq st₁ st₂ [] hc₁ hc₂ hm₁ hm₂ hview
+      have hb₁ := hbranchEq st₁ st₂ hc₁ hc₂ hm₁ hm₂ hview
       rw [hb₂] at hb₁
       cases branch with
       | none =>
@@ -1495,6 +1495,25 @@ theorem CoreMemDesign.combStmtViewRefinesFuel_case
           refine ⟨st₁', view₁', locals₁', ?_, hview'⟩
           simp only [CoreMemDesign.execCombStmtFuel, hb₁, Res.ok_bind]
           exact h₁
+
+theorem CoreMemDesign.combStmtViewRefinesFuel_case_pure
+    {E : CoreMemDesign} {env : IEnv} {fuel : Nat} {subject : PExpr}
+    {items : List (List PExpr × PStmt)} {default? : Option PStmt}
+    {mode : CaseMode} {check : CaseCheck}
+    (hsubject : PExpr.hasMemoryRead subject = false ∧
+      PExpr.hasFunctionCall subject = false)
+    (hitems : ∀ patterns body, (patterns, body) ∈ items →
+      ∀ expr ∈ patterns,
+        PExpr.hasMemoryRead expr = false ∧ PExpr.hasFunctionCall expr = false)
+    (hchild : ∀ (st : CoreMemState), E.Coherent st → E.MemCoherent st.memory →
+      ∀ {body}, E.combCaseBranch env E.elems st [] subject items default? mode check =
+        .ok (some body) → E.CombStmtViewRefinesFuel env fuel body) :
+    E.CombStmtViewRefinesFuel env (fuel + 1)
+      (.caseStmt subject items default? mode check) := by
+  apply CoreMemDesign.combStmtViewRefinesFuel_case
+  · intro st₁ st₂ hc₁ hc₂ hm₁ hm₂ hview
+    exact CoreMemDesign.combCaseBranch_congr_of_pure hm₁ hm₂ hview hsubject hitems
+  · exact hchild
 
 /-! A scalar blocking assignment can be replayed from any coherent state
 carrying the same scalar view.  This is the success-transfer receipt needed by
