@@ -6,8 +6,15 @@
       "name": "resolved_four_state_enum",
       "example": "sem2/resolved_enum",
       "top": "resolved_enum",
-      "signals": ["x", "z", "mixed", "known"],
-      "stimulus": [{}]
+      "signals": [
+        "x",
+        "z",
+        "mixed",
+        "known"
+      ],
+      "stimulus": [
+        {}
+      ]
     },
     {
       "name": "reset_event_iff_refuse",
@@ -73963,12 +73970,30 @@
         "y"
       ],
       "stimulus": [
-        {"en": "0", "a": "0"},
-        {"en": "1", "a": "0"},
-        {"en": "0", "a": "1"},
-        {"en": "x", "a": "0"},
-        {"en": "z", "a": "0"},
-        {"en": "1", "a": "1"}
+        {
+          "en": "0",
+          "a": "0"
+        },
+        {
+          "en": "1",
+          "a": "0"
+        },
+        {
+          "en": "0",
+          "a": "1"
+        },
+        {
+          "en": "x",
+          "a": "0"
+        },
+        {
+          "en": "z",
+          "a": "0"
+        },
+        {
+          "en": "1",
+          "a": "1"
+        }
       ],
       "refusal": "AlwaysLatch:self-read",
       "measured": "2026-11-22: Icarus Verilog 13.0 and Xcelium 24.03-s004 retain x,x,x,x,x,0 while canonical E refuses the simulator-dependent latch activation."
@@ -73984,12 +74009,30 @@
         "y"
       ],
       "stimulus": [
-        {"en": "0", "a": "0"},
-        {"en": "1", "a": "0"},
-        {"en": "0", "a": "1"},
-        {"en": "x", "a": "0"},
-        {"en": "z", "a": "0"},
-        {"en": "1", "a": "1"}
+        {
+          "en": "0",
+          "a": "0"
+        },
+        {
+          "en": "1",
+          "a": "0"
+        },
+        {
+          "en": "0",
+          "a": "1"
+        },
+        {
+          "en": "x",
+          "a": "0"
+        },
+        {
+          "en": "z",
+          "a": "0"
+        },
+        {
+          "en": "1",
+          "a": "1"
+        }
       ],
       "refusal": "AlwaysLatch:self-read",
       "measured": "2026-11-22: Icarus Verilog 13.0 and Xcelium 24.03-s004 retain x,x,0,0,0,0 while canonical E refuses the simulator-dependent latch activation."
@@ -73999,8 +74042,28 @@
       "example": "sem2/event_self_write_list_refuse",
       "file": "event_self_write_list_refuse",
       "top": "event_self_write_list",
-      "signals": ["a", "t", "y"],
-      "stimulus": [{"a":"0"}, {"a":"1"}, {"a":"0"}, {"a":"1"}, {"a":"0"}],
+      "signals": [
+        "a",
+        "t",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "a": "0"
+        },
+        {
+          "a": "1"
+        },
+        {
+          "a": "0"
+        },
+        {
+          "a": "1"
+        },
+        {
+          "a": "0"
+        }
+      ],
       "refusal": "AlwaysEvent:self-write",
       "measured": "2026-11-23: Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on five rows 0 x, 1 0, 0 1, 1 0, 0 1; canonical E refuses the explicit event-list blocking self-write under IEEE 1800-2023 §9.4.2."
     },
@@ -74009,8 +74072,34 @@
       "example": "sem2/event_self_write_latch_refuse",
       "file": "event_self_write_latch_refuse",
       "top": "event_self_write_latch",
-      "signals": ["en", "a", "t", "y"],
-      "stimulus": [{"en":"0","a":"0"}, {"en":"1","a":"1"}, {"en":"0","a":"0"}, {"en":"1","a":"0"}, {"en":"0","a":"1"}],
+      "signals": [
+        "en",
+        "a",
+        "t",
+        "y"
+      ],
+      "stimulus": [
+        {
+          "en": "0",
+          "a": "0"
+        },
+        {
+          "en": "1",
+          "a": "1"
+        },
+        {
+          "en": "0",
+          "a": "0"
+        },
+        {
+          "en": "1",
+          "a": "0"
+        },
+        {
+          "en": "0",
+          "a": "1"
+        }
+      ],
       "refusal": "AlwaysEvent:self-write",
       "measured": "2026-11-23: Icarus Verilog 13.0 and Xcelium 24.03-s004 agree on five rows x x, 1 x, 1 x, 0 1, 0 1; canonical E refuses the explicit event-list latch self-write under IEEE 1800-2023 §9.4.2."
     },
@@ -74024,12 +74113,30 @@
         "b"
       ],
       "stimulus": [
-        {"clk": "0", "d": "0"},
-        {"clk": "1", "d": "1"},
-        {"clk": "0", "d": "1"},
-        {"clk": "1", "d": "0"},
-        {"clk": "0", "d": "0"},
-        {"clk": "1", "d": "1"}
+        {
+          "clk": "0",
+          "d": "0"
+        },
+        {
+          "clk": "1",
+          "d": "1"
+        },
+        {
+          "clk": "0",
+          "d": "1"
+        },
+        {
+          "clk": "1",
+          "d": "0"
+        },
+        {
+          "clk": "0",
+          "d": "0"
+        },
+        {
+          "clk": "1",
+          "d": "1"
+        }
       ],
       "refusal": "Event:edge-blocking-race",
       "measured": "2026-11-22: Icarus Verilog 13.0 gives x,x,x,0,0,0 and Xcelium 24.03-s004 gives x,x,x,1,1,0; the reader reaches the blocking writer through assign w = a."
@@ -74039,14 +74146,36 @@
       "example": "sem2/edge_child_port_race_refuse",
       "top": "edge_child_port_race",
       "file": "edge_child_port_race_refuse",
-      "signals": ["clk", "d", "q"],
+      "signals": [
+        "clk",
+        "d",
+        "q"
+      ],
       "stimulus": [
-        {"clk": "0", "d": "0"},
-        {"clk": "1", "d": "1"},
-        {"clk": "0", "d": "1"},
-        {"clk": "1", "d": "0"},
-        {"clk": "0", "d": "0"},
-        {"clk": "1", "d": "1"}
+        {
+          "clk": "0",
+          "d": "0"
+        },
+        {
+          "clk": "1",
+          "d": "1"
+        },
+        {
+          "clk": "0",
+          "d": "1"
+        },
+        {
+          "clk": "1",
+          "d": "0"
+        },
+        {
+          "clk": "0",
+          "d": "0"
+        },
+        {
+          "clk": "1",
+          "d": "1"
+        }
       ],
       "refusal": "Event:edge-blocking-race",
       "measured": "2026-11-23: Icarus Verilog 13.0 gives x,1,1,1,1,1 and Xcelium 24.03-s004 gives x,x,x,1,1,0; the child input connection is flattened as u.a = a and the reader reaches the parent blocking writer through that source-shaped copy."
@@ -74119,15 +74248,41 @@
       "name": "event_control_repro_ecanon",
       "example": "event_control_repro",
       "top": "top",
-      "signals": ["a", "b", "q_clk", "q_event"],
+      "signals": [
+        "a",
+        "b",
+        "q_clk",
+        "q_event"
+      ],
       "stimulus": [
-        {"a": "0", "b": "0"},
-        {"a": "1", "b": "0"},
-        {"a": "1", "b": "1"},
-        {"a": "1", "b": "1"},
-        {"a": "1", "b": "1"},
-        {"a": "0", "b": "1"},
-        {"a": "0", "b": "0"}
+        {
+          "a": "0",
+          "b": "0"
+        },
+        {
+          "a": "1",
+          "b": "0"
+        },
+        {
+          "a": "1",
+          "b": "1"
+        },
+        {
+          "a": "1",
+          "b": "1"
+        },
+        {
+          "a": "1",
+          "b": "1"
+        },
+        {
+          "a": "0",
+          "b": "1"
+        },
+        {
+          "a": "0",
+          "b": "0"
+        }
       ],
       "measured": "Clean-room scalar event-list row. Explicit posedge and any-change event members are retained in E and compared against pinned simulators.",
       "file": "event_control_repro",
@@ -74229,14 +74384,36 @@
       "example": "sem2/edge_two_level_child_port_race_refuse",
       "top": "edge_two_level_child_port_race",
       "file": "edge_two_level_child_port_race_refuse",
-      "signals": ["clk", "d", "q"],
+      "signals": [
+        "clk",
+        "d",
+        "q"
+      ],
       "stimulus": [
-        {"clk": "0", "d": "0"},
-        {"clk": "1", "d": "1"},
-        {"clk": "0", "d": "1"},
-        {"clk": "1", "d": "0"},
-        {"clk": "0", "d": "0"},
-        {"clk": "1", "d": "1"}
+        {
+          "clk": "0",
+          "d": "0"
+        },
+        {
+          "clk": "1",
+          "d": "1"
+        },
+        {
+          "clk": "0",
+          "d": "1"
+        },
+        {
+          "clk": "1",
+          "d": "0"
+        },
+        {
+          "clk": "0",
+          "d": "0"
+        },
+        {
+          "clk": "1",
+          "d": "1"
+        }
       ],
       "refusal": "Event:edge-blocking-race",
       "measured": "2026-11-23: Icarus Verilog 13.0 gives x,1,1,1,1,1 and Xcelium 24.03-s004 gives x,x,x,1,1,0; canonical E closes the two flattened clock-port aliases and refuses the same-edge blocking race under IEEE 1800-2023 §§4.7 and 10.4.1."
@@ -74246,14 +74423,37 @@
       "example": "sem2/edge_driver_closure_race_refuse",
       "top": "edge_driver_closure_race_refuse",
       "file": "edge_driver_closure_race_refuse",
-      "signals": ["clk", "d", "b_assign", "b_comb"],
+      "signals": [
+        "clk",
+        "d",
+        "b_assign",
+        "b_comb"
+      ],
       "stimulus": [
-        {"clk": "0", "d": "0"},
-        {"clk": "1", "d": "1"},
-        {"clk": "0", "d": "1"},
-        {"clk": "1", "d": "0"},
-        {"clk": "0", "d": "0"},
-        {"clk": "1", "d": "1"}
+        {
+          "clk": "0",
+          "d": "0"
+        },
+        {
+          "clk": "1",
+          "d": "1"
+        },
+        {
+          "clk": "0",
+          "d": "1"
+        },
+        {
+          "clk": "1",
+          "d": "0"
+        },
+        {
+          "clk": "0",
+          "d": "0"
+        },
+        {
+          "clk": "1",
+          "d": "1"
+        }
       ],
       "refusal": "Event:edge-blocking-race",
       "measured": "2026-11-23: selected assign and always_comb driver paths are schedule-dependent. Icarus Verilog 13.0 gives xx,xx,xx,01,01,00; Xcelium 24.03-s004 gives xx,xx,xx,11,11,00; canonical E refuses after driver closure under IEEE 1800-2023 §§4.7 and 10.4.1."
@@ -74263,8 +74463,14 @@
       "example": "loopfuel_audit6",
       "top": "a6_near_min_ff",
       "clock": "clk",
-      "signals": ["q"],
-      "stimulus": [{}, {}, {}],
+      "signals": [
+        "q"
+      ],
+      "stimulus": [
+        {},
+        {},
+        {}
+      ],
       "measured": "2026-11-28: exact clocked INT_MIN loop default-envelope row; IEEE 1800-2023 §11.6 and §11.8 require seven iterations, matching Icarus Verilog 13.0, Xcelium 24.03-s004, and canonical E."
     },
     {
@@ -74386,6 +74592,76 @@
         }
       ],
       "measured": "2026-11-28: the same ports at P=1, Q=2 (four bits), so the inherited dimension is evaluated symbolically rather than read off the default; run2 (with the multi-point cross-check) and canonical E match Icarus Verilog 13.0 and Xcelium 26.09 on all five rows."
+    },
+    {
+      "name": "literal_fix_p1_near_min_ok",
+      "example": "loopfuel_literal_fix",
+      "top": "p1_near_min_ok",
+      "signals": [
+        "q"
+      ],
+      "stimulus": [
+        {},
+        {},
+        {}
+      ],
+      "measured": "2026-11-28: IEEE 1800-2023 §§5.7.1, 11.6, 11.8 operand-width signed unary-negation row; pinned Icarus Verilog 13.0 and Xcelium 24.03-s004 are the oracle."
+    },
+    {
+      "name": "literal_fix_p2_negneg64",
+      "example": "loopfuel_literal_fix",
+      "top": "p2_negneg64",
+      "signals": [
+        "q"
+      ],
+      "stimulus": [
+        {},
+        {},
+        {}
+      ],
+      "measured": "2026-11-28: IEEE 1800-2023 §§5.7.1, 11.6, 11.8 operand-width signed unary-negation row; pinned Icarus Verilog 13.0 and Xcelium 24.03-s004 are the oracle."
+    },
+    {
+      "name": "literal_fix_p2_negneg33",
+      "example": "loopfuel_literal_fix",
+      "top": "p2_negneg33",
+      "signals": [
+        "q"
+      ],
+      "stimulus": [
+        {},
+        {},
+        {}
+      ],
+      "measured": "2026-11-28: IEEE 1800-2023 §§5.7.1, 11.6, 11.8 operand-width signed unary-negation row; pinned Icarus Verilog 13.0 and Xcelium 24.03-s004 are the oracle."
+    },
+    {
+      "name": "literal_fix_p2_neg_wide_hex",
+      "example": "loopfuel_literal_fix",
+      "top": "p2_neg_wide_hex",
+      "signals": [
+        "q"
+      ],
+      "stimulus": [
+        {},
+        {},
+        {}
+      ],
+      "measured": "2026-11-28: IEEE 1800-2023 §§5.7.1, 11.6, 11.8 operand-width signed unary-negation row; pinned Icarus Verilog 13.0 and Xcelium 24.03-s004 are the oracle."
+    },
+    {
+      "name": "literal_fix_p2_comb_negneg64",
+      "example": "loopfuel_literal_fix",
+      "top": "p2_comb_negneg64",
+      "signals": [
+        "q"
+      ],
+      "stimulus": [
+        {},
+        {},
+        {}
+      ],
+      "measured": "2026-11-28: IEEE 1800-2023 §§5.7.1, 11.6, 11.8 operand-width signed unary-negation row; pinned Icarus Verilog 13.0 and Xcelium 24.03-s004 are the oracle."
     }
   ]
 }

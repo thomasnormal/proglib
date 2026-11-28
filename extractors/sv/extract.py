@@ -20655,15 +20655,32 @@ def _literal_integral_value(expression):
         if value is None:
             return None
         if op in ("Minus", "UnaryMinus"):
-            # An unsized decimal literal is a signed 32-bit integer.  The
-            # spelling ``-2147483648`` therefore remains INT_MIN under
-            # IEEE 1800-2023 §§11.6 and 11.8, even though Slang exposes the
-            # folded operand as the signed INT_MIN value.
-            if value == -(1 << 31) or value == (1 << 31):
-                return -(1 << 31)
-            return -value
+            return _literal_unary_minus(value, getattr(node, "operand", None))
         return value
     return None
+
+
+def _literal_unary_minus(value, operand):
+    """Apply unary minus at the operand's self-determined integral width.
+
+    IEEE 1800-2023 §§5.7.1, 11.6 and 11.8 keep a sized literal's width and
+    signedness through a unary expression.  The mathematical magnitude alone
+    therefore cannot identify the 32-bit ``INT_MIN`` spelling: the same bit
+    pattern in a 33- or 64-bit operand negates to positive 2^31.
+    """
+    try:
+        sv_type = operand.type
+        width = int(sv_type.bitWidth)
+        signed = bool(sv_type.isSigned)
+        if width <= 0:
+            return None
+        modulus = 1 << width
+        result = (-value) % modulus
+        if signed and result >= (1 << (width - 1)):
+            result -= modulus
+        return result
+    except Exception:
+        return None
 
 
 def _stdout_descriptor_variable(sm, expression):
