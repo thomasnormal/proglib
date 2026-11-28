@@ -6,6 +6,12 @@ abbrev CppTypeEvidence := LeanModels.Clang.QualType
 
 namespace CppTypeEvidence
 
+/- Compatibility names for literals emitted by the pre-QualType exporters.  The
+   generated TinyXML-2 captures remain parser output and use these names while
+   their provenance is refreshed. -/
+abbrev builtin := LeanModels.Clang.QualType.builtin
+abbrev qualified := LeanModels.Clang.QualType.qualified
+
 def beq (left right : CppTypeEvidence) : Bool := LeanModels.Clang.QualType.beq left right
 
 def beqList (left right : List CppTypeEvidence) : Bool :=
