@@ -4182,3 +4182,15 @@ as an ordinary finite literal or fabricating a payload would choose an
 unmodelled representation. Keep the builtin refused until the pinned profile
 specifies NaN payload construction and differential rows for its payload and
 comparison behavior.
+
+## 2026-11-28-c-byte-copy-subobject-boundary — cross-subobject copies remain refused
+
+The dynamic ranking has two sole rows whose first refusal is `byte copy spans a
+subobject boundary`: `20050826-1.c` and `strlen-7.c`. C23 §6.5p6-p7 and
+§6.7.3.1 require an access to respect the declared object and subobject whose
+stored value is being copied. The byte-copy path currently refuses when a copy
+would cross a parser-known subobject boundary because it does not yet carry
+complete member provenance and effective-type transitions for each copied byte.
+Treating the aggregate as one flat byte array could make an invalid access look
+successful. Keep the refusal until parser-native subobject footprints and
+provenance-preserving copy semantics are available.
