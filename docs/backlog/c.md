@@ -4194,3 +4194,15 @@ complete member provenance and effective-type transitions for each copied byte.
 Treating the aggregate as one flat byte array could make an invalid access look
 successful. Keep the refusal until parser-native subobject footprints and
 provenance-preserving copy semantics are available.
+
+## 2026-11-28-c-goto-skips-declaration — declaration-crossing gotos remain refused
+
+The ranked survey has two sole rows whose first refusal is `goto skips a block
+declaration`: `00129.c` and `gcc/testsuite/gcc.dg/c23-labels-1.c`. C23
+§6.8.6.1 constrains a goto that transfers into a scope, and §6.2.4p6 makes an
+automatic object's lifetime begin at block entry. The evaluator cannot yet
+prove from the parser-owned control-flow tree that a jump skips no initialized
+declaration or enters no lifetime-bearing scope. Treating the jump as an
+ordinary label tail could create or bypass automatic storage. Keep these rows
+loudly refused until declaration-aware CFG transfer and lifetime entry/exit
+semantics are carried together.
