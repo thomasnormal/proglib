@@ -20634,7 +20634,15 @@ def _literal_integral_value(expression):
         value = _literal_integral_value(getattr(node, "operand", None))
         if value is None:
             return None
-        return -value if op in ("Minus", "UnaryMinus") else value
+        if op in ("Minus", "UnaryMinus"):
+            # An unsized decimal literal is a signed 32-bit integer.  The
+            # spelling ``-2147483648`` therefore remains INT_MIN under
+            # IEEE 1800-2023 §§11.6 and 11.8, even though Slang exposes the
+            # folded operand as the signed INT_MIN value.
+            if value == -(1 << 31) or value == (1 << 31):
+                return -(1 << 31)
+            return -value
+        return value
     return None
 
 
@@ -23278,6 +23286,14 @@ def _sym_loop_condition_signed(statement, symbol):
     if not _sym_same_symbol(getattr(condition, "left", None), symbol):
         return False
     try:
+        # An explicit unsigned cast changes the comparison type even when its
+        # operand is a signed ``int`` or literal. Preserve that semantic fact
+        # instead of peeling the conversion into the signed mathematical path.
+        for operand in (condition.left, condition.right):
+            if (type(operand).__name__ == "ConversionExpression"
+                    and not getattr(operand, "isImplicit", True)
+                    and not bool(operand.type.isSigned)):
+                return False
         def source_signed(expression):
             node = expression
             while type(node).__name__ == "ConversionExpression":
@@ -23421,12 +23437,15 @@ def _sym_for_values(statement):
     # overflow rather than guessing the wraparound point of a source loop.
     values = []
     value = initial
+    if value < -(1 << 31) or value >= (1 << 31):
+        return None
     while test(value):
-        if len(values) >= 128 or value < -(1 << 31) or value >= (1 << 31):
+        if len(values) >= 128:
             return None
         values.append(value)
         next_value = value + delta
-        if next_value == value:
+        if (next_value == value or next_value < -(1 << 31)
+                or next_value >= (1 << 31)):
             return None
         value = next_value
     return symbol, values

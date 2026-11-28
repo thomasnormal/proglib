@@ -1,0 +1,28 @@
+{
+  "simulators": {
+    "iverilog": "Icarus Verilog 13.0 (s20250103-64-gdad78d525)",
+    "xcelium": "Xcelium 24.03-s004"
+  },
+  "rows": [
+    {
+      "name": "audit6_near_min",
+      "kind": "answer",
+      "iverilog": "00000007,00000007,00000007",
+      "xcelium": "00000007,00000007,00000007"
+    },
+    {
+      "name": "audit6_inf_ge_min",
+      "kind": "refusal",
+      "refusal": "ForLoopStatement",
+      "iverilog": "never terminates",
+      "xcelium": "never terminates"
+    },
+    {
+      "name": "audit6_nest_same_ext",
+      "kind": "refusal",
+      "refusal": "ForLoopStatement",
+      "iverilog": "never terminates",
+      "xcelium": "never terminates"
+    }
+  ]
+}

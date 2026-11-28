@@ -152,8 +152,21 @@ def _iterator_census(ex, symbol):
                 and not any(str(m.kind).split(".")[-1] == "Port" and m.name == symbol.name for m in scope)):
             extents = []          # (start, end) offsets of every init-form loop on this symbol
             refs = []             # offsets of every reference
+            # Slang exposes direct procedural symbols through the module
+            # member list and again through `scope.visit`.  Keep one entry per
+            # symbol so a single process is not mistaken for two processes.
+            process_symbols = {}
+
+            def add_process_symbol(node):
+                if type(node).__name__ == "ProceduralBlockSymbol":
+                    process_symbols.setdefault(id(node), node)
+
+            for member in scope:
+                add_process_symbol(member)
+
             def visit(node):
                 kind = type(node).__name__
+                add_process_symbol(node)
                 if kind == "ForLoopStatement":
                     form = _init_form(ex, node)
                     header_symbol = form[0] if form is not None else None
@@ -174,7 +187,30 @@ def _iterator_census(ex, symbol):
                     if getattr(node, "symbol", None) is symbol:
                         refs.append(node.sourceRange.start.offset)
             scope.visit(visit)
-            ok = bool(extents) and all(any(a <= o < b for a, b in extents) for o in refs)
+            process_ranges = []
+            for process_id, process in process_symbols.items():
+                r = getattr(getattr(process, "body", None), "sourceRange", None)
+                if r is not None:
+                    process_ranges.append((process_id, r.start.offset, r.end.offset))
+            ref_processes = {
+                process_id
+                for offset in refs
+                for process_id, start, end in process_ranges
+                if start <= offset < end
+            }
+            shared = len(ref_processes) > 1
+            nested = any(
+                a1 < a2 and b2 <= b1
+                for i, (a1, b1) in enumerate(extents)
+                for j, (a2, b2) in enumerate(extents)
+                if i != j)
+            # A nested loop that reuses the same static iterator overwrites
+            # the outer loop's control variable.  Its post-step can therefore
+            # revisit the outer condition forever (§12.7, §4.7).  The flat
+            # unroller cannot represent that mutation, so retain the source
+            # loop and let the exact executor refuse the non-terminating trace.
+            ok = (bool(extents) and not shared and not nested and
+                  all(any(a <= o < b for a, b in extents) for o in refs))
     except Exception:
         ok = False
     _CENSUS[key] = (symbol, ok)

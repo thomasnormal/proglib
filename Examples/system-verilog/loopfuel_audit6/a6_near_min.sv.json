@@ -1,0 +1,520 @@
+{
+  "schema_version": "sv-0.2",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "mode": "symbolic",
+  "top": "a6_near_min",
+  "source_files": [
+    {
+      "path": "Examples/system-verilog/loopfuel_audit6/a6_near_min.sv",
+      "sha256": "de5e438d7c44c2f928e4f4e1c7b5c4d7ddd4841fa4d0ddb6fe09020c6fd48081"
+    }
+  ],
+  "packages": [],
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 7,
+          "end_col": 10
+        },
+        "name": "a6_near_min",
+        "imports": [],
+        "params": [],
+        "types": [],
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 2,
+              "col": 41,
+              "end_line": 2,
+              "end_col": 42
+            },
+            "name": "q",
+            "dir": "out",
+            "width": {
+              "kind": "PackedType",
+              "packed": [
+                {
+                  "msb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 35,
+                      "end_line": 2,
+                      "end_col": 37
+                    },
+                    "value": 31,
+                    "resolved_width": null
+                  },
+                  "lsb": {
+                    "kind": "Int",
+                    "span": {
+                      "line": 2,
+                      "col": 38,
+                      "end_line": 2,
+                      "end_col": 39
+                    },
+                    "value": 0,
+                    "resolved_width": null
+                  }
+                }
+              ],
+              "resolved": 32
+            }
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "AlwaysComb",
+            "span": {
+              "line": 3,
+              "col": 3,
+              "end_line": 6,
+              "end_col": 6
+            },
+            "body": {
+              "kind": "Block",
+              "span": {
+                "line": 3,
+                "col": 15,
+                "end_line": 6,
+                "end_col": 6
+              },
+              "stmts": [
+                {
+                  "kind": "BlockingAssign",
+                  "span": {
+                    "line": 4,
+                    "col": 5,
+                    "end_line": 4,
+                    "end_col": 15
+                  },
+                  "target": {
+                    "kind": "Ident",
+                    "span": {
+                      "line": 4,
+                      "col": 5,
+                      "end_line": 4,
+                      "end_col": 6
+                    },
+                    "width": 32,
+                    "name": "q"
+                  },
+                  "value": {
+                    "kind": "Literal",
+                    "span": {
+                      "line": 4,
+                      "col": 9,
+                      "end_line": 4,
+                      "end_col": 14
+                    },
+                    "width": 32,
+                    "bits": "00000000000000000000000000000000"
+                  }
+                },
+                {
+                  "kind": "Block",
+                  "span": {
+                    "line": 5,
+                    "col": 5,
+                    "end_line": 5,
+                    "end_col": 67
+                  },
+                  "stmts": [
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 5,
+                        "col": 53,
+                        "end_line": 5,
+                        "end_col": 67
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 5,
+                          "col": 53,
+                          "end_line": 5,
+                          "end_col": 54
+                        },
+                        "width": 32,
+                        "name": "q"
+                      },
+                      "value": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 5,
+                          "col": 57,
+                          "end_line": 5,
+                          "end_col": 66
+                        },
+                        "width": 32,
+                        "op": "+",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 5,
+                            "col": 57,
+                            "end_line": 5,
+                            "end_col": 58
+                          },
+                          "width": 32,
+                          "name": "q"
+                        },
+                        "right": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 5,
+                            "col": 61,
+                            "end_line": 5,
+                            "end_col": 66
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000000001"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 5,
+                        "col": 53,
+                        "end_line": 5,
+                        "end_col": 67
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 5,
+                          "col": 53,
+                          "end_line": 5,
+                          "end_col": 54
+                        },
+                        "width": 32,
+                        "name": "q"
+                      },
+                      "value": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 5,
+                          "col": 57,
+                          "end_line": 5,
+                          "end_col": 66
+                        },
+                        "width": 32,
+                        "op": "+",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 5,
+                            "col": 57,
+                            "end_line": 5,
+                            "end_col": 58
+                          },
+                          "width": 32,
+                          "name": "q"
+                        },
+                        "right": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 5,
+                            "col": 61,
+                            "end_line": 5,
+                            "end_col": 66
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000000001"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 5,
+                        "col": 53,
+                        "end_line": 5,
+                        "end_col": 67
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 5,
+                          "col": 53,
+                          "end_line": 5,
+                          "end_col": 54
+                        },
+                        "width": 32,
+                        "name": "q"
+                      },
+                      "value": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 5,
+                          "col": 57,
+                          "end_line": 5,
+                          "end_col": 66
+                        },
+                        "width": 32,
+                        "op": "+",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 5,
+                            "col": 57,
+                            "end_line": 5,
+                            "end_col": 58
+                          },
+                          "width": 32,
+                          "name": "q"
+                        },
+                        "right": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 5,
+                            "col": 61,
+                            "end_line": 5,
+                            "end_col": 66
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000000001"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 5,
+                        "col": 53,
+                        "end_line": 5,
+                        "end_col": 67
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 5,
+                          "col": 53,
+                          "end_line": 5,
+                          "end_col": 54
+                        },
+                        "width": 32,
+                        "name": "q"
+                      },
+                      "value": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 5,
+                          "col": 57,
+                          "end_line": 5,
+                          "end_col": 66
+                        },
+                        "width": 32,
+                        "op": "+",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 5,
+                            "col": 57,
+                            "end_line": 5,
+                            "end_col": 58
+                          },
+                          "width": 32,
+                          "name": "q"
+                        },
+                        "right": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 5,
+                            "col": 61,
+                            "end_line": 5,
+                            "end_col": 66
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000000001"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 5,
+                        "col": 53,
+                        "end_line": 5,
+                        "end_col": 67
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 5,
+                          "col": 53,
+                          "end_line": 5,
+                          "end_col": 54
+                        },
+                        "width": 32,
+                        "name": "q"
+                      },
+                      "value": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 5,
+                          "col": 57,
+                          "end_line": 5,
+                          "end_col": 66
+                        },
+                        "width": 32,
+                        "op": "+",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 5,
+                            "col": 57,
+                            "end_line": 5,
+                            "end_col": 58
+                          },
+                          "width": 32,
+                          "name": "q"
+                        },
+                        "right": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 5,
+                            "col": 61,
+                            "end_line": 5,
+                            "end_col": 66
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000000001"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 5,
+                        "col": 53,
+                        "end_line": 5,
+                        "end_col": 67
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 5,
+                          "col": 53,
+                          "end_line": 5,
+                          "end_col": 54
+                        },
+                        "width": 32,
+                        "name": "q"
+                      },
+                      "value": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 5,
+                          "col": 57,
+                          "end_line": 5,
+                          "end_col": 66
+                        },
+                        "width": 32,
+                        "op": "+",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 5,
+                            "col": 57,
+                            "end_line": 5,
+                            "end_col": 58
+                          },
+                          "width": 32,
+                          "name": "q"
+                        },
+                        "right": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 5,
+                            "col": 61,
+                            "end_line": 5,
+                            "end_col": 66
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000000001"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "BlockingAssign",
+                      "span": {
+                        "line": 5,
+                        "col": 53,
+                        "end_line": 5,
+                        "end_col": 67
+                      },
+                      "target": {
+                        "kind": "Ident",
+                        "span": {
+                          "line": 5,
+                          "col": 53,
+                          "end_line": 5,
+                          "end_col": 54
+                        },
+                        "width": 32,
+                        "name": "q"
+                      },
+                      "value": {
+                        "kind": "Binary",
+                        "span": {
+                          "line": 5,
+                          "col": 57,
+                          "end_line": 5,
+                          "end_col": 66
+                        },
+                        "width": 32,
+                        "op": "+",
+                        "left": {
+                          "kind": "Ident",
+                          "span": {
+                            "line": 5,
+                            "col": 57,
+                            "end_line": 5,
+                            "end_col": 58
+                          },
+                          "width": 32,
+                          "name": "q"
+                        },
+                        "right": {
+                          "kind": "Literal",
+                          "span": {
+                            "line": 5,
+                            "col": 61,
+                            "end_line": 5,
+                            "end_col": 66
+                          },
+                          "width": 32,
+                          "bits": "00000000000000000000000000000001"
+                        }
+                      }
+                    }
+                  ],
+                  "symbolic_for_unrolled": true,
+                  "symbolic_for_iterations": 7
+                }
+              ]
+            }
+          }
+        ],
+        "generates": [],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

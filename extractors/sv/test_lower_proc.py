@@ -326,6 +326,27 @@ class LoopHeaders(Base):
             loops = [x for st in always_comb_body(m)["stmts"] for x in [st] if st.get("symbolic_for_unrolled")]
             self.assertEqual([x["symbolic_for_iterations"] for x in loops], [n], header)
 
+    def test_signed_int_wrap_is_retained(self):
+        for header in (
+                "int i = 1342177279; i < 1342177280; i += 1073741825",
+                "int i = -2147483647; i < 2146697210; i += 1048584",
+                "int i = 2147483640; i <= 2147483647; i++",
+                "int i = 5; i == 5; i += 64'd4294967296"):
+            m = self.module("module t (output logic y); always_comb begin y = 1'b0;"
+                            " for (%s) y = 1'b1; end endmodule" % header)
+            loops = [st for st in always_comb_body(m)["stmts"] if st.get("kind") == "For"]
+            self.assertEqual(len(loops), 1, header)
+            self.assertNotIn("symbolic_for_unrolled", loops[0], header)
+
+    def test_signed_int_min_literal_keeps_int_min(self):
+        m = self.module(
+            "module t (output logic y); always_comb begin y = 1'b0; "
+            "for (int i = -2147483641; i > -2147483648; i--) "
+            "y = 1'b1; end endmodule")
+        loops = [st for st in always_comb_body(m)["stmts"]
+                 if st.get("symbolic_for_unrolled")]
+        self.assertEqual([st["symbolic_for_iterations"] for st in loops], [7])
+
     def test_two_loops_share_one_iterator(self):
         m = self.module("module t (input logic [3:0] a, output logic [3:0] y, z); integer i; always_comb begin y = '0; z = '0;"
                         " for (i = 0; i < 4; i = i + 1) y[i] = a[i]; for (i = 3; i >= 0; i--) z[i] = a[3-i]; end endmodule")
@@ -498,6 +519,15 @@ class LoopHeaders(Base):
                 " for (int i = -1; i < %s; i++) q[i + 1] = d[i + 1];"
                 " end endmodule" % bound)
             self.assertIn("ForLoopStatement", sv_kinds(m), bound)
+
+    def test_explicit_unsigned_cast_condition_stays_loud(self):
+        for condition in ("unsigned'(i) < 10", "i < unsigned'(10)"):
+            m = self.module(
+                "module t (input logic d, output logic q);"
+                " always_comb begin q = 0;"
+                " for (int i = -3; %s; i++) q = 1;"
+                " end endmodule" % condition)
+            self.assertIn("ForLoopStatement", sv_kinds(m), condition)
 
     def test_mixed_signed_parameter_condition_stays_loud(self):
         m = self.module(
