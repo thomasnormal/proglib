@@ -4264,3 +4264,14 @@ builtin. Treating a missing terminator as an empty string or returning a
 fabricated pointer would change both memory safety and observable equality.
 Keep the builtin refused until bounded string search and returned pointer
 provenance are modeled together.
+
+## 2026-11-28-c-setjmp — standard `_setjmp` remains refused
+
+The static ranking has two sole rows for `libc-call: _setjmp`:
+`20210505-1.c` and `pr56982.c`. C23 §7.13.1.1 gives `_setjmp` a saved
+execution context whose later nonlocal transfer is performed by `longjmp`; the
+saved signal-mask and frame behavior are implementation-defined. The evaluator
+has no continuation, saved-frame, or signal-mask state and cannot model a
+return that resumes at a prior call. Treating `_setjmp` as a normal function
+would erase that control flow. Keep it refused with the GNU builtin family
+until one profile-stable nonlocal-transfer semantics covers both interfaces.
