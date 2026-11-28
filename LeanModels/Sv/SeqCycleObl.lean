@@ -1665,6 +1665,84 @@ theorem CoreMemDesign.runCombPass_view_independent_of_state
   exact (E.runCombAt_view_congr_of_each hnd h4 hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
     hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent rfl rfl hread hproc h₁ h₂).1
 
+theorem CoreMemDesign.runCombQuiesce_view_refines_of_each
+    {E : CoreMemDesign} {limit : Nat}
+    {before current : CoreMemState} {beforeView currentView : SvState}
+    {procs : List CoreMemProc} {st' : CoreMemState} {v' : SvState}
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hm0 : E.MemCoherent E.initial.memory)
+    (hbeforeC : E.Coherent before) (hcurrentC : E.Coherent current)
+    (hbeforeM : E.MemCoherent before.memory) (hcurrentM : E.MemCoherent current.memory)
+    (hbeforeView : beforeView = E.scalar.view before.scalar)
+    (hcurrentView : currentView = E.scalar.view current.scalar)
+    (hmatBefore : E.matV beforeView = beforeView)
+    (hmatCurrent : E.matV currentView = currentView)
+    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {body : PStmt} {i : Nat},
+      E.Coherent b₁ → E.Coherent b₂ → E.MemCoherent b₁.memory → E.MemCoherent b₂.memory →
+      E.Coherent c₁ → E.Coherent c₂ → E.MemCoherent c₁.memory → E.MemCoherent c₂.memory →
+      E.scalar.view b₁.scalar = E.scalar.view b₂.scalar →
+      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar →
+      E.readChangedAt b₁ c₁ beforeView currentView i (coreMemCombExternalReadExprs body) =
+        E.readChangedAt b₂ c₂ beforeView currentView i (coreMemCombExternalReadExprs body))
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewCongr E.env body
+      | .latch _ => False
+      | _ => True)
+    (hstate : E.runCombQuiesce limit before current procs = .ok st')
+    (hview : E.runCombQuiesceV limit beforeView currentView procs = .ok v') :
+    E.scalar.view st'.scalar = v' := by
+  induction limit generalizing before current beforeView currentView st' v' with
+  | zero =>
+      simp [CoreMemDesign.runCombQuiesce, CoreMemDesign.runCombQuiesceV] at hstate
+  | succ n ih =>
+      simp only [CoreMemDesign.runCombQuiesce, CoreMemDesign.runCombQuiesceV] at hstate hview
+      cases hp : E.runCombPass before current procs with
+      | timeout => simp [hp] at hstate
+      | unsupported msg => simp [hp] at hstate
+      | ok next =>
+          cases hvp : E.runCombPassV beforeView currentView procs with
+          | timeout => simp [hvp] at hview
+          | unsupported msg => simp [hvp] at hview
+          | ok nextView =>
+              have hnext := E.runCombPass_coherent_of_each hnd h4 hcurrentC hcurrentM
+                (fun p hp => match hproc p hp with
+                  | h => h.1) hp
+              have hpass := E.runCombPass_view_independent_of_state
+                (before₁ := before) (before₂ := E.combStateOfView beforeView)
+                (current₁ := current) (current₂ := E.combStateOfView currentView)
+                (beforeView := beforeView) (currentView := currentView)
+                hnd h4 hbeforeC (E.combStateOfView_coherent beforeView)
+                hbeforeM (by simpa [CoreMemDesign.combStateOfView] using hm0)
+                hcurrentC (E.combStateOfView_coherent currentView)
+                hcurrentM (by simpa [CoreMemDesign.combStateOfView] using hm0)
+                (by rw [hbeforeView, hmatBefore, E.combStateOfView_view])
+                (by rw [hcurrentView, hmatCurrent, E.combStateOfView_view])
+                hread hproc hp (by simpa [CoreMemDesign.runCombPassV, hvp] using hvp)
+              simp only [hp, hvp, Res.ok_bind] at hstate hview
+              cases heq : E.scalar.view before.scalar == E.scalar.view next.scalar with
+              | true =>
+                  have heqv : beforeView == nextView = true := by
+                    rw [beq_iff_eq]
+                    rw [hbeforeView, hpass]
+                    exact beq_iff_eq.mp heq
+                  simp only [heq, heqv, ↓reduceIte, Res.ok.injEq] at hstate hview
+                  obtain rfl := hstate
+                  exact hview
+              | false =>
+                  have heqv : beforeView == nextView = false := by
+                    apply beq_eq_false_iff_ne.mpr
+                    intro heqv
+                    apply beq_eq_false_iff_ne.mp heq
+                    rw [hbeforeView, hpass, heqv]
+                  simp only [heq, heqv, Bool.false_eq_true, ↓reduceIte] at hstate hview
+                  have hmatNext : E.matV nextView = nextView := by
+                    rw [← hpass]
+                    exact CoreMemDesign.matV_view hnd h4 hnext.1.typed
+                  exact ih (before := current) (current := next)
+                    (beforeView := currentView) (currentView := nextView)
+                    (st' := st') (v' := v') hcurrentC hnext.1 hcurrentM hnext.2
+                    hcurrentView hpass hmatCurrent hmatNext hread hproc hstate hview
+
 /-- The process-list coherence receipt specializes to one active-region pass. -/
 theorem CoreMemDesign.runCombPass_coherent_of_each
     {E : CoreMemDesign} {before current st' : CoreMemState} {procs : List CoreMemProc}
