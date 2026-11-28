@@ -23,9 +23,9 @@
   {
     "id": "defined-goto-pointer-increment-boundary",
     "source": "int main(void) { int a[2] = { 0, 7 }; int *p = a; goto next; next: ++p; return *p == 7 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "goto-controlled pointer increment lacks an exact parser path",
-    "sanitize": true
+    "expect": "match",
+    "sanitize": true,
+    "return_value": 0
   },
   {
     "id": "builtin-fp-predicates-ieee",
@@ -262,8 +262,8 @@
   {
     "id": "pointer-goto-increment-refusal",
     "source": "int main(void) { char a[2] = {0, 0}; char *p = a; goto out; out: p++; return p == a + 1 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "goto-controlled pointer increment"
+    "expect": "match",
+    "return_value": 0
   },
   {
     "id": "plain-string-index",
@@ -453,8 +453,8 @@
   {
     "id": "goto-skips-decl",
     "source": "int main(void) { int x = 1; goto L; int x2 = 2; L: x = 7; return x; }",
-    "expect": "refuse",
-    "error": "goto skips"
+    "expect": "match",
+    "return_value": 7
   },
   {
     "id": "local-callee-shadow",
@@ -1578,13 +1578,11 @@
   {
     "id": "switch-name-subscript-wall",
     "source": "extern void abort (void);\n\nint stab_xcoff_builtin_type (int typenum)\n{\n  const char *name;\n  if (typenum >= 0 || typenum < -34)\n    {\n      return 0;\n    }\n  switch (-typenum)\n    {\n    case 1:\n      name = \"int\";\n      break;\n    case 2:\n      name = \"char\";\n    case 3:\n      name = \"short\";\n      break;\n    case 4:\n      name = \"long\";\n    case 5:\n      name = \"unsigned char\";\n    case 6:\n      name = \"signed char\";\n    case 7:\n      name = \"unsigned short\";\n    case 8:\n      name = \"unsigned int\";\n    case 9:\n      name = \"unsigned\";\n    case 10:\n      name = \"unsigned long\";\n    case 11:\n      name = \"void\";\n    case 12:\n      name = \"float\";\n    case 13:\n      name = \"double\";\n    case 14:\n      name = \"long double\";\n    case 15:\n      name = \"integer\";\n    case 16:\n      name = \"boolean\";\n    case 17:\n      name = \"short real\";\n    case 18:\n      name = \"real\";\n    case 19:\n      name = \"stringptr\";\n    case 20:\n      name = \"character\";\n    case 21:\n      name = \"logical*1\";\n    case 22:\n      name = \"logical*2\";\n    case 23:\n      name = \"logical*4\";\n    case 24:\n      name = \"logical\";\n    case 25:\n      name = \"complex\";\n    case 26:\n      name = \"double complex\";\n    case 27:\n      name = \"integer*1\";\n    case 28:\n      name = \"integer*2\";\n    case 29:\n      name = \"integer*4\";\n    case 30:\n      name = \"wchar\";\n    case 31:\n      name = \"long long\";\n    case 32:\n      name = \"unsigned long long\";\n    case 33:\n      name = \"logical*8\";\n    case 34:\n      name = \"integer*8\";\n    }\n  return name[0];\n}\n\nint main()\n{\n  int i;\n  if (stab_xcoff_builtin_type(0) != 0)\n    abort ();\n  if (stab_xcoff_builtin_type(-1) != 'i')\n    abort ();\n  if (stab_xcoff_builtin_type(-2) != 's')\n    abort ();\n  if (stab_xcoff_builtin_type(-3) != 's')\n    abort ();\n  for (i = -4; i >= -34; --i)\n    if (stab_xcoff_builtin_type(i) != 'i')\n      abort ();\n  if (stab_xcoff_builtin_type(-35) != 0)\n    abort ();\n  return 0;\n}\n",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
-    ],
-    "structured_expect": "refuse",
-    "structured_error": "subscript base is not an array or pointer type"
+    ]
   },
   {
     "id": "f2-pointer-address-difference",
