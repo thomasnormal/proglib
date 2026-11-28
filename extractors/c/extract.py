@@ -352,6 +352,11 @@ def record_layout_records(path):
         if (type(offset) is not int or offset < 0 or
                 type(record.get("token_length")) is not int or
                 record["token_length"] <= 0 or
+                (record.get("record_index") is not None and
+                 (type(record.get("record_index")) is not int or
+                  record.get("record_index") < 0)) or
+                (record.get("decl_id") is not None and
+                 not isinstance(record.get("decl_id"), str)) or
                 record.get("tag_kind") not in ("struct", "union") or
                 type(record.get("size_bytes")) is not int or
                 record["size_bytes"] < 0 or
@@ -689,11 +694,19 @@ class Extractor:
                 member["record_decl_id"] = record_id
         out = {"decl_id": record_id, "name": n.get("name"), "fields": members}
         if self.record_layouts is not None:
-            offset = ast_decl_begin_offset(n)
-            if offset is not None:
-                matches = self.record_layouts.get(offset, [])
-                if matches:
-                    out["record_layout"] = matches.pop(0)
+            # The declaration identity is the primary join. Offset is only a
+            # compatibility fallback for old probe output and is unsafe when
+            # macro-expanded declarations share one source location.
+            identity_matches = [entry for bucket in self.record_layouts.values()
+                                for entry in bucket if entry.get("decl_id") == record_id]
+            if identity_matches:
+                out["record_layout"] = identity_matches[0]
+            else:
+                offset = ast_decl_begin_offset(n)
+                if offset is not None:
+                    matches = self.record_layouts.get(offset, [])
+                    if matches:
+                        out["record_layout"] = matches.pop(0)
         return out
 
     def e_TypedefDecl(self, n):
@@ -1125,6 +1138,30 @@ def extract(path, source_name=None, standard="c23"):
     joined = canonicalize_ids({"ast": raw_tu, "structured": raw_structured_types,
                                "layouts": record_layouts})
     tu = joined["ast"]
+    # The record-layout plugin runs in its own Clang invocation, so its
+    # pointer identities cannot equal the JSON dump's process addresses.
+    # Both are parser traversals, however, and the plugin records the stable
+    # RecordDecl traversal ordinal. Join that ordinal to the JSON node id.
+    record_ids = []
+    def collect_record_ids(value):
+        if isinstance(value, dict):
+            if (value.get("kind") == "RecordDecl" and
+                    value.get("completeDefinition") is True and
+                    isinstance(value.get("id"), str)):
+                record_ids.append(value["id"])
+            for child in value.values():
+                collect_record_ids(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect_record_ids(child)
+    collect_record_ids(tu)
+    for bucket in joined["layouts"]["layouts"].values():
+        for record in bucket:
+            index = record.get("record_index")
+            if index is not None:
+                if index >= len(record_ids):
+                    die("record layout probe returned an out-of-range RecordDecl traversal index")
+                record["decl_id"] = record_ids[index]
     member_record_ids = {}
     def collect_member_records(node, record_id=None):
         if isinstance(node, dict):

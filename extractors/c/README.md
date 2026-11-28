@@ -57,8 +57,9 @@ priced against the corpus.
 
 `record_layout_probe.cpp` observes Clang's `ASTRecordLayout` for complete
 structs and unions: size, alignment, source span, and each field's bit offset
-and bit-field width.  It joins records by the parser-provided source span; it
-does not interpret a type spelling or serialize an address.  Build and run the
+and bit-field width. It emits a parser traversal ordinal for each complete
+`RecordDecl`; the extractor joins that ordinal to the JSON AST node identity.
+It does not interpret a type spelling or serialize an address. Build and run the
 determinism check with the pinned frontend:
 
 The same probe emits `TypeLayout` facts for complete declared object types and

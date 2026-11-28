@@ -1,8 +1,10 @@
 // Parser-native record-layout observations for the C extractor.
 //
 // ASTRecordLayout is Clang's own target/profile answer.  This probe reports
-// it verbatim and joins records by their source span, never by a type spelling
-// or a fabricated address.  It is an observation instrument; it does not
+// it verbatim and emits a parser traversal ordinal for each complete
+// RecordDecl. The extractor joins that ordinal to the AST node identity,
+// never by a type spelling or a fabricated address. It is an observation
+// instrument; it does not
 // make aggregate semantics live in Lean.
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/DeclCXX.h"
@@ -27,10 +29,12 @@
 #endif
 
 namespace {
+
 class Visitor : public clang::RecursiveASTVisitor<Visitor> {
 public:
   llvm::json::Array records;
   const clang::ASTContext *context = nullptr;
+  unsigned recordIndex = 0;
 
   void emitTypeLayout(clang::QualType type, clang::SourceLocation beginLoc,
                       clang::SourceLocation endLoc) {
@@ -81,6 +85,7 @@ public:
   }
 
   bool VisitRecordDecl(clang::RecordDecl *record) {
+    const unsigned recordOrdinal = recordIndex++;
     if (!record->isCompleteDefinition()) return true;
     const auto &sources = context->getSourceManager();
     const auto loc = sources.getExpansionLoc(record->getBeginLoc());
@@ -110,6 +115,7 @@ public:
     }
     llvm::json::Object item{
         {"kind", "RecordLayout"},
+        {"record_index", static_cast<int64_t>(recordOrdinal)},
         {"offset", static_cast<int64_t>(begin)},
         {"token_length", static_cast<int64_t>(finish - begin)},
         {"name", record->getNameAsString()},

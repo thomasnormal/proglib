@@ -10,6 +10,13 @@
     "sanitize": true
   },
   {
+    "id": "union-nested-selected-member",
+    "source": "struct S { _Bool flag; union { float a; double b; }; }; int main(void) { struct S y = { 1, { .a = 1.0 } }; return y.a == 1.0 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
     "id": "builtin-islessgreater-ieee",
     "source": "double __builtin_nan(const char *); int main(void) { double n = __builtin_nan(\"\"); return __builtin_islessgreater(1.0, 2.0) != 1 || __builtin_islessgreater(n, 2.0) != 0 ? 1 : 0; }",
     "expect": "match",
