@@ -4155,3 +4155,16 @@ make the result depend on an unmodelled machine choice. The rows also retain
 independent declaration and sequencing boundaries in the current focused
 receipts. Keep this builtin as a loud refusal until parser-native call-frame
 identity and a pinned, profile-stable address-observation contract are present.
+
+## 2026-11-28-c-exit-nonliteral-status — unresolved exit paths remain refused
+
+The dynamic ranking has two sole rows whose first refusal is
+`exit (an argument is not a literal 0 — which exit was reached is unknown)`:
+`970217-1.c` and `loop-8.c`. C23 §7.22.4.4 terminates the program with the
+status value supplied to `exit`, and control never returns to the caller. The
+current evaluator admits the parser-proven `exit(0)` path but cannot identify
+which exit call or status a nonliteral expression reaches when the argument
+contains a call or an earlier unsupported floating operation. Choosing a
+status would erase that control-flow uncertainty. Keep these paths refused
+until parser-native constant evaluation and terminal-exit flow preserve the
+argument's exact value and side effects.

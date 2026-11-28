@@ -16,7 +16,7 @@ with ids `YYYY-MM-DD-<lane>-<n>` that need no reservation. Everything before
 the split is in [`docs/backlog-archive.md`](../backlog-archive.md), frozen,
 and every existing `§Lnn` reference still resolves there.
 
-**1651 entries across 19 lanes.** Regenerate with
+**1652 entries across 19 lanes.** Regenerate with
 `tools/backlog-index.sh`; check with `--check` (exit 1 on drift).
 
 | id | class | title | lane |
@@ -1641,6 +1641,7 @@ and every existing `§Lnn` reference still resolves there.
 | `2026-11-28-c-floating-environment` |  | floating environment remains refused | c |
 | `2026-11-28-c-floating-casts` |  | long-double casts remain refused | c |
 | `2026-11-28-c-external-object-linkage` |  | external objects remain refused | c |
+| `2026-11-28-c-exit-nonliteral-status` |  | unresolved exit paths remain refused | c |
 | `2026-11-28-c-computed-goto` |  | GNU label addresses remain refused | c |
 | `2026-11-28-c-builtin-setjmp` |  | nonlocal control transfer remains refused | c |
 | `2026-11-28-c-builtin-return-address` |  | stack-frame introspection remains refused | c |
@@ -1673,4 +1674,4 @@ and every existing `§Lnn` reference still resolves there.
 | `2026-11-10-c-array-filler-designators` |  | Clang array initializer positions | c |
 | `2026-08-26` |  | PARKED (indefinite). Read this first on resumption. | analog |
 
-**77 heading(s) do not use the §9.5 id scheme** and sort last.
+**78 heading(s) do not use the §9.5 id scheme** and sort last.
