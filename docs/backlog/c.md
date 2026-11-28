@@ -4229,3 +4229,14 @@ or signal state. Treating the call as `return 0`, as an ordinary exception, or
 as a silent no-op would erase the program's termination behavior. Keep this
 builtin refused until a target-specific trap observation and pinned oracle
 contract are defined.
+
+## 2026-11-28-c-copysignl-long-double — extended-precision sign-copy remains refused
+
+The static ranking has two sole rows for `libc-call: __builtin_copysignl`:
+`ieee/copysign1.c` and `ieee/copysign2.c`. This GNU builtin operates on
+`long double`, whose x86-64 extended representation is outside the current
+binary32/binary64 profile. C23 §6.3.1.5 requires the real floating type and
+value representation to be preserved across the operation. Reusing the
+binary64 `copysign` path would silently change precision and payload bits.
+Keep these calls refused until the separately held long-double representation,
+rounding, and pinned differential rows are implemented.
