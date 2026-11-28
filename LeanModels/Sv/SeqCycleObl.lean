@@ -1400,6 +1400,35 @@ def CoreMemDesign.CombStmtViewRefinesFuel (E : CoreMemDesign) (env : IEnv)
       E.execCombStmtFuel env E.elems st₁ view₁ [] fuel stmt = .ok (st₁', view₁', locals₁') ∧
         view₁' = view₂'
 
+theorem CoreMemDesign.combStmtViewRefinesFuel_blocking
+    {E : CoreMemDesign} {env : IEnv} {fuel : Nat} {n : String} {value : PExpr}
+    (hbody : E.combBodyB (.blockingAssign n value) = true) :
+    E.CombStmtViewRefinesFuel env (fuel + 1) (.blockingAssign n value) := by
+  intro st₁ st₂ view₁ view₂ st₂' view₂' locals₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₂
+  simp only [CoreMemDesign.combBodyB, Bool.and_eq_true] at hbody
+  obtain ⟨htarget, hexpr⟩ := hbody
+  simp only [CoreMemDesign.combExprB, Bool.and_eq_true] at hexpr
+  obtain ⟨⟨hcall, hmem⟩, htest⟩ := hexpr
+  have hcall' : PExpr.hasFunctionCall value = false := by simpa using hcall
+  have hmem' : PExpr.hasMemoryRead value = false := by simpa using hmem
+  have htest' : PExpr.hasTestPlusargs value = false := by simpa using htest
+  cases hw : E.scalarTarget n with
+  | none => simp [CoreMemDesign.execCombStmtFuel, hw] at h₂
+  | some width =>
+      have hvalueEq := CoreMemDesign.evalExprLocals_mem_congr_of_pure
+        (E := E) (env := env) (st₁ := st₁) (st₂ := st₂) (ctx := some width)
+        hm₁ hm₂ hview hmem' hcall'
+      simp [CoreMemDesign.execCombStmtFuel, hw, htest'] at h₂
+      obtain ⟨a, ha, hst₂, hview₂', hlocals₂'⟩ := h₂
+      have hvalue₁ : E.evalExprLocals env E.elems st₁ (some width) [] value = .ok a := by
+        rw [hvalueEq]
+        exact ha
+      have h₁ : E.execCombStmtFuel env E.elems st₁ view₁ [] (fuel + 1)
+          (.blockingAssign n value) = .ok (E.setScalarState st₁ n a, SvState.set view₁ n a, []) := by
+        simp [CoreMemDesign.execCombStmtFuel, hw, htest', hvalue₁]
+      refine ⟨E.setScalarState st₁ n a, SvState.set view₁ n a, [], h₁, ?_⟩
+      simpa [hviews] using hview₂'
+
 theorem CoreMemDesign.combStmtViewRefines_of_fuel
     {E : CoreMemDesign} {env : IEnv} {stmt : PStmt}
     (hstmt : E.CombStmtViewRefinesFuel env 4096 stmt) :
