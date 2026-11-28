@@ -1400,6 +1400,25 @@ def CoreMemDesign.CombStmtViewRefinesFuel (E : CoreMemDesign) (env : IEnv)
       E.execCombStmtFuel env E.elems st₁ view₁ [] fuel stmt = .ok (st₁', view₁', locals₁') ∧
         view₁' = view₂'
 
+theorem CoreMemDesign.combStmtViewRefines_of_fuel
+    {E : CoreMemDesign} {env : IEnv} {stmt : PStmt}
+    (hstmt : E.CombStmtViewRefinesFuel env 4096 stmt) :
+    E.CombStmtViewRefines env stmt := by
+  intro st₁ st₂ view₁ view₂ st₂' view₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₂
+  unfold CoreMemDesign.execCombStmtAtView at h₂ ⊢
+  cases hrun₂ : E.execCombStmtFuel env E.elems st₂ view₂ [] 4096 stmt with
+  | timeout => simp [hrun₂] at h₂
+  | unsupported msg => simp [hrun₂] at h₂
+  | ok result =>
+      obtain ⟨midSt₂, midView₂, midLocals₂⟩ := result
+      simp only [hrun₂, Res.ok_bind, Res.ok.injEq, Prod.mk.injEq] at h₂
+      obtain ⟨rfl, rfl⟩ := h₂
+      obtain ⟨st₁', view₁', locals₁', h₁, hview'⟩ :=
+        hstmt st₁ st₂ view₁ view₂ midSt₂ midView₂ midLocals₂
+          hc₁ hc₂ hm₁ hm₂ hview hviews hrun₂
+      refine ⟨st₁', view₁', ?_, hview'⟩
+      simp [hrun₂, h₁]
+
 theorem CoreMemDesign.combStmtViewRefinesFuel_block_single
     {E : CoreMemDesign} {env : IEnv} {fuel : Nat} {stmt : PStmt}
     (hstmt : E.CombStmtViewRefinesFuel env fuel stmt) :
