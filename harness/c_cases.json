@@ -633,9 +633,8 @@
   {
     "id": "type-postfix-qualified-pointer",
     "source": "int main(void) { int x = 1; int *const p = &x; return *p; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 1,
-    "error": "no layout for declared type 'int *const'",
     "structured_expect": "match",
     "structured_return_value": 1
   },
@@ -835,18 +834,16 @@
   {
     "id": "effective-type-const-qualified",
     "source": "int main(void) { const int x = 7; return x == 7 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "error": "no layout for declared type 'const int'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
   {
     "id": "effective-type-volatile-qualified",
     "source": "int main(void) { volatile int x = 7; return x == 7 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "error": "no layout for declared type 'volatile int'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
@@ -1353,12 +1350,11 @@
   {
     "id": "structured-parameter-pointer",
     "source": "int read(int *p) { return *p; } int main(void) { int x = 9; return read(&x) == 9 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
     ],
-    "error": "no layout for parameter type 'int *'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
