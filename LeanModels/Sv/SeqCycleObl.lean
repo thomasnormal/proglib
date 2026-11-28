@@ -1096,6 +1096,23 @@ theorem CoreMemDesign.readChangedAt_congr_of_pure {E : CoreMemDesign}
       | some compiled =>
           simp only [CoreMemDesign.readChangedAt, hc, hbeforeView, hafterView]
 
+theorem CoreMemDesign.readChangedAt_comb_congr_of_pure {E : CoreMemDesign}
+    {before₁ before₂ after₁ after₂ : CoreMemState}
+    {beforeView₁ beforeView₂ afterView₁ afterView₂ : SvState}
+    {index : Nat} {body : PStmt}
+    (hm₁ : E.MemCoherent before₁.memory) (hm₂ : E.MemCoherent before₂.memory)
+    (hm₃ : E.MemCoherent after₁.memory) (hm₄ : E.MemCoherent after₂.memory)
+    (hbefore : E.scalar.view before₁.scalar = E.scalar.view before₂.scalar)
+    (hafter : E.scalar.view after₁.scalar = E.scalar.view after₂.scalar)
+    (hbeforeView : beforeView₁ = beforeView₂) (hafterView : afterView₁ = afterView₂)
+    (hpure : ∀ expr ∈ coreMemCombExternalReadExprs body,
+      PExpr.hasMemoryRead expr = false ∧ PExpr.hasFunctionCall expr = false) :
+    E.readChangedAt before₁ after₁ beforeView₁ afterView₁ index
+        (coreMemCombExternalReadExprs body) =
+      E.readChangedAt before₂ after₂ beforeView₂ afterView₂ index
+        (coreMemCombExternalReadExprs body) := by
+  exact E.readChangedAt_congr_of_pure hm₁ hm₂ hm₃ hm₄ hbefore hafter hbeforeView hafterView hpure
+
 theorem CoreMemDesign.combIfBranch_congr_of_pure {E : CoreMemDesign} {env : IEnv}
     {st₁ st₂ : CoreMemState} {locals : SvState} {cond : PExpr}
     {yes : PStmt} {no : Option PStmt}
@@ -1402,12 +1419,13 @@ theorem CoreMemDesign.runCombAt_view_congr_of_each
     (hcurrent : E.scalar.view current₁.scalar = E.scalar.view current₂.scalar)
     (hbeforeView : beforeView₁ = beforeView₂) (hcurrentView : currentView₁ = currentView₂)
     (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {bv₁ bv₂ cv₁ cv₂ : SvState}
-      {i : Nat} {reads : List PExpr},
+      {i : Nat} {body : PStmt},
       E.Coherent b₁ → E.Coherent b₂ → E.MemCoherent b₁.memory → E.MemCoherent b₂.memory →
       E.Coherent c₁ → E.Coherent c₂ → E.MemCoherent c₁.memory → E.MemCoherent c₂.memory →
       E.scalar.view b₁.scalar = E.scalar.view b₂.scalar →
       E.scalar.view c₁.scalar = E.scalar.view c₂.scalar → bv₁ = bv₂ → cv₁ = cv₂ →
-      E.readChangedAt b₁ c₁ bv₁ cv₁ i reads = E.readChangedAt b₂ c₂ bv₂ cv₂ i reads)
+      E.readChangedAt b₁ c₁ bv₁ cv₁ i (coreMemCombExternalReadExprs body) =
+        E.readChangedAt b₂ c₂ bv₂ cv₂ i (coreMemCombExternalReadExprs body))
     (hproc : ∀ p ∈ procs, match p with
       | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewCongr E.env body
       | .latch _ => False
@@ -1436,7 +1454,7 @@ theorem CoreMemDesign.runCombAt_view_congr_of_each
           have hready := hread
             (b₁ := before₁) (b₂ := before₂) (c₁ := current₁) (c₂ := current₂)
             (bv₁ := beforeView₁) (bv₂ := beforeView₂) (cv₁ := currentView₁) (cv₂ := currentView₂)
-            (i := index) (reads := coreMemCombExternalReadExprs body)
+            (i := index) (body := body)
             hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
             hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent hbeforeView hcurrentView
           cases hr₁ : E.readChangedAt before₁ current₁ beforeView₁ currentView₁ index
