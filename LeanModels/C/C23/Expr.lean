@@ -1878,13 +1878,12 @@ def evalLValue (ctx : Ctx) : Expr → EvalM Ptr
           let o ← match m.compoundObject? span with
             | some existing => pure existing
             | none =>
-            let storageTy :=
-              none
-            let (m', fresh) := m.alloc .automatic sz storageTy
+            let storageTy := none
+            let (m', fresh) := m.allocStructured .automatic sz storageTy structured
             set (m'.rememberCompound span fresh)
             pure fresh
-          ctx.compoundInit 64 ctx.env ctx.idEnv ctx.layout (Ptr.toObject o) ty init
-          pure (Ptr.toObject o)
+          ctx.compoundInit 64 ctx.env ctx.idEnv ctx.layout (Ptr.toObjectBound o sz) ty init
+          pure (Ptr.toObjectBound o sz)
   | e => refuseUnsupported s!"not an lvalue: {e.kindName}"
   termination_by e => 2 * e.size + 1
   decreasing_by all_goals (simp_wf <;> omega)
@@ -1907,13 +1906,12 @@ def evalExpr (ctx : Ctx) : Expr → EvalM CVal
           let o ← match m.compoundObject? span with
             | some existing => pure existing
             | none =>
-            let storageTy :=
-              none
-            let (m', fresh) := m.alloc .automatic sz storageTy
+            let storageTy := none
+            let (m', fresh) := m.allocStructured .automatic sz storageTy structured
             set (m'.rememberCompound span fresh)
             pure fresh
-          ctx.compoundInit 64 ctx.env ctx.idEnv ctx.layout (Ptr.toObject o) ty init
-          pure (CVal.ptr (Ptr.toObject o))
+          ctx.compoundInit 64 ctx.env ctx.idEnv ctx.layout (Ptr.toObjectBound o sz) ty init
+          pure (CVal.ptr (Ptr.toObjectBound o sz))
 
   -- ===== §6.3 — the conversion lattice, all eight castKinds =====
   | .implicitCast ck sub ty span structuredType
