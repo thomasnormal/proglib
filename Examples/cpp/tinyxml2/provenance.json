@@ -39,7 +39,7 @@
     10
   ],
   "target_profile": "LP64; 8-bit signed char",
-  "literal_sha256": "ce5a79500ffc7306ec79e4214d6cc0e8afb934721e55f05df0d95e72c886c7df",
+  "literal_sha256": "1dc75f0a743d1cb7de4a58673ce983e2ca50b440ad1e67f8bb265f1092ccbf94",
   "exporter": "extractors/cpp/export_callable.lean",
   "trusted_boundary": "Clang, canonical probe, complete-probe validators and callable lowering; source/capture provenance is externally recorded, not authenticated by the kernel",
   "proof_scope": "generated admitted body; all signed 8-bit char inputs; no whole-library or whole-program claim",
