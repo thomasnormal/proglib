@@ -179,6 +179,9 @@ structure TypeLayout where
   /-- For a variable-length array whose parser bound is a declaration
   identity, the declaration supplying that bound. -/
   boundDeclaration : Option DeclarationId := none
+  /-- Parser-owned VLA-bound node kind. The complete child payload remains
+      in the envelope for the next semantic step. -/
+  boundExpressionKind : Option String := none
 deriving Repr, Inhabited, BEq, Lean.ToExpr
 
 /-! A recursive `QualType` observation joined to a parser declaration ID. -/

@@ -262,6 +262,12 @@
     "return_value": 0
   },
   {
+    "id": "vla-bound-expression-node-refusal",
+    "source": "int f(int n) { int v[n + 1]; v[0] = 1; return v[0]; } int main(void) { return f(2) == 1 ? 0 : 1; }",
+    "expect": "refuse",
+    "error": "parser-provided VLA bound expression"
+  },
+  {
     "id": "vla-bound-expression-refusal-char",
     "source": "void f(int n) { char v[n]; v[0] = 1; } int main(void) { f(100); return 0; }",
     "expect": "match",

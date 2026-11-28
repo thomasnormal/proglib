@@ -442,6 +442,7 @@ structure Layout where
   pointeeSizeDecl : DeclarationId → Option Nat := fun _ => none
   elementSizeDecl : DeclarationId → Option Nat := fun _ => none
   vlaBoundDecl : DeclarationId → Option DeclarationId := fun _ => none
+  vlaBoundExprKind : DeclarationId → Option String := fun _ => none
   fieldOffTypeDecl : DeclarationId → String → Option Nat := fun _ _ => none
   fieldOffStructuredDecl : DeclarationId → LeanModels.Clang.QualType → Option Nat :=
     fun _ _ => none
@@ -618,6 +619,9 @@ def Layout.arrayElementSizeDeclAt (layout : Layout) (decl : Option DeclarationId
 
 def Layout.vlaBoundDeclAt (layout : Layout) (decl : Option DeclarationId) :
     Option DeclarationId := decl.bind layout.vlaBoundDecl
+
+def Layout.vlaBoundExprKindAt (layout : Layout) (decl : Option DeclarationId) :
+    Option String := decl.bind layout.vlaBoundExprKind
 
 def Layout.structuredTypeDecl (layout : Layout) (id : DeclarationId) :
     Option LeanModels.Clang.QualType :=

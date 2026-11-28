@@ -71,7 +71,9 @@ displayed type text is metadata only and is never parsed or used as the join
 key.
 For a variable-length array whose bound is a declaration reference, the same
 parser observation carries that declaration's source identity as
-`bound_decl_id`; bounds with other expression shapes remain unrepresented.
+`bound_decl_id`. The probe also carries a parser-owned `bound_expr` tree for
+the expression shape. The evaluator admits the existing declaration-reference
+case and refuses other bound shapes until their complete node semantics land.
 
 ```sh
 export LEAN_C_RECORD_LAYOUT_PLUGIN=/outside/the/repo/record_layout_probe.so

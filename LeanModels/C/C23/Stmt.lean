@@ -1005,8 +1005,23 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
             | .array _ none => true
             | _ => false
           let size? ← if vaList then pure (some 1) else if variableLength then
-            match ctx.layout.vlaBoundDeclAt id, id.bind ctx.layout.elementSizeDecl with
-            | some boundId, some elementSize =>
+            match ctx.layout.vlaBoundExprKindAt id, ctx.layout.vlaBoundDeclAt id,
+                id.bind ctx.layout.elementSizeDecl with
+            | some "DeclRefExpr", some boundId, some elementSize =>
+                match ctx.idEnv.lookup? boundId with
+                | some boundObj =>
+                    let boundSize := ctx.layout.sizeAt (some boundId) "int"
+                    let boundPtr := match boundSize with
+                      | some size => Ptr.toObjectBound boundObj size
+                      | none => Ptr.toObject boundObj
+                    let boundType := ctx.layout.structuredTypeDecl boundId
+                    let boundValue ← ctx.loadAt boundPtr "int" boundSize boundType
+                    let (_, count) ← asInt boundValue
+                    if count ≤ 0 then
+                      refuseUnsupported "variable-length array bound is not positive"
+                    else pure (some (count.toNat * elementSize))
+                | none => refuseUnsupported "variable-length array bound declaration is not in scope"
+            | none, some boundId, some elementSize =>
                 match ctx.idEnv.lookup? boundId with
                 | some boundObj =>
                     let boundSize := ctx.layout.sizeAt (some boundId) "int"
@@ -1022,7 +1037,9 @@ def declare : Nat → Ctx → List Decl → ExecM Ctx
                 | none =>
                     refuseUnsupported
                       "variable-length array bound declaration is not in scope"
-            | _, _ =>
+            | some _, _, _ =>
+                refuseUnsupported "parser-provided VLA bound expression is not executable yet"
+            | _, _, _ =>
                 refuseUnsupported
                   s!"variable-length array '{ty}' lacks parser-native bound expression"
           else pure (ctx.layout.sizeAt id ty)

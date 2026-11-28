@@ -389,6 +389,10 @@ as prose.
   by that identity. A declaration without a definition in this registry or
   the source translation unit remains a loud refusal. Header source bytes
   are never reparsed by the extractor.
+* **VLA layout rows retain parser bound evidence.** A `type_layouts` row for
+  a variable-length array may carry `bound_decl_id` and `bound_expr`. The
+  latter is a node-for-node parser payload and is never reconstructed from a
+  type spelling. Missing or unsupported bound nodes remain loud refusals.
 * **`externals` records prototypes, not semantics.** What each of the 27
   libc names MEANS is the interpreter's libc slice (inch/milestone M4),
   not this schema's business. The list exists so the ingester can tell a

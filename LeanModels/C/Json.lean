@@ -547,7 +547,11 @@ def parseTypeLayout (j : Json) : Except String TypeLayout := withCtx "type_layou
            pointeeSizeBytes := ← getOptNat j "pointee_size_bytes"
            elementType := ← getOptStr j "element_type"
            elementSizeBytes := ← getOptNat j "element_size_bytes"
-           boundDeclaration := (← getOptStr j "bound_decl_id").map DeclarationId.mk }
+           boundDeclaration := (← getOptStr j "bound_decl_id").map DeclarationId.mk
+           boundExpressionKind := (getOptNode j "bound_expr").bind (fun value =>
+             match value.getObjVal? "kind" with
+             | .ok (.str kind) => some kind
+             | _ => none) }
 
 def parseStructuredExprType (j : Json) : Except String StructuredExprType := withCtx "structured_expr_type" do
   return { exprId := some (DeclarationId.mk (← getStr j "expr_id"))

@@ -8,6 +8,7 @@
 // make aggregate semantics live in Lean.
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/DeclCXX.h"
+#include "clang/AST/Expr.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/RecordLayout.h"
 #include "clang/Basic/Version.h"
@@ -18,6 +19,8 @@
 #include "llvm/Support/JSON.h"
 #include "llvm/Support/raw_ostream.h"
 #include <memory>
+#include <sstream>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -29,6 +32,53 @@
 #endif
 
 namespace {
+
+std::string nodeId(const void *node) {
+  std::ostringstream text;
+  text << "0x" << std::hex << reinterpret_cast<uintptr_t>(node);
+  return text.str();
+}
+
+std::optional<llvm::json::Value> boundExprJson(const clang::Expr *expression) {
+  if (!expression) return std::nullopt;
+  const auto type = expression->getType().getAsString();
+  if (const auto *literal = llvm::dyn_cast<clang::IntegerLiteral>(expression)) {
+    llvm::SmallString<32> value;
+    literal->getValue().toString(value, 10, false, false);
+    return llvm::json::Object{{"kind", "IntegerLiteral"}, {"value", value.str().str()},
+                              {"type", type}};
+  }
+  if (const auto *ref = llvm::dyn_cast<clang::DeclRefExpr>(expression)) {
+    return llvm::json::Object{{"kind", "DeclRefExpr"}, {"decl_id", nodeId(ref->getDecl())},
+                              {"name", ref->getDecl()->getNameAsString()},
+                              {"decl_kind", ref->getDecl()->getDeclKindName()}, {"type", type}};
+  }
+  if (const auto *binary = llvm::dyn_cast<clang::BinaryOperator>(expression)) {
+    auto lhs = boundExprJson(binary->getLHS());
+    auto rhs = boundExprJson(binary->getRHS());
+    if (!lhs || !rhs) return std::nullopt;
+    return llvm::json::Object{{"kind", "BinaryOperator"}, {"op", binary->getOpcodeStr().str()},
+                              {"lhs", std::move(*lhs)}, {"rhs", std::move(*rhs)}, {"type", type}};
+  }
+  if (const auto *unary = llvm::dyn_cast<clang::UnaryOperator>(expression)) {
+    auto sub = boundExprJson(unary->getSubExpr());
+    if (!sub) return std::nullopt;
+    return llvm::json::Object{{"kind", "UnaryOperator"}, {"op", clang::UnaryOperator::getOpcodeStr(unary->getOpcode()).str()},
+                              {"sub", std::move(*sub)}, {"postfix", unary->isPostfix()}, {"type", type}};
+  }
+  if (const auto *paren = llvm::dyn_cast<clang::ParenExpr>(expression)) {
+    auto sub = boundExprJson(paren->getSubExpr());
+    if (!sub) return std::nullopt;
+    return llvm::json::Object{{"kind", "ParenExpr"}, {"sub", std::move(*sub)}, {"type", type}};
+  }
+  if (const auto *cast = llvm::dyn_cast<clang::ImplicitCastExpr>(expression)) {
+    auto sub = boundExprJson(cast->getSubExpr());
+    if (!sub) return std::nullopt;
+    return llvm::json::Object{{"kind", "ImplicitCastExpr"},
+                              {"cast", cast->getCastKindName()}, {"sub", std::move(*sub)}, {"type", type}};
+  }
+  return std::nullopt;
+}
 
 class Visitor : public clang::RecursiveASTVisitor<Visitor> {
 public:
@@ -72,8 +122,10 @@ public:
       }
       if (const auto *variable = llvm::dyn_cast<clang::VariableArrayType>(
               type.getTypePtrOrNull())) {
-        if (const auto *bound = llvm::dyn_cast<clang::DeclRefExpr>(
-                variable->getSizeExpr()->IgnoreParenImpCasts())) {
+        const auto *boundExpr = variable->getSizeExpr()->IgnoreParenImpCasts();
+        if (auto boundPayload = boundExprJson(boundExpr))
+          item["bound_expr"] = std::move(*boundPayload);
+        if (const auto *bound = llvm::dyn_cast<clang::DeclRefExpr>(boundExpr)) {
           const auto boundLoc = sources.getExpansionLoc(bound->getDecl()->getBeginLoc());
           if (sources.isWrittenInMainFile(boundLoc))
             item["bound_decl_offset"] =

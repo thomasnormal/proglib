@@ -1451,7 +1451,9 @@ def extract(path, source_name=None, standard="c23"):
                           **({"element_size_bytes": r["element_size_bytes"]}
                              if r.get("element_size_bytes") is not None else {}),
                           **({"bound_decl_id": r["bound_decl_id"]}
-                             if r.get("bound_decl_id") is not None else {})}
+                             if r.get("bound_decl_id") is not None else {}),
+                          **({"bound_expr": r["bound_expr"]}
+                             if r.get("bound_expr") is not None else {})}
                          for r in ex.type_layouts],
         "structured_types": structured_rows,
         "structured_expr_types": structured_expr_rows,
