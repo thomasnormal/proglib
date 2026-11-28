@@ -15,7 +15,7 @@
   "literal_sha256": {
     "ElementHierarchy.lean": "aef8252971fb6e7ccdada6ea582f8129beba343b4a6350c77fed8339c684920f",
     "DocumentHierarchy.lean": "5cb6ab3e39367c4d1542caa289c5145e10bec3ce1da1c74b35a8d6c935fd9274",
-    "BaseGetLineNum.lean": "5ade76748f8a46e28efd2907157199c132c7d05eb926c28f628a6a95a407e7ca"
+    "BaseGetLineNum.lean": "370f88d0c11fca7b53913c13c671ddaebfaf3c0b1abf4c0970a741a02fc3135a"
   },
   "paths": {
     "ElementHierarchy.lean": [
