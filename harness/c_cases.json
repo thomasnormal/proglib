@@ -1,5 +1,15 @@
 [
   {
+    "id": "multifile-user-header-definition-registry",
+    "headers": {
+      "registry_header.h": "static int registry_helper(int x) { return x + 1; }\nint registry_api(int x);\nint registry_api(int x) { return registry_helper(x); }"
+    },
+    "source": "#include \"registry_header.h\"\nint main(void) { return registry_api(4) == 5 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
     "id": "builtin-islessgreater-ieee",
     "source": "double __builtin_nan(const char *); int main(void) { double n = __builtin_nan(\"\"); return __builtin_islessgreater(1.0, 2.0) != 1 || __builtin_islessgreater(n, 2.0) != 0 ? 1 : 0; }",
     "expect": "match",

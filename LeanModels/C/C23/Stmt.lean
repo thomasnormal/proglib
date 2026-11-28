@@ -2465,16 +2465,11 @@ def callFn : Nat → Program → LeanModels.C.FunctionDefn → List CallArgument
                   if nm == "__builtin_constant_p" then runConstantP arguments
                   else runExternal nm (arguments.map CallArgument.value)
               | none => throw (.libc declaration.value)
-          | none => match calleeName callee with
           | none =>
-            -- A DeclRefExpr to a local variable is not a function call target.
-            -- Do not redo clang's resolved declaration identity by its name.
-            refuseUnsupported "indirect call through a non-FunctionDecl reference"
-          | some nm => match prog.find? nm with
-            | none =>
-                if nm == "__builtin_constant_p" then runConstantP arguments
-                else runExternal nm (arguments.map CallArgument.value)
-            | some g => callFn fuel prog g arguments
+            -- A direct call without Clang's resolved declaration identity is
+            -- not safely joinable. Do not recover it by matching a spelling
+            -- against either the source unit or the header registry.
+            refuseUnsupported "direct function call lacks a parser declaration identity"
         -- §6.2.1p4: the frame starts with the file-scope objects in scope,
         -- and the parameters are bound ON TOP of them, so a parameter that
         -- shadows a global wins by being consed later.

@@ -152,6 +152,10 @@ def selected(row, key, record_layout_plugin, structured_type_plugin=None,
 
 def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin=None,
              floating_bits_plugin=None):
+    for name, contents in row.get("headers", {}).items():
+        header = work / name
+        header.parent.mkdir(parents=True, exist_ok=True)
+        header.write_text(contents + "\n", encoding="utf-8")
     source = work / (row["id"] + ".c")
     if "source_base64" in row:
         source.write_bytes(base64.b64decode(row["source_base64"], validate=True))
@@ -161,7 +165,7 @@ def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin
     flags = list(COMPILE_FLAGS)
     if row.get("sanitize"):
         flags += ["-fsanitize=undefined", "-fno-sanitize-recover=all"]
-    compiled = run([clang] + flags + [str(source), "-o", str(native)])
+    compiled = run([clang] + flags + ["-I", str(work), str(source), "-o", str(native)])
     if compiled.returncode:
         return "ORACLE", "native compile failed: " + compiled.stderr[-800:]
     native_run = run([str(native)], timeout=30)

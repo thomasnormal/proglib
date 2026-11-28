@@ -94,3 +94,10 @@ python3 harness/c_record_layout_join_price.py \
   --out-dir /outside/cache/layout-env \
   --name 20230630-1.c --name pr49123.c
 ```
+
+`structured_type_probe.cpp` observes parser-owned declarations and
+expressions in included user headers as well as the main file. System-header
+observations remain excluded. The C extractor carries body-bearing header
+function nodes in `definition_registry`, and calls are resolved by Clang's
+declaration identity. Rebuild this plugin after changing it with the same
+versioned headers and libraries used for the pinned frontend.

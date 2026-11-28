@@ -58,7 +58,8 @@ std::optional<int64_t> sourceOffset(const clang::Decl *decl,
                                     const clang::SourceManager &sources) {
   if (!decl) return std::nullopt;
   const auto location = sources.getExpansionLoc(decl->getBeginLoc());
-  if (location.isInvalid() || !sources.isWrittenInMainFile(location))
+  if (location.isInvalid() || !location.isFileID() ||
+      sources.isInSystemHeader(location))
     return std::nullopt;
   return static_cast<int64_t>(sources.getFileOffset(location));
 }
@@ -70,7 +71,8 @@ std::optional<int64_t> sourceOffset(const clang::Expr *expr,
   if (spelling.isInvalid())
     spelling = expr->getSourceRange().getBegin();
   const auto location = sources.getExpansionLoc(spelling);
-  if (location.isInvalid() || !sources.isWrittenInMainFile(location))
+  if (location.isInvalid() || !location.isFileID() ||
+      sources.isInSystemHeader(location))
     return std::nullopt;
   return static_cast<int64_t>(sources.getFileOffset(location));
 }
@@ -82,7 +84,8 @@ std::optional<int64_t> sourceEndOffset(const clang::Expr *expr,
   if (spelling.isInvalid())
     spelling = expr->getSourceRange().getEnd();
   const auto location = sources.getExpansionLoc(spelling);
-  if (location.isInvalid() || !sources.isWrittenInMainFile(location))
+  if (location.isInvalid() || !location.isFileID() ||
+      sources.isInSystemHeader(location))
     return std::nullopt;
   return static_cast<int64_t>(sources.getFileOffset(location));
 }

@@ -914,10 +914,14 @@ def hasScalarStorageOrderCompilerShape (envl : Envelope) : Bool :=
 /-- The one execution path shared by the batch scorer and single-file CLI. -/
 def runEnvelope (fuel : Nat) (envl : Envelope) : ExecM CVal :=
   let lay := layoutFor envl
-  let prog : Program := { fns := envl.unit.functionDefns }
+  let prog : Program := { fns := [] }
   let prog := { prog with layout := lay }
   let prog := { prog with enumIds := envl.unit.enumBindings }
   do
+    let functions ← match envl.functionDefns with
+      | .ok fs => pure fs
+      | .error reason => refuseUnsupported reason
+    let prog := { prog with fns := functions }
     if envl.unit.functionDefns.any fun f =>
         f.name == "__cyg_profile_func_enter" || f.name == "__cyg_profile_func_exit" then
       refuseUnsupported "function instrumentation is outside the tier"

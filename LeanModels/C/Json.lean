@@ -527,6 +527,14 @@ def parseTopLevel (j : Json) : Except String TopLevel := do
   | "FunctionDecl" => return .fn (← parseFunctionDefn j)
   | _ => return .decl (← parseDecl j)
 
+def parseDefinitionRegistryEntry (j : Json) : Except String FunctionDefn := do
+  match ← parseTopLevel j with
+  | .fn f =>
+      unless f.body.isSome do
+        throw "definition_registry contains a declaration without a body"
+      pure f
+  | .decl _ => throw "definition_registry contains a non-function declaration"
+
 def parseExternal (j : Json) : Except String External :=
   withCtx "external" do
     return { name := ← getStr j "name", ty := ← getOptStr j "type" }
@@ -569,6 +577,9 @@ def parseEnvelope (j : Json) : Except String Envelope := withCtx "envelope" do
            sourceSha256 := ← getStr j "source_sha256"
            unit := { items := ← (← getArr tu "decls").mapM parseTopLevel }
            externals := ← (← getArr j "externals").mapM parseExternal
+           definitionRegistry := ← match getOptNode j "definition_registry" with
+             | none => pure []
+             | some value => (← value.getArr?).toList.mapM parseDefinitionRegistryEntry
            zeroNullPointer := ← match j.getObjVal? "zero_null_pointer" with
              | .ok _ => getBool j "zero_null_pointer"
              | .error _ => pure false

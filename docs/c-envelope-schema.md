@@ -30,12 +30,12 @@ census or the profile forced it:
    function-like macros produce corpus constructs (`YIELD`, `YIELD_PAWN`,
    `PACK_VM`, `VM_VAL`, `VM_MOVE`, `PROCESS`) and a refusal that cannot
    name the macro is a refusal a human cannot act on.
-3. **`externals` is a list, not an ingested subtree.** The preprocessed
-   TU is 3335 lines of which the corpus's own content is 58 functions and
-   71 objects. The extractor filters by clang's sticky `loc.file` and
-   records the referenced external declarations as names + prototypes
-   rather than ingesting the headers' bodies. Measured: exactly **27
-   libc names** over 146 call sites.
+3. **`externals` is a list, not an ingested subtree.** The extractor filters
+   by Clang's sticky `loc.file`. Referenced declarations remain names and
+   prototypes, while body-bearing user-header `FunctionDecl` nodes are
+   retained in `definition_registry` and resolved by parser identity. System
+   header bodies remain outside the registry. The libc slice currently has
+   exactly **27 names** over 146 call sites.
 
 ## 1 Envelope
 
@@ -51,6 +51,7 @@ census or the profile forced it:
   "source_sha256": "<hex sha256 of source bytes>",
   "translation_unit": {"kind": "TranslationUnit", "decls": [ <decl>... ]},
   "externals": [ {"name": "memcpy", "type": "void *(void *, const void *, unsigned long)"} ],
+  "definition_registry": [ <FunctionDecl definitions from included user headers> ],
   "type_layouts": [ {"type": "int (*)(int)", "size_bytes": 8, "alignment_bytes": 8} ],
   "structured_types": [
     {"decl_id": "id17", "type": {"kind": "pointer",
@@ -382,6 +383,12 @@ as prose.
   Arrays, function-pointer types and qualifier placement are specified by
   §3.4's recursive form; bit-fields, flexible array members and VLA types
   have no encoding, are 0 sites, and belong to rungs R2/R5.
+* **`definition_registry` records included-header definitions, not
+  declarations.** Each entry is the complete parser `FunctionDecl` node
+  with a body and its Clang declaration identity. The evaluator joins calls
+  by that identity. A declaration without a definition in this registry or
+  the source translation unit remains a loud refusal. Header source bytes
+  are never reparsed by the extractor.
 * **`externals` records prototypes, not semantics.** What each of the 27
   libc names MEANS is the interpreter's libc slice (inch/milestone M4),
   not this schema's business. The list exists so the ingester can tell a

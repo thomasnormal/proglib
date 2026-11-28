@@ -1139,6 +1139,39 @@ def extract(path, source_name=None, standard="c23"):
     collect_member_records(tu)
     target = os.path.basename(path)
     structured_types = structured_type_records(joined["structured"])
+    # Preserve Clang's redeclaration identity without matching declarations
+    # by spelling. Every FunctionDecl points either at its own body or along
+    # `previousDecl` to the body-bearing declaration in this AST.
+    function_nodes = {}
+    def collect_function_nodes(value):
+        if isinstance(value, dict):
+            if value.get("kind") == "FunctionDecl" and isinstance(value.get("id"), str):
+                function_nodes[value["id"]] = value
+            for child in value.values():
+                collect_function_nodes(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect_function_nodes(child)
+    collect_function_nodes(tu)
+    function_aliases = {}
+    def function_definition_id(node_id, active=()):
+        if node_id in function_aliases:
+            return function_aliases[node_id]
+        if node_id in active:
+            die("cyclic FunctionDecl previousDecl chain")
+        node = function_nodes.get(node_id)
+        if node is None:
+            die("FunctionDecl previousDecl target is absent from parser AST")
+        if any(c.get("kind") == "CompoundStmt" for c in kids(node)):
+            result = node_id
+        else:
+            previous = node.get("previousDecl")
+            result = function_definition_id(previous, active + (node_id,)) \
+                if isinstance(previous, str) else node_id
+        function_aliases[node_id] = result
+        return result
+    for function_id in list(function_nodes):
+        function_definition_id(function_id)
     # Clang accepts source bytes inside literals that are not UTF-8.  Keep
     # those parser-owned bytes available for diagnostic slicing without
     # rejecting an otherwise valid translation unit at the Python boundary.
@@ -1155,6 +1188,34 @@ def extract(path, source_name=None, standard="c23"):
         if loc.mine():
             ex.loc.file, ex.loc.line = loc.file, loc.line
             top.append(ex.node(d))
+
+    # Clang's translation-unit AST also contains definitions from included
+    # headers.  Keep those parser nodes in a separate registry instead of
+    # dropping them or treating a call resolved to one as libc.  The source
+    # file is recovered from Clang's sticky location state, then the same
+    # node is converted with an extractor carrying that header's bytes.  No
+    # source text is parsed here and no names are joined: the declaration id
+    # on the node remains the only call-resolution key.
+    registry = []
+    all_loc = Loc(target)
+    for raw in kids(tu):
+        all_loc.absorb(raw.get("loc"))
+        all_loc.absorb((raw.get("range") or {}).get("begin"))
+        if raw.get("kind") != "FunctionDecl":
+            continue
+        body = next((c for c in kids(raw) if c.get("kind") == "CompoundStmt"), None)
+        if body is None or all_loc.mine() or not all_loc.file:
+            continue
+        header_path = os.path.abspath(all_loc.file)
+        try:
+            header_text = open(header_path, "rb").read().decode("utf-8", errors="surrogateescape")
+        except OSError as error:
+            die("header definition source unavailable %s: %s" % (header_path, error))
+        header_ex = Extractor(os.path.basename(header_path), header_text,
+                              string_bytes, floating_bits, record_layouts,
+                              member_record_ids)
+        header_ex.collect_labels(tu)
+        registry.append(header_ex.node(raw))
 
     # File-scope anonymous records are emitted as a RecordDecl immediately
     # before the VarDecl that owns their storage.  Preserve that parser
@@ -1173,25 +1234,20 @@ def extract(path, source_name=None, standard="c23"):
     # external libc.  Use the parser's own FunctionDecl name/body fields to
     # canonicalize redeclarations to the body-bearing declaration ID.  This is
     # identity normalization over the approved AST, never source reparsing.
-    function_defs = {
-        n.get("name"): n.get("decl_id")
-        for n in top
-        if n.get("kind") == "FunctionDecl" and n.get("body") is not None
-        and n.get("name") and n.get("decl_id")
-    }
     def unify(value):
         if isinstance(value, dict):
-            if value.get("kind") == "FunctionDecl" and value.get("name") in function_defs:
-                value["decl_id"] = function_defs[value["name"]]
-            elif value.get("kind") == "DeclRefExpr" and value.get("decl_kind") == "FunctionDecl":
-                if value.get("name") in function_defs:
-                    value["decl_id"] = function_defs[value["name"]]
+            if value.get("kind") == "FunctionDecl" and value.get("decl_id") in function_aliases:
+                value["decl_id"] = function_aliases[value["decl_id"]]
+            elif value.get("kind") == "DeclRefExpr" and value.get("decl_kind") == "FunctionDecl" \
+                    and value.get("decl_id") in function_aliases:
+                value["decl_id"] = function_aliases[value["decl_id"]]
             for child in value.values():
                 unify(child)
         elif isinstance(value, list):
             for child in value:
                 unify(child)
     unify(top)
+    unify(registry)
 
     # Preserve Clang's parser-native record tag decision even when the
     # optional layout plugin is absent.  This is an AST fact, not a spelling
@@ -1312,6 +1368,7 @@ def extract(path, source_name=None, standard="c23"):
             return [attach_decl_type(item) for item in value]
         return value
     top = [attach_decl_type(item) for item in top]
+    registry = [attach_decl_type(item) for item in registry]
 
     duplicate = duplicate_structured_decl(structured_rows)
     if duplicate is not None:
@@ -1345,6 +1402,7 @@ def extract(path, source_name=None, standard="c23"):
         "source_file": rel,
         "source_sha256": hashlib.sha256(src).hexdigest(),
         "translation_unit": {"kind": "TranslationUnit", "decls": top},
+        "definition_registry": registry,
         "externals": externals(tu, target, Loc),
         "type_layouts": [{"type": r["type"], "size_bytes": r["size_bytes"],
                           **({"decl_id": r["decl_id"]} if r.get("decl_id") is not None else {}),

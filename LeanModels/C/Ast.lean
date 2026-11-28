@@ -457,6 +457,10 @@ structure Envelope where
   sourceSha256 : String
   unit : TranslationUnit
   externals : List External
+  /-- Function definitions from included user headers in this frontend
+      translation-unit set.  Entries retain Clang's declaration identity and
+      are admitted only as definitions, never by matching a source spelling. -/
+  definitionRegistry : List FunctionDefn := []
   /-- Clang's target represents a default-address-space null pointer in
       eight zero bytes. -/
   zeroNullPointer : Bool := false
@@ -466,6 +470,27 @@ structure Envelope where
   /-- Parser-native record tag facts keyed by declaration identity. -/
   recordKinds : List (DeclarationId × Bool) := []
 deriving Repr, Inhabited
+
+/-- The source and included-header definitions available to one execution.
+    Duplicate parser identities are malformed frontend evidence. -/
+def Envelope.functionDefns (envl : Envelope) : Except String (List FunctionDefn) :=
+  let sourceDefs := envl.unit.items.filterMap fun item => match item with
+    | .fn f => if f.body.isSome then some f else none
+    | .decl _ => none
+  let defs := sourceDefs ++ envl.definitionRegistry
+  let rec check (seen : List DeclarationId) : List FunctionDefn → Except String (List FunctionDefn)
+    | [] => .ok []
+    | f :: rest =>
+        match f.id with
+        | some id =>
+            if seen.contains id then
+              .error s!"duplicate function definition identity '{id.value}' in translation-unit registry"
+            else
+              match check (id :: seen) rest with
+              | .ok tail => .ok (f :: tail)
+              | .error e => .error e
+        | none => .error s!"function definition '{f.name}' has no parser identity"
+  check [] defs
 
 /-- Parser-native structured type for a declaration occurrence. -/
 def Envelope.structuredTypeFor (envl : Envelope) (id : DeclarationId) :
