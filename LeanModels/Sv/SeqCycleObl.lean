@@ -312,6 +312,7 @@ def CoreMemProc.unconverted : CoreMemProc → List String
       match coreMemEventEdge? evs body with
       | some f => f.body.unconverted
       | none => []
+  | .unsupported _ text => [text]
   | _ => []
 
 /-- The names a process drives. -/
@@ -2301,6 +2302,26 @@ theorem CoreMemDesign.oblEdgeOrderMemory_of_oblEdgeOrder {E : CoreMemDesign}
 def CoreMemDesign.oblConverted (E : CoreMemDesign) : Bool :=
   E.processes.toList.all fun p => p.unconverted.isEmpty
 
+theorem CoreMemDesign.oblConverted_noUnsupported {E : CoreMemDesign}
+    (h : E.oblConverted = true) :
+    ∀ p ∈ E.processes.toList, ∀ kind text, p ≠ .unsupported kind text := by
+  have hconv : ∀ (i : Nat) (hi : i < E.processes.size), E.processes[i].unconverted = [] := by
+    simpa [CoreMemDesign.oblConverted] using h
+  intro p hp kind text hbad
+  subst p
+  obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hp
+  rw [Array.getElem?_toList] at hi
+  have hidx : i < E.processes.size := by
+    by_cases hidx : i < E.processes.size
+    · exact hidx
+    · have hnone := Array.getElem?_eq_none (xs := E.processes) (i := i) (by omega)
+      rw [hnone] at hi
+      simp at hi
+  have hempty := hconv i hidx
+  have hget : E.processes[i] = .unsupported kind text := by
+    simpa [Array.getElem?_eq_getElem hidx] using hi
+  simpa [hget, CoreMemProc.unconverted] using hempty
+
 /-- The clock is an input port. -/
 def CoreMemDesign.oblClockInput (E : CoreMemDesign) (clk : String) : Bool :=
   E.inputNamesL.contains clk
@@ -2333,12 +2354,14 @@ def CoreMemDesign.oblComb (E : CoreMemDesign) : Bool :=
     match p with
     | .comb body => E.combProcOkIB body
     | .latch _ => false
+    | .unsupported _ _ => false
     | _ => true
 
 theorem CoreMemDesign.oblComb_spec {E : CoreMemDesign} (h : E.oblComb = true) :
     ∀ p ∈ E.processes.toList, match p with
       | .comb body => E.combProcOkIB body = true
       | .latch _ => False
+      | .unsupported _ _ => False
       | _ => True := by
   simp only [CoreMemDesign.oblComb, List.all_eq_true] at h
   intro p hp
@@ -2351,9 +2374,10 @@ theorem CoreMemDesign.oblComb_spec {E : CoreMemDesign} (h : E.oblComb = true) :
   | initial body => trivial
   | implicit body => trivial
   | event events body => trivial
-  | unsupported kind text => trivial
+  | unsupported kind text => have := h (.unsupported kind text) hp; simp at this
 
-theorem CoreMemDesign.oblComb_of_noComb {E : CoreMemDesign} (h : E.hasComb = false) :
+theorem CoreMemDesign.oblComb_of_noComb {E : CoreMemDesign} (h : E.hasComb = false)
+    (hconverted : ∀ p ∈ E.processes.toList, ∀ kind text, p ≠ .unsupported kind text) :
     E.oblComb = true := by
   simp only [CoreMemDesign.oblComb, List.all_eq_true, CoreMemDesign.hasComb,
     List.any_eq_false] at h ⊢
@@ -2367,7 +2391,7 @@ theorem CoreMemDesign.oblComb_of_noComb {E : CoreMemDesign} (h : E.hasComb = fal
   | initial body => simp
   | implicit body => simp
   | event events body => simp
-  | unsupported kind text => simp
+  | unsupported kind text => exact False.elim (hconverted (.unsupported kind text) hp kind text rfl)
 
 /-- **The obligations of the clocked profile, for any number of events**, decided:
 * one driver per signal: the base names the processes write are pairwise distinct across processes;
@@ -2452,17 +2476,19 @@ theorem CoreMemDesign.seqOblI_noComb {E : CoreMemDesign} (h : E.seqOblI = true) 
 
 theorem CoreMemDesign.seqOblI_to_seqOblIC {E : CoreMemDesign}
     (h : E.seqOblI = true) : E.seqOblIC = true := by
-  have hcomb := CoreMemDesign.oblComb_of_noComb (CoreMemDesign.seqOblI_noComb h)
   have hs := CoreMemDesign.seqOblI_spec h
-  simp [CoreMemDesign.seqOblIC, hcomb, hs.1, hs.2.1, hs.2.2.1, hs.2.2.2.1,
-    hs.2.2.2.2.1, hs.2.2.2.2.2.1, hs.2.2.2.2.2.2]
+  rcases hs with ⟨hdr, htopo, hin, hsrc, hnread, hedge, hconv⟩
+  have hconverted := CoreMemDesign.oblConverted_noUnsupported hconv
+  have hcomb := CoreMemDesign.oblComb_of_noComb (CoreMemDesign.seqOblI_noComb h) hconverted
+  simp [CoreMemDesign.seqOblIC, hcomb, hdr, htopo, hin, hsrc, hnread, hedge, hconv]
 
 theorem CoreMemDesign.seqOblIM_to_seqOblIMC {E : CoreMemDesign}
     (h : E.seqOblIM = true) : E.seqOblIMC = true := by
-  have hcomb := CoreMemDesign.oblComb_of_noComb (CoreMemDesign.seqOblIM_noComb h)
   have hs := CoreMemDesign.seqOblIM_spec h
-  simp [CoreMemDesign.seqOblIMC, hcomb, hs.1, hs.2.1, hs.2.2.1, hs.2.2.2.1,
-    hs.2.2.2.2.1, hs.2.2.2.2.2.1, hs.2.2.2.2.2.2]
+  rcases hs with ⟨hdr, htopo, hin, hsrc, hnread, hedge, hconv⟩
+  have hconverted := CoreMemDesign.oblConverted_noUnsupported hconv
+  have hcomb := CoreMemDesign.oblComb_of_noComb (CoreMemDesign.seqOblIM_noComb h) hconverted
+  simp [CoreMemDesign.seqOblIMC, hcomb, hdr, htopo, hin, hsrc, hnread, hedge, hconv]
 
 theorem CoreMemDesign.hasComb_eq_false_of_noComb {E : CoreMemDesign}
     (hno : ∀ p ∈ E.processes.toList, ∀ body, p ≠ .comb body ∧ p ≠ .latch body) :
