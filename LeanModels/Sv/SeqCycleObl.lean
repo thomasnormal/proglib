@@ -1242,6 +1242,60 @@ def CoreMemDesign.CombStmtViewRefines (E : CoreMemDesign) (env : IEnv) (stmt : P
     ∃ st₁' view₁',
       E.execCombStmtAtView env E.elems st₁ view₁ stmt = .ok (st₁', view₁') ∧ view₁' = view₂'
 
+/-! A scalar blocking assignment can be replayed from any coherent state
+carrying the same scalar view.  This is the success-transfer receipt needed by
+the state-side active-region runner. -/
+theorem CoreMemDesign.combStmtViewRefines_blocking
+    {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
+    (hbody : E.combBodyB (.blockingAssign n value) = true) :
+    E.CombStmtViewRefines env (.blockingAssign n value) := by
+  intro st₁ st₂ view₁ view₂ st₂' view₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₂
+  simp only [CoreMemDesign.combBodyB, Bool.and_eq_true] at hbody
+  obtain ⟨htarget, hexpr⟩ := hbody
+  simp only [CoreMemDesign.combExprB, Bool.and_eq_true] at hexpr
+  obtain ⟨⟨hcall, hmem⟩, htest⟩ := hexpr
+  have hcall' : PExpr.hasFunctionCall value = false := by simpa using hcall
+  have hmem' : PExpr.hasMemoryRead value = false := by simpa using hmem
+  have htest' : PExpr.hasTestPlusargs value = false := by simpa using htest
+  cases hw : E.scalarTarget n with
+  | none => simp [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel, hw] at h₂
+  | some width =>
+      have hvalueEq := CoreMemDesign.evalExprLocals_mem_congr_of_pure
+        (E := E) (env := env) (st₁ := st₁) (st₂ := st₂) (ctx := some width)
+        hm₁ hm₂ hview hmem' hcall'
+      simp [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel,
+        hw, htest'] at h₂
+      obtain ⟨_, a, ha, hst₂, hview₂', _⟩ := h₂
+      have hvalue₁ : E.evalExprLocals env E.elems st₁ (some width) [] value = .ok a := by
+        rw [hvalueEq]
+        exact ha
+      have h₁ : E.execCombStmtAtView env E.elems st₁ view₁
+          (.blockingAssign n value) =
+          .ok (E.setScalarState st₁ n a, SvState.set view₁ n a) :=
+        CoreMemDesign.execCombStmtAtView_blocking_scalar
+          (hlocal := rfl) (hlocals := rfl) hw htest' hvalue₁
+      refine ⟨E.setScalarState st₁ n a, SvState.set view₁ n a, ?_, ?_⟩
+      · exact h₁
+      · simpa [hviews] using hview₂'
+
+/-! The parser-native scalar-target form delegates exactly to the scalar
+blocking assignment executor; this preserves the source-shaped node. -/
+theorem CoreMemDesign.combStmtViewRefines_blockingL_ident
+    {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
+    (hbody : E.combBodyB (.blockingAssignL (.ident n) value) = true) :
+    E.CombStmtViewRefines env (.blockingAssignL (.ident n) value) := by
+  have hblock : E.combBodyB (.blockingAssign n value) = true := by
+    simpa [CoreMemDesign.combBodyB, CoreMemDesign.combTargetB] using hbody
+  intro st₁ st₂ view₁ view₂ st₂' view₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₂
+  have h₂' : E.execCombStmtAtView env E.elems st₂ view₂
+      (.blockingAssign n value) = .ok (st₂', view₂') := by
+    simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₂
+  obtain ⟨st₁', view₁', h₁', hview'⟩ :=
+    CoreMemDesign.combStmtViewRefines_blocking hblock
+      st₁ st₂ view₁ view₂ st₂' view₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₂'
+  refine ⟨st₁', view₁', ?_, hview'⟩
+  simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₁'
+
 theorem CoreMemDesign.combStmtAtViewStable_blocking
     {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
     (hbody : E.combBodyB (.blockingAssign n value) = true) :
