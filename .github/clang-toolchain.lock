@@ -1,4 +1,7 @@
 # conda-forge package specs verified by the pinned C/C++ frontend receipt.
+# CI uses these conda environment headers. The lane host uses host system
+# headers, so system-header ASTs may differ. Rows with system-header
+# dependencies are the stdio/stdlib/varargs rows in harness/c_cases.json.
 clangdev=21.1.8=default_haeba491_6
 llvmdev=21.1.8=h7399f5f_1
 clang-21=21.1.8=default_h6209e06_6

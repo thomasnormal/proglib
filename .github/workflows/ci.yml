@@ -76,8 +76,13 @@ jobs:
           MAMBA_ROOT_PREFIX: ${{ runner.temp }}/micromamba-root
         run: |
           set -euo pipefail
-          curl -LsS https://micro.mamba.pm/api/micromamba/linux-64/latest \
-            | tar -xvj -C "$RUNNER_TEMP" bin/micromamba
+          micromamba_archive="$RUNNER_TEMP/micromamba-2.9.0.tar.bz2"
+          curl -LsS --fail https://micro.mamba.pm/api/micromamba/linux-64/2.9.0 \
+            -o "$micromamba_archive"
+          printf '%s  %s\n' \
+            8761c382127e6363bd9e0a2451aa3ef90d071a79133f736e2f759a3bf13040dd \
+            "$micromamba_archive" | sha256sum --check --status
+          tar -xjf "$micromamba_archive" -C "$RUNNER_TEMP" bin/micromamba
           mapfile -t specs < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' .github/clang-toolchain.lock)
           "$RUNNER_TEMP/bin/micromamba" create --yes --no-rc --override-channels \
             --channel conda-forge --prefix "$GITHUB_WORKSPACE/.ci/clangdev" "${specs[@]}"
