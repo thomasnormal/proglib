@@ -773,7 +773,8 @@ the one that had to be thought about:
 
 Earlier globals are in scope for later initializers, which is §6.2.1p4's
 "to the end of the translation unit" doing its own work. -/
-def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
+def setupGlobalsWithIds (fuel : Nat) (lay : Layout)
+    (enumIds : List (LeanModels.C.DeclarationId × Int)) :
     List LeanModels.C.Decl → Env → IdEnv → ExecM (Env × IdEnv)
   | [], acc, ids => pure (acc, ids)
   | d :: ds, acc, ids =>
@@ -785,18 +786,18 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
               | some id => (id, o) :: ids
               | none => ids
             match storage, init with
-            | some "extern", _ => setupGlobalsWithIds fuel lay ds acc ids'
-            | _, none => setupGlobalsWithIds fuel lay ds acc ids'
+            | some "extern", _ => setupGlobalsWithIds fuel lay enumIds ds acc ids'
+            | _, none => setupGlobalsWithIds fuel lay enumIds ds acc ids'
             | _, some e => do
-                initObject fuel ({ env := acc, idEnv := ids', layout := lay } : Ctx).withCompoundInit
+                initObject fuel ({ env := acc, idEnv := ids', enumIds := enumIds, layout := lay } : Ctx).withCompoundInit
                   (Ptr.toObject o) ty e (declaration.bind lay.structuredTypeDecl) declaration
-                setupGlobalsWithIds fuel lay ds acc ids'
+                setupGlobalsWithIds fuel lay enumIds ds acc ids'
         | none =>
           if storage == some "extern" then
             refuseUnsupported s!"extern object '{nm}' has no definition in the translation unit"
           else
             match lay.sizeAtStructured declaration ty structuredType with
-            | none => setupGlobalsWithIds fuel lay ds acc ids
+            | none => setupGlobalsWithIds fuel lay enumIds ds acc ids
             | some sz =>
               let sz := sz + (declaration.bind lay.flexibleInitializerExtra).getD 0
               match init with
@@ -806,7 +807,7 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
                     (lay.storageTypeAt declaration ty)
                     (declaration.bind lay.structuredTypeDecl)
                   set m'
-                  setupGlobalsWithIds fuel lay ds ((nm, o) :: acc)
+                  setupGlobalsWithIds fuel lay enumIds ds ((nm, o) :: acc)
                     (match declaration with
                     | some id => (id, o) :: ids
                     | none => ids)
@@ -816,17 +817,17 @@ def setupGlobalsWithIds (fuel : Nat) (lay : Layout) :
                     (lay.storageTypeAt declaration ty)
                     (declaration.bind lay.structuredTypeDecl)
                   set m'
-                  initObject fuel ({ env := acc, idEnv := ids, layout := lay } : Ctx).withCompoundInit
+                  initObject fuel ({ env := acc, idEnv := ids, enumIds := enumIds, layout := lay } : Ctx).withCompoundInit
                     (Ptr.toObject o) ty e (declaration.bind lay.structuredTypeDecl) declaration
-                  setupGlobalsWithIds fuel lay ds ((nm, o) :: acc)
+                  setupGlobalsWithIds fuel lay enumIds ds ((nm, o) :: acc)
                     (match declaration with
                     | some id => (id, o) :: ids
                     | none => ids)
-    | _ => setupGlobalsWithIds fuel lay ds acc ids
+    | _ => setupGlobalsWithIds fuel lay enumIds ds acc ids
 
 def setupGlobals (fuel : Nat) (lay : Layout) :
     List LeanModels.C.Decl → Env → ExecM Env
-  | decls, acc => (setupGlobalsWithIds fuel lay decls acc []).map Prod.fst
+  | decls, acc => (setupGlobalsWithIds fuel lay [] decls acc []).map Prod.fst
 
 /-! Block-scope `static` objects have file lifetime (§6.2.4p3), so they are
 created once before `main` and entered in the declaration-identity map that
@@ -923,7 +924,7 @@ def runEnvelope (fuel : Nat) (envl : Envelope) : ExecM CVal :=
     let m ← get
     let (m', stdoutObj) := m.allocZeroed .static_ 1 (some "stdout-stream")
     set m'
-    let genv ← setupGlobalsWithIds fuel lay envl.unit.fileScopeObjects [] []
+    let genv ← setupGlobalsWithIds fuel lay envl.unit.enumBindings envl.unit.fileScopeObjects [] []
     let senv ← setupStaticsWithIds fuel lay (staticDecls envl) genv.1 genv.2
     let prog := { prog with globals := senv.1, globalIds := senv.2 }
     callByName fuel { prog with stdoutObj := some stdoutObj } "main" []

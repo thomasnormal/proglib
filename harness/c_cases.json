@@ -2025,5 +2025,12 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "corpus-pr91597-enum-global-init",
+    "source": "/* PR tree-optimization/91597 */\n\nenum E { A, B, C };\nstruct __attribute__((aligned (4))) S { enum E e; };\n\nenum E\nfoo (struct S *o)\n{\n  if (((__UINTPTR_TYPE__) (o) & 1) == 0)\n    return o->e;\n  else\n    return A;\n}\n\nint\nbar (struct S *o)\n{\n  return foo (o) == B || foo (o) == C;\n}\n\nstatic inline void\nbaz (struct S *o, int d)\n{\n  if (__builtin_expect (!bar (o), 0))\n    __builtin_abort ();\n  if (d > 2) return;\n  baz (o, d + 1);\n}\n\nvoid\nqux (struct S *o)\n{\n  switch (o->e)\n    {\n    case A: return;\n    case B: baz (o, 0); break;\n    case C: baz (o, 0); break;\n    }\n}\n\nstruct S s = { C };\n\nint\nmain ()\n{\n  qux (&s);\n  return 0;\n}\n",
+    "expect": "refuse",
+    "error": "pointer-integer value requires an unchanged cast back",
+    "sanitize": true
   }
 ]
