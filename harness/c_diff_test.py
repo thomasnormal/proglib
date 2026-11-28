@@ -11,6 +11,7 @@ divergence according to the row, never an unavailable oracle.
 from __future__ import print_function
 
 import argparse
+import base64
 import importlib.util
 import json
 import os
@@ -152,7 +153,10 @@ def selected(row, key, record_layout_plugin, structured_type_plugin=None,
 def classify(row, clang, work, record_layout_plugin=None, structured_type_plugin=None,
              floating_bits_plugin=None):
     source = work / (row["id"] + ".c")
-    source.write_text(row["source"] + "\n", encoding="utf-8")
+    if "source_base64" in row:
+        source.write_bytes(base64.b64decode(row["source_base64"], validate=True))
+    else:
+        source.write_text(row["source"] + "\n", encoding="utf-8")
     native = work / row["id"]
     flags = list(COMPILE_FLAGS)
     if row.get("sanitize"):

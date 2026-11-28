@@ -269,6 +269,13 @@
     "return_value": 0
   },
   {
+    "id": "nonutf8-string-literal",
+    "source_base64": "dm9pZCBhYm9ydCh2b2lkKTsKCnN0YXRpYyBjb25zdCB1bnNpZ25lZCBjaGFyIGZbXSA9ICJcMFwzNzciOwpzdGF0aWMgY29uc3QgdW5zaWduZWQgY2hhciBnW10gPSAiXDD/IjsKCmludCBtYWluKHZvaWQpCnsKICBpZiAoc2l6ZW9mIGYgIT0gMyB8fCBzaXplb2YgZyAhPSAzKQogICAgYWJvcnQgKCk7CiAgaWYgKGZbMF0gIT0gZ1swXSkKICAgIGFib3J0ICgpOwogIGlmIChmWzFdICE9IGdbMV0pCiAgICBhYm9ydCAoKTsKICBpZiAoZlsyXSAhPSBnWzJdKQogICAgYWJvcnQgKCk7CiAgcmV0dXJuIDA7Cn0K",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
     "id": "string-literal-static-lifetime",
     "source": "const char *f(void) { return \"ok\"; } int main(void) { const char *p = f(); return p[1] == 'k' ? 0 : 1; }",
     "expect": "match",
