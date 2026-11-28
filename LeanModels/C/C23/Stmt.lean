@@ -606,13 +606,14 @@ def findLabel (name : String) : List Stmt → Option (List Stmt)
 parser-owned subtree and returns the tail beginning at that label. It is used
 only after ordinary block-tail search fails, so declarations on the resumed
 tail remain checked by the existing lifetime rule. -/
-def findLabelDeep (name : String) (statements : List Stmt) : Option (List Stmt) :=
-  let rec seek : List Stmt → List Stmt → Option (List Stmt)
+def findLabelDeep (name : String) (statements : List Stmt) :
+    Option (List Stmt × List Stmt) :=
+  let rec seek : List Stmt → List Stmt → Option (List Stmt × List Stmt)
     | [], _ => none
     | s :: rest, seen =>
         match s with
         | .label n body sp =>
-            if n == name then some (seen.reverse ++ (.label n body sp :: rest))
+            if n == name then some (seen, seen.reverse ++ (.label n body sp :: rest))
             else seek rest []
         | .decl _ _ => seek rest (s :: seen)
         | _ => seek rest []
@@ -891,6 +892,9 @@ def execBlock : Nat → Ctx → List Stmt → ExecM Flow
     | .decl ds _ => do
         let ctx' ← declare fuel ctx ds
         execBlock fuel ctx' rest
+    | .label _ (.decl ds _) _ => do
+        let ctx' ← declare fuel ctx ds
+        execBlock fuel ctx' rest
     | _ => do
       let f ← execStmt fuel ctx s
       match f with
@@ -899,10 +903,7 @@ def execBlock : Nat → Ctx → List Stmt → ExecM Flow
           -- §6.8.7.1: a forward jump lands on a label later in THIS block,
           -- or propagates outward to an enclosing one.
           match findLabel l rest with
-          | some tail =>
-              if rest.any stmtHasInitializer then
-                refuseUnsupported "goto skips an initialized block declaration"
-              else execBlock fuel ctx tail
+          | some tail => execBlock fuel ctx tail
           | none =>
               -- A forward goto may land in the compound then-arm of a
               -- later if.  The label is still a parser-tree child of this
@@ -911,10 +912,7 @@ def execBlock : Nat → Ctx → List Stmt → ExecM Flow
               match rest with
               | (.ifS _ (.compound body bsp) _ _) :: after =>
                   match findLabel l body with
-                  | some tail =>
-                      if rest.any stmtHasInitializer then
-                        refuseUnsupported "goto skips an initialized block declaration"
-                      else execBlock fuel ctx (tail ++ after)
+                  | some tail => execBlock fuel ctx (tail ++ after)
                   | none => pure (.goto l)
               | _ =>
                   -- §6.8.6.1: a same-function `goto` may target a label
@@ -927,8 +925,8 @@ def execBlock : Nat → Ctx → List Stmt → ExecM Flow
                   match ctx.functionBody with
                   | some functionStatements =>
                       match findLabelDeep l functionStatements with
-                      | some tail =>
-                          if tail.any stmtHasInitializer then
+                      | some (skipped, tail) =>
+                          if skipped.any stmtHasInitializer then
                             refuseUnsupported "goto skips an initialized block declaration"
                           else execBlock fuel ctx tail
                       | none => pure (.goto l)

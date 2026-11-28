@@ -1995,5 +1995,12 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "c23-label-before-declaration",
+    "source": "int f(int x) { goto b; a: int i = 2 * x; aa: int u = 0; int v = 0; goto c; b: goto a; { i *= 3; c: } return i + u + v; d: } int main(void) { return f(1) == 2 ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
