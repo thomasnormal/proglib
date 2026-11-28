@@ -4054,3 +4054,18 @@ round-to-nearest model. Admitting this family requires explicit environment
 state, sequencing of environment accesses, and differential rows for each
 supported mode and flag; no approximation or host-state observation is
 permitted.
+
+## 2026-11-28-c-computed-goto — GNU label addresses remain refused
+
+The C1–C3 survey has seven sole rows whose first dynamic wall is Clang's
+`AddrLabelExpr`. Six also contain `IndirectGotoStmt`; `990208-1.c` stores a
+label address without executing an indirect jump. GNU computed goto gives
+`&&label` a label-address value and `goto *expr` transfers to the matching
+label. This is a GNU extension outside ISO C23. The approved parser already
+retains the label declaration identity, but the C value model has no label
+provenance or byte representation. Function-pointer identity cannot stand in
+for it because calls and computed jumps have different operations and
+lifetimes. The family remains a loud refusal until a dedicated label value,
+parser-identity lookup, storage representation, and indirect-jump flow rule
+are implemented together. No source rewriting or fabricated function pointer
+is permitted.
