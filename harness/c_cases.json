@@ -630,12 +630,10 @@
   {
     "id": "pointer-integer-roundtrip",
     "source": "#include <stdint.h>\nint main(void) { int x = 3; uintptr_t u = (uintptr_t)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "envelope_checks": [],
-    "error": "no layout for declared type 'int *'",
-    "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation"
+    "structured_expect": "match"
   },
   {
     "id": "pointer-address-difference-wall",
@@ -650,9 +648,9 @@
     "id": "integer-to-pointer-exposure-wall",
     "source": "#include <stdint.h>\nint main(void) { int x[2] = {1, 2}; int *p = (int *)((uintptr_t)&x[0] + sizeof(int)); return *p; }",
     "expect": "refuse",
-    "error": "no layout for declared type 'int[2]'",
+    "error": "pointer-integer value requires an unchanged cast back",
     "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation"
+    "structured_error": "pointer-integer value requires an unchanged cast back"
   },
   {
     "id": "pointer-bytes-character-wall",
@@ -819,9 +817,9 @@
     "id": "pointer-unsigned-int-wall",
     "source": "int main(void) { int x = 3; unsigned int u = (unsigned int)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }",
     "expect": "refuse",
-    "error": "pointer-to-integer conversion outside uintptr_t/intptr_t",
+    "error": "pointer-integer value stored outside uintptr_t/intptr_t",
     "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation"
+    "structured_error": "pointer-integer value stored outside uintptr_t/intptr_t"
   },
   {
     "id": "void-pointer-roundtrip",
@@ -1277,9 +1275,9 @@
     "id": "long-double-object-layout-refusal",
     "source": "int main(void) { long double x = 1.5L; return x == 1.5L ? 0 : 1; }",
     "expect": "refuse",
-    "error": "no layout for declared type 'long double'",
+    "error": "long double floating literal",
     "layout_expect": "refuse",
-    "layout_error": "floating literal lacks parser-native bits"
+    "layout_error": "long double floating literal"
   },
   {
     "id": "complex-long-double-layout-refusal",
@@ -1323,9 +1321,9 @@
       "structured_types"
     ],
     "structured_expect": "refuse",
-    "structured_error": "no layout for parameter type",
+    "structured_error": "unnamed pointer parameter (array-bound effects are not retained by clang)",
     "return_value": 0,
-    "error": "no layout for declared type 'int[1]'"
+    "error": "unnamed pointer parameter (array-bound effects are not retained by clang)"
   },
   {
     "id": "structured-anonymous-typedef-record",
@@ -1470,24 +1468,24 @@
     "source": "struct foo\n{\n  unsigned long long b:40;\n} x;\n\nextern void abort (void);\n\nvoid test1(unsigned long long res)\n{\n  /* The shift is carried out in 40 bit precision.  */\n  if (x.b<<32 != res)\n    abort ();\n}\n\nint main()\n{\n  x.b = 0x0100;\n  test1(0);\n  return 0;\n}\n",
     "expect": "refuse",
     "return_value": 0,
-    "error": "unbound declaration",
+    "error": "arithmetic on bit-fields wider than int requires exact promotion semantics",
     "layout_envelope_checks": [
       "record_layout"
     ],
     "layout_expect": "refuse",
-    "layout_error": "unsupported bit-field width 40"
+    "layout_error": "arithmetic on bit-fields wider than int requires exact promotion semantics"
   },
   {
     "id": "bitfield-pr34971-c",
     "source": "struct foo\n{\n  unsigned long long b:40;\n} x;\n\nextern void abort (void);\n\nvoid test1(unsigned long long res)\n{\n  /* Build a rotate expression on a 40 bit argument.  */\n  if ((x.b<<8) + (x.b>>32) != res)\n    abort ();\n}\n\nint main()\n{\n  x.b = 0x0100000001;\n  test1(0x0000000101);\n  x.b = 0x0100000000;\n  test1(0x0000000001);\n  return 0;\n}\n",
     "expect": "refuse",
     "return_value": 0,
-    "error": "unbound declaration",
+    "error": "arithmetic on bit-fields wider than int requires exact promotion semantics",
     "layout_envelope_checks": [
       "record_layout"
     ],
     "layout_expect": "refuse",
-    "layout_error": "unsupported bit-field width 40"
+    "layout_error": "arithmetic on bit-fields wider than int requires exact promotion semantics"
   },
   {
     "id": "string-pointer-20030928-1-c",
@@ -1566,12 +1564,12 @@
     "source": "int main(void) { int *p = (int *)1; return *p; }",
     "expect": "refuse",
     "return_value": 0,
-    "error": "no layout for declared type 'int *'",
+    "error": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
     "structured_envelope_checks": [
       "structured_types"
     ],
     "structured_expect": "refuse",
-    "structured_error": "integer-to-pointer conversion outside pointer type"
+    "structured_error": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery"
   },
   {
     "id": "f2-pointer-bytes-character-defined",
