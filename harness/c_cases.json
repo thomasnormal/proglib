@@ -1901,5 +1901,14 @@
     "expect": "refuse",
     "error": "initializer evaluations have an unspecified order",
     "sanitize": true
+  },
+  {
+    "id": "builtin-infinity-generic-selection",
+    "source": "#define INFINITY (__builtin_inff())\nvolatile float f = INFINITY; int main(void) { (void) _Generic(INFINITY, float: 0); return (INFINITY > 3.402823466e+38F && f > 3.402823466e+38F) ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "floating_expect": "match",
+    "floating_return_value": 0
   }
 ]
