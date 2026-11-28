@@ -4252,3 +4252,15 @@ pointer result for this libc call. Treating it as a no-op or returning the
 source pointer would lose the destination write and pointer identity. Keep the
 builtin refused until bounded string storage, copy effects, and the returned
 subobject pointer are modeled together.
+
+## 2026-11-28-c-builtin-strstr — string search remains refused
+
+The static ranking has two sole rows for `libc-call: __builtin_strstr`:
+`builtins/strstr-asm.c` and `builtins/strstr.c`. C23 §7.24.5.7 searches for
+a null-terminated byte sequence and returns a pointer into the destination
+string or null. The current evaluator has no admitted bounded string-object
+search, terminator proof, or provenance-preserving subobject pointer for this
+builtin. Treating a missing terminator as an empty string or returning a
+fabricated pointer would change both memory safety and observable equality.
+Keep the builtin refused until bounded string search and returned pointer
+provenance are modeled together.
