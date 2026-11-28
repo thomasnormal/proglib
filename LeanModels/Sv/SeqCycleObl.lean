@@ -5575,6 +5575,128 @@ theorem CoreMemDesign.settleCanonical_seq {E : CoreMemDesign} (hP : E.SeqProfile
 
 #print axioms CoreMemDesign.settleCanonical_seq
 
+theorem CoreMemDesign.runCombSettleQuiesce_view_refines_of_each
+    {E : CoreMemDesign} {limit : Nat}
+    {before current : CoreMemState} {beforeView currentView : SvState}
+    {procs : List CoreMemProc} {st' : CoreMemState} {v' : SvState} {mv : MemV}
+    (hP : E.SeqProfileI) (htopo : E.topoC = true)
+    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
+    (hm0 : E.MemCoherent E.initial.memory)
+    (hbeforeC : E.Coherent before) (hcurrentC : E.Coherent current)
+    (hbeforeM : E.MemCoherent before.memory) (hcurrentM : E.MemCoherent current.memory)
+    (hmv : mv = E.memOf current.memory)
+    (hprocs : procs = E.processes.toList)
+    (hmem : ∀ {before current st : CoreMemState},
+      E.runComb before current procs = .ok st → st.memory = current.memory)
+    (hbeforeView : beforeView = E.scalar.view before.scalar)
+    (hcurrentView : currentView = E.scalar.view current.scalar)
+    (hmatBefore : E.matV beforeView = beforeView)
+    (hmatCurrent : E.matV currentView = currentView)
+    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {bv₁ bv₂ cv₁ cv₂ : SvState}
+      {i : Nat} {body : PStmt},
+      E.Coherent b₁ → E.Coherent b₂ → E.MemCoherent b₁.memory → E.MemCoherent b₂.memory →
+      E.Coherent c₁ → E.Coherent c₂ → E.MemCoherent c₁.memory → E.MemCoherent c₂.memory →
+      E.scalar.view b₁.scalar = E.scalar.view b₂.scalar →
+      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar → bv₁ = bv₂ → cv₁ = cv₂ →
+      E.readChangedAt b₁ c₁ bv₁ cv₁ i (coreMemCombExternalReadExprs body) =
+        E.readChangedAt b₂ c₂ bv₂ cv₂ i (coreMemCombExternalReadExprs body))
+    (hproc : ∀ p ∈ procs, match p with
+      | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewCongr E.env body
+      | .latch _ => False
+      | _ => True)
+    (hstate : E.runCombSettleQuiesce limit before current procs = .ok st')
+    (hview : E.runCombSettleQuiesceV limit mv beforeView currentView procs = .ok v') :
+    E.scalar.view st'.scalar = v' := by
+  subst procs
+  induction limit generalizing before current beforeView currentView st' v' with
+  | zero =>
+      simp [CoreMemDesign.runCombSettleQuiesce] at hstate
+  | succ n ih =>
+      simp only [CoreMemDesign.runCombSettleQuiesce, CoreMemDesign.runCombSettleQuiesceV]
+        at hstate hview
+      cases hcmb : E.runComb before current E.processes.toList with
+      | timeout => simp [hcmb] at hstate
+      | unsupported msg => simp [hcmb] at hstate
+      | ok combed =>
+          have hcombedMem : combed.memory = current.memory := hmem hcmb
+          have hmvCombed : mv = E.memOf combed.memory := by
+            rw [hmv, hcombedMem]
+          cases hvcomb : E.runCombV beforeView currentView E.processes.toList with
+          | timeout => simp [hvcomb] at hview
+          | unsupported msg => simp [hvcomb] at hview
+          | ok combedView =>
+              have hprocC : ∀ p ∈ E.processes.toList, match p with
+                  | .comb body => E.CombStmtCoherent E.env body
+                  | .latch _ => False
+                  | _ => True := by
+                intro p hp
+                cases p with
+                | comb body => exact (hproc (.comb body) hp).1
+                | latch body => exact hproc (.latch body) hp
+                | primitive kind name width => trivial
+                | assign target value => trivial
+                | edge f => trivial
+                | initial body => trivial
+                | implicit body => trivial
+                | event events body => trivial
+                | unsupported kind text => trivial
+              have hcomb := E.runCombQuiesce_coherent_of_each hnd h4 hcurrentC hcurrentM
+                hprocC hcmb
+              have hcombView := E.runCombQuiesce_view_refines_of_each
+                (limit := 4096) (before := before) (current := current)
+                (beforeView := beforeView) (currentView := currentView)
+                hnd h4 hm0 hbeforeC hcurrentC hbeforeM hcurrentM
+                hbeforeView hcurrentView hmatBefore hmatCurrent hread hproc hcmb hvcomb
+              simp only [hcmb, hvcomb, Res.ok_bind] at hstate hview
+              rw [hmvCombed] at hview
+              cases hset : E.settleCanonical E.env E.elems combed E.processes.toList with
+              | timeout => simp [hset] at hstate
+              | unsupported msg => simp [hset] at hstate
+              | ok settled =>
+                  cases hvset : E.settleV (E.memOf combed.memory) combedView with
+                  | timeout => simp [hvset] at hview
+                  | unsupported msg => simp [hvset] at hview
+                  | ok settledView =>
+                      have hvset' := hvset
+                      rw [← hcombView] at hvset'
+                      obtain ⟨settled₀, hset₀, hsettledView, hsettledC, hsettledMem⟩ :=
+                        E.settleCanonical_seq hP htopo hcomb.1 hcomb.2 hvset'
+                      have hsettledEq : settled₀ = settled := by
+                        exact Res.ok.inj (hset₀.symm.trans hset)
+                      subst settled₀
+                      have hmatCombed : E.matV combedView = combedView := by
+                        rw [← hcombView]
+                        exact E.matV_view hnd h4 hcomb.1.typed
+                      have hsettledM : E.MemCoherent settled.memory := by
+                        rw [hsettledMem]
+                        exact hcomb.2
+                      simp only [hset, hvset, Res.ok_bind] at hstate hview
+                      cases heq : E.scalar.view current.scalar == E.scalar.view settled.scalar with
+                      | true =>
+                          have heqv : (currentView == settledView) = true := by
+                            rw [beq_iff_eq, hcurrentView, ← hsettledView]
+                            exact beq_iff_eq.mp heq
+                          simp only [heq, heqv, ↓reduceIte, Res.ok.injEq] at hstate hview
+                          obtain rfl := hstate
+                          exact hsettledView.trans hview
+                      | false =>
+                          have heqv : (currentView == settledView) = false := by
+                            apply beq_eq_false_iff_ne.mpr
+                            intro hEq
+                            apply beq_eq_false_iff_ne.mp heq
+                            rw [← hcurrentView, hEq, ← hsettledView]
+                          simp only [heq, heqv, Bool.false_eq_true, ↓reduceIte] at hstate hview
+                          have hmatSettled : E.matV settledView = settledView :=
+                            E.matV_settleV hnd h4 hvset
+                          have hmvSettled : mv = E.memOf settled.memory := by
+                            rw [hmvCombed, hsettledMem]
+                          rw [← hsettledMem, ← hmvSettled] at hview
+                          exact ih (before := combed) (current := settled)
+                            (beforeView := combedView) (currentView := settledView)
+                            (st' := st') (v' := v') (hmv := hmvSettled)
+                            hcomb.1 hsettledC hcomb.2 hsettledM hcombView.symm hsettledView.symm
+                            hmatCombed hmatSettled hstate hview
+
 /-! The combined active-region runner alternates source-shaped comb execution
 with the existing continuous-assignment fixpoint.  Its coherence receipt is
 global in the caller's limit; settle totality is a separate premise because a
