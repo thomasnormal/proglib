@@ -375,6 +375,7 @@ Examples/system-verilog/sem2/plain_event_any_edge_e/agree.lean
 Examples/system-verilog/sem2/time_zero_event_assign_e/agree.lean
 
 Examples/system-verilog/sem2/function_local_array_refuse/agree.lean
+Examples/system-verilog/sem2/assign_calls_user_function_e/agree.lean
 Examples/system-verilog/sem2/unsized_xz_ternary_mem/agree.lean
 Examples/system-verilog/sem2/package_walls_h2/agree.lean
 Examples/system-verilog/sem2/package_walls_h1/agree.lean
