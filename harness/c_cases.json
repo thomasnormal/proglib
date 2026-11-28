@@ -1258,10 +1258,8 @@
   {
     "id": "structured-floating-object-layout",
     "source": "int main(void) { double x = 1.5; return x == 1.5 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "layout_expect": "match",
-    "layout_return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
     ],
@@ -1271,17 +1269,16 @@
     "layout_envelope_checks": [
       "type_layout"
     ],
-    "error": "floating literal lacks parser-native bits",
     "floating_expect": "match",
-    "floating_return_value": 0
+    "floating_return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0
   },
   {
     "id": "structured-float-object-layout",
     "source": "int main(void) { float x = 1.5f; return x == 1.5f ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "layout_expect": "match",
-    "layout_return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
     ],
@@ -1291,9 +1288,10 @@
     "layout_envelope_checks": [
       "type_layout"
     ],
-    "error": "floating literal lacks parser-native bits",
     "floating_expect": "match",
-    "floating_return_value": 0
+    "floating_return_value": 0,
+    "layout_expect": "match",
+    "layout_return_value": 0
   },
   {
     "id": "structured-qualified-float-object",
@@ -1315,9 +1313,8 @@
   {
     "id": "structured-typedef-float-object",
     "source": "typedef double D; int main(void) { D x = 1.5; return x == 1.5 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "error": "floating literal lacks parser-native bits",
     "structured_envelope_checks": [
       "structured_types"
     ],
