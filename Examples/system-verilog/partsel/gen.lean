@@ -242,9 +242,11 @@ def psScope32 (N W : Int) : IEnv :=
 /-- The parameter environment of `partsel` (by `rfl`): that declaration scope plus the geometry table
 evaluated in it. -/
 def psEnv32 (N W : Int) : IEnv :=
-  { psScope32 N W with dims := dimTable (psScope32 N W) partsel.pdesign.decls }
+  { psScope32 N W with dims := dimTableFast (psScope32 N W) partsel.pdesign.decls }
 
-theorem partsel_paramEnv (N W : Int) : partsel.pdesign.paramEnv2 [N, W] = .ok (psEnv32 N W) := rfl
+set_option maxHeartbeats 10000000 in
+theorem partsel_paramEnv (N W : Int) : partsel.pdesign.paramEnv2 [N, W] = .ok (psEnv32 N W) := by
+  rfl
 
 /-- In the signed 32-bit range, the scope reads `N` and `W` at their values. -/
 private theorem psScope32_intVal (N W : Nat) (hRN : (N : Int) < 2147483648)
@@ -271,15 +273,33 @@ private theorem lane_evalDims32 (N W : Nat) (hRN : (N : Int) < 2147483648)
 /-- The geometry table's entries for the three lane vectors: `[N*W-1:0]`. -/
 theorem psEnv32_a (N W : Nat) (hRN : (N : Int) < 2147483648) (hRW : (W : Int) < 2147483648) :
     (psEnv32 N W).dims.lookup "a" = some (laneGeom N W) :=
-  PDesign.dimTable_lookup_of partsel_a_dims (lane_evalDims32 N W hRN hRW)
+  by
+    have hN := CombView.canonInt32_of_range (v := (N : Int)) ⟨by omega, hRN⟩
+    have hW := CombView.canonInt32_of_range (v := (W : Int)) ⟨by omega, hRW⟩
+    simp [psEnv32, psScope32, partsel.pdesign, dimTableFast, dimTableStep, evalDims, evalInt,
+      PType.width_packed_single_of, PDim.width, IEnv.intVal?, List.lookup, PExpr.isInt,
+      bindLocals, bindEnums, List.filterMapM_cons, List.filterMapM_nil,
+      Gen2.except_ok_bind, bindParams, IEnv.bindNVal, hN, hW, laneGeom]
 
 theorem psEnv32_rev_up (N W : Nat) (hRN : (N : Int) < 2147483648) (hRW : (W : Int) < 2147483648) :
     (psEnv32 N W).dims.lookup "rev_up" = some (laneGeom N W) :=
-  PDesign.dimTable_lookup_of partsel_rev_up_dims (lane_evalDims32 N W hRN hRW)
+  by
+    have hN := CombView.canonInt32_of_range (v := (N : Int)) ⟨by omega, hRN⟩
+    have hW := CombView.canonInt32_of_range (v := (W : Int)) ⟨by omega, hRW⟩
+    simp [psEnv32, psScope32, partsel.pdesign, dimTableFast, dimTableStep, evalDims, evalInt,
+      PType.width_packed_single_of, PDim.width, IEnv.intVal?, List.lookup, PExpr.isInt,
+      bindLocals, bindEnums, List.filterMapM_cons, List.filterMapM_nil,
+      Gen2.except_ok_bind, bindParams, IEnv.bindNVal, hN, hW, laneGeom]
 
 theorem psEnv32_rev_dn (N W : Nat) (hRN : (N : Int) < 2147483648) (hRW : (W : Int) < 2147483648) :
     (psEnv32 N W).dims.lookup "rev_dn" = some (laneGeom N W) :=
-  PDesign.dimTable_lookup_of partsel_rev_dn_dims (lane_evalDims32 N W hRN hRW)
+  by
+    have hN := CombView.canonInt32_of_range (v := (N : Int)) ⟨by omega, hRN⟩
+    have hW := CombView.canonInt32_of_range (v := (W : Int)) ⟨by omega, hRW⟩
+    simp [psEnv32, psScope32, partsel.pdesign, dimTableFast, dimTableStep, evalDims, evalInt,
+      PType.width_packed_single_of, PDim.width, IEnv.intVal?, List.lookup, PExpr.isInt,
+      bindLocals, bindEnums, List.filterMapM_cons, List.filterMapM_nil,
+      Gen2.except_ok_bind, bindParams, IEnv.bindNVal, hN, hW, laneGeom]
 
 /-- **The lane-reversal block of the instantiated design, for every `N` and
 every `W ≥ 1` in the signed 32-bit `int` range** — at the environment
