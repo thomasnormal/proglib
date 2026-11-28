@@ -1248,6 +1248,21 @@ theorem CoreMemDesign.combStmtViewCongr_blocking
   intro st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₁ h₂
   exact (CoreMemDesign.execCombStmtAtView_blocking_frame hc₁ hc₂ hm₁ hm₂ hview hviews hbody h₁ h₂).2
 
+theorem CoreMemDesign.combStmtViewCongr_blockingL_ident
+    {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
+    (hbody : E.combBodyB (.blockingAssignL (.ident n) value) = true) :
+    E.CombStmtViewCongr env (.blockingAssignL (.ident n) value) := by
+  have hblock : E.combBodyB (.blockingAssign n value) = true := by
+    simpa [CoreMemDesign.combBodyB, CoreMemDesign.combTargetB] using hbody
+  intro st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₁ h₂
+  have h₁' : E.execCombStmtAtView env E.elems st₁ view₁
+      (.blockingAssign n value) = .ok (st₁', view₁') := by
+    simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₁
+  have h₂' : E.execCombStmtAtView env E.elems st₂ view₂
+      (.blockingAssign n value) = .ok (st₂', view₂') := by
+    simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₂
+  exact (CoreMemDesign.execCombStmtAtView_blocking_frame hc₁ hc₂ hm₁ hm₂ hview hviews hblock h₁' h₂').2
+
 /-- The public view executor is the fixed-fuel, empty-local-frame wrapper around
 the source-shaped statement executor.  A statement coherence receipt therefore
 applies directly to any successful `execCombStmtAtView` run. -/
