@@ -465,13 +465,13 @@
     "id": "lifetime-block-dangling",
     "source": "int main(void) { int *p; { int x = 5; p = &x; } return *p; }",
     "expect": "refuse",
-    "error": "no layout for declared type 'int *'"
+    "error": "deadObject"
   },
   {
     "id": "lifetime-return-dangling",
     "source": "int *f(void) { int x = 5; return &x; } int main(void) { int *p = f(); return *p; }",
     "expect": "refuse",
-    "error": "no layout for declared type 'int *'"
+    "error": "deadObject"
   },
   {
     "id": "lifetime-live-local",
@@ -544,7 +544,7 @@
     "id": "pointer-adjacent-boundary",
     "source": "int main(void) { int a[1] = {0}; int b[1] = {0}; return (&a[1] == &b[0]) ? 1 : 0; }",
     "expect": "refuse",
-    "error": "no layout for declared type 'int[1]'"
+    "error": "pointer equality at an unspecified adjacent boundary"
   },
   {
     "id": "record-attributes",
@@ -653,10 +653,10 @@
     "id": "pointer-address-difference-wall",
     "source": "#include <stdint.h>\nint main(void) { int x[2]; uintptr_t a = (uintptr_t)&x[0]; uintptr_t b = (uintptr_t)&x[1]; return (int)(b - a); }",
     "expect": "refuse",
-    "error": "no layout for declared type 'int[2]'",
+    "error": "pointer-integer value requires an unchanged cast back",
     "layout_expect": "refuse",
     "layout_error": "pointer-integer value requires an unchanged cast back",
-    "structured_error": "nonValueRepresentation"
+    "structured_error": "pointer-integer value requires an unchanged cast back"
   },
   {
     "id": "integer-to-pointer-exposure-wall",
@@ -1446,21 +1446,21 @@
     "id": "pointer-address-difference-refusal",
     "source": "int main(void) { int x[2]; unsigned long a = (unsigned long)&x[0]; unsigned long b = (unsigned long)&x[1]; return (int)(b - a); }",
     "expect": "refuse",
-    "error": "no layout for declared type 'int[2]'",
+    "error": "pointer-integer value requires an unchanged cast back",
     "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation"
+    "structured_error": "pointer-integer value requires an unchanged cast back"
   },
   {
     "id": "integer-to-pointer-arbitrary-refusal",
     "source": "int main(void) { int *p = (int *)1; return *p; }",
     "expect": "refuse",
     "return_value": 0,
-    "error": "no layout for declared type 'int *'",
+    "error": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery",
     "structured_envelope_checks": [
       "structured_types"
     ],
     "structured_expect": "refuse",
-    "structured_error": "integer-to-pointer conversion outside pointer type"
+    "structured_error": "isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery"
   },
   {
     "id": "unsigned-conversion-global",
@@ -1589,9 +1589,9 @@
     "source": "#include <stdint.h>\nint main(void) { int x[2] = {0, 0}; uintptr_t a = (uintptr_t)&x[0]; uintptr_t b = (uintptr_t)&x[1]; return (int)(b - a); }",
     "expect": "refuse",
     "return_value": 4,
-    "error": "no layout for declared type 'int[2]'",
+    "error": "pointer-integer value requires an unchanged cast back",
     "structured_expect": "refuse",
-    "structured_error": "cannot initialize aggregate 'int[2]'"
+    "structured_error": "pointer-integer value requires an unchanged cast back"
   },
   {
     "id": "f2-integer-to-pointer-exposure",
@@ -1699,7 +1699,8 @@
     "expect": "refuse",
     "return_value": 0,
     "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation"
+    "structured_error": "pointer-integer value requires an unchanged cast back",
+    "error": "pointer-integer value requires an unchanged cast back"
   },
   {
     "id": "malloc-retype-int-to-long",
