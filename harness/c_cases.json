@@ -2046,5 +2046,12 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "corpus-20041212-function-object-eq",
+    "source": "/* A function pointer compared with a void pointer should not be canonicalized.\n   See PR middle-end/17564.  */\nvoid abort (void);\nvoid exit (int);\n\nvoid *f (void) __attribute__ ((__noinline__));\nvoid *\nf (void)\n{\n  return f;\n}\nint\nmain (void)\n{\n  if (f () != f)\n    abort ();\n  exit (0);\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
