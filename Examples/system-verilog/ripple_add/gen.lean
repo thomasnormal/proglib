@@ -129,10 +129,10 @@ def rippleScope (N : Int) : IEnv :=
   { nvals := [("N", (N, 32, true))], pwidths := [("N", 32)], int32 := true }
 
 /-- The parameter environment: the declaration scope plus the packed-array
-geometry table evaluated in it (`dimTable` — every `instantiate2`
+geometry table evaluated in it (`dimTableFast` — every `instantiate2`
 environment carries it). -/
 def rippleEnv (N : Int) : IEnv :=
-  { rippleScope N with dims := dimTable (rippleScope N) ripple_add.pdesign.decls }
+  { rippleScope N with dims := dimTableFast (rippleScope N) ripple_add.pdesign.decls }
 
 def rippleRange (N : Int) : Prop := -2147483648 ≤ N ∧ N < 2147483648
 
@@ -186,8 +186,8 @@ theorem ripple_paramEnv (N : Int) (hN : rippleRange N) :
   refine ⟨_, rfl, ?_⟩
   refine ⟨_, rfl, ?_⟩
   refine ⟨[("N", 32)], ?_, ?_⟩
-  · simp [List.filterMapM, List.filterMapM.loop, PType.width_packed_single_of, PDim.width, evalInt_int, Gen2.except_ok_bind]
-  · simp [rippleEnv, rippleScope, ripple_add.pdesign, dimTable, dimTableStep, evalDims, evalInt,
+  · simp [typedParamWidthsE, PType.width_packed_single_of, PDim.width, evalInt_int, Gen2.except_ok_bind]
+  · simp [rippleEnv, rippleScope, ripple_add.pdesign, dimTableFast, dimTableStep, evalDims, evalInt,
       PType.width_packed_single_of, PDim.width, IEnv.intVal?, List.lookup, PExpr.isInt, bindLocals, bindEnums, List.filterMapM_cons,
       List.filterMapM_nil, Gen2.except_ok_bind, bindParams, IEnv.bindNVal, hc]
 
@@ -222,7 +222,7 @@ theorem ripple_static (N : Nat) (wv wc : Nat) :
         (instProcess2 ((rippleEnv N).withDecls (rippleDeclsRaw wv wc)) rippleElems) =
       [cinProc, coutProc N] := by
   sv2_inst_simp [ripple_add.pdesign, rippleEnv, rippleScope, rippleDeclsRaw, rippleElems, cinProc,
-    coutProc, dimTable, dimTableStep, PType.width_packed_cons, PDim.width, Int.lt_add_one_iff]
+    coutProc, dimTableFast, dimTableStep, PType.width_packed_cons, PDim.width, Int.lt_add_one_iff]
 
 /-- The generate expansion at the surface fuel: the bit-indexed family. -/
 theorem ripple_gens (N : Nat) (wv wc : Nat) :
