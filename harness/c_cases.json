@@ -1955,5 +1955,26 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "corpus-c23-float-3",
+    "source": "/* Test INFINITY macro.  Test when infinities supported.  */\n/* { dg-do run } */\n/* { dg-options \"-std=c23 -pedantic-errors\" } */\n/* { dg-add-options ieee } */\n/* { dg-require-effective-target inff } */\n\n#include <float.h>\n\n#ifndef INFINITY\n#error \"INFINITY undefined\"\n#endif\n\nvolatile float f = INFINITY;\n\nextern void abort (void);\nextern void exit (int);\n\nint\nmain (void)\n{\n  (void) _Generic (INFINITY, float : 0);\n  if (!(INFINITY > FLT_MAX))\n    abort ();\n  if (!(f > FLT_MAX))\n    abort ();\n  exit (0);\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "corpus-c23-float-4",
+    "source": "/* Test NAN macro.  */\n/* { dg-do run } */\n/* { dg-options \"-std=c23 -pedantic-errors\" } */\n/* { dg-add-options ieee } */\n\n#include <float.h>\n\n/* This should be defined if and only if quiet NaNs are supported for\n   type float.  If the testsuite gains effective-target support for\n   targets not supporting NaNs, or not supporting them for all types,\n   this test should be split into versions for targets with and\n   without NaNs for float.  */\n#ifndef NAN\n#error \"NAN undefined\"\n#endif\n\nvolatile float f = NAN;\n\nextern void abort (void);\nextern void exit (int);\n\nint\nmain (void)\n{\n  (void) _Generic (NAN, float : 0);\n  if (!__builtin_isnan (NAN))\n    abort ();\n  if (!__builtin_isnan (f))\n    abort ();\n  if (!__builtin_isnan (f + f))\n    abort ();\n  exit (0);\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
+  },
+  {
+    "id": "corpus-builtin-nan-1",
+    "source": "/* { dg-do run } */\n/* PR middle-end/19983 */\n\ntypedef __SIZE_TYPE__ size_t;\n\nextern void abort(void);\nextern int memcmp(const void *, const void *, size_t);\n\ndouble n1 = __builtin_nan(\"0x1\");\ndouble n2 = __builtin_nan(\"0X1\");\n\nint main()\n{\n  if (memcmp (&n1, &n2, sizeof(double)))\n    abort();\n  return 0;\n}\n\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
