@@ -152,25 +152,15 @@
                 },
                 "width": 8,
                 "operand": {
-                  "kind": "Squash2",
+                  "kind": "Ident",
                   "span": {
                     "line": 7,
-                    "col": 19,
+                    "col": 25,
                     "end_line": 7,
-                    "end_col": 27
+                    "end_col": 26
                   },
                   "width": 4,
-                  "operand": {
-                    "kind": "Ident",
-                    "span": {
-                      "line": 7,
-                      "col": 25,
-                      "end_line": 7,
-                      "end_col": 26
-                    },
-                    "width": 4,
-                    "name": "a"
-                  }
+                  "name": "a"
                 },
                 "explicit": true
               }

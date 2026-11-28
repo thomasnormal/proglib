@@ -9,7 +9,7 @@
   "top": "net_z_memory",
   "source_files": [
     {
-      "path": "../../Examples/system-verilog/cores/picorv32/walls/net_z_memory.sv",
+      "path": "Examples/system-verilog/cores/picorv32/walls/net_z_memory.sv",
       "sha256": "64ef56baf0e3c0c683de0f60e045b8674710fd4299724db37a2fc294a1974bbb"
     }
   ],
@@ -78,7 +78,8 @@
               "value": 4,
               "resolved_width": 32
             },
-            "resolved": 4
+            "resolved": 4,
+            "string": false
           }
         ],
         "types": [],
