@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "serv_child_default",
- "envelope": "out.json",
+ "envelope": "serv_child_default.sv.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/seq_neg/serv_child_default.sv",

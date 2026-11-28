@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "generate_if_instance_fixed",
- "envelope": "out.json",
+ "envelope": "generate_if_instance_fixed.sv.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/generate_if_instance_fixed/generate_if_instance_fixed.sv",

@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "proc_local_initializer_param",
- "envelope": "out.json",
+ "envelope": "proc_local_initializer_param.sv.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/proc_local_initializer_param/proc_local_initializer_param.sv",

@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "xnor_n",
- "envelope": "out.json",
+ "envelope": "xnor_n.sv.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/xnor_n/xnor_n.sv",

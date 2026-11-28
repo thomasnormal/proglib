@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "unsized_param_literal",
- "envelope": "out.json",
+ "envelope": "unsized_param_literal.sv.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/unsized_param_literal/unsized_param_literal.sv",

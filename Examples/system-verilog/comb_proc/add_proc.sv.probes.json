@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "add_proc",
- "envelope": "out.json",
+ "envelope": "add_proc.sv.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/comb_proc/add_proc.sv",

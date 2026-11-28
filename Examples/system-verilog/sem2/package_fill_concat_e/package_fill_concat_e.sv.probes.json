@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "package_fill_concat_e",
- "envelope": "out.json",
+ "envelope": "package_fill_concat_e.sv.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/package_fill_concat_e/package_fill_concat_e.sv",

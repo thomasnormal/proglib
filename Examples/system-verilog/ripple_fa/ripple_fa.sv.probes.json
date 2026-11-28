@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "ripple_fa",
- "envelope": "out.json",
+ "envelope": "ripple_fa.sv.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/ripple_fa/ripple_fa.sv",

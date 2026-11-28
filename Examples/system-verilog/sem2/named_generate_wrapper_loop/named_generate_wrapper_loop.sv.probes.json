@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "named_generate_wrapper_loop",
- "envelope": "out.json",
+ "envelope": "named_generate_wrapper_loop.sv.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/named_generate_wrapper_loop/named_generate_wrapper_loop.sv",

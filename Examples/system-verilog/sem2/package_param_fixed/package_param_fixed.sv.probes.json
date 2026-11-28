@@ -1,7 +1,7 @@
 {
  "schema_version": "sv-0.2-probes",
  "top": "package_param_fixed",
- "envelope": "out.json",
+ "envelope": "package_param_fixed.sv.json",
  "source_files": [
   {
    "path": "Examples/system-verilog/sem2/package_param_fixed/package_param_fixed.sv",
