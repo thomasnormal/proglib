@@ -16,7 +16,7 @@ with ids `YYYY-MM-DD-<lane>-<n>` that need no reservation. Everything before
 the split is in [`docs/backlog-archive.md`](../backlog-archive.md), frozen,
 and every existing `§Lnn` reference still resolves there.
 
-**1642 entries across 19 lanes.** Regenerate with
+**1643 entries across 19 lanes.** Regenerate with
 `tools/backlog-index.sh`; check with `--check` (exit 1 on drift).
 
 | id | class | title | lane |
@@ -1636,6 +1636,7 @@ and every existing `§Lnn` reference still resolves there.
 | `G12` |  | THE LOOP INDUCTION CLOSES: `len = l + bitLenSpec v`, proved (2026-08-23) | go |
 | `G11` |  | THE WALKER IS PROVED THROUGH A MUTATION, and the blocker moved again (2026-08-23) | go |
 | `G10` |  | THE SEAM: one lemma opens the stack, and §G8's three "unprovable" lemmas are four lines each (2026-08-23) | go |
+| `2026-11-28-c-floating-environment` |  | floating environment remains refused | c |
 | `2026-11-18-pyfoundation-float-lab-floor-infinite` |  | park concrete proof over hosted memory | python-completeness |
 | `2026-11-12-p2-library-boundary` |  | heap-threaded public list mutation | python-completeness |
 | `2026-11-11-c-union-init` |  | designated union members | c |
@@ -1664,4 +1665,4 @@ and every existing `§Lnn` reference still resolves there.
 | `2026-11-10-c-array-filler-designators` |  | Clang array initializer positions | c |
 | `2026-08-26` |  | PARKED (indefinite). Read this first on resumption. | analog |
 
-**68 heading(s) do not use the §9.5 id scheme** and sort last.
+**69 heading(s) do not use the §9.5 id scheme** and sort last.
