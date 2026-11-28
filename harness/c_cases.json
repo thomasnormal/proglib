@@ -2032,5 +2032,12 @@
     "expect": "refuse",
     "error": "pointer-integer value requires an unchanged cast back",
     "sanitize": true
+  },
+  {
+    "id": "corpus-predefined-function-name",
+    "source": "extern void abort(void);\nextern int strcmp(const char *, const char *);\n\nint foo(const char *a)\n{\n    return strcmp(a, \"main\");\n}\n\nint main(void)\n{\n    if(foo(__FUNCTION__))\n        abort();\n    return 0;\n}\n",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
