@@ -388,6 +388,7 @@ Examples/system-verilog/sem2/package_function_width_e/agree.lean
 Examples/system-verilog/sem2/package_fill_concat_e/agree.lean
 Examples/system-verilog/sem2/package_array_function_e/agree.lean
 Examples/system-verilog/sem2/generated_scalar_child_storage_e/agree.lean
+Examples/system-verilog/sem2/package_signed_member_canonical_e/agree.lean
 
 Examples/system-verilog/sem2/always_star_step11/agree.lean
 

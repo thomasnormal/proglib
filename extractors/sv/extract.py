@@ -8330,6 +8330,26 @@ def _convert_unpacked_aggregate_member(sm, expression):
                     "width": _safe_width(expression),
                     "package": _pkg_of(probe_symbol), "name": probe_symbol.name,
                     "index": probe_steps[0]["index"]}
+        # A complete unsigned member has the same bits as its packed struct
+        # element. Signed members remain loud until their sign is represented
+        # explicitly by the constant evaluator.
+        if (probe_symbol is not None
+                and str(getattr(probe_symbol, "kind", "")).split(".")[-1] == "Parameter"
+                and _pkg_of(probe_symbol) is not None
+                and len(probe_steps) == 2 and "field" in probe_steps[0]
+                and "index" in probe_steps[1]
+                and not bool(getattr(expression.type, "isSigned", False))):
+            try:
+                aggregate = probe_symbol.type.canonicalType
+                element = aggregate.elementType.canonicalType
+                if (int(expression.type.bitWidth) == int(element.bitWidth)
+                        and int(element.bitWidth) == int(aggregate.elementType.bitWidth)):
+                    return {"kind": "PackageAggElem", "span": node_span(sm, expression),
+                            "width": _safe_width(expression),
+                            "package": _pkg_of(probe_symbol), "name": probe_symbol.name,
+                            "index": probe_steps[1]["index"]}
+            except Exception:
+                pass
         if not _has_unpacked_aggregate_path(expression):
             return None
         node = expression
