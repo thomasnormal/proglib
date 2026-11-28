@@ -88,6 +88,7 @@ example (E : CoreMemDesign) (hP : E.SeqProfileI) : E.resolvedNets = [] := hP.noR
 error: sv_structure: process 1 is a plain `always` whose event list is not one clock edge with an optional asynchronous reset edge (a level-change event as in `always @(a or b)`, or more than two events; kept as an event process): outside the clocked profile, refused
 -/
 #guard_msgs (whitespace := lax) in
+set_option maxHeartbeats 1000000 in
 example : SeqDesignI ev.e := by
   sv_structure
 
