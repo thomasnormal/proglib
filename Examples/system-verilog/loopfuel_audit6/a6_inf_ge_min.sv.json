@@ -123,153 +123,95 @@
                   }
                 },
                 {
-                  "kind": "For",
+                  "kind": "Block",
                   "span": {
                     "line": 5,
                     "col": 5,
                     "end_line": 5,
                     "end_col": 68
                   },
-                  "iterator": "i",
-                  "init": {
-                    "kind": "Unary",
-                    "span": {
-                      "line": 5,
-                      "col": 18,
-                      "end_line": 5,
-                      "end_col": 29
-                    },
-                    "width": 32,
-                    "op": "-",
-                    "operand": {
-                      "kind": "Int",
+                  "stmts": [
+                    {
+                      "kind": "LocalDecl",
                       "span": {
                         "line": 5,
-                        "col": 19,
+                        "col": 14,
                         "end_line": 5,
-                        "end_col": 29
+                        "end_col": 15
                       },
-                      "value": 2147483646,
-                      "resolved_width": 32
-                    }
-                  },
-                  "condition": {
-                    "kind": "Binary",
-                    "span": {
-                      "line": 5,
-                      "col": 31,
-                      "end_line": 5,
-                      "end_col": 47
-                    },
-                    "width": 1,
-                    "op": "s>=",
-                    "left": {
-                      "kind": "GenvarRef",
-                      "span": {
-                        "line": 5,
-                        "col": 31,
-                        "end_line": 5,
-                        "end_col": 32
-                      },
-                      "name": "i"
-                    },
-                    "right": {
-                      "kind": "Unary",
-                      "span": {
-                        "line": 5,
-                        "col": 36,
-                        "end_line": 5,
-                        "end_col": 47
-                      },
+                      "name": "i",
                       "width": 32,
-                      "op": "-",
-                      "operand": {
-                        "kind": "Int",
-                        "span": {
-                          "line": 5,
-                          "col": 37,
-                          "end_line": 5,
-                          "end_col": 47
-                        },
-                        "value": -2147483648,
-                        "resolved_width": 32
-                      }
-                    }
-                  },
-                  "step": {
-                    "kind": "Unary",
-                    "span": {
-                      "line": 5,
-                      "col": 49,
-                      "end_line": 5,
-                      "end_col": 52
-                    },
-                    "op": "--",
-                    "operand": {
-                      "kind": "GenvarRef",
-                      "span": {
-                        "line": 5,
-                        "col": 49,
-                        "end_line": 5,
-                        "end_col": 50
-                      },
-                      "name": "i"
-                    }
-                  },
-                  "body": {
-                    "kind": "BlockingAssign",
-                    "span": {
-                      "line": 5,
-                      "col": 54,
-                      "end_line": 5,
-                      "end_col": 68
-                    },
-                    "target": {
-                      "kind": "Ident",
-                      "span": {
-                        "line": 5,
-                        "col": 54,
-                        "end_line": 5,
-                        "end_col": 55
-                      },
-                      "width": 32,
-                      "name": "q"
-                    },
-                    "value": {
-                      "kind": "Binary",
-                      "span": {
-                        "line": 5,
-                        "col": 58,
-                        "end_line": 5,
-                        "end_col": 67
-                      },
-                      "width": 32,
-                      "op": "+",
-                      "left": {
-                        "kind": "Ident",
-                        "span": {
-                          "line": 5,
-                          "col": 58,
-                          "end_line": 5,
-                          "end_col": 59
-                        },
+                      "two_state": true,
+                      "init": {
+                        "kind": "Squash2",
+                        "span": null,
                         "width": 32,
-                        "name": "q"
+                        "operand": {
+                          "kind": "Unary",
+                          "span": {
+                            "line": 5,
+                            "col": 18,
+                            "end_line": 5,
+                            "end_col": 29
+                          },
+                          "width": 32,
+                          "op": "-",
+                          "operand": {
+                            "kind": "Int",
+                            "span": {
+                              "line": 5,
+                              "col": 19,
+                              "end_line": 5,
+                              "end_col": 29
+                            },
+                            "value": 2147483646,
+                            "resolved_width": 32
+                          }
+                        }
                       },
-                      "right": {
-                        "kind": "Literal",
-                        "span": {
-                          "line": 5,
-                          "col": 62,
-                          "end_line": 5,
-                          "end_col": 67
-                        },
-                        "width": 32,
-                        "bits": "00000000000000000000000000000001"
+                      "signed": true,
+                      "lifetime": "automatic",
+                      "lexical_path": "a6_inf_ge_min.i",
+                      "hierarchical_path": "a6_inf_ge_min.i",
+                      "decl_type": {
+                        "kind": "PackedType",
+                        "packed": [
+                          {
+                            "msb": {
+                              "kind": "Int",
+                              "span": null,
+                              "value": 31,
+                              "resolved_width": null
+                            },
+                            "lsb": {
+                              "kind": "Int",
+                              "span": null,
+                              "value": 0,
+                              "resolved_width": null
+                            }
+                          }
+                        ],
+                        "resolved": 32
                       }
+                    },
+                    {
+                      "kind": "Unsupported",
+                      "span": {
+                        "line": 5,
+                        "col": 5,
+                        "end_line": 5,
+                        "end_col": 68
+                      },
+                      "sv_kind": "ForLoopStatement",
+                      "text": "for (int i = -2147483646; i >= -2147483648; i--) q = q + 32'd1;"
                     }
-                  },
-                  "symbolic_for_parameter": true
+                  ],
+                  "scope": {
+                    "name": "",
+                    "lexical_path": "a6_inf_ge_min",
+                    "hierarchical_path": "a6_inf_ge_min",
+                    "default_lifetime": "static"
+                  }
                 }
               ]
             }

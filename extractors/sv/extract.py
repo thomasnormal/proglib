@@ -23451,6 +23451,29 @@ def _sym_for_values(statement):
     return symbol, values
 
 
+def _sym_literal_header_leaves_range(statement):
+    """Detect a fully literal signed-int header whose trace wraps or diverges."""
+    header = lower_proc.loop_header(sys.modules[__name__], statement)
+    if header is None:
+        return False
+    symbol, initial = header
+    if not _sym_loop_plain_int(symbol):
+        return False
+    condition = getattr(statement, "stopExpr", None)
+    if type(condition).__name__ != "BinaryExpression":
+        return False
+    right = _literal_integral_value(getattr(condition, "right", None))
+    delta = _sym_for_delta(statement, symbol)
+    if right is None or delta is None or delta == 0:
+        return False
+    op = str(getattr(condition, "op", "")).split(".")[-1]
+    if right == -(1 << 31) and delta < 0 and op in ("GreaterEqual", "GreaterThanEqual"):
+        return True
+    # Other literal overflows stay in the retained source-shaped form. The
+    # checked executor owns their exact refusal boundary.
+    return False
+
+
 def _sym_for_step_node(sm, step, symbol):
     """Lower a symbolic loop step to the parameter AST shape."""
     iterator = getattr(symbol, "name", "i")
@@ -23727,6 +23750,8 @@ def _convert_stmt(sm, s):
 
     if cname == "ForLoopStatement":
         if _SYM is not None:
+            if _sym_literal_header_leaves_range(s):
+                return unsupported(sm, s, "ForLoopStatement")
             if _RETAIN_LOOPS:
                 retained = _sym_for_parameter_shape(sm, s)
                 if retained is not None:
