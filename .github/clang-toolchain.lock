@@ -1,0 +1,8 @@
+# conda-forge package specs verified by the pinned C/C++ frontend receipt.
+clangdev=21.1.8=default_haeba491_6
+llvmdev=21.1.8=h7399f5f_1
+clang-21=21.1.8=default_h6209e06_6
+libclang-cpp21.1=21.1.8=default_h6209e06_6
+libllvm21=21.1.8=h474f4eb_1
+clang=21.1.8=default_cfg_hfed155c_6
+clangxx=21.1.8=default_cfg_hfed155c_6

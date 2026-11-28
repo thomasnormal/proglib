@@ -62,6 +62,78 @@ jobs:
           python3.12 -m pip install --user 'pyslang>=11,<12' || python3 -m pip install --user 'pyslang>=11,<12'
       - name: Native frontend and circuit simulator dependencies
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang iverilog ngspice
+      - name: Restore pinned C/C++ frontend and parser plugins
+        id: clangdev-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .ci/clangdev
+            .ci/clang-plugins
+          key: clangdev-${{ runner.os }}-${{ hashFiles('.github/clang-toolchain.lock', 'extractors/c/*_probe.cpp') }}
+      - name: Install pinned C/C++ frontend and build parser plugins
+        if: steps.clangdev-cache.outputs.cache-hit != 'true'
+        env:
+          MAMBA_ROOT_PREFIX: ${{ runner.temp }}/micromamba-root
+        run: |
+          set -euo pipefail
+          curl -LsS https://micro.mamba.pm/api/micromamba/linux-64/latest \
+            | tar -xvj -C "$RUNNER_TEMP" bin/micromamba
+          mapfile -t specs < <(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' .github/clang-toolchain.lock)
+          "$RUNNER_TEMP/bin/micromamba" create --yes --no-rc --override-channels \
+            --channel conda-forge --prefix "$GITHUB_WORKSPACE/.ci/clangdev" "${specs[@]}"
+          mkdir -p "$GITHUB_WORKSPACE/.ci/clang-plugins"
+          clangxx="$GITHUB_WORKSPACE/.ci/clangdev/bin/clang++"
+          headers="$GITHUB_WORKSPACE/.ci/clangdev/include"
+          libs="$GITHUB_WORKSPACE/.ci/clangdev/lib"
+          for probe in string_bytes floating_bits record_layout structured_type; do
+            "$clangxx" --no-default-config -std=c++17 -fPIC -shared -fno-rtti \
+              -I"$headers" "extractors/c/${probe}_probe.cpp" \
+              -L"$libs" -Wl,-rpath,"$libs" -Wl,--no-undefined \
+              -l:libclang-cpp.so.21.1 -l:libLLVM.so.21.1 \
+              -o "$GITHUB_WORKSPACE/.ci/clang-plugins/${probe}_probe.so"
+          done
+      - name: Export and qualify pinned C/C++ frontend
+        env:
+          CLANG_ENV: ${{ github.workspace }}/.ci/clangdev
+          CLANG_PLUGINS: ${{ github.workspace }}/.ci/clang-plugins
+        run: |
+          set -euo pipefail
+          test -x "$CLANG_ENV/bin/clang"
+          test -x "$CLANG_ENV/bin/clang++"
+          test -f "$CLANG_PLUGINS/string_bytes_probe.so"
+          test -f "$CLANG_PLUGINS/floating_bits_probe.so"
+          test -f "$CLANG_PLUGINS/record_layout_probe.so"
+          test -f "$CLANG_PLUGINS/structured_type_probe.so"
+          version="$($CLANG_ENV/bin/clang --version | head -n 1)"
+          test "$version" = 'clang version 21.1.8 (https://github.com/conda-forge/clangdev-feedstock 334cf9a5e6c0331e9f261eaf01fc3568724fcce9)'
+          printf '%s\n' "$version"
+          sha256sum extractors/c/*_probe.cpp "$CLANG_PLUGINS"/*.so
+          {
+            echo "LEAN_C_CLANG=$CLANG_ENV/bin/clang"
+            echo "LEAN_C_CLANGXX=$CLANG_ENV/bin/clang++"
+            echo "LEAN_C_HEADERS=$CLANG_ENV"
+            echo "LEAN_C_LIBS=$CLANG_ENV/lib"
+            echo "LEAN_C_STRING_BYTES_PLUGIN=$CLANG_PLUGINS/string_bytes_probe.so"
+            echo "LEAN_C_FLOATING_BITS_PLUGIN=$CLANG_PLUGINS/floating_bits_probe.so"
+            echo "LEAN_C_RECORD_LAYOUT_PLUGIN=$CLANG_PLUGINS/record_layout_probe.so"
+            echo "LEAN_C_STRUCTURED_TYPE_PLUGIN=$CLANG_PLUGINS/structured_type_probe.so"
+            echo "LEANCPP_CLANG=$CLANG_ENV/bin/clang++"
+          } >> "$GITHUB_ENV"
+      - name: C parser plugin self-tests
+        run: |
+          set -euo pipefail
+          python3 extractors/c/extract.py --selftest
+          python3 tools/leanc --self-test
+          python3 harness/c_floating_bits_determinism.py --self-test \
+            --clang "$LEAN_C_CLANG" --plugin "$LEAN_C_FLOATING_BITS_PLUGIN"
+          python3 harness/c_record_layout_determinism.py --self-test \
+            --clang "$LEAN_C_CLANG" --plugin "$LEAN_C_RECORD_LAYOUT_PLUGIN"
+          python3 harness/c_structured_type_determinism.py --self-test \
+            --clang "$LEAN_C_CLANG" --plugin "$LEAN_C_STRUCTURED_TYPE_PLUGIN"
+          source_file="$RUNNER_TEMP/clang-plugin-string.c"
+          printf 'int main(void) { const char *s = "x"; return s[0] == 120 ? 0 : 1; }\n' > "$source_file"
+          python3 harness/c_string_bytes_determinism.py "$source_file" \
+            --clang "$LEAN_C_CLANG" --plugin "$LEAN_C_STRING_BYTES_PLUGIN"
       - name: Restore Mathlib build cache
         run: lake exe cache get
       - name: Full check
