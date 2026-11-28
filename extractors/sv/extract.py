@@ -28072,6 +28072,9 @@ def _sva_value(node):
                         "expr": _sva_pexpr(args[0])}
         if name == "$countones" and len(args) == 1:
             return {"kind": "SvaCountOnes", "expr": _sva_pexpr(args[0])}
+        if name == "$countbits" and len(args) >= 2:
+            return {"kind": "SvaCountBits", "expr": _sva_pexpr(args[0]),
+                    "controls": [_sva_pexpr(arg) for arg in args[1:]]}
     binary_ops = {
         "AddExpression": "+", "SubtractExpression": "-",
         "MultiplyExpression": "*", "DivideExpression": "/",
@@ -28112,7 +28115,7 @@ def _sva_has_temporal_call(node):
     if node.get("kind") == "InvocationExpression":
         name = node.get("left", {}).get("systemIdentifier", {}).get("text", "")
         if name in ("$past", "$rose", "$fell", "$stable", "$isunknown",
-                    "$onehot", "$onehot0", "$countones"):
+                    "$onehot", "$onehot0", "$countones", "$countbits"):
             return True
     return any(_sva_has_temporal_call(v) for key, v in node.items()
                if key not in ("span", "trivia"))

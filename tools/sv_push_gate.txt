@@ -72,6 +72,7 @@ Examples/system-verilog/toggle/proof.lean
 Examples/system-verilog/xsel/proof.lean
 Examples/system-verilog/seq_neg/check.lean
 Examples/system-verilog/sem2/sva_onehot/proof.lean
+Examples/system-verilog/sem2/sva_countbits/proof.lean
 Examples/system-verilog/comb_bridge/bridge.lean
 Examples/system-verilog/comb_bridge/cover.lean
 Examples/system-verilog/comb_case/comb_errors.lean

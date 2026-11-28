@@ -1,0 +1,134 @@
+{
+  "schema_version": "sv-0.1",
+  "language": "systemverilog",
+  "frontend": {
+    "name": "pyslang",
+    "family": "pyslang-11"
+  },
+  "source_file": "Examples/system-verilog/sem2/sva_countbits/sva_countbits.sv",
+  "source_sha256": "3f7ca9fbfef751255fe3e891565edde06b5fa3e5b467c0db2b452f1e0fbfb4a4",
+  "design": {
+    "kind": "Design",
+    "modules": [
+      {
+        "kind": "Module",
+        "span": {
+          "line": 2,
+          "col": 1,
+          "end_line": 9,
+          "end_col": 10
+        },
+        "name": "sva_countbits",
+        "ports": [
+          {
+            "kind": "Port",
+            "span": {
+              "line": 3,
+              "col": 15,
+              "end_line": 3,
+              "end_col": 18
+            },
+            "name": "clk",
+            "dir": "in",
+            "width": 1
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 4,
+              "col": 21,
+              "end_line": 4,
+              "end_col": 22
+            },
+            "name": "a",
+            "dir": "in",
+            "width": 4
+          },
+          {
+            "kind": "Port",
+            "span": {
+              "line": 5,
+              "col": 16,
+              "end_line": 5,
+              "end_col": 17
+            },
+            "name": "q",
+            "dir": "out",
+            "width": 1
+          }
+        ],
+        "decls": [],
+        "processes": [
+          {
+            "kind": "Initial",
+            "span": {
+              "line": 7,
+              "col": 10,
+              "end_line": 7,
+              "end_col": 18
+            },
+            "body": {
+              "kind": "BlockingAssign",
+              "span": {
+                "line": 7,
+                "col": 10,
+                "end_line": 7,
+                "end_col": 18
+              },
+              "target": {
+                "kind": "Ident",
+                "span": {
+                  "line": 7,
+                  "col": 10,
+                  "end_line": 7,
+                  "end_col": 11
+                },
+                "width": 1,
+                "name": "q"
+              },
+              "value": {
+                "kind": "Literal",
+                "span": {
+                  "line": 7,
+                  "col": 14,
+                  "end_line": 7,
+                  "end_col": 18
+                },
+                "width": 1,
+                "bits": "0"
+              },
+              "continuous_constant_lowered": true,
+              "continuous_strength": false
+            },
+            "continuous_constant_lowered": true,
+            "continuous_strength": false
+          },
+          {
+            "kind": "Always",
+            "span": {
+              "line": 8,
+              "col": 3,
+              "end_line": 8,
+              "end_col": 65
+            },
+            "body": {
+              "kind": "Unsupported",
+              "span": {
+                "line": 8,
+                "col": 3,
+                "end_line": 8,
+                "end_col": 65
+              },
+              "sv_kind": "ConcurrentAssertionStatement",
+              "text": "assert property (@(posedge clk) $countbits(a, 1'b1) == 32'd1);"
+            },
+            "always_lowered": true
+          }
+        ],
+        "others": []
+      }
+    ],
+    "others": []
+  },
+  "lean_blocks": []
+}

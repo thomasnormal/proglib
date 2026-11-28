@@ -349,6 +349,9 @@ from 3 to 2, leaving one shift and one other invocation.
 The matching finite `$onehot(expr)` predicate is now retained as a separate
 source-shaped SVA node. The clean-room `sem2/sva_onehot` witness checks two
 sampled edges and keeps the unknown-vector result in the four-state SVA layer.
+`$countbits(expr, control...)` now maps to a finite sampled count of bits that
+case-equal one of the retained control values. The clean-room
+`sem2/sva_countbits` witness covers a literal control and its Verilator row.
 `$countones(expr)` now maps to a sampled four-state known-one count, with x/z
 bits contributing zero as required by the SVA bit query. The clean-room
 `sem2/sva_countones` witness and Verilator row cover the retained value form.

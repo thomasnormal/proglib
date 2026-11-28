@@ -573,6 +573,32 @@
       "measured": "2026-11-07: $onehot0 retains the finite four-state at-most-one-known-one predicate."
     },
     {
+      "name": "sva_countbits",
+      "example": "sem2/sva_countbits",
+      "top": "sva_countbits",
+      "clock": "clk",
+      "signals": [
+        "a",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "a": "0001"
+        },
+        {
+          "a": "0010"
+        },
+        {
+          "a": "0100"
+        },
+        {
+          "a": "1000"
+        }
+      ],
+      "verilator_only": true,
+      "measured": "2026-11-28: $countbits retains a finite sampled case-equality count for literal controls."
+    },
+    {
       "name": "sva_countones",
       "example": "sem2/sva_countones",
       "top": "sva_countones",

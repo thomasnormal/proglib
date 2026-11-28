@@ -420,6 +420,11 @@ partial def parsePSvaValue (j : Json) : Except String PSvaValue := do
         return .past (← getNatField j "cycles") (← parsePExpr (← getField j "expr"))
     | "SvaCountOnes" => return (PSvaValue.countOnes
           (← parsePExpr (← getField j "expr")))
+    | "SvaCountBits" =>
+        let controlsJson ← (← getField j "controls").getArr?
+        let controls ← controlsJson.toList.mapM parsePExpr
+        return (PSvaValue.countBits
+          (← parsePExpr (← getField j "expr")) controls)
     | "SvaParamCast" =>
         return (PSvaValue.paramCast (← getStrField j "parameter")
           (← parsePSvaValue (← getField j "value")))

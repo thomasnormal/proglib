@@ -740,6 +740,7 @@ inductive PSvaValue where
   | current (value : PExpr)
   | past (cycles : Nat) (value : PExpr)
   | countOnes (value : PExpr)
+  | countBits (value : PExpr) (controls : List PExpr)
   /-- A parameter-sized integral cast retained inside a sampled value.  The
       width is evaluated at the concrete parameter point by the SVA contract;
       keeping the parameter name here avoids folding it at the extractor's
