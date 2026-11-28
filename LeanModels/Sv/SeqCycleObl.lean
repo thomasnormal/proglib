@@ -1279,6 +1279,42 @@ theorem CoreMemDesign.combStmtViewRefinesFuel_block_single
         Res.bind_eq_ok]
       exact ⟨(st₁', view₁', locals₁'), hchild₁, rfl⟩
 
+theorem CoreMemDesign.combStmtViewRefinesFuel_if
+    {E : CoreMemDesign} {env : IEnv} {fuel : Nat} {cond : PExpr}
+    {yes : PStmt} {no : Option PStmt}
+    (hne : E.elems ≠ []) (hcond : CoreMemDesign.combExprB cond = true)
+    (hchild : ∀ (st : CoreMemState), E.Coherent st → E.MemCoherent st.memory →
+      ∀ {body}, E.combIfBranch env E.elems st [] cond yes no = .ok (some body) →
+        E.CombStmtViewRefinesFuel env fuel body) :
+    E.CombStmtViewRefinesFuel env (fuel + 1) (.ifStmt cond yes no) := by
+  intro st₁ st₂ view₁ view₂ st₂' view₂' locals₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₂
+  have hbranches := CoreMemDesign.combIfBranch_congr_of_pure
+    (E := E) (env := env) (st₁ := st₁) (st₂ := st₂) (locals := [])
+    (cond := cond) (yes := yes) (no := no) hview hne hcond
+  cases hb₂ : E.combIfBranch env E.elems st₂ [] cond yes no with
+  | timeout => simp [CoreMemDesign.execCombStmtFuel, hb₂] at h₂
+  | unsupported msg => simp [CoreMemDesign.execCombStmtFuel, hb₂] at h₂
+  | ok branch =>
+      cases branch with
+      | none =>
+          have hb₁ : E.combIfBranch env E.elems st₁ [] cond yes no = .ok none := by
+            rw [hbranches, hb₂]
+          simp [CoreMemDesign.execCombStmtFuel, hb₂] at h₂
+          obtain ⟨rfl, rfl, rfl⟩ := h₂
+          refine ⟨st₁, view₁, [], ?_, hviews⟩
+          simp [CoreMemDesign.execCombStmtFuel, hb₁]
+      | some body =>
+          have hb₁ : E.combIfBranch env E.elems st₁ [] cond yes no = .ok (some body) := by
+            rw [hbranches, hb₂]
+          simp [CoreMemDesign.execCombStmtFuel, hb₂] at h₂
+          have hbody := hchild st₂ hc₂ hm₂ hb₂
+          obtain ⟨st₁', view₁', locals₁', h₁, hview'⟩ :=
+            hbody st₁ st₂ view₁ view₂ st₂' view₂' locals₂'
+              hc₁ hc₂ hm₁ hm₂ hview hviews h₂
+          refine ⟨st₁', view₁', locals₁', ?_, hview'⟩
+          simp only [CoreMemDesign.execCombStmtFuel, hb₁, Res.ok_bind]
+          exact h₁
+
 /-! A scalar blocking assignment can be replayed from any coherent state
 carrying the same scalar view.  This is the success-transfer receipt needed by
 the state-side active-region runner. -/
