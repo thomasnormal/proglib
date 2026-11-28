@@ -215,6 +215,7 @@ set -u
 
 # ---------------------------------------------------------------- settings
 LANE=""
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/triad.sh"
 CLONE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOCK="${LS_LOCK:-/tmp/ls-build.lock}"
 QUEUE="${LS_QUEUE:-/tmp/ls-build-queue}"
@@ -1887,7 +1888,7 @@ run_gates_attested() {          # gate list -> sets rc; verifies the attestation
   gitdir="$(git -C "$CLONE" rev-parse --absolute-git-dir 2>/dev/null || true)"
   if [ -n "$gitdir" ]; then export GIT_DIR="$gitdir" GIT_WORK_TREE="$CLONE"; fi
   cd "$v" 2>/dev/null || { rc=1; kill "$sampler" 2>/dev/null; return 0; }
-  run_gates "$1"                # NOT in a subshell: rc must survive
+  RUN_GATES_IN_PLACE=1 run_gates "$1"  # NOT in a subshell: rc must survive
   cd "$savedpwd" 2>/dev/null || true
   PATH="$savedpath"
   unset GIT_DIR GIT_WORK_TREE
@@ -2295,7 +2296,11 @@ run_gates() {                         # "cmd; cmd" -> sets rc
     g="$(printf '%s' "$g" | sed -e 's/^ *//' -e 's/ *$//')"
     [ -n "$g" ] || continue        # refused at enqueue; belt for a direct caller
     say "=== gate: $g ==="
-    nice -n "$NICE" sh -c "$g" || { rc=1; say "  GATE FAILED: $g"; }
+    if [ "${RUN_GATES_IN_PLACE:-0}" = "1" ]; then
+      nice -n "$NICE" sh -c "$g" || { rc=1; say "  GATE FAILED: $g"; }
+    else
+      (cd "$CLONE" && nice -n "$NICE" sh -c "$g") || { rc=1; say "  GATE FAILED: $g"; }
+    fi
   done <<EOF
 $(gate_split "$1")
 EOF
@@ -2304,9 +2309,13 @@ EOF
 if [ "$SELF_TEST" = "1" ]; then
   tmp="$(mktemp -d "${TMPDIR:-/tmp}/triad-selftest.XXXXXX")" || die "no temp dir"
   trap 'rm -rf "$tmp"' EXIT
+  cd "$tmp" || die "cannot enter the self-test directory"
+  [ "$PWD" = "$tmp" ] || die "self-test escaped its fresh temporary directory"
   ok=0; bad=0
   check() { if [ "$2" = "$3" ]; then ok=$((ok+1)); echo "  ok   $1"; \
             else bad=$((bad+1)); echo "  FAIL $1: got '$2' want '$3'"; fi; }
+  check "self-test guards its fresh temporary cwd" \
+        "$(grep -c 'self-test escaped its fresh temporary directory' "$SCRIPT_PATH")" "2"
 
   t1="$(now_ns)"; t2="$(now_ns)"
   check "ticket stamps are 19 digits"        "${#t1}" "19"
@@ -2624,11 +2633,11 @@ if [ "$SELF_TEST" = "1" ]; then
   DEFER_INUSE_MAX="$saved_di"
   # NEVER the high-water instrument: a gate keyed on it defers forever on any
   # box that has ever swapped.
-  check "the gate never reads vm.swapusage"   "$(sed -n '/^acquire_check() {/,/^}/p' "$0" | grep -c 'swapusage')" "0"
+  check "the gate never reads vm.swapusage"   "$(sed -n '/^acquire_check() {/,/^}/p' "$SCRIPT_PATH" | grep -c 'swapusage')" "0"
   # THE DEFERRAL CLOCK IS ITS OWN: MAX_WAIT measures lock contention.
   # (Re-pointed at the FUNCTION when the loop became shared -- one deferral,
   # two callers -- so these keep testing the thing rather than a dead region.)
-  _dfn() { sed -n '/^defer_until_survivable() {/,/^}$/p' "$0"; }
+  _dfn() { sed -n '/^defer_until_survivable() {/,/^}$/p' "$SCRIPT_PATH"; }
   check "deferral does not touch MAX_WAIT"    "$(_dfn | grep -c 'MAX_WAIT')" "0"
   check "  ...and has its own bound"          "$(_dfn | grep -c 'MAX_DEFER')" "1"
   check "  ...releasing loudly with readings" "$(_dfn | grep -c 'last readings')" "1"
@@ -2653,16 +2662,16 @@ if [ "$SELF_TEST" = "1" ]; then
   # THE STRUCTURAL ROW, which is the one that would have caught pyc14: the
   # gate must be INSIDE the attempt loop, not only before it.
   check "EVERY attempt is gated, not just the first" \
-        "$(sed -n '/^for attempt in 1 2; do/,/^done$/p' "$0" | grep -c 'defer_until_survivable')" "1"
+        "$(sed -n '/^for attempt in 1 2; do/,/^done$/p' "$SCRIPT_PATH" | grep -c 'defer_until_survivable')" "1"
   check "  ...and the acquire path shares that code" \
-        "$(grep -c '^if ! defer_until_survivable ACQUIRE; then' "$0")" "1"
+        "$(grep -c '^if ! defer_until_survivable ACQUIRE; then' "$SCRIPT_PATH")" "1"
   # WHOSE KILL: the guard leaves a marker, so "ours" is READ, not inferred.
   # ANCHORED AT LINE START: a row that greps for a code string CONTAINS that
   # string, and this is the fourth such self-match this week.  The code lines
   # begin with the idiom; the rows begin with `check`.
-  check "the RSS guard marks its own kills"   "$(grep -c '^ *: > \"\$GUARD_PIDFILE' "$0")" "2"
-  check "  ...137 with the marker is OURS"    "$(grep -c '^ *say \"exit \$BUILD_EXIT = OURS' "$0")" "1"
-  check "  ...143 in silence is THE BOX"      "$(grep -c '^ *say \"exit \$BUILD_EXIT = THE BOX' "$0")" "1"
+  check "the RSS guard marks its own kills"   "$(grep -c '^ *: > \"\$GUARD_PIDFILE' "$SCRIPT_PATH")" "2"
+  check "  ...137 with the marker is OURS"    "$(grep -c '^ *say \"exit \$BUILD_EXIT = OURS' "$SCRIPT_PATH")" "1"
+  check "  ...143 in silence is THE BOX"      "$(grep -c '^ *say \"exit \$BUILD_EXIT = THE BOX' "$SCRIPT_PATH")" "1"
 
 
   # ---- THE THREAD THROTTLE IS ADAPTIVE (the build-profile investigation)
@@ -2735,9 +2744,9 @@ if [ "$SELF_TEST" = "1" ]; then
   # ONCE PER PHASE, NEVER MID-BUILD: two decision sites, and none of them
   # inside the attempt loop, where a changed throttle would make the build's
   # own timings unattributable.
-  check "the choice is made once per phase"   "$(grep -c '^ *THREAD_CHOICE=' "$0")" "2"
+  check "the choice is made once per phase"   "$(grep -c '^ *THREAD_CHOICE=' "$SCRIPT_PATH")" "2"
   check "  ...and never inside the build loop" \
-        "$(awk '/^for attempt in 1 2; do/{f=1} f&&/choose_threads/{n++} f&&/^done$/{f=0} END{print n+0}' "$0")" "0"
+        "$(awk '/^for attempt in 1 2; do/{f=1} f&&/choose_threads/{n++} f&&/^done$/{f=0} END{print n+0}' "$SCRIPT_PATH")" "0"
   THREADS="$saved_t"; THREADS_IDLE="$saved_ti"
 
 
@@ -2884,7 +2893,7 @@ if [ "$SELF_TEST" = "1" ]; then
     # this was found.
     PATH="$frstub:$PATH" LS_QUEUE="$tmp/frq" LS_LOCK="$tmp/frl" LS_MAX_WAIT=20 \
       LS_MOCK_PRESSURE_LEVEL=1 LS_MOCK_PRESSURE="10.0 memory_pressure:100-free%(macos)" \
-      TMPDIR="$tmp" timeout 90 bash "$0" --lane fl --dir "$fr" "$@" 2>&1
+      TMPDIR="$tmp" timeout 90 bash "$SCRIPT_PATH" --lane fl --dir "$fr" "$@" 2>&1
   }
 
   # ITEM 11: a plain `--classify` ticket with no `--gates` must PLAN the floor.
@@ -2991,7 +3000,7 @@ if [ "$SELF_TEST" = "1" ]; then
   rm -rf "$tmp/frq" "$tmp/frl"
   PATH="$frstub:$PATH" LS_QUEUE="$tmp/frq" LS_LOCK="$tmp/frl" LS_MAX_WAIT=20 TMPDIR="$tmp" \
     LS_MOCK_PRESSURE_LEVEL=1 LS_MOCK_PRESSURE="10.0 memory_pressure:100-free%(macos)" \
-    timeout 60 bash "$0" --lane fl --dir "$fr" --gates-only 'true' > "$fr/inside.log" 2>&1
+    timeout 60 bash "$SCRIPT_PATH" --lane fl --dir "$fr" --gates-only 'true' > "$fr/inside.log" 2>&1
   check "an inside log returns refusal status" "$?" "2"
   check "a run logging INSIDE the clone refuses" "$(grep -c 'own log is INSIDE the clone' "$fr/inside.log")" "1"
   check "  ...naming the fix"                  "$(grep -c 'Put the log outside the clone' "$fr/inside.log")" "1"
@@ -3000,7 +3009,7 @@ if [ "$SELF_TEST" = "1" ]; then
   rm -rf "$tmp/frq" "$tmp/frl"
   PATH="$frstub:$PATH" LS_QUEUE="$tmp/frq" LS_LOCK="$tmp/frl" LS_MAX_WAIT=20 TMPDIR="$tmp" \
     LS_MOCK_PRESSURE_LEVEL=1 LS_MOCK_PRESSURE="10.0 memory_pressure:100-free%(macos)" \
-    timeout 60 bash "$0" --lane fl --dir "$fr" --gates-only 'true' > /dev/null 2> "$fr/inside.log"
+    timeout 60 bash "$SCRIPT_PATH" --lane fl --dir "$fr" --gates-only 'true' > /dev/null 2> "$fr/inside.log"
   check "a stderr-only log returns refusal status" "$?" "2"
   check "a stderr-only log INSIDE the clone refuses" "$(grep -c 'own log is INSIDE the clone' "$fr/inside.log")" "1"
   check "  ...and stderr takes NO ticket"       "$(ls "$tmp/frq" 2>/dev/null | grep -c .)" "0"
@@ -3008,7 +3017,7 @@ if [ "$SELF_TEST" = "1" ]; then
   rm -rf "$tmp/frq" "$tmp/frl"
   PATH="$frstub:$PATH" LS_QUEUE="$tmp/frq" LS_LOCK="$tmp/frl" LS_MAX_WAIT=20 TMPDIR="$tmp" \
     LS_MOCK_PRESSURE_LEVEL=1 LS_MOCK_PRESSURE="10.0 memory_pressure:100-free%(macos)" \
-    timeout 60 bash "$0" --lane fl --dir "$fr" --gates-only 'true' > "$tmp/outside.log" 2>&1
+    timeout 60 bash "$SCRIPT_PATH" --lane fl --dir "$fr" --gates-only 'true' > "$tmp/outside.log" 2>&1
   check "an outside log completes successfully" "$?" "0"
   check "a run logging OUTSIDE proceeds"       "$(grep -c 'own log is INSIDE the clone' "$tmp/outside.log")" "0"
   for inspection_tool in readlink lsof; do
@@ -3018,7 +3027,7 @@ if [ "$SELF_TEST" = "1" ]; then
   rm -rf "$tmp/frq" "$tmp/frl"
   PATH="$frstub:$PATH" LS_QUEUE="$tmp/frq" LS_LOCK="$tmp/frl" LS_MAX_WAIT=20 TMPDIR="$tmp" \
     LS_MOCK_PRESSURE_LEVEL=1 LS_MOCK_PRESSURE="10.0 memory_pressure:100-free%(macos)" \
-    timeout 60 bash "$0" --lane fl --dir "$fr" --gates-only 'true' > "$tmp/unreadable.log" 2>&1
+    timeout 60 bash "$SCRIPT_PATH" --lane fl --dir "$fr" --gates-only 'true' > "$tmp/unreadable.log" 2>&1
   check "unreadable descriptors return refusal status" "$?" "2"
   check "  ...and name the inspection failure"   "$(grep -c 'cannot inspect stdout/stderr log destinations' "$tmp/unreadable.log")" "1"
   check "  ...and take NO ticket"                "$(ls "$tmp/frq" 2>/dev/null | grep -c .)" "0"
@@ -3083,7 +3092,7 @@ if [ "$SELF_TEST" = "1" ]; then
   check "  ...and the build uses the target"   "$(printf '%s' "$out" | grep -c 'lake build LeanModels.Extra')" "1"
   # The initializer's PLACEMENT is the defect, so its placement is asserted.
   check "  ...its initializer is ABOVE the loop" \
-        "$(awk '/^BUILD_TARGET_ARGS=""/{i=NR} /^while \[ \$# -gt 0 \]; do/{l=NR} END{print (i<l ? "above" : "below")}' "$0")" "above"
+        "$(awk '/^BUILD_TARGET_ARGS=""/{i=NR} /^while \[ \$# -gt 0 \]; do/{l=NR} END{print (i<l ? "above" : "below")}' "$SCRIPT_PATH")" "above"
 
   # THE TWO EMPTY-GATE CAUSES read differently, because only one is the lane's.
   check "an empty PLAN names the tool"         "$(gate_spec_refusal "" plan | grep -c 'tool defect, not your command line')" "1"
@@ -3318,14 +3327,14 @@ if [ "$SELF_TEST" = "1" ]; then
   echo "  -- argv guards"
   # BOUNDED, because the bug under test is an INFINITE LOOP: an unguarded
   # tool would hang this self-test instead of failing it.
-  out="$(timeout 10 bash "$0" --gates 2>&1)"; rc=$?
+  out="$(timeout 10 bash "$SCRIPT_PATH" --gates 2>&1)"; rc=$?
   check "a value flag written last REFUSES"  "$rc" "2"
   check "  ...rather than spinning forever"  "$([ "$rc" = "124" ] && echo spun || echo bounded)" "bounded"
   check "  ...and NAMES the flag"            "$(printf '%s' "$out" | grep -c -- '--gates needs a value')" "1"
-  out="$(timeout 10 bash "$0" --lane 2>&1)"; rc=$?
+  out="$(timeout 10 bash "$SCRIPT_PATH" --lane 2>&1)"; rc=$?
   check "every value flag is guarded, not just --gates" "$rc" "2"
   # The POSITIVE control: the guard must not refuse a flag that HAS its value.
-  out="$(timeout 20 bash "$0" --lane t --gates 'python3 x.py' --dry-run --classify-only --against HEAD 2>&1)"; rc=$?
+  out="$(timeout 20 bash "$SCRIPT_PATH" --lane t --gates 'python3 x.py' --dry-run --classify-only --against HEAD 2>&1)"; rc=$?
   # Counted unconditionally: an `&&` here short-circuited to the empty string
   # whenever the run did not exit 2, so the row measured nothing and said so
   # only because the expected value happened not to be empty.
@@ -3360,7 +3369,7 @@ if [ "$SELF_TEST" = "1" ]; then
 
   # ---- --foreign (the Lean tier's lean4lean, the Wasm lane's spectec fork)
   echo "  -- foreign checkouts"
-  SELF="${BASH_SOURCE[0]}"
+  SELF="$SCRIPT_PATH"
   fdir="$tmp/foreign"; mkdir -p "$fdir"
   out="$(bash "$SELF" --lane x --foreign --dir "$fdir" 2>&1)"; rc=$?
   check "--foreign WITHOUT --gates refuses"      "$rc" "2"
