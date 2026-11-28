@@ -183,7 +183,7 @@
   {
     "id": "parser-offsetof-record-member",
     "source": "struct S { char tag; int value; }; int main(void) { return __builtin_offsetof(struct S, value) == 4 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "layout_expect": "match",
     "layout_return_value": 0,
     "layout_envelope_checks": [
@@ -557,7 +557,7 @@
   {
     "id": "record-attributes",
     "source": "#pragma pack(push, 1)\nstruct P { char c; int i; };\n#pragma pack(pop)\nstruct Q { char c; int i; } __attribute__((packed));\nstruct R { char c; _Alignas(32) int i; };\nint main(void) { return (sizeof(struct P) == 5 && sizeof(struct Q) == 5 && sizeof(struct R) == 64) ? 0 : 1; }\n",
-    "expect": "refuse",
+    "expect": "match",
     "layout_expect": "match",
     "layout_return_value": 0,
     "envelope_checks": [
@@ -589,12 +589,11 @@
   {
     "id": "union-designated",
     "source": "union U { int i; char c; }; union U u = {.c = 5}; int main(void) { return u.c; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 5,
     "layout_envelope_checks": [
       "record_layout"
     ],
-    "error": "no offset for union member 'c'",
     "layout_expect": "match",
     "layout_return_value": 5
   },
