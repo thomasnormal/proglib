@@ -8,68 +8,69 @@ A focused row is an admitted example when its harness expectation is `match`. A 
 
 ## integers and conversions
 
-- admitted: `builtin-constant-p-literal` (match): `int main(void) { return __builtin_constant_p(1) && !__builtin_constant_p(1 + 2) == 0 ? 0 : 1; }`
+- admitted: `forward-declaration-definition` (match): `int f(int); int f(int x) { return x; } int main(void) { return f(3) == 3 ? 0 : 1; }`
 - refused: `signed-overflow` (refuse): `int main(void) { int x = 2147483647; x += 1; return x; }`
 - known wrong: no scored failure in the current survey
 
 ## enums
 
-- admitted: no focused harness row
-- refused: `structured-enum-object-layout` (refuse) — no layout for declared type 'enum E': `enum E { E0 = 0, E1 = 1 }; int main(void) { enum E e = E1; return e == E1 ? 0 : 1; }`
+- admitted: `structured-enum-object-layout` (match): `enum E { E0 = 0, E1 = 1 }; int main(void) { enum E e = E1; return e == E1 ? 0 : 1; }`
+- refused: `corpus-pr91597-enum-global-init` (refuse) — pointer-integer value requires an unchanged cast back: `/* PR tree-optimization/91597 */ enum E { A, B, C }; struct __attribute__((aligned (4))) S { enum E e; }; enum E foo (struct S *o) { if (((__UINTPTR_TYPE__) ...`
 - known wrong: no scored failure in the current survey
 
 ## control flow
 
-- admitted: `choose-expr` (match): `int main(void) { return __builtin_choose_expr(1, 7, 9); }`
-- refused: `defined-goto-pointer-increment-boundary` (refuse) — goto-controlled pointer increment lacks an exact parser path: `int main(void) { int a[2] = { 0, 7 }; int *p = a; goto next; next: ++p; return *p == 7 ? 0 : 1; }`
+- admitted: `defined-goto-pointer-increment-boundary` (match): `int main(void) { int a[2] = { 0, 7 }; int *p = a; goto next; next: ++p; return *p == 7 ? 0 : 1; }`
+- refused: `order-binary-write-write` (refuse) — unsequenced side effects: `int main(void) { int i = 0; i++ + i++; return i; }`
 - known wrong: no scored failure in the current survey
 
 ## arrays
 
-- admitted: `sizeof-unevaluated-array-and-scalar` (match): `int main(void) { int n = 0; char a[13]; return sizeof(a) == 13 && sizeof(++n) + n == sizeof(int) && n == 0 ? 0 : 1; }`
-- refused: `vla-bound-expression-refusal` (refuse) — variable-length array: `void f(int n) { double v[n]; for (int i = 0; i < n; ++i) v[i] = 0; } int main(void) { f(100); return 0; }`
+- admitted: `vla-bound-expression-refusal` (match): `void f(int n) { double v[n]; for (int i = 0; i < n; ++i) v[i] = 0; } int main(void) { f(100); return 0; }`
+- refused: `vla-bound-expression-node-refusal` (refuse) — parser-provided VLA bound expression: `int f(int n) { int v[n + 1]; v[0] = 1; return v[0]; } int main(void) { return f(2) == 1 ? 0 : 1; }`
 - known wrong: no scored failure in the current survey
 
 ## pointers
 
-- admitted: `pointer-signed-unsigned-object-alias` (match): `int main(void) { unsigned long value = 1; return *(long *)&value == 1 ? 0 : 1; }`
-- refused: `aggregate-pointer-provenance-copy` (refuse) — no layout for declared type 'struct S': `struct S { int *p; }; int main(void) { int x = 7; struct S a = {&x}; struct S b = a; return *b.p == 7 ? 0 : 1; }`
+- admitted: `aggregate-pointer-provenance-copy` (match): `struct S { int *p; }; int main(void) { int x = 7; struct S a = {&x}; struct S b = a; return *b.p == 7 ? 0 : 1; }`
+- refused: `lifetime-block-dangling` (refuse) — deadObject: `int main(void) { int *p; { int x = 5; p = &x; } return *p; }`
 - known wrong: no scored failure in the current survey
 
 ## structs and layout forms
 
-- admitted: `record-forward-size` (match): `typedef struct s S; struct s { int a; int b; }; int main(void) { return sizeof(S); }`
-- refused: `local-anonymous-record` (refuse) — no layout for field 'x': `int main(void) { struct { int x; int y; } s; s.x = 3; s.y = 5; return s.y - s.x - 2; }`
+- admitted: `incomplete-record-before-complete` (match): `struct F; struct S { char c; int x; }; int main(void) { struct S s = {1, 2}; return s.x; }`
+- refused: `long-double-object-layout-refusal` (refuse) — long double floating literal: `int main(void) { long double x = 1.5L; return x == 1.5L ? 0 : 1; }`
 - known wrong: no scored failure in the current survey
 
 ## unions
 
-- admitted: no focused harness row
-- refused: `local-anonymous-union` (refuse) — no layout for field 'a': `int main(void) { union { int a; int b; } u; u.a = 1; u.b = 3; return (u.a == 3 && u.b == 3) ? 0 : 1; }`
+- admitted: `union-nested-selected-member` (match): `struct S { _Bool flag; union { float a; double b; }; }; int main(void) { struct S y = { 1, { .a = 1.0 } }; return y.a == 1.0 ? 0 : 1; }`
+- refused: `gcc/testsuite/gcc.dg/c23-tag-5.c` (refused-unsupported) — union initializer has no single selected member
 - known wrong: no scored failure in the current survey
 
 ## bit-fields
 
-- admitted: `bitfield-20031211-1-c` (match) — no layout for declared type 'struct a': `void abort (void); void exit (int); struct a { unsigned int bitfield : 1; }; unsigned int x; int main(void) { struct a a = {0}; x = 0xbeef; a.bitfield |= x; ...`
-- refused: `bitfield-assignment-expression-converts` (refuse) — no layout for declared type: `void abort(void); void exit(int); int main(void) { int j = 1081; struct { signed int m:11; } l; if ((l.m = j) == j) abort(); exit(0); }`
+- admitted: `bitfield-assignment-expression-converts` (match): `void abort(void); void exit(int); int main(void) { int j = 1081; struct { signed int m:11; } l; if ((l.m = j) == j) abort(); exit(0); }`
+- refused: `bitfield-pr32244-1-c` (refuse) — arithmetic on bit-fields wider than int requires exact promotion semantics: `struct foo { unsigned long long b:40; } x; extern void abort (void); void test1(unsigned long long res) { /* The shift is carried out in 40 bit precision. */...`
 - known wrong: no scored failure in the current survey
 
 ## casts between pointers and integers
 
-- admitted: `char-pointer-long-index` (match): `void abort(void); int main(void) { static char a[10] = "deadbeef"; long i = 2000000000L; return a[i - 2000000000L] == 'd' ? 0 : 1; }`
-- refused: `pointer-integer-roundtrip` (refuse) — no layout for declared type 'int *': `#include <stdint.h> int main(void) { int x = 3; uintptr_t u = (uintptr_t)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }`
+- admitted: `pointer-integer-roundtrip` (match): `#include <stdint.h> int main(void) { int x = 3; uintptr_t u = (uintptr_t)&x; int *p = (int *)u; return *p == 3 ? 0 : 1; }`
+- refused: `pointer-address-difference-wall` (refuse) — pointer-integer value requires an unchanged cast back: `#include <stdint.h> int main(void) { int x[2]; uintptr_t a = (uintptr_t)&x[0]; uintptr_t b = (uintptr_t)&x[1]; return (int)(b - a); }`
 - known wrong: no scored failure in the current survey
 
 ## string functions
 
-- admitted: `builtin-snprintf-hhd` (match): `int main(void) { char b[5]; int n = __builtin_snprintf(b, sizeof b, "%hhd", 105); return n == 3 && b[0] == '1' && b[1] == '0' && b[2] == '5' && b[3] == 0 ? 0...`
-- refused: `plain-string-index` (refuse) — no layout for declared type 'const char *': `int main(void) { const char *p = "hello"; return p[0] == 'h' ? 0 : 1; }`
+- admitted: `stdio-with-user-record-layout` (match) — 2
+: `#include <stdio.h> struct S { char c; int x; }; int main(void) { struct S s = {1, 2}; printf("%d\n", s.x); return 0; }`
+- refused: `00174.c` (refused-unsupported) — compound assignment lacks parser-native compute type observations
 - known wrong: no scored failure in the current survey
 
 ## malloc/free
 
 - admitted: `allocated-flexible-array-member-subscript` (match): `#include <stdlib.h> struct S { long head; int tail[]; }; int main(void) { struct S *s = malloc(sizeof(*s) + 2 * sizeof(int)); if (!s) return 2; s->tail[0] = ...`
-- refused: no refusal row in the current inputs
+- refused: `malloc-retype-int-to-long` (refuse) — effectiveType: `#include <stdlib.h> int main(void) { void *p = malloc(sizeof(long)); if (!p) return 2; *(int *)p = 7; *(long *)p = 4294967297L; int bad = *(long *)p != 42949...`
 - known wrong: no scored failure in the current survey
 
 ## variadics
@@ -80,8 +81,8 @@ A focused row is an admitted example when its harness expectation is `match`. A 
 
 ## function pointers
 
-- admitted: `function-pointer-after-memset` (match): `#include <string.h> static void f(void) {} int main(void) { void (*p)(void) = f; memset(&p, 0, sizeof p); return p != 0; }`
-- refused: `type-function-pointer` (refuse) — no layout for declared type 'int (*)(int)': `int f(int x) { return x; } int main(void) { int (*p)(int) = f; return p(1); }`
+- admitted: `type-function-pointer` (match): `int f(int x) { return x; } int main(void) { int (*p)(int) = f; return p(1); }`
+- refused: `f2-pointer-bytes-character-defined` (refuse) — function pointer byte representation is unavailable: `#include <string.h> static void f(void) {} int main(void) { void (*p)(void) = f; unsigned char first = ((unsigned char *)&p)[0]; unsigned char copy[sizeof p]...`
 - known wrong: no scored failure in the current survey
 
 ## floating point
