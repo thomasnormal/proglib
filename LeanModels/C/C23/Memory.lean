@@ -2297,7 +2297,12 @@ def checkEffective (alias : AliasModel) (o : ObjId) (c : CObj) (off : Nat)
   match c.effTy with
   | none => .ok ()
   | some eff =>
-      if usedStructured.isSome then .ok ()
+      if usedStructured.any (fun usedType =>
+          match usedType.unqualified with
+          | .cBuiltinKind _ => true
+          | _ => false) then
+        if alias.compatibleUsed none used eff then .ok ()
+        else .error (.memUB (.effectiveType o off used eff))
       else if alias.compatibleUsed usedStructured used eff then .ok ()
       else .error (.memUB (.effectiveType o off used eff))
 

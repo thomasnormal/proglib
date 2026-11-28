@@ -1301,10 +1301,20 @@ def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (v : CVal)
         | some projected => pure projected
         | none => refuseUnsupported "integer store lacks parser-native QualType"
       writeMem (fun m => Mem.storeIntChecked m alias p t ty n structured)
-  | .float32 f => if structured.bind floatBitsOfStructured == some 32 then writeMem (fun m => Mem.storeFloat32 m p f)
-                 else refuseUnsupported "floating store without a floating layout"
-  | .float64 f => if structured.bind floatBitsOfStructured == some 64 then writeMem (fun m => Mem.storeFloat64 m p f)
-                 else refuseUnsupported "floating store without a floating layout"
+  | .float32 f =>
+      if structured.bind floatBitsOfStructured == some 32 then
+        writeMem (fun m => do
+          let (o, c, off) ← m.resolve p 4
+          Mem.checkEffectiveAtBounded m alias p o c off 4 ty structured
+          m.storeFloat32 p f)
+      else refuseUnsupported "floating store without a floating layout"
+  | .float64 f =>
+      if structured.bind floatBitsOfStructured == some 64 then
+        writeMem (fun m => do
+          let (o, c, off) ← m.resolve p 8
+          Mem.checkEffectiveAtBounded m alias p o c off 8 ty structured
+          m.storeFloat64 p f)
+      else refuseUnsupported "floating store without a floating layout"
   | .aggregate _ bs => writeMem (fun m => Mem.storeBytes m p bs)
   | .undef => refuseUnsupported "storing an indeterminate value"
 
