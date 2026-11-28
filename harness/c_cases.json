@@ -1387,7 +1387,7 @@
       "structured_types"
     ],
     "structured_expect": "refuse",
-    "structured_error": "no layout for parameter type 'int *'",
+    "structured_error": "unsupported\tunnamed pointer parameter (array-bound effects are not retained by clang)",
     "return_value": 0,
     "error": "unnamed pointer parameter (array-bound effects are not retained by clang)"
   },
@@ -1737,23 +1737,26 @@
   {
     "id": "malloc-retype-int-to-long",
     "source": "#include <stdlib.h>\nint main(void) { void *p = malloc(sizeof(long)); if (!p) return 2; *(int *)p = 7; *(long *)p = 4294967297L; int bad = *(long *)p != 4294967297L; free(p); return bad; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
-    "sanitize": true
+    "sanitize": true,
+    "error": "effectiveType"
   },
   {
     "id": "malloc-character-store-preserves-int",
     "source": "#include <stdlib.h>\nint main(void) { int *p = malloc(sizeof(int)); if (!p) return 2; *p = 0x1234; ((unsigned char *)p)[0] = 0x56; int bad = *p != 0x1256; free(p); return bad; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
-    "sanitize": true
+    "sanitize": true,
+    "error": "effectiveType"
   },
   {
     "id": "malloc-struct-member-types",
     "source": "#include <stdlib.h>\nstruct data { int a; long b; };\nint main(void) { struct data *p = malloc(2 * sizeof(long)); if (!p) return 2; p->a = 7; p->b = 4294967297L; int bad = p->a != 7 || p->b != 4294967297L; free(p); return bad; }",
-    "expect": "match",
+    "expect": "refuse",
     "return_value": 0,
-    "sanitize": true
+    "sanitize": true,
+    "error": "effectiveType"
   },
   {
     "id": "va-arg-signed-to-corresponding-unsigned",
