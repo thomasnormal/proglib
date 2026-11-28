@@ -1094,6 +1094,7 @@ macro "sv_seq_profileI" : tactic =>
 macro "sv_seq_obligations" : tactic =>
   `(tactic| simp (config := {maxSteps := 4000000, decide := true}) [LeanModels.Sv.Kernel.CoreMemDesign.seqOblB,
       LeanModels.Sv.Kernel.CoreMemDesign.seqOblI, LeanModels.Sv.Kernel.CoreMemDesign.oblInputsUndriven,
+      LeanModels.Sv.Kernel.CoreMemDesign.hasComb,
       LeanModels.Sv.Kernel.CoreMemDesign.oblSources, LeanModels.Sv.Kernel.CoreMemDesign.oblNoSourceRead,
       LeanModels.Sv.Kernel.CoreMemProc.sourceReadOk, LeanModels.Sv.Kernel.CoreMemDesign.sources,
       LeanModels.Sv.Kernel.CoreMemDesign.events, LeanModels.Sv.Kernel.CoreMemProc.events,
@@ -1227,6 +1228,7 @@ macro "sv_seq_eval_pass_at " d:num " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : 
       LeanModels.Sv.Kernel.CoreMemEdge.fires, LeanModels.Sv.Kernel.CoreMemDesign.execV,
       LeanModels.Sv.Kernel.CoreMemDesign.execListV, LeanModels.Sv.Kernel.CoreMemDesign.execOptV,
       LeanModels.Sv.Kernel.CoreMemDesign.execItemsV, LeanModels.Sv.Kernel.CoreMemDesign.caseHitsV,
+      LeanModels.Sv.Kernel.CoreMemDesign.hasComb,
       LeanModels.Sv.Kernel.CoreMemDesign.setV, LeanModels.Sv.Kernel.CoreMemDesign.writeLhsV,
       LeanModels.Sv.caseHit, LeanModels.Sv.Kernel.caseClaimOk, LeanModels.Sv.Kernel.scalarNbaWindows,
       LeanModels.Sv.Kernel.scalarNbaWindows.go, LeanModels.Sv.resolveConcatLhs2, LeanModels.Sv.resolveLhs2,
@@ -1238,6 +1240,9 @@ macro "sv_seq_eval_pass_at " d:num " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : 
       LeanModels.Sv.Kernel.CoreMemDesign.scalarWidth?, LeanModels.Sv.Kernel.Elab.resolve,
       LeanModels.Sv.Kernel.resolveAux, LeanModels.Sv.Kernel.Elab.declOf, LeanModels.Sv.applyInputs2,
       LeanModels.Sv.Kernel.Elab.toDesign2, LeanModels.Sv.Kernel.lowEntry, LeanModels.Sv.Kernel.highEntry,
+      LeanModels.Sv.dimTableFast,
+      LeanModels.Sv.PType.width_packed_cons, LeanModels.Sv.PType.width_packed_nil,
+      LeanModels.Sv.PDim.width, LeanModels.Sv.evalDims,
       LeanModels.Sv.Kernel.seqE_commit_nil, LeanModels.Sv.Kernel.seqE_commit_cons, LeanModels.Sv.Kernel.Val.ofLVec, LeanModels.Sv.Kernel.VType.ofDecl,
       LeanModels.Sv.Kernel.VType.conv, LeanModels.Sv.Kernel.declFallback, LeanModels.Sv.Res.ok_bind,
       LeanModels.Sv.Kernel.seqE_except_ok_bind, LeanModels.Sv.SvState.lookup, LeanModels.Sv.SvState.set,
@@ -1303,7 +1308,7 @@ macro "sv_seq_eval_loop" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
              LeanModels.Sv.Kernel.seqE_memWriteL_width, LeanModels.Sv.Kernel.seqE_memWrite_width, implies_true]))
 
 /-- The arithmetic pass of a cycle: conditions and bounds on the parameters, by `omega`. -/
-macro "sv_seq_eval_arith" : conv =>
+macro "sv_seq_eval_arith" " [" ls:Lean.Parser.Tactic.simpLemma,* "]" : conv =>
   `(conv| simp (disch := omega) only [if_pos, if_neg, Nat.max_eq_left, Nat.max_eq_right, Int.min_eq_left,
       Int.min_eq_right, Int.max_eq_left,
       Int.max_eq_right, LeanModels.Sv.CombView.canonInt32_of_bounds,
@@ -1311,7 +1316,7 @@ macro "sv_seq_eval_arith" : conv =>
       LeanModels.Sv.Kernel.seqE_wclog, LeanModels.Sv.Kernel.seqE_wclog1,
       LeanModels.Sv.Kernel.seqE_natAbs_sub_one_add_one, LeanModels.Sv.Kernel.seqE_natAbs_sub_one,
       LeanModels.Sv.Kernel.seqE_natAbs_add_sub_one_add_one,
-      LeanModels.Sv.Kernel.seqK_eqLogical_u32_sub_one_zero_condTrue, Nat.sub_add_cancel])
+      LeanModels.Sv.Kernel.seqK_eqLogical_u32_sub_one_zero_condTrue, Nat.sub_add_cancel, $ls,*])
 
 /-- **`sv_seq_cycle h : E.cycleV clk v d using hE [facts]`**: `h : E.cycleV clk v d = <the computed pre and post
 views>`, where `hE : <normal form> = E` comes from `sv_seq_inst`. -/
@@ -1322,10 +1327,11 @@ macro "sv_seq_cycle " h:ident " : " t:term " using " hE:ident " [" ls:Lean.Parse
       rhs
       rw [← $hE:ident]
       try sv_seq_eval_pass [$ls,*]
-      try sv_seq_eval_arith
+      try sv_seq_eval_arith [$ls,*]
       try sv_seq_eval_pass [$ls,*]
-      try sv_seq_eval_arith
+      try sv_seq_eval_arith [$ls,*]
       try sv_seq_eval_pass [$ls,*]
-      try sv_seq_eval_arith
+      try sv_seq_eval_arith [$ls,*]
       try sv_seq_eval_pass [$ls,*]
+      try sv_seq_eval_arith [$ls,*]
       try sv_seq_eval_loop [$ls,*]))

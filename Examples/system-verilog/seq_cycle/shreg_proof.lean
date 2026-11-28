@@ -86,6 +86,9 @@ theorem shreg_cycle (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesig
         .ok ([("clk", ⟨#[.l0]⟩), ("v", a'), ("q", tt), ("t", tt)],
           [("clk", ⟨#[.l1]⟩), ("v", a'), ("q", sh N tt a'), ("t", sh N tt a')]) := by
   sv_seq_inst [shreg.e, shreg.pdesign] at hE
+  have hcomb : E.hasComb = false := by
+    rw [← hE]
+    simp [CoreMemDesign.hasComb]
   cases hv : SvState.lookup d "v" with
   | some vin =>
       have hvin : vin.width = 1 := by
@@ -95,16 +98,18 @@ theorem shreg_cycle (N : Nat) (h1 : 2 ≤ N) (h2 : N < 2 ^ 30) {E : CoreMemDesig
         simp [Elab.toDesign2, Design2.declWidth] at this
         omega
       refine ⟨vin, hvin, Or.inl rfl, ?_⟩
+      have htt : tt.bits.size = N := ht
       sv_seq_cycle hcyc : E.cycleV "clk" [("clk", c), ("v", a), ("q", qq), ("t", tt)] d using hE
-        [hv, hvin, ha, hq, ht]
-      rw [hcyc, toNat_sub_two_add_one N h1]
-      rfl
+        [hv, hvin, ha, hq, ht, htt, hcomb, toNat_sub_two_add_one N h1]
+      rw [hcyc]
+      simp [sh, LVec.width, htt, Res.bind_eq_ok, toNat_sub_two_add_one N h1, h1]
   | none =>
       refine ⟨a, ha, Or.inr ⟨rfl, rfl⟩, ?_⟩
+      have htt : tt.bits.size = N := ht
       sv_seq_cycle hcyc : E.cycleV "clk" [("clk", c), ("v", a), ("q", qq), ("t", tt)] d using hE
-        [hv, ha, hq, ht]
-      rw [hcyc, toNat_sub_two_add_one N h1]
-      rfl
+        [hv, ha, hq, ht, htt, hcomb, toNat_sub_two_add_one N h1]
+      rw [hcyc]
+      simp [sh, LVec.width, htt, Res.bind_eq_ok, toNat_sub_two_add_one N h1, h1]
 
 
 /-! ## 3. The claim, over every run -/
