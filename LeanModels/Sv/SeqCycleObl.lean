@@ -1020,6 +1020,82 @@ theorem CoreMemDesign.evalExprLocals_mem_congr_of_pure {E : CoreMemDesign} {env 
     (mv := E.memOf st₁.memory) (mw := E.memOf st₂.memory) ctx e hmem
   rw [heq₁, heq₂, hview, hmemv]
 
+theorem CoreMemDesign.evalExpr_congr_of_pure {E : CoreMemDesign} {env : IEnv}
+    {st₁ st₂ : CoreMemState} {e : PExpr}
+    (hm₁ : E.MemCoherent st₁.memory) (hm₂ : E.MemCoherent st₂.memory)
+    (hview : E.scalar.view st₁.scalar = E.scalar.view st₂.scalar)
+    (hmem : PExpr.hasMemoryRead e = false)
+    (hcall : PExpr.hasFunctionCall e = false) :
+    E.evalExpr env E.elems st₁ none e = E.evalExpr env E.elems st₂ none e := by
+  exact CoreMemDesign.evalExprLocals_mem_congr_of_pure hm₁ hm₂ hview hmem hcall
+
+theorem CoreMemDesign.readChangedExpr_congr_of_pure {E : CoreMemDesign}
+    {before₁ before₂ after₁ after₂ : CoreMemState} {expr : PExpr}
+    (hm₁ : E.MemCoherent before₁.memory) (hm₂ : E.MemCoherent before₂.memory)
+    (hm₃ : E.MemCoherent after₁.memory) (hm₄ : E.MemCoherent after₂.memory)
+    (hbefore : E.scalar.view before₁.scalar = E.scalar.view before₂.scalar)
+    (hafter : E.scalar.view after₁.scalar = E.scalar.view after₂.scalar)
+    (hmem : PExpr.hasMemoryRead expr = false)
+    (hcall : PExpr.hasFunctionCall expr = false) :
+    E.readChangedExpr before₁ after₁ expr = E.readChangedExpr before₂ after₂ expr := by
+  simp only [CoreMemDesign.readChangedExpr, hmem, Bool.and_false, Bool.false_eq_true, ↓reduceIte]
+  rw [CoreMemDesign.evalExpr_congr_of_pure hm₁ hm₂ hbefore hmem hcall,
+    CoreMemDesign.evalExpr_congr_of_pure hm₃ hm₄ hafter hmem hcall]
+
+theorem CoreMemDesign.readChanged_congr_of_pure {E : CoreMemDesign}
+    {before₁ before₂ after₁ after₂ : CoreMemState} {reads : List PExpr}
+    (hm₁ : E.MemCoherent before₁.memory) (hm₂ : E.MemCoherent before₂.memory)
+    (hm₃ : E.MemCoherent after₁.memory) (hm₄ : E.MemCoherent after₂.memory)
+    (hbefore : E.scalar.view before₁.scalar = E.scalar.view before₂.scalar)
+    (hafter : E.scalar.view after₁.scalar = E.scalar.view after₂.scalar)
+    (hpure : ∀ expr ∈ reads, PExpr.hasMemoryRead expr = false ∧
+      PExpr.hasFunctionCall expr = false) :
+    E.readChanged before₁ after₁ reads = E.readChanged before₂ after₂ reads := by
+  induction reads with
+  | nil => rfl
+  | cons expr rest ih =>
+      have hrest : ∀ e ∈ rest, PExpr.hasMemoryRead e = false ∧
+          PExpr.hasFunctionCall e = false := by
+        intro e he
+        exact hpure e (by simp [he])
+      simp only [CoreMemDesign.readChanged]
+      rw [CoreMemDesign.readChangedExpr_congr_of_pure hm₁ hm₂ hm₃ hm₄ hbefore hafter
+        (hpure expr (by simp)).1 (hpure expr (by simp)).2]
+      cases hread : E.readChangedExpr before₂ after₂ expr with
+      | timeout => simp [hread]
+      | unsupported msg => simp [hread]
+      | ok changed =>
+          simp only [hread, Res.ok_bind]
+          by_cases hchanged : changed = true
+          · simp [hchanged]
+          · simp only [hchanged, Bool.false_eq_true, ↓reduceIte]
+            exact ih hrest
+
+theorem CoreMemDesign.readChangedAt_congr_of_pure {E : CoreMemDesign}
+    {before₁ before₂ after₁ after₂ : CoreMemState}
+    {beforeView₁ beforeView₂ afterView₁ afterView₂ : SvState}
+    {index : Nat} {reads : List PExpr}
+    (hm₁ : E.MemCoherent before₁.memory) (hm₂ : E.MemCoherent before₂.memory)
+    (hm₃ : E.MemCoherent after₁.memory) (hm₄ : E.MemCoherent after₂.memory)
+    (hbefore : E.scalar.view before₁.scalar = E.scalar.view before₂.scalar)
+    (hafter : E.scalar.view after₁.scalar = E.scalar.view after₂.scalar)
+    (hbeforeView : beforeView₁ = beforeView₂) (hafterView : afterView₁ = afterView₂)
+    (hpure : ∀ expr ∈ reads, PExpr.hasMemoryRead expr = false ∧
+      PExpr.hasFunctionCall expr = false) :
+    E.readChangedAt before₁ after₁ beforeView₁ afterView₁ index reads =
+      E.readChangedAt before₂ after₂ beforeView₂ afterView₂ index reads := by
+  cases hc : E.compiledCombReads[index]? with
+  | none =>
+      simp only [CoreMemDesign.readChangedAt, hc]
+      exact CoreMemDesign.readChanged_congr_of_pure hm₁ hm₂ hm₃ hm₄ hbefore hafter hpure
+  | some compiled =>
+      cases compiled with
+      | none =>
+          simp only [CoreMemDesign.readChangedAt, hc]
+          exact CoreMemDesign.readChanged_congr_of_pure hm₁ hm₂ hm₃ hm₄ hbefore hafter hpure
+      | some compiled =>
+          simp only [CoreMemDesign.readChangedAt, hc, hbeforeView, hafterView]
+
 theorem CoreMemDesign.combIfBranch_congr_of_pure {E : CoreMemDesign} {env : IEnv}
     {st₁ st₂ : CoreMemState} {locals : SvState} {cond : PExpr}
     {yes : PStmt} {no : Option PStmt}
