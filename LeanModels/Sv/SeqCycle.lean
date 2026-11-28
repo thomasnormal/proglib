@@ -2230,9 +2230,8 @@ theorem CoreMemDesign.execCombStmtAtView_blocking_frame
     {n : String} {value : PExpr} {st₁' st₂' : CoreMemState} {view₁' view₂' : SvState}
     (hc₁ : E.Coherent st₁) (hc₂ : E.Coherent st₂)
     (hm₁ : E.MemCoherent st₁.memory) (hm₂ : E.MemCoherent st₂.memory)
-    (hview₁ : view₁ = E.scalar.view st₁.scalar)
-    (hview₂ : view₂ = E.scalar.view st₂.scalar)
     (hview : E.scalar.view st₁.scalar = E.scalar.view st₂.scalar)
+    (hviews : view₁ = view₂)
     (hbody : E.combBodyB (.blockingAssign n value) = true)
     (h₁ : E.execCombStmtAtView env E.elems st₁ view₁ (.blockingAssign n value) = .ok (st₁', view₁'))
     (h₂ : E.execCombStmtAtView env E.elems st₂ view₂ (.blockingAssign n value) = .ok (st₂', view₂')) :
@@ -2269,12 +2268,11 @@ theorem CoreMemDesign.execCombStmtAtView_blocking_frame
     obtain ⟨x, hx⟩ := CoreMemDesign.scalarWidth?_some (by simpa [hwidth])
     obtain ⟨hsv₁, _⟩ := CoreMemDesign.setV_spec hc₁ hx a₁
     obtain ⟨hsv₂, _⟩ := CoreMemDesign.setV_spec hc₂ hx a₁
-    have hbase : view₁ = view₂ := by rw [hview₁, hview₂, hview]
     subst st₁'
     subst st₂'
     constructor
     · rw [hsv₁, hsv₂, hview]
-    · exact hv₁.symm.trans (hbase ▸ hv₂)
+    · exact hv₁.symm.trans (hviews ▸ hv₂)
 
 /-- `compactScalar` on a coherent state: the materialized view, coherent. -/
 theorem CoreMemDesign.compactScalar_view {E : CoreMemDesign} (hnd : (E.scalar.decls.toList.map Decl.name).Nodup)

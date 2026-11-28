@@ -1238,7 +1238,15 @@ theorem CoreMemDesign.combStmtAtViewStable_blocking
     (hbody : E.combBodyB (.blockingAssign n value) = true) :
     E.CombStmtAtViewStable env (.blockingAssign n value) := by
   intro st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂' hc₁ hc₂ hm₁ hm₂ hv₁ hv₂ hview h₁ h₂
-  exact (CoreMemDesign.execCombStmtAtView_blocking_frame hc₁ hc₂ hm₁ hm₂ hv₁ hv₂ hview hbody h₁ h₂).2
+  exact (CoreMemDesign.execCombStmtAtView_blocking_frame hc₁ hc₂ hm₁ hm₂ hview
+    (by rw [hv₁, hv₂, hview]) hbody h₁ h₂).2
+
+theorem CoreMemDesign.combStmtViewCongr_blocking
+    {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
+    (hbody : E.combBodyB (.blockingAssign n value) = true) :
+    E.CombStmtViewCongr env (.blockingAssign n value) := by
+  intro st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂' hc₁ hc₂ hm₁ hm₂ hview hviews h₁ h₂
+  exact (CoreMemDesign.execCombStmtAtView_blocking_frame hc₁ hc₂ hm₁ hm₂ hview hviews hbody h₁ h₂).2
 
 /-- The public view executor is the fixed-fuel, empty-local-frame wrapper around
 the source-shaped statement executor.  A statement coherence receipt therefore
