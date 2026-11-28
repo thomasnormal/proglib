@@ -1064,6 +1064,30 @@ theorem CoreMemDesign.evalMemExprList_congr_of_pure {E : CoreMemDesign} {env : I
         simpa [CoreMemDesign.evalExpr] using heq
       rw [heq', ih hrest]
 
+theorem CoreMemDesign.coreMemCaseHits_congr_of_pure {E : CoreMemDesign} {env : IEnv}
+    {st₁ st₂ : CoreMemState} {subject : LVec} {mode : CaseMode}
+    {items : List (List PExpr × PStmt)}
+    (hm₁ : E.MemCoherent st₁.memory) (hm₂ : E.MemCoherent st₂.memory)
+    (hview : E.scalar.view st₁.scalar = E.scalar.view st₂.scalar)
+    (hitems : ∀ patterns body, (patterns, body) ∈ items →
+      ∀ expr ∈ patterns,
+        PExpr.hasMemoryRead expr = false ∧ PExpr.hasFunctionCall expr = false) :
+    coreMemCaseHits E env E.elems st₁ subject mode items =
+      coreMemCaseHits E env E.elems st₂ subject mode items := by
+  induction items with
+  | nil => rfl
+  | cons item rest ih =>
+      obtain ⟨patterns, body⟩ := item
+      have hpatterns := hitems patterns body (by simp)
+      have hrest : ∀ ps b, (ps, b) ∈ rest → ∀ expr ∈ ps,
+          PExpr.hasMemoryRead expr = false ∧ PExpr.hasFunctionCall expr = false := by
+        intro ps b hmem
+        exact hitems ps b (by simp [hmem])
+      have hlist := CoreMemDesign.evalMemExprList_congr_of_pure
+        (E := E) (env := env) hm₁ hm₂ hview (fun expr he => hpatterns expr he)
+      simp only [coreMemCaseHits, hlist]
+      rw [ih hrest]
+
 theorem CoreMemDesign.evalExpr_congr_of_pure {E : CoreMemDesign} {env : IEnv}
     {st₁ st₂ : CoreMemState} {e : PExpr}
     (hm₁ : E.MemCoherent st₁.memory) (hm₂ : E.MemCoherent st₂.memory)
