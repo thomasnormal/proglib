@@ -1926,5 +1926,23 @@
     "sanitize": true,
     "floating_expect": "match",
     "floating_return_value": 0
+  },
+  {
+    "id": "c23-nan-generic-selection",
+    "source": "#define NAN (__builtin_nanf(\"\"))\nint main(void) { (void)_Generic(NAN, float: 0); return __builtin_isnan(NAN) ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "floating_expect": "match",
+    "floating_return_value": 0
+  },
+  {
+    "id": "c23-nan-static-generic-selection",
+    "source": "#define NAN (__builtin_nanf(\"\"))\nvolatile float f = NAN; int main(void) { return (__builtin_isnan(f) && __builtin_isnan(f + f)) ? 0 : 1; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true,
+    "floating_expect": "match",
+    "floating_return_value": 0
   }
 ]
