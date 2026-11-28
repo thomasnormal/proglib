@@ -1583,6 +1583,41 @@ theorem CoreMemDesign.combStmtViewRefinesFuel_case_pure
     exact CoreMemDesign.combCaseBranch_congr_of_pure hm₁ hm₂ hview hsubject hitems
   · exact hchild
 
+theorem CoreMemDesign.combStmtViewRefines_block_single
+    {E : CoreMemDesign} {env : IEnv} {stmt : PStmt}
+    (hstmt : E.CombStmtViewRefinesFuel env 4094 stmt) :
+    E.CombStmtViewRefines env (.block [stmt]) := by
+  apply CoreMemDesign.combStmtViewRefines_of_fuel
+  simpa using CoreMemDesign.combStmtViewRefinesFuel_block_single hstmt
+
+theorem CoreMemDesign.combStmtViewRefines_if_pure
+    {E : CoreMemDesign} {env : IEnv} {cond : PExpr}
+    {yes : PStmt} {no : Option PStmt}
+    (hne : E.elems ≠ []) (hcond : CoreMemDesign.combExprB cond = true)
+    (hchild : ∀ (st : CoreMemState), E.Coherent st → E.MemCoherent st.memory →
+      ∀ {body}, E.combIfBranch env E.elems st [] cond yes no = .ok (some body) →
+        E.CombStmtViewRefinesFuel env 4095 body) :
+    E.CombStmtViewRefines env (.ifStmt cond yes no) := by
+  apply CoreMemDesign.combStmtViewRefines_of_fuel
+  simpa using CoreMemDesign.combStmtViewRefinesFuel_if hne hcond hchild
+
+theorem CoreMemDesign.combStmtViewRefines_case_pure
+    {E : CoreMemDesign} {env : IEnv} {subject : PExpr}
+    {items : List (List PExpr × PStmt)} {default? : Option PStmt}
+    {mode : CaseMode} {check : CaseCheck}
+    (hsubject : PExpr.hasMemoryRead subject = false ∧
+      PExpr.hasFunctionCall subject = false)
+    (hitems : ∀ patterns body, (patterns, body) ∈ items →
+      ∀ expr ∈ patterns,
+        PExpr.hasMemoryRead expr = false ∧ PExpr.hasFunctionCall expr = false)
+    (hchild : ∀ (st : CoreMemState), E.Coherent st → E.MemCoherent st.memory →
+      ∀ {body}, E.combCaseBranch env E.elems st [] subject items default? mode check =
+        .ok (some body) → E.CombStmtViewRefinesFuel env 4095 body) :
+    E.CombStmtViewRefines env
+      (.caseStmt subject items default? mode check) := by
+  apply CoreMemDesign.combStmtViewRefines_of_fuel
+  simpa using CoreMemDesign.combStmtViewRefinesFuel_case_pure hsubject hitems hchild
+
 /-! A scalar blocking assignment can be replayed from any coherent state
 carrying the same scalar view.  This is the success-transfer receipt needed by
 the state-side active-region runner. -/
