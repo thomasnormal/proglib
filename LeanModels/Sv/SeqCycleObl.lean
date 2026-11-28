@@ -1386,6 +1386,110 @@ def CoreMemDesign.CombStmtViewRefines (E : CoreMemDesign) (env : IEnv) (stmt : P
     ∃ st₁' view₁',
       E.execCombStmtAtView env E.elems st₁ view₁ stmt = .ok (st₁', view₁') ∧ view₁' = view₂'
 
+mutual
+ theorem CoreMemDesign.execCombStmtFuel_succ_of_ok
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {view locals : SvState} {fuel : Nat} {stmt : PStmt}
+    {r : CoreMemState × SvState × SvState}
+    (h : E.execCombStmtFuel env elems st view locals fuel stmt = .ok r) :
+    E.execCombStmtFuel env elems st view locals (fuel + 1) stmt = .ok r := by
+  cases fuel with
+  | zero => simp [CoreMemDesign.execCombStmtFuel] at h
+  | succ fuel =>
+      cases stmt with
+      | localDecl name width init => simpa [CoreMemDesign.execCombStmtFuel] using h
+      | automaticDecl name width init => simpa [CoreMemDesign.execCombStmtFuel] using h
+      | blockingAssign name value => simpa [CoreMemDesign.execCombStmtFuel] using h
+      | blockingAssignL target value =>
+          cases target with
+          | ident name =>
+              simp only [CoreMemDesign.execCombStmtFuel] at h ⊢
+              exact CoreMemDesign.execCombStmtFuel_succ_of_ok h
+          | bitSel name index => simpa [CoreMemDesign.execCombStmtFuel] using h
+          | partSel name msb lsb => simpa [CoreMemDesign.execCombStmtFuel] using h
+          | concat parts => simpa [CoreMemDesign.execCombStmtFuel] using h
+          | arrayElem name indices =>
+              cases indices with
+              | nil => simp only [CoreMemDesign.execCombStmtFuel] at h ⊢; exact h
+              | cons head tail =>
+                  cases tail <;> simp only [CoreMemDesign.execCombStmtFuel] at h ⊢ <;> exact h
+          | arrayBitSel name indices bit =>
+              cases indices <;> simp [CoreMemDesign.execCombStmtFuel] at h ⊢
+          | arrayPart name indices mode a b =>
+              cases indices <;> simp [CoreMemDesign.execCombStmtFuel] at h ⊢
+          | aggregateMember base path => simpa [CoreMemDesign.execCombStmtFuel] using h
+      | ifStmt cond yes no =>
+          simp only [CoreMemDesign.execCombStmtFuel] at h ⊢
+          cases hb : E.combIfBranch env elems st locals cond yes no with
+          | timeout => simp [hb] at h
+          | unsupported msg => simp [hb] at h
+          | ok branch =>
+              simp only [hb, Res.ok_bind] at h ⊢
+              cases branch with
+              | none => simpa using h
+              | some body => simpa using CoreMemDesign.execCombStmtFuel_succ_of_ok h
+      | block body =>
+          simp only [CoreMemDesign.execCombStmtFuel] at h ⊢
+          exact CoreMemDesign.execCombStmtsFuel_succ_of_ok h
+      | forLoop iterator init condition step body =>
+          simp only [CoreMemDesign.execCombStmtFuel] at h ⊢
+          cases hv : forValues2 env iterator init condition step with
+          | timeout => simp [hv] at h
+          | unsupported msg => simp [hv] at h
+          | ok values =>
+              simp only [hv] at h ⊢
+              simpa using CoreMemDesign.execCombLoopValuesFuel_succ_of_ok h
+      | caseStmt subject items default mode check =>
+          simp only [CoreMemDesign.execCombStmtFuel] at h ⊢
+          cases hb : E.combCaseBranch env elems st locals subject items default mode check with
+          | timeout => simp [hb] at h
+          | unsupported msg => simp [hb] at h
+          | ok branch =>
+              simp only [hb, Res.ok_bind] at h ⊢
+              cases branch with
+              | none => simpa using h
+              | some body => simpa using CoreMemDesign.execCombStmtFuel_succ_of_ok h
+      | nbaAssign target value => simpa [CoreMemDesign.execCombStmtFuel] using h
+      | nbaAssignL target value => simpa [CoreMemDesign.execCombStmtFuel] using h
+      | unsupported kind text => simpa [CoreMemDesign.execCombStmtFuel] using h
+
+ theorem CoreMemDesign.execCombStmtsFuel_succ_of_ok
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {view locals : SvState} {fuel : Nat} {body : List PStmt}
+    {r : CoreMemState × SvState × SvState}
+    (h : E.execCombStmtsFuel env elems st view locals fuel body = .ok r) :
+    E.execCombStmtsFuel env elems st view locals (fuel + 1) body = .ok r := by
+  cases fuel with
+  | zero => simp [CoreMemDesign.execCombStmtsFuel] at h
+  | succ fuel =>
+      cases body with
+      | nil => simpa [CoreMemDesign.execCombStmtsFuel] using h
+      | cons stmt rest =>
+          simp only [CoreMemDesign.execCombStmtsFuel, Res.bind_eq_ok] at h ⊢
+          obtain ⟨mid, hstmt, hrest⟩ := h
+          have hstmt' := CoreMemDesign.execCombStmtFuel_succ_of_ok hstmt
+          have hrest' := CoreMemDesign.execCombStmtsFuel_succ_of_ok hrest
+          exact ⟨mid, hstmt', hrest'⟩
+
+ theorem CoreMemDesign.execCombLoopValuesFuel_succ_of_ok
+    {E : CoreMemDesign} {env : IEnv} {elems : List (String × Nat)}
+    {st : CoreMemState} {view locals : SvState} {fuel : Nat} {values : List Int}
+    {body : PStmt} {iterator : String} {r : CoreMemState × SvState × SvState}
+    (h : E.execCombLoopValuesFuel env elems st view locals fuel values body iterator = .ok r) :
+    E.execCombLoopValuesFuel env elems st view locals (fuel + 1) values body iterator = .ok r := by
+  cases fuel with
+  | zero => simp [CoreMemDesign.execCombLoopValuesFuel] at h
+  | succ fuel =>
+      cases values with
+      | nil => simpa [CoreMemDesign.execCombLoopValuesFuel] using h
+      | cons i rest =>
+          simp only [CoreMemDesign.execCombLoopValuesFuel, Res.bind_eq_ok] at h ⊢
+          obtain ⟨mid, hstmt, hrest⟩ := h
+          have hstmt' := CoreMemDesign.execCombStmtFuel_succ_of_ok hstmt
+          have hrest' := CoreMemDesign.execCombLoopValuesFuel_succ_of_ok hrest
+          exact ⟨mid, hstmt', hrest'⟩
+end
+
 /-! Fuel-indexed refinement keeps statement composition honest: a source block
 consumes one fuel cell before its child, so a child receipt must be available at
 the remaining fuel rather than silently reusing the public fixed-fuel wrapper. -/
@@ -1767,12 +1871,22 @@ theorem CoreMemDesign.combStmtViewCongr_if
           obtain ⟨rfl, rfl, rfl⟩ := h₂
           exact hviews
       | some stmt =>
+          simp [hb₁] at h₁
+          simp [hb₂] at h₂
+          obtain ⟨locals₁, h₁⟩ := h₁
+          obtain ⟨locals₂, h₂⟩ := h₂
           have hchild₁ : E.execCombStmtAtView env E.elems st₁ view₁ stmt =
               .ok (st₁', view₁') := by
-            simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₁
+            have h₁' := CoreMemDesign.execCombStmtFuel_succ_of_ok h₁
+            simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using
+              (show ∃ x, E.execCombStmtFuel env E.elems st₁ view₁ [] 4096 stmt =
+                .ok (st₁', view₁', x) from ⟨locals₁, h₁'⟩)
           have hchild₂ : E.execCombStmtAtView env E.elems st₂ view₂ stmt =
               .ok (st₂', view₂') := by
-            simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using h₂
+            have h₂' := CoreMemDesign.execCombStmtFuel_succ_of_ok h₂
+            simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using
+              (show ∃ x, E.execCombStmtFuel env E.elems st₂ view₂ [] 4096 stmt =
+                .ok (st₂', view₂', x) from ⟨locals₂, h₂'⟩)
           rcases CoreMemDesign.combIfBranch_result_early hb₁ with hyes' | hno'
           · have hstmt : stmt = yes := Option.some.inj hyes'
             subst stmt
@@ -1790,14 +1904,34 @@ theorem CoreMemDesign.combStmtViewCongr_block_single
     CoreMemDesign.execCombStmtsFuel, Res.bind_eq_ok] at h₁ h₂
   obtain ⟨mid₁, hs₁, hr₁⟩ := h₁
   obtain ⟨mid₂, hs₂, hr₂⟩ := h₂
+  obtain ⟨mid₁', hs₁, hmid₁⟩ := hs₁
+  obtain ⟨mid₂', hs₂, hmid₂⟩ := hs₂
+  have hmidEq₁ : mid₁' = mid₁ := by
+    rcases mid₁' with ⟨a₁, b₁, c₁⟩
+    rcases mid₁ with ⟨a₂, b₂, c₂⟩
+    simp_all
+  have hmidEq₂ : mid₂' = mid₂ := by
+    rcases mid₂' with ⟨a₁, b₁, c₁⟩
+    rcases mid₂ with ⟨a₂, b₂, c₂⟩
+    simp_all
+  subst mid₁'
+  subst mid₂'
   obtain ⟨midSt₁, midView₁, midLocals₁⟩ := mid₁
   obtain ⟨midSt₂, midView₂, midLocals₂⟩ := mid₂
   have hchild₁ : E.execCombStmtAtView env E.elems st₁ view₁ stmt =
       .ok (midSt₁, midView₁) := by
-    simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using hs₁
+    have hs₁' := CoreMemDesign.execCombStmtFuel_succ_of_ok hs₁
+    have hs₁'' := CoreMemDesign.execCombStmtFuel_succ_of_ok hs₁'
+    simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using
+      (show ∃ x, E.execCombStmtFuel env E.elems st₁ view₁ [] 4096 stmt =
+        .ok (midSt₁, midView₁, x) from ⟨midLocals₁, hs₁''⟩)
   have hchild₂ : E.execCombStmtAtView env E.elems st₂ view₂ stmt =
       .ok (midSt₂, midView₂) := by
-    simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using hs₂
+    have hs₂' := CoreMemDesign.execCombStmtFuel_succ_of_ok hs₂
+    have hs₂'' := CoreMemDesign.execCombStmtFuel_succ_of_ok hs₂'
+    simpa [CoreMemDesign.execCombStmtAtView, CoreMemDesign.execCombStmtFuel] using
+      (show ∃ x, E.execCombStmtFuel env E.elems st₂ view₂ [] 4096 stmt =
+        .ok (midSt₂, midView₂, x) from ⟨midLocals₂, hs₂''⟩)
   have hmidView := hstmt st₁ st₂ view₁ view₂ midSt₁ midSt₂ midView₁ midView₂
     hc₁ hc₂ hm₁ hm₂ hview hviews hchild₁ hchild₂
   simp only [CoreMemDesign.execCombStmtsFuel, Res.ok.injEq, Prod.mk.injEq] at hr₁ hr₂
@@ -2143,9 +2277,10 @@ theorem CoreMemDesign.runCombAt_of_view_success_of_each
               cases ready₂ with
               | false =>
                   simp only [hr₁, hr₂, Bool.not_false, ↓reduceIte] at h₂
-                  exact ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
+                  have htail := ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
                     (currentView₁ := currentView₁) (currentView₂ := currentView₂) (st₂' := st₂')
                     hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hcurrent hcurrentView hrest h₂
+                  simpa [CoreMemDesign.runCombAt, hr₁] using htail
               | true =>
                   simp only [hr₂, Bool.not_true, ↓reduceIte, Res.ok_bind] at h₂
                   cases he₂ : E.execCombStmtAtView E.env E.elems current₂ currentView₂ body with
@@ -2174,8 +2309,7 @@ theorem CoreMemDesign.runCombAt_of_view_success_of_each
                         (by rw [E.compactScalar_memory]; exact hcoh₂.2)
                         (by rw [hcompact₁.1, hcompact₂.1, hview₁]) hview₁ hrest h₂
                       refine ⟨st₁', ?_, hview₁', hcoh₁', hm₁'⟩
-                      simp only [hr₁, Bool.not_true, ↓reduceIte, Res.ok_bind, he₁]
-                      exact hrun₁
+                      simpa [CoreMemDesign.runCombAt, hr₁, he₁] using hrun₁
       | primitive kind name | assign target value | edge _ | initial _ | implicit _ | event _ _ =>
           simp only [CoreMemDesign.runCombAt] at h₂
           exact ih (index := index + 1) (current₁ := current₁) (current₂ := current₂)
@@ -2217,9 +2351,16 @@ theorem CoreMemDesign.runCombPass_view_congr_of_each
     E.scalar.view st₁'.scalar = E.scalar.view st₂'.scalar ∧
       E.Coherent st₁' ∧ E.Coherent st₂' ∧ E.MemCoherent st₁'.memory ∧ E.MemCoherent st₂'.memory := by
   unfold CoreMemDesign.runCombPass at h₁ h₂
-  exact E.runCombAt_view_congr_of_each hnd h4 hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
-    hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent hbeforeView hcurrentView
-    hread hproc h₁ h₂
+  exact E.runCombAt_view_congr_of_each
+    (beforeView₁ := E.scalar.view before₁.scalar)
+    (beforeView₂ := E.scalar.view before₂.scalar)
+    (currentView₁ := E.scalar.view current₁.scalar)
+    (currentView₂ := E.scalar.view current₂.scalar)
+    (index := 0)
+    hnd h4 hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
+    hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent hbefore hcurrent
+    hread
+    hproc h₁ h₂
 
 theorem CoreMemDesign.runCombPass_view_independent_of_state
     {E : CoreMemDesign}
@@ -2233,13 +2374,14 @@ theorem CoreMemDesign.runCombPass_view_independent_of_state
     (hcurrentM₁ : E.MemCoherent current₁.memory) (hcurrentM₂ : E.MemCoherent current₂.memory)
     (hbefore : E.scalar.view before₁.scalar = E.scalar.view before₂.scalar)
     (hcurrent : E.scalar.view current₁.scalar = E.scalar.view current₂.scalar)
-    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {body : PStmt} {i : Nat},
+    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {bv₁ bv₂ cv₁ cv₂ : SvState}
+      {i : Nat} {body : PStmt},
       E.Coherent b₁ → E.Coherent b₂ → E.MemCoherent b₁.memory → E.MemCoherent b₂.memory →
       E.Coherent c₁ → E.Coherent c₂ → E.MemCoherent c₁.memory → E.MemCoherent c₂.memory →
       E.scalar.view b₁.scalar = E.scalar.view b₂.scalar →
-      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar →
-      E.readChangedAt b₁ c₁ beforeView currentView i (coreMemCombExternalReadExprs body) =
-        E.readChangedAt b₂ c₂ beforeView currentView i (coreMemCombExternalReadExprs body))
+      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar → bv₁ = bv₂ → cv₁ = cv₂ →
+      E.readChangedAt b₁ c₁ bv₁ cv₁ i (coreMemCombExternalReadExprs body) =
+        E.readChangedAt b₂ c₂ bv₂ cv₂ i (coreMemCombExternalReadExprs body))
     (hproc : ∀ p ∈ procs, match p with
       | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewCongr E.env body
       | .latch _ => False
@@ -2247,8 +2389,13 @@ theorem CoreMemDesign.runCombPass_view_independent_of_state
     (h₁ : E.runCombAt before₁ beforeView current₁ currentView 0 procs = .ok st₁')
     (h₂ : E.runCombAt before₂ beforeView current₂ currentView 0 procs = .ok st₂') :
     E.scalar.view st₁'.scalar = E.scalar.view st₂'.scalar := by
-  exact (E.runCombAt_view_congr_of_each hnd h4 hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
-    hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent rfl rfl hread hproc h₁ h₂).1
+  exact (E.runCombAt_view_congr_of_each
+    (beforeView₁ := beforeView) (beforeView₂ := beforeView)
+    (currentView₁ := currentView) (currentView₂ := currentView) (index := 0)
+    hnd h4 hbeforeC₁ hbeforeC₂ hbeforeM₁ hbeforeM₂
+    hcurrentC₁ hcurrentC₂ hcurrentM₁ hcurrentM₂ hbefore hcurrent rfl rfl
+    hread
+    hproc h₁ h₂).1
 
 theorem CoreMemDesign.runCombQuiesce_view_refines_of_each
     {E : CoreMemDesign} {limit : Nat}
@@ -2262,13 +2409,14 @@ theorem CoreMemDesign.runCombQuiesce_view_refines_of_each
     (hcurrentView : currentView = E.scalar.view current.scalar)
     (hmatBefore : E.matV beforeView = beforeView)
     (hmatCurrent : E.matV currentView = currentView)
-    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {body : PStmt} {i : Nat},
+    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {bv₁ bv₂ cv₁ cv₂ : SvState}
+      {i : Nat} {body : PStmt},
       E.Coherent b₁ → E.Coherent b₂ → E.MemCoherent b₁.memory → E.MemCoherent b₂.memory →
       E.Coherent c₁ → E.Coherent c₂ → E.MemCoherent c₁.memory → E.MemCoherent c₂.memory →
       E.scalar.view b₁.scalar = E.scalar.view b₂.scalar →
-      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar →
-      E.readChangedAt b₁ c₁ beforeView currentView i (coreMemCombExternalReadExprs body) =
-        E.readChangedAt b₂ c₂ beforeView currentView i (coreMemCombExternalReadExprs body))
+      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar → bv₁ = bv₂ → cv₁ = cv₂ →
+      E.readChangedAt b₁ c₁ bv₁ cv₁ i (coreMemCombExternalReadExprs body) =
+        E.readChangedAt b₂ c₂ bv₂ cv₂ i (coreMemCombExternalReadExprs body))
     (hproc : ∀ p ∈ procs, match p with
       | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewCongr E.env body
       | .latch _ => False
@@ -2289,9 +2437,52 @@ theorem CoreMemDesign.runCombQuiesce_view_refines_of_each
           | timeout => simp [hvp] at hview
           | unsupported msg => simp [hvp] at hview
           | ok nextView =>
-              have hnext := E.runCombPass_coherent_of_each hnd h4 hcurrentC hcurrentM
-                (fun p hp => match hproc p hp with
-                  | h => h.1) hp
+              have hp' : E.runCombAt before (E.scalar.view before.scalar) current
+                  (E.scalar.view current.scalar) 0 procs = .ok next := by
+                simpa [CoreMemDesign.runCombPass] using hp
+              have hnext := E.runCombAt_coherent_of_each hnd h4 hcurrentC hcurrentM
+                (by
+                  intro p hp
+                  cases p with
+                  | comb body => exact (hproc (.comb body) hp).1
+                  | latch body => exact False.elim (hproc (.latch body) hp)
+                  | primitive kind name width => trivial
+                  | assign target value => trivial
+                  | edge f => trivial
+                  | initial body => trivial
+                  | implicit body => trivial
+                  | event events body => trivial
+                  | unsupported kind text => trivial) hp'
+              have hrunV : ∃ nextState,
+                  E.runCombAt (E.combStateOfView beforeView) beforeView
+                    (E.combStateOfView currentView) currentView 0 procs = .ok nextState ∧
+                  E.scalar.view nextState.scalar = nextView := by
+                cases hrv : E.runCombAt (E.combStateOfView beforeView) beforeView
+                    (E.combStateOfView currentView) currentView 0 procs with
+                | timeout => simp [CoreMemDesign.runCombPassV, CoreMemDesign.runCombAtV, hrv] at hvp
+                | unsupported msg => simp [CoreMemDesign.runCombPassV, CoreMemDesign.runCombAtV, hrv] at hvp
+                | ok nextState =>
+                    exact ⟨nextState, by simpa [hrv], by
+                      simpa [CoreMemDesign.runCombPassV, CoreMemDesign.runCombAtV, hrv] using hvp⟩
+              obtain ⟨nextState, hrv, hvp'⟩ := hrunV
+              have hnextState := E.runCombAt_coherent_of_each hnd h4
+                (E.combStateOfView_coherent currentView)
+                (by simpa [CoreMemDesign.combStateOfView] using hm0)
+                (by
+                  intro p hp
+                  cases p with
+                  | comb body => exact (hproc (.comb body) hp).1
+                  | latch body => exact False.elim (hproc (.latch body) hp)
+                  | primitive kind name width => trivial
+                  | assign target value => trivial
+                  | edge f => trivial
+                  | initial body => trivial
+                  | implicit body => trivial
+                  | event events body => trivial
+                  | unsupported kind text => trivial)
+                hrv
+              have hp'' : E.runCombAt before beforeView current currentView 0 procs = .ok next := by
+                simpa [hbeforeView, hcurrentView] using hp'
               have hpass := E.runCombPass_view_independent_of_state
                 (before₁ := before) (before₂ := E.combStateOfView beforeView)
                 (current₁ := current) (current₂ := E.combStateOfView currentView)
@@ -2300,33 +2491,35 @@ theorem CoreMemDesign.runCombQuiesce_view_refines_of_each
                 hbeforeM (by simpa [CoreMemDesign.combStateOfView] using hm0)
                 hcurrentC (E.combStateOfView_coherent currentView)
                 hcurrentM (by simpa [CoreMemDesign.combStateOfView] using hm0)
-                (by rw [hbeforeView, hmatBefore, E.combStateOfView_view])
-                (by rw [hcurrentView, hmatCurrent, E.combStateOfView_view])
-                hread hproc hp (by simpa [CoreMemDesign.runCombPassV, hvp] using hvp)
+                (by rw [E.combStateOfView_view, ← hbeforeView, hmatBefore])
+                (by rw [E.combStateOfView_view, ← hcurrentView, hmatCurrent])
+                hread hproc hp'' hrv
               simp only [hp, hvp, Res.ok_bind] at hstate hview
               cases heq : E.scalar.view before.scalar == E.scalar.view next.scalar with
               | true =>
-                  have heqv : beforeView == nextView = true := by
+                  have heqv : (beforeView == nextView) = true := by
                     rw [beq_iff_eq]
-                    rw [hbeforeView, hpass]
+                    rw [hbeforeView, ← hvp', ← hpass]
                     exact beq_iff_eq.mp heq
                   simp only [heq, heqv, ↓reduceIte, Res.ok.injEq] at hstate hview
                   obtain rfl := hstate
-                  exact hview
+                  exact hpass.trans (hvp'.trans hview)
               | false =>
-                  have heqv : beforeView == nextView = false := by
+                  have heqv : (beforeView == nextView) = false := by
                     apply beq_eq_false_iff_ne.mpr
                     intro heqv
                     apply beq_eq_false_iff_ne.mp heq
-                    rw [hbeforeView, hpass, heqv]
+                    rw [← hbeforeView, heqv, ← hvp', ← hpass]
                   simp only [heq, heqv, Bool.false_eq_true, ↓reduceIte] at hstate hview
                   have hmatNext : E.matV nextView = nextView := by
-                    rw [← hpass]
-                    exact CoreMemDesign.matV_view hnd h4 hnext.1.typed
+                    rw [← hvp']
+                    exact CoreMemDesign.matV_view hnd h4 hnextState.1.typed
+                  have hnextView : nextView = E.scalar.view next.scalar :=
+                    hvp'.symm.trans hpass.symm
                   exact ih (before := current) (current := next)
                     (beforeView := currentView) (currentView := nextView)
                     (st' := st') (v' := v') hcurrentC hnext.1 hcurrentM hnext.2
-                    hcurrentView hpass hmatCurrent hmatNext hread hproc hstate hview
+                    hcurrentView hnextView hmatCurrent hmatNext hstate hview
 
 /-- The process-list coherence receipt specializes to one active-region pass. -/
 theorem CoreMemDesign.runCombPass_coherent_of_each
@@ -2659,114 +2852,25 @@ theorem CoreMemDesign.runCombQuiesce_coherent_of_each
               exact ih (before := current) (current := next) (st' := st')
                 hnext.1 hnext.2 h
 
-theorem CoreMemDesign.runCombSettleQuiesce_view_refines_of_each
-    {E : CoreMemDesign} {limit : Nat}
-    {before current : CoreMemState} {beforeView currentView : SvState}
-    {procs : List CoreMemProc} {st' : CoreMemState} {v' : SvState}
-    (hP : E.SeqProfileI) (htopo : E.topoC = true)
-    (hnd : (E.scalar.decls.toList.map Decl.name).Nodup) (h4 : AllFour E.scalar)
-    (hm0 : E.MemCoherent E.initial.memory)
-    (hbeforeC : E.Coherent before) (hcurrentC : E.Coherent current)
-    (hbeforeM : E.MemCoherent before.memory) (hcurrentM : E.MemCoherent current.memory)
-    (hbeforeView : beforeView = E.scalar.view before.scalar)
-    (hcurrentView : currentView = E.scalar.view current.scalar)
-    (hmatBefore : E.matV beforeView = beforeView)
-    (hmatCurrent : E.matV currentView = currentView)
-    (hread : ∀ {b₁ b₂ c₁ c₂ : CoreMemState} {body : PStmt} {i : Nat},
-      E.Coherent b₁ → E.Coherent b₂ → E.MemCoherent b₁.memory → E.MemCoherent b₂.memory →
-      E.Coherent c₁ → E.Coherent c₂ → E.MemCoherent c₁.memory → E.MemCoherent c₂.memory →
-      E.scalar.view b₁.scalar = E.scalar.view b₂.scalar →
-      E.scalar.view c₁.scalar = E.scalar.view c₂.scalar →
-      E.readChangedAt b₁ c₁ beforeView currentView i (coreMemCombExternalReadExprs body) =
-        E.readChangedAt b₂ c₂ beforeView currentView i (coreMemCombExternalReadExprs body))
-    (hproc : ∀ p ∈ procs, match p with
-      | .comb body => E.CombStmtCoherent E.env body ∧ E.CombStmtViewCongr E.env body
-      | .latch _ => False
-      | _ => True)
-    (hstate : E.runCombSettleQuiesce limit before current procs = .ok st')
-    (hview : E.runCombSettleQuiesceV limit beforeView currentView procs = .ok v') :
-    E.scalar.view st'.scalar = v' := by
-  induction limit generalizing before current beforeView currentView st' v' with
-  | zero =>
-      simp [CoreMemDesign.runCombSettleQuiesce, CoreMemDesign.runCombSettleQuiesceV] at hstate
-  | succ n ih =>
-      simp only [CoreMemDesign.runCombSettleQuiesce, CoreMemDesign.runCombSettleQuiesceV] at hstate hview
-      cases hcmb : E.runComb before current procs with
-      | timeout => simp [hcmb] at hstate
-      | unsupported msg => simp [hcmb] at hstate
-      | ok combed =>
-          cases hvcomb : E.runCombV beforeView currentView procs with
-          | timeout => simp [hvcomb] at hview
-          | unsupported msg => simp [hvcomb] at hview
-          | ok combedView =>
-              have hprocC : ∀ p ∈ procs, match p with
-                  | .comb body => E.CombStmtCoherent E.env body
-                  | .latch _ => False
-                  | _ => True := by
-                intro p hp
-                cases p with
-                | comb body => exact (hproc (.comb body) hp).1
-                | latch body => exact (hproc (.latch body) hp)
-                | primitive kind name width => trivial
-                | assign target value => trivial
-                | edge f => trivial
-                | initial body => trivial
-                | implicit body => trivial
-                | event events body => trivial
-                | unsupported kind text => trivial
-              have hcomb := E.runCombQuiesce_coherent_of_each hnd h4 hcurrentC hcurrentM
-                hprocC hcmb
-              have hcombView := E.runCombQuiesce_view_refines_of_each
-                (limit := 4096) (before := before) (current := current)
-                (beforeView := beforeView) (currentView := currentView)
-                hnd h4 hm0 hbeforeC (E.combStateOfView_coherent beforeView)
-                hbeforeM (by simpa [CoreMemDesign.combStateOfView] using hm0)
-                hcurrentC (E.combStateOfView_coherent currentView)
-                hcurrentM (by simpa [CoreMemDesign.combStateOfView] using hm0)
-                hbeforeView hcurrentView hmatBefore hmatCurrent hread hproc hcmb hvcomb
-              simp only [hcmb, hvcomb, Res.ok_bind] at hstate hview
-              cases hset : E.settleCanonical E.env E.elems combed procs with
-              | timeout => simp [hset] at hstate
-              | unsupported msg => simp [hset] at hstate
-              | ok settled =>
-                  cases hvset : E.settleV (E.memOf combed.memory) combedView with
-                  | timeout => simp [hvset] at hview
-                  | unsupported msg => simp [hvset] at hview
-                  | ok settledView =>
-                      obtain ⟨settled₀, hset₀, hsettledView, hsettledC, hsettledMem⟩ :=
-                        E.settleCanonical_seq hP htopo hcomb.1 hcomb.2 hvset
-                      have hsettledEq : settled₀ = settled := by
-                        exact Res.ok.inj (hset₀.symm.trans hset)
-                      subst settled₀
-                      have hmatCombed : E.matV combedView = combedView := by
-                        rw [← hcombView]
-                        exact E.matV_view hnd h4 hcomb.1.typed
-                      have hsettledM : E.MemCoherent settled.memory := by
-                        rw [hsettledMem]
-                        exact hcomb.2
-                      simp only [hset, hvset, Res.ok_bind] at hstate hview
-                      cases heq : E.scalar.view current.scalar == E.scalar.view settled.scalar with
-                      | true =>
-                          have heqv : currentView == settledView = true := by
-                            rw [beq_iff_eq]
-                            rw [hcurrentView, hsettledView]
-                            exact beq_iff_eq.mp heq
-                          simp only [heq, heqv, ↓reduceIte, Res.ok.injEq] at hstate hview
-                          obtain rfl := hstate
-                          exact hview
-                      | false =>
-                          have heqv : currentView == settledView = false := by
-                            apply beq_eq_false_iff_ne.mpr
-                            intro hEq
-                            apply beq_eq_false_iff_ne.mp heq
-                            rw [hcurrentView, hsettledView, hEq]
-                          simp only [heq, heqv, Bool.false_eq_true, ↓reduceIte] at hstate hview
-                          have hmatSettled : E.matV settledView = settledView :=
-                            E.matV_settleV hnd h4 hvset
-                          exact ih (before := combed) (current := settled)
-                            (beforeView := combedView) (currentView := settledView)
-                            (st' := st') (v' := v') hP htopo hnd h4 hm0 hcomb.1 hsettledC hcomb.2
-                            hsettledM hcombView.symm hsettledView hmatCombed hmatSettled hread hproc hstate hview
+/-! The topological continuous-assignment predicate is needed by the combined
+settle/refinement theorem below; keep its definition before that theorem so
+the declaration is available to the elaborator. -/
+def CoreMemDesign.topoFrom (E : CoreMemDesign) (idx : Nat) : List CoreMemProc → Bool
+  | [] => true
+  | p :: rest =>
+      (match p with
+        | .assign (.ident n) value =>
+            if LeanModels.Sv.PExpr.hasMemoryRead value || LeanModels.Sv.PExpr.hasFunctionCall value then
+              match E.scalarWidth? n with
+              | some w => (E.readsV E.env E.elems (some w) value).all fun x => !(assignTargets (p :: rest)).contains x
+              | none => true
+            else
+              match E.compiledAssigns[idx]? with
+              | some (some c) => c.idents.all fun x => !(assignTargets (p :: rest)).contains x
+              | _ => true
+        | _ => true) && E.topoFrom (idx + 1) rest
+
+def CoreMemDesign.topoC (E : CoreMemDesign) : Bool := E.topoFrom 0 E.processes.toList
 
 theorem CoreMemDesign.combStmt_coherent_blocking
     {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
@@ -3159,27 +3263,6 @@ theorem CoreMemDesign.combStmt_receipts_case_of_children
       exact (Option.some.inj heq) ▸ (hitem patterns body hmem).2
     · rcases hdefault' with ⟨body, hdef, heq⟩
       exact (Option.some.inj heq) ▸ (hdefault body hdef).2
-
-/-- Each continuous assign, from index `idx` on, reads (in what the route evaluates: its compiled expression, or for an
-assign that reads a memory the names `evalV` reads) no target of itself or of a LATER assign: topological source
-order. -/
-def CoreMemDesign.topoFrom (E : CoreMemDesign) (idx : Nat) : List CoreMemProc → Bool
-  | [] => true
-  | p :: rest =>
-      (match p with
-        | .assign (.ident n) value =>
-            if LeanModels.Sv.PExpr.hasMemoryRead value || LeanModels.Sv.PExpr.hasFunctionCall value then
-              match E.scalarWidth? n with
-              | some w => (E.readsV E.env E.elems (some w) value).all fun x => !(assignTargets (p :: rest)).contains x
-              | none => true
-            else
-              match E.compiledAssigns[idx]? with
-              | some (some c) => c.idents.all fun x => !(assignTargets (p :: rest)).contains x
-              | _ => true
-        | _ => true) && E.topoFrom (idx + 1) rest
-
-/-- The continuous assigns are in topological source order (on what the route evaluates). -/
-def CoreMemDesign.topoC (E : CoreMemDesign) : Bool := E.topoFrom 0 E.processes.toList
 
 mutual
 
