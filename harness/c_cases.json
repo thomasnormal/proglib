@@ -803,8 +803,8 @@
   {
     "id": "flexible-array-member-layout",
     "source": "struct F { int n; int tail[]; }; int main(void) { struct F f = { .n = 7 }; return sizeof(struct F) == 4 && f.n == 7 ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "no layout for declared type",
+    "expect": "match",
+    "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
     "structured_expect": "match",
@@ -1070,7 +1070,7 @@
   {
     "id": "structured-parameter-array-init",
     "source": "int read(int a[3]) { return a[2]; } int main(void) { int a[3] = {0, 0, 7}; return read(a) == 7 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "layout_expect": "match",
     "layout_return_value": 0,
@@ -1080,7 +1080,6 @@
     "layout_envelope_checks": [
       "type_layout"
     ],
-    "error": "no layout for declared type 'int[3]'",
     "structured_expect": "match",
     "structured_return_value": 0
   },
@@ -1428,9 +1427,8 @@
   {
     "id": "structured-float-array-init",
     "source": "int main(void) { double a[2] = {1.5, 2.5}; return a[1] == 2.5 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "error": "no layout for declared type 'double[2]'",
     "structured_envelope_checks": [
       "structured_types"
     ],
