@@ -1,0 +1,11 @@
+{
+ "schema": "c-case-nested-refresh-1",
+ "compiler": "clang version 21.1.8 (https://github.com/conda-forge/clangdev-feedstock 334cf9a5e6c0331e9f261eaf01fc3568724fcce9)",
+ "rows": [
+  {"name": "00051.c", "model": "MATCH", "o0": "0", "o2": "0", "sanitizer": "0"},
+  {"name": "00143.c", "model": "REFUSE: case label nested in a loop", "o0": "0", "o2": "0", "sanitizer": "0"},
+  {"name": "medce-1.c", "model": "MATCH", "o0": "no oracle result", "o2": "0", "sanitizer": "no oracle result"}
+ ],
+ "focused_delta": "MATCH 0->2, DIVERGE 0->0",
+ "full_survey_delta": "not rerun"
+}
