@@ -58,7 +58,24 @@ error: sv_structure: outside the supported fragment — site `plain#0`: a bound 
 -/
 #guard_msgs (whitespace := lax) in
 example (K : Nat) (hK : 1 ≤ K) (hR : (2 * K + 1 : Int) < 2147483648) : CombDesign (odd_split.sem (2 * K + 1)) := by
+  have hwidthA : (-1 + (K : Int) + 1).toNat = K := by
+    apply Int.ofNat_inj.mp
+    change (↑(-1 + (K : Int) + 1).toNat : Int) = (K : Int)
+    rw [Int.toNat_of_nonneg (by omega)]
+    omega
+  have hwidthB : ((K : Int) + -1).natAbs + 1 = K := by
+    have h : (0 : Int) ≤ (K : Int) + -1 := by omega
+    apply Int.ofNat_inj.mp
+    change (↑((K : Int) + -1).natAbs : Int) + 1 = (K : Int)
+    rw [Int.natAbs_of_nonneg h]
+    omega
+  have hwidthC : (2 * (K : Int) + -1 - (K : Int) + 1).toNat = K := by
+    apply Int.ofNat_inj.mp
+    change (↑(2 * (K : Int) + -1 - (K : Int) + 1).toNat : Int) = (K : Int)
+    rw [Int.toNat_of_nonneg (by omega)]
+    omega
   sv_structure
+  all_goals (intros; try omega; try rw [hwidthA]; try rw [hwidthB]; try rw [hwidthC]; omega)
 
 -- `hier_param.sv` at an odd width: the instance `hi`'s connections change width.
 /--
@@ -69,13 +86,26 @@ example (K : Nat) (hK : 1 ≤ K) (hR : (2 * K + 1 : Int) < 2147483648) :
     CombDesign (gen.hier_param.sem (2 * K + 1)) := by
   sv_structure
 
--- One non-ASCII character in a comment: the extractor keeps `y` loud.
-/--
-error: sv_structure: this design instantiates modules, and the hierarchy summary (`CombHier.lean`) does not read it: the module has a member outside the semantic tier (`PortSymbol:net-z`: y), which the instantiation keeps as a loud process (`PortSymbol:net-z` is the extractor's refusal of a `wire` port it did not read as one driven variable; it reads a `wire` output driven by continuous assignments, or by instance output ports that tile it at the default point, as a net-as-variable, and `y` has such a driver here. A known cause: a non-ASCII character in the source above the driver — the extractor compares the driver's text sliced from the DECODED source with slang's BYTE offsets (ls-sv's `lower_proc.py`, `net_driver_reason`), so the character shifts the slice)
--/
-#guard_msgs (whitespace := lax) in
+-- The non-ASCII source row is now read by the hierarchy summary.
 example (K : Nat) (hK : 1 ≤ K) (hR : (2 * K : Int) < 2147483648) : CombDesign (hier_param_utf8.sem (2 * K)) := by
+  have hwidthA : (-1 + (K : Int) + 1).toNat = K := by
+    apply Int.ofNat_inj.mp
+    change (↑(-1 + (K : Int) + 1).toNat : Int) = (K : Int)
+    rw [Int.toNat_of_nonneg (by omega)]
+    omega
+  have hwidthB : ((K : Int) + -1).natAbs + 1 = K := by
+    have h : (0 : Int) ≤ (K : Int) + -1 := by omega
+    apply Int.ofNat_inj.mp
+    change (↑((K : Int) + -1).natAbs : Int) + 1 = (K : Int)
+    rw [Int.natAbs_of_nonneg h]
+    omega
+  have hwidthC : (2 * (K : Int) + -1 - (K : Int) + 1).toNat = K := by
+    apply Int.ofNat_inj.mp
+    change (↑(2 * (K : Int) + -1 - (K : Int) + 1).toNat : Int) = (K : Int)
+    rw [Int.toNat_of_nonneg (by omega)]
+    omega
   sv_structure
+  all_goals (intros; try omega; try rw [hwidthA]; try rw [hwidthB]; try rw [hwidthC]; omega)
 
 -- A whole signed input into a wider port: the connection sign-extends the actual (`SignedResize`), refused.
 /--
