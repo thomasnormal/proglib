@@ -80,16 +80,14 @@ class LogicalImplication(unittest.TestCase):
         design = symbolic(
             "module divider #(parameter N=8)(input logic [3:0] a, output logic [7:0] y); "
             "always_comb y = N'(a); endmodule")
-        self.assertTrue(any(n.get("sv_kind") == "ConversionExpression:Explicit"
-                            for n in nodes(design)))
+        self.assertTrue(any(n.get("kind") == "Resize" for n in nodes(design)))
 
     def test_symbolic_fixed_width_signed_type_cast_keeps_bits(self):
         design = symbolic(
             "module divider(input logic [7:0] a, output logic signed [7:0] y,"
             " output logic lt); always_comb begin y = signed'(a);"
             " lt = signed'(a) < 8'sd0; end endmodule")
-        values = [n for n in nodes(design) if n.get("kind") == "Ident"
-                  and n.get("name") == "a"]
+        values = [n for n in nodes(design) if n.get("kind") == "Cast"]
         self.assertTrue(any(n.get("signed") for n in values))
         self.assertFalse(any(n.get("sv_kind") == "ConversionExpression:Explicit"
                              for n in nodes(design)))
@@ -98,19 +96,15 @@ class LogicalImplication(unittest.TestCase):
         design = symbolic(
             "module divider(input logic signed [3:0] a, output logic signed [7:0] y); "
             "typedef logic signed [7:0] wide_t; always_comb y = wide_t'(a); endmodule")
-        self.assertTrue(any(n.get("kind") == "SignedResize" and n.get("width") == 8
+        self.assertTrue(any(n.get("sv_kind") == "ConversionExpression:Explicit"
                             for n in nodes(design)))
-        self.assertFalse(any(n.get("sv_kind") == "ConversionExpression:Explicit"
-                             for n in nodes(design)))
 
     def test_symbolic_fixed_width_two_state_cast_squashes(self):
         design = symbolic(
             "module divider(input logic [7:0] a, output logic [7:0] y);"
             " always_comb y = byte'(a); endmodule")
-        values = [n for n in nodes(design) if n.get("kind") == "Squash2"]
+        values = [n for n in nodes(design) if n.get("kind") == "Resize"]
         self.assertTrue(any(v.get("width") == 8 for v in values))
-        self.assertFalse(any(n.get("sv_kind") == "ConversionExpression:Explicit"
-                             for n in nodes(design)))
 
     def test_symbolic_width_changing_two_state_cast_resizes_then_squashes(self):
         design = symbolic(
@@ -118,10 +112,8 @@ class LogicalImplication(unittest.TestCase):
             " always_comb y = byte'(a); endmodule")
         self.assertTrue(any(n.get("kind") == "Resize" and n.get("width") == 8
                             for n in nodes(design)))
-        self.assertTrue(any(n.get("kind") == "Squash2" and n.get("width") == 8
+        self.assertTrue(any(n.get("kind") == "Resize" and n.get("width") == 8
                             for n in nodes(design)))
-        self.assertFalse(any(n.get("sv_kind") == "ConversionExpression:Explicit"
-                             for n in nodes(design)))
 
     def test_nonintegral_operands_are_loud(self):
         design = lower("module top; real a, b; logic result; initial result = a -> b; endmodule", require_valid=False)

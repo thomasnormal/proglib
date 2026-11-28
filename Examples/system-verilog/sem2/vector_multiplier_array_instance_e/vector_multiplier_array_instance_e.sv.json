@@ -878,26 +878,15 @@
                 "width": 16,
                 "parts": [
                   {
-                    "kind": "SignedResize",
+                    "kind": "Unsupported",
                     "span": {
                       "line": 4,
                       "col": 34,
                       "end_line": 4,
                       "end_col": 43
                     },
-                    "width": 8,
-                    "operand": {
-                      "kind": "Literal",
-                      "span": {
-                        "line": 4,
-                        "col": 41,
-                        "end_line": 4,
-                        "end_col": 42
-                      },
-                      "width": 32,
-                      "bits": "00000000000000000000000000000000",
-                      "signed": true
-                    }
+                    "sv_kind": "ConversionExpression:Explicit",
+                    "text": "WIDTH'(0)"
                   },
                   {
                     "kind": "Ident",

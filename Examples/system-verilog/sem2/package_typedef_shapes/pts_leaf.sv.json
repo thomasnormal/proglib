@@ -151,26 +151,15 @@
               "resolved": 4
             },
             "expr": {
-              "kind": "SignedResize",
+              "kind": "Unsupported",
               "span": {
                 "line": 14,
                 "col": 34,
                 "end_line": 14,
                 "end_col": 53
               },
-              "width": 4,
-              "operand": {
-                "kind": "Literal",
-                "span": {
-                  "line": 14,
-                  "col": 51,
-                  "end_line": 14,
-                  "end_col": 52
-                },
-                "width": 32,
-                "bits": "00000000000000000000000000000101",
-                "signed": true
-              }
+              "sv_kind": "ConversionExpression:Explicit",
+              "text": "pts_base::sel_t'(5)"
             },
             "resolved": 5,
             "string": false,

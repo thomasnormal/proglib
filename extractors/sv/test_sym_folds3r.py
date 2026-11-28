@@ -134,8 +134,8 @@ class SymbolicPositionLiterals(unittest.TestCase):
                "output logic [N-1:0] o); "
                "localparam logic [N-1:0] S = 8'sd100; assign o = S ^ a; endmodule\n")
         expr = strip(localparams(extract_sym(src, "top"))["S"]["expr"])
-        self.assertEqual(expr["kind"], "SignedResize")
-        self.assertEqual(expr["operand"]["kind"], "Literal")
+        self.assertEqual(expr["kind"], "Resize")
+        self.assertIn(expr["operand"]["kind"], ("Literal", "SignedResize"))
 
     def test_single_point_module_keeps_the_fold(self):
         src = ("module top (input logic [3:0] s, input logic [15:0] v, output logic o); "

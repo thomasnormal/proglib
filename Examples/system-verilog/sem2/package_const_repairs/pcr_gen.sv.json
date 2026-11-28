@@ -425,38 +425,15 @@
               },
               "width": 8,
               "operand": {
-                "kind": "Cast",
+                "kind": "Unsupported",
                 "span": {
                   "line": 32,
                   "col": 31,
                   "end_line": 32,
                   "end_col": 48
                 },
-                "width": 4,
-                "signed": false,
-                "operand": {
-                  "kind": "Unary",
-                  "span": {
-                    "line": 32,
-                    "col": 41,
-                    "end_line": 32,
-                    "end_col": 47
-                  },
-                  "width": 4,
-                  "op": "-",
-                  "operand": {
-                    "kind": "Literal",
-                    "span": {
-                      "line": 32,
-                      "col": 42,
-                      "end_line": 32,
-                      "end_col": 47
-                    },
-                    "width": 4,
-                    "bits": "0100",
-                    "signed": true
-                  }
-                }
+                "sv_kind": "ConversionExpression:Explicit",
+                "text": "unsigned'(-4'sd4)"
               }
             },
             "package": "pcr",

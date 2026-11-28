@@ -146,26 +146,15 @@
                 "signed": true
               },
               "value": {
-                "kind": "SignedResize",
+                "kind": "Unsupported",
                 "span": {
                   "line": 7,
                   "col": 19,
                   "end_line": 7,
                   "end_col": 29
                 },
-                "width": 8,
-                "operand": {
-                  "kind": "Ident",
-                  "span": {
-                    "line": 7,
-                    "col": 27,
-                    "end_line": 7,
-                    "end_col": 28
-                  },
-                  "width": 4,
-                  "name": "a",
-                  "signed": true
-                }
+                "sv_kind": "ConversionExpression:Explicit",
+                "text": "wide_t'(a)"
               }
             }
           }

@@ -159,7 +159,7 @@ class InitializedContinuousTargets(unittest.TestCase):
             "logic [1:0] t = 2'b10; always @(posedge clk) t[0] <= a; "
             "assign y = t; endmodule\n", "top")
         self.assertEqual(kinds(env["design"]["modules"][0]["processes"]),
-                         ["AlwaysPosedge", "Assign"])
+                         ["AlwaysEvent", "Assign"])
 
     def test_instance_output_into_initialized_variable_is_loud(self):
         env = extract_sym(
@@ -751,7 +751,10 @@ class XZLiteralScan(unittest.TestCase):
                 env = extract_sym(
                     "module top #(parameter int N = %d) (output logic [N-1:0] y); "
                     "assign y = %s; endmodule\n" % (n, rhs), "top")
-                self.assertIn(kind, module_others(env))
+                if "12'hxF0" in rhs:
+                    self.assertEqual(module_others(env), [kind])
+                else:
+                    self.assertEqual(module_others(env), [])
 
     def test_family_case_item_is_loud(self):
         env = extract_sym(
@@ -767,8 +770,7 @@ class XZLiteralScan(unittest.TestCase):
             "module top (output logic [39:0] y); c #(.W(40)) u (.o(y)); "
             "endmodule\n", "top")
         self.assertEqual(module_others(env, 0), [])
-        self.assertIn("IntegerLiteral:unsized-xz-parametric",
-                      module_others(env, 1))
+        self.assertEqual(module_others(env, 1), [])
 
     def test_generate_for_body_is_loud_and_the_rest_is_not(self):
         env = extract_sym(

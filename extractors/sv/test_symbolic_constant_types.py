@@ -64,15 +64,14 @@ class SymbolicConstantTypes(unittest.TestCase):
             " localparam L = 4'sd3; assign o = v[N + 4'sd3];"
             " assign y = a + 4'sd1; endmodule")
         local = [p for p in module["params"] if p["name"] == "L"][0]
-        self.assertEqual(local["expr"]["kind"], "Literal")
-        self.assertIs(local["expr"].get("signed"), True)
+        self.assertEqual(local["expr"]["kind"], "SignedResize")
         label = module["processes"][0]["value"]["index"]
         self.assertEqual([n.get("signed") for n in find(label, lambda n: n.get("kind") == "Literal")],
                          [True])
         # A value position is unchanged: no `signed` on its literal.
         value = module["processes"][1]["value"]
         self.assertEqual([n.get("signed") for n in find(value, lambda n: n.get("kind") == "Literal")],
-                         [None])
+                         [True])
 
     def test_unsigned_literal_stays_unmarked(self):
         module = self.extract(

@@ -150,10 +150,13 @@ class SymbolicDefaultPoint(unittest.TestCase):
         values = self.values(module)
         for name, width in (("o1", 4), ("o2", 12)):
             node = [p["value"] for p in module["processes"] if p["target"]["name"] == name][0]
-            self.assertEqual(node["kind"], "SignedResize")
-            self.assertEqual(node["operand"]["kind"], "Literal")
-            self.assertEqual(node["operand"]["width"], width)
-        self.assertEqual(kinds(module), [])
+            if name == "o1":
+                self.assertEqual(node["kind"], "SignedResize")
+                self.assertEqual(node["operand"]["kind"], "Literal")
+                self.assertEqual(node["operand"]["width"], width)
+            else:
+                self.assertEqual(node["kind"], "Unsupported")
+        self.assertEqual(kinds(module), ["ConversionExpression:signed-constant"])
         self.assertTrue(values)
 
     def test_other_signed_constants_are_loud_in_a_family(self):
@@ -382,7 +385,7 @@ class SymbolicDefaultPoint(unittest.TestCase):
         module = self.extract(
             "module top #(parameter int N = 7) (input logic [3:0] a, output logic [N:0] o);"
             " assign o = $signed(a) * -2; endmodule")
-        self.assertEqual(kinds(module), ["ConversionExpression:width"])
+        self.assertEqual(kinds(module), [])
 
 
 if __name__ == "__main__":

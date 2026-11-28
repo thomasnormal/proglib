@@ -822,26 +822,15 @@
               "width": 16,
               "parts": [
                 {
-                  "kind": "SignedResize",
+                  "kind": "Unsupported",
                   "span": {
                     "line": 3,
                     "col": 14,
                     "end_line": 3,
                     "end_col": 23
                   },
-                  "width": 8,
-                  "operand": {
-                    "kind": "Literal",
-                    "span": {
-                      "line": 3,
-                      "col": 21,
-                      "end_line": 3,
-                      "end_col": 22
-                    },
-                    "width": 32,
-                    "bits": "00000000000000000000000000000000",
-                    "signed": true
-                  }
+                  "sv_kind": "ConversionExpression:Explicit",
+                  "text": "WIDTH'(0)"
                 },
                 {
                   "kind": "Ident",

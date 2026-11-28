@@ -226,36 +226,15 @@
               {
                 "name": "W",
                 "expr": {
-                  "kind": "SignedResize",
+                  "kind": "Unsupported",
                   "span": {
                     "line": 14,
                     "col": 19,
                     "end_line": 14,
                     "end_col": 26
                   },
-                  "width": 32,
-                  "operand": {
-                    "kind": "SignedResize",
-                    "span": {
-                      "line": 14,
-                      "col": 19,
-                      "end_line": 14,
-                      "end_col": 26
-                    },
-                    "width": 8,
-                    "operand": {
-                      "kind": "Literal",
-                      "span": {
-                        "line": 14,
-                        "col": 22,
-                        "end_line": 14,
-                        "end_col": 25
-                      },
-                      "width": 32,
-                      "bits": "00000000000000000000000011111111",
-                      "signed": true
-                    }
-                  }
+                  "sv_kind": "ConversionExpression:default-point-fold",
+                  "text": "M'(255)"
                 }
               }
             ],
@@ -338,7 +317,7 @@
                       "end_line": 15,
                       "end_col": 26
                     },
-                    "sv_kind": "ConversionExpression:signed-constant",
+                    "sv_kind": "ConversionExpression:default-point-fold",
                     "text": "M'(300)"
                   },
                   "right": {

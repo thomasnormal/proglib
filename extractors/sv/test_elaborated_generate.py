@@ -162,7 +162,7 @@ class ElaboratedGenerate(unittest.TestCase):
                      'if (N) begin:g localparam int W=4; '
                      'logic [W-1:0] q; end endmodule')
         self.assertFalse(walls(d))
-        q = next(n for n in nodes(d) if n.get('kind') == 'Var' and n.get('name') == 'q')
+        q = next(n for n in nodes(d) if n.get('kind') == 'Var' and n.get('name') == 'g.q')
         msb = q['width']['packed'][0]['msb']
         self.assertEqual(msb['kind'], 'Binary')
         self.assertEqual(msb['left']['kind'], 'ParamRef')

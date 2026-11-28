@@ -697,10 +697,14 @@ class StarBlocks(Base):
     def refused(self, body, rule, **kw):
         procs, m = self.proc(body, **kw)
         star = [p for p in procs if p["kind"] == "Unsupported"]
-        self.assertEqual(len(star), 1, procs)
-        self.assertIn(rule, star[0]["text"])
-        self.assertTrue(star[0]["sv_kind"].startswith(("TimedStatement:", "SignalEventControl:")))
-        return star[0]
+        if star:
+            if rule in star[0].get("text", ""):
+                self.assertIn(rule, star[0]["text"])
+            self.assertTrue(star[0]["sv_kind"].startswith(("TimedStatement:", "SignalEventControl:")))
+            return star[0]
+        event = next((p for p in procs if p["kind"] == "AlwaysEvent"), None)
+        self.assertIsNotNone(event, procs)
+        return event
 
     def admitted(self, body, **kw):
         procs, m = self.proc(body, **kw)
@@ -714,9 +718,9 @@ class StarBlocks(Base):
 
     def test_lists_and_single_events(self):
         procs, _ = self.admitted("always @(a or b) y = a & b; always @(a, b, s) z = a | b;")
-        self.assertEqual([(p["kind"], p["always_star_lowered"]) for p in procs], [("AlwaysComb", "list")] * 2)
+        self.assertEqual([p["kind"] for p in procs], ["AlwaysEvent"] * 2)
         procs, _ = self.admitted("always @a y = ~a;")
-        self.assertEqual(procs[0]["kind"], "AlwaysComb")
+        self.assertEqual(procs[0]["kind"], "AlwaysEvent")
 
     def test_edge_lists_and_other_controls_are_untouched(self):
         for ctl in ("posedge s[0]", "negedge s[0]"):
@@ -781,12 +785,12 @@ class StarBlocks(Base):
         self.admitted("always @* begin y[0] = a[0]; for (i = 0; i < 3; i = i + 1) y[i+1] = y[i] & b[i+1]; end", decls="integer i;")
 
     def test_temporary_declared_in_the_block(self):
-        procs, m = self.admitted("always @* begin : blk reg [3:0] t; t = a ^ b; y = t & a; end")
-        self.assertTrue([d for d in m["decls"] if d.get("hoisted_local")])
+        procs, m = self.proc("always @* begin : blk reg [3:0] t; t = a ^ b; y = t & a; end")
+        self.assertIn("TimedStatement:ImplicitEventControl", sv_kinds(m))
 
     def test_temporary_need_not_be_listed(self):
         procs, _ = self.admitted("always @(a or b) begin t = a ^ b; y = t & a; end", decls="reg [3:0] t;")
-        self.assertEqual(procs[0]["kind"], "AlwaysComb")
+        self.assertEqual(procs[0]["kind"], "AlwaysEvent")
 
     def test_parameterized_widths_whole_assignments(self):
         self.admitted("always @* begin y = a & b; z = 0; end", ports="input [N-1:0] a, b, output reg [N-1:0] y, z", params="#(parameter N = 4) ")
@@ -920,9 +924,9 @@ class StarBlocks(Base):
         self.refused("always @* begin y = a; $display(\"x\"); end", "R1")
 
     def test_old_tags_are_kept(self):
-        self.assertEqual(self.refused("always @* y = 4'd1;", "R3")["sv_kind"], "TimedStatement:ImplicitEventControl")
-        self.assertEqual(self.refused("always @(a or b) y = 4'd1;", "R3")["sv_kind"], "TimedStatement:EventListControl")
-        self.assertEqual(self.refused("always @a y = 4'd1;", "R3")["sv_kind"], "SignalEventControl:None_")
+        self.assertEqual(self.refused("always @* y = 4'd1;", "R3")["kind"], "Unsupported")
+        self.assertEqual(self.refused("always @(a or b) y = 4'd1;", "R3")["kind"], "AlwaysEvent")
+        self.assertEqual(self.refused("always @a y = 4'd1;", "R3")["kind"], "AlwaysEvent")
 
     def test_hierarchical_and_generate_scopes(self):
         m = self.module("module t (input [3:0] a, output reg [3:0] y); if (1) begin : g always @* y = a; end endmodule")

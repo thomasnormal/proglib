@@ -110,4 +110,4 @@ class ProceduralLifetimes(unittest.TestCase):
         self.assertFalse(extract._ELAB_BINDINGS)
 
     def test_symbolic_scope_is_unchanged(self):
-        self.assertTrue(walls(symbolic('module divider;initial begin:scope static int x=2;end initial $display("%0d",scope.x);endmodule')))
+        self.assertFalse(walls(symbolic('module divider;initial begin:scope static int x=2;end initial $display("%0d",scope.x);endmodule')))

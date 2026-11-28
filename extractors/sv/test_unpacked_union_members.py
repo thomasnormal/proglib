@@ -110,7 +110,8 @@ class UnpackedUnionMembers(unittest.TestCase):
             "8'hA5: $display(\"PASS\"); default: $display(\"FAIL\"); endcase end endmodule")
         lowered = [node for node in nodes(design) if node.get("case_lowered")]
         self.assertEqual(len(lowered), 1)
-        self.assertEqual(lowered[0]["cond"]["left"]["name"], "value")
+        self.assertEqual(lowered[0]["cond"]["left"]["kind"], "AggregateMember")
+        self.assertEqual(lowered[0]["cond"]["left"]["base"], "value")
         self.assertFalse(any(node.get("kind") == "Unsupported" for node in nodes(design)))
 
     def test_local_union_uses_flat_cell(self):

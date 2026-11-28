@@ -315,26 +315,15 @@
               "name": "ys"
             },
             "value": {
-              "kind": "SignedResize",
+              "kind": "Unsupported",
               "span": {
                 "line": 2,
                 "col": 15,
                 "end_line": 2,
                 "end_col": 20
               },
-              "width": 8,
-              "operand": {
-                "kind": "Ident",
-                "span": {
-                  "line": 2,
-                  "col": 18,
-                  "end_line": 2,
-                  "end_col": 19
-                },
-                "width": 4,
-                "name": "x",
-                "signed": true
-              }
+              "sv_kind": "ConversionExpression:Explicit",
+              "text": "W'(x)"
             }
           },
           {

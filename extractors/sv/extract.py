@@ -8895,7 +8895,8 @@ def _convert_integral_cast_node(sm, expr):
     if (_SYM is not None and source_reason is None and target_reason is None
             and source_width is not None and target_width is not None
             and source_width > 0 and target_width > 0
-            and expr.type.isIntegral and _cast_size_is_fixed(expr)):
+            and expr.type.isIntegral and _cast_size_is_fixed(expr)
+            and (expr.type.isFourState or not expr.operand.type.isFourState)):
         operand = _convert_expr(sm, expr.operand)
         if (operand is not None and operand.get("kind") != "Unsupported"
                 and (width_of(operand) in (None, source_width))):
@@ -8917,6 +8918,22 @@ def _convert_integral_cast_node(sm, expr):
                                    two_state and expr.operand.type.isFourState)
         if symbolic is not None and symbolic.get("kind") != "Unsupported":
             return symbolic
+    # Fixed-width casts to 2-state predefined types must squash four-state
+    # operands before the generic explicit-cast path handles the boundary.
+    if (_SYM is not None and source_reason is None and target_reason is None
+            and source_width is not None and target_width is not None
+            and source_width > 0 and target_width > 0
+            and expr.type.isIntegral and not expr.type.isFourState
+            and expr.operand.type.isFourState
+            and _cast_size_is_fixed(expr)
+            and not _sym_family_point_dependent()):
+        operand = _convert_expr(sm, expr.operand)
+        if operand is not None and operand.get("kind") != "Unsupported":
+            if source_width == target_width:
+                return squash2_wrap(operand, target_width)
+            resized = {"kind": "Resize", "span": node_span(sm, expr),
+                       "width": target_width, "operand": operand}
+            return squash2_wrap(resized, target_width)
     if (_SYM is not None and source_reason is None and target_reason is None
             and target_width is not None and target_width > 0
             and expr.type.isIntegral):
@@ -8929,6 +8946,8 @@ def _convert_integral_cast_node(sm, expr):
         # instantiated point.
         operand_width_ok = (width_of(operand) == source_width or
                             operand.get("kind") == "GenvarRef")
+        if not _cast_size_is_fixed(expr) and operand.get("kind") != "GenvarRef":
+            return unsupported(sm, expr, "ConversionExpression:Explicit")
         if not operand_width_ok or not _case_expression_ok(operand):
             return unsupported(sm, expr, "ConversionExpression:Explicit")
         if source_width == target_width:

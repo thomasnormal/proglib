@@ -152,15 +152,35 @@
                 },
                 "width": 8,
                 "operand": {
-                  "kind": "Ident",
+                  "kind": "Resize",
                   "span": {
                     "line": 6,
-                    "col": 25,
+                    "col": 19,
                     "end_line": 6,
-                    "end_col": 26
+                    "end_col": 27
                   },
                   "width": 8,
-                  "name": "a"
+                  "operand": {
+                    "kind": "Squash2",
+                    "span": {
+                      "line": 6,
+                      "col": 19,
+                      "end_line": 6,
+                      "end_col": 27
+                    },
+                    "width": 8,
+                    "operand": {
+                      "kind": "Ident",
+                      "span": {
+                        "line": 6,
+                        "col": 25,
+                        "end_line": 6,
+                        "end_col": 26
+                      },
+                      "width": 8,
+                      "name": "a"
+                    }
+                  }
                 },
                 "explicit": true
               }

@@ -124,8 +124,7 @@ class XnorLowering(unittest.TestCase):
                 m = self.extract("module t (input logic [3:0] a, b, output logic [7:0] y);"
                                  " assign y = $signed(a) %s $signed(b); endmodule" % op)
                 # one refusal per operand (each sign-extends)
-                self.assertEqual(set(sv_kinds(m)), {"ConversionExpression:width"})
-                self.assertGreaterEqual(len(sv_kinds(m)), 1)
+                self.assertEqual(set(sv_kinds(m)), set())
 
     def test_constant_positions_stay_loud(self):
         m = self.extract("module t #(parameter int Q = (6 ~^ 3)) (input logic [3:0] a,"

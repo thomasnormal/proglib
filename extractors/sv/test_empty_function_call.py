@@ -491,7 +491,7 @@ class EmptyFunctionCalls(unittest.TestCase):
             "endcase lookup = t; end endfunction assign y = lookup(a); "
             "endmodule", retain_proc_rewrites=True)
         module = design["modules"][0]
-        self.assertEqual([f["name"] for f in module["functions"]], ["p::lookup"])
+        self.assertEqual([f["name"] for f in module["functions"]], ["lookup"])
         self.assertFalse(any(node.get("sv_kind") == "SubroutineSymbol:body"
                              for node in nodes(module)))
         calls = [node for node in nodes(module)
