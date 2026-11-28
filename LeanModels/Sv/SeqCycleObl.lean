@@ -2617,6 +2617,20 @@ theorem CoreMemDesign.source_undriven {E : CoreMemDesign} (hO : E.seqOblI = true
     List.any_eq_false, beq_iff_eq] at h
   exact h s hd s (CoreMemDesign.inputNamesL_of_ports (CoreMemDesign.source_port hO hs)) rfl
 
+theorem CoreMemDesign.source_port_seqOblIC {E : CoreMemDesign} (hO : E.seqOblIC = true)
+    {s : String} (hs : s ∈ E.sources) : (s, 1) ∈ E.inputPorts := by
+  have h := (CoreMemDesign.seqOblIC_spec hO).2.2.2.2.1
+  simp only [CoreMemDesign.oblSources, List.all_eq_true, List.contains_iff_mem] at h
+  exact h s hs
+
+theorem CoreMemDesign.source_undriven_seqOblIC {E : CoreMemDesign} (hO : E.seqOblIC = true)
+    {s : String} (hs : s ∈ E.sources) : s ∉ E.driven := by
+  intro hd
+  have h := (CoreMemDesign.seqOblIC_spec hO).2.2.2.1
+  simp only [CoreMemDesign.oblInputsUndriven, List.all_eq_true, Bool.not_eq_true', List.contains_eq_any_beq,
+    List.any_eq_false, beq_iff_eq] at h
+  exact h s hd s (CoreMemDesign.inputNamesL_of_ports (CoreMemDesign.source_port_seqOblIC hO hs)) rfl
+
 /-- An edge process's clock and reset are event sources. -/
 theorem CoreMemDesign.clock_mem_sources {E : CoreMemDesign} {f : CoreMemEdge}
     (hf : f ∈ E.edgeProcs) : f.clock ∈ E.sources := by
@@ -5035,6 +5049,46 @@ theorem CoreMemDesign.slot_noFollowup_seqOblIM {E : CoreMemDesign} (hP : E.SeqPr
             (CoreMemDesign.clock_mem_sources hf)
           have hres : ∀ r, f.reset = some r → r ∉ E.driven := fun r hr' =>
             CoreMemDesign.source_undriven_seqOblIM hO (CoreMemDesign.reset_mem_sources hf hr')
+          have heq := coreMemEventEdge?_spec hfe p s2
+          simp only [CoreMemProc.firesIn, Bool.not_eq_true] at heq ⊢
+          rw [heq.1]
+          exact CoreMemEdge.fires_of_agree (hfix _ hclk).symm fun r hr' =>
+            (hfix r (hres r hr')).symm
+  | _ => simp [CoreMemProc.firesIn]
+
+theorem CoreMemDesign.slot_noFollowup_seqOblIC {E : CoreMemDesign} (hP : E.SeqProfileI)
+    (hO : E.seqOblIC = true) {v p s1 s2 : SvState} {mv mv' : MemV} {r : ExecV} (hp : E.matV p = p)
+    (hr : E.edgesV v p p mv E.processes.toList = .ok r)
+    (h1 : E.settleV mv' (commitNba2 r.1 r.2.1) = .ok s1) (h2 : E.settleV mv' s1 = .ok s2) :
+    E.firesAny p s2 = false := by
+  have hfix := CoreMemDesign.round_frame hP hp hr h1 h2
+  simp only [CoreMemDesign.firesAny, List.any_eq_false]
+  intro q hq
+  cases q with
+  | edge f =>
+      have hclk : f.clock ∉ E.driven := CoreMemDesign.source_undriven_seqOblIC hO
+        (CoreMemDesign.clock_mem_sources (CoreMemDesign.edge_mem_edgeProcs hq))
+      have hres : ∀ r, f.reset = some r → r ∉ E.driven := fun r hr' =>
+        CoreMemDesign.source_undriven_seqOblIC hO
+          (CoreMemDesign.reset_mem_sources (CoreMemDesign.edge_mem_edgeProcs hq) hr')
+      simp only [CoreMemProc.firesIn, Bool.not_eq_true]
+      exact CoreMemEdge.fires_of_agree (hfix _ hclk).symm fun r hr' => (hfix r (hres r hr')).symm
+  | event events body =>
+      obtain ⟨i, hi⟩ := List.mem_iff_getElem?.mp hq
+      rw [Array.getElem?_toList] at hi
+      have hproc := hP.procs i (.event events body) hi
+      cases hfe : coreMemEventEdge? events body with
+      | none =>
+          rw [CoreMemDesign.ProcOkI, hfe] at hproc
+          exact False.elim hproc
+      | some f =>
+          have hf : f ∈ E.edgeProcs := CoreMemDesign.mem_edgeProcs.mpr
+            ⟨.event events body, hq, hfe⟩
+          have hclk : f.clock ∉ E.driven := CoreMemDesign.source_undriven_seqOblIC hO
+            (CoreMemDesign.clock_mem_sources hf)
+          have hres : ∀ r, f.reset = some r → r ∉ E.driven := fun r hr' =>
+            CoreMemDesign.source_undriven_seqOblIC hO
+              (CoreMemDesign.reset_mem_sources hf hr')
           have heq := coreMemEventEdge?_spec hfe p s2
           simp only [CoreMemProc.firesIn, Bool.not_eq_true] at heq ⊢
           rw [heq.1]
