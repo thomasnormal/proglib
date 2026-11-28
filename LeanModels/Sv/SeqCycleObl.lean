@@ -1040,6 +1040,30 @@ theorem CoreMemDesign.evalMemExprListLocals_congr_of_pure {E : CoreMemDesign} {e
       rw [CoreMemDesign.evalExprLocals_mem_congr_of_pure hm₁ hm₂ hview
         hexpr.1 hexpr.2, ih hrest]
 
+theorem CoreMemDesign.evalMemExprList_congr_of_pure {E : CoreMemDesign} {env : IEnv}
+    {st₁ st₂ : CoreMemState} {exprs : List PExpr}
+    (hm₁ : E.MemCoherent st₁.memory) (hm₂ : E.MemCoherent st₂.memory)
+    (hview : E.scalar.view st₁.scalar = E.scalar.view st₂.scalar)
+    (hpure : ∀ expr ∈ exprs,
+      PExpr.hasMemoryRead expr = false ∧ PExpr.hasFunctionCall expr = false) :
+    evalMemExprList E env E.elems st₁ exprs =
+      evalMemExprList E env E.elems st₂ exprs := by
+  induction exprs with
+  | nil => simp [evalMemExprList]
+  | cons expr rest ih =>
+      have hexpr := hpure expr (by simp)
+      have hrest : ∀ e ∈ rest,
+          PExpr.hasMemoryRead e = false ∧ PExpr.hasFunctionCall e = false := by
+        intro e he
+        exact hpure e (by simp [he])
+      have heq := CoreMemDesign.evalExprLocals_mem_congr_of_pure
+        (env := env) (ctx := none) hm₁ hm₂ hview hexpr.1 hexpr.2
+      simp only [evalMemExprList, Res.bind_eq_ok]
+      have heq' : evalExpr E env E.elems st₁ none expr =
+          evalExpr E env E.elems st₂ none expr := by
+        simpa [CoreMemDesign.evalExpr] using heq
+      rw [heq', ih hrest]
+
 theorem CoreMemDesign.evalExpr_congr_of_pure {E : CoreMemDesign} {env : IEnv}
     {st₁ st₂ : CoreMemState} {e : PExpr}
     (hm₁ : E.MemCoherent st₁.memory) (hm₂ : E.MemCoherent st₂.memory)
