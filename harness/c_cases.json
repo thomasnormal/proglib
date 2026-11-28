@@ -268,16 +268,14 @@
   {
     "id": "plain-string-index",
     "source": "int main(void) { const char *p = \"hello\"; return p[0] == 'h' ? 0 : 1; }",
-    "expect": "refuse",
-    "return_value": 0,
-    "error": "no layout for declared type 'const char *'"
+    "expect": "match",
+    "return_value": 0
   },
   {
     "id": "string-literal-static-lifetime",
     "source": "const char *f(void) { return \"ok\"; } int main(void) { const char *p = f(); return p[1] == 'k' ? 0 : 1; }",
-    "expect": "refuse",
-    "return_value": 0,
-    "error": "no layout for declared type 'const char *'"
+    "expect": "match",
+    "return_value": 0
   },
   {
     "id": "putchar-output",
@@ -310,22 +308,20 @@
   {
     "id": "tu-definition-shadows-strlen",
     "source": "int strlen(const char *s) { return 7; } int main(void) { return strlen(\"x\") == 7 ? 0 : 1; }",
-    "expect": "refuse",
-    "return_value": 0,
-    "error": "no layout for parameter type 'const char *'"
+    "expect": "match",
+    "return_value": 0
   },
   {
     "id": "tu-definition-shadows-printf",
     "source": "int printf(const char *s) { return 7; } int main(void) { return printf(\"x\") == 7 ? 0 : 1; }",
-    "expect": "refuse",
-    "return_value": 0,
-    "error": "no layout for parameter type 'const char *'"
+    "expect": "match",
+    "return_value": 0
   },
   {
     "id": "escaped-string-loud",
     "source": "int main(void) { const char *p = \"hello\\n\"; return p[0] == 'h' ? 0 : 1; }",
-    "expect": "refuse",
-    "error": "no layout for declared type 'const char *'"
+    "expect": "match",
+    "return_value": 0
   },
   {
     "id": "int128-value",
