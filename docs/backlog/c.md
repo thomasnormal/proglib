@@ -4143,3 +4143,15 @@ runs for two rows. `pr64242.c` exits 0 at O0 and aborts at O2 and under
 sanitizer without a diagnostic, so no single value is claimed. Keep this
 family as a loud refusal until a profile-stable external control-transfer
 semantics and differential rows are implemented.
+
+## 2026-11-28-c-builtin-return-address — stack-frame introspection remains refused
+
+The ranked survey contains two sole rows for `libc-call:
+__builtin_return_address`: `20010122-1.c` and `pr17377.c`. This GNU builtin
+exposes a caller's return address and has no ISO C23 semantic rule. The
+interpreter does not model stack-frame identity, return-address provenance, or
+profile-specific frame layout. Returning a fabricated pointer or integer would
+make the result depend on an unmodelled machine choice. The rows also retain
+independent declaration and sequencing boundaries in the current focused
+receipts. Keep this builtin as a loud refusal until parser-native call-frame
+identity and a pinned, profile-stable address-observation contract are present.
