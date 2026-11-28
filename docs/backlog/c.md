@@ -4168,3 +4168,17 @@ contains a call or an earlier unsupported floating operation. Choosing a
 status would erase that control-flow uncertainty. Keep these paths refused
 until parser-native constant evaluation and terminal-exit flow preserve the
 argument's exact value and side effects.
+
+## 2026-11-28-c-builtin-nanf — GNU NaN construction remains refused
+
+The ranked survey has two sole rows whose first refusal is the call to
+`__builtin_nanf` in a context with no program: `gcc/testsuite/gcc.dg/c23-float-4.c`
+and `gcc/testsuite/gcc.dg/c23-float-5.c`. This GNU builtin constructs a
+single-precision NaN from a character sequence. C23 §6.2.6.1 and §6.3.1.5
+leave NaN payload representation and conversion subject to the implementation
+profile, while the current evaluator carries no parser-native payload or
+floating-environment state for this call-by-name path. Treating the argument
+as an ordinary finite literal or fabricating a payload would choose an
+unmodelled representation. Keep the builtin refused until the pinned profile
+specifies NaN payload construction and differential rows for its payload and
+comparison behavior.
