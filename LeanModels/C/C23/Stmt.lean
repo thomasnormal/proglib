@@ -900,8 +900,8 @@ def execBlock : Nat → Ctx → List Stmt → ExecM Flow
           -- or propagates outward to an enclosing one.
           match findLabel l rest with
           | some tail =>
-              if hasDecl rest then
-                refuseUnsupported "goto skips a block declaration"
+              if rest.any stmtHasInitializer then
+                refuseUnsupported "goto skips an initialized block declaration"
               else execBlock fuel ctx tail
           | none =>
               -- A forward goto may land in the compound then-arm of a
@@ -912,8 +912,8 @@ def execBlock : Nat → Ctx → List Stmt → ExecM Flow
               | (.ifS _ (.compound body bsp) _ _) :: after =>
                   match findLabel l body with
                   | some tail =>
-                      if hasDecl rest then
-                        refuseUnsupported "goto skips a block declaration"
+                      if rest.any stmtHasInitializer then
+                        refuseUnsupported "goto skips an initialized block declaration"
                       else execBlock fuel ctx (tail ++ after)
                   | none => pure (.goto l)
               | _ =>

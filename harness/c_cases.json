@@ -1988,5 +1988,12 @@
     "expect": "match",
     "return_value": 0,
     "sanitize": true
+  },
+  {
+    "id": "goto-uninitialized-ordinary-declarations",
+    "source": "struct S { int s; }; int main(void) { goto label; struct S s; { int s; return s; } return s.s; label: return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "sanitize": true
   }
 ]
