@@ -1121,6 +1121,23 @@ def CoreMemDesign.CombStmtViewAligned (E : CoreMemDesign) (env : IEnv) (stmt : P
     E.execCombStmtFuel env E.elems st view locals fuel stmt = .ok (st', view', locals') →
     view' = E.scalar.view st'.scalar
 
+def CoreMemDesign.CombStmtAtViewStable (E : CoreMemDesign) (env : IEnv) (stmt : PStmt) : Prop :=
+  ∀ (st₁ st₂ : CoreMemState) (view₁ view₂ : SvState)
+    (st₁' st₂' : CoreMemState) (view₁' view₂' : SvState),
+    E.Coherent st₁ → E.Coherent st₂ → E.MemCoherent st₁.memory → E.MemCoherent st₂.memory →
+    view₁ = E.scalar.view st₁.scalar → view₂ = E.scalar.view st₂.scalar →
+    E.scalar.view st₁.scalar = E.scalar.view st₂.scalar →
+    E.execCombStmtAtView env E.elems st₁ view₁ stmt = .ok (st₁', view₁') →
+    E.execCombStmtAtView env E.elems st₂ view₂ stmt = .ok (st₂', view₂') →
+    view₁' = view₂'
+
+theorem CoreMemDesign.combStmtAtViewStable_blocking
+    {E : CoreMemDesign} {env : IEnv} {n : String} {value : PExpr}
+    (hbody : E.combBodyB (.blockingAssign n value) = true) :
+    E.CombStmtAtViewStable env (.blockingAssign n value) := by
+  intro st₁ st₂ view₁ view₂ st₁' st₂' view₁' view₂' hc₁ hc₂ hm₁ hm₂ hv₁ hv₂ hview h₁ h₂
+  exact (CoreMemDesign.execCombStmtAtView_blocking_frame hc₁ hc₂ hm₁ hm₂ hv₁ hv₂ hview hbody h₁ h₂).2
+
 /-- The public view executor is the fixed-fuel, empty-local-frame wrapper around
 the source-shaped statement executor.  A statement coherence receipt therefore
 applies directly to any successful `execCombStmtAtView` run. -/
