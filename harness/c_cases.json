@@ -607,9 +607,8 @@
   {
     "id": "type-nested-array",
     "source": "int main(void) { int a[2][3] = {{1, 2, 3}, {4, 5, 6}}; return a[1][2]; }",
-    "expect": "refuse",
-    "return_value": 6,
-    "error": "no layout for declared type 'int[2][3]'"
+    "expect": "match",
+    "return_value": 6
   },
   {
     "id": "type-postfix-qualified-pointer",
@@ -686,20 +685,16 @@
   {
     "id": "pointer-integer-compound-literal-index",
     "source": "#include <stdint.h>\nint main(void) { uintptr_t u = (uintptr_t)(&(int []){0, 1, 2}[1]); int *p = (int *)u; return *p == 1 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "error": "no layout for compound literal type 'int[3]'",
-    "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation"
+    "structured_expect": "match"
   },
   {
     "id": "pointer-integer-compound-literal-side-effect",
     "source": "#include <stdint.h>\nint n = 0; int f(void) { return ++n; } int main(void) { uintptr_t u = (uintptr_t)(&(int []){0, f(), 2}[1]); int *p = (int *)u; return *p == 1 && n == 1 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
-    "error": "no layout for compound literal type 'int[3]'",
-    "structured_expect": "refuse",
-    "structured_error": "nonValueRepresentation"
+    "structured_expect": "match"
   },
   {
     "id": "signed-bitfield-layout-wall",
@@ -1297,7 +1292,7 @@
   {
     "id": "structured-pointer-arithmetic",
     "source": "int main(void) { int a[3] = {1, 2, 3}; int *p = a; return *(p + 2) == 3 ? 0 : 1; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "structured_envelope_checks": [
       "structured_types"
@@ -1307,8 +1302,7 @@
     "layout_envelope_checks": [
       "type_layout",
       "type_layout_sizes"
-    ],
-    "error": "no layout for declared type 'int[3]'"
+    ]
   },
   {
     "id": "structured-parameter-pointer",
