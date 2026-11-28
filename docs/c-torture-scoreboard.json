@@ -9,8 +9,8 @@
   "passed": 235,
   "refused-libc": 3,
   "refused-ub": 9,
-  "refused-unsupported": 21,
-  "runner-error": 1,
+  "refused-unsupported": 22,
+  "runner-error": 0,
   "timeout": 0
  },
  "failed_tests": [],
@@ -58,6 +58,7 @@
   "refused-unsupported: castKind 'FloatingRealToComplex'": 1,
   "refused-unsupported: extern object 'aa' has no definition in the translation unit": 1,
   "refused-unsupported: floating cast has incompatible source and destination": 1,
+  "refused-unsupported: indeterminate lvalue read requires a representation choice": 1,
   "refused-unsupported: isolated non-null integer-to-pointer cast requires PNVI-ae exposure and recovery": 3,
   "refused-unsupported: long double floating literal": 2,
   "refused-unsupported: no definition for 'main'": 3,
@@ -67,8 +68,7 @@
   "refused-unsupported: pointer-integer value requires an unchanged cast back": 1,
   "refused-unsupported: sizeof: no static ABI size for operand": 1,
   "refused-unsupported: unary '__real' is not an lvalue": 1,
-  "refused-unsupported: variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression": 1,
-  "runner-error: wall-clock kill after 30s": 1
+  "refused-unsupported: variable-length array 'int[n % 1000 + 1]' lacks parser-native bound expression": 1
  },
  "note": "Written by harness/c_torture_score.py --emit, from a `lake exe c-torture-run` log.  The pin is docs/c-torture-pin.json.  This file is the tier's \u00a79.0 number as a second artifact: correcting the instrument corrects the next run, and the published figure is corrected where it was published.",
  "oracle_tests_compiler_tests": [

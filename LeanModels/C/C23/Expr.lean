@@ -688,6 +688,63 @@ def Layout.storageTypeAt (layout : Layout) (decl : Option DeclarationId)
   | some structured => if structured.aggregateObject then none else some ty
   | none => none
 
+/- Determine whether the value-bearing bytes of a parser-native aggregate are
+   initialized. Padding bytes are deliberately ignored. This is the
+   §6.3.2.1p2 check used by aggregate lvalue conversion. -/
+def Layout.valueBytesKnown? (layout : Layout) (fuel : Nat)
+    (type : LeanModels.Clang.QualType) (bytes : List CByte) (base : Nat) : Option Bool :=
+  match fuel with
+  | 0 => none
+  | fuel + 1 =>
+      let resolved := type.resolveTypedefs
+        (fun handle => layout.structuredType { value := handle.value }) 32 |>.getD type
+      match resolved.unqualified with
+      | .record handle =>
+          let owner : DeclarationId := { value := handle.value }
+          match layout.membersDecl owner with
+          | none => none
+          | some members =>
+              if members.all (fun (name, _) =>
+                match layout.fieldOffDecl owner name,
+                  layout.fieldStructuredDecl owner name with
+                | some off, some fieldType =>
+                    (layout.valueBytesKnown? fuel fieldType bytes (base + off)) == some true
+                | _, _ => false) then
+                some true
+              else if members.any (fun (name, _) =>
+                match layout.fieldOffDecl owner name,
+                  layout.fieldStructuredDecl owner name with
+                | some off, some fieldType =>
+                    (layout.valueBytesKnown? fuel fieldType bytes (base + off)) == some false
+                | _, _ => false) then
+                some false
+              else none
+      | .array element (some extent) =>
+          match layout.structuredStride element with
+          | none => none
+          | some stride =>
+              let indices := List.range extent
+              if indices.all (fun index =>
+                layout.valueBytesKnown? fuel element bytes (base + index * stride) == some true) then
+                some true
+              else if indices.any (fun index =>
+                layout.valueBytesKnown? fuel element bytes (base + index * stride) == some false) then
+                some false
+              else none
+      | .pointer _ | .function .. | .lvalueReference _ | .rvalueReference _ =>
+          some (!(List.take 8 (List.drop base bytes)).any (· == CByte.indet))
+      | _ =>
+          match scalarSizeOfStructured resolved with
+          | none => none
+          | some size => some (!(List.take size (List.drop base bytes)).any (· == CByte.indet))
+
+def Layout.loadAggregateValue (layout : Layout) (m : Mem) (p : Ptr)
+    (type : LeanModels.Clang.QualType) (n : Nat) : MRes (List CByte) := do
+  let (o, c, off) ← m.resolve p n
+  match layout.valueBytesKnown? 64 type c.bytes off with
+  | some false => .error (.indeterminateRead o off)
+  | some true | none => .ok ((c.bytes.drop off).take n)
+
 /-- Resolve a pointer stride at the pointer operand. -/
 def Layout.pointeeSizeAt (layout : Layout) (base : Option Expr) (ty : String) :
     Option Nat :=
@@ -1192,7 +1249,7 @@ def loadAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (size : Option Nat)
     | none =>
         match size with
         | some n => do
-            let bs ← readMem (fun m => Mem.loadBytes m p n)
+            let bs ← readMem (fun m => m.loadBytes p n)
             pure (.aggregate ty bs)
         | none => refuseUnsupported s!"aggregate load without a layout '{ty}'"
 
@@ -1204,8 +1261,15 @@ private def directVariable : Expr → Option DeclarationId
 abbrev Ctx.loadAt (ctx : Ctx) (p : Ptr) (ty : String) (size : Option Nat)
     (structured : Option LeanModels.Clang.QualType := none)
     (lvalue : Option Expr := none) : EvalM CVal :=
-  LeanModels.C.C23.loadAt ctx.aliasModel p ty size structured ctx.layout.zeroNullPointer
-    (fun _ => (lvalue.bind directVariable).any ctx.uninitializedRegisterCandidate)
+  if structured.any (fun type => type.aggregateObject) && size.isSome then
+    match structured, size with
+    | some aggregateType, some n => do
+        let bs ← readMem (fun m => Layout.loadAggregateValue ctx.layout m p aggregateType n)
+        pure (.aggregate ty bs)
+    | _, _ => refuseUnsupported s!"aggregate load lacks parser-native layout '{ty}'"
+  else
+    LeanModels.C.C23.loadAt ctx.aliasModel p ty size structured ctx.layout.zeroNullPointer
+      (fun _ => (lvalue.bind directVariable).any ctx.uninitializedRegisterCandidate)
 
 /-- Store a value at an address, at the lvalue's type. -/
 def storeAt (alias : Mem.AliasModel) (p : Ptr) (ty : String) (v : CVal)
