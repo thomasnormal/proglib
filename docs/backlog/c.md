@@ -4081,3 +4081,16 @@ value model admits only exact binary32 and binary64 conversions. C23
 `long double` representation and parser-rounded conversion are not carried
 yet. The existing five-row Clang 21.1.8 O0/O2/UBSan/ASan receipt is clean and
 claims no UB. Keep the refusal until the separate long-double family lands.
+
+## 2026-11-28-c-external-object-linkage — external objects remain refused
+
+The current survey has 39 sole rows whose first dynamic wall is an external
+object with no definition in the envelope, including the `inside_main` family
+from library-style C tests. C23 §6.2.1p4 gives an external declaration scope
+through the translation unit, and §6.2.2p5 gives external linkage across the
+program. The current linked envelope registry carries parser-identity function
+definitions from included user headers, but it deliberately does not carry
+header-owned objects or a separate translation-unit object set. Treating an
+unbound object as a zero object or joining it by spelling would change the
+program. These rows remain loud refusals until object declarations, storage,
+and source-hash linkage are carried in one approved parser registry.
