@@ -346,6 +346,9 @@ when at most one bit is one, while unknown vectors pass only when no more than
 one known one exists and no unknown can make the count exceed one. The clean
 `sem2/sva_onehot0` witness covers the admitted form; the arbiter census falls
 from 3 to 2, leaving one shift and one other invocation.
+The matching finite `$onehot(expr)` predicate is now retained as a separate
+source-shaped SVA node. The clean-room `sem2/sva_onehot` witness checks two
+sampled edges and keeps the unknown-vector result in the four-state SVA layer.
 `$countones(expr)` now maps to a sampled four-state known-one count, with x/z
 bits contributing zero as required by the SVA bit query. The clean-room
 `sem2/sva_countones` witness and Verilator row cover the retained value form.

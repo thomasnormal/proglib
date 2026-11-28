@@ -96,6 +96,7 @@ def instantiateBool (env : IEnv) (elems : List (String × Nat)) : PSvaBool → E
   | .and left right => .and <$> instantiateBool env elems left <*> instantiateBool env elems right
   | .or left right => .or <$> instantiateBool env elems left <*> instantiateBool env elems right
   | .isUnknown value => .ok (SvaBool.isUnknown (instantiateExpr env elems value))
+  | .oneHot value => .ok (SvaBool.oneHot (instantiateExpr env elems value))
   | .oneHot0 value => .ok (SvaBool.oneHot0 (instantiateExpr env elems value))
   | .valueCmp op left right =>
       let ctx := (svaValueWidth env elems left).orElse (fun _ => svaValueWidth env elems right)

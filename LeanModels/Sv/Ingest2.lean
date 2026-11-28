@@ -464,6 +464,8 @@ partial def parsePSvaBool (j : Json) : Except String PSvaBool := do
           (← parsePSvaBool (← getField j "right")))
     | "SvaIsUnknown" => return (PSvaBool.isUnknown
           (← parsePExpr (← getField j "expr")))
+    | "SvaOneHot" => return (PSvaBool.oneHot
+          (← parsePExpr (← getField j "expr")))
     | "SvaOneHot0" => return (PSvaBool.oneHot0
           (← parsePExpr (← getField j "expr")))
     | "SvaValueCmp" =>

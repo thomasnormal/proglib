@@ -28112,7 +28112,7 @@ def _sva_has_temporal_call(node):
     if node.get("kind") == "InvocationExpression":
         name = node.get("left", {}).get("systemIdentifier", {}).get("text", "")
         if name in ("$past", "$rose", "$fell", "$stable", "$isunknown",
-                    "$onehot0", "$countones"):
+                    "$onehot", "$onehot0", "$countones"):
             return True
     return any(_sva_has_temporal_call(v) for key, v in node.items()
                if key not in ("span", "trivia"))
@@ -28146,6 +28146,8 @@ def _sva_bool(node):
                 if isinstance(p, dict) and p.get("kind") == "OrderedArgument"]
         if name == "$isunknown" and len(args) == 1:
             return {"kind": "SvaIsUnknown", "expr": _sva_pexpr(args[0])}
+        if name == "$onehot" and len(args) == 1:
+            return {"kind": "SvaOneHot", "expr": _sva_pexpr(args[0])}
         if name == "$onehot0" and len(args) == 1:
             return {"kind": "SvaOneHot0", "expr": _sva_pexpr(args[0])}
         if name in ("$rose", "$fell", "$stable") and len(args) == 1:

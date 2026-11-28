@@ -527,6 +527,32 @@
       "measured": "2026-11-07: $isunknown retains four-state sampled knownness as an explicit SVA predicate."
     },
     {
+      "name": "sva_onehot",
+      "example": "sem2/sva_onehot",
+      "top": "sva_onehot",
+      "clock": "clk",
+      "signals": [
+        "a",
+        "q"
+      ],
+      "stimulus": [
+        {
+          "a": "0001"
+        },
+        {
+          "a": "0001"
+        },
+        {
+          "a": "0001"
+        },
+        {
+          "a": "0001"
+        }
+      ],
+      "verilator_only": true,
+      "measured": "2026-11-28: $onehot retains the finite four-state exactly-one predicate in the sampled SVA value tree."
+    },
+    {
       "name": "sva_onehot0",
       "example": "sem2/sva_onehot0",
       "top": "sva_onehot0",
