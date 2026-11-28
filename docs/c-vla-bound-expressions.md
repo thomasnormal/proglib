@@ -16,3 +16,5 @@ non-positive value is reported as undefined behavior. This item leaves
 arithmetic, calls, and side effects inside a VLA bound refused until the
 plugin carries their complete parser nodes and their C evaluation order can
 be modelled.
+
+CPP-DESIGN READY vla-bound-payload daa59508f
