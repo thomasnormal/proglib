@@ -429,22 +429,20 @@
   {
     "id": "filler-full",
     "source": "int main(void) { int a[3] = {2, 3, 4}; return a[0] + 2*a[1] + 3*a[2]; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 20,
     "envelope_checks": [
       "array_filler"
-    ],
-    "error": "no layout for declared type 'int[3]'"
+    ]
   },
   {
     "id": "filler-all-zero",
     "source": "int main(void) { int a[4] = {}; return a[0] + a[1] + a[2] + a[3]; }",
-    "expect": "refuse",
+    "expect": "match",
     "return_value": 0,
     "envelope_checks": [
       "array_filler"
-    ],
-    "error": "no layout for declared type 'int[4]'"
+    ]
   },
   {
     "id": "global-tentative",
