@@ -14,6 +14,28 @@
     "sanitize": true
   },
   {
+    "id": "incomplete-record-before-complete",
+    "source": "struct F; struct S { char c; int x; }; int main(void) { struct S s = {1, 2}; return s.x; }",
+    "expect": "match",
+    "return_value": 2,
+    "sanitize": true
+  },
+  {
+    "id": "incomplete-record-after-complete",
+    "source": "struct S { char c; int x; }; struct F; int main(void) { struct S s = {1, 2}; return s.x; }",
+    "expect": "match",
+    "return_value": 2,
+    "sanitize": true
+  },
+  {
+    "id": "stdio-with-user-record-layout",
+    "source": "#include <stdio.h>\nstruct S { char c; int x; }; int main(void) { struct S s = {1, 2}; printf(\"%d\\n\", s.x); return 0; }",
+    "expect": "match",
+    "return_value": 0,
+    "expected_stdout": "2\n",
+    "sanitize": true
+  },
+  {
     "id": "multifile-user-header-definition-registry",
     "headers": {
       "registry_header.h": "static int registry_helper(int x) { return x + 1; }\nint registry_api(int x);\nint registry_api(int x) { return registry_helper(x); }"

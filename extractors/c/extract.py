@@ -1162,11 +1162,14 @@ def extract(path, source_name=None, standard="c23"):
     # pointer identities cannot equal the JSON dump's process addresses.
     # Both are parser traversals, however, and the plugin records the stable
     # RecordDecl traversal ordinal. Join that ordinal to the JSON node id.
+    # Count every RecordDecl, including incomplete declarations and
+    # redeclarations. The plugin's visitor increments its ordinal before its
+    # complete-definition/source-file filters, so filtering here would shift
+    # every later layout observation.
     record_ids = []
     def collect_record_ids(value):
         if isinstance(value, dict):
             if (value.get("kind") == "RecordDecl" and
-                    value.get("completeDefinition") is True and
                     isinstance(value.get("id"), str)):
                 record_ids.append(value["id"])
             for child in value.values():
