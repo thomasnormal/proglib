@@ -412,7 +412,9 @@ theorem CoreMemDesign.settleRaw_domain {E : CoreMemDesign} {A : List SeqEvent} {
       | event _ _ =>
           simp only [CoreMemDesign.settleRaw] at h1 h2
           exact CoreMemDesign.settleRaw_domain hD rest (idx + 1) hrest r1 r2 r1' r2' h h1 h2
-      | comb _ => simp [CoreMemDesign.settleRaw] at h1
+      | comb _ =>
+          simp only [CoreMemDesign.settleRaw] at h1 h2
+          exact CoreMemDesign.settleRaw_domain hD rest (idx + 1) hrest r1 r2 r1' r2' h h1 h2
       | implicit _ => simp [CoreMemDesign.settleRaw] at h1
       | latch _ => simp [CoreMemDesign.settleRaw] at h1
       | unsupported _ _ => simp [CoreMemDesign.settleRaw] at h1
