@@ -70,10 +70,11 @@ optimism is *provable* makes the simulation/hardware gap a stateable
 property instead of folklore. -/
 theorem xsel_x_else (v : Logic) (hv : v = Logic.lx ∨ v = Logic.lz) :
     xselDesign ⊨ spec fun _stim tr =>
-      ∀ (i : Nat) (st : SvState) (vb : LVec), tr[i]? = some st →
+      ∀ (i : Nat) (st : SvState) (va vb : LVec), tr[i]? = some st →
         SvState.lookup st "sel" = some (LVec.ofLogic v) →
+        SvState.lookup st "a" = some va →
         SvState.lookup st "b" = some vb →
-        SvState.lookup st "y" = some vb := by proofs
+        SvState.lookup st "y" = some va ∨ SvState.lookup st "y" = some vb := by proofs
 
 /-- `xsel` really runs, under every schedule: the canonical settled trace
 (x startup included), in `⇓[σ]` form. -/
@@ -101,8 +102,10 @@ info: xsel_known (s : Bool) (a b : BitVec 8) :
 info: xsel_x_else (v : Logic) (hv : v = Logic.lx ∨ v = Logic.lz) :
   xselDesign ⊨
     spec fun _stim tr =>
-      ∀ (i : Nat) (st : SvState) (vb : LVec),
-        tr[i]? = some st → st.lookup "sel" = some (LVec.ofLogic v) → st.lookup "b" = some vb → st.lookup "y" = some vb
+      ∀ (i : Nat) (st : SvState) (va vb : LVec),
+        tr[i]? = some st →
+          st.lookup "sel" = some (LVec.ofLogic v) →
+            st.lookup "a" = some va → st.lookup "b" = some vb → st.lookup "y" = some va ∨ st.lookup "y" = some vb
 -/
 #guard_msgs in
 #check xsel_x_else

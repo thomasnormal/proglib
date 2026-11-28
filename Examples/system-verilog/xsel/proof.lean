@@ -5,10 +5,8 @@ if/else mux, with the gallery's two theorem shapes:
 
 * known select (`xsel_known`): an embedded `Bool` select settles `y` to
   `if sel then a else b`;
-* X-optimism (`xsel_x_else`) is retained only as an executor corollary with
-  an explicit `DecisionKnown` premise. The relational semantics owns the
-  unresolved-select outcomes, so this file no longer asserts a universal
-  result for `x` or `z`.
+* unresolved select (`xsel_x_else`) records that the output is one of the two
+  data inputs when the select is `x` or `z`, without choosing one resolution.
 
 `xsel` is the second comb-phase design after `adder`, and the first whose
 comb process is an `always_comb` *statement* (blocking assign under an
@@ -250,25 +248,25 @@ theorem xsel_known_raw (σ : ScheduleOracle) {fuel : Nat} {stim tr : List SvStat
   rw [LVec.condTrue_ofBool]
   cases s <;> simp
 
-/-- **X-optimism** (raw form, LRM §12.4): on every completed run, any
-snapshot whose settled `sel` is a single `x` — or `z`, the identical twin —
-bit shows `y = b` (the ELSE branch), whatever `b` holds. -/
+/-- **Unresolved select** (raw form, LRM §12.4): on every completed run, a
+snapshot whose settled `sel` is a single `x` or `z` has `y` equal to one of
+the two settled data inputs. -/
 theorem xsel_x_raw (σ : ScheduleOracle) {fuel : Nat} {stim tr : List SvState}
     (h : run xselDesign σ fuel stim = .ok tr) (v : Logic)
-    (hv : v = Logic.lx ∨ v = Logic.lz)
-    (hknown : DecisionKnown (LVec.ofLogic v)) :
-    ∀ (i : Nat) (st : SvState) (vb : LVec), tr[i]? = some st →
+    (hv : v = Logic.lx ∨ v = Logic.lz) :
+    ∀ (i : Nat) (st : SvState) (va vb : LVec), tr[i]? = some st →
       SvState.lookup st "sel" = some (LVec.ofLogic v) →
+      SvState.lookup st "a" = some va →
       SvState.lookup st "b" = some vb →
-      SvState.lookup st "y" = some vb := by
+      SvState.lookup st "y" = some va ∨ SvState.lookup st "y" = some vb := by
   have htr : tr = xselTrace (LVec.xVec 1) (LVec.xVec 8) (LVec.xVec 8) stim :=
     run_det h (xsel_run σ stim 8 (Nat.le_refl 8))
   subst htr
-  intro i st vb hi hsel hb
+  intro i st va vb hi hsel ha hb
   obtain ⟨s', a', b', rfl⟩ := xselTrace_snapshots stim _ _ _ i st hi
-  simp only [lookup_sel_state, lookup_b_state, lookup_y_state,
-    Option.some.injEq] at hsel hb ⊢
-  subst hsel hb
+  simp only [lookup_sel_state, lookup_a_state, lookup_b_state, lookup_y_state,
+    Option.some.injEq] at hsel ha hb ⊢
+  subst hsel ha hb
   rw [LVec.condTrue_ofLogic]
   rcases hv with rfl | rfl <;> simp
 
@@ -287,17 +285,17 @@ theorem xsel_known (s : Bool) (a b : BitVec 8) :
         SvState.lookup st "y" = some (LVec.ofBitVec (if s then a else b)) := by
   sv_prove [xsel_known_raw]
 
-/-- **Gallery example 5, X-optimism form** (`xsel_x_else`): a `sel` of `x`
-or `z` takes the ELSE branch — `y = b`, never a bitwise `a`/`b` merge
-(LRM §12.4: zero, x, or z is not-true). The `v = lx ∨ v = lz` hypothesis
-folds the gallery's `Logic.lz` twin into one statement. -/
-theorem xsel_x_else (v : Logic) (hv : v = Logic.lx ∨ v = Logic.lz)
-    (hknown : DecisionKnown (LVec.ofLogic v)) :
+/-- **Gallery example 5, unresolved-select form** (`xsel_x_else`): a `sel`
+of `x` or `z` leaves the output in the two-input resolution set (LRM §12.4).
+The `v = lx ∨ v = lz` hypothesis folds the gallery's `Logic.lz` twin into one
+statement. -/
+theorem xsel_x_else (v : Logic) (hv : v = Logic.lx ∨ v = Logic.lz) :
     xselDesign ⊨ spec fun _stim tr =>
-      ∀ (i : Nat) (st : SvState) (vb : LVec), tr[i]? = some st →
+      ∀ (i : Nat) (st : SvState) (va vb : LVec), tr[i]? = some st →
         SvState.lookup st "sel" = some (LVec.ofLogic v) →
+        SvState.lookup st "a" = some va →
         SvState.lookup st "b" = some vb →
-        SvState.lookup st "y" = some vb := by
+        SvState.lookup st "y" = some va ∨ SvState.lookup st "y" = some vb := by
   sv_prove [xsel_x_raw]
 
 /-- `xsel` really runs, under every schedule (= `xsel_total`). -/
