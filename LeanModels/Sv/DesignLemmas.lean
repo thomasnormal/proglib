@@ -146,6 +146,11 @@ theorem rowMajor_lt {rows cols row col : Nat} (hrow : row < rows) (hcol : col < 
     _ = (row + 1) * cols := by simp [Nat.add_mul]
     _ ≤ rows * cols := Nat.mul_le_mul_right cols (Nat.succ_le_of_lt hrow)
 
+theorem rowMajor_window_in_range {rows cols row col : Nat}
+    (hrow : row < rows) (hcol : col < cols) :
+    row * cols + col + 1 ≤ rows * cols := by
+  exact Nat.succ_le_of_lt (rowMajor_lt hrow hcol)
+
 /-! A generated-child summary is a family of source-order segments.  Keeping
 one segment per genvar value preserves the valuation-dependent names and the
 child boundary; flattening is a separate, explicit operation for the ordinary

@@ -208,6 +208,11 @@ theorem noisy_fault_row_major_index_in_range
     i * N + j < N * N := by
   exact rowMajor_lt hi hj
 
+theorem noisy_fault_row_window_in_range
+    {N i j : Nat} (hi : i < N) (hj : j < N) :
+    i * N + j + 1 ≤ N * N := by
+  exact rowMajor_window_in_range hi hj
+
 theorem noisy_fault_full_adder_index_in_range
     {N i j q : Nat} (hN : 1 ≤ N) (hi : 1 ≤ i) (hiN : i < N)
     (hj : j < N) (hq : q < 3) :
